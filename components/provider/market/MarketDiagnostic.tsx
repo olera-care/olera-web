@@ -43,7 +43,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 
 function Section({ id, kicker, title, children }: { id?: string; kicker: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="border-t border-stone-200/80 pt-10 mt-10 scroll-mt-24">
+    <section id={id} className="mt-16 scroll-mt-24">
       <Eyebrow>{kicker}</Eyebrow>
       <h2 className="font-display text-[1.75rem] leading-tight text-stone-900 mt-1.5 mb-5">{title}</h2>
       {children}
@@ -122,7 +122,7 @@ export default function MarketDiagnostic({
                 {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">You</span>}
               </div>
               <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-[#199087]/45"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
+                <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
               </div>
               <div className="w-24 text-right text-[12px] text-stone-500 tabular-nums">{l.reviews} rev · {l.rating ?? "—"}★</div>
             </div>
@@ -181,16 +181,16 @@ export default function MarketDiagnostic({
           Private-pay care lives where senior density meets income. These are the areas worth your
           marketing and visit time — ranked. The campus core is dense but young; skip it.
         </p>
-        <div className="space-y-2.5">
+        <div className="divide-y divide-stone-200/50">
           {topAreas.map((z, i) => (
-            <div key={z.zcta} className="flex items-center gap-4 rounded-2xl border border-stone-200/80 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(28,25,23,0.04)]">
-              <div className="font-display text-lg text-[#199087] w-7">{i + 1}</div>
+            <div key={z.zcta} className="flex items-center gap-4 py-3.5">
+              <div className="font-display text-lg text-stone-300 w-7">{i + 1}</div>
               <div className="flex-1">
                 <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
                 <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usd(z.medianIncome) + " median income" : "—"}</div>
               </div>
               {z.medianIncome && z.medianIncome >= 70000 && (
-                <span className="text-[11px] font-medium text-[#199087] bg-emerald-50 rounded-full px-2.5 py-1">High private-pay</span>
+                <span className="text-[11px] font-medium text-[#199087]">High private-pay</span>
               )}
             </div>
           ))}
@@ -211,7 +211,7 @@ export default function MarketDiagnostic({
             return (
               <div
                 key={c.channel}
-                className={`flex gap-4 rounded-2xl p-4 transition-colors ${lead ? "bg-[#199087]/[0.05] border border-[#199087]/15" : "hover:bg-stone-50"}`}
+                className={`flex gap-4 rounded-2xl p-4 transition-colors ${lead ? "bg-stone-50/80" : "hover:bg-stone-50"}`}
               >
                 <div className={`font-display leading-none shrink-0 w-9 ${lead ? "text-[2.25rem] text-[#199087]" : "text-[1.75rem] text-stone-300"}`}>{c.priority}</div>
                 <div className="min-w-0">

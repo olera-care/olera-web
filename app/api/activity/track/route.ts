@@ -15,6 +15,7 @@ const PROVIDER_EVENT_TYPES = [
   "review_viewed",
   "one_click_access",
   "contact_revealed",
+  "continue_in_inbox",        // Provider clicked "Continue in Inbox" from lead drawer
   "reviews_cta_clicked",
   "analytics_teaser_impression",
   "analytics_teaser_cta_clicked",

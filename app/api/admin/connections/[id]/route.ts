@@ -71,7 +71,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .select(`
         id, type, status, message, metadata, created_at, from_profile_id, to_profile_id,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email, phone, care_types),
-        to_profile:business_profiles!connections_to_profile_id_fkey(display_name, slug, source_provider_id, email, phone)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, phone)
       `)
       .eq("id", id)
       .maybeSingle();
@@ -119,13 +119,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }));
 
     // Provider engagement (opened/clicked/contact revealed/continue in inbox).
-    const activityKey = provider?.slug || provider?.source_provider_id || null;
+    // Use all possible provider identifiers for engagement lookup (matches list API)
+    const engagementKeys = [
+      provider?.slug,
+      provider?.source_provider_id,
+      provider?.id,
+      c.to_profile_id,
+    ].filter(Boolean) as string[];
     let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, continue_in_inbox: false };
-    if (activityKey) {
+    if (engagementKeys.length > 0) {
       const { data: events } = await db
         .from("provider_activity")
         .select("event_type")
-        .eq("provider_id", activityKey)
+        .in("provider_id", engagementKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "continue_in_inbox"]);
       engagement = {
         email_clicked: (events ?? []).some((e) => e.event_type === "email_click"),

@@ -276,29 +276,42 @@ export default function ConnectionRow({
           <div className="text-sm text-gray-500 truncate">
             from {family} · {age}
           </div>
-          {/* Engagement badges */}
-          {engagement && (engagement.email_clicked || engagement.lead_opened || engagement.contact_revealed) && (
-            <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-              {engagement.email_clicked && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
-                  📧 Opened
-                </span>
-              )}
-              {engagement.lead_opened && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-violet-50 text-violet-600">
-                  👁 Viewed
-                </span>
-              )}
-              {engagement.contact_revealed && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">
-                  📋 Copied
-                </span>
-              )}
-            </div>
-          )}
-          {c.messagePreview && !engagement?.email_clicked && !engagement?.lead_opened && !engagement?.contact_revealed && (
-            <div className="mt-0.5 text-xs text-gray-400 truncate italic">{c.messagePreview}</div>
-          )}
+          {/* Inline WHY context */}
+          <div className="mt-0.5 text-xs text-gray-500 truncate">
+            {(() => {
+              // Build engagement description
+              const signals: string[] = [];
+              if (engagement?.contact_revealed) signals.push("copied contact");
+              else if (engagement?.lead_opened) signals.push("viewed lead");
+              else if (engagement?.email_clicked) signals.push("opened email");
+
+              // Build status description
+              let status = "";
+              if (category === "responded") {
+                status = "connected";
+              } else if (category === "provider_nudged") {
+                status = "waiting on provider";
+              } else if (category === "family_nudged") {
+                status = "waiting on family";
+              } else if (category === "no_email") {
+                status = "no email on file";
+              } else if (category === "needs_attention") {
+                status = "no response yet";
+              }
+
+              // Combine into readable sentence
+              if (signals.length > 0 && status) {
+                return `${signals.join(", ")} — ${status}`;
+              } else if (signals.length > 0) {
+                return signals.join(", ");
+              } else if (status) {
+                return status;
+              } else if (c.messagePreview) {
+                return c.messagePreview;
+              }
+              return "lead sent";
+            })()}
+          </div>
         </div>
 
         {/* Action button */}

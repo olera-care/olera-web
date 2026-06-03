@@ -213,13 +213,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Determine response-based category
-      // Priority order (first match wins):
-      //   1. responded - provider replied (terminal state)
-      //   2. inactive - provider marked inactive (excluded from counts)
-      //   3. no_email - can't nudge without email
-      //   4. provider_nudged - waiting on provider (takes priority over family)
-      //   5. family_nudged - waiting on family
-      //   6. needs_attention - ready for action
+      // Logic: First check provider state, then if provider responded check family state
       const hasProviderEmail = !!provider?.email;
       const providerIsActive = provider?.is_active !== false;
       const providerNudgedRecently = providerNudgedAt
@@ -230,12 +224,27 @@ export async function GET(request: NextRequest) {
         : false;
 
       let responseCategory: ResponseCategory | null;
-      if (responded) responseCategory = "responded";
-      else if (!providerIsActive) responseCategory = null;
-      else if (!hasProviderEmail) responseCategory = "no_email";
-      else if (providerNudgedRecently) responseCategory = "provider_nudged";
-      else if (familyNudgedRecently) responseCategory = "family_nudged";
-      else responseCategory = "needs_attention";
+      if (!providerIsActive) {
+        responseCategory = null; // Inactive providers excluded from all counts
+      } else if (!hasProviderEmail) {
+        responseCategory = "no_email"; // Can't email, must call
+      } else if (responded) {
+        // Provider responded - now check family state
+        if (familyRepliedAfterProvider) {
+          responseCategory = "responded"; // Both parties engaged - truly connected
+        } else if (familyNudgedRecently) {
+          responseCategory = "family_nudged"; // Waiting on family to reply
+        } else {
+          responseCategory = "responded"; // Provider responded, ready for family nudge
+        }
+      } else {
+        // Provider hasn't responded yet
+        if (providerNudgedRecently) {
+          responseCategory = "provider_nudged"; // Waiting on provider
+        } else {
+          responseCategory = "needs_attention"; // Ready to nudge provider
+        }
+      }
 
       return {
         id: r.id,

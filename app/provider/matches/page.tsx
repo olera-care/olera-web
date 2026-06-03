@@ -1767,6 +1767,7 @@ export default function ProviderMatchesPage() {
         city={providerProfile?.city || ""}
         state={providerProfile?.state || ""}
         category={careType}
+        providerName={providerProfile?.display_name || ""}
         localLeadCount={localLeadCount}
         onViewLeads={() => setForceLeads(true)}
       />

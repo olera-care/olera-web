@@ -23,6 +23,7 @@ const CAT_LABEL: Record<string, string> = {
 };
 const usd = (n: number) => `$${n.toLocaleString()}`;
 const usdK = (n: number) => usd(Math.round(n / 1000) * 1000).replace(",000", "k");
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 function Eyebrow({ children }: { children: ReactNode }) {
   return <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#199087]">{children}</div>;
@@ -38,14 +39,29 @@ function Section({ kicker, title, children }: { kicker: string; title: string; c
   );
 }
 
+/** Perena-style stat card — soft, solid, gently shadowed. */
+function StatCard({ value, label }: { value: ReactNode; label: string }) {
+  return (
+    <div className="rounded-2xl border border-stone-200/80 bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
+      <div className="font-display text-[2rem] leading-none text-stone-900">{value}</div>
+      <div className="text-[12.5px] text-stone-500 mt-2">{label}</div>
+    </div>
+  );
+}
+
 /**
  * The "Your Market" strategic layer — a provider's local client-acquisition diagnostic.
+ * Leads with competition (the hook) with demand folded in as the stakes.
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
  */
-export default function MarketDiagnostic({ data, showHeader = true, interactive = false }: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean }) {
+export default function MarketDiagnostic({
+  data, showHeader = true, interactive = false, providerName,
+}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string }) {
   const a = data;
   const dem = a.demand.demographics;
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
+  const cl = a.competitorLandscape;
+  const ref = a.referralGraph;
 
   // Priority areas: senior density × income (private-pay signal), campus de-weighted
   const topAreas = (dem.zctas ?? [])
@@ -53,68 +69,56 @@ export default function MarketDiagnostic({ data, showHeader = true, interactive 
     .sort((x, y) => y.score - x.score)
     .slice(0, 4);
 
-  const cl = a.competitorLandscape;
+  // "You" highlight — light up the provider's own bar when they're a Google-listed agency.
+  const youIdx = providerName
+    ? cl.leaders.findIndex((l) => { const a2 = norm(l.name), b = norm(providerName); return a2 && b && (a2.includes(b) || b.includes(a2)); })
+    : -1;
   const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), 1);
-  const ref = a.referralGraph;
 
   return (
     <div className="max-w-3xl">
+      {/* ── HERO = Competition (the hook), demand folded in as the stakes ── */}
       {showHeader && (
-        <>
-          <Eyebrow>Your market · {a.meta.city}, {a.meta.state} · {a.meta.careType === "homecare" ? "Home care" : "Assisted living"}</Eyebrow>
-          <h1 className="font-display text-[2.5rem] leading-[1.1] text-stone-900 mt-2">Where your next clients are</h1>
-          <p className="text-stone-500 mt-3 text-[15px] leading-relaxed max-w-xl">
-            A read on your local market — the demand, who you&apos;re up against, and the highest-leverage
-            ways to win clients. Built from live data, not guesswork.
-          </p>
-        </>
+        <Eyebrow>Your market · {a.meta.city}, {a.meta.state} · {a.meta.careType === "homecare" ? "Home care" : "Assisted living"}</Eyebrow>
       )}
+      <h1 className="font-display text-[2.5rem] leading-[1.12] text-stone-900 mt-2 max-w-2xl">
+        {cl.count} agencies are competing for {totalSeniors.toLocaleString()} seniors in {a.meta.city}.
+      </h1>
+      <p className="text-stone-500 mt-3 text-[15px] leading-relaxed max-w-xl">
+        Share of voice = who owns the reviews families read on Google. It&apos;s the currency of local trust,
+        and the one channel you fully control. Here&apos;s where the field stands.
+      </p>
 
-      {/* Demand */}
-      <Section kicker="The demand" title="The market in front of you">
-        <div className="grid grid-cols-3 gap-5">
-          <div>
-            <div className="font-display text-[2.75rem] leading-none text-stone-900">{totalSeniors.toLocaleString()}</div>
-            <div className="text-[13px] text-stone-500 mt-2">seniors (65+) in your service area</div>
-          </div>
-          <div>
-            <div className="font-display text-[2.75rem] leading-none text-stone-900">{dem.seniorSharePct}%</div>
-            <div className="text-[13px] text-stone-500 mt-2">of the local population</div>
-          </div>
-          <div>
-            <div className="font-display text-[2.75rem] leading-none text-stone-900">
-              {dem.medianIncomeRange ? `${usdK(dem.medianIncomeRange.min)}–${usdK(dem.medianIncomeRange.max)}` : "—"}
-            </div>
-            <div className="text-[13px] text-stone-500 mt-2">household income range by area</div>
-          </div>
-        </div>
-        <p className="text-[13px] text-stone-400 mt-5">
-          Olera currently sees {a.demand.olera.familiesInCity} families actively searching here and lists{" "}
-          {a.demand.olera.providersListed} providers — a foothold we grow into qualified leads for you.
-        </p>
-      </Section>
+      <div className="grid grid-cols-3 gap-3 mt-7">
+        <StatCard value={totalSeniors.toLocaleString()} label="seniors (65+) in your area" />
+        <StatCard value={cl.count} label="agencies competing" />
+        <StatCard value={cl.medianReviews ?? "—"} label="median reviews per agency" />
+      </div>
 
-      {/* Competition */}
-      <Section kicker="Your competition" title={`${cl.count} agencies competing for the same families`}>
-        <p className="text-[14px] text-stone-600 leading-relaxed mb-5 max-w-xl">
-          Share of voice = who owns the reviews families read on Google. Market median is{" "}
-          <span className="text-stone-900 font-medium">{cl.medianReviews} reviews</span> at {cl.medianRating}★.
-          Reviews are the currency of local trust — and a channel you control.
-        </p>
-        <div className="space-y-2">
-          {cl.leaders.slice(0, 8).map((l) => (
+      <div className="space-y-2 mt-7">
+        {cl.leaders.slice(0, 8).map((l, i) => {
+          const isYou = i === youIdx;
+          return (
             <div key={l.name} className="flex items-center gap-3">
-              <div className="w-44 truncate text-[13px] text-stone-700">{l.name}</div>
+              <div className={`w-44 truncate text-[13px] flex items-center gap-1.5 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
+                <span className="truncate">{l.name}</span>
+                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">You</span>}
+              </div>
               <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#199087]/85 rounded-full" style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
+                <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-[#199087]/45"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
               </div>
               <div className="w-24 text-right text-[12px] text-stone-500 tabular-nums">{l.reviews} rev · {l.rating ?? "—"}★</div>
             </div>
-          ))}
-        </div>
-      </Section>
+          );
+        })}
+      </div>
 
-      {/* Referral map */}
+      <p className="text-[13px] text-stone-400 mt-5">
+        {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
+        Olera sees {a.demand.olera.familiesInCity} families actively searching here today — a foothold we grow into qualified leads for you.
+      </p>
+
+      {/* ── The unlock — referral map (the differentiated payoff) ── */}
       <Section kicker="The unlock" title="The referral map most agencies never build">
         <p className="text-[14px] text-stone-600 leading-relaxed mb-6 max-w-xl">
           In home care, <span className="text-stone-900 font-medium">50–70% of clients come from professional referrals</span> —
@@ -124,10 +128,7 @@ export default function MarketDiagnostic({ data, showHeader = true, interactive 
         </p>
         <div className="grid grid-cols-3 gap-3 mb-7">
           {ref.byRole.filter((r) => CAT_LABEL[r.cat]).slice(0, 6).map((r) => (
-            <div key={r.cat} className="rounded-xl border border-stone-200/70 bg-white/50 px-4 py-3">
-              <div className="font-display text-2xl text-stone-900">{r.count}</div>
-              <div className="text-[12px] text-stone-500 mt-0.5">{CAT_LABEL[r.cat]}</div>
-            </div>
+            <StatCard key={r.cat} value={r.count} label={CAT_LABEL[r.cat]} />
           ))}
         </div>
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
@@ -136,7 +137,7 @@ export default function MarketDiagnostic({ data, showHeader = true, interactive 
         <ReferralTargets targets={ref.prioritizedTargets} interactive={interactive} />
       </Section>
 
-      {/* Where to focus */}
+      {/* ── Where to focus — the ZIPs (tactical, absorbs income) ── */}
       <Section kicker="Where to focus" title="Not all of town is your customer">
         <p className="text-[14px] text-stone-600 leading-relaxed mb-5 max-w-xl">
           Private-pay care lives where senior density meets income. These are the areas worth your
@@ -144,7 +145,7 @@ export default function MarketDiagnostic({ data, showHeader = true, interactive 
         </p>
         <div className="space-y-2.5">
           {topAreas.map((z, i) => (
-            <div key={z.zcta} className="flex items-center gap-4 rounded-xl border border-stone-200/70 bg-white/50 px-4 py-3">
+            <div key={z.zcta} className="flex items-center gap-4 rounded-2xl border border-stone-200/80 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(28,25,23,0.04)]">
               <div className="font-display text-lg text-[#199087] w-7">{i + 1}</div>
               <div className="flex-1">
                 <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
@@ -158,7 +159,7 @@ export default function MarketDiagnostic({ data, showHeader = true, interactive 
         </div>
       </Section>
 
-      {/* Playbook */}
+      {/* ── The playbook ── */}
       <Section kicker="The playbook" title="Where to spend your effort, in order">
         <div className="space-y-4">
           {a.channels.map((c) => (

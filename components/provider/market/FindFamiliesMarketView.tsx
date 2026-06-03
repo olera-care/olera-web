@@ -11,11 +11,12 @@ import MarketDiagnostic, { type MarketDiagnosticData } from "./MarketDiagnostic"
  * (the edge case), a compact urgency strip pins on top and links to the full leads view.
  */
 export default function FindFamiliesMarketView({
-  city, state, category, localLeadCount = 0, onViewLeads,
+  city, state, category, providerName, localLeadCount = 0, onViewLeads,
 }: {
   city: string;
   state: string;
   category: string;
+  providerName?: string;
   localLeadCount?: number;
   onViewLeads?: () => void;
 }) {
@@ -40,11 +41,6 @@ export default function FindFamiliesMarketView({
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">Find families</h1>
-          <p className="text-sm lg:text-[15px] text-gray-500">Your local market and how to win clients in it</p>
-        </div>
-
         {/* Edge case: live local leads — pin on top with urgency */}
         {localLeadCount > 0 && (
           <button
@@ -86,7 +82,7 @@ export default function FindFamiliesMarketView({
           </div>
         )}
 
-        {status === "ready" && data && <MarketDiagnostic data={data} interactive />}
+        {status === "ready" && data && <MarketDiagnostic data={data} interactive providerName={providerName} />}
       </div>
     </div>
   );

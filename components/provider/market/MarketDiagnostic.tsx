@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
+import ReferralTargets from "./ReferralTargets";
 
 // ── Types (shape produced by scripts/market-diagnostic/analyze-diagnostic.mjs) ──
 export interface Zcta { zcta: string; population: number; seniors65plus: number; medianIncome: number | null }
 export interface Leader { name: string; reviews: number; rating: number | null; distanceMiles: number | null; website: boolean; shareOfVoicePct: number }
-export interface BdTarget { name: string; cat: string; referralValue: string; distanceMiles: number | null; reviews: number; rating: number | null; phone: string | null; website: string | null; address: string }
+export interface BdTarget { id: string; name: string; cat: string; referralValue: string; distanceMiles: number | null; reviews: number; rating: number | null; phone: string | null; website: string | null; address: string }
 export interface MarketDiagnosticData {
   meta: { city: string; state: string; careType: string; generatedAt: string };
   demand: {
@@ -41,7 +42,7 @@ function Section({ kicker, title, children }: { kicker: string; title: string; c
  * The "Your Market" strategic layer — a provider's local client-acquisition diagnostic.
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
  */
-export default function MarketDiagnostic({ data, showHeader = true }: { data: MarketDiagnosticData; showHeader?: boolean }) {
+export default function MarketDiagnostic({ data, showHeader = true, interactive = false }: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean }) {
   const a = data;
   const dem = a.demand.demographics;
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
@@ -129,18 +130,10 @@ export default function MarketDiagnostic({ data, showHeader = true }: { data: Ma
             </div>
           ))}
         </div>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">Start here — prioritized targets</div>
-        <div className="space-y-2">
-          {ref.prioritizedTargets.slice(0, 8).map((t) => (
-            <div key={t.name} className="flex items-center gap-3 rounded-xl border border-stone-200/70 bg-white/50 px-4 py-2.5">
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] text-stone-900 truncate">{t.name}</div>
-                <div className="text-[12px] text-stone-500">{CAT_LABEL[t.cat] ?? t.cat} · {t.distanceMiles}mi{t.phone ? ` · ${t.phone}` : ""}</div>
-              </div>
-              <span className="text-[11px] font-medium text-stone-400">{t.reviews} rev</span>
-            </div>
-          ))}
+        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
+          {interactive ? "Your call sheet — work it" : "Start here — prioritized targets"}
         </div>
+        <ReferralTargets targets={ref.prioritizedTargets} interactive={interactive} />
       </Section>
 
       {/* Where to focus */}

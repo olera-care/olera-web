@@ -210,6 +210,7 @@
     ],
     "prioritizedTargets": [
       {
+        "id": "ChIJ4fymJ2GBRoYR1lJlXsyTq04",
         "name": "St. Joseph Health Regional Hospital - Bryan, TX",
         "cat": "hospital",
         "referralValue": "high",
@@ -221,6 +222,7 @@
         "address": "2801 Franciscan Dr, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJeeTN3XqBRoYRx3XqzHd4rsk",
         "name": "Lampstand Nursing and Rehabilitation",
         "cat": "skilled_nursing",
         "referralValue": "high",
@@ -232,6 +234,7 @@
         "address": "2001 E 29th St, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJQzDaQO-DRoYR6k_SVEOB2Sg",
         "name": "Luminos Hospice",
         "cat": "hospice",
         "referralValue": "high",
@@ -243,6 +246,7 @@
         "address": "111 University Dr E # 110, College Station, TX 77840, USA"
       },
       {
+        "id": "ChIJU2nxV5uGRoYRJOIuVdXSnLE",
         "name": "Watercrest at Bryan",
         "cat": "assisted_living",
         "referralValue": "high",
@@ -254,6 +258,7 @@
         "address": "3801 E Crest Dr, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJLWXTi46BRoYRvX8KI_FVTWM",
         "name": "Save Our Streets (S.O.S.) Ministries",
         "cat": "senior_resource",
         "referralValue": "high",
@@ -265,6 +270,7 @@
         "address": "1700 Groesbeck St, Bryan, TX 77803, USA"
       },
       {
+        "id": "ChIJQ7_jOt2ERoYRMF9zoWNex24",
         "name": "St. Joseph Health College Station Hospital - College Station, TX",
         "cat": "hospital",
         "referralValue": "high",
@@ -276,6 +282,7 @@
         "address": "1604 Rock Prairie Rd, College Station, TX 77845, USA"
       },
       {
+        "id": "ChIJy_gw6SGFRoYR4VFqnSv7pOg",
         "name": "Accel at College Station",
         "cat": "skilled_nursing",
         "referralValue": "high",
@@ -287,6 +294,7 @@
         "address": "1500 Medical Avenue, College Station, TX 77845, USA"
       },
       {
+        "id": "ChIJDV1Bo52BRoYRosDP5EXWv74",
         "name": "Vantage Hospice",
         "cat": "hospice",
         "referralValue": "high",
@@ -298,6 +306,7 @@
         "address": "2100 E Villa Maria Rd # 101, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJjcUcBFaHRoYRnUH43T-7Wt8",
         "name": "Hudson Oaks 62+ Active Senior Living Apartments",
         "cat": "assisted_living",
         "referralValue": "high",
@@ -309,6 +318,7 @@
         "address": "3345 University Dr E, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJD6mLx_yDRoYR45-k3q6o-8k",
         "name": "Brazos Valley Council of Governments",
         "cat": "senior_resource",
         "referralValue": "high",
@@ -320,6 +330,7 @@
         "address": "3991 E 29th St, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJNxJ9bSCFRoYRI8KRlWKrfSY",
         "name": "Baylor Scott & White Medical Center - College Station",
         "cat": "hospital",
         "referralValue": "high",
@@ -331,6 +342,7 @@
         "address": "700 Scott & White Dr, College Station, TX 77845, USA"
       },
       {
+        "id": "ChIJe6fM8MCERoYRmmbTd3J_0co",
         "name": "Fortress Nursing and Rehabilitation",
         "cat": "skilled_nursing",
         "referralValue": "high",
@@ -342,6 +354,7 @@
         "address": "1105 Rock Prairie Rd, College Station, TX 77845, USA"
       },
       {
+        "id": "ChIJyaziEuqFRoYR3dAJEuiuQac",
         "name": "Bluebonnet Hospice",
         "cat": "hospice",
         "referralValue": "high",
@@ -353,6 +366,7 @@
         "address": "3201 University Dr E Suite 350, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJ5d9Bi7uFRoYRRQLfkddQKn0",
         "name": "Sodalis College Station",
         "cat": "assisted_living",
         "referralValue": "high",
@@ -364,6 +378,7 @@
         "address": "3211 Harvey Rd, College Station, TX 77845, USA"
       },
       {
+        "id": "ChIJrzf0fG-BRoYR2jt1MGO4Fxs",
         "name": "CHI St. Joseph Health Rehabilitation Hospital",
         "cat": "hospital",
         "referralValue": "high",
@@ -375,6 +390,7 @@
         "address": "1600 Joseph Dr #2000, Bryan, TX 77802, USA"
       },
       {
+        "id": "ChIJwzIQgr-ERoYRlxwmgSMMSjs",
         "name": "The Waterford at College Station",
         "cat": "assisted_living",
         "referralValue": "high",

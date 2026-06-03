@@ -104,14 +104,11 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           live in the General Contact section below, and the campus is
           already in the panel header. */}
 
-      {/* Zone 2 · Next Step */}
-      <NextStepCard
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        launchEnabled={launchEnabled}
-        launchDisabledReason={launchDisabledReason}
-      />
+      {/* Zone 2 · Next Step. v9.x Phase 2e: for prospect/researched
+          rows this is now a thin stage indicator — the operational
+          surface (checklist + Visit Website + Call to Confirm +
+          Launch Outreach) lives in the Research Card below. */}
+      <NextStepCard ctx={ctx} action={action} setError={setError} />
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
           General Contact + Specific Contacts + research notes the

@@ -175,6 +175,8 @@ const OUT_OF_SCOPE_TYPES = `- Hospice-only (no home health line) — OUT even if
 - Government office / aging services agency / senior recreation center
 - Wedding venues / event spaces / banquet halls / community centers / YMCAs
 - Tattoo / piercing / body-art studios
+- Medical spa / aesthetics / cosmetic / anti-aging / wellness / IV-therapy / medical-weight-loss clinic (Botox, fillers, laser, etc.) — OUT even if the name contains "Health", "Care", "Medical", or "Wellness". These are NOT Home Health Care.
+- Auto repair / mechanic / dealership / body shop — OUT even if reviews mention "shop" or the name sounds like a care service
 - Retail / food service / churches / universities / generic nonprofits
 
 When uncertain whether a clinical-sounding facility is a senior-care provider or an addiction/behavioral-health/hospice facility, weigh its PRIMARY business — a recovery, detox, or end-of-life mission disqualifies it regardless of any nursing or rehabilitation services it lists.`;

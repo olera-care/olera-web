@@ -1,493 +1,574 @@
-# Plan: Post-Launch Outreach Redesign — Strategy First
+# Plan: Post-Launch Outreach Redesign — Strategy v2
 
-Created: 2026-06-03
+Created: 2026-06-03 (v1 same day)
 Status: STRATEGY / NOT STARTED (no code yet)
-Author: Claude (drafting per Logan's directive)
+Author: Claude (revising per Logan's feedback + the pilot agreement PDF)
 
-## What this document is
+## What changed from v1
 
-A two-phase **strategy plan** for revamping the system *after* Launch
-Outreach fires. Phase 1 locks the conceptual model (terminal state,
-cadence, CTA, tracking). Phase 2 locks the surfaces (tabs, timeline,
-Next Step, integrations). No code lands until Phase 1 is approved,
-then Phase 2, then we cut implementation tickets from there.
+Logan's feedback + the `pilotagreementhomespark.pdf` + a survey of the
+existing auth/onboarding infrastructure forced six material revisions
+to v1. They sit at the top so the rest of the doc reads as a
+consistent whole.
 
-## Goal
+| # | v1 decision | v2 decision | Why |
+|---|-------------|-------------|-----|
+| Δ1 | Call it "Trial Active" | Call it **"Pilot Active"** | The PDF says "Pilot Program," "free account," "either party may end with written notice." "Trial" reads SaaS-y; "pilot" reads honest. |
+| Δ2 | New `trial_activated` derived stage | **No new stage.** Provider self-activation sets the existing `metadata.interview_terms_accepted_at` flag — same field `make_client` already writes. | Admin-driven conversion (post-meeting) and provider-driven conversion (self-served) collapse to ONE terminal: `active_partner` / `converted`. Two paths in, one state out. No new derivation, no new UI fork, no new touchpoint type. |
+| Δ3 | New `trial_state` JSONB tracking 4 sub-events | **Drop the sub-state JSONB.** Track engagement via `note_added` touchpoints with `reason:` payload, plus the existing email/meeting/call touchpoint stream. The terminal is binary: terms accepted or not. | Sub-state was overbuild. The timeline is the audit log; we don't need a parallel state machine that re-records what's already in touchpoints. G1 + G4 satisfied. |
+| Δ4 | Email CTA: "Review your students and **start your trial**" | Email CTA: **"Review the candidate board →"** (no "trial" word). Pilot framing appears only AFTER they're on the platform and have seen the students. | Logan: trial-language triggers sales-defensiveness in cold readers. The PDF agrees — Scope clause says "Provider may review student profiles and invite candidates to interview." Lead with the value, not the commercial structure. |
+| Δ5 | Magic-token is a Phase-2 nice-to-have; MVP uses a public URL | Magic-token is **MVP**. Plug `/api/auth/auto-sign-in` → `/auth/magic-link` → personalized welcome page. The primitives exist; building it isn't more work than building a thoughtful public page would be. | The infrastructure survey confirmed `auto-sign-in` + `magic-link` are production-grade and reusable. Skipping them and shipping a public page that we'd then have to re-do is the patchwork Logan warned against. |
+| Δ6 | Pre-create accounts so the welcome page can personalize | **Just-in-time account creation** on first magic-link click. Token carries `outreach_id`; click → resolve to email/org → `claim-instant` → session → land. | Pre-creating accounts that may never be claimed leaves zombie rows in `business_profiles` and confuses claim-state semantics. JIT keeps the database clean. |
 
-Convert outreach-launched providers into **active trial users** — they
-click the email, land in the platform, accept terms, and begin
-reviewing/interviewing students. A meeting with Dr. DuBose is an
-optional accelerator on that path, not the path itself.
+Three new findings from the PDF + survey that didn't exist as
+considerations in v1:
+
+- **F1. The pilot tier doesn't exist yet.** The existing `/medjobs/candidates` board redacts student contact info for free-tier accounts. Pilot providers need *full* access for 3 months. This is a real backend item (add `metadata.pilot_active_through` timestamp; the `medjobs_subscription_active` predicate reads it).
+- **F2. The pilot agreement is THE T&C.** No separate terms-acceptance copy required — the PDF *is* the terms. Display it on the welcome page (existing pattern: `/medjobs/staffing-pilot/page.tsx` already has a T&C modal that writes `interview_terms_accepted_at`). We reuse that pattern.
+- **F3. "Free account" not "claimed listing".** The PDF defines what the provider gets as "a free account with access to the candidate board page." That sentence is the entire onboarding contract — anything more would over-commit them.
 
 ---
 
-## Strategic shifts (the conceptual deltas)
+## Goal (restated)
 
-Stated up front so every later decision can be checked against them.
+Move providers from **outreach launched** to **Pilot Active** — they
+clicked the email, accepted the pilot agreement, and are using the
+candidate board to invite students to interview. A meeting with Dr.
+DuBose is *one* path to Pilot Active, not the goal.
+
+---
+
+## Strategic shifts (revised from v1)
 
 | # | Old assumption | New assumption |
 |---|----------------|----------------|
-| S1 | Day 0 includes a call | Day 0 = email only. The "confirm contact / verify decision maker" call already happened in Pre-Flight. First post-launch call is Day 3. |
-| S2 | Primary conversion = scheduled meeting | Primary conversion = **trial activation** (visit platform → accept terms → view students). Meeting is one path to trial. |
-| S3 | CTA in emails = "reply or book a call" | CTA in emails = "click to view your students / start your trial". Reply + Calendly are secondary. |
-| S4 | Calls re-pitch the program | Calls confirm receipt, answer questions, **redirect to the link**. The email + PDF carry the pitch. |
-| S5 | Meeting = terminal-positive | Meeting = high-signal lead, not conversion. Trial activation is terminal. |
-| S6 | Timeline = single chronological stream | Timeline = **Upcoming** (what's queued) + **Past Activity** (what happened). |
-| S7 | "Replies" tab = email replies | "Emails" tab = the full email event surface (Replied / Opened / Clicked / Bounced / Needs Reply). |
-| S8 | Open/click events not surfaced | Smartlead open/click events flow into the CRM and onto the Emails tab. |
-| S9 | Calendly = link in the email | Calendly = two-way integration. Provider self-books OR admin books on their behalf — either path lands in the Meetings tab. |
+| S1 | Day 0 includes a call | Day 0 = email only. First post-launch call is Day 3. |
+| S2 | Primary conversion = scheduled meeting | Primary conversion = **Pilot Active** (terms accepted + account active). Meeting is one path to it. |
+| S3 | CTA = "reply or book a call" | CTA = **"Review the candidate board →"**. Reply + Calendly are secondary. No "trial" language. |
+| S4 | Calls re-pitch the program | Calls confirm receipt, answer questions, redirect to the link. The PDF + the platform carry the pitch. |
+| S5 | Meeting = terminal-positive | Meeting = high-signal lead. Pilot Active is terminal. |
+| S6 | Timeline = single stream | Timeline = **Upcoming** + **Past Activity**. |
+| S7 | "Replies" tab = email replies only | "Emails" tab = single event stream, smart-filtered with Needs Reply + Bounced pinned, lower-signal collapsed by default. |
+| S8 | Open/click events not surfaced | Open/click events update the existing `email_sent` touchpoint's payload — one row per email with engagement chips, not a flood of new rows. |
+| S9 | Calendly = link in the email | Calendly = inbound webhook. Self-booked + admin-booked both land in Meetings tab via the same `mark_meeting_scheduled` action. |
+| **S10** (new) | Onboarding is a multi-step flow | Onboarding is **the magic-link click**. `auto-sign-in` + `claim-instant` happen atomically; provider lands authenticated on the welcome page. The "form" is the PDF terms button. |
+| **S11** (new) | Welcome page is a marketing landing | Welcome page is the candidate board, personalized + pilot-tier-gated. The provider's first impression IS the product. |
+| **S12** (new) | Empty-state is "students recruiting" | Empty-state is a tiered fallback: real local students → sample students from peer campuses → labeled demo candidate (e.g., Logan as a clearly-marked demo) → "recruiting in progress" momentum. The page must *always* show something usable. |
 
-If any of these is wrong, the whole rest of this plan should be
-re-examined. **Approve the shifts table first; everything else
-follows.**
+If any of S1–S12 is wrong, the rest of this doc is wrong.
 
 ---
 
 # PLAN PHASE 1 — The conceptual model
 
-(no UI work yet; this is the contract everything else rests on)
-
 ## P1.A — Post-launch call cadence
 
-**Recommendation:** Provider post-launch cadence becomes:
-
-- **Day 0** — email only (intro + program PDF + CTA to platform). No call.
-- **Day 3** — email (light follow-up) + call (the "did you get our email?" check).
-- **Day 5** — call (offer help, redirect to link, offer Dr. DuBose meeting).
-- **Day 7** — final email (graceful out + redirect-the-contact ask) + optional call.
-
-Net: **3 emails + 2–3 calls** over 7 days. Today is 3 emails + 3 calls
-(Day 0 paired call goes away — that call moved to Pre-Flight).
-
-**Why this shape:** Day 0 paired call duplicated the Pre-Flight call's
-job under the new model. Removing it makes the post-launch sequence
-about engagement (did they receive, did they understand, did they
-click) rather than confirmation. Spacing calls at Day 3 / 5 gives the
-provider time to actually read the email before we ask about it.
-
-**Open question:** Logan suggested Day 3 / 5 / 7. The Day 1 call in the
-current cadence is the one we're explicitly removing — confirm we
-don't want any Day 1 nudge of any kind.
+Same as v1. Day 0 email-only, Day 3 email+call, Day 5 call, Day 7 final email.
+Net: 3 emails + 2 calls. Today's Day 1 call is removed (it duplicated
+the Pre-Flight call's job).
 
 ## P1.B — Purpose of each post-launch call
 
-One sentence per call so the admin knows what to *say*, not just what
-to *log*:
+Slight revision to v1 — the CTA the admin redirects to is now "review
+the candidate board," not "start your trial":
 
-| Day | Purpose | Script angle |
-|-----|---------|--------------|
-| 3 | "Did you get our email?" | Confirm receipt → if no, resend → if yes, ask if anything was unclear → point at the link |
-| 5 | "Anything we can help with?" | Offer help understanding the program → offer Dr. DuBose meeting if they have leadership questions → re-point at the link |
-| 7 | "Last touch" | Soft close → "if not now, who else should we reach?" — the redirect ask |
+| Day | Purpose | What admin says |
+|-----|---------|-----------------|
+| 3 | "Did you get our email?" | "If you didn't see it, the candidate board is at the link in our email — would you like me to resend?" → if yes, resend → if no, "anything I can help with?" |
+| 5 | "Anything you'd like to ask?" | "Some folks find it helpful to walk through it with Dr. DuBose; want me to set that up? Or you can poke around the candidate board on your own — it's at the link in the email." |
+| 7 | "Last touch" | "We'll check back next term if now's not the right time. Is there a better person at {org} we should reach about caregiver hiring?" |
 
-**Not a re-pitch.** The PDF + email carry the program details. Calls
-are about removing friction, not selling.
+**Calls are about removing friction, not selling.** The platform + PDF
+do the selling.
 
-## P1.C — Primary conversion goal: trial/signup activation
+## P1.C — Terminal state: Pilot Active
 
-**Recommendation:** Define a new canonical terminal state:
-`trial_activated` (or reuse `active_partner` with a new derivation
-predicate — see P1.M backend section).
+Definition: a row is **Pilot Active** when:
 
-A row transitions to this terminal when **all three** are true:
-1. Provider has clicked through to the platform (Smartlead click OR
-   admin-confirmed visit).
-2. Provider has accepted the program terms.
-3. Provider has viewed their student queue at least once (or marked
-   "I'm reviewing").
+1. `business_profiles.metadata.interview_terms_accepted_at` is set
+   (the existing field), AND
+2. `business_profiles.metadata.pilot_active_through` is in the future
+   (new field — sets to `now + 90d` at terms acceptance).
 
-The first two are necessary; the third is the proof of intent. A
-meeting *alone* does not transition the row — it's a touchpoint that
-strongly predicts the transition.
+That's it. No `visited_at` + `viewed_students_at` + `interview_requested_at`
+predicates. The terminal is binary; engagement signals live in the
+timeline as touchpoints.
 
-**Why this matters:** today, "Became a Client" is the moment Dr.
-DuBose accepts them at a meeting. Under the new model, the provider
-can activate themselves without ever talking to Dr. DuBose, which is
-the scale unlock.
+**Pilot Active maps to:**
+- `outreach.status` → `active_partner` (existing)
+- `stage.ts` → `converted` (existing)
 
-## P1.D — Email strategy after Launch Outreach
+No new stage, no new derived predicates. The two paths in are:
+- **Admin-driven** (existing): `make_client` action runs at meeting close → sets `interview_terms_accepted_at` + transitions outreach to `active_partner`.
+- **Provider-driven** (new): provider accepts PDF terms on welcome page → server-side handler sets `interview_terms_accepted_at` + `pilot_active_through` + transitions outreach to `active_partner` + emits `stage_change` touchpoint.
 
-**Single primary CTA** in every post-launch email, button-styled:
+Both call the same underlying conversion engine. The CRM doesn't
+care which path was taken — it just sees the row as converted.
 
-> **Review your students and start your trial →**
+**Open question:** the admin-driven path should ALSO set `pilot_active_through` so we have one consistent end-of-pilot timer. Confirm with Logan.
 
-…linking to a magic-token URL: `olera.care/provider/medjobs/welcome?token=<...>`
-that authenticates the provider (no signup friction) and lands them
-on a personalized welcome page (P1.E).
+## P1.D — Email strategy (no "trial" language)
 
-**Secondary CTAs**, smaller below the main button:
-- "Reply with any questions"
-- "Or book a call with Dr. DuBose" (Calendly link)
+Primary CTA in every post-launch email, button-styled:
 
-**Why a magic token, not "sign up here":** the cold provider already
-has zero motivation to fill a form. Frictionless click-through to a
-real personalized page is the entire game.
+> **Review the candidate board →**
 
-**MVP shortcut if magic tokens are too heavy:** send them to a public
-`/provider/medjobs/welcome?org=<slug>` page that doesn't auth them yet
-but shows the same content + a single "Start your trial" form. Either
-way the email's primary CTA is the platform, not Calendly.
+…linking to a magic-link URL:
+`olera.care/medjobs/welcome?t=<token>` where the token is a one-shot
+signed payload containing `{outreach_id, email, expires_at}` (30-day
+TTL).
 
-## P1.E — Platform landing & the empty-state problem
+Secondary CTAs, smaller text below the button:
+- "Or reply with any questions"
+- "Want to chat first? Book a quick call with Dr. DuBose →" (Calendly)
 
-The biggest risk. If the email gets the click but the page shows zero
-students, the provider leaves and we never get them back.
+The Day 0 / Day 3 / Day 7 emails all carry the same single primary
+CTA. Body copy differs (intro → light follow-up → graceful close) but
+the action is consistent.
 
-**Recommendation:** the welcome page renders the **strongest signal
-available** for that campus, in priority order:
+**Body copy tone** (illustrative, not final):
 
-1. **Real local students** (≥3 with profiles + photos). Show student
-   cards with name, year, clinical interests, availability.
-2. **Sample students from peers** ("Here's what TAMU students who
-   joined look like — your campus pipeline is being recruited now").
-   Use anonymized real profiles from sister campuses.
-3. **"Recruiting in progress" banner** + concrete momentum: "We've
-   reached 47 pre-nursing students at {campus} this week. Get the
-   first picks when they join — claim your spot now."
-4. **Generic landing fallback** with program overview + waitlist form
-   that activates a trial slot for when students do arrive.
+> Hi {first_name},
+>
+> Graize here, on behalf of Dr. Logan DuBose at Olera. We've been
+> recruiting and vetting pre-nursing and pre-medical students from
+> Texas A&M who are looking for caregiver experience, and {org_name}
+> stood out as a great fit to invite into our pilot program.
+>
+> You can review the candidate board here:
+>
+> **Review the candidate board →**
+>
+> Background on the program is attached. If you want to chat first,
+> you can also book a quick call with Dr. DuBose — no pressure
+> either way.
 
-**The trial accepts terms even without students.** That's the unlock —
-we want them activated before student volume catches up. The page UX:
+Notice: no "trial," no "subscription," no "start now" language. Just
+an invitation to look.
 
-- Above the fold: hero ("Welcome to Olera's {campus} Student Caregiver Program") + the activation CTA ("Accept terms and start your trial — free for 30 days").
-- Below the fold: students (real or sample), how the program works, the PDF inline as a "More details" reveal, Calendly fallback.
+## P1.E — Magic-link & welcome-page flow
 
-**Backend impact:** new `business_profiles.metadata.trial_activated_at`
-flag, plus a `provider_trial_states` table (or a `metadata.trial_state`
-JSONB) tracking activation step (visited / terms_accepted / viewed_students / first_interview_requested).
+**Reuse the existing primitives.** The infrastructure survey
+confirmed:
 
-## P1.F — Tracking / metrics (post-launch funnel)
+- `/api/auth/auto-sign-in` takes an email, creates/finds a Supabase user with `email_confirm: true`, returns a one-shot token hash.
+- `/auth/magic-link` (page) redeems the token hash, establishes a session, calls `/api/auth/ensure-account`.
+- `/api/provider/claim-instant` creates `accounts` + `business_profiles` + `memberships` atomically with `verification_state: "unverified"`, redirects to `/provider`.
+- `/medjobs/staffing-pilot/page.tsx` already has a T&C modal pattern that writes `interview_terms_accepted_at`.
 
-Final state model (Smartlead-driven where possible):
+**The flow:**
 
-| Event | Source | Touchpoint type | Already exists? |
-|-------|--------|-----------------|-----------------|
-| `email_sent` | Smartlead webhook | `email_sent` | yes |
-| `email_opened` | Smartlead webhook | `email_opened` (new) | **add** |
-| `email_clicked` | Smartlead webhook | `email_clicked` (new) | **add** |
-| `email_replied` | Smartlead webhook (D2) | `email_replied` | yes |
-| `email_bounced` | Smartlead webhook (D2) | `email_bounced` | placeholder |
-| `platform_visited` | magic-token middleware | `note_added{reason:platform_visited}` | reuse note_added (G1) |
-| `terms_accepted` | platform form | `note_added{reason:terms_accepted}` | reuse note_added (G1) |
-| `students_viewed` | platform analytics | `note_added{reason:students_viewed}` | reuse note_added (G1) |
-| `meeting_scheduled` | Calendly webhook OR admin | `meeting_scheduled` | yes |
-| `trial_activated` | derived (terms + visit + view) | `stage_change` to `trial_activated` | new stage |
-| `interview_requested` | platform action | `note_added{reason:interview_requested}` | reuse note_added |
+```
+Email click  →  /medjobs/welcome?t=<token>
+                          │
+                          ▼
+                ┌──────────────────────────────┐
+                │  Server-side token decode    │
+                │  → resolve outreach_id, email│
+                │  → claim-instant if no       │
+                │    business_profile exists   │
+                │  → auto-sign-in              │
+                │  → set session               │
+                └──────────────────────────────┘
+                          │
+                          ▼
+            ┌─────────────────────────────────────┐
+            │  /medjobs/welcome (authenticated)   │
+            │                                      │
+            │  ┌── Hero ─────────────────────┐    │
+            │  │ Welcome, {org_name}.        │    │
+            │  │ Texas A&M pilot program     │    │
+            │  └─────────────────────────────┘    │
+            │                                      │
+            │  ┌── Candidate board ──────────┐    │
+            │  │ Filtered to their catchment │    │
+            │  │ Full data (pilot-tier gate) │    │
+            │  └─────────────────────────────┘    │
+            │                                      │
+            │  ┌── About the pilot ──────────┐    │
+            │  │ Inline PDF terms reveal     │    │
+            │  │ "How students get vetted"   │    │
+            │  │ "What we're learning"       │    │
+            │  └─────────────────────────────┘    │
+            │                                      │
+            │  ┌── Sticky bottom CTA ────────┐    │
+            │  │ [ Activate pilot account ]  │    │
+            │  │  → opens T&C modal          │    │
+            │  └─────────────────────────────┘    │
+            └─────────────────────────────────────┘
+```
 
-**Discipline note (G1):** prefer `note_added` with a `reason` payload
-for the soft platform events. New touchpoint types (`email_opened`,
-`email_clicked`) are justified because they're a distinct event
-shape with dedicated UI surfaces (Emails tab); the platform events
-are pure CRM context and don't need a new type.
+**Token security:** one-shot redemption, 30-day TTL, scoped to one
+`outreach_id`. If forwarded and someone else clicks, the page warns
+"You're being signed in as {org} — continue?" because the email goes
+to an org-level address (`info@`, owner direct) and a forwarder has
+the same authority anyway.
 
-**MVP metric set** (what surfaces on dashboards first):
-- Click-through rate (clicked / sent)
-- Trial-activation rate (trial_activated / sent)
-- Replies received (existing)
-- Meetings scheduled (existing)
-- Bounces (existing)
+**Just-in-time account creation:** if there's no `business_profiles`
+row for this org yet (cold provider), `claim-instant` runs server-side
+INSIDE the welcome handler — not at email-send time. This avoids
+zombie accounts for providers who never click.
 
-Open / click rates are useful but lower-priority than CTR and trial
-activation — the latter two are the actual business signals.
+## P1.F — Empty-state ladder
 
-## P1.G — MVP vs later
+Per Logan's feedback, the welcome page must *always* show something
+usable. Tiered fallback, in priority order:
 
-Aggressive MVP scope to get the new model in front of providers fast:
+1. **Real local students** (≥3 with profiles + photos, filtered to the provider's catchment).
+2. **Sample students from peer campuses** — anonymized real profiles, labeled "Sample from another campus while we recruit at {their_campus}".
+3. **Demo candidate** — clearly labeled, "Demo profile · Logan DuBose, founder, also a med student. Real students will replace this view." This is the credibility move Logan suggested. Real face, real bio, clearly marked DEMO.
+4. **Recruiting-in-progress** banner with concrete momentum: "47 pre-nursing students contacted at {campus} this week. You'll see profiles here as they're vetted. Activate your account to get notified."
 
-**MVP (Phase 1 implementation)**
-- Cadence change: Day 0 email-only, Day 3 email+call, Day 5 call, Day 7 email. (~30 min change in `cadence.ts` + `templates.ts`).
-- Email CTA refactor: every provider template gets the single "Review your students" CTA pointing at a placeholder `/provider/medjobs/welcome?org=<slug>` page.
-- The welcome page itself: hero + terms acceptance + sample students fallback + Calendly fallback. No magic token; no real student feed integration yet. ("Coming soon: your real student queue").
-- Smartlead webhook adds `email_opened` and `email_clicked` touchpoint emission.
-- New `trial_activated` stage derivation (3 predicates), but **no terminal-state UI changes** yet — row still shows as `active_partner` in the existing tabs. We're just collecting the data.
+The page picks the highest-rung fallback it can fill. The "Activate
+pilot account" CTA stays available at every rung — provider can sign
+the pilot agreement even with zero students visible, and they'll just
+get notified when students arrive.
 
-**Phase 2 (later)**
-- Magic-token authenticated welcome page.
-- Real student-queue integration on the welcome page.
-- Calendly two-way integration.
-- Surfaces (P2.A through P2.F below).
-- Trial activation as a first-class terminal state in the CRM UI.
+**This is the make-or-break UX.** Don't ship the new email CTA
+without the ladder in place.
 
-This sequencing means the cold sender stays warm (cadence/CTA changes
-are tiny), data starts flowing immediately (open/click tracking), and
-the bigger UX work (tabs, timeline) lands once we have data to design
-against.
+## P1.G — Calls, emails, meetings all support Pilot Active
+
+Per Logan's framing, every post-launch surface points toward the same
+terminal:
+
+| Surface | How it supports Pilot Active |
+|---------|------------------------------|
+| Email | CTA is the welcome page, where pilot terms are accepted. |
+| Call | Admin's job is to redirect them to the welcome page link, or offer a meeting with Dr. DuBose if they have questions. |
+| Meeting | Dr. DuBose answers questions; admin can activate the pilot on the provider's behalf at close (existing `make_client` flow). |
+| Bounce | Admin researches a better email → re-launches outreach. |
+| Click event | Triggers a Day-5-or-sooner call ("they're warm, close the loop"). |
+
+The system doesn't treat meetings as the only conversion path, but it
+treats them as a *strong* path — admin should still offer a meeting on
+every call where the provider has substantive questions.
+
+## P1.H — Tracking / metrics
+
+**MVP metric set** (matches Logan's stated priorities):
+
+1. **Replies received** (existing).
+2. **Bounces** (existing).
+3. **Clicks on the welcome-page CTA** (new — Smartlead webhook).
+4. **Pilot Active activations** (new — provider-self-signed conversions).
+5. **Meetings scheduled** (existing).
+
+**Touchpoint model — revision from v1:**
+
+Engagement events (open, click) update the existing `email_sent`
+touchpoint's payload rather than emit new touchpoint types. One row
+per email with engagement chips. Concretely:
+
+- `email_sent` touchpoint gets payload extended with `open_count`, `last_opened_at`, `click_count`, `last_clicked_at`, `clicked_ctas: ["welcome_page"]`.
+- Smartlead webhook handler `UPDATE`s the touchpoint row instead of `INSERT`-ing a new one.
+
+This is more G1-compliant than v1's "new touchpoint types" approach.
+No new types, no schema change beyond the existing JSONB payload. The
+Emails tab filters by payload fields (`payload->>click_count > 0`).
+
+**Provider platform events** (visited welcome page, accepted terms,
+viewed candidate board): use `note_added` touchpoints with
+`reason: "platform_visited" | "terms_accepted" | "candidate_viewed"`.
+
+## P1.I — Pilot tier gate (the F1 finding)
+
+**New backend item.** Today, `/medjobs/candidates` redacts contact
+info for free-tier accounts (`medjobs_subscription_active` flag).
+Pilot providers need full access for the 3-month pilot.
+
+Two paths to wire this:
+
+**Option A — extend the existing `medjobs_subscription_active`
+predicate** to OR-in pilot membership:
+
+```ts
+const hasMedjobsAccess =
+  metadata.medjobs_subscription_active === true ||
+  (metadata.pilot_active_through &&
+   new Date(metadata.pilot_active_through) > new Date());
+```
+
+**Option B — separate `pilot_active` flag** read by the candidate
+board page directly.
+
+Recommend **Option A** — one access predicate, one source of truth,
+cleaner code path. Pilot is just another way to be entitled.
+
+**Pilot expiry behavior:** when `pilot_active_through` passes, the
+provider's view degrades back to redacted free-tier (re-entry point to
+upsell). Admin gets a Day-T-minus-7 task to reach out about
+continuation. (This is post-MVP; for the first 3 months we just need
+the activation path, not the expiry path.)
+
+## P1.J — MVP vs later (revised)
+
+**Implementation Phase 1 — MVP (3-week scope)**
+
+1. **Cadence change** in `cadence.ts` — Day 0 email-only, Day 3 email+call, Day 5 call, Day 7 email. (1 day)
+2. **Provider email template rewrite** — single "Review the candidate board →" CTA in `templates.ts`, no "trial" language. (1 day)
+3. **Pilot-tier backend** — `business_profiles.metadata.pilot_active_through` field + extend `medjobs_subscription_active` predicate. (1 day)
+4. **Magic-link welcome route** — `/api/medjobs/welcome/[token]` server handler that decodes the token, calls `claim-instant`, calls `auto-sign-in`, redirects to welcome page. (3 days)
+5. **Welcome page** at `/medjobs/welcome` — hero + candidate board (catchment-filtered, pilot-tier-gated) + "About the pilot" reveal + Accept Pilot Terms modal that writes `interview_terms_accepted_at` + `pilot_active_through`. (5 days)
+6. **Empty-state ladder** — real → sample → demo (Logan profile) → recruiting-in-progress. (3 days)
+7. **Smartlead webhook expansion** — `email_open` + `email_link_click` handlers update the `email_sent` touchpoint payload. (2 days)
+8. **Provider-self-signing conversion** — terms-acceptance handler transitions outreach to `active_partner` (reuses existing `make_client` engine, just a different invocation surface). (1 day)
+
+Total: ~17 days of focused work. **No tab UI changes, no timeline
+split, no Calendly webhook.** Those are Phase 2.
+
+**Implementation Phase 2 — Surfaces (after MVP data starts flowing)**
+
+9. Timeline split (Upcoming / Past Activity).
+10. Next Step post-launch state branches.
+11. Emails tab (rename + smart-filter sections).
+12. Calls tab Today/Upcoming sections.
+13. Meetings tab + Calendly webhook.
+14. Pilot-expiry awareness (Day T-7 reach-out task, post-pilot upsell).
+
+**Implementation Phase 3 — Polish (later)**
+
+15. Inline Smartlead reply UI (if volume warrants).
+16. Pilot continuation flow (post-3-month paid conversion).
+17. Provider-self-serve admin tools (let them edit their own org info on the welcome page).
 
 ---
 
 # PLAN PHASE 2 — The surfaces
 
-(only opens after Phase 1 is approved & the conceptual model is locked)
+(opens after Phase 1 ships and we have data to design against)
 
-## P2.A — Next Step section after launch
+## P2.A — Next Step post-launch (revised)
 
-The thin indicator we just shipped for pre-launch needs the inverse
-treatment post-launch: it becomes the **action card**.
-
-Per stage, what Next Step shows:
+Per-stage table — Pilot Active replaces v1's "trial_activated":
 
 | Stage | Headline | Sub-line | Primary action |
 |-------|----------|----------|----------------|
-| in_outreach (no engagement) | "Awaiting reply or click" | "Next email: Day {X} on {date}. Next call: {date}." | "Log reply" (secondary) |
-| email_opened (no click) | "They opened — give them a nudge" | "Opened {N}× last seen {date}. No click yet." | "Schedule a call now" |
-| email_clicked (no trial yet) | "They clicked — close the loop" | "Visited the welcome page {date}. Haven't accepted terms." | "Call to walk them through trial activation" |
-| trial_activated | "Trial active 🎉" | "Activated {date}. Last student view: {date}." | "Schedule a check-in" (secondary) |
-| meeting_set | (unchanged from today) | | |
-| bounce_fix | (unchanged from today) | | |
+| in_outreach (cold) | "Awaiting click or reply" | "Next email: Day {X} on {date}. Next call: {date}." | Log reply (secondary) |
+| in_outreach (opened) | "They opened — give them time" | "Opened {N}× since {date}. Cadence continues." | Log call (when due) |
+| in_outreach (clicked) | "**They clicked — call them**" | "Visited the welcome page {date}. Haven't activated yet." | Call to close the loop |
+| meeting_set | (unchanged) | | |
+| converted (Pilot Active) | "Pilot Active 🎉" | "Activated {date}. Last candidate viewed: {date}." | Schedule check-in (secondary) |
+| bounce_fix | (unchanged) | | |
 
-The card should always answer two questions: **what just happened?**
-(the engagement signal in the sub-line) and **what should I do next?**
-(the primary action).
+The card answers two questions: **what just happened?** (the
+engagement signal) and **what should I do next?** (the primary action).
 
-## P2.B — Timeline split: Upcoming vs Past Activity
-
-Currently `OutreachTimeline.tsx` is one mixed stream. Split into:
+## P2.B — Timeline split (same as v1)
 
 ```
 ┌─── Upcoming ────────────────────────────────────────┐
-│  ⌚ Tomorrow · Day 3 email                         │
+│  ⌚ Tomorrow · Day 3 email                          │
 │  📞 Fri · Day 3 call                                │
 │  ⌚ Mon · Day 5 call                                │
 └─────────────────────────────────────────────────────┘
 
-┌─── Past Activity ──────────────────────────────────┐
-│  📧 Sent · Day 0 email (Mon)                       │
-│  👁  Opened · 3× (Mon, Tue, Wed)                   │
-│  🖱  Clicked · CTA "Review your students" (Tue)    │
-│  📞 Logged · Day 3 call · voicemail (Thu)          │
+┌─── Past Activity ───────────────────────────────────┐
+│  📧 Sent · Day 0 email (Mon)                        │
+│    👁  Opened 3×  ·  🖱  Clicked welcome page (Tue) │
+│  📞 Logged · Day 3 call · voicemail (Thu)           │
 └─────────────────────────────────────────────────────┘
 ```
 
-Engagement events (opens, clicks) cluster under the email they belong
-to, not as standalone rows — same email gets multiple opens, keep the
-timeline scannable.
+Engagement events update the email's row (no separate rows).
+Both sections collapse on long timelines; default-show Upcoming +
+last 3 past events.
 
-Both sections collapse on long timelines; default-show Upcoming + last
-3 past events.
-
-## P2.C — In Basket tabs
-
-**Recommendation:** keep the operational arc, rename "Replies" →
-"Emails", smart-hide remains the rule.
-
-Final tab set (left to right):
+## P2.C — In Basket tabs (per Logan §7)
 
 ```
-Prospects · Calls · Emails · Meetings · Clients · Partners · Candidates
+Prospects · Calls · Emails · Meetings
 ```
 
-(Sites stays in the sidebar; secondary tabs stay in ⋯ menu.)
+Clients / Partners / Candidates move to sidebar-only (not horizontal
+tabs). The horizontal tab row is just the operational arc for an
+admin sitting down to work the funnel.
 
-The first four are the **operational hot zones** for an admin sitting
-down to work the funnel. The right three are warm follow-up tabs.
+## P2.D — Calls tab (same as v1)
 
-## P2.D — Calls tab redesign
+Today's Calls + Upcoming sections. Each row: name + day + phone +
+purpose hint + Log outcome.
 
-Two sections + a load-more:
+## P2.E — Emails tab (revised per Logan §8)
+
+**Single continuous event stream**, with smart-pinning instead of
+hard section divisions:
 
 ```
-┌─── Today's Calls (5) ───────────────────────────────┐
-│  Comfort Keepers · College Station · Day 3         │
-│    📞 (979) 555-0123                                │
-│    💬 "Did you get our email Monday?"               │
-│    [Log outcome]                                    │
+┌─── 📌 Needs Reply (3) ───── pinned ─────────────────┐
+│  Provider replied to email; admin needs to respond.
+└─────────────────────────────────────────────────────┘
+
+┌─── 📌 Bounced (2) ───────── pinned ─────────────────┐
+│  Email needs correction. Each row: "Update email + call?"
+└─────────────────────────────────────────────────────┘
+
+┌─── Activity log ──── chronological, filterable ─────┐
+│  All other email events. Default filter: hide opens.│
+│  Filters: [ Clicks ] [ Opens ] [ Sends ] [ All ]    │
+│                                                     │
+│  🖱 Comfort Keepers clicked the CTA · 2h ago         │
+│  📧 Day 3 email sent to HomeSpark · 5h ago          │
 │  …                                                  │
 └─────────────────────────────────────────────────────┘
-
-┌─── Upcoming (12 this week) ─────────────────────────┐
-│  Tomorrow · 3 calls                                 │
-│  Fri · 4 calls                                      │
-│  Next Mon · 5 calls                                 │
-│  [Show all upcoming]                                │
-└─────────────────────────────────────────────────────┘
 ```
 
-Each Today row carries: name + day + phone (tappable `tel:`) +
-purpose hint + Log outcome button. The drawer is one click away for
-full context.
+**Distinctions:**
+- **Pinned sections** (Needs Reply, Bounced) require action. Always visible.
+- **Activity log** is the firehose. Default filter shows Clicks + Sends (hides Opens because Opens ≠ action). Admin can flip filters to investigate.
+- **No "Replied (closed)" archive section** — once admin responds, the row falls out of Needs Reply naturally.
 
-The script lives in the call modal (already does, via the cadence's
-per-day script payload).
+Rationale: Logan was unsettled on v1's six-section design. The
+single-stream-with-smart-pinning is simpler, scales better, and
+lets the admin tune their own attention via filters.
 
-## P2.E — Emails tab redesign
+**Reply mechanic (MVP):** clicking a Needs Reply row opens the
+drawer at the email touchpoint + a "Reply via Smartlead inbox →"
+button that deep-links to the master inbox. Admin replies there,
+comes back to log the reply outcome.
 
-Renamed from Replies. Sections (smart-hidden when empty):
+## P2.F — Meetings tab + Calendly (revised per Logan §10)
 
-```
-┌─── Needs Reply (3) ───── [most urgent] ─────────────┐
-│  Real replies from providers that need an admin response.
-└─────────────────────────────────────────────────────┘
+**What we need from the Calendly setup:**
 
-┌─── Bounced (2) ───────────────────────────────────── ┐
-│  Email correction required.
-└─────────────────────────────────────────────────────┘
+1. **A single Olera org Calendly account** that hosts Dr. DuBose's
+   "MedJobs intro call" event type. (If Dr. DuBose has only a
+   personal Calendly today, we move the event type to an org-owned
+   account — the rest of the integration depends on it.)
+2. **A webhook subscription** for `invitee.created` and `invitee.canceled` events on that event type.
+3. **Admin-side Calendly access** so admins can schedule meetings on
+   provider's behalf when the provider gives times by phone/email.
 
-┌─── Clicked (12) ─────── [high signal] ──────────────┐
-│  Provider clicked the trial link but hasn't activated.
-│  Primary candidate for the Day-5 call.
-└─────────────────────────────────────────────────────┘
+**Webhook → CRM matching:** Calendly invitee email is matched against
+`outreach.research_data.general_contact.email` (case-insensitive).
+Match → dispatch `mark_meeting_scheduled` action automatically with
+the Calendly event time.
 
-┌─── Opened (40) ───────── [context] ─────────────────┐
-│  Email reached them, no click yet. Lower priority —
-│  the cadence will keep working.
-└─────────────────────────────────────────────────────┘
+**Unmatched booking tray:** if Calendly email doesn't match any
+outreach row, the booking lands in a small "Unmatched bookings"
+shelf at the top of the Meetings tab — admin manually claims it to
+the right row.
 
-┌─── Replied (closed) ───── [archive] ────────────────┐
-│  Already-handled replies, collapsed by default.
-└─────────────────────────────────────────────────────┘
-```
-
-**Distinction:** Opened ≠ action required. Clicked = action recommended
-(they showed real interest). Replied/Bounced/Needs Reply = action
-required. The tab ordering signals priority.
-
-Each row opens the drawer at the touched-email's place in the
-timeline. **No inline reply UI in MVP** — open the Smartlead inbox /
-Gmail master inbox in a new tab (button on the row). The admin replies
-there, then comes back and logs the outcome here.
-
-(Later: inline reply via Smartlead's reply API — defer until volume
-justifies it.)
-
-## P2.F — Meetings tab + Calendly integration
-
-Two paths into the tab:
-
-1. **Provider self-schedules** via Calendly link in email →
-   Calendly webhook → `mark_meeting_scheduled` action runs
-   automatically (matches the provider's email to an outreach row).
-2. **Admin schedules on provider's behalf** via the existing
-   `LogMeetingModal` → already calls `mark_meeting_scheduled`.
-
-Both paths land in the Meetings tab the same way. The Calendly path
-sets `meeting_at` from the Calendly event; the admin path requires
-the admin to enter it.
-
-Tab sections:
+**Meetings tab sections:**
 
 ```
-┌─── Upcoming Meetings (this week) ──────────────────┐
-│  Today · 2pm · Comfort Keepers (Day 5 follow-up)   │
-│    📅 Calendly invite · 📋 Notes from outreach     │
+┌─── Upcoming (this week) ───────────────────────────┐
+│  Today · 2pm · Comfort Keepers (post Day-3 call)   │
 └────────────────────────────────────────────────────┘
 
-┌─── Needs Follow-up (4) ────────────────────────────┐
-│  Meetings held but no trial activation yet.        │
-│  Each row carries: meeting date, outcome notes,    │
-│  trial-state ("not yet visited" / "visited, no     │
-│  terms" / "terms accepted, no view").              │
+┌─── Needs Follow-up ────────────────────────────────┐
+│  Meetings held but not yet Pilot Active.           │
+│  Each row: meeting date + notes + activation hint  │
+│  ("not yet visited" / "visited, no terms" / etc.). │
 └────────────────────────────────────────────────────┘
 
-┌─── No-shows / Reschedule (1) ──────────────────────┐
+┌─── No-shows / Reschedule ──────────────────────────┐
+└────────────────────────────────────────────────────┘
+
+┌─── Unmatched Calendly bookings ────────────────────┐
+│  (only visible when present)                       │
 └────────────────────────────────────────────────────┘
 ```
 
-After-meeting outcomes (already handled by `LogMeetingModal`) need
-one new option: **"Sent to trial — awaiting activation"** that drops
-the row into Needs Follow-up rather than Converted. Converted now
-requires the trial-activation predicate (P1.C), not just the
-meeting outcome.
+`LogMeetingModal` already handles outcomes — we just add one new
+option: **"Activate pilot on their behalf"** that runs the existing
+`make_client` (which sets `interview_terms_accepted_at`) AND sets
+`pilot_active_through = now + 90d`.
 
-**Calendly integration scope (MVP):** Calendly webhook only, no
-calendar embedding, no native scheduling UI. The email's "Book a
-call" link stays Calendly-hosted.
+## P2.G — Backend changes (consolidated)
 
-## P2.G — Backend / state changes summary
+**New metadata fields:**
+- `business_profiles.metadata.pilot_active_through` (timestamp; null means not active or admin-driven without explicit pilot timer).
 
-Pulled from the surfaces above for a single migration view:
+**No new touchpoint types** (revised from v1). All engagement events
+either:
+- Update an existing `email_sent` touchpoint's payload (opens, clicks), or
+- Emit a `note_added` touchpoint with `reason:` payload (platform_visited, terms_accepted, candidate_viewed).
 
-**New touchpoint types** (justified — distinct shapes + dedicated UI):
-- `email_opened` (payload: `{open_count, last_opened_at}`)
-- `email_clicked` (payload: `{cta_key, click_count, last_clicked_at}`)
+**No new stages** (revised from v1). Existing `active_partner` /
+`converted` carries both admin-driven and provider-driven
+conversions.
 
-**Reuses `note_added` (G1-compliant):**
-- `platform_visited`, `terms_accepted`, `students_viewed`, `interview_requested`
+**New routes:**
+- `/api/medjobs/welcome/[token]` — server handler that decodes token, runs JIT claim-instant + auto-sign-in, redirects to welcome page.
+- `/api/medjobs/pilot/activate` — terms-acceptance POST that writes `interview_terms_accepted_at` + `pilot_active_through` + transitions outreach to `active_partner` via the existing conversion engine.
 
-**New stage** (derived, not stored):
-- `trial_activated` — derived in `stage.ts` from the three platform
-  predicates. `active_partner` stays in the status enum; this is a
-  new derived stage above it.
+**New pages:**
+- `/medjobs/welcome` — the authenticated welcome page (hero + candidate board + about the pilot + activate CTA).
 
-**New metadata:**
-- `business_profiles.metadata.trial_activated_at` (timestamp)
-- `business_profiles.metadata.trial_state` (JSONB
-  `{visited_at, terms_accepted_at, students_viewed_at, interview_requested_at}`)
+**Existing predicate update:**
+- `medjobs_subscription_active` predicate OR-includes pilot membership (P1.I Option A).
 
 **Smartlead webhook expansion:**
-- Add `email_open` and `email_link_click` event handlers.
-- Existing handler already covers `email_reply` and `email_bounce`.
+- Add `email_open` and `email_link_click` handlers. Both UPDATE the existing `email_sent` touchpoint payload.
 
-**Calendly webhook:** new edge function `calendly-webhook/` (or
-re-use the smartlead-webhook pattern). Matches invitee email to an
-outreach row, dispatches `mark_meeting_scheduled`.
-
-**Magic-token route (Phase 2-implementation only):** `app/api/medjobs/welcome/[token]` mints a one-shot session for the cold provider, redirects to `/provider/medjobs/welcome` with auth. Phase-1-implementation skips this and uses public URL.
-
-**No new actions in `route.ts`** for MVP — every event above can be
-expressed via existing actions (`log_email_replied`,
-`mark_meeting_scheduled`, `note_added`, `make_client`). G2 satisfied.
+**Calendly webhook (Phase 2):**
+- New edge function `calendly-webhook/`. Matches invitee email to outreach row, dispatches `mark_meeting_scheduled`.
 
 ---
 
-## Risks & mitigations
+## Risks (revised)
 
 | Risk | Mitigation |
 |------|------------|
-| Removing the Day 0 call loses signal we depend on | The Pre-Flight call already captures the "did you reach someone" signal; Day 0 paired call was redundant. Confirm with TJ before merging. |
-| Email CTA change loses Calendly bookings | Keep Calendly link as secondary CTA. Track booking rate before/after on a per-campus basis. |
-| Welcome page shows empty state, providers bounce | Sample-students fallback (P1.E option 2) is the hard-required mitigation. Don't ship the new CTA without it. |
-| Smartlead open/click webhooks unreliable / costly | Start with click events only (lower volume, higher signal). Add opens later. Cost validated against Smartlead's free tier. |
-| Calendly webhook can't match invitee to outreach row | Calendly forms collect invitee email; CRM matches by `lower(email) = lower(outreach.general_contact.email)`. Fall back to manual claim if no match (admin sees an "unmatched Calendly booking" tray). |
-| Trial-activation derivation is wrong (false positives) | Three predicates AND-ed reduces false-positive risk. Audit first 20 transitions manually before turning on automated transitions. |
-| Magic-token security (Phase 2) | Tokens scoped to one outreach row, short-lived (7-day TTL), single redemption that creates a real session. Pattern lives in caregiver-side auth already. |
+| The Day 1 call removal loses signal | Pre-Flight call already covers the "did you reach someone" signal that Day 1 was meant for. Confirm with TJ before merging. |
+| Email CTA change loses Calendly bookings | Calendly stays as a secondary CTA in every email. Track booking rate before/after on a per-campus basis. |
+| Welcome page empty state bounces providers | Empty-state ladder (P1.F) is **hard-required** before the new CTA goes live. The demo-candidate rung is the safety net. |
+| Magic-link forwarded to wrong person | Token is one-shot, 30-day TTL, scoped to one outreach_id. The welcome page shows "You're being signed in as {org}" so the recipient understands what they're agreeing to. Forwarders at an org-level email already have authority. |
+| Smartlead open/click webhook reliability | Start with click events only (lower volume, higher signal). Add opens later. Bind cost to Smartlead's existing plan. |
+| Calendly can't match invitee to outreach row | Unmatched booking tray + manual claim. Fall back is graceful. |
+| Pilot-tier flag drift | Single predicate `medjobs_subscription_active` (Option A) means there's only ONE function to update if pilot logic changes. |
+| Just-in-time account creation race | The welcome handler is atomic in a Supabase transaction; concurrent clicks would resolve to the same business_profile via upsert-by-source_provider_id. |
+| `interview_terms_accepted_at` set by two paths — which path was it? | Add `metadata.terms_accepted_via: "admin" \| "self_serve"` audit field so we can analyze conversion path mix. |
 
 ## Open questions for Logan
 
-A short list — answer these to unblock implementation cuts:
+The five from v1 are mostly resolved by the PDF + survey. Updated set:
 
-1. **Day 1 call** — does the new cadence really skip a Day 1 nudge? (S1 assumes yes.)
-2. **Trial pricing/terms** — free 30-day trial is what I'm assuming. Confirm or correct.
-3. **Magic token vs public URL** for the welcome page — MVP is public; long-term wants magic-token. Confirm the staging.
-4. **Calendly account** — is there one already wired (Olera org), or is each `calendly.com/.../...` link individually owned by Dr. DuBose's personal account? Affects webhook setup.
-5. **"Trial activated" terminal copy** — what do we *call* this state in the UI? `Trial Active`, `Activated`, `Client (Trial)`, etc.
+1. **Pilot timer on admin path** — when admin runs `make_client` at meeting close, should that ALSO set `pilot_active_through = now + 90d`? I'd recommend yes (one consistent timer). Confirm.
+2. **Day 1 call** — confirmed deleted entirely under the new model. Yes?
+3. **Calendly account** — is there an Olera org Calendly today, or only Dr. DuBose's personal? Webhook setup depends on the answer.
+4. **Demo-candidate copy & photo** — Logan as a clearly-marked demo profile is the recommendation. Approved? Or use a different sample face?
+5. **Token TTL** — 30 days feels right (allows for slow readers, doesn't leave an open door forever). Confirm.
+6. **Pilot expiry behavior** — when `pilot_active_through` passes, the candidate board re-redacts (free tier). Admin gets a Day-T-minus-7 reach-out task. Defer to Phase 2 or include in MVP? (Recommend defer.)
 
 ---
 
-## Implementation roadmap (post-approval)
+## Implementation roadmap (suggested ticket order, post-approval)
 
-This is **not** the implementation plan — it's the suggested order of
-implementation tickets we'd cut from this strategy doc.
+### MVP — Implementation Phase 1 (~17 days focused work)
 
-### Implementation Phase 1 (cadence + CTA + tracking)
-1. Cadence change in `cadence.ts` (Day 0 no call; Day 3 +1; etc.)
-2. Provider email template rewrite — single platform CTA.
-3. Public `/provider/medjobs/welcome` page (terms acceptance + sample students + Calendly fallback).
-4. Smartlead webhook: add `email_open` + `email_link_click`.
-5. New touchpoint types (`email_opened`, `email_clicked`) + narration.
-6. `trial_activated` derived stage (predicates only, no UI surfacing yet).
+| # | Ticket | Files | Verify |
+|---|--------|-------|--------|
+| 1 | Cadence change | `lib/student-outreach/cadence.ts` | Unit test: provider cadence emits 3 emails + 2 calls, no Day 1. |
+| 2 | Email template rewrite | `lib/student-outreach/templates.ts` | Render Day 0/3/7 emails for a fixture row; confirm "Review the candidate board" CTA + no "trial" language. |
+| 3 | Pilot-tier predicate | `lib/medjobs/access.ts` (or equivalent), `app/medjobs/candidates/page.tsx` | Manual test: create a `business_profiles` row with `pilot_active_through = now + 1d`; confirm full candidate data renders. |
+| 4 | Magic-link welcome route | `app/api/medjobs/welcome/[token]/route.ts`, `lib/medjobs/welcome-token.ts` | Manual test: send self a token-link, click, land authenticated on welcome page. |
+| 5 | Welcome page UI | `app/medjobs/welcome/page.tsx`, reuse `<CandidateBoard>` | Visit the page authenticated; see personalized hero + candidate board + Accept terms CTA. |
+| 6 | Empty-state ladder | `components/medjobs/EmptyCandidates.tsx` | Manual test against catchments with: ≥3 students, 0 students. Confirm ladder rungs render. |
+| 7 | Smartlead webhook (open + click) | `supabase/functions/smartlead-webhook/` | Webhook test: simulate open + click events; confirm `email_sent` payload updates. |
+| 8 | Provider-self-signing conversion | `app/api/medjobs/pilot/activate/route.ts` | E2E: click magic link → accept terms → confirm `interview_terms_accepted_at` set + outreach transitions to `active_partner` + Partner Prospects unlock. |
 
-### Implementation Phase 2 (surfaces)
-7. Timeline split (Upcoming / Past).
-8. Next Step post-launch state branches (P2.A table).
-9. Emails tab (rename + section model).
-10. Calls tab Today/Upcoming sections.
-11. Meetings tab + Calendly webhook.
-12. `trial_activated` terminal-state UI (replaces `active_partner` for trial-pathway rows).
+Each ticket is one PR. Order matters: 1+2 are independent and tiny;
+3 and 7 are independent; 4 unblocks 5+6+8.
 
-### Implementation Phase 3 (later)
-13. Magic-token welcome page.
-14. Real student-queue on welcome page.
-15. Inline Smartlead reply UI (if volume warrants).
+### Phase 2 — Surfaces (after MVP data starts flowing)
+
+Tickets 9–14 from P1.J above.
+
+### Phase 3 — Later
+
+Tickets 15–17 from P1.J above.
 
 ---
 
 ## Next step
 
-**Approve the strategic shifts table** (top of this doc). If S1–S9
-look right, we lock Plan Phase 1 and the next session writes a
-real implementation ticket for the cadence + CTA + tracking changes
-(Implementation Phase 1, items 1–6).
+**Approve the strategic shifts table (S1–S12)** and the 6 open
+questions. Once shifts are signed off and questions are answered, the
+next session cuts the MVP Implementation Phase 1 tickets in order.
 
-If any shift feels wrong, push back — that's exactly the
-conversation to have *before* we start moving code.
+If any shift feels wrong — especially the "pilot not trial" framing
+(Δ1), the no-new-stage simplification (Δ2), or the magic-link-is-MVP
+call (Δ5) — push back here. Those three are the load-bearing
+revisions; everything else falls out of them.

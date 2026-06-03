@@ -7,13 +7,27 @@
 
 ## Current Focus
 
-### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN drafted (no code yet)
+### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2 (no code yet)
 
-**Context:** With Pre-Flight v9.x stabilized (Day 0 call moved into Pre-Flight, Research Card now self-contained on `merge/medjobs-staging-2026-06-02`), Logan wants to rethink the post-launch system before building. Strategic shift: primary conversion goal is **trial/signup activation**, NOT a meeting with Dr. DuBose. Calls become "did you get the email?" not re-pitches. Replies tab → Emails tab (Replied/Opened/Clicked/Bounced/Needs Reply). Calendly two-way integration so self-served bookings land in Meetings tab automatically.
+**Context:** Logan reviewed v1 of the post-launch plan + uploaded the pilot agreement PDF (`pilotagreementhomespark.pdf` — 3-month free pilot, "either party may end with written notice"). Six material revisions forced — most notably: drop "trial" language entirely (PDF says "Pilot Program"), drop the new `trial_activated` derived stage (use existing `interview_terms_accepted_at` field that `make_client` already writes), promote magic-link to MVP (the `auto-sign-in` + `magic-link` + `claim-instant` primitives all exist and are production-grade), and just-in-time account creation (don't pre-create).
 
-**Plan:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md) — two-phase STRATEGY doc. Plan Phase 1 = conceptual model (cadence, CTA, terminal state, tracking, MVP scope). Plan Phase 2 = surfaces (Next Step branches, timeline split, tab redesign, Calendly + Smartlead integration). Backend deltas mapped: 2 new touchpoint types (`email_opened`, `email_clicked`), new derived `trial_activated` stage, new metadata flags, Smartlead webhook expansion, Calendly webhook. G1–G2 discipline satisfied (most events reuse `note_added` with `reason`).
+**Survey findings (logged in v2 doc):** `/api/auth/auto-sign-in` is the exact primitive (returns token hash; `/auth/magic-link` redeems it). `/app/medjobs/staffing-pilot/page.tsx` has a T&C modal pattern that already writes `interview_terms_accepted_at`. The existing `/medjobs/candidates` board redacts data for free-tier — pilot providers need a new `pilot_active_through` metadata field + the `medjobs_subscription_active` predicate extended to include pilot membership (Option A, one-predicate single-source-of-truth).
 
-**Resume next session here →** Logan reviews the strategic-shifts table at the top of the plan + 5 open questions. Once shifts S1–S9 are approved, Implementation Phase 1 cuts: cadence change in `cadence.ts` + provider template rewrite + public `/provider/medjobs/welcome` page + Smartlead webhook expansion. NO code until shifts are signed off.
+**Plan v2:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md) (overwrote v1; v1 lives in git history). Strategic shifts S1–S12 (was S1–S9 in v1); new shifts S10/S11/S12 capture magic-link onboarding, welcome-page-IS-product, empty-state ladder. MVP scope = ~17 days of focused work: cadence change + email rewrite + pilot-tier predicate + magic-link welcome route + welcome page + empty-state ladder + Smartlead webhook expansion + provider-self-signing handler. No tab/timeline UI in MVP — those are Phase 2 once data flows.
+
+**Backend deltas (revised, more G1-compliant than v1):** ONE new metadata field (`pilot_active_through`), NO new touchpoint types (engagement events update existing `email_sent` payload; platform events use `note_added{reason}`), NO new stages (existing `active_partner` + `converted` carries both admin and provider conversion paths).
+
+**Resume next session here →** Logan reviews S1–S12 + 6 open questions in v2. Critical decisions: (1) does admin `make_client` ALSO set `pilot_active_through` (one timer, two paths)? (2) Calendly account ownership (Olera org or Dr. DuBose personal)? (3) demo-candidate copy (Logan as labeled demo profile recommended)? Once approved, next session cuts MVP Implementation Phase 1 tickets 1–8 in order.
+
+---
+
+### 2026-06-03 (Tue) — Pre-Flight v9.x: Research Card consolidation merged (Phases 2b–2e, branch `merge/medjobs-staging-2026-06-02`)
+
+**Context:** Continuing the v9.x Pre-Flight rethink. Phase 2b–2e collapsed the duplicate Pre-Flight surface — the Research Card is now self-contained (Verification status + Pre-Flight action footer with Visit Website / Call to Confirm / Launch Outreach + inline Contact Form banner). NextStepCard prospect body collapsed from ~480 lines to a thin "Pre-Flight in progress" indicator that points admin downward. Net: single source of truth for Pre-Flight; no more two-card divergence.
+
+**Commits pushed to `merge/medjobs-staging-2026-06-02`:** `f57d0d0` (2b verification), `04352ff` (2c action footer), `1da0764` (2d inline contact form banner), `73df792` (2e NextStepCard collapse). All four commits typecheck clean (one pre-existing unrelated `@vercel/functions` error).
+
+**Resume next session here →** Phase 3 manual QA on Vercel preview: walk through prospect / call_due / meeting_set / in_outreach / converted / closed stages to confirm NextStepCard still renders correctly (only the prospect branch was touched). Launch flow test: from Research Card footer, confirm cadence schedules + row transitions to in_outreach. Override path test: pick Override Pre-Flight in call modal; verify Verification subsection shows "Overridden" (amber) and Launch label reads "(override)". After QA passes, merge to staging.
 
 ---
 

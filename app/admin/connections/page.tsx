@@ -144,7 +144,7 @@ export default function ConnectionsTrackerPage() {
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-{tab.label}
+                {tab.label}
                 <span
                   className={`ml-0.5 px-1.5 py-0.5 rounded text-xs font-semibold ${
                     isActive ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"

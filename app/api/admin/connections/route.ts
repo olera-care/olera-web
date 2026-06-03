@@ -314,7 +314,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch engagement data to determine engaged vs no_activity
 
-    // Fetch engagement data for hot lead detection (limited to searched set)
+    // Fetch engagement data (limited to searched set)
     const allProviderKeys = [...new Set(
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000); // Cap to prevent huge queries
@@ -400,7 +400,6 @@ export async function GET(request: NextRequest) {
       return b.temperature.stalenessMs - a.temperature.stalenessMs; // oldest-waiting first
     });
 
-    const total = list.length;
     const page = list.slice(offset, offset + limit);
 
     // Provider engagement (opened/clicked/contact revealed) — reuse data from

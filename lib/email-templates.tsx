@@ -2327,7 +2327,7 @@ export function verificationReminder21DayEmail(opts: {
   `, "Final reminder — verify before your claim expires");
 }
 
-/** Email sent when verification is rejected with reason */
+/** Email sent when verification is rejected with reason (admin rejection) */
 export function verificationRejectedEmail(opts: {
   providerName: string;
   recipientName: string;
@@ -2351,6 +2351,107 @@ export function verificationRejectedEmail(opts: {
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "We need more information to verify your connection");
+}
+
+/**
+ * Email sent when a self-verification attempt fails.
+ * Method-specific messaging with warm, encouraging tone.
+ * Lists other verification methods they can try.
+ */
+export function verificationMethodFailedEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  method: "email" | "linkedin" | "website" | "document";
+  reason: string;
+  attemptNumber: number;
+  verifyUrl: string;
+}): string {
+  const name = firstName(opts.recipientName, "there");
+
+  // Method-specific explanations and what they can try
+  const methodInfo: Record<string, { label: string; explanation: string; tip: string }> = {
+    email: {
+      label: "work email",
+      explanation: "We couldn't match your email domain to the business on file.",
+      tip: "Use an email address with a domain that matches the business (e.g., name@yourbusiness.com).",
+    },
+    linkedin: {
+      label: "LinkedIn profile",
+      explanation: "We couldn't confirm your current employment from your LinkedIn profile.",
+      tip: "Make sure your LinkedIn shows this organization as your current employer in your Experience section.",
+    },
+    website: {
+      label: "business website",
+      explanation: "We couldn't find your name listed on the website you provided.",
+      tip: "Link to a page that shows your name as staff (About Us, Team page, or staff directory).",
+    },
+    document: {
+      label: "uploaded document",
+      explanation: "We couldn't verify your connection from the document provided.",
+      tip: "Upload a clear photo of your business license, ID badge, or official letterhead showing your name.",
+    },
+  };
+
+  const current = methodInfo[opts.method];
+  const otherMethods = Object.entries(methodInfo)
+    .filter(([key]) => key !== opts.method)
+    .map(([, info]) => info);
+
+  // Progressive warmth based on attempt number
+  let greeting: string;
+  let encouragement: string;
+
+  if (opts.attemptNumber === 1) {
+    greeting = `Hi ${escapeHtml(name)}, thank you for starting the verification process for <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "Don't worry — there are several ways to verify, and we're here to help you through it.";
+  } else if (opts.attemptNumber === 2) {
+    greeting = `Hi ${escapeHtml(name)}, we appreciate you trying again to verify your connection to <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We know this can be frustrating, but you're almost there. Let's try a different approach.";
+  } else if (opts.attemptNumber === 3) {
+    greeting = `Hi ${escapeHtml(name)}, thank you for your patience in verifying <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We really want to get you verified. Here's one more option that might work better for your situation.";
+  } else {
+    greeting = `Hi ${escapeHtml(name)}, we can see you've been working hard to verify <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We're committed to helping you get verified. Please reach out to our support team and we'll sort this out together.";
+  }
+
+  // Build alternative methods section
+  const alternativesHtml = otherMethods.map((m) => `
+    <li style="margin:0 0 12px;padding:0;">
+      <strong style="color:#111827;">${m.label.charAt(0).toUpperCase() + m.label.slice(1)}</strong>
+      <p style="font-size:13px;color:#6b7280;margin:4px 0 0;line-height:1.4;">${m.tip}</p>
+    </li>
+  `).join("");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's try another way</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${greeting}
+    </p>
+    <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#92400e;margin:0 0 4px;font-weight:600;">What happened with your ${current.label}:</p>
+      <p style="font-size:14px;color:#78350f;margin:0;line-height:1.5;">${current.explanation}</p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      <strong style="color:#111827;">Tip:</strong> ${current.tip}
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      ${encouragement}
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 8px;font-weight:600;">Other ways to verify:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.6;">
+      ${alternativesHtml}
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Another Method", opts.verifyUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll get you sorted.
+      </p>
+    </div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Once verified, you'll have full access to respond to family inquiries and manage your listing.
+    </p>
+  `, `We couldn't verify via ${current.label} — here are other options`);
 }
 
 /**

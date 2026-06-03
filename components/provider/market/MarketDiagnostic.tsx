@@ -4,6 +4,7 @@ import SectionNav from "./SectionNav";
 import CatchmentMapLoader from "./CatchmentMapLoader";
 import { CAT_COLOR } from "./CatchmentMap";
 import CountUp from "./CountUp";
+import PlaybookAction from "./PlaybookAction";
 
 const NAV = [
   { id: "competition", label: "Competition" },
@@ -24,7 +25,7 @@ export interface MarketDiagnosticData {
   };
   competitorLandscape: { count: number; medianReviews: number | null; medianRating: number | null; withWebsitePct: number; leaders: Leader[] };
   referralGraph: { totalViableSources: number; byRole: { cat: string; count: number }[]; prioritizedTargets: BdTarget[] };
-  channels: { channel: string; priority: number; rationale: string; oleraTool: string }[];
+  channels: { channel: string; priority: number; rationale: string; oleraTool: string; key: string }[];
 }
 
 const CAT_LABEL: Record<string, string> = {
@@ -130,6 +131,14 @@ export default function MarketDiagnostic({
         })}
       </div>
 
+      <a
+        href="/provider/reviews"
+        className="group inline-flex items-center gap-2 rounded-full bg-[#199087] px-4 py-2 mt-6 text-[13px] font-semibold text-white shadow-[0_2px_8px_rgba(25,144,135,0.25)] transition-all hover:bg-[#147a72] active:scale-[0.99]"
+      >
+        Request reviews to climb the ranking
+        <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+      </a>
+
       <p className="text-[13px] text-stone-400 mt-5">
         {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
         Olera sees {a.demand.olera.familiesInCity} families actively searching here today — a foothold we grow into qualified leads for you.
@@ -214,13 +223,12 @@ export default function MarketDiagnostic({
         <div className="space-y-3">
           {a.channels.map((c, i) => {
             const lead = i === 0;
-            const subj = (s: string) => `mailto:hello@olera.care?subject=${encodeURIComponent(`${s} — ${a.meta.city}, ${a.meta.state}`)}`;
-            const href =
-              c.priority === 1 ? "#referral"
-              : c.priority === 2 ? "/provider/reviews"
-              : c.priority === 3 ? subj("Community presence playbook")
-              : c.priority === 4 ? subj("Ads guidance")
-              : undefined;
+            const action =
+              c.key === "reviews" ? { href: "/provider/reviews" }
+              : c.key === "callsheet" ? { href: "#referral" }
+              : c.key === "community" ? { requestType: "community_playbook" }
+              : c.key === "ads" ? { requestType: "ads_guidance" }
+              : {};
             return (
               <div
                 key={c.channel}
@@ -230,9 +238,7 @@ export default function MarketDiagnostic({
                 <div className="min-w-0">
                   <div className={`font-semibold text-stone-900 ${lead ? "text-[17px]" : "text-[15px]"}`}>{c.channel}</div>
                   <p className="text-[13.5px] text-stone-600 leading-relaxed mt-1">{c.rationale}</p>
-                  <a href={href} className="inline-flex items-center gap-1 text-[12.5px] font-medium text-[#199087] mt-2 hover:text-[#147a72] hover:gap-1.5 transition-all">
-                    {c.oleraTool} <span aria-hidden>→</span>
-                  </a>
+                  <PlaybookAction label={c.oleraTool} city={a.meta.city} state={a.meta.state} {...action} />
                 </div>
               </div>
             );

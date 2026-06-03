@@ -159,16 +159,16 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
 
   // ---- Channel prioritization ----
   const channels = [
-    { channel: "Referral relationship development", priority: 1,
-      rationale: `Half your clients can come from here — and it's the one channel a single agency can't map alone. Your sources are mapped above.`,
-      oleraTool: "Your prioritized call sheet" },
-    { channel: "Reviews / reputation engine", priority: 2,
-      rationale: `Market median is ${competitorLandscape.medianReviews} reviews. More reviews = higher Google rank and more trust — the one lever you fully control.`,
+    { channel: "Reviews / reputation engine", priority: 1, key: "reviews",
+      rationale: `The fastest win you control. Market median is ${competitorLandscape.medianReviews} reviews — more reviews means higher Google rank and more trust, starting now.`,
       oleraTool: "Request reviews from your clients" },
-    { channel: "Local community + Facebook groups", priority: 3,
+    { channel: "Referral relationship development", priority: 2, key: "callsheet",
+      rationale: `The biggest lever: half your clients can come from here, and it's the one channel a single agency can't map alone. Your sources are mapped above.`,
+      oleraTool: "Your prioritized call sheet" },
+    { channel: "Local community + Facebook groups", priority: 3, key: "community",
       rationale: `Families ask for recommendations in local Facebook groups. Most of your competitors aren't there.`,
       oleraTool: "Get the community playbook from Olera" },
-    { channel: "Google LSA / SEO / targeted PPC", priority: 4,
+    { channel: "Google LSA / SEO / targeted PPC", priority: 4, key: "ads",
       rationale: `Real, but volume-capped in a senior-thin college town. The smart play is Local Services Ads + tight geo — not broad spend.`,
       oleraTool: "Contact the Olera team for ads guidance" },
   ];

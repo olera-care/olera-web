@@ -71,13 +71,26 @@ interface EmailTrailEntry {
 
 interface Detail {
   id: string;
-  family: { id: string | null; display_name: string | null };
-  provider: { display_name: string | null; email: string | null; hasEmail: boolean; slug: string | null };
+  family: {
+    id: string | null;
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+    nudgeCount: number;
+    lastNudgedAt: string | null;
+  };
+  provider: {
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+    hasEmail: boolean;
+    nudgeCount: number;
+    lastNudgedAt: string | null;
+    slug: string | null;
+  };
   ask: string | null;
   thread: ThreadEntry[];
   emails: EmailTrailEntry[];
-  nudgeCount: number;
-  lastNudgedAt: string | null;
   engagement: Engagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
@@ -132,22 +145,30 @@ export default function ConnectionRow({
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [imgError, setImgError] = useState(false);
 
   // Nudge action state
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const handleImgError = useCallback(() => setImgError(true), []);
-
   const family = c.family.display_name || "A family";
   const provider = c.provider.display_name || "Provider";
-  const providerInitial = provider.charAt(0).toUpperCase();
   const age = formatAge(c.temperature.stalenessMs);
 
-  // Determine the primary action based on response category
-  const category = c.responseCategory;
-  const hasProviderPhone = !!c.provider.phone;
+  // Build status descriptions
+  const familyStatus = c.responded
+    ? c.familyRepliedAfterProvider
+      ? "replied"
+      : "hasn't replied"
+    : "sent request";
+
+  const providerStatus = (() => {
+    if (c.responded) return "replied";
+    if (engagement?.contact_revealed) return "copied contact";
+    if (engagement?.lead_opened) return "viewed lead";
+    if (engagement?.email_clicked) return "opened email";
+    if (c.responseCategory === "no_email") return "no email";
+    return "no response";
+  })();
 
   async function toggle() {
     const next = !open;
@@ -180,7 +201,7 @@ export default function ConnectionRow({
       if (res.ok) {
         setNudgeMsg({ ok: true, text: successText });
       } else {
-        setNudgeMsg({ ok: false, text: data.error || "Couldn’t send." });
+        setNudgeMsg({ ok: false, text: data.error || "Couldn't send." });
       }
     } catch {
       setNudgeMsg({ ok: false, text: "Network error — not sent." });
@@ -189,304 +210,304 @@ export default function ConnectionRow({
     }
   }
 
-  // Action button config based on category
-  const actionConfig = {
-    no_email: {
-      label: "Call",
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-        </svg>
-      ),
-      style: "bg-amber-50 text-amber-700 hover:bg-amber-100",
-      href: hasProviderPhone ? `tel:${c.provider.phone}` : undefined,
-    },
-    needs_attention: {
-      label: "Nudge",
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-      ),
-      style: "bg-blue-50 text-blue-700 hover:bg-blue-100",
-      href: undefined as string | undefined,
-    },
-    provider_nudged: {
-      label: "Waiting on provider",
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      style: "bg-gray-100 text-gray-500",
-      href: undefined as string | undefined,
-    },
-    family_nudged: {
-      label: "Waiting on family",
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      style: "bg-gray-100 text-gray-500",
-      href: undefined as string | undefined,
-    },
-    responded: {
-      label: "Connected",
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      ),
-      style: "bg-emerald-50 text-emerald-700",
-      href: undefined as string | undefined,
-    },
-  };
-
-  const action = category ? actionConfig[category] : null;
-
   return (
     <div>
-      {/* Collapsed row */}
+      {/* Collapsed row - clean, scannable */}
       <button
         onClick={toggle}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-stone-50/60 transition-colors"
+        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-stone-50/60 transition-colors"
         aria-expanded={open}
       >
-        {/* Provider avatar */}
-        <div className="w-10 h-10 shrink-0">
-          {c.provider.image_url && !imgError ? (
-            <img
-              src={c.provider.image_url}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover"
-              onError={handleImgError}
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-400">
-                {providerInitial}
-              </span>
-            </div>
-          )}
-        </div>
-
         {/* Main content */}
         <div className="min-w-0 flex-1">
-          <div className="font-medium text-gray-900 truncate">{provider}</div>
-          <div className="text-sm text-gray-500 truncate">
-            from {family} · {age}
+          <div className="flex items-baseline gap-2">
+            <span className="font-medium text-gray-900 truncate">{family}</span>
+            <span className="text-gray-400">→</span>
+            <span className="font-medium text-gray-900 truncate">{provider}</span>
+            <span className="text-sm text-gray-400 shrink-0">{age}</span>
           </div>
-          {/* Inline WHY context */}
-          <div className="mt-0.5 text-xs text-gray-500 truncate">
-            {(() => {
-              // Build engagement description
-              const signals: string[] = [];
-              if (engagement?.contact_revealed) signals.push("copied contact");
-              else if (engagement?.lead_opened) signals.push("viewed lead");
-              else if (engagement?.email_clicked) signals.push("opened email");
-
-              // Build status description
-              let status = "";
-              if (category === "responded") {
-                // Differentiate between truly connected vs awaiting family
-                status = c.familyRepliedAfterProvider ? "connected" : "provider responded";
-              } else if (category === "provider_nudged") {
-                status = "waiting on provider";
-              } else if (category === "family_nudged") {
-                status = "waiting on family";
-              } else if (category === "no_email") {
-                status = "no email on file";
-              } else if (category === "needs_attention") {
-                status = "no response yet";
-              }
-
-              // Combine into readable sentence
-              if (signals.length > 0 && status) {
-                return `${signals.join(", ")} — ${status}`;
-              } else if (signals.length > 0) {
-                return signals.join(", ");
-              } else if (status) {
-                return status;
-              } else if (c.messagePreview) {
-                return c.messagePreview;
-              }
-              return "lead sent";
-            })()}
+          <div className="mt-1 flex items-center gap-4 text-sm text-gray-500">
+            <span>Family: {familyStatus}</span>
+            <span className="text-gray-300">|</span>
+            <span>Provider: {providerStatus}</span>
           </div>
         </div>
 
-        {/* Action button */}
-        <div className="flex items-center gap-2 shrink-0">
-          {action && (
-            action.href ? (
-              <a
-                href={action.href}
-                onClick={(e) => e.stopPropagation()}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${action.style}`}
-              >
-                {action.icon}
-                {action.label}
-              </a>
-            ) : (
-              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${action.style}`}>
-                {action.icon}
-                {action.label}
-              </span>
-            )
-          )}
-          <svg
-            className={`h-5 w-5 text-gray-300 transition-transform ${open ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
+        {/* Expand chevron */}
+        <svg
+          className={`h-5 w-5 text-gray-300 transition-transform shrink-0 ${open ? "rotate-90" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
       </button>
 
-      {/* Expanded detail */}
+      {/* Expanded detail - two-column layout */}
       {open && (
-        <div className="border-t border-gray-50 bg-stone-50/40 px-4 py-4">
+        <div className="border-t border-gray-100 bg-stone-50/40 px-4 py-5">
           {loading ? (
-            <p className="text-sm text-gray-400">Loading…</p>
+            <p className="text-sm text-gray-400">Loading...</p>
           ) : loadError ? (
             <p className="text-sm text-rose-600">Could not load this connection. Try again.</p>
           ) : detail ? (
-            <div className="space-y-4">
-              {/* Next step — the headline action */}
-              <div className="rounded-lg border border-stone-200 bg-white px-4 py-3">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  Next step
-                </p>
-                <p className="mt-1 text-sm text-gray-800">{detail.nextStep.label}</p>
+            <div className="space-y-5">
+              {/* Two-column: Family | Provider */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* FAMILY column */}
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Family</h3>
+                    {detail.family.id && (
+                      <a
+                        href={`/admin/care-seekers/${detail.family.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-gray-400 hover:text-gray-600"
+                      >
+                        View profile
+                      </a>
+                    )}
+                  </div>
 
-                {detail.nextStep.action === "nudge_provider" && (
-                  <button
-                    onClick={() =>
-                      sendNudge("/api/admin/send-nudge", "Nudge sent — the provider was emailed.")
-                    }
-                    disabled={nudging}
-                    className="mt-3 rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-                  >
-                    {nudging ? "Sending…" : "Nudge provider"}
-                  </button>
-                )}
-                {detail.nextStep.action === "nudge_family" && (
-                  <button
-                    onClick={() =>
-                      sendNudge(
-                        "/api/admin/send-family-nudge",
-                        "Follow-up sent — the family was emailed."
-                      )
-                    }
-                    disabled={nudging}
-                    className="mt-3 rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-                  >
-                    {nudging ? "Sending…" : "Nudge family"}
-                  </button>
-                )}
-                {detail.nextStep.action === "add_provider_email" && (
-                  <a
-                    href="/admin/leads?tab=needs_email"
-                    className="mt-3 inline-block rounded-lg border border-gray-200 px-3.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    Add email in Leads →
-                  </a>
-                )}
-
-                {nudgeMsg && (
-                  <p className={`mt-2 text-xs ${nudgeMsg.ok ? "text-emerald-600" : "text-rose-600"}`}>
-                    {nudgeMsg.text}
+                  <p className="font-medium text-gray-900 mb-2">
+                    {detail.family.display_name || "Unknown"}
                   </p>
-                )}
+
+                  {/* Contact info */}
+                  <div className="space-y-1.5 mb-3">
+                    {detail.family.email ? (
+                      <a
+                        href={`mailto:${detail.family.email}`}
+                        className="block text-sm text-blue-600 hover:underline truncate"
+                      >
+                        {detail.family.email}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-400">No email</p>
+                    )}
+                    {detail.family.phone ? (
+                      <a
+                        href={`tel:${detail.family.phone}`}
+                        className="block text-sm text-blue-600 hover:underline"
+                      >
+                        {detail.family.phone}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-400">No phone</p>
+                    )}
+                  </div>
+
+                  {/* Status */}
+                  <div className="text-sm text-gray-600 mb-3">
+                    Status: {c.responded
+                      ? c.familyRepliedAfterProvider
+                        ? "Replied to provider"
+                        : "Provider responded, hasn't replied yet"
+                      : "Sent connection request"}
+                  </div>
+
+                  {/* Nudge history */}
+                  <div className="text-xs text-gray-500 mb-3">
+                    {detail.family.nudgeCount > 0 ? (
+                      <>
+                        Nudged {detail.family.nudgeCount} time{detail.family.nudgeCount !== 1 ? "s" : ""}
+                        {detail.family.lastNudgedAt && (
+                          <span className="ml-1">/ Last: {fmtDate(detail.family.lastNudgedAt)}</span>
+                        )}
+                      </>
+                    ) : (
+                      "Not nudged yet"
+                    )}
+                    <p className="mt-0.5 text-gray-400">
+                      Automated nudges remind family to check provider responses
+                    </p>
+                  </div>
+
+                  {/* Action */}
+                  {c.responded && !c.familyRepliedAfterProvider && (
+                    <button
+                      onClick={() =>
+                        sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")
+                      }
+                      disabled={nudging}
+                      className="w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                    >
+                      {nudging ? "Sending..." : "Nudge Family"}
+                    </button>
+                  )}
+                </div>
+
+                {/* PROVIDER column */}
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Provider</h3>
+                    {detail.provider.slug && (
+                      <a
+                        href={`/admin/directory/${detail.provider.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-gray-400 hover:text-gray-600"
+                      >
+                        View profile
+                      </a>
+                    )}
+                  </div>
+
+                  <p className="font-medium text-gray-900 mb-2">
+                    {detail.provider.display_name || "Unknown"}
+                  </p>
+
+                  {/* Contact info */}
+                  <div className="space-y-1.5 mb-3">
+                    {detail.provider.email ? (
+                      <a
+                        href={`mailto:${detail.provider.email}`}
+                        className="block text-sm text-blue-600 hover:underline truncate"
+                      >
+                        {detail.provider.email}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-amber-600">No email on file</p>
+                    )}
+                    {detail.provider.phone ? (
+                      <a
+                        href={`tel:${detail.provider.phone}`}
+                        className="block text-sm text-blue-600 hover:underline"
+                      >
+                        {detail.provider.phone}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-400">No phone</p>
+                    )}
+                  </div>
+
+                  {/* Engagement status */}
+                  <div className="text-sm text-gray-600 mb-3">
+                    {(() => {
+                      if (c.responded) return "Status: Replied to family";
+                      if (detail.engagement.contact_revealed) return "Status: Copied family contact";
+                      if (detail.engagement.lead_opened) return "Status: Viewed lead";
+                      if (detail.engagement.email_clicked) return "Status: Opened email";
+                      return "Status: No engagement yet";
+                    })()}
+                  </div>
+
+                  {/* Nudge history */}
+                  <div className="text-xs text-gray-500 mb-3">
+                    {detail.provider.nudgeCount > 0 ? (
+                      <>
+                        Nudged {detail.provider.nudgeCount} time{detail.provider.nudgeCount !== 1 ? "s" : ""}
+                        {detail.provider.lastNudgedAt && (
+                          <span className="ml-1">/ Last: {fmtDate(detail.provider.lastNudgedAt)}</span>
+                        )}
+                      </>
+                    ) : (
+                      "Not nudged yet"
+                    )}
+                    <p className="mt-0.5 text-gray-400">
+                      Automated nudges remind provider about pending family inquiries
+                    </p>
+                  </div>
+
+                  {/* Action */}
+                  {!c.responded && detail.provider.hasEmail && (
+                    <button
+                      onClick={() =>
+                        sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")
+                      }
+                      disabled={nudging}
+                      className="w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                    >
+                      {nudging ? "Sending..." : "Nudge Provider"}
+                    </button>
+                  )}
+                  {!c.responded && !detail.provider.hasEmail && detail.provider.phone && (
+                    <a
+                      href={`tel:${detail.provider.phone}`}
+                      className="block w-full text-center rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-200"
+                    >
+                      Call Provider
+                    </a>
+                  )}
+                </div>
               </div>
 
-              {/* Records — jump into either account to investigate */}
-              {(detail.family.id || detail.provider.slug) && (
-                <div className="flex flex-wrap gap-2">
-                  {detail.family.id && (
-                    <a
-                      href={`/admin/care-seekers/${detail.family.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      Care seeker: {detail.family.display_name || "view"} ↗
-                    </a>
-                  )}
-                  {detail.provider.slug && (
-                    <a
-                      href={`/admin/directory/${detail.provider.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      Provider: {detail.provider.display_name || "view"} ↗
-                    </a>
-                  )}
-                </div>
+              {/* Nudge feedback */}
+              {nudgeMsg && (
+                <p className={`text-sm ${nudgeMsg.ok ? "text-emerald-600" : "text-rose-600"}`}>
+                  {nudgeMsg.text}
+                </p>
               )}
 
-              {/* The ask */}
+              {/* What the family asked */}
               {detail.ask && (
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                    What the family asked
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                    Family Request
+                  </h3>
+                  <p className="text-sm text-gray-700 bg-white rounded-lg border border-gray-200 p-3">
+                    {detail.ask}
                   </p>
-                  <p className="mt-1 text-sm text-gray-700">{detail.ask}</p>
                 </div>
               )}
 
-              {/* Conversation */}
+              {/* Conversation thread */}
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
                   Conversation
-                </p>
+                </h3>
                 {detail.thread.length === 0 ? (
-                  <p className="mt-1 text-sm text-gray-400">No messages yet.</p>
+                  <p className="text-sm text-gray-400">No messages yet.</p>
                 ) : (
-                  <div className="mt-2 space-y-2">
+                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
                     {detail.thread.map((m, i) => (
-                      <div
-                        key={i}
-                        className={`text-sm ${m.role === "provider" ? "text-gray-800" : "text-gray-600"}`}
-                      >
-                        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                          {m.role}
-                          {m.is_auto_reply ? " · auto" : ""}
-                          {m.created_at ? ` · ${fmtDate(m.created_at)}` : ""}
-                        </span>
-                        <p className="mt-0.5">{m.text || <span className="text-gray-300">—</span>}</p>
+                      <div key={i} className="p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-gray-500 uppercase">
+                            {m.role === "family" ? "Family" : m.role === "provider" ? "Provider" : "System"}
+                          </span>
+                          {m.is_auto_reply && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                              automated
+                            </span>
+                          )}
+                          {m.created_at && (
+                            <span className="text-xs text-gray-400">{fmtDate(m.created_at)}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700">
+                          {m.text || <span className="text-gray-300">-</span>}
+                        </p>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Email trail — what's been sent to this provider, and whether it landed */}
+              {/* Email trail */}
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  Emails sent to this provider
-                </p>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                  Emails Sent
+                </h3>
                 {detail.emails.length === 0 ? (
-                  <p className="mt-1 text-sm text-gray-400">
-                    {detail.nudgeCount > 0
-                      ? "Nudges were sent by the automated system; no itemized log for this provider."
+                  <p className="text-sm text-gray-400">
+                    {detail.provider.nudgeCount > 0
+                      ? "Nudges sent by automated system - no itemized log."
                       : "No emails sent yet."}
                   </p>
                 ) : (
-                  <div className="mt-2 space-y-1.5">
+                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
                     {detail.emails.map((e, i) => (
-                      <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                      <div key={i} className="flex items-center justify-between gap-3 p-3">
                         <div className="min-w-0">
-                          <span className="text-gray-700">{emailLabel(e.email_type)}</span>
-                          <span className="text-gray-300"> · </span>
-                          <span className="text-gray-500">{fmtDateTime(e.created_at)}</span>
+                          <span className="text-sm text-gray-700">{emailLabel(e.email_type)}</span>
+                          <span className="text-gray-300 mx-1.5">-</span>
+                          <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
                           {e.recipient && (
-                            <span className="ml-1 truncate text-xs text-gray-400">→ {e.recipient}</span>
+                            <span className="ml-2 text-xs text-gray-400 truncate">to {e.recipient}</span>
                           )}
                         </div>
                         <EmailStatusPill
@@ -505,31 +526,12 @@ export default function ConnectionRow({
                 )}
               </div>
 
-              {/* Provider contact + history */}
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500">
-                <span>
-                  Provider:{" "}
-                  {detail.provider.hasEmail ? (
-                    <span className="text-gray-700">{detail.provider.email}</span>
-                  ) : (
-                    <span className="text-amber-600">no email on file</span>
-                  )}
-                </span>
-                <span>
-                  Engagement:{" "}
-                  {detail.engagement.contact_revealed
-                    ? "contact shown"
-                    : detail.engagement.email_clicked
-                      ? "clicked email"
-                      : detail.engagement.lead_opened
-                        ? "opened email"
-                        : "no signal"}
-                </span>
-                {detail.nudgeCount > 0 && (
-                  <span>
-                    Nudged {detail.nudgeCount}× · last {fmtDate(detail.lastNudgedAt)}
-                  </span>
-                )}
+              {/* Next steps guidance */}
+              <div className="rounded-lg border border-gray-200 bg-white p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                  Recommended Next Step
+                </h3>
+                <p className="text-sm text-gray-700">{detail.nextStep.label}</p>
               </div>
             </div>
           ) : null}

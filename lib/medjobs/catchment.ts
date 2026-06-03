@@ -13,6 +13,7 @@
  * (hundreds per campus) and the catchment rarely changes.
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   PARTNER_UNIVERSITIES,
   type PartnerUniversity,
@@ -34,6 +35,63 @@ export interface CampusStageInfo {
 
 export function getPartnerUniversity(slug: string): PartnerUniversity | null {
   return PARTNER_UNIVERSITIES.find((u) => u.slug === slug) ?? null;
+}
+
+/**
+ * MedJobs targets non-medical home care employers only (students fill
+ * caregiver / PRN roles). The canonical directory category is
+ * "Home Care (Non-medical)"; this is the single source of truth for the
+ * predicate so the prospect LIST, the sidebar/tab COUNTS, and the
+ * Catchment AUDIT all agree on what counts.
+ *
+ * `NON_MEDICAL_ILIKE` is the Postgres ILIKE pattern for the same rule —
+ * use it to filter at query time and avoid pulling every category over
+ * the wire from the 75K-row directory.
+ */
+export const NON_MEDICAL_ILIKE = "%non-medical%";
+export function isNonMedicalCategory(category: string | null | undefined): boolean {
+  return !!category && category.toLowerCase().includes("non-medical");
+}
+
+/**
+ * Page through the olera-providers directory for non-medical home care
+ * rows, defeating PostgREST's max-rows cap (10k on this project). A
+ * single un-ranged select silently truncates — nationwide non-medical
+ * is ~12.7k — so every catchment/count/audit read MUST page.
+ *
+ * `states` scopes the fetch (pass the active campuses' states). `columns`
+ * lets each caller select only what it needs. `provider_id` is always
+ * selected (and `columns` must include it) so paging has a stable sort.
+ *
+ * NOTE: the `.order("provider_id")` is load-bearing — range pagination
+ * without a stable ORDER BY lets Postgres skip/duplicate rows across
+ * pages, producing counts that drift run-to-run.
+ */
+const OLERA_PAGE = 1000;
+export async function fetchNonMedicalProviders<T = Record<string, unknown>>(
+  db: SupabaseClient,
+  columns: string,
+  states?: string[],
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += OLERA_PAGE) {
+    let q = db
+      .from("olera-providers")
+      .select(columns)
+      .ilike("provider_category", NON_MEDICAL_ILIKE)
+      .or("deleted.is.null,deleted.eq.false")
+      .order("provider_id", { ascending: true });
+    if (states && states.length) q = q.in("state", states);
+    const { data, error } = await q.range(from, from + OLERA_PAGE - 1);
+    if (error) {
+      console.error("[catchment] non-medical fetch error:", error);
+      break;
+    }
+    const batch = (data ?? []) as T[];
+    out.push(...batch);
+    if (batch.length < OLERA_PAGE) break;
+  }
+  return out;
 }
 
 /**
@@ -92,22 +150,6 @@ export async function getProviderProspectsInCatchment(slug: string) {
   const db = getServiceClient();
   const states = Array.from(new Set(uni.catchment.map((c) => c.state)));
 
-  // Query olera-providers (the 75K+ provider directory)
-  const { data, error } = await db
-    .from("olera-providers")
-    .select("provider_id, provider_name, city, state, email, website, phone, slug, created_at")
-    .in("state", states)
-    .or("deleted.is.null,deleted.eq.false");
-
-  if (error) {
-    console.error("[catchment] olera-providers query error:", error);
-    return [];
-  }
-
-  const cityKeys = new Set(
-    uni.catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`),
-  );
-
   type Row = {
     provider_id: string;
     provider_name: string | null;
@@ -120,8 +162,21 @@ export async function getProviderProspectsInCatchment(slug: string) {
     created_at: string | null;
   };
 
+  // Query olera-providers (the 75K+ provider directory), restricted to
+  // non-medical home care — the only employer type MedJobs targets.
+  // Paginated to defeat the PostgREST max-rows cap.
+  const data = await fetchNonMedicalProviders<Row>(
+    db,
+    "provider_id, provider_name, city, state, email, website, phone, slug, created_at",
+    states,
+  );
+
+  const cityKeys = new Set(
+    uni.catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`),
+  );
+
   // Map to the shape expected by provider-prospects endpoint
-  return ((data ?? []) as Row[])
+  return data
     .filter((p) => {
       if (!p.city || !p.state) return false;
       return cityKeys.has(`${p.city.toLowerCase()}|${p.state}`);

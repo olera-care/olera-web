@@ -1269,12 +1269,15 @@ export default function ProviderLeadsPage() {
       markLeadAsRead(lead.id, providerProfile.id);
     }
     // Track lead_opened event for engagement funnel
-    if (providerProfile?.slug) {
+    // Use consistent provider key: slug || source_provider_id || id
+    // This must match how the funnel query looks up providers
+    const providerKey = providerProfile?.slug || providerProfile?.source_provider_id || providerProfile?.id;
+    if (providerKey) {
       fetch("/api/activity/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          provider_id: providerProfile.slug,
+          provider_id: providerKey,
           event_type: "lead_opened",
           metadata: { lead_id: lead.id, connection_id: lead.connectionId },
         }),
@@ -1867,11 +1870,13 @@ export default function ProviderLeadsPage() {
         onMarkAsReplied={handleMarkAsReplied}
         onContactReveal={(leadId, contactType) => {
           if (!providerProfile) return;
+          // Use consistent provider key: slug || source_provider_id || id
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              provider_id: providerProfile.slug || providerProfile.id,
+              provider_id: providerKey,
               event_type: "contact_revealed",
               metadata: { lead_id: leadId, contact_type: contactType },
             }),

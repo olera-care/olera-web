@@ -39,6 +39,7 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const csvParse = require('csv-parse/sync');
+const { reconcileRunLocations } = require('./lib/reconcile-location');
 
 // ---------------------------------------------------------------------------
 // CLI Parsing
@@ -161,26 +162,36 @@ const SIX_CATEGORY_DEFINITIONS = `Olera matches care seekers to providers in EXA
 
 Combined-service providers qualify if AT LEAST ONE primary line is in the 6.`;
 
-const OUT_OF_SCOPE_TYPES = `- Hospice-only (no home health line)
-- Adult day care / PACE / geriatric care management / care navigation
+const OUT_OF_SCOPE_TYPES = `- Hospice-only (no home health line) — OUT even if it describes nursing, "comfort care", or a residential/inpatient setting
+- Adult day care / PACE / geriatric care management / care navigation — OUT even if it serves seniors all day in a care-like setting
 - Inpatient rehab hospital
-- Mental illness / addiction / behavioral health facility
-- Pediatric care
+- Addiction / drug / alcohol / substance-use / detox / sober-living / behavioral-health / mental-illness facility — OUT even if it advertises "skilled nursing", "rehabilitation", "residential care", or "24/7 care". A facility whose PRIMARY population is people in addiction or substance-use recovery is OUT — do NOT classify it as Nursing Home or Assisted Living.
+- Pediatric care / childcare / daycare for children
 - Outside the United States
 - Test data / placeholder / demo entries
 - DME / pharmacy / medical equipment supplier
-- Hospital / urgent care / primary care clinic / physician practice
-- Pure 55+ apartments / mobile home parks WITHOUT services
+- Hospital / urgent care / primary care clinic / physician practice / community health center
+- Pure 55+ apartments / mobile home parks / public or affordable housing WITHOUT senior services
 - Property management / real estate / construction / general healthcare staffing (not in-home caregiver placement)
 - Government office / aging services agency / senior recreation center
-- Wedding venues / event spaces / community centers / YMCAs
-- Retail / food service / churches / universities / generic nonprofits`;
+- Wedding venues / event spaces / banquet halls / community centers / YMCAs
+- Tattoo / piercing / body-art studios
+- Retail / food service / churches / universities / generic nonprofits
+
+When uncertain whether a clinical-sounding facility is a senior-care provider or an addiction/behavioral-health/hospice facility, weigh its PRIMARY business — a recovery, detox, or end-of-life mission disqualifies it regardless of any nursing or rehabilitation services it lists.`;
 
 const KEYWORD_BLOCKLIST = [
   'pharmacy', 'hospital', 'pediatric', 'veterinary', 'dental', 'optometrist',
   'chiropractor', 'urgent care', 'physical therapy', 'dialysis', 'medical supply',
   'staffing agency', 'storage', 'plumbing', 'construction', 'insurance',
   'real estate', 'auto', 'restaurant', 'grocery', 'hardware',
+  // Addiction / behavioral-health markers — high-precision, do NOT collide with
+  // legit "Nursing and Rehabilitation Center" SNFs (which say "rehabilitation", not these).
+  // Added 2026-06-03 (sweep #2): addiction centers were landing as Nursing Home.
+  'sober living', 'sober house', 'detox', 'addiction treatment', 'drug rehab',
+  'alcohol rehab', 'substance abuse', 'halfway house', 'methadone',
+  // Body-art / event venues that slipped in name-innocent (sweep #2)
+  'tattoo', 'piercing',
 ];
 
 // Tier 1 deterministic deletion regex — ported from docs/data-sweep-runbook.md.
@@ -202,7 +213,16 @@ const SLAM_DUNK_DELETE_REGEX = [
 // Order matters: HC franchise wins first, then HHC brand, then explicit-name.
 // Skip combined-category providers (current category contains `|`) — those
 // are explicit multi-level facilities and need LLM/human judgment.
-const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care)\b/i;
+// Non-medical home-care franchise brands. These are definitively non-clinical, so
+// matching the name is a zero-FP slam-dunk → Home Care (Non-medical). This is the
+// SAFE fix for the "generic home_care discovery bundle defaults to Home Health Care"
+// problem (sweep #2 found 123 such mislabels): the LLM batch pass often stays silent
+// on HHC-vs-HC and the HHC default sticks. We do NOT flip the CATEGORY_MAP default
+// (Medicare certification is not inferable from a name — flipping would mislabel real
+// HHAs the other way). Brand recognition catches the name-INNOCENT franchise cases;
+// independent "X Home Care" agencies still rely on the web-grounded LLM verify.
+// 2026-06-03 (sweep #2) additions appended after the original sweep-#1 set.
+const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care|homewatch ?care ?givers|seniors helping seniors|preferred care at home|a place at home|qualicare|assisting hands|happier at home|americare|beehive home ?care|one you love home ?care|at your side home ?care|granny nannies|hallmark home ?care|a better solution in home ?care|alvita care|executive home ?care|the caregiving company)\b/i;
 const HHC_BRAND_REGEX    = /\b(amedisys|encompass health home health|kindred at home|bayada home health|interim healthcare|interim health ?care|lhc group)\b/i;
 const NH_EXPLICIT_REGEX  = /\b(skilled nursing facility|skilled nursing & rehab|skilled nursing and rehab|convalescent hospital|skilled nursing center)\b/i;
 const MC_EXPLICIT_REGEX  = /\bmemory care\b/i;
@@ -1200,6 +1220,17 @@ async function phaseLoad(cities, opts) {
 
     const geocoded = (toGeocode || []).length - skippedGeocode;
     console.log(`    Geocode: ${skippedGeocode} skipped (coords OK), ${geocoded} checked, ${corrections} corrected, ${outOfArea} out-of-area → ${activeCount} active`);
+
+    // GUARD: authoritative city/state reconcile via place_id. Discovery returns
+    // a wide radius and the run city is stamped on every row; this corrects each
+    // row to its TRUE city/state from its Google listing, preventing the
+    // run-city "dumping ground" mislabel (2026-06-03 incident).
+    const b = STATE_BOUNDS[c.state];
+    await reconcileRunLocations({
+      supabase, idPrefix, googleKey: GOOGLE_API_KEY,
+      bounds: b ? { minLat: b[0], maxLat: b[1], minLon: b[2], maxLon: b[3] } : null,
+      log: (m) => console.log(`  ${m}`),
+    });
 
     // Notion status updates are handled outside this script by Claude subagents
     // using the mcp__notion__* integration. The in-script NOTION_TOKEN path has

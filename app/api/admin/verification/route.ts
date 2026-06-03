@@ -345,6 +345,7 @@ export async function GET(request: NextRequest) {
     const stateParam = searchParams.get("state") || "";
     const typeParam = searchParams.get("type") || "";
     const trustParam = searchParams.get("trust_level") || "";
+    const engagementParam = searchParams.get("engagement") || ""; // has_leads, has_questions, has_any
 
     const db = getServiceClient();
 
@@ -486,6 +487,71 @@ export async function GET(request: NextRequest) {
       } else {
         filtered = filtered.filter((p) => (p as { claim_trust_level?: string }).claim_trust_level === trustParam);
       }
+    }
+
+    // Apply engagement filter (has_leads, has_questions, has_any)
+    // We only need to know presence (has at least 1), not exact counts
+    if (engagementParam) {
+      const profileIds = filtered.map((p) => p.id);
+
+      // Track which providers have leads or questions (using Sets for efficiency)
+      const providersWithLeads = new Set<string>();
+      const providersWithQuestions = new Set<string>();
+
+      if (profileIds.length > 0) {
+        // Find providers with at least one inquiry
+        // Select distinct to_profile_id values only
+        const { data: leadData } = await db
+          .from("connections")
+          .select("to_profile_id")
+          .in("to_profile_id", profileIds)
+          .eq("type", "inquiry")
+          .limit(5000); // Safety limit
+
+        if (leadData) {
+          for (const conn of leadData) {
+            providersWithLeads.add(conn.to_profile_id);
+          }
+        }
+
+        // Find providers with at least one question (by slug)
+        // Build slug -> profile id map first
+        const slugToId = new Map<string, string>();
+        for (const p of filtered) {
+          const slug = (p as { slug?: string | null }).slug;
+          if (slug) slugToId.set(slug, p.id);
+        }
+
+        const slugs = [...slugToId.keys()];
+
+        if (slugs.length > 0) {
+          const { data: questionData } = await db
+            .from("provider_questions")
+            .select("provider_id")
+            .in("provider_id", slugs)
+            .limit(5000); // Safety limit
+
+          if (questionData) {
+            for (const q of questionData) {
+              const profileId = slugToId.get(q.provider_id);
+              if (profileId) {
+                providersWithQuestions.add(profileId);
+              }
+            }
+          }
+        }
+      }
+
+      // Filter based on engagement type
+      filtered = filtered.filter((p) => {
+        const hasLeads = providersWithLeads.has(p.id);
+        const hasQuestions = providersWithQuestions.has(p.id);
+
+        if (engagementParam === "has_leads") return hasLeads;
+        if (engagementParam === "has_questions") return hasQuestions;
+        if (engagementParam === "has_any") return hasLeads || hasQuestions;
+        return true;
+      });
     }
 
     // Apply search filter if provided

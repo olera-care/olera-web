@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
-import { interviewRequestEmail } from "@/lib/email-templates";
+import { interviewRequestEmail, interviewProposedEmail } from "@/lib/email-templates";
 import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 
@@ -423,14 +423,14 @@ export async function POST(request: NextRequest) {
         await sendEmail({
           to: student.email,
           subject: `Interview request from ${providerDisplayName}`,
-          html: `
-            <h2>You have an interview request!</h2>
-            <p><strong>${providerDisplayName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
-            <p><strong>Proposed time:</strong> ${formattedDateTime}</p>
-            ${formattedAltTime ? `<p><strong>Alternative time:</strong> ${formattedAltTime}</p>` : ""}
-            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
-            <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View & respond on Olera</a></p>
-          `,
+          html: interviewProposedEmail({
+            proposerName: providerDisplayName,
+            interviewType: typeLabel,
+            proposedTime: formattedDateTime,
+            alternativeTime: formattedAltTime,
+            notes: notes || null,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`,
+          }),
           emailType: "interview_proposed",
           recipientType: "student",
           recipientProfileId: student.id,

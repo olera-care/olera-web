@@ -568,7 +568,7 @@ export default function AdminLeadsPage() {
         <div className="space-y-1">
           {leads.map((lead) => {
             // Check live provider email status instead of stale metadata flag
-            // Provider must exist AND be active to be actionable
+            // All leads are inquiry connections (family→provider), so we check if provider needs email
             const providerIsActive = !!lead.to_profile && lead.to_profile.is_active !== false;
             const providerHasNoEmail = !lead.to_profile?.email;
             const needsEmail = providerIsActive && providerHasNoEmail;

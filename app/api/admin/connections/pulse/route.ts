@@ -33,12 +33,14 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull non-archived inquiry/request connections in range+prior. We only
+    // Pull non-archived inquiry connections in range+prior. We only
     // need status + metadata.thread + to_profile_id to decide "successful".
+    // Only inquiry connections (family→provider) are tracked here.
+    // Matches (provider→family) are tracked on the Outreach page.
     let q = db
       .from("connections")
       .select("created_at, status, metadata, to_profile_id")
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));

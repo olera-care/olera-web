@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     .select(
       `
       id,
+      type,
       from_profile_id,
       to_profile_id,
       metadata,
@@ -66,7 +67,17 @@ export async function POST(req: NextRequest) {
         care_types,
         metadata
       ),
-      to_profile:business_profiles!connections_to_profile_id_fkey(display_name)
+      to_profile:business_profiles!connections_to_profile_id_fkey(
+        id,
+        display_name,
+        email,
+        phone,
+        image_url,
+        city,
+        description,
+        care_types,
+        metadata
+      )
     `
     )
     .eq("id", connection_id)
@@ -80,7 +91,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Normalize joined relations
+  // Normalize joined relations and resolve family/provider based on connection type
+  // - inquiry: from=family, to=provider
+  // - request (Matches): from=provider, to=family
   const fromProfile = Array.isArray(connection.from_profile)
     ? connection.from_profile[0]
     : connection.from_profile;
@@ -88,7 +101,11 @@ export async function POST(req: NextRequest) {
     ? connection.to_profile[0]
     : connection.to_profile;
 
-  if (!fromProfile?.email?.trim()) {
+  const isInquiry = connection.type === "inquiry";
+  const familyProfile = isInquiry ? fromProfile : toProfile;
+  const providerProfile = isInquiry ? toProfile : fromProfile;
+
+  if (!familyProfile?.email?.trim()) {
     return NextResponse.json(
       { error: "Family has no email address" },
       { status: 400 }
@@ -116,15 +133,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Calculate profile completeness
-  const completeness = calculateFamilyCompleteness(fromProfile, fromProfile.email);
+  const completeness = calculateFamilyCompleteness(familyProfile, familyProfile.email);
 
   const siteUrl = getSiteUrl();
-  const familyName = fromProfile.display_name || "Care Seeker";
-  const providerName = toProfile?.display_name || "the provider";
+  const familyName = familyProfile.display_name || "Care Seeker";
+  const providerName = providerProfile?.display_name || "the provider";
 
   // Reserve email log ID for tracking
   const emailLogId = await reserveEmailLogId({
-    to: fromProfile.email,
+    to: familyProfile.email,
     subject: `Complete your profile to help ${providerName} respond`,
     emailType: "family_nudge",
     recipientType: "family",
@@ -152,7 +169,7 @@ export async function POST(req: NextRequest) {
   });
 
   const { success, error: sendError } = await sendEmail({
-    to: fromProfile.email,
+    to: familyProfile.email,
     subject: `Complete your profile to help ${providerName} respond`,
     html,
     emailType: "family_nudge",
@@ -196,6 +213,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     family_nudged_at: nudgedAt,
-    family_email: fromProfile.email,
+    family_email: familyProfile.email,
   });
 }

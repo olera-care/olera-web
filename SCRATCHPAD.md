@@ -43,6 +43,38 @@
 
 ---
 
+### 2026-06-03 (Tue) — MedJobs catchment undercount fix + provider city-mislabel discovery (branch `vibrant-joliot`)
+
+**Origin:** Logan flagged catchments may undercount providers. Investigation cascaded into three layers.
+
+**Layer 1 — wrong-table bug (FIXED, PR #919 → staging).** Catchment COUNT/AUDIT surfaces read `business_profiles` (Olera account-holders, tiny) while the prospect LIST reads `olera-providers` (the 75K directory). 7–140× undercount. Decision (TJ): count **non-medical home care only** (`Home Care (Non-medical)`). Fixed `lib/medjobs/{catchment,prospect-counts,catchment-audit}.ts` → read olera-providers + non-medical filter; kept business_profiles only for the client-unlock gate. Added shared `NON_MEDICAL_ILIKE` + paginated `fetchNonMedicalProviders()` with **stable `.order("provider_id")`** (pre-test caught unstable pagination skipping/duping rows past the 10k PostgREST cap). Verified vs live DB: Houston 42→106, Emory 2→76, U.Florida 0→21. Committed `30df681b`, PR #919.
+
+**Layer 2 — discovery completeness.** Built `scripts/medjobs-homecare-backfill.js` (Places New text search → classify non-medical → dedup by place_id/phone/brand → review-ranked coverage report; dry-run default, `--import` reads reviewed JSON). Imported 3 solid net-new: SYNERGY HomeCare (Bryan `bryan-tx-0026`), Visiting Angels (Houston `houston-tx-0091`), TheKey (Houston `houston-tx-0092`). Hardened after TJ's "table stakes" push: franchise brand-probes default-on, **metro-wide capture** (assign each place to its REAL locality, not the query city) + coverage report ranking by Google reviews so a top-of-market miss can't be silent.
+
+**Layer 3 — THE REAL DEFECT (in progress).** BCS coverage proof showed all 8 top agencies as `✓have` — but they were "missing" from a College Station/Bryan filter because a **legacy import batch mislabeled their `city`/`state`**. The `Navasota, TX` bucket (26 rows) is a dumping ground: real Navasota + Bryan/CS agencies (Home Instead, Right at Home, CareCo, Amada, Visiting Angels — all addressed in CS/Bryan per lat/lon) + out-of-area (Dallas, Denton, Athens, Kilgore) + **3 Florida rows** (lat 27.x labeled TX). Tells: mislabeled rows have **random-prefix legacy IDs**; **lat/lon are accurate, city/state are not**. Not a discovery miss — a data-integrity bug. Fix = reverse-geocode lat/lon → correct city/state.
+
+**Next up:** (1) RUN Navasota geocode-fix (26 rows) as proof; (2) RUN directory-wide lat/lon-vs-city audit to size the corruption; (3) Notion report of findings (append branch name); (4) PR #919 merge; (5) decide breadth of directory repair. NOT done: importing the 2 tiny BCS net-new (Margie Stibora ★5/1, Mir ★1/1 — low value, skip).
+
+**Cost note:** Places New text search ~$32/1k requests; this session spent ~$5–6 across diagnostics/sweeps.
+
+---
+
+### 2026-06-02 (Tue eve) — Provider page-creation bugs: schema column + post-create redirect (branch `proud-feynman`, pushed)
+
+**Context:** Esther flagged in Slack that creating new home-care provider pages failed. Two distinct bugs found and fixed; both verified working live by TJ.
+
+**Bug 1 — page creation failed entirely (the red error).** `claim-instant` + `claim-listing` routes inserted a non-existent `care_services` column into `business_profiles`; the real column is `care_types TEXT[]` (used in ~40 other places). Schema-cache rejected every insert → "Could not find the 'care_services' column". Affected ALL service categories, not just Home Care. Fix: rename `care_services` → `care_types` in both routes (`app/api/provider/claim-instant/route.ts:230`, `app/api/provider/claim-listing/route.ts:185`). Commit `222585b6`.
+
+**Esther's account-separation theory — investigated, ruled out.** There IS a real `check-email-type` gate that blocks a provider signup if the email already has a *family* profile. But it was NOT the cause: (1) it would've shown a "use a different email" message, not the schema error; (2) DB query proved `tj@findmedjobs.co` had ZERO business_profiles. Also confirmed: **asking a provider question does NOT create a family profile** — the Q&A flow only writes a `provider_questions` row (asker_email), no account/profile. The email was never "tagged as a care seeker."
+
+**Bug 2 — after successful creation, landed on family inbox (`/portal/inbox`) instead of provider dashboard.** Onboarding intends `router.push("/provider")`, but `handleInstantCreate`/`handleInstantClaim` called `setSession` then navigated WITHOUT refreshing the auth context. Provider layout (`app/provider/layout.tsx:120-123`) mounted with stale empty `profiles`, saw no provider profile, bounced to `/portal`. Masked until now because Bug 1 blocked creation entirely. Fix: `await refreshAccountData(verifyData.session.user.id)` after `setSession`, before navigating, in BOTH instant flows (`app/provider/onboarding/page.tsx`). Commit `646dd8c9`.
+
+**Verified:** `/pre-test` run twice (both clean). Traced refresh chain against real schema+RLS: shared browser client carries the session, RLS allows reading own account/profiles, new org profile matches the `.or()` filter, single Supabase instance = no read-after-write lag. tsc clean (0 errors) throughout. TJ confirmed creation + (after fix) dashboard landing work.
+
+**Next up:** (1) open + merge PR to staging (both commits); (2) Esther Slack reply — blocker cleared + the "not a care seeker" clarification; (3) test-data note: `tj@findmedjobs.co` now owns a real org profile, so re-testing the *create* flow needs a fresh email (or delete that test profile).
+
+---
+
 ### 2026-06-02 (Tue) — Provider outreach enrichment (P1 #2 emails + #3 contact-form URLs) — PLANNED
 
 **Context:** `/explore` audited all 7 of TJ's P1 cards → 3 already done (closed on Notion: Smartlead bridge, Benefits mobile +P2 dup, portal post-Q sign-in mobile), 1 mostly-done/diverged (SBF 2-step → empathic arm), 1 half-shipped (#4 connect-two-sides), 2 genuinely unbuilt: the paired email + contact-form enrichers. TJ chose to build both together (shared toolchain).

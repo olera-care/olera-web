@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN drafted (no code yet)
+
+**Context:** With Pre-Flight v9.x stabilized (Day 0 call moved into Pre-Flight, Research Card now self-contained on `merge/medjobs-staging-2026-06-02`), Logan wants to rethink the post-launch system before building. Strategic shift: primary conversion goal is **trial/signup activation**, NOT a meeting with Dr. DuBose. Calls become "did you get the email?" not re-pitches. Replies tab → Emails tab (Replied/Opened/Clicked/Bounced/Needs Reply). Calendly two-way integration so self-served bookings land in Meetings tab automatically.
+
+**Plan:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md) — two-phase STRATEGY doc. Plan Phase 1 = conceptual model (cadence, CTA, terminal state, tracking, MVP scope). Plan Phase 2 = surfaces (Next Step branches, timeline split, tab redesign, Calendly + Smartlead integration). Backend deltas mapped: 2 new touchpoint types (`email_opened`, `email_clicked`), new derived `trial_activated` stage, new metadata flags, Smartlead webhook expansion, Calendly webhook. G1–G2 discipline satisfied (most events reuse `note_added` with `reason`).
+
+**Resume next session here →** Logan reviews the strategic-shifts table at the top of the plan + 5 open questions. Once shifts S1–S9 are approved, Implementation Phase 1 cuts: cadence change in `cadence.ts` + provider template rewrite + public `/provider/medjobs/welcome` page + Smartlead webhook expansion. NO code until shifts are signed off.
+
+---
+
 ### 2026-06-02/03 — Market Diagnostic: "SEMrush for senior-care client acquisition" (PR #916, DEMO-READY)
 
 **Context:** Shower revelation off the Comfort Keepers / College Station thread → the real product. Olera has a two-sided "mall" (recurring care-seeker demand + engaged providers) but no goods to sell. The good = **client-acquisition intelligence** a single provider can't assemble: their local demand, competition, and referral map. Wedge = Olera sees demand (the funnel) no provider can. Framing locked: **intelligence is the hook, the qualified-lead outcome is the revenue — *because* the outcome is scarce (75k providers, ~100 live leads) and the intelligence is abundant.**

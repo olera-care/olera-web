@@ -165,7 +165,7 @@ export default function ConnectionRow({
     if (c.responded) return "replied";
     if (engagement?.contact_revealed) return "copied contact";
     if (engagement?.lead_opened) return "viewed lead";
-    if (engagement?.email_clicked) return "opened email";
+    // email_click alone doesn't count as engagement - they may have bounced
     if (c.responseCategory === "no_email") return "no email";
     return "no response";
   })();
@@ -398,7 +398,6 @@ export default function ConnectionRow({
                       if (c.responded) return "Status: Replied to family";
                       if (detail.engagement.contact_revealed) return "Status: Copied family contact";
                       if (detail.engagement.lead_opened) return "Status: Viewed lead";
-                      if (detail.engagement.email_clicked) return "Status: Opened email";
                       return "Status: No engagement yet";
                     })()}
                   </div>

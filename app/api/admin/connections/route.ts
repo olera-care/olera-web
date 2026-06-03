@@ -360,8 +360,9 @@ export async function GET(request: NextRequest) {
 
     for (const c of searched) {
       const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
-      // Engaged = clicked email OR opened lead OR copied contact
-      const isEngaged = !!(eng?.email_clicked || eng?.lead_opened || eng?.contact_revealed);
+      // Engaged = opened lead drawer OR copied/clicked contact info
+      // email_click alone doesn't count - they might have bounced before seeing the lead
+      const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed);
       connectionEngaged.set(c.id, isEngaged);
 
       if (isEngaged) {

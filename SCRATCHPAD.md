@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-02 (Tue eve) — Provider page-creation bugs: schema column + post-create redirect (branch `proud-feynman`, pushed)
+
+**Context:** Esther flagged in Slack that creating new home-care provider pages failed. Two distinct bugs found and fixed; both verified working live by TJ.
+
+**Bug 1 — page creation failed entirely (the red error).** `claim-instant` + `claim-listing` routes inserted a non-existent `care_services` column into `business_profiles`; the real column is `care_types TEXT[]` (used in ~40 other places). Schema-cache rejected every insert → "Could not find the 'care_services' column". Affected ALL service categories, not just Home Care. Fix: rename `care_services` → `care_types` in both routes (`app/api/provider/claim-instant/route.ts:230`, `app/api/provider/claim-listing/route.ts:185`). Commit `222585b6`.
+
+**Esther's account-separation theory — investigated, ruled out.** There IS a real `check-email-type` gate that blocks a provider signup if the email already has a *family* profile. But it was NOT the cause: (1) it would've shown a "use a different email" message, not the schema error; (2) DB query proved `tj@findmedjobs.co` had ZERO business_profiles. Also confirmed: **asking a provider question does NOT create a family profile** — the Q&A flow only writes a `provider_questions` row (asker_email), no account/profile. The email was never "tagged as a care seeker."
+
+**Bug 2 — after successful creation, landed on family inbox (`/portal/inbox`) instead of provider dashboard.** Onboarding intends `router.push("/provider")`, but `handleInstantCreate`/`handleInstantClaim` called `setSession` then navigated WITHOUT refreshing the auth context. Provider layout (`app/provider/layout.tsx:120-123`) mounted with stale empty `profiles`, saw no provider profile, bounced to `/portal`. Masked until now because Bug 1 blocked creation entirely. Fix: `await refreshAccountData(verifyData.session.user.id)` after `setSession`, before navigating, in BOTH instant flows (`app/provider/onboarding/page.tsx`). Commit `646dd8c9`.
+
+**Verified:** `/pre-test` run twice (both clean). Traced refresh chain against real schema+RLS: shared browser client carries the session, RLS allows reading own account/profiles, new org profile matches the `.or()` filter, single Supabase instance = no read-after-write lag. tsc clean (0 errors) throughout. TJ confirmed creation + (after fix) dashboard landing work.
+
+**Next up:** (1) open + merge PR to staging (both commits); (2) Esther Slack reply — blocker cleared + the "not a care seeker" clarification; (3) test-data note: `tj@findmedjobs.co` now owns a real org profile, so re-testing the *create* flow needs a fresh email (or delete that test profile).
+
+---
+
 ### 2026-06-02 (Tue) — Provider outreach enrichment (P1 #2 emails + #3 contact-form URLs) — PLANNED
 
 **Context:** `/explore` audited all 7 of TJ's P1 cards → 3 already done (closed on Notion: Smartlead bridge, Benefits mobile +P2 dup, portal post-Q sign-in mobile), 1 mostly-done/diverged (SBF 2-step → empathic arm), 1 half-shipped (#4 connect-two-sides), 2 genuinely unbuilt: the paired email + contact-form enrichers. TJ chose to build both together (shared toolchain).

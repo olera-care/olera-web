@@ -123,6 +123,8 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           action={action}
           setError={setError}
           verificationState={verificationState}
+          launchEnabled={launchEnabled}
+          launchDisabledReason={launchDisabledReason}
         />
       )}
 

@@ -45,9 +45,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
 import type { VerificationState } from "@/lib/student-outreach/verification-state";
+import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
+import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
 type ActionFn = (
   actionName: string,
@@ -63,6 +67,12 @@ interface Props {
    *  can carry the Pre-Flight status indicator. Omitted post-launch
    *  (Snapshot lives inside More Details there). */
   verificationState?: VerificationState;
+  /** v9.x Phase 2c: Pre-Flight launch gating + persistence hook so the
+   *  Research Card footer can host Visit Website / Call to Confirm /
+   *  Launch Outreach. Omitted post-launch — the footer hides. */
+  launchEnabled?: boolean;
+  launchDisabledReason?: string;
+  beforeLaunch?: () => Promise<void>;
 }
 
 export function ProviderSnapshotCard({
@@ -70,6 +80,9 @@ export function ProviderSnapshotCard({
   action,
   setError,
   verificationState,
+  launchEnabled,
+  launchDisabledReason,
+  beforeLaunch,
 }: Props) {
   const { outreach, provider_business_profile: bp } = ctx;
   const orgName = bp?.display_name || outreach.organization_name;
@@ -316,6 +329,26 @@ export function ProviderSnapshotCard({
           {savingNotes ? "Saving…" : "Saved on blur"}
         </p>
       </div>
+
+      {/* ── 6. Pre-Flight action footer ────────────────────────────
+          v9.x Phase 2c: action affordances live inside the Research
+          Card so admin can finish Pre-Flight without leaving the
+          card. Visit Website opens the provider site for research;
+          Call to Confirm opens the Pre-Flight outcome modal;
+          Launch Outreach kicks off the cadence. Pre-launch only —
+          the footer collapses post-launch when the Snapshot moves
+          into More Details. */}
+      {isPreLaunch && verificationState && (
+        <ResearchActionFooter
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          verificationState={verificationState}
+          launchEnabled={launchEnabled ?? false}
+          launchDisabledReason={launchDisabledReason}
+          beforeLaunch={beforeLaunch}
+        />
+      )}
     </section>
   );
 }
@@ -1458,6 +1491,188 @@ function VerificationSection({ state }: { state: VerificationState }) {
           <p className={`mt-0.5 text-[11px] ${tone.sub}`}>{state.label}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Pre-Flight action footer ───────────────────────────────────────────
+
+/**
+ * v9.x Phase 2c: Pre-Flight action footer rendered inside the Research
+ * Card. Owns the three operational affordances:
+ *
+ *   - Visit Website        → opens provider site (research entry point)
+ *   - Call to Confirm      → opens CallForEmailModal (pre-flight outcome)
+ *   - Launch Outreach      → opens ProviderPreFlightModal (cadence)
+ *
+ * Modals live inside this component so the Research Card is self-
+ * contained for Pre-Flight actions. Once Phase 2e removes the
+ * NextStepCard checklist, this footer is the sole entry point for
+ * these three actions.
+ */
+function ResearchActionFooter({
+  ctx,
+  action,
+  setError,
+  verificationState,
+  launchEnabled,
+  launchDisabledReason,
+  beforeLaunch,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (msg: string | null) => void;
+  verificationState: VerificationState;
+  launchEnabled: boolean;
+  launchDisabledReason?: string;
+  beforeLaunch?: () => Promise<void>;
+}) {
+  const [showPreFlight, setShowPreFlight] = useState(false);
+  const [showCallForEmail, setShowCallForEmail] = useState(false);
+
+  const generalContactSlot = ctx.outreach.research_data?.general_contact ?? {};
+  // Effective values: per-outreach override OR directory fallback. Mirrors
+  // the same precedence used in GeneralContactSection so the footer
+  // reflects whatever the admin sees in the General Contact rows above.
+  const generalContactPhone =
+    generalContactSlot.phone ?? ctx.provider_business_profile?.phone ?? null;
+  const generalContactWebsite =
+    generalContactSlot.website ??
+    ctx.provider_business_profile?.website ??
+    null;
+
+  const cadenceKey: CadenceKey =
+    ctx.outreach.kind === "provider"
+      ? "provider"
+      : (ctx.outreach.stakeholder_type ?? "student_org");
+
+  const showVisitWebsite = Boolean(generalContactWebsite);
+  const showCallToConfirm =
+    ctx.outreach.kind === "provider" && Boolean(generalContactPhone);
+
+  const launchLabel =
+    verificationState.status === "overridden"
+      ? "Launch outreach (override) →"
+      : "Launch outreach →";
+
+  return (
+    <div className="border-t border-gray-200 pt-4">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        Pre-Flight actions
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        {showVisitWebsite && generalContactWebsite && (
+          <a
+            href={
+              generalContactWebsite.startsWith("http")
+                ? generalContactWebsite
+                : `https://${generalContactWebsite}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            🌐 Visit Website
+          </a>
+        )}
+        {showCallToConfirm && (
+          <button
+            onClick={() => setShowCallForEmail(true)}
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            title="Phone the provider to verify email, phone, address, and decision maker."
+          >
+            📞 Call to Confirm
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            if (!launchEnabled) {
+              setError(
+                launchDisabledReason ??
+                  "Complete the checklist before launching.",
+              );
+              return;
+            }
+            try {
+              if (beforeLaunch) await beforeLaunch();
+              setShowPreFlight(true);
+            } catch (e) {
+              setError(
+                e instanceof Error ? e.message : "Failed to prepare launch",
+              );
+            }
+          }}
+          disabled={!launchEnabled}
+          title={
+            launchEnabled
+              ? "Open the cadence pre-flight review."
+              : launchDisabledReason
+          }
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {launchLabel}
+        </button>
+      </div>
+
+      {showPreFlight && cadenceKey === "provider" && (
+        <ProviderPreFlightModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
+          contacts={ctx.contacts}
+          generalContact={{
+            email:
+              ctx.outreach.research_data?.general_contact?.email ??
+              ctx.provider_business_profile?.email ??
+              null,
+            phone:
+              ctx.outreach.research_data?.general_contact?.phone ??
+              ctx.provider_business_profile?.phone ??
+              null,
+          }}
+          smartleadPreview={ctx.smartlead_preview}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("schedule_sequence", payload);
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showPreFlight && cadenceKey !== "provider" && (
+        <PreFlightReviewModal
+          stakeholderType={cadenceKey}
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          contacts={ctx.contacts}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (snapshots) => {
+            try {
+              await action("schedule_sequence", { email_snapshots: snapshots });
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showCallForEmail && (
+        <CallForEmailModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus?.name ?? null}
+          phone={generalContactPhone}
+          action={action}
+          onCancel={() => setShowCallForEmail(false)}
+          onDone={() => setShowCallForEmail(false)}
+          setError={setError}
+        />
+      )}
     </div>
   );
 }

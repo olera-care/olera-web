@@ -45,9 +45,10 @@ export default function CatchmentMap({ center, targets }: { center: { lat: numbe
       for (const t of pts) {
         const el = document.createElement("div");
         el.style.cssText = `width:13px;height:13px;border-radius:9999px;background:${color(t.cat)};border:2px solid #fff;box-shadow:0 1px 3px rgba(28,25,23,.3);cursor:pointer;`;
+        const phoneHtml = t.phone ? ` · <a href="tel:${t.phone}" style="color:#199087;text-decoration:none">${t.phone}</a>` : "";
         const popup = new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
           `<div style="font-size:12px;font-weight:600;color:#1c1917">${t.name}</div>` +
-          `<div style="font-size:11px;color:#78716c;margin-top:1px">${CAT_LABEL[t.cat] ?? t.cat}${t.phone ? " · " + t.phone : ""}</div>`,
+          `<div style="font-size:11px;color:#78716c;margin-top:1px">${CAT_LABEL[t.cat] ?? t.cat}${phoneHtml}</div>`,
         );
         const marker = new maplibregl.Marker({ element: el }).setLngLat([t.lng!, t.lat!]).setPopup(popup).addTo(map);
         el.addEventListener("mouseenter", () => marker.getPopup() && map && popup.addTo(map).setLngLat([t.lng!, t.lat!]));

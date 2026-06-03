@@ -27,8 +27,11 @@ const keyOf = (t: BdTarget) => t.id || t.name;
  * /api/provider/market-outreach; optimistic + in-session fallback if the table
  * migration (097) isn't applied yet.
  */
+const POP_CSS = "@keyframes mroPop{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}.mro-pop{animation:mroPop .55s ease-out}";
+
 export default function ReferralTargets({ targets, interactive = false }: { targets: BdTarget[]; interactive?: boolean }) {
   const [status, setStatus] = useState<Record<string, string>>({});
+  const [celebrating, setCelebrating] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!interactive) return;
@@ -46,7 +49,12 @@ export default function ReferralTargets({ targets, interactive = false }: { targ
   }, [interactive]);
 
   const update = (t: BdTarget, value: string) => {
-    setStatus((prev) => ({ ...prev, [keyOf(t)]: value })); // optimistic
+    const prev = status[keyOf(t)] || "to_contact";
+    setStatus((s) => ({ ...s, [keyOf(t)]: value })); // optimistic
+    if (value === "referring" && prev !== "referring") {
+      setCelebrating((c) => ({ ...c, [keyOf(t)]: true }));
+      setTimeout(() => setCelebrating((c) => { const n = { ...c }; delete n[keyOf(t)]; return n; }), 700);
+    }
     if (!interactive) return;
     fetch("/api/provider/market-outreach", {
       method: "POST",
@@ -69,6 +77,7 @@ export default function ReferralTargets({ targets, interactive = false }: { targ
 
   return (
     <div>
+      <style dangerouslySetInnerHTML={{ __html: POP_CSS }} />
       {interactive && (
         <div className="mb-4 flex items-center gap-3">
           <div className="flex-1 h-1.5 rounded-full bg-stone-100 overflow-hidden">
@@ -84,15 +93,21 @@ export default function ReferralTargets({ targets, interactive = false }: { targ
           const s = status[keyOf(t)] || "to_contact";
           const meta = STATUS_META[s] ?? STATUS_META.to_contact;
           const dimmed = s === "dismissed";
+          const referring = s === "referring";
           return (
             <div
               key={keyOf(t)}
-              className={`flex items-center gap-3 rounded-xl border border-stone-200/70 bg-white/50 px-4 py-2.5 ${dimmed ? "opacity-50" : ""}`}
+              className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors ${
+                referring ? "border-emerald-200/80 bg-emerald-50/40" : "border-stone-200/70 bg-white/50"
+              } ${dimmed ? "opacity-50" : ""} ${celebrating[keyOf(t)] ? "mro-pop" : ""}`}
             >
               <div className="flex-1 min-w-0">
                 <div className={`text-[14px] text-stone-900 truncate ${dimmed ? "line-through" : ""}`}>{t.name}</div>
                 <div className="text-[12px] text-stone-500">
-                  {CAT_LABEL[t.cat] ?? t.cat} · {t.distanceMiles}mi{t.phone ? ` · ${t.phone}` : ""}
+                  {CAT_LABEL[t.cat] ?? t.cat} · {t.distanceMiles}mi
+                  {t.phone && (
+                    <> · <a href={`tel:${t.phone}`} onClick={(e) => e.stopPropagation()} className="hover:text-[#199087] hover:underline">{t.phone}</a></>
+                  )}
                 </div>
               </div>
               {interactive ? (

@@ -3,6 +3,7 @@ import ReferralTargets from "./ReferralTargets";
 import SectionNav from "./SectionNav";
 import CatchmentMapLoader from "./CatchmentMapLoader";
 import { CAT_COLOR } from "./CatchmentMap";
+import CountUp from "./CountUp";
 
 const NAV = [
   { id: "competition", label: "Competition" },
@@ -49,11 +50,13 @@ function Section({ id, kicker, title, children }: { id?: string; kicker: string;
   );
 }
 
-/** Perena-style stat card — soft, solid, gently shadowed. */
-function StatCard({ value, label }: { value: ReactNode; label: string }) {
+/** Perena-style stat card — soft, solid, gently shadowed. Numbers count up on reveal. */
+function StatCard({ value, label }: { value: number | string; label: string }) {
   return (
     <div className="rounded-2xl border border-stone-200/80 bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
-      <div className="font-display text-[2rem] leading-none text-stone-900">{value}</div>
+      <div className="font-display text-[2rem] leading-none text-stone-900">
+        {typeof value === "number" ? <CountUp value={value} /> : value}
+      </div>
       <div className="text-[12.5px] text-stone-500 mt-2">{label}</div>
     </div>
   );
@@ -72,6 +75,7 @@ export default function MarketDiagnostic({
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
   const cl = a.competitorLandscape;
   const ref = a.referralGraph;
+  const firstCall = ref.prioritizedTargets.find((t) => t.phone) ?? ref.prioritizedTargets[0];
 
   // Priority areas: senior density × income (private-pay signal), campus de-weighted
   const topAreas = (dem.zctas ?? [])
@@ -156,6 +160,26 @@ export default function MarketDiagnostic({
             </div>
           ))}
         </div>
+
+        {firstCall && (
+          <a
+            href={firstCall.phone ? `tel:${firstCall.phone}` : undefined}
+            className="group flex items-center gap-4 rounded-2xl bg-[#199087] px-5 py-4 mb-6 shadow-[0_2px_8px_rgba(25,144,135,0.25)] transition-transform active:scale-[0.99]"
+          >
+            <div className="flex-1 min-w-0 text-white">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/70">Your first call</div>
+              <div className="text-[16px] font-semibold truncate">{firstCall.name}</div>
+              <div className="text-[12px] text-white/75">
+                {CAT_LABEL[firstCall.cat] ?? firstCall.cat} · {firstCall.distanceMiles}mi{firstCall.phone ? ` · ${firstCall.phone}` : ""}
+              </div>
+            </div>
+            {firstCall.phone && (
+              <span className="shrink-0 rounded-full bg-white/15 px-4 py-2 text-[13px] font-semibold text-white transition-colors group-hover:bg-white/25">
+                Call →
+              </span>
+            )}
+          </a>
+        )}
 
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
           {interactive ? "Your call sheet — work it" : "Start here — prioritized targets"}

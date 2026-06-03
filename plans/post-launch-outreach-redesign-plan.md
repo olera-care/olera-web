@@ -836,13 +836,13 @@ The five from v1 are mostly resolved by the PDF + survey. Updated set:
 4. **Demo-candidate copy & photo** — Logan as a clearly-marked demo profile is the recommendation. Approved? Or use a different sample face?
 5. **Token TTL** — 30 days feels right (allows for slow readers, doesn't leave an open door forever). Confirm.
 6. **Pilot expiry behavior** — when `pilot_active_through` passes, the candidate board re-redacts (free tier). Admin gets a Day-T-minus-7 reach-out task. Defer to Phase 2 or include in MVP? (Recommend defer.)
-7. **v2.1/2.2: Actions that trigger T&C** — confirmed in v2.2 as the three "meaningful engagement" actions: Invite to interview, Save to shortlist, See contact info. Browse + filter remain free. Confirm the set is right; specifically, should "Click into expanded student profile" also gate (currently no — it stays free)?
+7. **v2.1/2.2: Actions that trigger T&C** — RESOLVED in v2.2 / Logan's pass 4. Triggering actions are: **Invite to interview**, **See contact info**, and **Save to shortlist** (Logan indifferent on Save; my recommendation is to include it for consistency — any private commitment signal should require agreement). **Clicking into the expanded student profile stays FREE.** Browse and expanded read are both unrestricted; only scheduling/contact/shortlist actions gate.
 8. **v2.1: Co-tenancy edge case** — when business_profile is already claimed by a different account, recommendation is read-only co-tenancy + admin reconcile task. Alternative is hard-block ("ask your team admin for access"). Pick.
 9. **v2.1: Split axis 2 into 2a (account-linkage) and 2b (claim-status)** — magic-link click advances only 2a; terms acceptance advances 2b. Avoids spurious cron triggers on cold clickers. Confirm.
-10. **v2.1: Welcome banner** — RESOLVED in v2.2. Removed entirely. The candidate board IS the welcome; preview mode is communicated via the disabled action buttons + their tooltips.
-11. **v2.2: Provider listing deletion policy** — recommendation is to BLOCK deletion while `pilot_active_through > now()`, with a clear message directing the provider to end the pilot first (per the PDF's written-notice clause). Alternative is to allow deletion + silently end the pilot. The block is wiser (matches PDF, prevents broken ecosystem state) but adds a small admin task ("provider X wants to end pilot, please process"). Confirm.
-12. **v2.2: T&C checkbox** — RESOLVED in v2.2. Unchecked-by-default is the legal/UX best practice. Continue button disabled until checked.
-13. **v2.2: T&C reassurance bullet wording** — four bullets drafted in P1.E T7. Tone aimed at "clear / reassuring / professional, not scary legal wall." Approve copy, or workshop a tweak?
+10. **v2.1: Welcome banner** — RESOLVED in v2.2. Removed entirely.
+11. **v2.2: Provider listing deletion policy** — RESOLVED in Logan's pass 4. Block deletion while `pilot_active_through > now()`; provider sends written notice to end pilot, deletion then unlocks.
+12. **v2.2: T&C checkbox** — RESOLVED in v2.2. Unchecked-by-default.
+13. **v2.2: T&C reassurance bullet wording** — RESOLVED in Logan's pass 4. Approved as drafted in P1.E T7.
 
 ---
 

@@ -19,6 +19,8 @@
 
 **Resume next session here →** Logan reviews v2.2 — especially the T&C modal v2.2 spec in P1.E T7 (4 reassurance bullets, unchecked checkbox, verb-matched continue button), the state-distinction table (4 mutually distinct states with publicly-visible vs operational consequences), and the P1.E.5 listing-deletion policy. If approved, MVP Implementation Phase 1 tickets 1–11 next.
 
+**Pass 4 resolutions (Logan):** Q7 (T&C triggers = Invite + See contact + Save; expanded profile click stays free). Q11 (listing deletion blocked while pilot active — approved). Q13 (T&C reassurance bullet wording — approved). **5 questions resolved, 6 still open** — Q8 (co-tenancy default), Q9 (axis 2a/2b split), Q1 (admin make_client also sets pilot_active_through?), Q4 (Logan as labeled demo profile?), Q3 (Calendly account ownership?), and the implicit defaults Q2/Q5/Q6 that just need explicit confirmation.
+
 ---
 
 ### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.1 (no code yet)

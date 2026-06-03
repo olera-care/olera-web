@@ -86,7 +86,7 @@ export default function FindFamiliesMarketView({
           </div>
         )}
 
-        {status === "ready" && data && <MarketDiagnostic data={data} />}
+        {status === "ready" && data && <MarketDiagnostic data={data} interactive />}
       </div>
     </div>
   );

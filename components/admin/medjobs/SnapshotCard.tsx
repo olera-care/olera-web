@@ -349,12 +349,21 @@ function GeneralContactSection({
   // pill that hit /api/admin/medjobs/enrich-contact (read-only website
   // scrape + Perplexity fallback). Feedback stays INLINE under each
   // field — never the drawer-level setError, which blanks the panel.
-  const [finding, setFinding] = useState<null | "email" | "contact_form" | "both">(null);
+  // v9.x Fill-from-Website state. `finding` tracks the in-flight mode;
+  // `findNote` carries per-field miss/error feedback; the `pulse*` flags
+  // briefly flash a primary ring on the input that just got auto-filled.
+  // Mode "all" runs every finder in parallel via the route's "all" mode.
+  type FindField = "email" | "contact_form" | "phone" | "fax" | "address";
+  type FindMode = FindField | "both" | "all";
+  const [finding, setFinding] = useState<null | FindMode>(null);
   const [findNote, setFindNote] = useState<
-    Partial<Record<"email" | "contact_form", { kind: "miss" | "error"; text: string }>>
+    Partial<Record<FindField, { kind: "miss" | "error"; text: string }>>
   >({});
   const [pulseEmail, setPulseEmail] = useState(false);
   const [pulseForm, setPulseForm] = useState(false);
+  const [pulsePhone, setPulsePhone] = useState(false);
+  const [pulseFax, setPulseFax] = useState(false);
+  const [pulseAddress, setPulseAddress] = useState(false);
 
   useEffect(() => {
     setEmail(effective.email);
@@ -465,13 +474,25 @@ function GeneralContactSection({
     }
   };
 
-  // v9.x Find-from-website enrichment helpers (TJ).
+  // v9.x Find-from-website enrichment helpers. The route's "all" mode
+  // returns every finder's result in parallel; the apply* helpers
+  // each handle one field's success/miss path (fill + save + flash on
+  // hit, calm note on miss).
   const setNoteFor = (
-    field: "email" | "contact_form",
+    field: FindField,
     n: { kind: "miss" | "error"; text: string } | null,
   ) => setFindNote((prev) => ({ ...prev, [field]: n ?? undefined }));
-  const flash = (field: "email" | "contact_form") => {
-    const set = field === "email" ? setPulseEmail : setPulseForm;
+  const flash = (field: FindField) => {
+    const set =
+      field === "email"
+        ? setPulseEmail
+        : field === "contact_form"
+          ? setPulseForm
+          : field === "phone"
+            ? setPulsePhone
+            : field === "fax"
+              ? setPulseFax
+              : setPulseAddress;
     set(true);
     setTimeout(() => set(false), 1200);
   };
@@ -495,10 +516,69 @@ function GeneralContactSection({
       setNoteFor("contact_form", { kind: "miss", text: "No contact form on the site." });
     }
   };
-  const findContact = async (mode: "email" | "contact_form" | "both") => {
+  const applyPhone = async (value: string | null) => {
+    if (value) {
+      setPhone(value);
+      setNoteFor("phone", null);
+      flash("phone");
+      await saveField("phone", value);
+    } else {
+      setNoteFor("phone", { kind: "miss", text: "No phone on the site." });
+    }
+  };
+  const applyFax = async (value: string | null) => {
+    if (value) {
+      setFax(value);
+      setNoteFor("fax", null);
+      flash("fax");
+      await saveField("fax", value);
+    } else {
+      setNoteFor("fax", { kind: "miss", text: "No fax on the site." });
+    }
+  };
+  // Address is multi-part: each component saves independently so admin can
+  // edit any incorrect part without re-typing the rest. A hit means at
+  // least one part came back; we apply whatever we have.
+  const applyAddress = async (parts: {
+    street: string | null;
+    city: string | null;
+    state: string | null;
+    zip: string | null;
+  }) => {
+    const { street: s, city: c, state: st, zip: z } = parts;
+    if (s || c || st || z) {
+      setNoteFor("address", null);
+      flash("address");
+      if (s) {
+        setStreet(s);
+        await saveField("street", s);
+      }
+      if (c) {
+        setCity(c);
+        await saveField("city", c);
+      }
+      if (st) {
+        setStateField(st);
+        await saveField("state", st);
+      }
+      if (z) {
+        setZip(z);
+        await saveField("zip", z);
+      }
+    } else {
+      setNoteFor("address", { kind: "miss", text: "No address on the site." });
+    }
+  };
+  const findContact = async (mode: FindMode) => {
     setFinding(mode);
-    if (mode !== "contact_form") setNoteFor("email", null);
-    if (mode !== "email") setNoteFor("contact_form", null);
+    // Clear stale notes for any field this lookup will touch.
+    const touched: FindField[] =
+      mode === "all"
+        ? ["email", "contact_form", "phone", "fax", "address"]
+        : mode === "both"
+          ? ["email", "contact_form"]
+          : [mode];
+    for (const f of touched) setNoteFor(f, null);
     try {
       const res = await fetch("/api/admin/medjobs/enrich-contact", {
         method: "POST",
@@ -509,21 +589,55 @@ function GeneralContactSection({
         value?: string | null;
         email?: { value: string | null };
         contactForm?: { value: string | null };
+        phone?: { value: string | null };
+        fax?: { value: string | null };
+        address?: {
+          street: string | null;
+          city: string | null;
+          state: string | null;
+          zip: string | null;
+        };
+        // Single-field address responses come back flat.
+        street?: string | null;
+        city?: string | null;
+        state?: string | null;
+        zip?: string | null;
         error?: string;
       };
       if (!res.ok) throw new Error(data.error || "Lookup failed");
-      if (mode === "both") {
+      if (mode === "all") {
+        await applyEmail(data.email?.value ?? null);
+        await applyForm(data.contactForm?.value ?? null);
+        await applyPhone(data.phone?.value ?? null);
+        await applyFax(data.fax?.value ?? null);
+        await applyAddress({
+          street: data.address?.street ?? null,
+          city: data.address?.city ?? null,
+          state: data.address?.state ?? null,
+          zip: data.address?.zip ?? null,
+        });
+      } else if (mode === "both") {
         await applyEmail(data.email?.value ?? null);
         await applyForm(data.contactForm?.value ?? null);
       } else if (mode === "email") {
         await applyEmail(data.value ?? null);
-      } else {
+      } else if (mode === "contact_form") {
         await applyForm(data.value ?? null);
+      } else if (mode === "phone") {
+        await applyPhone(data.value ?? null);
+      } else if (mode === "fax") {
+        await applyFax(data.value ?? null);
+      } else if (mode === "address") {
+        await applyAddress({
+          street: data.street ?? null,
+          city: data.city ?? null,
+          state: data.state ?? null,
+          zip: data.zip ?? null,
+        });
       }
     } catch (e) {
       const text = e instanceof Error ? e.message : "Lookup failed";
-      if (mode !== "contact_form") setNoteFor("email", { kind: "error", text });
-      if (mode !== "email") setNoteFor("contact_form", { kind: "error", text });
+      for (const f of touched) setNoteFor(f, { kind: "error", text });
     } finally {
       setFinding(null);
     }
@@ -618,15 +732,30 @@ function GeneralContactSection({
           label="Phone"
         >
           {editable ? (
-            <div className="space-y-1">
-              <Input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                onBlur={() => saveField("phone", phone)}
-                placeholder="(555) 123-4567"
-                disabled={phoneUnavailable}
-                size="sm"
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulsePhone ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onBlur={() => saveField("phone", phone)}
+                  placeholder="(555) 123-4567"
+                  disabled={phoneUnavailable}
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!phone && !phoneUnavailable}
+                label="Find phone"
+                busy={finding === "phone" || finding === "all"}
+                disabled={finding !== null}
+                onClick={() => findContact("phone")}
+                note={findNote.phone}
+                websiteHref={websiteHref}
               />
               <button
                 type="button"
@@ -697,47 +826,62 @@ function GeneralContactSection({
           label="Address"
         >
           {editable ? (
-            <div className="space-y-1">
-              <Input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                onBlur={() => saveField("street", street)}
-                placeholder="Street + suite"
-                disabled={addressUnavailable}
-                size="sm"
-              />
-              <div className="grid grid-cols-[1fr_56px_88px] gap-1">
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseAddress ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
                 <Input
                   type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  onBlur={() => saveField("city", city)}
-                  placeholder="City"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  onBlur={() => saveField("street", street)}
+                  placeholder="Street + suite"
                   disabled={addressUnavailable}
                   size="sm"
                 />
-                <Input
-                  type="text"
-                  value={stateField}
-                  onChange={(e) => setStateField(e.target.value.toUpperCase())}
-                  onBlur={() => saveField("state", stateField)}
-                  placeholder="ST"
-                  maxLength={2}
-                  disabled={addressUnavailable}
-                  size="sm"
-                  className="uppercase"
-                />
-                <Input
-                  type="text"
-                  value={zip}
-                  onChange={(e) => setZip(e.target.value)}
-                  onBlur={() => saveField("zip", zip)}
-                  placeholder="ZIP"
-                  disabled={addressUnavailable}
-                  size="sm"
-                />
+                <div className="mt-1 grid grid-cols-[1fr_56px_88px] gap-1">
+                  <Input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    onBlur={() => saveField("city", city)}
+                    placeholder="City"
+                    disabled={addressUnavailable}
+                    size="sm"
+                  />
+                  <Input
+                    type="text"
+                    value={stateField}
+                    onChange={(e) => setStateField(e.target.value.toUpperCase())}
+                    onBlur={() => saveField("state", stateField)}
+                    placeholder="ST"
+                    maxLength={2}
+                    disabled={addressUnavailable}
+                    size="sm"
+                    className="uppercase"
+                  />
+                  <Input
+                    type="text"
+                    value={zip}
+                    onChange={(e) => setZip(e.target.value)}
+                    onBlur={() => saveField("zip", zip)}
+                    placeholder="ZIP"
+                    disabled={addressUnavailable}
+                    size="sm"
+                  />
+                </div>
               </div>
+              <FindRow
+                showButton={!addressComplete && !addressUnavailable}
+                label="Find address"
+                busy={finding === "address" || finding === "all"}
+                disabled={finding !== null}
+                onClick={() => findContact("address")}
+                note={findNote.address}
+                websiteHref={websiteHref}
+              />
               <button
                 type="button"
                 onClick={() =>
@@ -762,15 +906,30 @@ function GeneralContactSection({
         </CoverageRow>
         <CoverageRow checked={Boolean(fax) || faxUnavailable} label="Fax">
           {editable ? (
-            <div className="space-y-1">
-              <Input
-                type="tel"
-                value={fax}
-                onChange={(e) => setFax(e.target.value)}
-                onBlur={() => saveField("fax", fax)}
-                placeholder="(555) 123-9999"
-                disabled={faxUnavailable}
-                size="sm"
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseFax ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="tel"
+                  value={fax}
+                  onChange={(e) => setFax(e.target.value)}
+                  onBlur={() => saveField("fax", fax)}
+                  placeholder="(555) 123-9999"
+                  disabled={faxUnavailable}
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!fax && !faxUnavailable}
+                label="Find fax"
+                busy={finding === "fax" || finding === "all"}
+                disabled={finding !== null}
+                onClick={() => findContact("fax")}
+                note={findNote.fax}
+                websiteHref={websiteHref}
               />
               <button
                 type="button"

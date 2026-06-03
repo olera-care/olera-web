@@ -39,6 +39,7 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const csvParse = require('csv-parse/sync');
+const { reconcileRunLocations } = require('./lib/reconcile-location');
 
 // ---------------------------------------------------------------------------
 // CLI Parsing
@@ -1200,6 +1201,17 @@ async function phaseLoad(cities, opts) {
 
     const geocoded = (toGeocode || []).length - skippedGeocode;
     console.log(`    Geocode: ${skippedGeocode} skipped (coords OK), ${geocoded} checked, ${corrections} corrected, ${outOfArea} out-of-area → ${activeCount} active`);
+
+    // GUARD: authoritative city/state reconcile via place_id. Discovery returns
+    // a wide radius and the run city is stamped on every row; this corrects each
+    // row to its TRUE city/state from its Google listing, preventing the
+    // run-city "dumping ground" mislabel (2026-06-03 incident).
+    const b = STATE_BOUNDS[c.state];
+    await reconcileRunLocations({
+      supabase, idPrefix, googleKey: GOOGLE_API_KEY,
+      bounds: b ? { minLat: b[0], maxLat: b[1], minLon: b[2], maxLon: b[3] } : null,
+      log: (m) => console.log(`  ${m}`),
+    });
 
     // Notion status updates are handled outside this script by Claude subagents
     // using the mcp__notion__* integration. The in-script NOTION_TOKEN path has

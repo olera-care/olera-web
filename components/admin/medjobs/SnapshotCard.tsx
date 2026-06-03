@@ -648,14 +648,19 @@ function GeneralContactSection({
       : `https://${website}`
     : null;
   // Show the header "Auto-fill from website" pill when there's a website
-  // AND at least one of email/contact-form is missing (and not explicitly
-  // marked unavailable — admin already made a decision there).
+  // AND at least one fillable field is missing (and not explicitly marked
+  // unavailable — admin already made a decision there). Now covers every
+  // field the route's "all" mode can fill: email, contact_form, phone,
+  // fax, address.
   const showAutofill =
     editable &&
     Boolean(website) &&
     (
       (!email && !emailUnavailable) ||
-      (!contactFormUrl && !contactFormUnavailable)
+      (!contactFormUrl && !contactFormUnavailable) ||
+      (!phone && !phoneUnavailable) ||
+      (!fax && !faxUnavailable) ||
+      (!addressComplete && !addressUnavailable)
     );
 
   return (
@@ -668,16 +673,16 @@ function GeneralContactSection({
           {showAutofill && (
             <button
               type="button"
-              onClick={() => findContact("both")}
+              onClick={() => findContact("all")}
               disabled={finding !== null}
               className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-700 transition-colors hover:bg-primary-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {finding === "both" ? (
+              {finding === "all" ? (
                 <>
                   <Spinner /> Searching…
                 </>
               ) : (
-                <>✦ Auto-fill from website</>
+                <>✦ Fill from Website</>
               )}
             </button>
           )}

@@ -370,7 +370,15 @@ export default function ConnectionRow({
                         {detail.provider.email}
                       </a>
                     ) : (
-                      <p className="text-sm text-amber-600">No email on file</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-amber-600">No email on file</span>
+                        <a
+                          href="/admin/leads?tab=needs_email"
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          Add email
+                        </a>
+                      </div>
                     )}
                     {detail.provider.phone ? (
                       <a

@@ -1,10 +1,56 @@
-# Plan: Post-Launch Outreach Redesign — Strategy v2.2
+# Plan: Post-Launch Outreach Redesign — v3 (FINAL)
 
-Created: 2026-06-03 (v1 + v2 + v2.1 same day; v2.2 deepens T&C UX + adds provider-page deletion policy)
-Status: STRATEGY / NOT STARTED (no code yet)
+Created: 2026-06-03 (v1 → v2 → v2.1 → v2.2 → v3 same day, four feedback passes from Logan)
+Status: **FINAL — all decisions locked. Ready for ticket cutting.**
 Author: Claude
 
-## v2.2 update — what changed from v2.1
+## Decisions log (all questions resolved)
+
+Every previously-open question has a locked answer. Implementation
+Phase 1 (P1.J / "MVP — Implementation Phase 1") is the next concrete
+step; tickets 1–11 are ready to cut.
+
+| # | Question | Decision |
+|---|----------|----------|
+| Q1 | Admin `make_client` also sets `pilot_active_through = now + 90d`? | **YES** (Claude's recommendation, not explicitly addressed by Logan in pass 4 — locking with this default so admin and self-serve paths produce identical state. Override if wrong.) |
+| Q2 | Day 1 call deleted entirely under the new cadence? | **YES** — confirmed by Logan in pass 4. |
+| Q3 | Calendly account ownership? | **Dr. DuBose's personal Calendly.** Phase 2 webhook setup will need a calendly.com personal-plan webhook subscription on Dr. DuBose's account. Worth pricing the cost/feature of moving this to an Olera org plan before Phase 2 ships. |
+| Q4 | Demo-candidate copy & photo? | **Logan DuBose as a clearly-labeled demo profile.** Real face, real bio (founder + medical student), prominent DEMO badge. |
+| Q5 | Magic-link token TTL? | **30 days.** |
+| Q6 | Pilot expiry behavior (re-redact + Day-T-7 reach-out)? | **Defer to Phase 2.** MVP just sets the `pilot_active_through` timestamp; no expiry handling. |
+| Q7 | Actions that trigger T&C modal? | **Invite to interview** + **See contact info** + **Save to shortlist** (Logan indifferent on Save; included for consistency). **Browsing + clicking into expanded student profile stays FREE.** |
+| Q8 | Co-tenancy edge case default? | **A — read-only co-tenancy.** Sign in, candidate board in permanent preview mode for the cold clicker, axis-3 action attempts prompt "this org is already linked to another team member — want us to email them to add you?", emit `note_added(reason: "claim_conflict")` admin task. |
+| Q9 | Axis 2 split (2a account-linkage vs 2b claim-status)? | **YES — ship the split.** Magic-link click advances only 2a (`account_id` set, `claim_state` stays `"unclaimed"`). Terms acceptance advances 2b (`claim_state → "claimed"`). Avoids spurious cron triggers on cold clickers. |
+| Q10 | Welcome banner on landing? | **NO banner.** The candidate board IS the welcome; preview mode is communicated by disabled-action tooltips. |
+| Q11 | Public listing deletion policy while pilot active? | **Block deletion** while `pilot_active_through > now()`. Provider sends written notice (per PDF) to end pilot; deletion then unlocks. |
+| Q12 | T&C agreement checkbox default? | **Unchecked.** Continue button disabled until checked. Required for e-consent enforceability (ESIGN / UETA / GDPR). |
+| Q13 | T&C reassurance bullet wording? | **Approved as drafted in P1.E T7.** Four plain-language bullets addressing payment / hiring obligation / employment responsibility / public listing requirement. |
+
+## What's next
+
+→ **Next session: cut MVP Implementation Phase 1 tickets 1–11** (see
+P1.J). Each ticket is one PR; the journey heart (4 + 5 + 6 + 8) ships
+as a tight coupled sequence. Total scope ~23 days at one dev (~4.5
+weeks).
+
+→ **Open follow-up for Logan to think about** (not blockers):
+- Q3 follow-up — Dr. DuBose's personal Calendly works for MVP (no integration needed yet) and for Phase 2 (one personal-plan webhook subscription). When we hit Phase 2, decide whether to move to an Olera org Calendly so multiple team members can host events.
+- Brand consistency at click time — cold email arrives from `*@findmedjobs.co` (Smartlead-warmed); magic link lands on `olera.care`. Worth a single sentence in the email body so the brand jump doesn't surprise readers ("...you'll land on olera.care, our main platform.").
+
+---
+
+## Version history (collapsed)
+
+- **v1** (initial pass) — first draft from Logan's "what about post-launch" prompt. Strategic shifts S1–S9. MVP centered on trial activation.
+- **v2** (PDF + infra survey) — six material revisions after reading the pilot agreement PDF + surveying existing magic-link / claim infrastructure. "Pilot" not "trial"; existing `interview_terms_accepted_at` instead of new derived stage; magic-link promoted to MVP. Strategic shifts grew to S1–S12.
+- **v2.1** (Logan's pass 3) — rigorous four-axis state model + T0–T10 journey table after Logan pushed back on v2's hand-waving. Split axis 2 into 2a (account-linkage) and 2b (claim-status). Strategic shifts S1–S14.
+- **v2.2** (Logan's pass 4) — T&C modal UX redesigned with 4 reassurance bullets + unchecked checkbox; public listing required while pilot active; welcome banner cut. State-distinction reference table added. Strategic shifts S1–S16.
+- **v3 (FINAL)** — all 13 open questions resolved. Plan is decision-locked and implementation-ready.
+
+The four "what changed from previous version" sections below preserve
+the audit trail.
+
+---
 
 Logan's third feedback pass focused on the actual T&C modal UX, the
 relationship between pilot membership and the public provider listing
@@ -826,27 +872,15 @@ conversions.
 | **v2.1: Co-tenancy conflict (org already claimed)** | Read-only co-tenancy + admin reconcile task (P1.E edge case). The provider gets a session and can browse but can't trigger axis 3. Admin sees a `claim_conflict` task to manually link the second user (when team support lands) or block it. |
 | **v2.1: First-action T&C creates friction at the most valuable moment** | The modal interrupts an action the provider WANTS to take. Modal language carries the verb ("Accept and invite this student") so it feels less like a wall and more like a confirmation. Single primary CTA, no scrolling required, PDF inline (collapsible). |
 
-## Open questions for Logan
+## Open questions for Logan — ALL RESOLVED
 
-The five from v1 are mostly resolved by the PDF + survey. Updated set:
-
-1. **Pilot timer on admin path** — when admin runs `make_client` at meeting close, should that ALSO set `pilot_active_through = now + 90d`? I'd recommend yes (one consistent timer). Confirm.
-2. **Day 1 call** — confirmed deleted entirely under the new model. Yes?
-3. **Calendly account** — is there an Olera org Calendly today, or only Dr. DuBose's personal? Webhook setup depends on the answer.
-4. **Demo-candidate copy & photo** — Logan as a clearly-marked demo profile is the recommendation. Approved? Or use a different sample face?
-5. **Token TTL** — 30 days feels right (allows for slow readers, doesn't leave an open door forever). Confirm.
-6. **Pilot expiry behavior** — when `pilot_active_through` passes, the candidate board re-redacts (free tier). Admin gets a Day-T-minus-7 reach-out task. Defer to Phase 2 or include in MVP? (Recommend defer.)
-7. **v2.1/2.2: Actions that trigger T&C** — RESOLVED in v2.2 / Logan's pass 4. Triggering actions are: **Invite to interview**, **See contact info**, and **Save to shortlist** (Logan indifferent on Save; my recommendation is to include it for consistency — any private commitment signal should require agreement). **Clicking into the expanded student profile stays FREE.** Browse and expanded read are both unrestricted; only scheduling/contact/shortlist actions gate.
-8. **v2.1: Co-tenancy edge case** — when business_profile is already claimed by a different account, recommendation is read-only co-tenancy + admin reconcile task. Alternative is hard-block ("ask your team admin for access"). Pick.
-9. **v2.1: Split axis 2 into 2a (account-linkage) and 2b (claim-status)** — magic-link click advances only 2a; terms acceptance advances 2b. Avoids spurious cron triggers on cold clickers. Confirm.
-10. **v2.1: Welcome banner** — RESOLVED in v2.2. Removed entirely.
-11. **v2.2: Provider listing deletion policy** — RESOLVED in Logan's pass 4. Block deletion while `pilot_active_through > now()`; provider sends written notice to end pilot, deletion then unlocks.
-12. **v2.2: T&C checkbox** — RESOLVED in v2.2. Unchecked-by-default.
-13. **v2.2: T&C reassurance bullet wording** — RESOLVED in Logan's pass 4. Approved as drafted in P1.E T7.
+See **Decisions log** at the top of this document. Every question
+listed during the planning passes (Q1–Q13) has a locked answer.
+Implementation Phase 1 can begin.
 
 ---
 
-## Implementation roadmap (suggested ticket order, post-approval)
+## Implementation roadmap (final ticket order)
 
 ### MVP — Implementation Phase 1 (~22 days focused work, ~4 weeks)
 

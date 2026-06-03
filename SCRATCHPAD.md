@@ -7,19 +7,17 @@
 
 ## Current Focus
 
-### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.2 (no code yet)
+### 2026-06-03 (Tue) — Post-launch outreach plan **v3 FINAL** (ready for ticket cutting)
 
-**Context:** Third feedback pass from Logan focused on T&C modal UX, public-listing-deletion policy while pilot active, and a welcome-banner cut. Five material additions: (1) three actions trigger T&C, not one (Invite to interview / Save to shortlist / See contact info); (2) T&C modal redesigned with 4 plain-language reassurance bullets, full agreement + PDF links, unchecked agreement checkbox (legal best practice for e-consent enforceability); (3) public listing required while `pilot_active_through > now()` — backend guard blocks deletion with a clear "end the pilot first" message; (4) welcome banner removed (the board IS the welcome); (5) state-distinction reference table added so future authors don't conflate Directory-only / Portal-access / Pilot-active / Verified-claimed.
+**Context:** Four feedback passes from Logan over one session (v1 → v2 → v2.1 → v2.2 → v3). v3 is the decision-locked final. All 13 questions resolved. Ready to cut MVP Implementation Phase 1 tickets 1–11 next session.
 
-**Pressure-tested in v2.2:** pre-checked T&C checkboxes are NOT best practice. US ESIGN Act + UETA require "clear, affirmative consent"; EU/GDPR requires "unambiguous indication via clear affirmative act"; Nielsen/Baymard treat pre-check as a dark pattern. Recommendation: unchecked-by-default, continue button disabled until checked.
+**Locked decisions:** pilot framing (not trial); single terminal state `interview_terms_accepted_at` + new `pilot_active_through` field (3-month timer); magic-link click advances only auth + 2a (account-linkage), terms acceptance advances 2b (claim-status) + 3 (pilot); three actions trigger T&C (Invite + See contact + Save); T&C modal = 4 plain-language reassurance bullets + unchecked checkbox + verb-matched continue; public listing required while pilot active (backend guard blocks deletion); no welcome banner; Logan as the labeled demo candidate; read-only co-tenancy on org-already-claimed edge case; 30-day token TTL; Dr. DuBose's personal Calendly for Phase 2 webhook.
 
-**Strategic shifts grew S1–S14 → S1–S16.** New: S15 (T&C as plain-language reassurance card not single-line ack), S16 (public listing required while pilot active). MVP ticket list grew from 10 to 11 (added ticket 11: pilot-required listing deletion guard, 1 day). New Phase 2 ticket: self-serve End-Pilot portal surface (MVP relies on "contact us" matching PDF's written-notice clause).
+**Plan v3:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md). Decisions log at top of doc lists every Q with locked answer. 16 strategic shifts (S1–S16). MVP scope: 11 tickets, ~23 days (~4.5 weeks at 1 dev). Phase 2 surfaces (tabs, timeline, Calendly webhook, End-Pilot self-serve) deferred until MVP data flows.
 
-**Plan v2.2:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md). 13 open questions; v2.2 resolves Q10 (no welcome banner) and Q12 (unchecked checkbox); new Q11 (listing deletion policy) and Q13 (T&C reassurance copy approval).
+**One assumption flagged for Logan to override if wrong:** Q1 (admin `make_client` ALSO sets `pilot_active_through = now + 90d`) — Logan didn't explicitly address in pass 4; I locked with my recommendation so admin and self-serve paths produce identical state. Override if not.
 
-**Resume next session here →** Logan reviews v2.2 — especially the T&C modal v2.2 spec in P1.E T7 (4 reassurance bullets, unchecked checkbox, verb-matched continue button), the state-distinction table (4 mutually distinct states with publicly-visible vs operational consequences), and the P1.E.5 listing-deletion policy. If approved, MVP Implementation Phase 1 tickets 1–11 next.
-
-**Pass 4 resolutions (Logan):** Q7 (T&C triggers = Invite + See contact + Save; expanded profile click stays free). Q11 (listing deletion blocked while pilot active — approved). Q13 (T&C reassurance bullet wording — approved). **5 questions resolved, 6 still open** — Q8 (co-tenancy default), Q9 (axis 2a/2b split), Q1 (admin make_client also sets pilot_active_through?), Q4 (Logan as labeled demo profile?), Q3 (Calendly account ownership?), and the implicit defaults Q2/Q5/Q6 that just need explicit confirmation.
+**Resume next session here →** Cut MVP Implementation Phase 1 tickets 1–11 in the order defined in P1.J. Journey heart (tickets 4 + 5 + 6 + 8) ships as a coupled PR sequence. Branch from staging; no merge until end-to-end works on a Vercel preview.
 
 ---
 

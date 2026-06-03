@@ -161,26 +161,36 @@ const SIX_CATEGORY_DEFINITIONS = `Olera matches care seekers to providers in EXA
 
 Combined-service providers qualify if AT LEAST ONE primary line is in the 6.`;
 
-const OUT_OF_SCOPE_TYPES = `- Hospice-only (no home health line)
-- Adult day care / PACE / geriatric care management / care navigation
+const OUT_OF_SCOPE_TYPES = `- Hospice-only (no home health line) — OUT even if it describes nursing, "comfort care", or a residential/inpatient setting
+- Adult day care / PACE / geriatric care management / care navigation — OUT even if it serves seniors all day in a care-like setting
 - Inpatient rehab hospital
-- Mental illness / addiction / behavioral health facility
-- Pediatric care
+- Addiction / drug / alcohol / substance-use / detox / sober-living / behavioral-health / mental-illness facility — OUT even if it advertises "skilled nursing", "rehabilitation", "residential care", or "24/7 care". A facility whose PRIMARY population is people in addiction or substance-use recovery is OUT — do NOT classify it as Nursing Home or Assisted Living.
+- Pediatric care / childcare / daycare for children
 - Outside the United States
 - Test data / placeholder / demo entries
 - DME / pharmacy / medical equipment supplier
-- Hospital / urgent care / primary care clinic / physician practice
-- Pure 55+ apartments / mobile home parks WITHOUT services
+- Hospital / urgent care / primary care clinic / physician practice / community health center
+- Pure 55+ apartments / mobile home parks / public or affordable housing WITHOUT senior services
 - Property management / real estate / construction / general healthcare staffing (not in-home caregiver placement)
 - Government office / aging services agency / senior recreation center
-- Wedding venues / event spaces / community centers / YMCAs
-- Retail / food service / churches / universities / generic nonprofits`;
+- Wedding venues / event spaces / banquet halls / community centers / YMCAs
+- Tattoo / piercing / body-art studios
+- Retail / food service / churches / universities / generic nonprofits
+
+When uncertain whether a clinical-sounding facility is a senior-care provider or an addiction/behavioral-health/hospice facility, weigh its PRIMARY business — a recovery, detox, or end-of-life mission disqualifies it regardless of any nursing or rehabilitation services it lists.`;
 
 const KEYWORD_BLOCKLIST = [
   'pharmacy', 'hospital', 'pediatric', 'veterinary', 'dental', 'optometrist',
   'chiropractor', 'urgent care', 'physical therapy', 'dialysis', 'medical supply',
   'staffing agency', 'storage', 'plumbing', 'construction', 'insurance',
   'real estate', 'auto', 'restaurant', 'grocery', 'hardware',
+  // Addiction / behavioral-health markers — high-precision, do NOT collide with
+  // legit "Nursing and Rehabilitation Center" SNFs (which say "rehabilitation", not these).
+  // Added 2026-06-03 (sweep #2): addiction centers were landing as Nursing Home.
+  'sober living', 'sober house', 'detox', 'addiction treatment', 'drug rehab',
+  'alcohol rehab', 'substance abuse', 'halfway house', 'methadone',
+  // Body-art / event venues that slipped in name-innocent (sweep #2)
+  'tattoo', 'piercing',
 ];
 
 // Tier 1 deterministic deletion regex — ported from docs/data-sweep-runbook.md.

@@ -182,7 +182,8 @@ export default function ConnectionRow({
     } catch {
       setEmailHtmlCache((prev) => ({ ...prev, [emailId]: null }));
     } finally {
-      setEmailHtmlLoading(null);
+      // Only clear loading if this email is still the one loading
+      setEmailHtmlLoading((prev) => (prev === emailId ? null : prev));
     }
   }
 

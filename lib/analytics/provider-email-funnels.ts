@@ -52,6 +52,7 @@ const VERIFICATION = [
   "verification_decision",
   "verification_approved",
   "verification_rejected",
+  "verification_method_failed",
   "verification_reminder_7d",
   "verification_reminder_21d",
 ] as const;

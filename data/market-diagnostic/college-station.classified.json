@@ -1,0 +1,1898 @@
+{
+  "ChIJU2nxV5uGRoYRJOIuVdXSnLE": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJeeTN3XqBRoYRx3XqzHd4rsk": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJtwTBldyDRoYRNWBvHlo9YpQ": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJxZ1kVf6FRoYRj8G24586xTo": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJs-xkkGGERoYRKVTB9_agk3U": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJ5d9Bi7uFRoYRRQLfkddQKn0": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJoYo8vOKDRoYR7_9B-tUF_6c": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJKTB9D-aDRoYRFiXdOowr9FE": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJwzIQgr-ERoYRlxwmgSMMSjs": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJYxcJGRuRRoYR9FZ4Fu85szE": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJLePWQEqBRoYRlRBYydFj4As": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJOxIAWcGFRoYRsx6v51Zujqk": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJQzDaQO-DRoYR6k_SVEOB2Sg": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJq6qqqlaBRoYR9UdOeww9P80": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJBRcgaXGFRoYR0YFdiJW9pXk": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJYe9VzWGCRoYRIYA71M8D91s": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ5VlpCx-oRoYRzDr4qoGkJuo": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ_3UHuWuBRoYRol6GwxdbyvE": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJU2nxV5uGRoYRFYDwcP2sUbQ": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJ2w3_67yGRoYRGLz-XhS1j6A": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJJ8_MI1iBRoYRBa3WzbupPXs": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJuQdJO5mDRoYR6FdmIDW9HKA": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJZT_O3WGBRoYRY5ekPScO1XA": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJsdZTU2SBRoYR4uS1NBIcS9Q": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJE6a2CkWFRoYRu5gPnbv6sY8": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ_0JcozKTQIYRP36ky6H6v0Q": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJhZD27vmPRoYR-I6HQ2pyQSc": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJD8W2rRyFRoYRr7QEZv6gOMs": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJS94E4Z-GRoYR9_Ue5-gnKN8": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJzWPs-4qFRoYRDBaMawizEss": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ1X848MiERoYRv-CQSD3BOKg": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJpwdzKVmBRoYRnqiXFprGn84": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJK6bWVueERoYRxzfMaSTIKWQ": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJZ4EHWt2ERoYRNFr4K0T2s0U": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJj1yyI2aBRoYRZAq2hmjXDJ4": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJAVxAaX-DRoYR7j8xhIhhitk": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJ89qopmWBRoYRig140Za4OP8": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJU11tMh3aQIYRjZoRzdekblI": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJSQpWN0aFRoYRr62ACfDO5Zo": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJUcoygY2BRoYRiiHB_hDvNcI": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJd_zHsGCBRoYRN9ie2lkogz8": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJC_Ig0O-ERoYRIOAJpJPZL5U": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJHYbVSGeBRoYRUvjbp2SHLok": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJCYz-mXyFRoYRKYfDWtsQ_c0": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJD6mLx_yDRoYRRDE7z-2CcWg": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJVyb_dV6BRoYRX_6zu_fpk54": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ2XSoKUODRoYR0mTxWroVj-w": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJactj-2GERoYR5XS703Bf4TU": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJo9mm97TWQIYRsV6MpGeP0do": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJ9bUeb8yBRoYRYxhBBtTB1fE": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJDzoIYCaFRoYR3XJinNDKjX8": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJlaqHovyDRoYRgY7AjecNMOA": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJycbYz--ERoYR3QnWL5Y1_9g": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJzVsJ_rSBRoYR843t40YtQ3I": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJjS7LvvaBRoYRdtFMa4RHtgg": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJOTyAvSCERoYRO3cUE5HKh7s": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJeZsr9XCGRoYRIIxuivknIRE": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJtUtSxb3HRYYR7Pz5E3h0CaU": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJYUtQKdWDRoYRzsPk8byPr2E": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJq-GOz6LGRYYRgg4H8Zjti84": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJF1L2VOG_RoYRb4PABvPwsNc": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJr2-NfBybRoYRoxWXdmkIh1s": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ40xfE3eFRoYR8fqaJI73fbs": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ_3B50nY5R4YR0oHO-KJ5tqA": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJ0c2EEWeBRoYRu6NxZNT15So": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJq6ouWEaDRoYRbVWeOfBuRGM": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJTXpslvKERoYRRhom6ncV8FA": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJb_Lv91uBRoYRMC2ZhaprldM": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ85RVy1-BRoYR5PL612DpWMc": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJk2jzKVmBRoYRI2NTfXZYyns": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJwUt9bbSFRoYRXzQU1BnRXag": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJOTyAvSCERoYRzVDYILhkKrc": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ4fymJ2GBRoYR1lJlXsyTq04": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJQ7_jOt2ERoYRMF9zoWNex24": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJNxJ9bSCFRoYRI8KRlWKrfSY": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJc_TSEyCFRoYRjzi6fnn4ZwY": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ23DZslCVRoYR82IJe9uUi1U": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJtXfflCCERoYRkfFgTK8vPcg": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJLQXXZzc4RIYRZwsvo44BKJ0": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJEftL-V2BRoYRlAoWXiTX09Y": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJfXTN77JaRoYRtJxpu2tIOgw": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJO83HtKcIR4YRw6kFqQ4m9h0": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJI8tfU_uFRoYR4QW8pyCKvbg": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJo4Djsy2oRoYRroHujl4npJk": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJmS9MI2eBRoYRMGj3OGQe2Ms": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJA6aGfLKBRoYR5NemFjVop0I": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJl7AJZtuDRoYRsEPyyjSrlIY": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJlZlWRgCFRoYRBCGAs9HZO1Q": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJ_____6uGRoYRg7gCtAqhdMQ": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJOTyAvSCERoYROih-LL8ngmY": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ-ZgoT7vmQIYRk-5ckIgo_NY": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJg9vDGSy_QIYRjB8yYaUqNKU": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJtT1VlyCERoYRuIOCh0GCFog": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ4ffkJmSBRoYR6KuazyIJwL4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJN6H-YTqBRoYRzXDvTPSaebA": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJb0OFPXiFRoYRObVpTMs5w98": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJSUT4ba6FRoYRXBB3ceECaxg": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJg3bS4Y21RIYREr5TRa1Lf1Q": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJ0aSzG4zCQIYRDV9fldMrDkA": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJL4v-7eOFRoYRraSSxDiS3Po": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ3ZSea341W4YRN-nvR4qTReI": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJlyIcRBa_QIYRvYXVCMEgJTc": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJWQl1bc05W4YR4pK_YauK6gc": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJ8WR_dWCBRoYRkvTI5g-BBqc": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJt6o3IP5dXIYRekX58B0b0Do": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJ5byGn_rcQIYR8m2PR8G_sQM": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJG2CRCy3iQIYRuQiyxCQlgxE": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJBWMtxFtLW4YRodxpuCDtxSw": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJh2a0loeBRoYRK7gGTIoHynY": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJE6kaZhPAQIYRETc4xFYF9CQ": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ21hN8n3KRIYRcFnDZLVfRdw": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ44CyyYbKRIYRc59df6kDbQ4": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJAQDAM_eDRoYRBSqq9sKUiEM": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJF7zcrcKERoYRfP-NFqcwdog": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJmYbiipWDRoYRnIbOrS_8EqA": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJKZHV712BRoYRThS6YS6-r54": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJYUzom3CBRoYRKwXlgNLbV2U": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJVVVVVWWERoYRE5TR66kIeHQ": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJq5UxXX6BRoYRcYJPKZJ1AEw": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJOeK0bmCBRoYRYDKyd9pwZcE": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJn_z-lqqDRoYRri2ZizTusFE": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJcSg81RuDRoYR--7Hwzg7S5o": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJgaYQWGGBRoYRWe9SElyl3y4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJq0XxMN2ERoYRrh_z3mvY0Xc": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ16hSHRCERoYRNUi5h7CWwL4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJSaub_i2FRoYRUHDovc3NkkU": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJZRB2QduDRoYReGP6lMN6xOM": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJF4GdbtuDRoYRkfaTeS4IfQg": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJZRB2QduDRoYRNJWz0m2Z-bg": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ2fBV3neERoYRji23urZ0kn0": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJa4L9dwOERoYRM4pwaOm9UzQ": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJvRMhj5iDRoYRqdYTt1kcWBU": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJKZHV712BRoYRBGinb12wJxA": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJu2qG6GaBRoYRL4aF30xVq-4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJF7zcrcKERoYRIQFLysHDAHo": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ9049D7CERoYREjVzsk-aso4": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJZ5Nl2diDRoYRz8juY2KT1sk": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJh4mIBfGDRoYRwytsAE7NlGE": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ5WisYoeBRoYRncqN0IRbAz8": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJkbdYH2SBRoYRZs8zMDqWyV4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJEUJXY6GBRoYRyIUB8RroAio": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJEftL-V2BRoYROp6j_Aq-5gw": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJZRB2QduDRoYRBkcZuFzqA1M": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJe6fM8MCERoYRmmbTd3J_0co": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJ___zo2CBRoYRxUeth7J0Ft8": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJy_gw6SGFRoYR4VFqnSv7pOg": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJs6L9tKrqRoYRtXbeQ62RYhE": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJlZpYOlqBRoYREC7T4ve-h4A": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJOSWdkVCVRoYRvWeBtkNLaRU": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJHS_GYheBRoYRzF12R2XIVXM": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJM-WjlU9FRoYRhAt2YJf3FXQ": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJicT4g83PRYYRES60UAoVK6M": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJ9VSHw4Y3RIYR6zJLyQwR_DM": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJyY2oX6DeRYYRBnZVSBKtTTY": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJrzf0fG-BRoYR2jt1MGO4Fxs": {
+    "cat": "hospital",
+    "referralValue": "high"
+  },
+  "ChIJ9VSHw4Y3RIYRDD5PcktDtWs": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJGdYTnAWoRoYRgWHOugL5SPU": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJtxWTDl-BRoYRzgicQ96T77o": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJOQE91O-ERoYR0mtEKLTJ-_c": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJC22FpNI5RIYRZynQv7sKu0U": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJXYRf2XGBRoYR3NYFb0-At5E": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJj1yyI2aBRoYRksRVJ27QcsU": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJPdJh52CBRoYRjQseFsLcbj4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJHzHfq_qFRoYR1aibBX4SksI": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJZ7trlCCERoYRyePHbnPPFU4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJid8dQZ6GRoYRPCbXo_tmrII": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJC44mC7WaRoYRh3wFMlxWNvg": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ74SIstaBRoYRSzL4qpt6qNA": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJRQtEhdGFRoYRSt7A2BvGPwY": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJsV5n3deBRoYRxRihRp70kdA": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJI86lwuuVRoYRGNnHQQBia-w": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJc5pwDIuFRoYRHv8QiwUMwl4": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJD6mLx_yDRoYRu4n3K5uDnEg": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJq7_-ieKDRoYRzgHzIU4clks": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJIw23lMKERoYR8E1WDw_eUuQ": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJxYCwFomFRoYRxGmxYCRT0NU": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJiWKWpxB_RoYRxv3poExb7Ug": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ_-SlPZ6bRoYRPDgGmXKiA5A": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJm_YWZpqHRoYRvZPlRAGa6UY": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJx7sNEmeBRoYROBUHiVty0tU": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJZ7trlCCERoYRIzL6TXXLLww": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJlYLtFV-CRoYRHvO_pCgvEf0": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJOTyAvSCERoYR3Z37dqupqto": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJexKfxR2DRoYR30NbSNZiXPA": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJJyEW8RMxR4YRw03XdbxiZ7M": {
+    "cat": "skilled_nursing",
+    "referralValue": "high"
+  },
+  "ChIJOTyAvSCERoYR2qW_riBO41I": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJjcUcBFaHRoYRnUH43T-7Wt8": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJm_nNNUhFRoYRWfdeYOu1KEk": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJd_iSlU9FRoYRDfJRjAiwD6U": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJWU9Mp8aFRoYRxtgPVZLVIps": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJf-TppFuVRoYR5YQSLH1vAPg": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ9e02VZ0CRIYRk3NWJIGRWkc": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ-cBYyIiFRoYRSvAHZ3H5ppU": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJs1OCBgeFRoYRbEWKktuBp18": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ4wT1Xq6DRoYRVpLvCnpHZMc": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJWWkMhl2BRoYR7yllDVAa33A": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJb6ENrNc7R4YRilGnrWqT3MQ": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ15B0_XbUQIYR_l-C7Bsft5A": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJCz7R7X83R4YR9k6vd50wKhs": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJJYLANtInR4YRvt6bCnTYUeg": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJT4JJW10nQYYRz8k7T-5C9DA": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJS9JC6FwpR4YRZ1X_tJAYvmY": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJUVL_t2UpR4YRz8vv9z0OqYA": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ_XSmDQrTQIYRNwzd4r1Icow": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJNyispGozR4YR5uqa6tIUMAc": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJR1UBMIYxR4YRJz0kc-5ruDM": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJO84CGFosR4YR_t0HMtgHn5U": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ6Wv4OJ40R4YRWT4RbaO1WBI": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJkSEf7HEtR4YRO9fnBh9Kdcs": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJj0V9TesvR4YROqObcJ92-sE": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJLXUvo_-oRoYR6q89I9m9F4c": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJJ-yK1Q_RRIYRB635BcpBn84": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJgcwD_QU8R4YRWLiGRWUMre0": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJIY2U7ryBRoYRMQA-GiNAg30": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJDV1Bo52BRoYRosDP5EXWv74": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ5UT5hvWFRoYR5ggdX-VhCuo": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ9W3eRmSFRoYR5ZpYLXx8ggU": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJyaziEuqFRoYR3dAJEuiuQac": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJd1r4eeSbRoYRQe_71GTnPzc": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJH8HRTnKFRoYR4u5K3mdrvwg": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJRf_Exu8YTIYRdAkFv6yY3nA": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJpy0HcFmBRoYR1VInfM41lKQ": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJqdxdRCuDRoYRdEPdMRfDWQk": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ43flyRqoRoYRWh9E5Z10RPY": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJAZAwKbg2R4YRCNdFhMkXChE": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJRfoG3ZItR4YRsZ9tzNeL4tc": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ8fFr7gc8R4YRIl25cGDGehw": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJPUQ9dwI5R4YRo9iPrIaDKyM": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJTXsFf8gIR4YRcKqKEwsbi-I": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJm6iw6Q88R4YRV2m1xi-1Suo": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ53BJaUk1R4YR5BwmntwFrN0": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJyTVGu0RFRoYRftSxyosrW1Y": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJS578iTchR4YRlqMsdQRl6wc": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ1aE-AufFQIYRkg5kP_0_mO4": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJubIxngw5R4YR9l4QVIP22hw": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJCWLMvysJR4YRl_5BH9MxEXc": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJcQopglI_R4YRMKe185DHjqM": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJj8gJ3Oc2R4YR6wGv1s0zxQU": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJecHx8eA5R4YRlRhdZu9XWe0": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJmUMJGP3TQIYRB94jRuvWX9w": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJd0HbEfk3R4YRjvHpnxDlc7o": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJS0B4kzzLQIYR5GFxvKLIX50": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJdaRR6NEtR4YRGU8kVAAkAo4": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ__8v0DmaRIYRPPbpQK3_PUc": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ_0S-BaEnQYYRIGuoB2L1Z0w": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJ___b3siERoYRNiwpmBjHQus": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJp6cHEzXNQIYREWK4HEAdKD8": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJfZkw00s5R4YRTooOvLRaliE": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJFZ5k8c41R4YRyV4fmsQNN7w": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJfzesxdghR4YRv-V1UC4Wz8w": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJO-8nUwXNQIYRQcpZsHPFSLA": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJOWPLJfhPRoYRXY7D_CRH_dU": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ4ffkJmSBRoYRDKNnmx7d-Ik": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJA7yzKzuoRoYR73Yq-TkvokU": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJMR9LIl4sR4YRaYE1gYPqoFQ": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJhX_ZmbHRQIYRtkh3IEDz79U": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJAUtOlCSiRkwRqqu768ZKjCc": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ__-_WnXMRIYRdLn8WEpfzSg": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJo9NpXUvSQIYRNLeLaE1g9ew": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJS-nU7GMtR4YRMNWQHi2hbI4": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJD8ADYiTdQIYRVY4AQ23M8Mg": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJcdr8ebfPQIYRD0gs-WZk_Qk": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJiwZShAoHR4YRDh_7mEKyrNQ": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJXR5Api_TQIYRG9tQPKhcAT8": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJGe_BbHODT4YRLEt1qK9B1_g": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJUzm-22PJQIYRdpbQ7cP01RU": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJvyA65HzMQIYRXmjZG4b22IE": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJAQCw98PUQIYRu66TLmL4cEU": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJyzLhxNDnQIYRH1aZRGFVVic": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJ7_UEsGisQIYRKMLyqJxdwYU": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJhfutfwzBQIYRAHlAYabY38w": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJpxsCG6jCQIYR5BarDAswBp4": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJz2QhdIsvW4YRUQibMNXFanM": {
+    "cat": "hospice",
+    "referralValue": "high"
+  },
+  "ChIJS2dsorSyQIYR8Jl5qk8qgX0": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJdxJXIstnRoYRLzO-IEFc26o": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJ-ZcNN2PMQIYRrz-olys5n6U": {
+    "cat": "home_care",
+    "referralValue": "none"
+  },
+  "ChIJBQKxS9OzQIYRdHNOztS66a0": {
+    "cat": "home_health",
+    "referralValue": "med"
+  },
+  "ChIJZU4l13SFRoYRX8gPV_NxbZw": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJGUX4isKERoYRqh4yV72gCsg": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJlfpz_to5RIYR6gA1zO_tNRo": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ50qSaJkiRIYR-cg3QpN-p-o": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ814S8KaBRoYRvJLNiip9Zoc": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJRYD_ASyYRoYRqTvC1yO92WQ": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJbeM-qQHsRoYRjd2ndVCCnB8": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJSVfWMkGoRoYRl4cbw4V6dPo": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJmTzYgnmDRoYR38DkwHnnK_o": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ-cbhEJiBRoYRxnwQmoes-xQ": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJZ4EHWt2ERoYRDZPJ4qaJmyk": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJxUCBaX9TRIYRDSxjzcGka4M": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJOcFNls0HR4YR8-RS4Xje-tM": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ3RXsnH6ERoYRI8a21KmOZmQ": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJn_x6c9_XRoYRbU2rdPkdN_k": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJyZBy-iqDRoYRjBQCK_hYM2I": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJk6LclL2DRoYR7hrJ-SPvSgs": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJE4vy4BDAQIYRCCKxhiTr22A": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJK_uj3zhARYYRlFcYXURW4fk": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJj-eeITP1XIYRHijBq9vUX6U": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJFR568lycToYR9dlKLaflJVk": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ05a_lPuzRIYRTt9h5POgkWY": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJVVVVVUVpRYYRBoCrtjX7GV0": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJqxzCs94-R4YRYFxjZ0_2vTA": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJI3RpZ3MxNoYRoTFnR2FTQ2A": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJt0qQPmicToYRQ7lqMcmbcPE": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJq6qqqj5xToYRnSkQaRkwaqQ": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJozfAbKl2ToYRf0MvE0J80XA": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ2Q2lF7Q0OYYRPy8k_upNwaw": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJLZ1K2nkSK4cRKnG_adRbYyQ": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ8xhlN8tmQoYRcs7n96yk8_c": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJtynvv1M5R4YR5Gbcs3_28ms": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJcc8iAPOITIYRo230fSBiO20": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJp31_8XLhuocRvpgxBEKS1LE": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJE8Z-ly2POIgRQmCjMScg_9o": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJkYKg3nLEEIgR52zlUUwdJOY": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJAcABFVaBQIgRjVQ2ne9Obho": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJdxsL53xOQIgRZXIAkuKUwxw": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJD6mLx_yDRoYR45-k3q6o-8k": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJg2sMeliBRoYR0Sz2nhlFVWI": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJGcjDfdeFRoYRJKjT3zMSgN0": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ_0kulueERoYRPLJ0SjHfbdU": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJg2sMeliBRoYRyGSMeh849gE": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJf5E3ScSDRoYRzUQFdki69SA": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJuSKKhmGERoYRuXoe4rDYnog": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJmcZAVPuDRoYR0kIi9ValSVk": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJszBqKQiERoYRIkTdCf7M7k8": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ54UUBtGBRoYR4yXNEn6qnNs": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJO8PtDfGDRoYRX4BceW0qXy4": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJBZnzxtaaRoYRB8dtMq7uf8o": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJbS8ou72DRoYR17wYP-Mapw0": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ62Z0J8E2R4YRTZE4D6Lz0TA": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJSUuqXmWERoYRgTTz5GcHcjQ": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJKQjCp5s2R4YRH4BsWAMrf3s": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ-e4XE2QsR4YRJtDCIW3193Y": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJBYmAvutyRIYR9iJEdIF_040": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJXWy_YvuDRoYR6h6qPsBjSiU": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ-0NasQmERoYR6BXRCU9hsRk": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJoVDx-X2_QIYR1VDS7YwY-D4": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJidNMjfHAQIYREBXVacWBq5M": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJmRXWHZvcQIYRDCi26VbOn9Y": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJAcWQPUg5R4YRaGgTuFva-t0": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJY2nNA7_mQIYRKVzBwI3FUDo": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJNVHxr4alQ4YRO20pkdhvuow": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJ8TzBHG_MQIYRlbWXBs5p-P8": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJswcYzZHBQIYRWRMKn29MV6Y": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJuRKteWLXRIYRJfytlAN5hg4": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJVyEjvX-CQIYRhOoLT-WFHqg": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJX0XZHZl4m4MRxNPToFAw7U4": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJjdL65Ow5RIYRiJc8E9dvlkA": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJUx8a8Hy_QIYR20crpylbsRY": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJ0Viak57bQIYRyA8_ZrdslqU": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJD0CIRmlfXIYRYbhwpIgueCI": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJh1KYOHS1RIYRPnLtLZVtgUE": {
+    "cat": "elder_law",
+    "referralValue": "high"
+  },
+  "ChIJI3uvff3AQIYRIBo-5G2XTN4": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ63R7ctbTQIYRnLfFJhLEPnQ": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJCRKYeD0eQYYRNFPe6A8Ihvc": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJO0hFLcCDT4YRbV1D6gjcRGw": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJDXaaY6leP4YRb6VfO7qZcyE": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJkWMd8FGBRoYRCu9TP-tp3cA": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJeX7it6GBRoYRHzPvGe4Iusw": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJObKiTFmBRoYRJ2gdIiEJy2M": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJr1Q0HPmERoYRVXD1JxWBR1s": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJLY6527SBRoYREuBFGN5CZ7o": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJdbZUaaAdRIYRKIq8tFLw39o": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJtxwTUOaBRoYRjAeXouI45cI": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJr8dAVPuDRoYRnChX7Hn62Qo": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ04sxst2ERoYRLb5RGGEbPc8": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJaf8kkaGBRoYRAKOX731sE14": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJQVGRTlmBRoYRtEtfG-kZZjU": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJpwdzKVmBRoYRTjtS0j88hqI": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJSwY25aKBRoYRMpXH-mRejPY": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ__8jkaGBRoYRGnWQ7yT_-Po": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJd_FgW7KbRoYRJDCAKxBxbX8": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJwwWbVWGBRoYRYhgZnmeHPW4": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJl9uoIKKBRoYRy72otZFdsx8": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJUxevm7KBRoYRGRNfU65t7-s": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJb00SFwiBRoYRQ2bDCB_K-FI": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJSzoGneSERoYRsSY9r9mRaJY": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJKzT2xtaaRoYRX2BE36JhgJM": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJ500WceyDRoYRpofb-HzYKCk": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJgWpSdKOBRoYRrFNW9rE0HyM": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJLROb1RmoRoYRlMEhHVkpvfk": {
+    "cat": "other",
+    "referralValue": "none"
+  },
+  "ChIJNdwxiSE3R4YRXW4REUv2JKQ": {
+    "cat": "clinic",
+    "referralValue": "low"
+  },
+  "ChIJ5_5kll7BQIYRrSpdpB6_sEE": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJL6l3IW9nXIYR1Qs-7QfGa1Y": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJrXqek-nBQIYRPhIn8zcLBwU": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJf3xbcf7GQIYRyogemIUYTVg": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJbRGrPtqDRoYRpIjS5zOWueU": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJDZrfULqERoYRYVQPsyFRnfs": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJ44RjKQRjK4cRan2dSkR0CVo": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJoRelSfKDRoYRFy2I7SOcPQI": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJd4HVUsSDRoYRR2BgJ5Jia_4": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJxcYyxCWERoYRL9LgvUqo0bc": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJfbDWKFmBRoYRXHAIbTpLkrQ": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJoZND0_eDRoYRoqMBIyrmZ_8": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJAU8vqpKDRoYRbFzmDCsZPtQ": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJSUuqXmWERoYReRj_ji_Kn1U": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJrzE4BZ6GRoYR-NUvb77qWnM": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJZ8rr58iaRoYR5Ont5-XHXVA": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJYV4ZRSaFRoYR8MOJ_jWjCPk": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJ0cRZMn-FRoYRlm-tkSYDR6g": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJVVWlciaERoYRNmxHO5DaaDA": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJA-z004UIR4YR8Z4WMgCSiUc": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJxVH4DOyDRoYRX_EYbmriq-A": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJcdKX2EODRoYRpYvaZUv-nMk": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJoR24_ciaRoYRZoZpczNNq3A": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJXWy_YvuDRoYRfa6JNidn8Qo": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJe4qGCtmBRoYRMT_I4LqUWtU": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJx_9La26FRoYRcalHwC6C4Iw": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJi4JadKKDRoYRzU5nDvurS-s": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJl9eYJfKDRoYR_0jZxHOY7O0": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJbw_qjYxTQYYRnG7VtUUsBIc": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJ0ct7Du2DRoYRIf-7RsCta_M": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJt6fG4RiERoYRgXKGgD9N_Cc": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJGVxiA0SFRoYRKy__DONDztU": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJF4CkM1OBRoYRz7_qZnHOKaU": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJzz8jCGuBRoYRYPlTuWmJ70A": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJ1z16kauFRoYRQoqNmar7Dkw": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJr8dAVPuDRoYR7egWWG87mZY": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJexuDhceDRoYRiezTB2-lbL0": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJgZZ4J4iFRoYR68A7HuvK0To": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJvxvHS_eERoYRp147nDn-Q2s": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJr4DeX4iFRoYRBKCN8XIl45Q": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJkY2JNfKERoYRnR1V28R7BSE": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJ3zSu-lGBRoYRqCEK0vUIvio": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJoTmUSvKDRoYRVvxZBIAJPWY": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJi2nFrHuDRoYRBNxZf7wLaJY": {
+    "cat": "financial",
+    "referralValue": "med"
+  },
+  "ChIJvzeoGfSDRoYRN6uHiZW2KMo": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ_xocTjEVR4YRa4jpRmKatMM": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJqca-izAgR4YRHI00iwTnuGM": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJxdeXi2deXIYRLltr7zZbpBM": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJC2HkbUxxXIYRQd5O6BXx3kQ": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJp7Zz6k7TQIYRfHsIIcB5Gl0": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ102Gom7NRoYRux5MOEuxSKs": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJ7fnQgGhfXIYRyUh2rnyiH2c": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ4_srForf3IAREs3UfedFtJc": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJsxufpGEsR4YRFhptDMf82uU": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ0-JcWFzRQIYRUpsaVLWRuyY": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJtYOv7mdeXIYRKC7sF07w0vM": {
+    "cat": "assisted_living",
+    "referralValue": "high"
+  },
+  "ChIJ96HmjHCERoYRGEYoDvVyZXg": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJLWXTi46BRoYRvX8KI_FVTWM": {
+    "cat": "senior_resource",
+    "referralValue": "high"
+  },
+  "ChIJgT7Da3yDRoYRYEwc2XbA-i0": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJvxlSj3aERoYRzMQUlr-u28E": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJAQCQBI6ERoYRNtpU_6TUnfU": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJE4ZfEFeBRoYRV-VW2XLTWds": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJq0fTVaSBRoYRkheVlR9NNN0": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ_1XZMYOBRoYRHrhbSz9vGH8": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJpf7otqiFRoYRiaZGBV-yhLg": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJLSIy1_KDRoYRgDMqGOpdezg": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJdUnYPj6FRoYR4yrnhuKXPSA": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJsz_sMc-ERoYRYuEC08JdSMo": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJz2vILraBRoYR_hoE3w-pS1g": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJvZ9G2aGBRoYRlJp8H30egZ0": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJc1JaZH6GRoYRP-PtRxgeRxI": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJLX1bECCARoYR9vkAlrFX5ME": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ7Vp3wuiARoYRusgJTDRXzaQ": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJAZyRXb2ERoYRt6tRuc_okzQ": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJD4d7fTLfRYYR1NzoOQ-6H2U": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJs4ofI2iPRoYRqbY7oevvLww": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJYcHYz--ERoYRzRhwvQFHojA": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ0SfITb2BRoYRfD8PC79uL5M": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJpYFX9xx9RoYROruuMl5e3Uo": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJeemHtLO7RoYRy8Ji7lUxLmk": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ25K6deohR4YR7pzDaONEQz8": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJA_PCa6HeRYYRvtRrfNckypQ": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJYbQaYJS1RoYRlYkUZarbsis": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJrfRxT0OoRoYRUVFYM6BiCkU": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJd4s6FqPpQIYRRp4tRFB1HpA": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJAyDwjc45RIYRky53ts7CTCg": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ9zGMskc5R4YRpZs0udxtzUg": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJq-IcEUFlRIYR1FnEFEDKthY": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJRWCZV0UsR4YRZkF6NlzbiAE": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ-ZoMJz4zR4YRUnSh2l_I8pA": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJ4S2jiBIxR4YRzllO-N76cEM": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJy2XaBWMXR4YRp3orEEKnW2Y": {
+    "cat": "faith",
+    "referralValue": "med"
+  },
+  "ChIJRaa_PxfNRoYRjLJSC3jwNyo": {
+    "cat": "faith",
+    "referralValue": "med"
+  }
+}

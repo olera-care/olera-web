@@ -6,7 +6,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { scoreClaimTrust, extractDomainFromWebsite } from "@/lib/claim-trust";
 import { sendSlackAlert, slackVerificationReview } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
-import { verificationApprovedEmail } from "@/lib/email-templates";
+import { verificationApprovedEmail, verificationMethodFailedEmail } from "@/lib/email-templates";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
 import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
@@ -486,6 +486,54 @@ export async function POST(request: NextRequest) {
         } catch (slackErr) {
           console.error("[verify] Failed to send Slack alert:", slackErr);
           // Non-blocking - continue even if Slack fails
+        }
+      }
+
+      // Send verification failure email on every attempt
+      // This helps providers understand what went wrong and what other options they have
+      if (claimerEmail) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        const attemptNumber = existingAttempts.length + 1; // Current attempt (1-indexed)
+
+        // Generate magic link for auto sign-in (same pattern as success email)
+        // Redirect to onboard page so they can try another verification method
+        let verifyUrl = `${siteUrl}/provider/${profile.slug || profileId}/onboard`;
+        try {
+          const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+            type: "magiclink",
+            email: claimerEmail,
+            options: {
+              redirectTo: `${siteUrl}/provider/${profile.slug || profileId}/onboard`,
+            },
+          });
+          if (!linkError && linkData?.properties?.action_link) {
+            verifyUrl = linkData.properties.action_link;
+          }
+        } catch (linkErr) {
+          console.error("[verify] Failed to generate magic link for failure email:", linkErr);
+          // Continue with fallback URL (requires manual sign-in)
+        }
+
+        try {
+          await sendEmail({
+            to: claimerEmail,
+            subject: "Let's try another way to verify",
+            html: verificationMethodFailedEmail({
+              providerName: profile.display_name || "your organization",
+              recipientName: claimerName || "there",
+              method,
+              reason: result.reason,
+              attemptNumber,
+              verifyUrl,
+            }),
+            emailType: "verification_method_failed",
+            recipientType: "provider",
+            providerId: profile.slug,
+            metadata: { method, attempt_number: attemptNumber },
+          });
+        } catch (emailErr) {
+          console.error("[verify] Failed to send verification failure email:", emailErr);
+          // Non-blocking - continue even if email fails
         }
       }
 

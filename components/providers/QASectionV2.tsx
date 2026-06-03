@@ -11,6 +11,7 @@ import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import type { IntakeVariant } from "@/lib/analytics/variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
 import type { SimilarProviderForMulti } from "@/lib/provider-utils";
+import { normalizeQuestion } from "@/lib/qa-utils";
 
 interface QAEntry {
   id?: string;
@@ -36,6 +37,10 @@ interface QASectionProps {
   providerState?: string;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
+  // Normalized-question → times-asked tally for this provider. Drives chip
+  // de-prioritization (already-asked topics sink below fresh ones) and the
+  // "N people asked this" badge on answered threads.
+  suggestionStats?: Record<string, number>;
   // When true, the page has a benefits discovery module below Q&A.
   // In that case we skip the inline guest enrichment prompt (email capture)
   // because the benefits intake is the stronger conversion path — it
@@ -144,6 +149,7 @@ export default function QASectionV2({
     "How quickly can you get started?",
     "Do you accept insurance or Medicaid?",
   ],
+  suggestionStats = {},
   hasBenefitsSection = false,
   variant,
   similarProvidersForMulti = [],
@@ -570,6 +576,21 @@ export default function QASectionV2({
   // never show the old post-submit enrichment UI.
   const isPostSubmit = !isAnyMultiProviderVariant && (submitStatus === "success" || showEnrichment);
 
+  // Asked-aware suggestion ordering. New visitors still lead with the proven
+  // order; but topics already answered here drop out (the answer is shown as a
+  // thread above), and topics already asked sink below the un-asked ones so a
+  // fresh question surfaces instead of the 144th duplicate. Capped at 5 so the
+  // extra reserve questions (positions 6–8) only appear once room opens up.
+  const answeredNorms = new Set(
+    questions.filter((q) => q.answer).map((q) => normalizeQuestion(q.question)),
+  );
+  const timesAsked = (q: string) => suggestionStats[normalizeQuestion(q)] ?? 0;
+  const suggestionPool = suggestedQuestions.filter((q) => !answeredNorms.has(normalizeQuestion(q)));
+  const visibleSuggestions = [
+    ...suggestionPool.filter((q) => timesAsked(q) === 0),
+    ...suggestionPool.filter((q) => timesAsked(q) > 0),
+  ].slice(0, 5);
+
   return (
     <div>
       {/* ── Header ── */}
@@ -653,6 +674,12 @@ export default function QASectionV2({
                     <p className="text-[15px] text-gray-800 leading-relaxed">
                       {qa.question}
                     </p>
+
+                    {isAnswered && (suggestionStats[normalizeQuestion(qa.question)] ?? 0) >= 2 && (
+                      <p className="text-[12px] text-gray-400 mt-1">
+                        {suggestionStats[normalizeQuestion(qa.question)]} people asked this
+                      </p>
+                    )}
 
                     {isAnswered && qa.answer ? (
                       <div className="mt-4">
@@ -978,9 +1005,9 @@ export default function QASectionV2({
       ) : (
         /* ── Suggestion cards — the hero ── */
         <>
-          {suggestedQuestions.length > 0 && (
+          {visibleSuggestions.length > 0 && (
             <div className="space-y-2 mb-4">
-              {suggestedQuestions.map((q, i) => {
+              {visibleSuggestions.map((q, i) => {
                 const isTapped = tappedIndex === i;
                 const isMultiV1Expanded = isMultiProviderVariant && expandedQuestion === q;
                 const isMultiV2Expanded = isMultiProviderV2Variant && expandedQuestion === q;
@@ -1252,6 +1279,12 @@ export default function QASectionV2({
                           <p className="text-[15px] text-gray-700 leading-relaxed">
                             {qa.question}
                           </p>
+
+                          {isAnswered && (suggestionStats[normalizeQuestion(qa.question)] ?? 0) >= 2 && (
+                            <p className="text-[12px] text-gray-400 mt-1">
+                              {suggestionStats[normalizeQuestion(qa.question)]} people asked this
+                            </p>
+                          )}
 
                           {isPending && isOwner && (
                             <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">

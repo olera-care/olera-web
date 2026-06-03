@@ -16,6 +16,10 @@ import {
   publishNudge4Email,
   completionMaintenanceEmail,
   publishMaintenanceEmail,
+  // Milestone emails
+  completionCelebrationEmail,
+  monthlyProviderRecommendationsEmail,
+  inactivityReengagementEmail,
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/types";
@@ -67,9 +71,14 @@ const COMPLETION_COOLDOWNS = [0, 2, 4, 7]; // days between nudges — same-day, 
 const PUBLISH_COOLDOWNS = [0, 2, 4, 7];    // days between nudges — same-day after complete, Day 2, Day 6, Day 13
 const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
 const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges at 6 (stop after ~8 months total)
+const MAX_MONTHLY_RECOMMENDATIONS = 12;    // cap monthly recommendations at 12 (1 year)
+const MAX_REENGAGEMENT_ATTEMPTS = 2;       // max re-engagement emails (2 total)
+const INACTIVITY_THRESHOLD_DAYS = 30;      // days of inactivity before re-engagement
+const REENGAGEMENT_COOLDOWN_DAYS = 30;     // days between re-engagement attempts
 const READY_TO_PUBLISH_THRESHOLD = 60;     // ≥60% can publish profile (enrichment completion is sufficient)
 const FULLY_COMPLETE_THRESHOLD = 100;      // ≥100% is "fully complete" — no more completion nudges needed
 const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge to re-publish if was published 30+ days ago
+const ACTIVE_CONVERSATION_DAYS = 7;        // skip nudges if user has connection activity within this window
 
 // ── Care type mapping: family profile → olera-providers ──
 
@@ -95,6 +104,7 @@ interface ProviderRec {
   reviewSnippet: string | null;
   city: string;
   state: string;
+  priceRange: string | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,7 +218,7 @@ async function getTopProviders(
   // Try city + state first
   let query = db
     .from("olera-providers")
-    .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data")
+    .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data, metadata")
     .eq("state", state)
     .ilike("city", city)
     .or("deleted.is.null,deleted.eq.false")
@@ -227,7 +237,7 @@ async function getTopProviders(
   if (!providers || providers.length < 2) {
     let stateQuery = db
       .from("olera-providers")
-      .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data")
+      .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data, metadata")
       .eq("state", state)
       .or("deleted.is.null,deleted.eq.false")
       .not("google_rating", "is", null)
@@ -252,6 +262,17 @@ async function getTopProviders(
       reviews?: { text?: string }[];
     } | null;
 
+    // Extract price range from metadata if available
+    const meta = (p as Record<string, unknown>).metadata as Record<string, unknown> | null;
+    let priceRange: string | null = null;
+    if (meta?.price_range) {
+      priceRange = meta.price_range as string;
+    } else if (meta?.lower_price && meta?.upper_price) {
+      priceRange = `$${(meta.lower_price as number).toLocaleString()}–${(meta.upper_price as number).toLocaleString()}/mo`;
+    } else if (meta?.contact_for_pricing) {
+      priceRange = "Contact for pricing";
+    }
+
     return {
       name: p.provider_name,
       category: p.provider_category,
@@ -261,11 +282,50 @@ async function getTopProviders(
       reviewSnippet: grd?.reviews?.[0]?.text?.slice(0, 150) ?? null,
       city: p.city ?? "",
       state: p.state ?? "",
+      priceRange,
     };
   });
 
   topProviderCache.set(key, results);
   return results;
+}
+
+const newProviderCountCache = new Map<string, number>();
+
+/**
+ * Count providers that joined in the last 30 days for a given area.
+ * Used to provide fresh "new providers" content in maintenance emails.
+ */
+async function countNewProvidersInArea(
+  db: DB,
+  city: string,
+  state: string,
+  careTypes: string[],
+): Promise<number> {
+  const key = `new-${cacheKey(city, state, careTypes)}`;
+  if (newProviderCountCache.has(key)) return newProviderCountCache.get(key)!;
+
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const categories = careTypes
+    .map((ct) => CARE_TYPE_TO_CATEGORY[ct])
+    .filter(Boolean);
+
+  let query = db
+    .from("olera-providers")
+    .select("provider_id", { count: "exact", head: true })
+    .eq("state", state)
+    .ilike("city", city)
+    .or("deleted.is.null,deleted.eq.false")
+    .gte("created_at", thirtyDaysAgo);
+
+  if (categories.length > 0) {
+    query = query.in("provider_category", categories);
+  }
+
+  const { count } = await query;
+  const result = count ?? 0;
+  newProviderCountCache.set(key, result);
+  return result;
 }
 
 let connectionStatsCache: { familiesThisWeek: number; familiesThisMonth: number } | null = null;
@@ -471,7 +531,12 @@ export async function GET(request: NextRequest) {
       completionNudges: 0,
       publishNudges: 0,
       maintenanceNudges: 0,
+      // Milestone emails
+      completionCelebrations: 0,
+      monthlyRecommendations: 0,
+      reengagementEmails: 0,
       skipped: 0,
+      skippedActiveConversation: 0,  // Users skipped because they're actively engaged
     };
 
     // ── Step 1: Fetch family profiles (4h+ old) using paginated fetch ──
@@ -511,24 +576,65 @@ export async function GET(request: NextRequest) {
     const familyIds = families.map((f) => f.id);
     const { data: allConnections } = await db
       .from("connections")
-      .select("from_profile_id, to_profile_id, created_at, type")
+      .select("from_profile_id, to_profile_id, created_at, updated_at, type, metadata")
       .in("from_profile_id", familyIds)
       .eq("type", "inquiry")
       .order("created_at", { ascending: true });
 
-    // Build connection map
+    // Helper: Check if connection has real human conversation (messages from both sides)
+    interface ThreadMessage {
+      from_profile_id: string;
+      text: string;
+      created_at: string;
+      is_auto_reply?: boolean;
+    }
+    function hasRealConversation(
+      metadata: Record<string, unknown> | null,
+      familyProfileId: string,
+      providerProfileId: string
+    ): boolean {
+      if (!metadata) return false;
+      const thread = (metadata.thread as ThreadMessage[]) || [];
+      // Filter out auto-reply messages
+      const humanMessages = thread.filter((msg) => !msg.is_auto_reply);
+      if (humanMessages.length < 2) return false;
+      // Check if both parties have sent at least one human message
+      const familySent = humanMessages.some((msg) => msg.from_profile_id === familyProfileId);
+      const providerSent = humanMessages.some((msg) => msg.from_profile_id === providerProfileId);
+      return familySent && providerSent;
+    }
+
+    // Build connection map with activity tracking
     const connectionMap = new Map<string, {
       hasConnections: boolean;
       firstConnectionDate: string | null;
       firstToProfileId: string | null;
+      lastActivityDate: string | null;  // Most recent updated_at across all connections
+      hadRealConversation: boolean;     // Both parties exchanged human messages
     }>();
     for (const conn of allConnections || []) {
-      if (!connectionMap.has(conn.from_profile_id)) {
+      const connMeta = (conn.metadata || null) as Record<string, unknown> | null;
+      const realConvo = hasRealConversation(connMeta, conn.from_profile_id, conn.to_profile_id);
+
+      const existing = connectionMap.get(conn.from_profile_id);
+      if (!existing) {
         connectionMap.set(conn.from_profile_id, {
           hasConnections: true,
           firstConnectionDate: conn.created_at,
           firstToProfileId: conn.to_profile_id,
+          lastActivityDate: conn.updated_at || conn.created_at,
+          hadRealConversation: realConvo,
         });
+      } else {
+        // Update lastActivityDate if this connection is more recent
+        const existingActivity = existing.lastActivityDate ? new Date(existing.lastActivityDate).getTime() : 0;
+        const thisActivity = conn.updated_at ? new Date(conn.updated_at).getTime() : 0;
+        if (thisActivity > existingActivity) {
+          existing.lastActivityDate = conn.updated_at;
+        }
+        // NOTE: We intentionally do NOT update hadRealConversation here.
+        // We only care about the FIRST connection since that's what the
+        // post-connection followup email asks about.
       }
     }
 
@@ -554,10 +660,105 @@ export async function GET(request: NextRequest) {
       const firstName = family.display_name?.split(/\s+/)[0] || "there";
       const careTypes = (family.care_types as string[]) || [];
 
-      // ── STOP CONDITION: Profile is published AND fully complete (100%) — SUCCESS! ──
-      // Published users < 100% still get completion nudges to reach full completeness
-      if (isPublished && fullyComplete) {
-        continue;
+      // ── PUBLISHED FAMILIES: Monthly Provider Recommendations ──
+      // For published families (SUCCESS state), we don't send nudges anymore.
+      // Instead, send monthly recommendations to keep them engaged with relevant providers.
+      if (isPublished) {
+        // Check unsubscribe first
+        if (meta.nudges_unsubscribed === true) {
+          counts.skipped++;
+          continue;
+        }
+
+        // Check if we have location (required for recommendations)
+        if (!hasLocation) {
+          counts.skipped++;
+          continue;
+        }
+
+        // Check monthly cooldown (30 days since last recommendation)
+        const daysSinceLastRec = daysSince(meta.monthly_recommendations_sent_at);
+        if (daysSinceLastRec < 30) {
+          continue; // Not time yet, but don't count as skipped
+        }
+
+        // Check if we've hit the max (12 emails = 1 year)
+        const recCount = meta.monthly_recommendations_count ?? 0;
+        if (recCount >= MAX_MONTHLY_RECOMMENDATIONS) {
+          counts.skipped++;
+          continue; // Give up gracefully after 1 year
+        }
+
+        // Get provider data for recommendations
+        const providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
+        const newProviderCount = await countNewProvidersInArea(db, family.city!, family.state!, careTypes);
+        const topProviders = await getTopProviders(db, family.city!, family.state!, careTypes, 3);
+
+        // Skip if no providers to recommend
+        if (topProviders.length === 0) {
+          counts.skipped++;
+          continue;
+        }
+
+        const locationText = family.city || family.state || "your area";
+        const mrSubject = newProviderCount > 0
+          ? `${newProviderCount} providers in ${locationText} match your search`
+          : `Highly-rated providers in ${locationText}`;
+        const emailType = "monthly_recommendations";
+
+        if (!dryRun) {
+          const logId = await reserveEmailLogId({
+            to: email,
+            subject: mrSubject,
+            emailType,
+            recipientType: "family",
+            metadata: {
+              family_profile_id: family.id,
+              new_provider_count: newProviderCount,
+              provider_count: providerCount,
+            },
+          });
+
+          // Build URLs with tracking
+          const profilePath = appendTrackingParams("/portal/profile", logId);
+          const inboxPath = appendTrackingParams("/portal/inbox", logId);
+          const profileUrl = await generateMagicLinkUrl(db, family, profilePath, siteUrl);
+          const inboxUrl = await generateMagicLinkUrl(db, family, inboxPath, siteUrl);
+
+          const html = monthlyProviderRecommendationsEmail({
+            familyName: firstName,
+            profileUrl,
+            inboxUrl,
+            providers: topProviders,
+            newProviderCount,
+            isPublished: true, // Always true in this branch
+            city: family.city || undefined,
+            state: family.state || undefined,
+          });
+
+          await sendEmail({
+            to: email,
+            subject: mrSubject,
+            html,
+            emailType,
+            recipientType: "family",
+            emailLogId: logId ?? undefined,
+          });
+
+          // Update metadata with timestamp and increment count
+          await db.from("business_profiles")
+            .update({
+              metadata: {
+                ...meta,
+                monthly_recommendations_sent_at: new Date().toISOString(),
+                monthly_recommendations_count: recCount + 1,
+              },
+            })
+            .eq("id", family.id);
+        }
+
+        counts.monthlyRecommendations++;
+        continue; // Done with this published family
       }
 
       // ── STOP CONDITION: User has unsubscribed from nudges ──
@@ -576,10 +777,82 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // ── MILESTONE: Completion Celebration (one-time when profile hits 100%) ──
+      // Celebrate reaching full completion before nudging to publish.
+      // This is a positive milestone email, not a nudge.
+      if (fullyComplete && !meta.completion_celebrated_at) {
+        const ccSubject = "Your care profile is complete";
+        const emailType = "completion_celebration";
+
+        if (!dryRun) {
+          const logId = await reserveEmailLogId({
+            to: email,
+            subject: ccSubject,
+            emailType,
+            recipientType: "family",
+            metadata: {
+              family_profile_id: family.id,
+              profile_snapshot: {
+                completeness: completeness.percentage,
+                is_published: isPublished,
+              },
+            },
+          });
+
+          // Build URL with tracking
+          const profilePath = appendTrackingParams("/portal/profile", logId);
+          const profileUrl = await generateMagicLinkUrl(db, family, profilePath, siteUrl);
+
+          const html = completionCelebrationEmail({
+            familyName: firstName,
+            profileUrl,
+            city: family.city || undefined,
+          });
+
+          await sendEmail({
+            to: email,
+            subject: ccSubject,
+            html,
+            emailType,
+            recipientType: "family",
+            emailLogId: logId ?? undefined,
+          });
+
+          // Set celebration flag (one-time only)
+          await db.from("business_profiles")
+            .update({
+              metadata: {
+                ...meta,
+                completion_celebrated_at: new Date().toISOString(),
+                profile_completeness: completeness.percentage,
+              },
+            })
+            .eq("id", family.id);
+        }
+
+        counts.completionCelebrations++;
+        // Don't send any other emails this run — let the celebration stand alone
+        continue;
+      }
+
+      // ── SKIP CONDITION: User has recent conversation activity ──
+      // If they've had connection activity in the last 7 days, they're actively engaged.
+      // Don't nag them with completion nudges — they're already making progress.
+      const hasRecentActivity = connData?.lastActivityDate &&
+        daysSince(connData.lastActivityDate) < ACTIVE_CONVERSATION_DAYS;
+
       // ── PHASE 1: Profile Completion ──
-      // Case A: Not ready to publish yet (< 60%) — nudge to reach publishable state
-      // Case B: Published but not fully complete (< 100%) — nudge to reach 100%
-      const needsCompletionNudges = !readyToPublish || (isPublished && !fullyComplete);
+      // Nudge users who haven't reached the publish threshold yet (< 60%)
+      // Note: Published users (any %) skip this entirely due to stop condition above
+      const wouldNeedCompletionNudges = !readyToPublish;
+
+      // Skip completion nudges if they have recent conversation activity
+      if (wouldNeedCompletionNudges && hasRecentActivity) {
+        counts.skippedActiveConversation++;
+        // Don't `continue` — let them fall through to check other email types
+      }
+
+      const needsCompletionNudges = wouldNeedCompletionNudges && !hasRecentActivity;
       if (needsCompletionNudges) {
         // Use migration-aware function: if they got the old email, skip nudge #1
         const seq = getSequenceWithMigration(
@@ -589,8 +862,10 @@ export async function GET(request: NextRequest) {
 
         if (shouldSendCompletionNudge(seq, family.created_at)) {
           let providerCount: number | undefined;
+          let newProviderCount = 0;
           if (hasLocation) {
             providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
+            newProviderCount = await countNewProvidersInArea(db, family.city!, family.state!, careTypes);
           }
           const topProviders = hasLocation
             ? await getTopProviders(db, family.city!, family.state!, careTypes, 3)
@@ -608,25 +883,31 @@ export async function GET(request: NextRequest) {
           // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
           let emailType: string;
+          const locationText = family.city || family.state || "your area";
 
           if (isMaintenanceNudge) {
-            subject = `New providers in ${family.city || family.state || "your area"}`;
+            // Dynamic subject based on whether there are actually new providers
+            subject = newProviderCount > 0
+              ? `${newProviderCount} new providers joined in ${locationText}`
+              : `Top providers in ${locationText} you might have missed`;
             emailType = "completion_maintenance";
             counts.maintenanceNudges++;
           } else {
             switch (nudgeNumber) {
               case 1:
-                subject = `Your profile is ${completeness.percentage}% complete`;
+                subject = "Quick question about your care search";
                 break;
               case 2:
-                subject = `You're ${completeness.percentage}% there — finish your profile`;
+                subject = providerCount
+                  ? `${providerCount} providers in ${locationText} are looking for families`
+                  : `Providers in ${locationText} are looking for families`;
                 break;
               case 3:
-                subject = "Complete profiles get 3x faster responses";
+                subject = "Families with complete profiles hear back faster";
                 break;
               case 4:
               default:
-                subject = `Top providers in ${family.city || family.state || "your area"} are ready to help`;
+                subject = `Providers near you (including these top-rated ones)`;
                 break;
             }
             emailType = `completion_nudge_${nudgeNumber}`;
@@ -664,6 +945,7 @@ export async function GET(request: NextRequest) {
               familyName: firstName,
               welcomeUrl,
               providers: topProviders,
+              newProviderCount,
               missingFields: completeness.missingFields,
               completionPercent: completeness.percentage,
               city: family.city || undefined,
@@ -711,6 +993,7 @@ export async function GET(request: NextRequest) {
                   missingFields: completeness.missingFields,
                   completionPercent: completeness.percentage,
                   providers: topProviders,
+                  providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
                 });
@@ -786,25 +1069,35 @@ export async function GET(request: NextRequest) {
           // Step 1: Determine subject, emailType, and increment counters
           let subject: string;
           let emailType: string;
+          const locationText = family.city || family.state || "your area";
+
+          // For maintenance, get new provider count for dynamic subject
+          let newProviderCount = 0;
+          if (isMaintenanceNudge && hasLocation) {
+            newProviderCount = await countNewProvidersInArea(db, family.city!, family.state!, careTypes);
+          }
 
           if (isMaintenanceNudge) {
-            subject = "Still looking for care?";
+            // Dynamic subject based on new providers
+            subject = newProviderCount > 0
+              ? `${newProviderCount} new providers joined in ${locationText}`
+              : `Providers in ${locationText} are still looking`;
             emailType = "publish_maintenance";
             counts.maintenanceNudges++;
           } else {
             switch (nudgeNumber) {
               case 1:
-                subject = "Go live — let providers find you";
+                subject = "Let providers come to you";
                 break;
               case 2:
-                subject = `${providerCount && providerCount > 0 ? providerCount + " " : ""}providers in ${family.city || "your area"} are looking`;
+                subject = "These providers want to help families like yours";
                 break;
               case 3:
-                subject = `Families in ${family.city || family.state || "your area"} are finding care`;
+                subject = "Skip the phone tag";
                 break;
               case 4:
               default:
-                subject = "We're here when you're ready";
+                subject = "Still thinking it over?";
                 break;
             }
             emailType = `publish_nudge_${nudgeNumber}`;
@@ -842,6 +1135,8 @@ export async function GET(request: NextRequest) {
               familyName: firstName,
               matchesUrl,
               providerCount,
+              newProviderCount,
+              providers: topProviders,
               city: family.city || undefined,
               state: family.state || undefined,
             });
@@ -921,14 +1216,21 @@ export async function GET(request: NextRequest) {
       }
 
       // ── Legacy: Post-Connection Follow-up (30 days after first connection) ──
-      // Keep this for families who have connections but haven't been asked for review
+      // Only send if there was a real human conversation (not just automated messages)
+      // Respect user's notification preferences and global unsubscribe
+      const notifPrefs = (meta.notification_prefs || {}) as Record<string, Record<string, boolean>>;
+      const followupEmailsEnabled = notifPrefs.followup_reviews?.email !== false; // Default to true
       if (
         hasConnections &&
         connData?.firstConnectionDate &&
         connData.firstConnectionDate <= thirtyDaysAgo &&
-        !meta.post_connection_followup_sent
+        connData.hadRealConversation &&
+        !meta.post_connection_followup_sent &&
+        !meta.nudges_unsubscribed &&
+        followupEmailsEnabled
       ) {
-        let providerName = "your provider";
+        // Fetch provider info - skip if provider deleted or has no slug
+        let providerName = "";
         let providerSlug = "";
 
         if (connData.firstToProfileId) {
@@ -937,10 +1239,15 @@ export async function GET(request: NextRequest) {
             .select("display_name, slug")
             .eq("id", connData.firstToProfileId)
             .single();
-          if (providerBp) {
-            providerName = providerBp.display_name || providerName;
-            providerSlug = providerBp.slug || "";
+          if (providerBp?.slug) {
+            providerName = providerBp.display_name || "your provider";
+            providerSlug = providerBp.slug;
           }
+        }
+
+        // Skip if provider not found or has no slug (would create broken URL)
+        if (!providerSlug) {
+          continue;
         }
 
         if (!dryRun) {
@@ -966,6 +1273,130 @@ export async function GET(request: NextRequest) {
         counts.postConnectionFollowup++;
         continue;
       }
+
+      // ── INACTIVITY RE-ENGAGEMENT ──
+      // Catch-all for families who didn't get any other email and appear inactive.
+      // Uses multiple signals to determine last activity since last_active_at may not be set.
+      // Max 2 attempts ever, 30-day cooldown between attempts.
+
+      // Skip if already maxed out on re-engagement
+      const reengageCount = meta.reengagement_count ?? 0;
+      if (reengageCount >= MAX_REENGAGEMENT_ATTEMPTS) {
+        continue; // Already tried twice, give up
+      }
+
+      // Skip if recently re-engaged
+      const daysSinceReengagement = daysSince(meta.reengagement_sent_at);
+      if (daysSinceReengagement < REENGAGEMENT_COOLDOWN_DAYS) {
+        continue; // Too soon
+      }
+
+      // Skip if we sent ANY email recently (avoid back-to-back emails)
+      // Check nudge sequences, celebration, and monthly recommendations
+      const lastCompletionNudge = meta.completion_sequence?.last_nudge_at;
+      const lastPublishNudge = meta.publish_sequence?.last_nudge_at;
+      const lastCelebration = meta.completion_celebrated_at;
+      const lastMonthlyRec = meta.monthly_recommendations_sent_at;
+      const mostRecentEmail = [lastCompletionNudge, lastPublishNudge, lastCelebration, lastMonthlyRec]
+        .filter(Boolean)
+        .sort()
+        .pop(); // Get the most recent timestamp
+
+      const daysSinceAnyEmail = daysSince(mostRecentEmail);
+      if (daysSinceAnyEmail < 14) {
+        continue; // Got an email recently, don't pile on
+      }
+
+      // Determine last activity using multiple signals (fallback chain)
+      // Priority: last_active_at > connection activity > published_at > profile updated > created
+      const lastActivity = meta.last_active_at
+        || connData?.lastActivityDate
+        || meta.care_post?.published_at
+        || family.created_at;
+
+      const daysSinceActivity = daysSince(lastActivity);
+      if (daysSinceActivity < INACTIVITY_THRESHOLD_DAYS) {
+        continue; // Not inactive enough
+      }
+
+      // Skip if profile is too bare (just signed up and bounced - no meaningful engagement)
+      // Require at least: has email AND (has connections OR 40%+ profile OR has care types)
+      const hasMeaningfulActivity = hasConnections
+        || completeness.percentage >= 40
+        || (careTypes.length > 0);
+      if (!hasMeaningfulActivity) {
+        continue; // No engagement, not worth re-engaging
+      }
+
+      // Skip if no location (needed for provider recommendations)
+      if (!hasLocation) {
+        counts.skipped++;
+        continue;
+      }
+
+      // Get providers for the email
+      const topProviders = await getTopProviders(db, family.city!, family.state!, careTypes, 3);
+      if (topProviders.length === 0) {
+        counts.skipped++;
+        continue;
+      }
+
+      const locationText = family.city || family.state || "your area";
+      const reSubject = `Still searching for care in ${locationText}?`;
+      const emailType = "inactivity_reengagement";
+
+      if (!dryRun) {
+        const logId = await reserveEmailLogId({
+          to: email,
+          subject: reSubject,
+          emailType,
+          recipientType: "family",
+          metadata: {
+            family_profile_id: family.id,
+            days_inactive: daysSinceActivity,
+            reengagement_attempt: reengageCount + 1,
+          },
+        });
+
+        // Build URLs with tracking
+        const profilePath = appendTrackingParams("/portal/profile", logId);
+        const inboxPath = appendTrackingParams("/portal/inbox", logId);
+        const profileUrl = await generateMagicLinkUrl(db, family, profilePath, siteUrl);
+        const inboxUrl = await generateMagicLinkUrl(db, family, inboxPath, siteUrl);
+
+        const html = inactivityReengagementEmail({
+          familyName: firstName,
+          profileUrl,
+          inboxUrl,
+          providers: topProviders,
+          completionPercent: completeness.percentage,
+          isPublished,
+          city: family.city || undefined,
+          state: family.state || undefined,
+        });
+
+        await sendEmail({
+          to: email,
+          subject: reSubject,
+          html,
+          emailType,
+          recipientType: "family",
+          emailLogId: logId ?? undefined,
+        });
+
+        // Update metadata
+        await db.from("business_profiles")
+          .update({
+            metadata: {
+              ...meta,
+              reengagement_sent_at: new Date().toISOString(),
+              reengagement_count: reengageCount + 1,
+            },
+          })
+          .eq("id", family.id);
+      }
+
+      counts.reengagementEmails++;
     }
 
     return NextResponse.json({ status: "ok", dry_run: dryRun, ...counts });

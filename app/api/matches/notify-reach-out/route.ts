@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { providerReachOutEmail } from "@/lib/email-templates";
+import { providerReachOutEmail, providerReachOutConfirmationEmail } from "@/lib/email-templates";
 import { sendSlackAlert } from "@/lib/slack";
 
 /**
@@ -130,12 +130,13 @@ export async function POST(request: Request) {
     }
     // If neither (edge case), fallback to plain URL - user will need to sign in
 
-    await sendEmail({
+    const providerDisplayName = provider?.display_name || "A care provider";
+    const { success: familyEmailSuccess, error: familyEmailError } = await sendEmail({
       to: family.email,
-      subject: `A provider in ${providerCity} is interested in your care needs`,
+      subject: `${providerDisplayName} wants to connect with you`,
       html: providerReachOutEmail({
         familyName: family.display_name || "there",
-        providerName: provider?.display_name || "A care provider",
+        providerName: providerDisplayName,
         city: providerCity,
         message: conn?.message || null,
         matchesUrl: inboxUrl,
@@ -147,6 +148,13 @@ export async function POST(request: Request) {
       recipientProfileId: toProfileId,
     });
 
+    // Log failure but don't block - the reach-out connection already exists in the database
+    // (this endpoint is called AFTER client-side connection insert succeeds)
+    // The family can still see the message when they log in, just won't get email notification
+    if (!familyEmailSuccess) {
+      console.error("[notify-reach-out] Family email notification failed:", familyEmailError);
+    }
+
     // Slack alert (fire-and-forget)
     try {
       await sendSlackAlert(
@@ -154,6 +162,82 @@ export async function POST(request: Request) {
       );
     } catch {
       // Non-blocking
+    }
+
+    // Send confirmation email to the provider
+    try {
+      const providerEmail = user.email;
+      if (providerEmail) {
+        // Count other providers who have reached out to this family (competitive urgency)
+        const { count: competitorCount } = await db
+          .from("connections")
+          .select("id", { count: "exact", head: true })
+          .eq("to_profile_id", toProfileId)
+          .eq("type", "request")
+          .in("status", ["pending", "accepted"])
+          .neq("from_profile_id", account.active_profile_id);
+
+        const confirmLogId = await reserveEmailLogId({
+          to: providerEmail,
+          subject: `Your message to ${family.display_name || "a family"} was sent`,
+          emailType: "reach_out_confirmation",
+          recipientType: "provider",
+          providerId: account.active_profile_id,
+        });
+
+        // Build provider inbox URL with connection ID
+        const providerInboxPath = conn?.id
+          ? `/portal/inbox?role=provider&id=${conn.id}`
+          : "/portal/inbox?role=provider";
+        const trackedProviderDest = appendTrackingParams(providerInboxPath, confirmLogId);
+        let providerViewUrl = `${siteUrl}${trackedProviderDest}`;
+
+        // Generate magic link for provider auto-sign-in
+        try {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+          if (supabaseUrl && serviceKey) {
+            const authClient = createClient(supabaseUrl, serviceKey);
+            const { data: providerLinkData, error: providerLinkError } = await authClient.auth.admin.generateLink({
+              type: "magiclink",
+              email: providerEmail,
+              options: {
+                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(trackedProviderDest)}`,
+              },
+            });
+
+            if (!providerLinkError && providerLinkData?.properties?.action_link) {
+              providerViewUrl = providerLinkData.properties.action_link;
+            }
+          }
+        } catch (linkErr) {
+          console.error("[notify-reach-out] Failed to generate provider magic link:", linkErr);
+          // Continue with fallback URL
+        }
+
+        await sendEmail({
+          to: providerEmail,
+          subject: `Your message to ${family.display_name || "a family"} was sent`,
+          html: providerReachOutConfirmationEmail({
+            providerName: providerDisplayName,
+            familyName: family.display_name || "the family",
+            city: providerCity,
+            competitorCount: competitorCount || 0,
+            viewUrl: providerViewUrl,
+          }),
+          emailType: "reach_out_confirmation",
+          recipientType: "provider",
+          providerId: account.active_profile_id,
+          emailLogId: confirmLogId ?? undefined,
+          recipientProfileId: account.active_profile_id,
+        });
+
+        console.log(`[notify-reach-out] Provider confirmation sent to ${providerEmail}, competitors: ${competitorCount || 0}`);
+      }
+    } catch (confirmErr) {
+      console.error("[notify-reach-out] Provider confirmation email failed:", confirmErr);
+      // Non-blocking - family email already sent successfully
     }
 
     return NextResponse.json({ success: true });

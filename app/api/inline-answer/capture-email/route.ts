@@ -3,8 +3,10 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { questionWelcomeEmail } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
+import { generateProviderSlug } from "@/lib/slugify";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
 import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
@@ -285,22 +287,83 @@ export async function POST(req: Request) {
   // ═══════════════════════════════════════════════════════════════════
   // 3b. Pre-fill city and care_types from provider (for completeness)
   // ═══════════════════════════════════════════════════════════════════
-  // Lookup provider info and sync to profile so users get 31% completeness
-  // (email 10 + name 5 + city 8 + care_types 8 = 31) instead of just 15%
-  // Note: providerId from frontend is the SLUG, not UUID
+  // Multi-strategy provider lookup to get city, state, category.
+  // Many providers are in olera-providers (iOS data), not business_profiles.
+  // This mirrors the 4-strategy lookup from /api/questions/route.ts.
+  // Result: users get 31% completeness (email 10 + name 5 + city 8 + care_types 8)
   if (providerId) {
     try {
-      const { data: provider } = await db
-        .from("business_profiles")
-        .select("city, state, category")
-        .eq("slug", providerId)
-        .single();
+      let providerCity: string | null = null;
+      let providerState: string | null = null;
+      let providerCategory: string | null = null;
 
-      if (provider) {
+      // Strategy 1: business_profiles by slug
+      const { data: bpProvider } = await db
+        .from("business_profiles")
+        .select("city, state, category, source_provider_id")
+        .eq("slug", providerId)
+        .maybeSingle();
+
+      if (bpProvider) {
+        providerCity = bpProvider.city;
+        providerState = bpProvider.state;
+        providerCategory = bpProvider.category;
+      } else {
+        // Strategy 2: olera-providers by slug
+        let iosProvider = await db
+          .from("olera-providers")
+          .select("provider_id, city, state, provider_category, provider_name")
+          .eq("slug", providerId)
+          .not("deleted", "is", true)
+          .maybeSingle()
+          .then((r: { data: { provider_id: string; city: string | null; state: string | null; provider_category: string | null; provider_name: string | null } | null }) => r.data);
+
+        if (!iosProvider) {
+          // Strategy 3: olera-providers by provider_id (legacy alphanumeric ID)
+          iosProvider = await db
+            .from("olera-providers")
+            .select("provider_id, city, state, provider_category, provider_name")
+            .eq("provider_id", providerId)
+            .not("deleted", "is", true)
+            .maybeSingle()
+            .then((r: { data: { provider_id: string; city: string | null; state: string | null; provider_category: string | null; provider_name: string | null } | null }) => r.data);
+        }
+
+        if (!iosProvider) {
+          // Strategy 4: reverse-match auto-generated slug from name+state
+          const slugParts = providerId.split("-");
+          const namePrefix = slugParts.slice(0, 3).join("-");
+          const { data: candidates } = await db
+            .from("olera-providers")
+            .select("provider_id, city, state, provider_category, provider_name")
+            .not("deleted", "is", true)
+            .is("slug", null)
+            .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+            .limit(20);
+
+          if (candidates) {
+            for (const c of candidates) {
+              if (generateProviderSlug(c.provider_name, c.state) === providerId) {
+                iosProvider = c;
+                break;
+              }
+            }
+          }
+        }
+
+        if (iosProvider) {
+          providerCity = iosProvider.city;
+          providerState = iosProvider.state;
+          providerCategory = iosProvider.provider_category;
+        }
+      }
+
+      // Sync to profile if we found provider data
+      if (providerCity || providerState || providerCategory) {
         await syncIntentToProfile(db, familyProfileId, {
-          providerCity: provider.city,
-          providerState: provider.state,
-          providerCategory: provider.category,
+          providerCity,
+          providerState,
+          providerCategory,
         }, normalizedEmail);
       }
     } catch (prefillErr) {
@@ -341,8 +404,8 @@ export async function POST(req: Request) {
     (async () => {
       try {
         const subject = providerName
-          ? `Welcome to Olera — ${providerName} will respond soon`
-          : "Welcome to Olera";
+          ? `${providerName} will respond soon`
+          : "Your question has been delivered";
 
         const emailLogId = await reserveEmailLogId({
           to: normalizedEmail,
@@ -356,47 +419,12 @@ export async function POST(req: Request) {
         await sendEmail({
           to: normalizedEmail,
           subject,
-          html: `
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
-    Hi ${displayName},
-  </p>
-
-  <p style="font-size: 20px; line-height: 1.4; margin: 0 0 8px; color: #111827; font-weight: 600;">
-    Welcome to Olera!
-  </p>
-
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px; color: #6b7280;">
-    Your account is ready. Here's what's happening:
-  </p>
-
-  ${providerName ? `
-  <div style="background: #f0fdfa; border-radius: 12px; padding: 16px; margin: 0 0 20px; border-left: 4px solid #199087;">
-    <p style="font-size: 14px; color: #199087; margin: 0 0 4px; font-weight: 600;">Question sent to ${providerName}</p>
-    <p style="font-size: 14px; color: #6b7280; margin: 0;">We'll email you when they respond — most reply within 24 hours.</p>
-  </div>
-  ` : ""}
-
-  ${questionText ? `
-  <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin: 0 0 24px;">
-    <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Your question</p>
-    <p style="font-size: 15px; color: #111827; margin: 0; font-style: italic;">"${questionText}"</p>
-  </div>
-  ` : ""}
-
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #111827;">
-    While you wait, explore more providers or check if you qualify for benefits that can help cover care costs.
-  </p>
-
-  <a href="${portalUrl}" style="display: inline-block; background: #199087; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    Go to my portal →
-  </a>
-
-  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
-    Olera helps families find and connect with senior care providers. We never sell your info.
-  </p>
-</div>
-          `,
+          html: questionWelcomeEmail({
+            displayName,
+            providerName: providerName || null,
+            questionText: questionText || null,
+            portalUrl,
+          }),
           emailLogId: emailLogId ?? undefined,
         });
       } catch (emailErr) {

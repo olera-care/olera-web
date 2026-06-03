@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
   const { data: connection, error: fetchError } = await db
     .from("connections")
     .select(`
-      id, from_profile_id, to_profile_id, metadata, created_at,
+      id, type, from_profile_id, to_profile_id, metadata, created_at,
       from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email, account_id),
-      to_profile:business_profiles!connections_to_profile_id_fkey(display_name)
+      to_profile:business_profiles!connections_to_profile_id_fkey(display_name, email, account_id)
     `)
     .eq("id", connection_id)
     .maybeSingle();
@@ -58,6 +58,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Connection not found" }, { status: 404 });
   }
 
+  // Normalize joined relations and resolve family/provider based on connection type
+  // - inquiry: from=family, to=provider
+  // - request (Matches): from=provider, to=family
   const fromProfile = Array.isArray(connection.from_profile)
     ? connection.from_profile[0]
     : connection.from_profile;
@@ -65,14 +68,19 @@ export async function POST(req: NextRequest) {
     ? connection.to_profile[0]
     : connection.to_profile;
 
+  const isInquiry = connection.type === "inquiry";
+  const familyProfile = isInquiry ? fromProfile : toProfile;
+  const providerProfile = isInquiry ? toProfile : fromProfile;
+  const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
+
   // Resolve family email: business_profiles.email → accounts → auth.users
   // (mirrors app/api/connections/message/route.ts).
-  let familyEmail = fromProfile?.email?.trim() || null;
-  if (!familyEmail && fromProfile?.account_id) {
+  let familyEmail = familyProfile?.email?.trim() || null;
+  if (!familyEmail && familyProfile?.account_id) {
     const { data: acct } = await db
       .from("accounts")
       .select("user_id")
-      .eq("id", fromProfile.account_id)
+      .eq("id", familyProfile.account_id)
       .maybeSingle();
     if (acct?.user_id) {
       const { data: authData } = await db.auth.admin.getUserById(acct.user_id);
@@ -98,12 +106,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Re-surface the provider's most recent non-auto reply as the preview.
+  // Use resolved providerProfileId based on connection type.
   const thread = (meta.thread as ThreadMsg[]) || [];
   const providerReply = [...thread]
     .reverse()
-    .find((m) => m.from_profile_id === connection.to_profile_id && m.is_auto_reply !== true && m.text);
-  const providerName = toProfile?.display_name || "A provider";
-  const familyName = fromProfile?.display_name || "there";
+    .find((m) => m.from_profile_id === providerProfileId && m.is_auto_reply !== true && m.text);
+  const providerName = providerProfile?.display_name || "A provider";
+  const familyName = familyProfile?.display_name || "there";
   let preview = providerReply?.text?.trim() || `${providerName} responded to your care inquiry.`;
   if (preview.length > 200) preview = preview.slice(0, 197) + "...";
 

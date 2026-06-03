@@ -325,10 +325,61 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Look up emails from auth.users for seekers without email but with account_id
+    // This handles profiles created before email was stored in business_profiles
+    const seekersNeedingEmail = (data ?? []).filter((s) => !s.email && s.account_id);
+    const emailLookup: Record<string, string> = {};
+
+    if (seekersNeedingEmail.length > 0) {
+      const accountIds = seekersNeedingEmail.map((s) => s.account_id).filter(Boolean) as string[];
+
+      // Get user_ids from accounts
+      const { data: accounts } = await db
+        .from("accounts")
+        .select("id, user_id")
+        .in("id", accountIds);
+
+      if (accounts && accounts.length > 0) {
+        const accountToUser = new Map(accounts.map((a) => [a.id, a.user_id]));
+        const userIds = accounts.map((a) => a.user_id).filter(Boolean) as string[];
+
+        // Fetch emails from auth.users in parallel (limit concurrency)
+        const BATCH_SIZE = 10;
+        const userEmails = new Map<string, string>();
+
+        for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
+          const batch = userIds.slice(i, i + BATCH_SIZE);
+          const results = await Promise.all(
+            batch.map((userId) => db.auth.admin.getUserById(userId))
+          );
+          for (const result of results) {
+            if (result.data?.user?.email) {
+              userEmails.set(result.data.user.id, result.data.user.email);
+            }
+          }
+        }
+
+        // Map account_id → email
+        for (const seeker of seekersNeedingEmail) {
+          if (seeker.account_id) {
+            const userId = accountToUser.get(seeker.account_id);
+            if (userId) {
+              const email = userEmails.get(userId);
+              if (email) {
+                emailLookup[seeker.id] = email;
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Transform data with computed fields
     let seekers = (data ?? []).map((seeker) => {
       const meta = (seeker.metadata || {}) as FamilyMetadata;
-      const completeness = calculateFamilyCompleteness(seeker, seeker.email);
+      // Use email from business_profiles, or fall back to auth lookup
+      const effectiveEmail = seeker.email || emailLookup[seeker.id] || null;
+      const completeness = calculateFamilyCompleteness(seeker, effectiveEmail);
       const readyToPublish = completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;
       const fullyComplete = completeness.percentage >= FULLY_COMPLETE_THRESHOLD;
       const published = isPublished(meta);
@@ -343,6 +394,7 @@ export async function GET(request: NextRequest) {
 
       return {
         ...seeker,
+        email: effectiveEmail, // Use resolved email (from business_profiles or auth lookup)
         connection_count: connectionCounts[seeker.id] || 0,
         profile_complete: readyToPublish,      // ≥60% (ready to publish)
         fully_complete: fullyComplete,          // 100% (no more nudges needed)

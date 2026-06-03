@@ -396,7 +396,8 @@ export default function UnifiedAuthModal({
       // picker, so no email is needed. The session is written to cookies on this
       // SSR client automatically (same as signInWithPassword).
       const supabase = createClient();
-      const { data, error: authError } = await supabase.auth.signInWithPasskey();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: authError } = await (supabase.auth as any).signInWithPasskey();
 
       if (authError) {
         // User dismissed the system prompt (NotAllowedError) or it timed out —

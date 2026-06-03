@@ -7,6 +7,121 @@
 
 ## Current Focus
 
+### 2026-06-02/03 — Market Diagnostic: "SEMrush for senior-care client acquisition" (PR #916, DEMO-READY)
+
+**Context:** Shower revelation off the Comfort Keepers / College Station thread → the real product. Olera has a two-sided "mall" (recurring care-seeker demand + engaged providers) but no goods to sell. The good = **client-acquisition intelligence** a single provider can't assemble: their local demand, competition, and referral map. Wedge = Olera sees demand (the funnel) no provider can. Framing locked: **intelligence is the hook, the qualified-lead outcome is the revenue — *because* the outcome is scarce (75k providers, ~100 live leads) and the intelligence is abundant.**
+
+**Built this session (PR #916 → staging, branch `market-diagnostic-v0`):**
+- **Engine** (`scripts/market-diagnostic/`): `fetch-diagnostic.mjs` (dependency-free; Google Places competitors+referral graph, Census ACS5 65+/income by ZCTA, Supabase funnel — families=`business_profiles` type=family, `provider_questions` has no city col→join via provider_id) + `analyze-diagnostic.mjs` (Claude Haiku classification, cached; competitor share-of-voice, prioritized referral-BD call sheet, channel ranking).
+- **Real College Station home-care numbers:** 22,339 seniors (9.8%, $30k–93k by ZIP; private-pay density in 77845/77802/77808, campus skipped); 17 local competitors (Comfort Keepers #1 @16.9% SoV; median 27 rev/4.9★); 212→147 referral sources, diverse deduped BD list (hospitals/SNF/hospice/AL/senior-resources). Olera has only 6 CS families → demographics = denominator, funnel = growing fulfillment.
+- **Credibility pass** (2nd commit): fixed criminal-defense-as-elder-law + ER-as-top-target + low-value buckets leading; value-ranked, interleaved diverse call sheet, name-guards. Honest gap: generically-named estate firms unverifiable → elder-law left empty not padded.
+- **Render**: `components/provider/market/MarketDiagnostic.tsx` (reusable, warm/serif) + admin preview `/admin/market-diagnostic`.
+- **Find Families integration** (3rd commit): diagnostic is now the **default** Find Families experience. `components/provider/market/FindFamiliesMarketView.tsx` (diagnostic-first; compact live-leads urgency strip pins on top only when local families exist) + `app/api/provider/market-diagnostic` (serves precomputed city×caretype snapshot; lazy-compute = Phase 2) + early-return gate in `app/provider/matches/page.tsx` (gated to Aggie / TJ email / `?market=1`; **zero change for all other providers**). Find Families = `app/provider/matches/page.tsx` (2013 lines), data via `/api/matches/*`. Typechecks clean (0 errors).
+- **Post-Q&A teaser → Your Market** (6th commit): `components/provider-onboarding/AnalyticsTeaserCard.tsx` (the post-answer discovery door) now points gated providers' CTA to `/provider/matches` ("See your market") instead of generic `/provider`. Live conversion/instrumentation untouched for everyone else. Gate centralized to **`lib/market-gate.ts`** — single flip-point; global rollout = make `marketGateEnabled` return `true`.
+- **Section reorder** (7th commit): demand → competition → referral map → **where-to-focus** → playbook (TJ's call; targeting ZIPs land right before the action playbook).
+- **Susan follow-up filed** (time-sensitive, TJ's ask): [Notion task on Olera Action Items board](https://www.notion.so/3735903a0ffe81aea151e182846ff451), **P1 · Fri Jun 5**, with a ready-to-send email (headline recs + asks for ad-spend/platforms + avg client LTV) + checklist. Needs her address to send.
+- **Workspace layer (DONE + LIVE):** referral call-sheet is now a tool — mark each target To contact→Contacted→Responded→Referring, progress bar, persists per provider. `supabase/migrations/097_market_referral_outreach.sql` (provider_id × google place id; TEXT status+CHECK; RLS-on, service-role-only) — **TJ APPLIED the migration; write path verified end-to-end (valid status saves, bad status blocked by CHECK 23514)**. `app/api/provider/market-outreach` (GET/POST, provider from session, degrades if table absent). `ReferralTargets.tsx` (status controls, optimistic, tel: links, "Referring" celebration pop).
+- **UI-critique redesign (DONE, chunks 1-4):** competition-first hero ("21 agencies competing for 22,339 seniors in College Station" — TJ's instinct; demand folded in as stakes, not a scrolled-past section), Perena-style stat cards w/ count-up (`CountUp.tsx`), "You" highlight in SoV bars (Google-listed providers), sticky scroll-spy section nav + two-column (`SectionNav.tsx`), real **catchment map** colored by source type (`CatchmentMap.tsx` + dynamic ssr:false loader), "Your first call" teal CTA, `tel:` links. Refs: Perena + Wispr Flow (`~/Desktop/olera-hq/docs/Design Inspirations`). Skipped donut on purpose (count-cards show composition; exact counts are actionable).
+- **MAP FIX:** map rendered as a flat green box — **MapTiler key 403s** (expired/over-quota); switched `CatchmentMap` to **key-free CARTO Positron raster tiles** (mirrors BrowseMap's fallback). Map now shows real streets. (Renew the MapTiler key separately if other maps need it.)
+- **Susan EMAILED** (TJ sent it himself, not me): Fri Jun 5 **10 AM** call, to recruiter696@gmail.com cc Logan + Graize. TJ has the relationship/meeting side handled — see memory `feedback_dont_over_anchor_offers`.
+- **Find Families optimizations (2026-06-03, post-redesign):**
+  - **Call sheet "daunting wall" fix:** 16-row list → **top 5 + "Show all N" toggle**, softened counter ("Start with your first 5" / "3 worked" instead of "0 of 16"). Shrinks the wall to what's actionable; full list one tap away. (`ReferralTargets.tsx`)
+  - **Playbook /punch:** flat equal-weight list → **#1 is the visual hero** (tinted card, big teal numeral), #2-4 recede; rationales cut to one punchy line (dropped #1's redundant counts + "0 elder-law"); "↳ Olera" → "→ {tool}" pointer. (`MarketDiagnostic.tsx`)
+  - **Playbook reorder (TJ):** **Reviews now #1** ("fastest win you control" — we've actually built `/provider/reviews`), Referrals #2 ("biggest lever", the deep map+call-sheet section above). Channels carry a `key` (reviews/callsheet/community/ads). Reasoning: order = "where to start," not strictly leverage.
+  - **Playbook actions are REAL now (were fake affordances):** reviews→`/provider/reviews`, callsheet→`#referral` anchor, community/ads→**one-click "contact the Olera team"** (`PlaybookAction.tsx` + `app/api/provider/market-request` → `sendSlackAlert` from `lib/slack.ts`, awaited; button morphs to "✓ Got it — the team will reach out"; error state "tap to try again" added in /pre-test). TJ's call: ads/PPC isn't self-serve → consultative contact is the honest action.
+  - **Reviews CTA repeated in the competition section** ("Request reviews to climb the ranking →" teal pill) so they act on the share-of-voice insight without scrolling to the bottom. TJ: repeating is right here.
+  - **Actionability of the page = ~6/10** (TJ asked): strong diagnostically, one real action spine (call sheet); the path to 8-9 = an action per recommendation (now done for playbook) + a "your move this week" synthesis (not built).
+- **Build status:** PR #916 **Vercel CI = PASS** (~20 commits). Local `tsc` via borrowed desktop node_modules shows 8 errors in UNRELATED files (PasskeysSection/UnifiedAuthModal/program-pdf) — a Supabase-2.106 deps-skew artifact, NOT real; CI green.
+
+**HONEST STATE (what's real vs not):** Demo-ready **vertical slice** — ONE city (College Station), ONE gated provider (Aggie Home Care), real data end-to-end, full redesign + persisting workspace. NOT system-wide: (a) data only precomputed for CS (engine run manually, output committed; other cities → "Building your market report" placeholder); (b) gated to Aggie/TJ/`?market=1`. System-wide needs: **Phase-2 lazy-compute-on-visit + cache infra (NEXT — plan with TJ before coding)**, then flip the gate (1 line in `lib/market-gate.ts`).
+
+**IA DECISION (locked):** Diagnostic = strategic layer of the existing **Find Families** tab (provider nav = Profile/Find Families/Hire Caregivers), NOT standalone, NOT on the dense Profile page. Single adaptive page, leads+market combined (no separate toggle). Leads scoped LOCAL-only (fixes the MA/VA over-promise). Read-only now, workspace later (mark-target-contacted, review-climb). The old "43 families looking" image banner is retired.
+
+**Cost/scale answer:** ~$1.75/market one-time (Places ~$1.20 + Haiku ~$0.50; Census free). Unit = **city×caretype, shared across all local providers** → not 75k. Lazy-compute-on-visit + cache + quarterly refresh (the reviews-hydration pattern). Don't geo-limit; gate by rollout for quality. Cache-miss wrinkle (~60-90s compute can't block load) → Phase 2 background job or precompute-on-claim.
+
+**Next up →** (1) **More Find Families optimizations** — active thread; TJ is iterating on the page section-by-section (call sheet, playbook done). Ask him what's next on the page. (2) **PHASE 2 — PARKED** at [`plans/market-diagnostic-phase2-plan.md`](plans/market-diagnostic-phase2-plan.md) (full plan written; multi-city on-demand compute; **PLAN WITH TJ BEFORE CODING** — his ask; recommend batch-first/Option A). (3) Later: "your move this week" synthesis (the actionability 6→8 lever); review-climb tracking; verify-attorney enrichment (elder-law); care-type-adaptive copy. (4) Ops note: one-click team-request relies on Slack delivery (no durable store) — fine for v1; add a table if these requests matter. Memory: `project_market_diagnostic`, `feedback_dont_over_anchor_offers`, `feedback_error_feedback_first`.
+
+---
+
+### 2026-06-03 (Tue) — MedJobs catchment undercount fix + provider city-mislabel discovery (branch `vibrant-joliot`)
+
+**Origin:** Logan flagged catchments may undercount providers. Investigation cascaded into three layers.
+
+**Layer 1 — wrong-table bug (FIXED, PR #919 → staging).** Catchment COUNT/AUDIT surfaces read `business_profiles` (Olera account-holders, tiny) while the prospect LIST reads `olera-providers` (the 75K directory). 7–140× undercount. Decision (TJ): count **non-medical home care only** (`Home Care (Non-medical)`). Fixed `lib/medjobs/{catchment,prospect-counts,catchment-audit}.ts` → read olera-providers + non-medical filter; kept business_profiles only for the client-unlock gate. Added shared `NON_MEDICAL_ILIKE` + paginated `fetchNonMedicalProviders()` with **stable `.order("provider_id")`** (pre-test caught unstable pagination skipping/duping rows past the 10k PostgREST cap). Verified vs live DB: Houston 42→106, Emory 2→76, U.Florida 0→21. Committed `30df681b`, PR #919.
+
+**Layer 2 — discovery completeness.** Built `scripts/medjobs-homecare-backfill.js` (Places New text search → classify non-medical → dedup by place_id/phone/brand → review-ranked coverage report; dry-run default, `--import` reads reviewed JSON). Imported 3 solid net-new: SYNERGY HomeCare (Bryan `bryan-tx-0026`), Visiting Angels (Houston `houston-tx-0091`), TheKey (Houston `houston-tx-0092`). Hardened after TJ's "table stakes" push: franchise brand-probes default-on, **metro-wide capture** (assign each place to its REAL locality, not the query city) + coverage report ranking by Google reviews so a top-of-market miss can't be silent.
+
+**Layer 3 — THE REAL DEFECT (in progress).** BCS coverage proof showed all 8 top agencies as `✓have` — but they were "missing" from a College Station/Bryan filter because a **legacy import batch mislabeled their `city`/`state`**. The `Navasota, TX` bucket (26 rows) is a dumping ground: real Navasota + Bryan/CS agencies (Home Instead, Right at Home, CareCo, Amada, Visiting Angels — all addressed in CS/Bryan per lat/lon) + out-of-area (Dallas, Denton, Athens, Kilgore) + **3 Florida rows** (lat 27.x labeled TX). Tells: mislabeled rows have **random-prefix legacy IDs**; **lat/lon are accurate, city/state are not**. Not a discovery miss — a data-integrity bug. Fix = reverse-geocode lat/lon → correct city/state.
+
+**Next up:** (1) RUN Navasota geocode-fix (26 rows) as proof; (2) RUN directory-wide lat/lon-vs-city audit to size the corruption; (3) Notion report of findings (append branch name); (4) PR #919 merge; (5) decide breadth of directory repair. NOT done: importing the 2 tiny BCS net-new (Margie Stibora ★5/1, Mir ★1/1 — low value, skip).
+
+**Cost note:** Places New text search ~$32/1k requests; this session spent ~$5–6 across diagnostics/sweeps.
+
+---
+
+### 2026-06-02 (Tue eve) — Provider page-creation bugs: schema column + post-create redirect (branch `proud-feynman`, pushed)
+
+**Context:** Esther flagged in Slack that creating new home-care provider pages failed. Two distinct bugs found and fixed; both verified working live by TJ.
+
+**Bug 1 — page creation failed entirely (the red error).** `claim-instant` + `claim-listing` routes inserted a non-existent `care_services` column into `business_profiles`; the real column is `care_types TEXT[]` (used in ~40 other places). Schema-cache rejected every insert → "Could not find the 'care_services' column". Affected ALL service categories, not just Home Care. Fix: rename `care_services` → `care_types` in both routes (`app/api/provider/claim-instant/route.ts:230`, `app/api/provider/claim-listing/route.ts:185`). Commit `222585b6`.
+
+**Esther's account-separation theory — investigated, ruled out.** There IS a real `check-email-type` gate that blocks a provider signup if the email already has a *family* profile. But it was NOT the cause: (1) it would've shown a "use a different email" message, not the schema error; (2) DB query proved `tj@findmedjobs.co` had ZERO business_profiles. Also confirmed: **asking a provider question does NOT create a family profile** — the Q&A flow only writes a `provider_questions` row (asker_email), no account/profile. The email was never "tagged as a care seeker."
+
+**Bug 2 — after successful creation, landed on family inbox (`/portal/inbox`) instead of provider dashboard.** Onboarding intends `router.push("/provider")`, but `handleInstantCreate`/`handleInstantClaim` called `setSession` then navigated WITHOUT refreshing the auth context. Provider layout (`app/provider/layout.tsx:120-123`) mounted with stale empty `profiles`, saw no provider profile, bounced to `/portal`. Masked until now because Bug 1 blocked creation entirely. Fix: `await refreshAccountData(verifyData.session.user.id)` after `setSession`, before navigating, in BOTH instant flows (`app/provider/onboarding/page.tsx`). Commit `646dd8c9`.
+
+**Verified:** `/pre-test` run twice (both clean). Traced refresh chain against real schema+RLS: shared browser client carries the session, RLS allows reading own account/profiles, new org profile matches the `.or()` filter, single Supabase instance = no read-after-write lag. tsc clean (0 errors) throughout. TJ confirmed creation + (after fix) dashboard landing work.
+
+**Next up:** (1) open + merge PR to staging (both commits); (2) Esther Slack reply — blocker cleared + the "not a care seeker" clarification; (3) test-data note: `tj@findmedjobs.co` now owns a real org profile, so re-testing the *create* flow needs a fresh email (or delete that test profile).
+
+---
+
+### 2026-06-02 (Tue) — Provider outreach enrichment (P1 #2 emails + #3 contact-form URLs) — PLANNED
+
+**Context:** `/explore` audited all 7 of TJ's P1 cards → 3 already done (closed on Notion: Smartlead bridge, Benefits mobile +P2 dup, portal post-Q sign-in mobile), 1 mostly-done/diverged (SBF 2-step → empathic arm), 1 half-shipped (#4 connect-two-sides), 2 genuinely unbuilt: the paired email + contact-form enrichers. TJ chose to build both together (shared toolchain).
+
+**Plan:** [`plans/provider-outreach-enrichment-plan.md`](plans/provider-outreach-enrichment-plan.md). Batch enrichers (workhorse) + per-row "Find X" drawer buttons (escape hatch) writing onto `student_outreach.research_data.general_contact` (Option A). Shared TS finder lib consumed by both tsx batch scripts AND the button endpoint. No new CRM action/enum/touchpoint (G1–G4).
+
+**Built + verified this session (Tasks 1–3 of 4):**
+- `lib/medjobs/outreach-enrichment.ts` — shared finder: `resolveWebsite` / `findEmail` (scrape→role-rank→Perplexity, ZeroBounce-ready) / `findContactFormUrl` (path-ranked links + real-contact-form validation, NOT any `<form>`). Lazy env reads (tsx load-order safe). tsc clean + live smoke-tested.
+- `scripts/enrich-outreach-emails.ts` — `--city <City> <ST>` (directory, writes `olera-providers.email`) or `--outreach` (writes `research_data.general_contact.email`). Dry-run default, `--apply` gate, ZeroBounce verify, concurrency pool. **College Station --apply: 18 targets → 6 found, ZeroBounce dropped 3 invalid, 3 real emails written** (Allumine, Five Points, Interim). ~17% hit (chains hide email behind forms).
+- `scripts/enrich-outreach-contact-forms.ts` — `--outreach` (writes) or `--city` (preview, no write — directory has no column). **College Station preview: 28/37 forms found (~76%)** incl. the chains email missed. `--outreach --apply --limit 1` verified the JSONB merge preserves research_data on a staging row.
+- `package.json`: `enrich:outreach-emails`, `enrich:outreach-forms`.
+- Test scaffolding: worktree has symlinked `node_modules` + `.env.local` → main checkout (gitignored) so `npx tsx` runs locally.
+
+- **Task 4 (buttons) — DONE (code):** read-only `POST /api/admin/medjobs/enrich-contact` (auth-guarded, mode email|contact_form, resolves website from research_data→linked directory, runs shared finder, returns value, NO write) + "✦ Find email"/"✦ Find contact form" buttons in `SnapshotCard` General Contact (show when field empty, pre-fill via existing `saveField`/`update_general_contact`, loading + calm error). Full project `tsc` clean for all 4 files (8 unrelated pre-existing errors: passkey WIP + missing optional deps).
+
+**All 4 tasks built + verified (tsc + live data). COMMITTED + PUSHED** → `clever-jemison` (commit `3cc152b1`).
+**Pre-test review:** found + fixed 1 bug — `--outreach` status filter used non-existent values (`"converted"`/`"closed"`); only `do_not_contact` was actually excluded. Fixed → positive `.in()` of live-outreach statuses (research + in_progress groups). Validated: contact-form targets 13→12. Everything else traced clean.
+**Remaining QA:** click-test the "✦ Find email"/"✦ Find contact form" buttons in the live admin drawer (needs auth/running app → staging).
+**Outreach-mode write runs available when wanted:** 7 rows need email, 12 need contact_form_url (live CRM, across cities — not auto-run).
+
+**Next up:** (1) open/merge PR to staging + QA the buttons; (2) decide whether to fire the live `--outreach --apply` runs (7 emails / 12 forms); (3) optional follow-on: contact-form/email enrichment feeds the emailless-tail of P1 #4 "Connect the two sides" (sub-task 3). Note: worktree has gitignored symlinks (`node_modules`, `.env.local`) → main checkout so `npx tsx` runs locally.
+
+---
+
+### 2026-06-02 (Tue) — Provider-page Q&A: asked-aware suggested questions (branch `hardy-nobel`, pushed)
+
+**Context:** Explored the questions care seekers ask on provider pages. Data finding (8wk, 4,541 Qs): **98.8% are one-tap clicks on the fixed suggested-question chips** — only 17 genuinely typed in 8 weeks. The repetition floods providers with identical Qs (1,139× "What's included in the monthly fee?"). Cost/payment ≈48% of all questions. The 1.2% typed are 10× more likely to carry an email — the real leads.
+
+**Shipped (commit `b0acfaa7`, 4 files + new `lib/qa-utils.ts`):**
+- Deepened the **six live directory categories** (AL, MC, NH, IL, home care, home health) from **5→8** suggested questions (`lib/provider-utils.ts`). New Qs grounded in real organic asks (affordability/income-based, payment beyond Medicare, dementia progression, special diets). The other 7 switch cases are dead code (no provider hits them).
+- **Asked-aware ordering** in `QASectionV2.tsx`: show top 5, hold 3 as reserve. Already-**answered** topic → drops from chips (answer shows as thread) + thread gains "N people asked this" badge (N≥2). Already-**asked-unanswered** → sinks below un-asked so a fresh Q surfaces. Un-asked topics keep the proven order (new visitor unaffected).
+- Per-provider asked tally built server-side (`page.tsx`, query by `provider_id=slug`), shared `normalizeQuestion` (`lib/qa-utils.ts`, dependency-free for client import), threaded through `QASectionWithVariant`.
+
+**Decisions (WHY):**
+- **Don't shuffle / don't reorder un-asked Qs** — TJ: every visitor is new, so the optimized fixed order is best *for them*; repetition is a team/DB illusion. Fix is de-prioritize-on-asked only.
+- **De-prioritize, not remove** — diverse Qs = higher ROI, and sinking (vs removing) kills the pool-depletion trap, so no bench expansion beyond 5→8 needed.
+- **Count badge only on answered Qs** — social proof reinforces real content; showing it on unanswered chips would re-boost the topic we're sinking.
+- **Keep 6 category sets, not collapse to 2** — TJ's "senior living + home care" is the right *business* framing (97.5% of providers) but the code tailors per sub-type (MC dementia Qs, NH Medicaid Qs); keeping that is more thoughtful.
+
+**Status:** `/pre-test` clean (no bugs), tsc clean on changed files, committed + pushed. **PR to staging via this quicksave.**
+
+**Process note:** initially edited `~/Desktop/olera-web` (stale, on `chore/rename-compact-skill`, ~440 lines behind on QASectionV2) — caught it, reverted Desktop, redid against the worktree. New memory `feedback_edit_in_worktree_not_desktop`.
+
+**Next up (deferred surgical edits, not built):** provider-side duplicate-question collapse + notification suppression; promote the typed-question path; the answer-side problems (93% unanswered, 15% no provider email). UX idea worth revisiting: answer-in-the-moment from data we already have (pricing/payments/care types) so a tap returns value even when the provider never replies.
+
+---
+
 ### 2026-06-01 (Mon) — Smartlead cold-email BRIDGE built end-to-end (PR #900 → staging, inert)
 
 **Context:** Resumed the cold-outreach engine (mailboxes `logan@`/`partnerships@findmedjobs.co` warming since 5/29, ~late June ready). Goal: build the software that turns CRM rows into live Smartlead campaigns — the "engine room" — ahead of warmup, then demo it. Branch `medjobs-smartlead-bridge` off `staging`; `lib/smartlead.ts` cherry-picked onto it from `save/email-deliverability-session`.

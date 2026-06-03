@@ -1,8 +1,9 @@
 /**
  * Per-campus prospect generation counts. Mirrors the UI semantics:
- *   - Provider Prospects sub-section = catchment providers that are
- *     not yet clients and not yet materialized as kind='provider'
- *     stakeholder rows in student_outreach.
+ *   - Provider Prospects sub-section = non-medical home care providers
+ *     (olera-providers directory — the SAME source as the prospect list
+ *     endpoint) in catchment that are not yet materialized as
+ *     kind='provider' rows in student_outreach.
  *   - Partner Prospects research card = each active campus where
  *     research_complete=false AND the Partner Prospect gate is
  *     unlocked (≥1 client provider in catchment, sticky once set).
@@ -29,10 +30,8 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
-import {
-  isClientMeta,
-  resolvePartnerProspectUnlocks,
-} from "@/lib/medjobs/partner-prospect-gate";
+import { resolvePartnerProspectUnlocks } from "@/lib/medjobs/partner-prospect-gate";
+import { fetchNonMedicalProviders } from "@/lib/medjobs/catchment";
 
 interface CampusLite {
   id: string;
@@ -77,24 +76,49 @@ export async function countProspectGeneration(
     };
   }
 
-  const [{ data: providerData }, { data: materializedData }] = await Promise.all([
-    db
-      .from("business_profiles")
-      .select("id, city, state, metadata")
-      .in("type", ["organization", "caregiver"]),
-    db
-      .from("student_outreach")
-      .select("provider_business_profile_id, campus_id, research_data")
-      .eq("kind", "provider"),
-  ]);
+  // Two data sources, two jobs:
+  //   - business_profiles (account-holders) → the client-unlock gate
+  //     for research cards. Clients are account-holders, not directory
+  //     rows, so this MUST stay on business_profiles.
+  //   - olera-providers (the 75K directory, non-medical only) → the
+  //     Provider Prospect count. This is the SAME source the prospect
+  //     LIST endpoint uses (getProviderProspectsInCatchment), so the
+  //     count and the list finally agree.
+  // States to scope the directory fetch — only the active campuses'
+  // catchment states. Keeps the read small and below the row cap.
+  const neededStates = Array.from(
+    new Set(
+      campuses.flatMap((c) => {
+        const uni = PARTNER_UNIVERSITIES.find((u) => u.slug === c.slug);
+        return uni ? uni.catchment.map((cc) => cc.state) : [];
+      }),
+    ),
+  );
 
-  const providerList = (providerData ?? []) as ProviderLite[];
-  const providerByCityState = new Map<string, ProviderLite[]>();
-  for (const p of providerList) {
+  const [{ data: clientData }, oleraData, { data: materializedData }] =
+    await Promise.all([
+      db
+        .from("business_profiles")
+        .select("id, city, state, metadata")
+        .in("type", ["organization", "caregiver"]),
+      fetchNonMedicalProviders<{
+        provider_id: string;
+        city: string | null;
+        state: string | null;
+      }>(db, "provider_id, city, state", neededStates),
+      db
+        .from("student_outreach")
+        .select("provider_business_profile_id, campus_id, research_data")
+        .eq("kind", "provider"),
+    ]);
+
+  // Index the directory by city|state for the prospect count.
+  const oleraByCityState = new Map<string, Array<{ id: string }>>();
+  for (const p of oleraData) {
     if (!p.city || !p.state) continue;
     const key = `${p.city.toLowerCase()}|${p.state}`;
-    if (!providerByCityState.has(key)) providerByCityState.set(key, []);
-    providerByCityState.get(key)!.push(p);
+    if (!oleraByCityState.has(key)) oleraByCityState.set(key, []);
+    oleraByCityState.get(key)!.push({ id: p.provider_id });
   }
 
   // Resolve unlock state for the research-card gate. Side effect:
@@ -102,7 +126,7 @@ export async function countProspectGeneration(
   const { unlockedCampusIds } = await resolvePartnerProspectUnlocks(
     db,
     campuses,
-    providerList,
+    (clientData ?? []) as ProviderLite[],
   );
 
   const materializedPairs = new Set<string>();
@@ -120,7 +144,6 @@ export async function countProspectGeneration(
     }
   }
 
-  const now = Date.now();
   let researchCardsTotal = 0;
   let researchCardsUnread = 0;
   let providerProspectsTotal = 0;
@@ -138,9 +161,11 @@ export async function countProspectGeneration(
     if (!uni) continue;
     for (const cc of uni.catchment) {
       const key = `${cc.city.toLowerCase()}|${cc.state}`;
-      const list = providerByCityState.get(key) ?? [];
+      const list = oleraByCityState.get(key) ?? [];
       for (const p of list) {
-        if (isClientMeta(p.metadata, now)) continue;
+        // Mirror the LIST endpoint: exclude only already-materialized
+        // rows. Directory rows carry no client metadata, so there's no
+        // client exclusion here (clients are gated separately above).
         if (materializedPairs.has(`${p.id}|${c.id}`)) continue;
         providerProspectsTotal += 1;
         providerProspectsUnread += 1;

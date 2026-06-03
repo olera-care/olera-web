@@ -59,6 +59,13 @@ const ADDICTION = /\b(sober living|sober house|sober home|recovery residence|hal
 const VENUE_DOMAIN = /(weddingestates|springsvenue|eventvenue|weddingvenue|\/venues?\/|banquethall|eventspace)/i;
 // Tattoo / body-art (the SUNDRY class).
 const TATTOO = /\b(tattoo|body piercing|aerial silk)\b/i;
+// Medical spa / aesthetics / cosmetic-wellness clinic (the MedWell class — kept landing as
+// Home Health Care). A senior-care facility that merely OFFERS a spa amenity is fine; these
+// match on the medical-aesthetic SERVICE vocabulary, which legit senior care doesn't advertise.
+const MEDSPA = /\b(med ?spa|medical spa|medical aesthetics|aesthetic (clinic|center|medicine)|\bbotox\b|dermal filler|laser hair removal|microblading|microneedling|hydrafacial|coolsculpting|injectables?|regenerative aesthetics|body contouring|chemical peel|medical weight loss)\b/i;
+// Auto repair / dealership (the GEORGICA SERVICES class — an auto shop tagged Memory Care).
+const AUTO = /\b(auto repair|auto service|automotive (repair|service)|\bmechanic\b|oil change|brake (service|repair)|transmission repair|tire (shop|center)|collision (center|repair)|\bbody shop\b|car dealership|nys inspection|classic (and|&) luxury cars)\b/i;
+const AUTO_DOM = /(autorepair|autoservice|automotive|collision)/i;
 const NAME_HOMECARE = /home (care|health)/i;
 
 function scanProvider(p) {
@@ -71,6 +78,9 @@ function scanProvider(p) {
   }
   if (VENUE_DOMAIN.test(web)) sigs.push(`venue:"${web.match(VENUE_DOMAIN)[0]}"`);
   if (TATTOO.test(hay)) sigs.push(`tattoo:"${hay.match(TATTOO)[0]}"`);
+  if (MEDSPA.test(hay)) sigs.push(`medspa:"${hay.match(MEDSPA)[0]}"`);
+  if (AUTO.test(hay)) sigs.push(`auto:"${hay.match(AUTO)[0]}"`);
+  if (AUTO_DOM.test(web)) sigs.push(`autodom:"${web.match(AUTO_DOM)[0]}"`);
   return sigs;
 }
 

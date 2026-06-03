@@ -72,10 +72,21 @@ const NAME_HOMECARE = /home (care|health)/i; // EXCLUDE — "Recovery Home Care"
 
 Batched verify (3+ providers per Perplexity call) under-grounds badly: sweep #2's incremental pass returned **51% INSUFFICIENT** and **73 false-OUT** that would have been wrongful deletions. **Never delete on a batched verdict.**
 
-1. **Pass 1 — batched** (3/call, 10 concurrent): cheap triage to surface OUT/reclass candidates.
-2. **Pass 2 — individual re-verify** (1/call, website forced) on every OUT and reclass candidate: flips false-OUT back to IN_SCOPE, supplies correct `best_category`, and confirms true OUT with cited evidence. Only Pass-2-confirmed OUT goes on the deletions MD.
+1. **Pass 1 — batched** (3/call, 10 concurrent): cheap triage.
+2. **Pass 2 — individual re-verify** (1/call, website forced) on **OUT, reclass, AND `INSUFFICIENT_EVIDENCE`** candidates: flips false-OUT back to IN_SCOPE, supplies correct `best_category`, confirms true OUT with cited evidence.
 
-Sweep #2 actuals: 399 batched-OUT → 320 confirmed (73 spared, 6 unclear); 451 batched-reclass → 368 confirmed + 31 actually-OUT + 36 already-correct.
+> **CRITICAL (sweep #2 amendment): `INSUFFICIENT_EVIDENCE` is NOT default-keep.** It MUST go through Pass 2 individual re-verify. In sweep #2 the batched pass returned 2,286 INSUFFICIENT; re-verifying them individually found **542 (~24%) were actually out-of-scope** (medical spas, primary-care clinics, hospices, apartments-without-services) and 527 were wrong-bucket. Blind-keeping INSUFFICIENT is exactly how MedWell (a med-spa tagged Home Care) and 541 others survived sweep #2's first pass. Default-keep applies ONLY after an individual website-forced attempt *also* comes back genuinely unknowable.
+
+Sweep #2 actuals: 399 batched-OUT → 320 confirmed; 451 batched-reclass → 368 confirmed + 31 actually-OUT; **2,286 INSUFFICIENT → 542 OUT + 527 reclass + 1,483 kept + 261 still-unclear**.
+
+## New out-of-scope classes (sweep #2 wave 2)
+
+Two classes that kept landing in-scope and the LLM didn't reject — now in the scanner (`MEDSPA`, `AUTO`) and the Stream A prompt:
+
+- **Medical spa / aesthetics / wellness clinic** → tagged **Home Health Care** (name contains "Health"/"Care"/"Wellness"). Signals: med spa, botox, dermal filler, laser hair, microblading, hydrafacial, injectables, medical weight loss, IV therapy. *MedWell (San Angelo TX) was the canonical miss.*
+- **Auto repair / dealership** → tagged **Memory Care/Nursing Home**. Signals in reviews/domain: auto repair, mechanic, oil change, NYS inspection, "classic & luxury cars", `*autoservice*`/`*automotive*` domains. *Georgica Services (East Hampton NY) was the canonical miss.*
+
+Guard: a senior-care facility that merely OFFERS a spa amenity is IN_SCOPE — match on medical-aesthetic SERVICE vocab, not the word "spa" alone. Auto review-hits ("tire shop", "oil change") are noisy — always LLM-verify before deleting.
 
 ### TJ overrides observed in past runs
 
@@ -393,6 +404,7 @@ Recovery: `update set deleted=false` or `update set provider_category=<old>` by 
 
 ## Change log
 
+- **v3.1 — 2026-06-03 (sweep #2, wave 2).** After TJ spotted a med-spa (MedWell, tagged Home Care) and an auto-repair shop (Georgica Services, tagged Memory Care) still live, traced to two holes: (1) `INSUFFICIENT_EVIDENCE` was blind-kept — re-verifying all 2,286 individually found 542 OUT + 527 reclass; methodology amended to require Pass-2 on INSUFFICIENT. (2) Scanner lacked medspa/auto vocab — added `MEDSPA` + `AUTO`/`AUTO_DOM` signals and a Stream A prompt exclusion for medical-spa/aesthetics/wellness clinics + auto shops. Wave-2 result: 243 high-confidence OUT deleted (+ MedWell/Georgica), 326 apartment/unclear deferred to TJ, 527 reclass pending.
 - **v3 — 2026-06-03 (sweep #2).** Added: (1) **DB-wide signal scan** `scripts/scan-out-of-scope-signals.js` as the mandatory first step — catches name-innocent out-of-scope (sober-living, tattoo/event studios) via website domain + reviews. (2) **Two-pass verification** (batched triage → individual website-forced re-verify) — mandatory before any deletion; batched alone produced 51% INSUFFICIENT + 73 false-OUT. (3) **`addiction-behavioral` + `tattoo-bodyart` Tier-1 buckets** (default-checked). (4) Switched go-forward mode to signal-scan + incremental (full-DB only on demand) and documented the `created_at` migration caveat. Pipeline hardening landed in the same PR: `OUT_OF_SCOPE_TYPES` anti-rescue clause (addiction/hospice/adult-day OUT even when they advertise skilled nursing/rehab) + addiction tokens in `KEYWORD_BLOCKLIST`. Results: **311 deleted, 420 reclassified**, 0 corrupt categories remaining, active 75,059→74,751, ~$16. (Of the 31 reclass-candidates that flipped to OUT on re-verify, 30 deleted + 1 spared — "Mill Creek" was an LLM self-contradiction: reason said "skilled nursing facility" yet concluded OUT, so it was reclassed to Nursing Home, not deleted. Lesson: scan flipped-OUT reasons for in-scope category names before deleting.)
 - **v2.2 — 2026-04-27.** Definitional-context exclusion (TJ caught wrong-transition in review: `JeYr0C2` Joyful Home Health Care). LLM reasons sometimes contain DEFINITIONAL sentences that reference categories without claiming the provider belongs to them, e.g., "Non-medical home care (Category 1) explicitly requires caregivers who are NOT licensed clinicians". Now skip matches followed by `(Category N)`, `is defined as`, `specifically requires/excludes/includes`, or `requires caregivers/providers who...`. Also added `indicate(s) <Cat>` to META_REFS so positive claims like "Name and URL indicate 'Home Health Care' business model" are caught. Net: same totals (245/2569) but Joyful correctly moved from AL→HC(Non-medical) to AL→HHC.
 - **v2.1 — 2026-04-27.** Clause-level negation (TJ caught FP in review: `menasha-wi-0014` ThedaCare Physicians). Long-list-of-negations like "is X, not Y, Z, W, or V" was tripping the regex on Y..V even though semantically negated. Window-based check (40-60 chars) couldn't reach the "not" in long lists. Replaced fixed window with clause scan back to last period/semicolon. Pulled 9 FPs back to deletions. Final sweep #1 v2.1 totals: 245 reclass (+46), 122 silent-drop (+1), 2,569 deletions (-47).

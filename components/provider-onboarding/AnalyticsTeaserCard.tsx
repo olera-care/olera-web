@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { marketGateEnabled } from "@/lib/market-gate";
 
 /**
  * Teaser card on the onboard page — the door to /provider.
@@ -135,6 +136,12 @@ function TeaserBody({ data }: { data: AnalyticsResponse }) {
   const firedImpression = useRef(false);
   const copy = resolveCopy(data);
 
+  // Gated dogfood: funnel the high-engagement post-Q&A moment straight into
+  // "Your Market" (the diagnostic) instead of the generic dashboard.
+  const toMarket = marketGateEnabled({ displayName: data.provider_name });
+  const ctaHref = toMarket ? "/provider/matches" : "/provider";
+  const ctaLabel = toMarket ? "See your market" : copy.cta;
+
   // Fire one impression event per mount, once we've rendered real content.
   // Guarded by a ref so Strict Mode / re-renders don't double-count.
   useEffect(() => {
@@ -163,11 +170,11 @@ function TeaserBody({ data }: { data: AnalyticsResponse }) {
       <p className="mt-2 text-sm text-gray-500 leading-relaxed">{copy.subline}</p>
 
       <Link
-        href="/provider"
+        href={ctaHref}
         onClick={handleCtaClick}
         className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 mt-4 group"
       >
-        {copy.cta}
+        {ctaLabel}
         <svg
           className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
           fill="none"

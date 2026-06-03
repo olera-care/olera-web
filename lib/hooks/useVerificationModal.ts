@@ -15,7 +15,7 @@ interface UseVerificationModalReturn {
   isOpen: boolean;
   open: () => void;
   close: () => void;
-  handleSubmit: (result: VerificationResult) => Promise<{ verified: boolean; pendingReview: boolean }>;
+  handleSubmit: (result: VerificationResult) => Promise<{ verified: boolean; pendingReview: boolean; suggestion?: string }>;
   handleDismiss: () => void;
   isVerified: boolean;
   isPendingReview: boolean;
@@ -56,7 +56,7 @@ export function useVerificationModal({
   const close = useCallback(() => setIsOpen(false), []);
 
   const handleSubmit = useCallback(
-    async (result: VerificationResult): Promise<{ verified: boolean; pendingReview: boolean }> => {
+    async (result: VerificationResult): Promise<{ verified: boolean; pendingReview: boolean; suggestion?: string }> => {
       const response = await fetch("/api/provider/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,7 +105,7 @@ export function useVerificationModal({
         setIsVerified(false);
         setIsPendingReview(true);
         onPendingReview?.();
-        return { verified: false, pendingReview: true };
+        return { verified: false, pendingReview: true, suggestion: data.suggestion };
       } else {
         // Verification failed with a reason
         throw new Error(data.reason || "Could not verify. Please try a different method.");

@@ -145,7 +145,7 @@ export function verificationCodeEmail(
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your organization</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Someone is trying to claim the page for <strong>${providerName}</strong> on Olera.
+      Someone is trying to claim the page for <strong>${escapeHtml(providerName)}</strong> on Olera.
       Use this code to complete verification:
     </p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
@@ -154,7 +154,7 @@ export function verificationCodeEmail(
     <p style="font-size:13px;color:#9ca3af;margin:0;">
       This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.
     </p>
-  `);
+  `, "Your verification code for Olera");
 }
 
 /** Verification OTP email for email verification method */
@@ -167,7 +167,7 @@ export function verificationOtpEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your email</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")}, use this code to verify your connection to <strong>${escapeHtml(opts.businessName)}</strong> on Olera:
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, use this code to verify your connection to <strong>${escapeHtml(opts.businessName)}</strong> on Olera:
     </p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
       <span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#111827;">${opts.code}</span>
@@ -175,7 +175,7 @@ export function verificationOtpEmail(opts: {
     <p style="font-size:13px;color:#9ca3af;margin:0;">
       This code expires in ${opts.expiresInMinutes} minutes. If you didn't request this, you can safely ignore this email.
     </p>
-  `);
+  `, "Your verification code for Olera");
 }
 
 /** Email to provider when a family sends a connection request */
@@ -187,6 +187,7 @@ export function connectionRequestEmail(opts: {
   viewUrl: string;
   providerSlug?: string;
 }): string {
+  const safeFamilyName = firstName(opts.familyName);
   const careLine = opts.careType
     ? `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;"><strong>Care type:</strong> ${escapeHtml(opts.careType)}</p>`
     : "";
@@ -195,13 +196,16 @@ export function connectionRequestEmail(opts: {
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family is looking for care from ${escapeHtml(opts.providerName)}</h1>
     ${trustIntro()}
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      <strong>${firstName(opts.familyName)}</strong> is actively searching for care and chose to reach out to your organization.
+      <strong>${escapeHtml(safeFamilyName)}</strong> is actively searching for care and chose to reach out to your organization.
     </p>
     ${careLine}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A timely response makes all the difference for families navigating care decisions. Log in to view the full inquiry and respond.</p>
-    <div>${button("View care inquiry", opts.viewUrl)}</div>
+    <div style="margin:0 0 24px;">${button("View care inquiry", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     ${offRampBlock(opts.providerSlug)}
-  `);
+  `, `${safeFamilyName} is looking for care — respond to connect`);
 }
 
 /** Confirmation email to family after they send a connection request */
@@ -223,7 +227,7 @@ export function connectionSentEmail(opts: {
     ${careLine}
     <div style="margin:0 0 24px;">${button("View your inbox", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "We'll notify you when they respond.");
 }
@@ -251,7 +255,7 @@ export function guestConnectionEmail(opts: {
     <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;">Click below to view your inbox — you'll be signed in automatically.</p>
     <div style="margin:0 0 24px;">${button("View your inbox", opts.magicLinkUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      This link expires in 1 hour. Questions? Just reply to this email.
+      This link expires in 1 hour. Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "We'll notify you when they respond.");
 }
@@ -290,7 +294,7 @@ export function connectionResponseEmail(opts: {
       </p>
       <div style="margin:0 0 24px;">${button("View conversation", opts.viewUrl)}</div>
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-        Questions? Just reply to this email.
+        Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
       </p>
     `, "They're interested in connecting with you.");
   }
@@ -305,7 +309,7 @@ export function connectionResponseEmail(opts: {
     </p>
     <div style="margin:0 0 24px;">${button("Browse other providers", `${BASE_URL}/browse`)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "We're here to help you find the right care.");
 }
@@ -326,17 +330,17 @@ export function newMessageEmail(opts: {
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")},
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${safeSenderName}</strong> sent you a message:
+      <strong>${escapeHtml(safeSenderName)}</strong> sent you a message:
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
     </div>
     <div style="margin:0 0 24px;">${button("Reply", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, `"${preheaderSnippet}"`);
 }
@@ -358,7 +362,7 @@ export function unreadReminderEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an unread response</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")}, <strong>${safeSenderName}</strong> responded to your care inquiry, but we haven't heard back from you yet.
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, <strong>${escapeHtml(safeSenderName)}</strong> responded to your care inquiry, but we haven't heard back from you yet.
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
@@ -368,7 +372,7 @@ export function unreadReminderEmail(opts: {
     </p>
     <div style="margin:0 0 24px;">${button("View their response", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, `They responded to your inquiry — "${preheaderSnippet}"`);
 }
@@ -388,7 +392,7 @@ export function claimNotificationEmail(opts: {
       <strong>Claimed by:</strong> ${escapeHtml(opts.claimedByEmail)}
     </p>
     <div>${button("View listing", `${BASE_URL}/provider/${opts.providerSlug}`)}</div>
-  `);
+  `, `${opts.providerName} claimed by ${opts.claimedByEmail}`);
 }
 
 /** Email to provider when their claim is approved or rejected */
@@ -404,8 +408,11 @@ export function claimDecisionEmail(opts: {
         Congratulations — <strong>${escapeHtml(opts.providerName)}</strong> has been verified and is now live on Olera.
         Families in your area can find you and reach out directly.
       </p>
-      <div>${button("View your listing", opts.listingUrl)}</div>
-    `);
+      <div style="margin:0 0 24px;">${button("View your listing", opts.listingUrl)}</div>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+        Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+      </p>
+    `, "Your listing is now live on Olera");
   }
 
   return layout(`
@@ -414,52 +421,73 @@ export function claimDecisionEmail(opts: {
       We were unable to verify the claim for <strong>${escapeHtml(opts.providerName)}</strong>.
       This is usually due to missing or mismatched information. Please reach out so we can help resolve it.
     </p>
-    <div>${button("Contact support", "mailto:support@olera.care")}</div>
-  `);
+    <div style="margin:0 0 24px;">${button("Contact support", "mailto:support@olera.care")}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "We need more information to verify your claim");
 }
 
-/** Email to provider when their identity verification is approved or rejected */
+/** Email to provider when their identity verification is approved or rejected (from admin panel) */
 export function verificationDecisionEmail(opts: {
   providerName: string;
   recipientName: string;
   approved: boolean;
   dashboardUrl: string;
 }): string {
+  const name = firstName(opts.recipientName, "there");
+
   if (opts.approved) {
     return layout(`
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
         <tr><td align="center">
-          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);border-radius:50%;">
             <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
           </table>
         </td></tr>
       </table>
-      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're verified</h1>
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're all set!</h1>
       <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
-        ${firstName(opts.recipientName, "Hi")}, your connection to <strong>${escapeHtml(opts.providerName)}</strong> has been verified. You now have full access to your dashboard.
+        Great news, ${escapeHtml(name)}! Our team has reviewed and verified your connection to <strong>${escapeHtml(opts.providerName)}</strong>.
       </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
-      <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
-        <li>Edit your listing with photos & pricing</li>
-        <li>Respond to family inquiries</li>
-        <li>Hire caregivers</li>
-        <li>View your profile analytics</li>
-      </ul>
-      <div style="text-align:center;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
-    `);
+      <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 24px;">
+        <p style="font-size:14px;color:#166534;margin:0 0 12px;font-weight:600;">Here's what you can do now:</p>
+        <ul style="font-size:14px;color:#166534;margin:0;padding-left:20px;line-height:1.8;">
+          <li>Respond to family inquiries and answer questions</li>
+          <li>Customize your listing with photos and business details</li>
+          <li>Reach out to families looking for care</li>
+          <li>Hire caregivers</li>
+        </ul>
+      </div>
+      <div style="text-align:center;margin:0 0 24px;">${button("Go to Your Dashboard", opts.dashboardUrl)}</div>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+        We're excited to have you on Olera! Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">We're here to help</a>
+      </p>
+    `, "You're verified — your dashboard is ready");
   }
 
+  // Rejection case
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs attention</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      We were unable to verify the identity documents submitted for <strong>${escapeHtml(opts.providerName)}</strong>.
-      This may be due to unclear images or mismatched information.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's get you verified</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(name)}, we reviewed your verification for <strong>${escapeHtml(opts.providerName)}</strong> but need a bit more information to confirm your connection.
     </p>
-    <div style="text-align:center;">${button("Resubmit Verification", opts.dashboardUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;text-align:center;">
-      Need help? <a href="mailto:support@olera.care" style="color:#199087;text-decoration:none;">Contact support</a>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      Don't worry — there are several ways to verify. Here's what works best:
     </p>
-  `);
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li><strong style="color:#111827;">Work email</strong> — Use an email with your company's domain (e.g., you@company.com)</li>
+      <li><strong style="color:#111827;">LinkedIn</strong> — Make sure your profile shows this organization as your current employer</li>
+      <li><strong style="color:#111827;">Business website</strong> — Link to a page that lists you as staff (About Us, Team page)</li>
+      <li><strong style="color:#111827;">Document</strong> — Upload a business license, ID badge, or official letterhead</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Again", opts.dashboardUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll sort this out together.
+      </p>
+    </div>
+  `, "Let's try another way to verify your connection");
 }
 
 /** Email to provider when they receive a new review */
@@ -473,18 +501,22 @@ export function newReviewEmail(opts: {
 }): string {
   // Generate star rating display
   const stars = "★".repeat(opts.rating) + "☆".repeat(5 - opts.rating);
+  const safeReviewerName = firstName(opts.reviewerName);
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${firstName(opts.reviewerName)} left a review for ${escapeHtml(opts.providerName)}</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${escapeHtml(safeReviewerName)} left a review for ${escapeHtml(opts.providerName)}</h1>
     ${trustIntro()}
     <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 20px;">
       <p style="font-size:20px;color:#f59e0b;margin:0 0 12px;letter-spacing:2px;">${stars}</p>
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.6;">"${escapeHtml(opts.comment)}"</p>
     </div>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">Reviews help families make confident decisions about care — and yours is getting noticed.</p>
-    <div>${button("View your review", opts.viewUrl)}</div>
+    <div style="margin:0 0 24px;">${button("View your review", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     ${offRampBlock(opts.providerSlug)}
-  `);
+  `, `${safeReviewerName} gave you ${opts.rating} stars on Olera`);
 }
 
 // ── question_received A/B test ────────────────────────────────────────
@@ -589,13 +621,16 @@ export function questionReceivedEmail(opts: {
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family has a question about ${escapeHtml(opts.providerName)}</h1>
     ${trustIntro()}
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      <strong>${firstName(opts.askerName)}</strong> is researching care options and asked:
+      <strong>${escapeHtml(firstName(opts.askerName))}</strong> is researching care options and asked:
     </p>
     <div style="background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 16px;">
       <p style="font-size:15px;color:#111827;margin:0;line-height:1.5;font-style:italic;">&ldquo;${escapeHtml(opts.question)}&rdquo;</p>
     </div>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.</p>
-    <div>${button("View and respond", opts.providerUrl)}</div>
+    <div style="margin:0 0 24px;">${button("View and respond", opts.providerUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     ${offRampBlock(opts.providerSlug)}
   `, opts.preheader);
 }
@@ -614,9 +649,9 @@ export function questionAnsweredEmail(opts: {
     : opts.answer;
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${firstName(opts.providerName, "A provider")} answered your question</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${opts.providerName ? escapeHtml(opts.providerName) : "A provider"} answered your question</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.askerName, "there")}, <strong>${escapeHtml(opts.providerName)}</strong> responded to your question:
+      Hi ${escapeHtml(firstName(opts.askerName, "there"))}, <strong>${escapeHtml(opts.providerName)}</strong> responded to your question:
     </p>
     <div style="background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 16px;">
       <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your question</p>
@@ -628,7 +663,7 @@ export function questionAnsweredEmail(opts: {
     </div>
     <div style="margin:0 0 24px;">${button("See the full answer", opts.providerUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, `"${preheaderSnippet}"`);
 }
@@ -674,7 +709,7 @@ export function questionConfirmationEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your question is on its way</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.askerName, "there")}, your question to <strong>${escapeHtml(opts.providerName)}</strong> has been delivered. We'll notify you as soon as they respond.
+      Hi ${escapeHtml(firstName(opts.askerName, "there"))}, your question to <strong>${escapeHtml(opts.providerName)}</strong> has been delivered. We'll notify you as soon as they respond.
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.question)}"</p>
@@ -682,7 +717,7 @@ export function questionConfirmationEmail(opts: {
     <div style="margin:0 0 24px;">${button("View on Olera", opts.providerUrl)}</div>
     ${alternativesBlock}
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "We'll notify you when they respond.");
 }
@@ -710,12 +745,12 @@ export function questionWelcomeEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're all set</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.displayName, "there")}, ${providerContext}
+      Hi ${escapeHtml(firstName(opts.displayName, "there"))}, ${providerContext}
     </p>
     ${questionBlock}
     <div style="margin:0 0 24px;">${button("View your inbox", opts.portalUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "Your question has been delivered.");
 }
@@ -763,7 +798,7 @@ export function providerReachOutEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${escapeHtml(opts.providerName)} wants to connect</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, <strong>${escapeHtml(opts.providerName)}</strong> in ${escapeHtml(opts.city)} saw your care needs and reached out to you.
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, <strong>${escapeHtml(opts.providerName)}</strong> in ${escapeHtml(opts.city)} saw your care needs and reached out to you.
     </p>
     ${messageLine}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
@@ -771,7 +806,7 @@ export function providerReachOutEmail(opts: {
     </p>
     <div style="margin:0 0 24px;">${button("View Their Message", opts.matchesUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, preheader);
 }
@@ -787,7 +822,7 @@ export function matchesNudgeEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back?</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating — but there's a better way.
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating — but there's a better way.
     </p>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Instead of chasing providers one by one, let them come to you. Share your care needs once, and qualified providers will reach out directly.
@@ -797,7 +832,7 @@ export function matchesNudgeEmail(opts: {
     </p>
     <div style="margin:0 0 24px;">${button("Let Providers Reach Out", opts.matchesUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
       <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
@@ -810,15 +845,21 @@ export function providerIncompleteProfileEmail(opts: {
   providerName: string;
   city: string;
   profileUrl: string;
+  providerSlug?: string;
 }): string {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are searching in ${escapeHtml(opts.city)}</h1>
+    ${trustIntro()}
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Hi ${firstName(opts.providerName, "there")}, families in ${escapeHtml(opts.city)} are looking for care providers on Olera — but your profile isn't ready yet.
+      Hi ${opts.providerName ? escapeHtml(opts.providerName) : "there"}, families in ${escapeHtml(opts.city)} are looking for care providers on Olera — but your profile isn't ready yet.
       Complete it so families can find and connect with you.
     </p>
-    <div>${button("Complete your profile", opts.profileUrl)}</div>
-  `);
+    <div style="margin:0 0 24px;">${button("Complete your profile", opts.profileUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Complete your profile to connect with families");
 }
 
 /** Email to provider when a family accepts their reach-out (P2) */
@@ -827,13 +868,17 @@ export function reachOutAcceptedEmail(opts: {
   familyName: string;
   viewUrl: string;
 }): string {
+  const safeFamilyName = firstName(opts.familyName, "A family");
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're connected!</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      <strong>${firstName(opts.familyName, "A family")}</strong> accepted your reach-out on Olera. You can now message each other directly.
+      <strong>${escapeHtml(safeFamilyName)}</strong> accepted your reach-out on Olera. You can now message each other directly.
     </p>
-    <div>${button("View conversation", opts.viewUrl)}</div>
-  `);
+    <div style="margin:0 0 24px;">${button("View conversation", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${safeFamilyName} wants to connect — start the conversation`);
 }
 
 /** Email to provider when a family closes their profile (auto-decline pending reach-outs) */
@@ -845,13 +890,16 @@ export function reachOutAutoDeclinedEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family closed their profile</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.providerName, "there")}, a family in ${escapeHtml(opts.familyCity)} that you reached out to has closed their care profile on Olera.
+      Hi ${opts.providerName ? escapeHtml(opts.providerName) : "there"}, a family in ${escapeHtml(opts.familyCity)} that you reached out to has closed their care profile on Olera.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       This sometimes happens when families find care or their needs change. Keep reaching out to other families — new care seekers join every day.
     </p>
-    <div>${button("Find Families", opts.viewUrl)}</div>
-  `);
+    <div style="margin:0 0 24px;">${button("Find Families", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Keep reaching out — new families join every day");
 }
 
 /** Document checklist email for benefits applications */
@@ -944,7 +992,7 @@ export function checklistEmail(opts: {
     </div>
     <div>${button("View program details", `${BASE_URL}/senior-benefits`)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Questions? Just reply to this email — we're here to help.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — we're here to help.
     </p>
   `, preheader);
 }
@@ -971,7 +1019,7 @@ export function welcomeEmail(opts: {
       Want providers to reach out to you? ${ctaLink("Complete your profile", opts.profileUrl)} and let them find you.
     </p>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? Just reply to this email — a real person will get back to you.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — a real person will get back to you.
     </p>
   `, "You don't have to figure this out alone.");
 }
@@ -1798,7 +1846,7 @@ export function careReportEmail(opts: {
     ${similarSection}
     <div style="margin:24px 0 0;">${button("View your inbox", `${BASE_URL}/portal/inbox`)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
-      Questions? Just reply to this email — a real person will get back to you.
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — a real person will get back to you.
     </p>
   `, "We found pricing and funding options to help you.");
 }
@@ -1817,7 +1865,7 @@ export function interviewRequestEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your interview request was sent</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Hi ${firstName(opts.providerName, "there")}, your interview request to <strong>${escapeHtml(opts.studentName)}</strong> has been delivered. You'll be notified when they respond.
+      Hi ${opts.providerName ? escapeHtml(opts.providerName) : "there"}, your interview request to <strong>${escapeHtml(opts.studentName)}</strong> has been delivered. You'll be notified when they respond.
     </p>
     <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
       <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
@@ -1834,10 +1882,105 @@ export function interviewRequestEmail(opts: {
     </p>
     <div style="margin:24px 0;">${button("View Interview", opts.magicLinkUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      This link expires in 72 hours. If you have any questions, just reply to this email.
+      This link expires in 72 hours. Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `);
+  `, `Your interview request to ${opts.studentName} was sent`);
 }
+
+/** Email sent to recipient when someone proposes an interview */
+export function interviewProposedEmail(opts: {
+  proposerName: string;
+  interviewType: string;
+  proposedTime: string;
+  alternativeTime?: string | null;
+  notes: string | null;
+  viewUrl: string;
+}): string {
+  const safeProposerName = escapeHtml(opts.proposerName);
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an interview request</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      <strong>${safeProposerName}</strong> would like to schedule a ${escapeHtml(opts.interviewType.toLowerCase())} interview with you.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Proposed time:</strong> ${escapeHtml(opts.proposedTime)}
+      </p>
+      ${opts.alternativeTime ? `<p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;"><strong>Alternative time:</strong> ${escapeHtml(opts.alternativeTime)}</p>` : ""}
+      ${opts.notes ? `<p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Notes:</strong> ${escapeHtml(opts.notes)}</p>` : ""}
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Review the details and respond to let them know if you're available.
+    </p>
+    <div style="margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${opts.proposerName} wants to schedule an interview with you`);
+}
+
+/** Email sent to both parties when an interview is confirmed */
+export function interviewConfirmedEmail(opts: {
+  otherName: string;
+  interviewType: string;
+  confirmedTime: string;
+  durationMinutes: number;
+  location: string | null;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Confirmed!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Your ${escapeHtml(opts.interviewType.toLowerCase())} interview with <strong>${escapeHtml(opts.otherName)}</strong> is confirmed.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Format:</strong> ${escapeHtml(opts.interviewType)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>When:</strong> ${escapeHtml(opts.confirmedTime)}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Duration:</strong> ${opts.durationMinutes} minutes
+      </p>
+      ${opts.location ? `<p style="font-size:14px;color:#374151;margin:8px 0 0;line-height:1.5;"><strong>Where:</strong> ${escapeHtml(opts.location)}</p>` : ""}
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A calendar invite is attached to this email.
+    </p>
+    <div style="margin:0 0 24px;">${button("View on Olera", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your interview with ${opts.otherName} is confirmed`);
+}
+
+/** Email sent when an interview is cancelled */
+export function interviewCancelledEmail(opts: {
+  otherName: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Interview Cancelled</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      The interview with <strong>${escapeHtml(opts.otherName)}</strong> has been cancelled.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      These things happen — you can schedule new interviews anytime.
+    </p>
+    <div style="margin:0 0 24px;">${button("View Interviews", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your interview with ${opts.otherName} has been cancelled`);
+}
+
 /** Email to provider when they request to claim an existing listing */
 export function claimVerificationEmail(opts: {
   providerName: string;
@@ -1855,7 +1998,7 @@ export function claimVerificationEmail(opts: {
       This link expires in 72 hours. If you didn't request this, you can safely ignore this email.
     </p>
     ${offRampBlock(opts.providerSlug)}
-  `);
+  `, "Verify your email to manage your listing");
 }
 
 /** Email to provider when they create a new organization on Olera */
@@ -1873,7 +2016,7 @@ export function signupVerificationEmail(opts: {
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       This link expires in 72 hours. If you didn't request this, you can safely ignore this email.
     </p>
-  `);
+  `, "Verify your email to set up your organization");
 }
 
 // ── Provider weekly analytics digest ────────────────────────────
@@ -1945,10 +2088,10 @@ function digestLead(opts: DigestOpts): string {
     else parts.push(`Flat vs. last week.`);
   }
   if (opts.tier === "high" && opts.topSource) {
-    parts.push(`Top source: ${opts.topSource}.`);
+    parts.push(`Top source: ${escapeHtml(opts.topSource)}.`);
   } else if (opts.tier === "low" && opts.localDemand && opts.localDemand > opts.viewsThisWeek) {
     const cat = humanCategoryLabel(opts.category);
-    const where = opts.city ? ` near ${opts.city}` : " in your area";
+    const where = opts.city ? ` near ${escapeHtml(opts.city)}` : " in your area";
     parts.push(`${opts.localDemand.toLocaleString()} families searched for ${cat}${where}.`);
   }
   return parts.join(" ");
@@ -2002,10 +2145,14 @@ function providerDemandDigestEmail(
     ${moreCountLine}
     <div>${button("View and respond", answerUrl)}</div>
     <p style="font-size:13px;color:#6b7280;margin:24px 0 0;line-height:1.5;">Answering helps families see your expertise and builds trust with people actively looking for care.</p>
+    <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
-      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", `${BASE_URL}/for-providers/removal-request/${opts.providerSlug}`)} &middot; ${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
     </div>
-  `);
+  `, `A family asked about ${opts.providerName} — respond to connect`);
 }
 
 /**
@@ -2061,10 +2208,14 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
     ${lead ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${lead}</p>` : ""}
     ${microStatsBlock}
     <div>${button("See your full analytics", dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
-      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", `${BASE_URL}/for-providers/removal-request/${opts.providerSlug}`)} &middot; ${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
     </div>
-  `);
+  `, headline);
 }
 
 // ── Provider Verification Emails ──────────────────────────────────
@@ -2076,27 +2227,39 @@ export function verificationApprovedEmail(opts: {
   dashboardUrl: string;
   autoApproved?: boolean;
 }): string {
+  const name = firstName(opts.recipientName, "there");
+
+  // Different messaging for auto vs manual approval
+  const greeting = opts.autoApproved
+    ? `Great news, ${escapeHtml(name)}! Your connection to <strong>${escapeHtml(opts.providerName)}</strong> has been verified.`
+    : `Great news, ${escapeHtml(name)}! Our team has reviewed and verified your connection to <strong>${escapeHtml(opts.providerName)}</strong>.`;
+
   return layout(`
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr><td align="center">
-        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);border-radius:50%;">
           <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
         </table>
       </td></tr>
     </table>
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're verified</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You're all set!</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
-      ${firstName(opts.recipientName, "Hi")}, your connection to <strong>${escapeHtml(opts.providerName)}</strong> has been verified. You now have full access to your dashboard.
+      ${greeting}
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">With verification complete, you can:</p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
-      <li>Edit your listing with photos & pricing</li>
-      <li>Respond to family inquiries</li>
-      <li>Hire caregivers</li>
-      <li>View your profile analytics</li>
-    </ul>
-    <div style="text-align:center;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
-  `);
+    <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#166534;margin:0 0 12px;font-weight:600;">Here's what you can do now:</p>
+      <ul style="font-size:14px;color:#166534;margin:0;padding-left:20px;line-height:1.8;">
+        <li>Respond to family inquiries and answer questions</li>
+        <li>Customize your listing with photos and business details</li>
+        <li>Reach out to families looking for care</li>
+        <li>Hire caregivers</li>
+      </ul>
+    </div>
+    <div style="text-align:center;margin:0 0 24px;">${button("Go to Your Dashboard", opts.dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      We're excited to have you on Olera! Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">We're here to help</a>
+    </p>
+  `, "You're verified — your dashboard is ready");
 }
 
 /** Email sent when verification is submitted and routed to manual review */
@@ -2115,7 +2278,7 @@ export function verificationPendingReviewEmail(opts: {
     </table>
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">We're reviewing your verification</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
-      ${firstName(opts.recipientName, "Hi")}, thanks for submitting your verification for <strong>${escapeHtml(opts.providerName)}</strong>.
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, thanks for submitting your verification for <strong>${escapeHtml(opts.providerName)}</strong>.
     </p>
     <div style="background:#fef3c7;border-radius:8px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
@@ -2125,8 +2288,11 @@ export function verificationPendingReviewEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       In the meantime, you can still access your dashboard — some features may be limited until verification is complete.
     </p>
-    <div style="text-align:center;">${button("View Dashboard", opts.dashboardUrl)}</div>
-  `);
+    <div style="text-align:center;margin:0 0 24px;">${button("View Dashboard", opts.dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "We're reviewing your verification — usually within 3 hours");
 }
 
 /** Email sent 7 days after claim if provider hasn't verified */
@@ -2134,11 +2300,12 @@ export function verificationReminder7DayEmail(opts: {
   providerName: string;
   recipientName: string;
   verifyUrl: string;
+  providerSlug?: string;
 }): string {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are looking for ${escapeHtml(opts.providerName)}</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")}, you claimed ${escapeHtml(opts.providerName)} on Olera a week ago but haven't completed verification yet.
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, you claimed ${escapeHtml(opts.providerName)} on Olera a week ago but haven't completed verification yet.
     </p>
     <div style="background:#fef3c7;border-radius:8px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
@@ -2148,8 +2315,12 @@ export function verificationReminder7DayEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       Verification takes less than 2 minutes — just provide your LinkedIn profile or business website.
     </p>
-    <div style="text-align:center;">${button("Complete Verification", opts.verifyUrl)}</div>
-  `);
+    <div style="text-align:center;margin:0 0 24px;">${button("Complete Verification", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Complete verification to connect with families");
 }
 
 /** Email sent 21 days after claim if provider still hasn't verified (final warning) */
@@ -2157,11 +2328,12 @@ export function verificationReminder21DayEmail(opts: {
   providerName: string;
   recipientName: string;
   verifyUrl: string;
+  providerSlug?: string;
 }): string {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Final reminder: Verify ${escapeHtml(opts.providerName)}</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Hi ${firstName(opts.recipientName, "there")}, this is a final reminder to complete verification for ${escapeHtml(opts.providerName)}.
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, this is a final reminder to complete verification for ${escapeHtml(opts.providerName)}.
     </p>
     <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#991b1b;margin:0;line-height:1.5;">
@@ -2171,37 +2343,149 @@ export function verificationReminder21DayEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       Complete verification now to keep your claim and unlock full access to your provider dashboard.
     </p>
-    <div style="text-align:center;">${button("Verify Now", opts.verifyUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;text-align:center;">
-      Questions? Reply to this email or contact <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};">support@olera.care</a>
+    <div style="text-align:center;margin:0 0 24px;">${button("Verify Now", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `);
+    ${offRampBlock(opts.providerSlug)}
+  `, "Final reminder — verify before your claim expires");
 }
 
-/** Email sent when verification is rejected with reason */
+/** Email sent when verification is rejected with reason (admin rejection) */
 export function verificationRejectedEmail(opts: {
   providerName: string;
   recipientName: string;
   reason: string;
   resubmitUrl: string;
 }): string {
+  const name = firstName(opts.recipientName, "there");
+
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs more info</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      ${firstName(opts.recipientName, "Hi")}, we couldn't verify your connection to <strong>${escapeHtml(opts.providerName)}</strong> with the information provided.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's get you verified</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(name)}, we reviewed your verification for <strong>${escapeHtml(opts.providerName)}</strong> but need a bit more information to confirm your connection.
     </p>
-    <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#991b1b;margin:0 0 4px;font-weight:600;">Reason:</p>
-      <p style="font-size:14px;color:#7f1d1d;margin:0;line-height:1.5;">${escapeHtml(opts.reason)}</p>
+    <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#92400e;margin:0 0 4px;font-weight:600;">What we found:</p>
+      <p style="font-size:14px;color:#78350f;margin:0;line-height:1.5;">${escapeHtml(opts.reason)}</p>
     </div>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Please resubmit with updated information. Make sure your LinkedIn profile or business website clearly shows your connection to the organization.
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      Don't worry — there are several ways to verify. Here's what works best:
     </p>
-    <div>${button("Resubmit Verification", opts.resubmitUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Questions? Reply to this email or contact <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};">support@olera.care</a>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li><strong style="color:#111827;">Work email</strong> — Use an email with your company's domain (e.g., you@company.com)</li>
+      <li><strong style="color:#111827;">LinkedIn</strong> — Make sure your profile shows this organization as your current employer</li>
+      <li><strong style="color:#111827;">Business website</strong> — Link to a page that lists you as staff (About Us, Team page)</li>
+      <li><strong style="color:#111827;">Document</strong> — Upload a business license, ID badge, or official letterhead</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Again", opts.resubmitUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll sort this out together.
+      </p>
+    </div>
+  `, "Let's try another way to verify your connection");
+}
+
+/**
+ * Email sent when a self-verification attempt fails.
+ * Method-specific messaging with warm, encouraging tone.
+ * Lists other verification methods they can try.
+ */
+export function verificationMethodFailedEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  method: "email" | "linkedin" | "website" | "document";
+  reason: string;
+  attemptNumber: number;
+  verifyUrl: string;
+}): string {
+  const name = firstName(opts.recipientName, "there");
+
+  // Method-specific explanations and what they can try
+  const methodInfo: Record<string, { label: string; explanation: string; tip: string }> = {
+    email: {
+      label: "work email",
+      explanation: "We couldn't match your email domain to the business on file.",
+      tip: "Use an email address with a domain that matches the business (e.g., name@yourbusiness.com).",
+    },
+    linkedin: {
+      label: "LinkedIn profile",
+      explanation: "We couldn't confirm your current employment from your LinkedIn profile.",
+      tip: "Make sure your LinkedIn shows this organization as your current employer in your Experience section.",
+    },
+    website: {
+      label: "business website",
+      explanation: "We couldn't find your name listed on the website you provided.",
+      tip: "Link to a page that shows your name as staff (About Us, Team page, or staff directory).",
+    },
+    document: {
+      label: "uploaded document",
+      explanation: "We couldn't verify your connection from the document provided.",
+      tip: "Upload a clear photo of your business license, ID badge, or official letterhead showing your name.",
+    },
+  };
+
+  const current = methodInfo[opts.method];
+  const otherMethods = Object.entries(methodInfo)
+    .filter(([key]) => key !== opts.method)
+    .map(([, info]) => info);
+
+  // Progressive warmth based on attempt number
+  let greeting: string;
+  let encouragement: string;
+
+  if (opts.attemptNumber === 1) {
+    greeting = `Hi ${escapeHtml(name)}, thank you for starting the verification process for <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "Don't worry — there are several ways to verify, and we're here to help you through it.";
+  } else if (opts.attemptNumber === 2) {
+    greeting = `Hi ${escapeHtml(name)}, we appreciate you trying again to verify your connection to <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We know this can be frustrating, but you're almost there. Let's try a different approach.";
+  } else if (opts.attemptNumber === 3) {
+    greeting = `Hi ${escapeHtml(name)}, thank you for your patience in verifying <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We really want to get you verified. Here's one more option that might work better for your situation.";
+  } else {
+    greeting = `Hi ${escapeHtml(name)}, we can see you've been working hard to verify <strong>${escapeHtml(opts.providerName)}</strong>.`;
+    encouragement = "We're committed to helping you get verified. Please reach out to our support team and we'll sort this out together.";
+  }
+
+  // Build alternative methods section
+  const alternativesHtml = otherMethods.map((m) => `
+    <li style="margin:0 0 12px;padding:0;">
+      <strong style="color:#111827;">${m.label.charAt(0).toUpperCase() + m.label.slice(1)}</strong>
+      <p style="font-size:13px;color:#6b7280;margin:4px 0 0;line-height:1.4;">${m.tip}</p>
+    </li>
+  `).join("");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let's try another way</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${greeting}
     </p>
-  `);
+    <div style="background:#fef3c7;border-left:3px solid #f59e0b;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#92400e;margin:0 0 4px;font-weight:600;">What happened with your ${current.label}:</p>
+      <p style="font-size:14px;color:#78350f;margin:0;line-height:1.5;">${current.explanation}</p>
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+      <strong style="color:#111827;">Tip:</strong> ${current.tip}
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+      ${encouragement}
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 8px;font-weight:600;">Other ways to verify:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.6;">
+      ${alternativesHtml}
+    </ul>
+    <div style="margin:0 0 24px;">${button("Try Another Method", opts.verifyUrl)}</div>
+    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:0 0 16px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Need help?</strong> Our team is happy to assist — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us here</a> and we'll get you sorted.
+      </p>
+    </div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Once verified, you'll have full access to respond to family inquiries and manage your listing.
+    </p>
+  `, `We couldn't verify via ${current.label} — here are other options`);
 }
 
 /**
@@ -2233,16 +2517,19 @@ export function providerNudgeEmail(opts: {
     `
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family is waiting to hear from you</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      <strong>${firstName(opts.familyName)}</strong> reached out to ${escapeHtml(opts.providerName)} ${daysText} ago and hasn't received a response yet.
+      <strong>${escapeHtml(firstName(opts.familyName))}</strong> reached out to ${escapeHtml(opts.providerName)} ${daysText} ago and hasn't received a response yet.
     </p>
     ${messageBlock}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       A timely response makes all the difference for families navigating care decisions. Even a brief acknowledgment helps families feel supported.
     </p>
-    <div>${button("View & Respond", opts.viewUrl)}</div>
+    <div style="margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     ${offRampBlock(opts.providerSlug)}
   `,
-    `${firstName(opts.familyName)} is waiting for a response from ${escapeHtml(opts.providerName)}`
+    `${firstName(opts.familyName)} is waiting for a response from ${opts.providerName}`
   );
 }
 
@@ -2273,7 +2560,7 @@ export function providerMultiLeadNudgeEmail(opts: {
           : lead.daysSinceInquiry < 1
             ? "today"
             : `${lead.daysSinceInquiry} days ago`;
-      return `<li style="margin:0 0 8px;padding:0;"><strong>${firstName(lead.familyName)}</strong> <span style="color:#9ca3af;">· reached out ${daysText}</span></li>`;
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(firstName(lead.familyName))}</strong> <span style="color:#9ca3af;">· reached out ${daysText}</span></li>`;
     })
     .join("");
 
@@ -2289,10 +2576,13 @@ export function providerMultiLeadNudgeEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       A timely response makes all the difference for families navigating care decisions. Even a brief acknowledgment helps families feel supported.
     </p>
-    <div>${button("View & Respond", opts.viewUrl)}</div>
+    <div style="margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
     ${offRampBlock(opts.providerSlug)}
   `,
-    `${leadCount} ${leadCount === 1 ? "family is" : "families are"} waiting for a response from ${escapeHtml(opts.providerName)}`
+    `${leadCount} ${leadCount === 1 ? "family is" : "families are"} waiting for a response from ${opts.providerName}`
   );
 }
 
@@ -2338,4 +2628,456 @@ export function familyNudgeEmail(opts: {
   `,
     `Complete your profile to help ${escapeHtml(opts.providerName)} respond to your inquiry`
   );
+}
+
+// ── Provider Lifecycle Emails (Phase 9) ──────────────────────────────
+
+/**
+ * Welcome email sent 24h after provider verification approved.
+ * Warm onboarding, sets expectations for getting leads.
+ */
+export function providerWelcomeEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  profileCompleteness: number;
+  dashboardUrl: string;
+  profileUrl: string;
+}): string {
+  const completenessLine = opts.profileCompleteness < 100
+    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        Your profile is ${opts.profileCompleteness}% complete. Providers with complete profiles get more inquiries from families.
+      </p>`
+    : "";
+
+  const completeProfileCta = opts.profileCompleteness < 100
+    ? `<p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+        Want to stand out? ${ctaLink("Complete your profile", opts.profileUrl)} to attract more families.
+      </p>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, you're all set up and ready to connect with families looking for care from <strong>${escapeHtml(opts.providerName)}</strong>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Here's what happens next:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Families browsing Olera will find your listing and can reach out directly</li>
+      <li>You'll get an email notification for each new inquiry</li>
+      <li>Respond promptly — families appreciate timely replies</li>
+    </ul>
+    ${completenessLine}
+    <div style="margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
+    ${completeProfileCta}
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — we're here to help you succeed.
+    </p>
+  `, "You're verified and ready to connect with families");
+}
+
+/**
+ * Celebration email sent when provider receives their FIRST ever lead.
+ * Reinforces value, tips for responding.
+ */
+export function firstLeadCelebrationEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  connectionId: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#fef3c7;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">🎉</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">You got your first lead!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+      Congratulations, ${escapeHtml(firstName(opts.recipientName, "there"))}! <strong>${escapeHtml(firstName(opts.familyName, "A family"))}</strong> is interested in care from ${escapeHtml(opts.providerName)}.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Tips for a great first response:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Respond within 24 hours — families appreciate promptness</li>
+      <li>Acknowledge their specific needs if they shared any</li>
+      <li>Share what makes your organization a great fit</li>
+    </ul>
+    <div style="text-align:center;margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${firstName(opts.familyName, "A family")} reached out — your first lead on Olera!`);
+}
+
+/**
+ * Confirmation email sent when provider sends their FIRST message in a thread.
+ * Reinforces good behavior.
+ */
+export function firstResponseConfirmationEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  responseTimeHours: number;
+  viewUrl: string;
+}): string {
+  const timeText = opts.responseTimeHours < 1
+    ? "less than an hour"
+    : opts.responseTimeHours === 1
+      ? "1 hour"
+      : opts.responseTimeHours < 24
+        ? `${opts.responseTimeHours} hours`
+        : opts.responseTimeHours < 48
+          ? "1 day"
+          : `${Math.floor(opts.responseTimeHours / 24)} days`;
+
+  const fastResponseBonus = opts.responseTimeHours <= 4
+    ? `<div style="background:#ecfdf5;border-radius:8px;padding:16px;margin:0 0 20px;">
+        <p style="font-size:14px;color:#065f46;margin:0;line-height:1.5;">
+          <strong>Fast responder!</strong> You replied in ${timeText}. Families love prompt responses — keep it up!
+        </p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Great job reaching out!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, you just sent your first response to <strong>${escapeHtml(firstName(opts.familyName, "a family"))}</strong> on Olera.
+    </p>
+    ${fastResponseBonus}
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">What happens next:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>The family will get a notification about your message</li>
+      <li>Continue the conversation through your inbox</li>
+      <li>You'll get an email when they reply</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("View Conversation", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Your message was delivered — nice work!");
+}
+
+/**
+ * Celebration email sent when provider profile reaches 100% completeness.
+ * Celebrates milestone, explains what's next.
+ */
+export function profileCompleteEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  dashboardUrl: string;
+  profileUrl: string;
+}): string {
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">✓</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">Your profile is complete!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, ${escapeHtml(opts.providerName)} now has a complete profile on Olera. This helps families find you and understand what you offer.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Complete profiles get:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Higher visibility in family searches</li>
+      <li>More qualified leads from families who understand your services</li>
+      <li>Better engagement from families who've read your full listing</li>
+    </ul>
+    <div style="text-align:center;margin:0 0 24px;">${button("View Your Listing", opts.profileUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Your profile is now 100% complete");
+}
+
+/**
+ * Re-engagement email sent to providers inactive for 30+ days.
+ * "We miss you" + new families in their area.
+ */
+export function dormantReengagementEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  daysSinceActivity: number;
+  newFamiliesCount?: number;
+  city?: string;
+  dashboardUrl: string;
+  providerSlug?: string;
+}): string {
+  const locationText = opts.city ? ` in ${escapeHtml(opts.city)}` : "";
+  const familiesLine = opts.newFamiliesCount && opts.newFamiliesCount > 0
+    ? `<div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 20px;">
+        <p style="font-size:14px;color:#065f46;margin:0;line-height:1.5;">
+          <strong>${opts.newFamiliesCount} new ${opts.newFamiliesCount === 1 ? "family" : "families"}</strong> ${opts.newFamiliesCount === 1 ? "has" : "have"} searched for care${locationText} this month.
+        </p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are still looking for you</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, it's been a while since you've been active on Olera. Families${locationText} are still searching for care providers like ${escapeHtml(opts.providerName)}.
+    </p>
+    ${familiesLine}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Log in to check for any new inquiries, update your listing, and make sure families can find you.
+    </p>
+    <div style="margin:0 0 24px;">${button("Go to Dashboard", opts.dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, `Families${locationText} are looking for care — don't miss out`);
+}
+
+/**
+ * Anniversary/milestone email for providers.
+ * Celebrates 1-year anniversary OR connection milestones (10, 50, 100).
+ */
+export function anniversaryMilestoneEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  slug: string;
+  milestoneType: "anniversary" | "connections";
+  /** Years on platform (for anniversary) */
+  yearsOnPlatform?: number;
+  /** Total connections count (for connections milestone) */
+  totalConnections?: number;
+  /** The specific milestone reached: 10, 50, 100 (for connections) */
+  connectionMilestone?: number;
+  dashboardUrl: string;
+}): string {
+  if (opts.milestoneType === "anniversary") {
+    const yearsText = opts.yearsOnPlatform === 1 ? "1 year" : `${opts.yearsOnPlatform} years`;
+    return layout(`
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+        <tr><td align="center">
+          <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#fef3c7;border-radius:50%;">
+            <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">🎂</td></tr>
+          </table>
+        </td></tr>
+      </table>
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">Happy ${yearsText} on Olera!</h1>
+      <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+        ${escapeHtml(firstName(opts.recipientName, "Hi"))}, ${yearsText} ago ${escapeHtml(opts.providerName)} joined Olera. Thank you for being part of our community and helping families find quality care.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+        We're grateful to have you as a partner in connecting families with the care they need.
+      </p>
+      <div style="text-align:center;margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+        Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+      </p>
+    `, `Celebrating ${yearsText} of connecting families with care`);
+  }
+
+  // Connection milestone
+  const milestoneText = opts.connectionMilestone === 10
+    ? "10th"
+    : opts.connectionMilestone === 50
+      ? "50th"
+      : opts.connectionMilestone === 100
+        ? "100th"
+        : `${opts.connectionMilestone}th`;
+
+  return layout(`
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td align="center">
+        <table cellpadding="0" cellspacing="0" style="width:56px;height:56px;background:#ecfdf5;border-radius:50%;">
+          <tr><td align="center" valign="middle" style="font-size:28px;line-height:56px;">🏆</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;text-align:center;">Milestone: ${milestoneText} connection!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;text-align:center;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, ${escapeHtml(opts.providerName)} just reached ${opts.totalConnections?.toLocaleString()} connections with families on Olera!
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;text-align:center;">
+      Each connection represents a family you've helped on their care journey. Thank you for your commitment to providing quality care.
+    </p>
+    <div style="text-align:center;margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;text-align:center;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Celebrating ${opts.totalConnections?.toLocaleString()} families connected through Olera`);
+}
+
+/**
+ * Confirmation email to provider after they reach out to a family via Matches.
+ * Includes competitive urgency if other providers have also reached out.
+ */
+export function providerReachOutConfirmationEmail(opts: {
+  providerName: string;
+  familyName: string;
+  city: string;
+  competitorCount: number;
+  viewUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "the family");
+
+  // Competitive urgency block (only shown when there's competition)
+  const competitionBlock = opts.competitorCount > 0
+    ? `<div style="background:#fef3c7;border-radius:8px;padding:16px;margin:0 0 20px;">
+        <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;">
+          <strong>Heads up:</strong> ${opts.competitorCount} other provider${opts.competitorCount === 1 ? " has" : "s have"} also reached out to this family. When they respond, reply quickly — families often go with providers who are most responsive.
+        </p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your message was sent!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.providerName, "Hi"))}, your reach-out to <strong>${escapeHtml(safeFamilyName)}</strong> in ${escapeHtml(opts.city)} was delivered.
+    </p>
+    ${competitionBlock}
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">What happens next:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>The family will get a notification about your message</li>
+      <li>Most families respond within 24-48 hours</li>
+      <li>You'll get an email when they reply</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("View Conversation", opts.viewUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      While you wait, <a href="${BASE_URL}/provider/matches" style="color:${BRAND_COLOR};text-decoration:underline;">browse other families</a> who might be a good fit.
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your reach-out to ${safeFamilyName} was delivered`);
+}
+
+/**
+ * Email encouraging providers to use Matches (proactive outreach) after their first lead response.
+ * Only sent to providers who have never used Matches before.
+ */
+export function matchesEncouragementEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  matchesUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "a family");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Did you know you can reach out first?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, you just responded to ${escapeHtml(safeFamilyName)} — nice work! But waiting for families to find you isn't your only option.
+    </p>
+    <div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#0d9488;margin:0;line-height:1.5;">
+        <strong>With Matches, you can browse families looking for care and reach out to them directly.</strong> No waiting for inquiries — just find families who need what you offer.
+      </p>
+    </div>
+    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">How it works:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>Browse families who've shared their care needs</li>
+      <li>Filter by location, care type, and timeline</li>
+      <li>Send a personalized message introducing yourself</li>
+      <li>Families get notified and can respond directly</li>
+    </ul>
+    <div style="margin:0 0 24px;">${button("Browse Families", opts.matchesUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, "Reach out to families looking for care — they're waiting to hear from you");
+}
+
+/**
+ * Nudge email to family when a provider reached out but family hasn't responded.
+ * Sent 3+ days after reach-out with 7-day cooldown.
+ */
+export function familyPendingReachOutNudgeEmail(opts: {
+  familyName: string;
+  providerName: string;
+  providerCity: string;
+  messagePreview: string | null;
+  daysSinceReachOut: number;
+  viewUrl: string;
+}): string {
+  const safeProviderName = escapeHtml(opts.providerName);
+  const daysText = opts.daysSinceReachOut === 1 ? "1 day" : `${opts.daysSinceReachOut} days`;
+
+  const messageBlock = opts.messagePreview
+    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.messagePreview.length > 150 ? opts.messagePreview.slice(0, 150) + "..." : opts.messagePreview)}"</p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${safeProviderName} is waiting to hear from you</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, <strong>${safeProviderName}</strong> in ${escapeHtml(opts.providerCity)} reached out to you ${daysText} ago.
+    </p>
+    ${messageBlock}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      They took the time to reach out — a quick response helps them know if you're still looking for care. Even a "not interested" is helpful so they can assist other families.
+    </p>
+    <div style="margin:0 0 24px;">${button("View and Respond", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${opts.providerName} is still waiting for your response`);
+}
+
+/**
+ * Nudge email to provider when conversation with family has gone stale.
+ * Sent when both parties have been silent for 5+ days after conversation started.
+ */
+export function staleConversationProviderEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  familyName: string;
+  daysSinceLastMessage: number;
+  viewUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "a family");
+  const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Continue your conversation?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      ${escapeHtml(firstName(opts.recipientName, "Hi"))}, your conversation with <strong>${escapeHtml(safeFamilyName)}</strong> has been quiet for ${daysText}.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A quick follow-up can restart the conversation. Even a simple "Any updates on your care search?" shows you're still interested in helping.
+    </p>
+    <div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your conversation with ${safeFamilyName} went quiet — send a follow-up`);
+}
+
+/**
+ * Nudge email to family when conversation with provider has gone stale.
+ * Sent when both parties have been silent for 5+ days after conversation started.
+ */
+export function staleConversationFamilyEmail(opts: {
+  familyName: string;
+  providerName: string;
+  daysSinceLastMessage: number;
+  viewUrl: string;
+}): string {
+  const safeProviderName = escapeHtml(opts.providerName);
+  const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still looking for care?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, your conversation with <strong>${safeProviderName}</strong> has been quiet for ${daysText}.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      If you're still exploring care options, they'd love to hear from you. And if you've moved on, letting them know helps them assist other families.
+    </p>
+    <div style="margin:0 0 24px;">${button("Continue the Conversation", opts.viewUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${opts.providerName} is still here to help — continue the conversation`);
 }

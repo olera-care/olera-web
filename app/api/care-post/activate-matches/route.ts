@@ -132,6 +132,7 @@ export async function POST(request: Request) {
           slug,
           type: "family",
           display_name: displayName,
+          email: user.email || null, // Store email for admin visibility
           city: city || null,
           state: state || null,
           care_types: careTypes,

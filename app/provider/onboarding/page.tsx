@@ -187,7 +187,7 @@ export default function ProviderOnboardingPage() {
 function ProviderOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { openAuth, user, profiles } = useAuth();
+  const { openAuth, user, profiles, refreshAccountData } = useAuth();
 
   // Screen state
   const [screen, setScreen] = useState<Screen>("search");
@@ -341,6 +341,13 @@ function ProviderOnboardingContent() {
         refresh_token: verifyData.session.refresh_token,
       });
 
+      // Load the newly claimed account + provider profile into the auth context
+      // BEFORE navigating. Without this, the provider layout mounts with a stale
+      // (empty) profiles list, sees no provider profile, and bounces to the
+      // family portal (/portal/inbox). Pass the explicit user id since the
+      // provider's auth state may not have propagated yet.
+      await refreshAccountData(verifyData.session.user.id);
+
       // Redirect to provider dashboard
       setActionLoading(null);
       router.push("/provider");
@@ -445,6 +452,13 @@ function ProviderOnboardingContent() {
         access_token: verifyData.session.access_token,
         refresh_token: verifyData.session.refresh_token,
       });
+
+      // Load the newly created account + provider profile into the auth context
+      // BEFORE navigating. Without this, the provider layout mounts with a stale
+      // (empty) profiles list, sees no provider profile, and bounces to the
+      // family portal (/portal/inbox). Pass the explicit user id since the
+      // provider's auth state may not have propagated yet.
+      await refreshAccountData(verifyData.session.user.id);
 
       // Redirect to provider dashboard
       setActionLoading(null);

@@ -32,11 +32,12 @@ export async function GET(request: NextRequest) {
 
     // Pull all non-archived leads in range+prior WITH provider profile data
     // so we can check live email status (matches Analytics approach exactly)
-    // Filter to inquiry/request types only (same as Analytics) for consistent counts
+    // Only inquiry connections (family→provider) are counted as leads.
+    // Matches (provider→family) are tracked on the Outreach page.
     let q = db
       .from("connections")
-      .select("created_at, metadata, to_profile_id, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active, source_provider_id)")
-      .in("type", ["inquiry", "request"])
+      .select("type, created_at, metadata, to_profile_id, to_profile:business_profiles!connections_to_profile_id_fkey(email, is_active, source_provider_id)")
+      .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }));
@@ -79,6 +80,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check live provider email status (matches Analytics approach exactly):
+    // - Connection must be an inquiry (family → provider)
+    //   For "request" connections (Matches), the provider is from_profile and already has email
     // - Provider must be active
     // - Provider must have no email (in business_profiles OR olera-providers)
     // - Provider must NOT have responded (goal already achieved if responded)

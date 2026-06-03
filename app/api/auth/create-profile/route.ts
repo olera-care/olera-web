@@ -542,6 +542,7 @@ export async function POST(request: Request) {
             slug,
             type: "family",
             display_name: sanitizedDisplayName,
+            email: user.email || null, // Store email for admin visibility
             city: city || null,
             state: state || null,
             zip: zip || null,

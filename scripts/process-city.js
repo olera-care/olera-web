@@ -13,6 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const csv = require('csv-parser');
+const { reconcileRunLocations } = require('./lib/reconcile-location');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -619,6 +620,17 @@ async function main() {
   console.log('\nStep 7: Re-geocoding...');
   const geo = await geocodeProviders(city, state);
 
+  // Step 7.5: Authoritative city/state reconcile via place_id (GUARD).
+  // Discovery returns a wide radius and the run city is stamped on every row;
+  // this corrects each row to its TRUE city/state from its Google listing,
+  // preventing the run-city "dumping ground" mislabel (2026-06-03 incident).
+  console.log('\nStep 7.5: Reconciling city/state from place_id...');
+  const idPrefix = `${city.toLowerCase().replace(/\s+/g, '-')}-${state.toLowerCase()}-`;
+  const rec = await reconcileRunLocations({
+    supabase, idPrefix, googleKey: GOOGLE_API_KEY,
+    bounds: STATE_BOUNDS[state], log: (m) => console.log(m),
+  });
+
   // Step 8: Out-of-area cleanup
   console.log('\nStep 8: Out-of-area cleanup...');
   const ooa = await outOfAreaCleanup(city, state);
@@ -647,6 +659,8 @@ async function main() {
     dupes_removed: dd.dupes.length,
     uploaded,
     geocode_corrections: geo?.corrections || 0,
+    city_relabeled: rec?.relabeled || 0,
+    location_removed: rec?.removed || 0,
     out_of_area: ooa,
     final_count: finalCount,
     categories: catBreakdown,

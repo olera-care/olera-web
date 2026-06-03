@@ -6,9 +6,10 @@
 
 ## Last sweep marker
 
-- **Last full sweep:** 2026-04-26 (inaugural)
-- **Next planned:** quarterly default → 2026-07-26
-- **Sweep mode going forward:** full DB for sweeps 2 and 3, then switch to incremental
+- **Last sweep:** 2026-06-03 (sweep #2 — incremental + DB-wide signal scan). Prior: 2026-04-26 (inaugural).
+- **Next planned:** quarterly default → ~2026-09-03
+- **Sweep mode going forward:** **DB-wide free signal scan every time** (cheap, catches name-innocent classes) + **incremental LLM pass** on providers created since the last sweep (`created_at >= last-sweep-date`). Full-DB LLM re-verify only on demand — sweep #2 showed it mostly re-confirms the prior pool for ~10x the cost.
+- **`created_at` caveat:** the entire active table was bulk-repopulated by a migration (~2026-03-15), so `created_at` is NOT true provider age. It IS reliable for "added since the last sweep." Don't use it for historical age.
 
 ## Tier 1 deletion regex patterns
 
@@ -39,8 +40,53 @@ const BUCKETS = [
   { id: 'rehab-hospital', regex: /\brehabilitation hospital\b/i, default_checked: false },
   { id: 'hospital-clinic', regex: /\b(urgent care|medical center|regional medical|memorial medical|hospital(?! ?at home))\b/i, requires_no_home_xxx: true, default_checked: false },
   { id: 'gov-office', regex: /\b(office on aging|office of aging|department of human services|department of aging|aging services office|county office)\b/i, requires_no_protector: true, default_checked: false },
+  // Added sweep #2 (2026-06-03): addiction/behavioral-health was the #1 contamination class,
+  // landing as Nursing Home. High-precision name tokens; protector regex still applies.
+  // NOTE: most addiction centers are NAME-INNOCENT (Harmony Place, Summer Sky) — the name
+  // regex only catches the obvious ones. The DB-wide signal scan (below) is the real net.
+  { id: 'addiction-behavioral', regex: /\b(sober living|sober house|detox|addiction treatment|drug rehab|alcohol rehab|substance abuse|halfway house|methadone)\b/i, requires_no_protector: true, default_checked: true },
+  { id: 'tattoo-bodyart', regex: /\b(tattoo|body piercing)\b/i, default_checked: true },
 ];
 ```
+
+## DB-wide signal scan (sweep #2 addition — run FIRST, every sweep, free)
+
+The SIR House (sober-living) / SUNDRY HOUSE (tattoo studio) class is **name-innocent** — the out-of-scope evidence lives in the **website domain** and **Google reviews**, not the name. No name-regex or LLM-name-check catches them. A deterministic scan over `provider_description` + `google_reviews_data` + `website` does, for $0.
+
+Shipped as `scripts/scan-out-of-scope-signals.js` (run `--since <last-sweep>` for incremental, `--verify` to LLM-check hits, `--verify --apply` to soft-delete confirmed). High-precision signals (validated sweep #2, near-zero FP):
+
+```javascript
+const ADDICTION = /\b(sober living|sober house|sober home|recovery residence|halfway house|12[- ]step|substance (abuse|use) (disorder|treatment)|drug (and|&) alcohol (rehab|treatment|addiction)|alcohol (and|&) drug (rehab|treatment)|detox(ification)?|drug rehab|alcohol rehab|addiction (treatment|recovery|center)|intensive outpatient program|medication[- ]assisted treatment)\b/i;
+const VENUE_DOMAIN = /(weddingestates|springsvenue|eventvenue|weddingvenue|\/venues?\/|banquethall|eventspace)/i;
+const TATTOO = /\b(tattoo|body piercing|aerial silk)\b/i;
+const NAME_HOMECARE = /home (care|health)/i; // EXCLUDE — "Recovery Home Care" is a legit FL Medicare HHA
+```
+
+**Anti-patterns the scan must avoid (sweep #2 false-positive sources):**
+- `venue` must NOT match "**A**venue" — anchor on domain/path tokens, not bare `\bvenue\b`.
+- `birthday party` / `baby shower` / `we hosted` in reviews are mostly FAMILIES reviewing legit communities — drop them.
+- `yoga studio` / `art studio` / `personal training` appear in legit senior-community amenity lists — drop them.
+- Exclude names matching `home (care|health)` from the addiction bucket.
+
+## Two-pass verification (sweep #2 — MANDATORY before any deletion)
+
+Batched verify (3+ providers per Perplexity call) under-grounds badly: sweep #2's incremental pass returned **51% INSUFFICIENT** and **73 false-OUT** that would have been wrongful deletions. **Never delete on a batched verdict.**
+
+1. **Pass 1 — batched** (3/call, 10 concurrent): cheap triage.
+2. **Pass 2 — individual re-verify** (1/call, website forced) on **OUT, reclass, AND `INSUFFICIENT_EVIDENCE`** candidates: flips false-OUT back to IN_SCOPE, supplies correct `best_category`, confirms true OUT with cited evidence.
+
+> **CRITICAL (sweep #2 amendment): `INSUFFICIENT_EVIDENCE` is NOT default-keep.** It MUST go through Pass 2 individual re-verify. In sweep #2 the batched pass returned 2,286 INSUFFICIENT; re-verifying them individually found **542 (~24%) were actually out-of-scope** (medical spas, primary-care clinics, hospices, apartments-without-services) and 527 were wrong-bucket. Blind-keeping INSUFFICIENT is exactly how MedWell (a med-spa tagged Home Care) and 541 others survived sweep #2's first pass. Default-keep applies ONLY after an individual website-forced attempt *also* comes back genuinely unknowable.
+
+Sweep #2 actuals: 399 batched-OUT → 320 confirmed; 451 batched-reclass → 368 confirmed + 31 actually-OUT; **2,286 INSUFFICIENT → 542 OUT + 527 reclass + 1,483 kept + 261 still-unclear**.
+
+## New out-of-scope classes (sweep #2 wave 2)
+
+Two classes that kept landing in-scope and the LLM didn't reject — now in the scanner (`MEDSPA`, `AUTO`) and the Stream A prompt:
+
+- **Medical spa / aesthetics / wellness clinic** → tagged **Home Health Care** (name contains "Health"/"Care"/"Wellness"). Signals: med spa, botox, dermal filler, laser hair, microblading, hydrafacial, injectables, medical weight loss, IV therapy. *MedWell (San Angelo TX) was the canonical miss.*
+- **Auto repair / dealership** → tagged **Memory Care/Nursing Home**. Signals in reviews/domain: auto repair, mechanic, oil change, NYS inspection, "classic & luxury cars", `*autoservice*`/`*automotive*` domains. *Georgica Services (East Hampton NY) was the canonical miss.*
+
+Guard: a senior-care facility that merely OFFERS a spa amenity is IN_SCOPE — match on medical-aesthetic SERVICE vocab, not the word "spa" alone. Auto review-hits ("tire shop", "oil change") are noisy — always LLM-verify before deleting.
 
 ### TJ overrides observed in past runs
 
@@ -51,7 +97,15 @@ const BUCKETS = [
 
 ```javascript
 // Home Care (Non-medical) franchises — these chains exclusively do non-clinical in-home care
-const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|nurturecare|live well home ?care|cariloop|seniorcare|always there senior care)\b/i;
+const HC_FRANCHISE_REGEX = /\b(visiting angels|home instead|comfort keepers|right at home|senior helpers|always best care|firstlight home ?care|caring senior service|comforcare|synergy home ?care|touching hearts at home|home helpers|griswold home ?care|homewell care services|brightstar care|homewatch ?care ?givers|seniors helping seniors|preferred care at home|a place at home|qualicare|assisting hands|happier at home|americare|beehive home ?care|one you love home ?care|at your side home ?care|granny nannies|hallmark home ?care|a better solution in home ?care|alvita care|executive home ?care|the caregiving company)\b/i;
+// 2026-06-03 (sweep #2): appended non-medical franchise brands surfaced by the 123 HHC→HC
+// mislabels (Homewatch CareGivers, Seniors Helping Seniors, Preferred Care at Home, A Place
+// At Home, Qualicare, Assisting Hands, Happier at Home, ameriCARE, BeeHive, One You Love, At
+// Your Side, Granny Nannies, Hallmark Homecare, A Better Solution, Alvita Care, Executive Home
+// Care, The Caregiving Company). 0 FP vs 79 confirmed HHAs. NOTE: the CATEGORY_MAP
+// 'home_care'→'Home Health Care' default is intentionally NOT flipped — Medicare certification
+// is not inferable from a name, so flipping would mislabel real HHAs. Independent "X Home Care"
+// agencies (no franchise brand) still depend on the web-grounded LLM verify.
 
 // Home Health Care brands (Medicare-certified HHA)
 const HHC_BRAND_REGEX = /\b(amedisys|encompass health home health|kindred at home|bayada home health|interim healthcare|interim health ?care|lhc group|loyal home ?health)\b/i;
@@ -350,6 +404,8 @@ Recovery: `update set deleted=false` or `update set provider_category=<old>` by 
 
 ## Change log
 
+- **v3.1 — 2026-06-03 (sweep #2, wave 2).** After TJ spotted a med-spa (MedWell, tagged Home Care) and an auto-repair shop (Georgica Services, tagged Memory Care) still live, traced to two holes: (1) `INSUFFICIENT_EVIDENCE` was blind-kept — re-verifying all 2,286 individually found 542 OUT + 527 reclass; methodology amended to require Pass-2 on INSUFFICIENT. (2) Scanner lacked medspa/auto vocab — added `MEDSPA` + `AUTO`/`AUTO_DOM` signals and a Stream A prompt exclusion for medical-spa/aesthetics/wellness clinics + auto shops. Wave-2 result: 243 high-confidence OUT deleted (+ MedWell/Georgica), 326 apartment/unclear deferred to TJ, 527 reclass pending.
+- **v3 — 2026-06-03 (sweep #2).** Added: (1) **DB-wide signal scan** `scripts/scan-out-of-scope-signals.js` as the mandatory first step — catches name-innocent out-of-scope (sober-living, tattoo/event studios) via website domain + reviews. (2) **Two-pass verification** (batched triage → individual website-forced re-verify) — mandatory before any deletion; batched alone produced 51% INSUFFICIENT + 73 false-OUT. (3) **`addiction-behavioral` + `tattoo-bodyart` Tier-1 buckets** (default-checked). (4) Switched go-forward mode to signal-scan + incremental (full-DB only on demand) and documented the `created_at` migration caveat. Pipeline hardening landed in the same PR: `OUT_OF_SCOPE_TYPES` anti-rescue clause (addiction/hospice/adult-day OUT even when they advertise skilled nursing/rehab) + addiction tokens in `KEYWORD_BLOCKLIST`. Results: **311 deleted, 420 reclassified**, 0 corrupt categories remaining, active 75,059→74,751, ~$16. (Of the 31 reclass-candidates that flipped to OUT on re-verify, 30 deleted + 1 spared — "Mill Creek" was an LLM self-contradiction: reason said "skilled nursing facility" yet concluded OUT, so it was reclassed to Nursing Home, not deleted. Lesson: scan flipped-OUT reasons for in-scope category names before deleting.)
 - **v2.2 — 2026-04-27.** Definitional-context exclusion (TJ caught wrong-transition in review: `JeYr0C2` Joyful Home Health Care). LLM reasons sometimes contain DEFINITIONAL sentences that reference categories without claiming the provider belongs to them, e.g., "Non-medical home care (Category 1) explicitly requires caregivers who are NOT licensed clinicians". Now skip matches followed by `(Category N)`, `is defined as`, `specifically requires/excludes/includes`, or `requires caregivers/providers who...`. Also added `indicate(s) <Cat>` to META_REFS so positive claims like "Name and URL indicate 'Home Health Care' business model" are caught. Net: same totals (245/2569) but Joyful correctly moved from AL→HC(Non-medical) to AL→HHC.
 - **v2.1 — 2026-04-27.** Clause-level negation (TJ caught FP in review: `menasha-wi-0014` ThedaCare Physicians). Long-list-of-negations like "is X, not Y, Z, W, or V" was tripping the regex on Y..V even though semantically negated. Window-based check (40-60 chars) couldn't reach the "not" in long lists. Replaced fixed window with clause scan back to last period/semicolon. Pulled 9 FPs back to deletions. Final sweep #1 v2.1 totals: 245 reclass (+46), 122 silent-drop (+1), 2,569 deletions (-47).
 - **v2 — 2026-04-27.** Widened amnesia detection: added META_REFS for category-by-name signals ("should be reclassified as", "falls under", "matches the X", "category N (X — ...", "primary business is X"). Service vocab widened: "personal care assistance", "non-medical in-home (assistance|support|...)", "residential care facility" (no "for the elderly" required), "certify family home" (Idaho AL), "skilled (nursing|clinical) (home (visit|care)|in-home)". Negation guard widened with "without (services|qualif|...)" and "fails to" / "does not" / "would not". Bare "qualify" infinitive removed (too often inverted in LLM phrasing). Re-applied to sweep #1 verdicts: +55 reclass recoveries, -56 deletions. Regen script at `~/Desktop/olera-web/regen-amnesia-mds.js`.

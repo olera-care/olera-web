@@ -125,6 +125,7 @@ export async function POST(request: Request) {
           slug: familySlug,
           type: "family",
           display_name: familyName,
+          email: user.email || null, // Store email for admin visibility
           care_types: [],
           claim_state: "claimed",
           verification_state: "unverified",
@@ -376,6 +377,7 @@ export async function POST(request: Request) {
         slug: familySlug,
         type: "family",
         display_name: sanitizedName,
+        email: user.email || null, // Store email for admin visibility
         care_types: [],
         claim_state: "claimed",
         verification_state: "unverified",

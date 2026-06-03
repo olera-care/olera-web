@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, is_active)
       `)
-      .in("type", ["inquiry", "request"])
+      .eq("type", "inquiry")
       .order("created_at", { ascending: false })
       .limit(FETCH_CAP)
       .not("metadata", "cs", JSON.stringify({ archived: true }));

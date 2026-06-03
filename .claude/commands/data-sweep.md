@@ -48,7 +48,9 @@ Naming convention: `<artifact>-YYYY-MM-DD.md|csv|json` (e.g., `tier1-candidates-
 - Pull a count of active providers and current category distribution. Save as a baseline snapshot in the cleanup dir
 - Confirm with TJ: full sweep or incremental? Cost ceiling? Any specific concerns to focus on?
 
-### Phase 1: Tier 1 deterministic deletes + reclassifications (free, ~10 min)
+### Phase 1: Tier 1 deterministic deletes + reclassifications + DB-wide signal scan (free, ~10 min)
+
+**Phase 1A.0 — DB-wide signal scan (run this FIRST, sweep #2 addition).** Before anything else, run `scripts/scan-out-of-scope-signals.js` (optionally `--since <last-sweep-date>`). It catches the **name-innocent** out-of-scope class (sober-living homes, tattoo/event studios, drug rehabs filed as Nursing Home) by reading the website domain + Google reviews + description — signals no name-regex or LLM-name-check sees. Run `--verify` to individually confirm hits, `--verify --apply` to soft-delete confirmed. This is free/cheap and consistently the highest-yield step. Then proceed to the name-regex sub-steps below.
 
 Two sub-steps using only name-pattern regex (no LLM):
 
@@ -177,9 +179,11 @@ Update SCRATCHPAD.md with the result. Optionally write a Notion report under "Pr
 1. **Don't run LLM verification on the full DB without a calibration sample first.** A 500-provider sample at $5 tells you whether the methodology is sound. Skipping it risks burning $200 on a bad prompt.
 2. **Don't trust the LLM's binary verdicts blindly — apply contradiction detection.** The LLM regularly contradicted itself on combined-category transitions (verdict said "drop MC" while reason confirmed both AL+MC exist). 31% of LLM reclassifications in sweep #1 were contradictions.
 3. **Don't ask the LLM to "is this senior care?"** That admits hospice / adult day / PACE because they're senior-related. Use the inverted prompt: "is this PRIMARY BUSINESS one of the 6 EXACT categories?" with explicit exclusion list.
-4. **Don't default to OUT_OF_SCOPE on uncertainty.** Use INSUFFICIENT_EVIDENCE as the third verdict — keeps real providers in the directory when web evidence is unclear.
+4. **Don't default to OUT_OF_SCOPE on uncertainty — but don't blind-KEEP on it either (sweep #2).** Use INSUFFICIENT_EVIDENCE as the third verdict, then **individually re-verify every INSUFFICIENT (website forced)** before keeping. Sweep #2 found 24% of batched-INSUFFICIENT verdicts were actually out-of-scope (medspas, clinics, hospices). Blind default-keep is how MedWell + 541 others survived the first pass. Default-keep only after an individual attempt also comes back genuinely unknowable.
 5. **Don't skip the human review gate.** Even with contradiction detection, TJ catches things programmatic checks miss (e.g., "name says Assisted Living but website says Independent Living" — Edison Christian pattern). The MD-checkbox-then-execute pattern is non-negotiable.
 6. **Don't run Phase 3 globally before Phase 1.** Phase 1 catches deterministic cases for $0; Phase 3 confirming them costs $0.002/each but is wasted budget.
+7. **Don't delete on a batched verdict — always individually re-verify (sweep #2).** Batched calls (3+/call) under-ground: sweep #2 saw 51% INSUFFICIENT and 73 false-OUT that individual website-forced re-verify flipped back to IN_SCOPE. Batched = triage; individual re-verify = the gate before the deletions MD.
+8. **Don't skip the DB-wide signal scan (sweep #2).** The worst providers are name-innocent (sober-living, tattoo studios, rehabs-as-Nursing-Home). Tier-1 name regex and the LLM both miss them; the website-domain/reviews signal scan catches them for free. Run it first, every sweep.
 
 ## Inputs from past runs
 

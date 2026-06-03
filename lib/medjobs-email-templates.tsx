@@ -3,17 +3,27 @@
  * Kept separate for modularity (design constraint #3).
  */
 
+import { escapeHtml, firstName } from "./email-templates";
+
 const BRAND_COLOR = "#198087";
 const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
-function layout(body: string): string {
+/** Hidden preheader text for inbox preview */
+function preheaderHtml(text: string): string {
+  const escaped = escapeHtml(text);
+  return `<div style="display:none;font-size:1px;color:#f9fafb;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escaped}</div>`;
+}
+
+function layout(body: string, preheader?: string): string {
+  const preheaderBlock = preheader ? preheaderHtml(preheader) : "";
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:${FONT_STACK};">
+  ${preheaderBlock}
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
     <tr><td align="center">
       <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:480px;width:100%;">
@@ -222,22 +232,27 @@ export function applicationReceivedEmail({
   programTrack: string;
   profileSlug: string;
 }): string {
+  const studentFirst = firstName(studentName);
+
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">New Student Application</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${providerName}, a student has applied to work with you through Olera MedJobs.
+      Hi ${providerName ? escapeHtml(providerName) : "there"}, a student has applied to work with you through Olera MedJobs.
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
       <tr><td>
-        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 8px;">${studentName}</p>
-        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">${university}</p>
-        <p style="font-size:13px;color:#6b7280;margin:0;">${programTrack}</p>
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 8px;">${escapeHtml(studentName)}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">${escapeHtml(university)}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(programTrack)}</p>
       </td></tr>
     </table>
-    <p style="margin:0;">
+    <p style="margin:0 0 16px;">
       ${button("View Candidate", `${BASE_URL}/medjobs/candidates/${profileSlug}`)}
     </p>
-  `);
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${studentFirst} applied to work with you`);
 }
 
 export function applicationSentEmail({
@@ -315,8 +330,8 @@ export function newCandidateAlertEmail({
       (c) => `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;">
-        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">${c.name}</p>
-        <p style="font-size:13px;color:#6b7280;margin:4px 0 0;">${c.university} &middot; ${c.programTrack}</p>
+        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">${escapeHtml(c.name)}</p>
+        <p style="font-size:13px;color:#6b7280;margin:4px 0 0;">${escapeHtml(c.university)} &middot; ${escapeHtml(c.programTrack)}</p>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;">
         <a href="${BASE_URL}/medjobs/candidates/${c.slug}" style="font-size:13px;color:${BRAND_COLOR};text-decoration:none;font-weight:600;">View</a>
@@ -328,7 +343,7 @@ export function newCandidateAlertEmail({
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">New Candidates This Week</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${providerName}, here are the newest student caregivers near you on Olera MedJobs.
+      Hi ${providerName ? escapeHtml(providerName) : "there"}, here are the newest student caregivers near you on Olera MedJobs.
     </p>
     <table cellpadding="0" cellspacing="0" style="width:100%;">
       ${candidateRows}
@@ -336,7 +351,10 @@ export function newCandidateAlertEmail({
     <p style="margin:20px 0 0;">
       ${button("Browse All Candidates", `${BASE_URL}/medjobs/candidates`)}
     </p>
-  `);
+    <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${candidates.length} new student candidates near you`);
 }
 
 export function profileIncompleteNudgeEmail({
@@ -381,12 +399,12 @@ export function providerSubscriptionConfirmationEmail({
 }: {
   providerName: string;
 }): string {
-  const firstName = providerName.split(" ")[0];
+  const safeFirstName = escapeHtml(firstName(providerName, "there"));
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs Pro!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${firstName}, thank you for subscribing to MedJobs Pro. Your subscription is now active.
+      Hi ${safeFirstName}, thank you for subscribing to MedJobs Pro. Your subscription is now active.
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
       <tr><td>
@@ -409,8 +427,8 @@ export function providerSubscriptionConfirmationEmail({
     <p style="margin:0 0 16px;">
       ${button("Browse Candidates", `${BASE_URL}/medjobs/candidates`)}
     </p>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
-      Questions? Reply to this email or contact <a href="mailto:support@olera.care" style="color:#9ca3af;">support@olera.care</a>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `);
+  `, "Your MedJobs Pro subscription is now active");
 }

@@ -6,6 +6,7 @@ import { generateICS } from "@/lib/ics-generator";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
 import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
+import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -306,6 +307,12 @@ export async function POST(request: NextRequest) {
           weekday: "long", month: "long", day: "numeric",
           hour: "numeric", minute: "2-digit", timeZoneName: "short",
         });
+        const formattedAltTime = alternativeTime
+          ? new Date(alternativeTime).toLocaleString("en-US", {
+              weekday: "long", month: "long", day: "numeric",
+              hour: "numeric", minute: "2-digit", timeZoneName: "short",
+            })
+          : null;
 
         // Email goes to whoever did NOT propose
         const recipientEmail = proposedById === providerProfile.id ? studentProfile.email : providerProfile.email;
@@ -330,13 +337,14 @@ export async function POST(request: NextRequest) {
         await sendEmail({
           to: recipientEmail!,
           subject: `Interview request from ${proposerName}`,
-          html: `
-            <h2>You have an interview request!</h2>
-            <p><strong>${proposerName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
-            <p><strong>Proposed time:</strong> ${time}</p>
-            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
-            <p><a href="${viewUrl}">View & respond on Olera</a></p>
-          `,
+          html: interviewProposedEmail({
+            proposerName,
+            interviewType: typeLabel,
+            proposedTime: time,
+            alternativeTime: formattedAltTime,
+            notes: notes || null,
+            viewUrl,
+          }),
           emailType: "interview_proposed",
           recipientType: recipientIsStudent ? "student" : "provider",
           recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
@@ -383,7 +391,7 @@ export async function PATCH(request: NextRequest) {
       .from("interviews")
       .select(`
         *,
-        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, email),
+        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, email, slug),
         student:business_profiles!interviews_student_profile_id_fkey(id, display_name, email, slug)
       `)
       .eq("id", interviewId)
@@ -461,7 +469,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Send emails based on status change
-    const provider = interview.provider as { display_name: string; email: string };
+    const provider = interview.provider as { display_name: string; email: string; slug: string };
     const student = interview.student as { display_name: string; email: string; slug: string };
 
     if (status === "confirmed") {
@@ -485,29 +493,38 @@ export async function PATCH(request: NextRequest) {
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
       });
 
-      // Email both parties with .ics attachment
-      const confirmationHtml = (name: string, otherName: string) => `
-        <h2>Interview Confirmed!</h2>
-        <p>Your ${typeLabel.toLowerCase()} interview with <strong>${otherName}</strong> is confirmed.</p>
-        <p><strong>When:</strong> ${time}</p>
-        <p><strong>Duration:</strong> ${interview.duration_minutes || 30} minutes</p>
-        ${interview.location ? `<p><strong>Where:</strong> ${interview.location}</p>` : ""}
-        <p>A calendar invite is attached to this email.</p>
-        <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View on Olera</a></p>
-      `;
+      // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
+      const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+      const providerViewUrl = provider.slug && provider.email
+        ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
 
       try {
         await sendEmail({
           to: student.email,
           subject: `Interview confirmed with ${provider.display_name}`,
-          html: confirmationHtml(student.display_name, provider.display_name),
+          html: interviewConfirmedEmail({
+            otherName: provider.display_name,
+            interviewType: typeLabel,
+            confirmedTime: time,
+            durationMinutes: interview.duration_minutes || 30,
+            location: interview.location || null,
+            viewUrl: studentViewUrl,
+          }),
           emailType: "interview_confirmed",
           attachments: [{ filename: "interview.ics", content: icsBase64, encoding: "base64", type: "text/calendar" }],
         });
         await sendEmail({
           to: provider.email,
           subject: `Interview confirmed with ${student.display_name}`,
-          html: confirmationHtml(provider.display_name, student.display_name),
+          html: interviewConfirmedEmail({
+            otherName: student.display_name,
+            interviewType: typeLabel,
+            confirmedTime: time,
+            durationMinutes: interview.duration_minutes || 30,
+            location: interview.location || null,
+            viewUrl: providerViewUrl,
+          }),
           emailType: "interview_confirmed",
           attachments: [{ filename: "interview.ics", content: icsBase64, encoding: "base64", type: "text/calendar" }],
         });
@@ -518,18 +535,29 @@ export async function PATCH(request: NextRequest) {
 
     if (status === "cancelled") {
       try {
-        const cancelHtml = (otherName: string) => `
-          <h2>Interview Cancelled</h2>
-          <p>The interview with <strong>${otherName}</strong> has been cancelled.</p>
-          <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View on Olera</a></p>
-        `;
+        // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
+        const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        const providerViewUrl = provider.slug && provider.email
+          ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+          : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+
         // Only notify student if they were actually notified about the interview
         // (i.e., it wasn't pending provider verification)
         if (!interview.is_pending_verification) {
-          await sendEmail({ to: student.email, subject: "Interview cancelled", html: cancelHtml(provider.display_name), emailType: "interview_cancelled" });
+          await sendEmail({
+            to: student.email,
+            subject: `Interview with ${provider.display_name} cancelled`,
+            html: interviewCancelledEmail({ otherName: provider.display_name, viewUrl: studentViewUrl }),
+            emailType: "interview_cancelled",
+          });
         }
         // Always notify provider
-        await sendEmail({ to: provider.email, subject: "Interview cancelled", html: cancelHtml(student.display_name), emailType: "interview_cancelled" });
+        await sendEmail({
+          to: provider.email,
+          subject: `Interview with ${student.display_name} cancelled`,
+          html: interviewCancelledEmail({ otherName: student.display_name, viewUrl: providerViewUrl }),
+          emailType: "interview_cancelled",
+        });
       } catch (err) {
         console.error("[medjobs/interviews] cancel email error:", err);
       }

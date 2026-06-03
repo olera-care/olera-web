@@ -76,7 +76,6 @@ export default function MarketDiagnostic({
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
   const cl = a.competitorLandscape;
   const ref = a.referralGraph;
-  const firstCall = ref.prioritizedTargets.find((t) => t.phone) ?? ref.prioritizedTargets[0];
 
   // Priority areas: senior density × income (private-pay signal), campus de-weighted
   const topAreas = (dem.zctas ?? [])
@@ -133,7 +132,7 @@ export default function MarketDiagnostic({
 
       <a
         href="/provider/reviews"
-        className="group inline-flex items-center gap-2 rounded-full bg-[#199087] px-4 py-2 mt-6 text-[13px] font-semibold text-white shadow-[0_2px_8px_rgba(25,144,135,0.25)] transition-all hover:bg-[#147a72] active:scale-[0.99]"
+        className="group inline-flex items-center gap-2 rounded-full bg-[#199087] px-4 py-2 mt-6 text-[13px] font-semibold text-white shadow-[0_1px_4px_rgba(25,144,135,0.3)] transition-all hover:bg-[#147a72] hover:shadow-[0_3px_10px_rgba(25,144,135,0.35)] hover:-translate-y-px active:translate-y-0"
       >
         Request reviews to climb the ranking
         <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
@@ -169,26 +168,6 @@ export default function MarketDiagnostic({
             </div>
           ))}
         </div>
-
-        {firstCall && (
-          <a
-            href={firstCall.phone ? `tel:${firstCall.phone}` : undefined}
-            className="group flex items-center gap-4 rounded-2xl bg-[#199087] px-5 py-4 mb-6 shadow-[0_2px_8px_rgba(25,144,135,0.25)] transition-transform active:scale-[0.99]"
-          >
-            <div className="flex-1 min-w-0 text-white">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/70">Your first call</div>
-              <div className="text-[16px] font-semibold truncate">{firstCall.name}</div>
-              <div className="text-[12px] text-white/75">
-                {CAT_LABEL[firstCall.cat] ?? firstCall.cat} · {firstCall.distanceMiles}mi{firstCall.phone ? ` · ${firstCall.phone}` : ""}
-              </div>
-            </div>
-            {firstCall.phone && (
-              <span className="shrink-0 rounded-full bg-white/15 px-4 py-2 text-[13px] font-semibold text-white transition-colors group-hover:bg-white/25">
-                Call →
-              </span>
-            )}
-          </a>
-        )}
 
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
           {interactive ? "Your call sheet — work it" : "Start here — prioritized targets"}

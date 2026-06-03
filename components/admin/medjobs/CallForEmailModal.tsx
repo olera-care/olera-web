@@ -103,6 +103,8 @@ const OUTCOME_CHOICES: OutcomeChoice[] = [
 
 interface Props {
   organizationName: string;
+  /** Campus display name for the suggested-script `{campus_name}` substitution. */
+  campusName?: string | null;
   phone: string | null;
   action: ActionFn;
   onCancel: () => void;
@@ -112,6 +114,7 @@ interface Props {
 
 export function CallForEmailModal({
   organizationName,
+  campusName,
   phone,
   action,
   onCancel,
@@ -225,6 +228,8 @@ export function CallForEmailModal({
         </>
       }
     >
+      <SuggestedScript campusName={campusName ?? null} />
+
       <div className="space-y-1.5">
         {OUTCOME_CHOICES.map((opt) => (
           <StatusCard
@@ -325,5 +330,33 @@ function StatusCard({
         <span className="mt-0.5 block text-xs text-gray-600">{blurb}</span>
       </span>
     </button>
+  );
+}
+
+/**
+ * Pre-Flight call script — what to say when reaching the provider. The
+ * goal isn't to verify every field; it's to confirm the email we found
+ * and ask whether there's a better Decision Maker to send to. Shown
+ * read-only at the top of the modal so admin sees it before picking
+ * an outcome.
+ */
+function SuggestedScript({ campusName }: { campusName: string | null }) {
+  const campus = campusName?.trim() || "your campus";
+  return (
+    <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+        Suggested script
+      </p>
+      <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
+        &ldquo;Hi, this is Graize calling on behalf of Dr. Logan DuBose
+        and Olera&apos;s {campus} Student Caregiver Program. We found
+        this email online and are planning to send over information
+        about the program. Before we do, we wanted to confirm this is
+        the right general email — and ask whether there&apos;s someone
+        in hiring, recruiting, or ownership who would be the best
+        person to review the program info. Is there a specific person
+        we should send it to?&rdquo;
+      </p>
+    </section>
   );
 }

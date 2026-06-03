@@ -619,6 +619,7 @@ function ProspectBody({
       {showCallForEmail && (
         <CallForEmailModal
           organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus?.name ?? null}
           phone={generalContactPhone}
           action={action}
           onCancel={() => setShowCallForEmail(false)}

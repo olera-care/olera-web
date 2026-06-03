@@ -169,17 +169,23 @@ export async function GET(request: NextRequest) {
       const nudgeCount = (meta.nudge_count as number) || 0;
 
       // Check for provider response and conversation state
-      type ThreadMsg = { from_profile_id: string; text?: string; is_auto_reply?: boolean; created_at?: string };
+      type ThreadMsg = { from_profile_id: string; text?: string; is_auto_reply?: boolean; created_at?: string; type?: string };
       const thread = (meta.thread as ThreadMsg[]) || [];
 
-      // Find provider's first non-auto-reply response
+      // Find provider's first REAL response (non-auto, non-system, with actual text)
       const providerMsg = thread.find(
-        (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
+        (m) =>
+          m.from_profile_id === r.to_profile_id &&
+          m.is_auto_reply !== true &&
+          m.type !== "system" &&
+          m.from_profile_id !== "system" &&
+          !!m.text?.trim()
       );
       const responded = !!providerMsg;
 
       // Check if family has replied AFTER provider's response
       // This determines if we need to nudge the family
+      // Only counts REAL replies (non-auto, non-system, with actual text)
       let familyRepliedAfterProvider = false;
       if (responded && providerMsg?.created_at) {
         const providerResponseTime = new Date(providerMsg.created_at).getTime();
@@ -187,6 +193,9 @@ export async function GET(request: NextRequest) {
           (m) =>
             m.from_profile_id === r.from_profile_id &&
             m.is_auto_reply !== true &&
+            m.type !== "system" &&
+            m.from_profile_id !== "system" &&
+            !!m.text?.trim() &&
             m.created_at &&
             new Date(m.created_at).getTime() > providerResponseTime
         );

@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     const series = buildSeries(successTimestamps, seriesStart, to, bucket);
 
     // Calculate response metrics from all rows in range
-    type ThreadMsg = { from_profile_id: string; text?: string; created_at?: string; is_auto_reply?: boolean };
+    type ThreadMsg = { from_profile_id: string; text?: string; created_at?: string; is_auto_reply?: boolean; type?: string };
     let respondedCount = 0;
     let awaitingCount = 0;
     const responseTimes: number[] = [];
@@ -96,8 +96,14 @@ export async function GET(request: NextRequest) {
 
       const meta = (r.metadata as Record<string, unknown>) ?? {};
       const thread = (meta.thread as ThreadMsg[]) || [];
+      // Find REAL provider response (non-auto, non-system, with actual text)
       const providerMsg = thread.find(
-        (m) => m.from_profile_id === r.to_profile_id && m.is_auto_reply !== true
+        (m) =>
+          m.from_profile_id === r.to_profile_id &&
+          m.is_auto_reply !== true &&
+          m.type !== "system" &&
+          m.from_profile_id !== "system" &&
+          !!m.text?.trim()
       );
 
       if (providerMsg) {

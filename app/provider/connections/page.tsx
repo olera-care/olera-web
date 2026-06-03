@@ -1268,6 +1268,20 @@ export default function ProviderLeadsPage() {
       // Persist to database via API (also updates localStorage for fallback)
       markLeadAsRead(lead.id, providerProfile.id);
     }
+    // Track lead_opened event for engagement funnel
+    if (providerProfile?.slug) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerProfile.slug,
+          event_type: "lead_opened",
+          metadata: { lead_id: lead.id, connection_id: lead.connectionId },
+        }),
+      }).catch(() => {
+        // Non-blocking - tracking failure shouldn't affect UX
+      });
+    }
   }, [providerProfile]);
 
   const closeDrawer = useCallback(() => {

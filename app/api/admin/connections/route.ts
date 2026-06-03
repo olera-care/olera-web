@@ -308,48 +308,40 @@ export async function GET(request: NextRequest) {
     };
     for (const c of searched) counts[c.temperature.state]++;
 
-    // Engagement-based counts (PER-CONNECTION, not per-provider)
-    // Engaged = provider opened THIS specific lead OR copied THIS lead's contact
-    // No Activity = this specific lead hasn't been viewed
+    // Engagement-based counts (per-provider for now - legacy events don't have per-connection IDs)
+    // Engaged = provider opened ANY lead OR copied ANY contact
+    // No Activity = provider has no engagement events
 
-    // Build set of connection IDs and provider keys we need to check
-    const connectionIds = new Set(searched.map((c) => c.id));
+    // Build provider keys for engagement lookup
     const allProviderKeys = [...new Set(
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
-    // Per-connection engagement tracking
-    const connectionEngagement = new Map<string, {
+    // Per-provider engagement tracking
+    const providerEngagement = new Map<string, {
       lead_opened: boolean;
       contact_revealed: boolean;
     }>();
 
-    // Initialize all connections as not engaged
-    for (const c of searched) {
-      connectionEngagement.set(c.id, {
+    // Initialize all providers as not engaged
+    for (const key of allProviderKeys) {
+      providerEngagement.set(key, {
         lead_opened: false,
         contact_revealed: false,
       });
     }
 
-    // Fetch engagement events with metadata to match by lead_id/connection_id
+    // Fetch engagement events by provider
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
-        .select("provider_id, event_type, created_at, metadata")
+        .select("provider_id, event_type")
         .in("provider_id", allProviderKeys)
         .in("event_type", ["lead_opened", "contact_revealed"])
         .limit(10000);
 
       for (const ev of actEvents ?? []) {
-        // Extract connection/lead ID from metadata
-        const meta = ev.metadata as Record<string, unknown> | null;
-        const leadId = (meta?.lead_id as string) || (meta?.connection_id as string);
-
-        // Only count if this event is for one of our connections
-        if (!leadId || !connectionIds.has(leadId)) continue;
-
-        const eng = connectionEngagement.get(leadId);
+        const eng = providerEngagement.get(ev.provider_id);
         if (!eng) continue;
 
         if (ev.event_type === "lead_opened") eng.lead_opened = true;
@@ -363,8 +355,8 @@ export async function GET(request: NextRequest) {
     const connectionEngaged = new Map<string, boolean>();
 
     for (const c of searched) {
-      const eng = connectionEngagement.get(c.id);
-      // Engaged = THIS lead was opened OR contact was copied for THIS lead
+      const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
+      // Engaged = provider opened lead OR copied contact
       const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed);
       connectionEngaged.set(c.id, isEngaged);
 
@@ -394,15 +386,18 @@ export async function GET(request: NextRequest) {
 
     const page = list.slice(offset, offset + limit);
 
-    // Per-connection engagement data for UI badges (keyed by connection ID)
+    // Per-provider engagement data for UI badges (keyed by provider activityKey)
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};
     for (const c of page) {
-      const eng = connectionEngagement.get(c.id);
-      engagement[c.id] = {
-        email_clicked: false, // Not tracked per-connection currently
-        lead_opened: eng?.lead_opened ?? false,
-        contact_revealed: eng?.contact_revealed ?? false,
-      };
+      const key = c.provider.activityKey;
+      if (key && !engagement[key]) {
+        const eng = providerEngagement.get(key);
+        engagement[key] = {
+          email_clicked: false,
+          lead_opened: eng?.lead_opened ?? false,
+          contact_revealed: eng?.contact_revealed ?? false,
+        };
+      }
     }
 
     const truncated = (rows ?? []).length >= FETCH_CAP;

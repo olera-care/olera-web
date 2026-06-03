@@ -187,7 +187,9 @@ export default function ConnectionsTrackerPage() {
               <ConnectionRow
                 key={c.id}
                 c={c}
-                engagement={list.engagement[c.id]}
+                engagement={
+                  c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
+                }
               />
             ))}
           </div>

@@ -118,7 +118,12 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           admin works through to complete pre-flight. Post-launch
           the snapshot lives inside More Details. */}
       {isPreLaunch && (
-        <ProviderSnapshotCard ctx={ctx} action={action} setError={setError} />
+        <ProviderSnapshotCard
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          verificationState={verificationState}
+        />
       )}
 
       {/* Zone 4 · Outreach Timeline (touchpoints + Day 0 activities).

@@ -44,6 +44,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
+import type { VerificationState } from "@/lib/student-outreach/verification-state";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
@@ -57,9 +58,19 @@ interface Props {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
+  /** v9.x Phase 2b: when mounted prominently pre-launch the drawer
+   *  body passes the derived verification state so the Research Card
+   *  can carry the Pre-Flight status indicator. Omitted post-launch
+   *  (Snapshot lives inside More Details there). */
+  verificationState?: VerificationState;
 }
 
-export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
+export function ProviderSnapshotCard({
+  ctx,
+  action,
+  setError,
+  verificationState,
+}: Props) {
   const { outreach, provider_business_profile: bp } = ctx;
   const orgName = bp?.display_name || outreach.organization_name;
   const address = bp?.address || null;
@@ -276,7 +287,18 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         </div>
       )}
 
-      {/* ── 3. Research notes ─────────────────────────────────────── */}
+      {/* ── 4. Verification ───────────────────────────────────────
+          v9.x Phase 2b: passive Pre-Flight status indicator. The
+          call modal still drives the actual unlock — this section
+          mirrors the resulting state so admin sees whether Launch
+          will fire without scrolling back to the Next Step card.
+          Pre-launch only; post-launch the status no longer matters
+          (outreach is in flight). */}
+      {verificationState && (
+        <VerificationSection state={verificationState} />
+      )}
+
+      {/* ── 5. Research notes ─────────────────────────────────────── */}
       <div>
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           Research notes
@@ -1379,6 +1401,63 @@ function DecisionMakerSection({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Verification section ───────────────────────────────────────────────
+
+/**
+ * v9.x Phase 2b: Pre-Flight status indicator inside the Research Card.
+ * Read-only — the actual unlock happens in the Pre-Flight call modal
+ * (CallForEmailModal) via log_research_call(verified) or
+ * override_pre_flight. This section just mirrors the derived state
+ * so admin can see at a glance whether Launch will fire.
+ */
+function VerificationSection({ state }: { state: VerificationState }) {
+  const tone =
+    state.status === "verified"
+      ? {
+          icon: "✓",
+          ring: "border-primary-200 bg-primary-50",
+          dot: "text-primary-700",
+          label: "text-primary-900",
+          sub: "text-primary-700",
+          heading: "Verified",
+        }
+      : state.status === "overridden"
+        ? {
+            icon: "⚠",
+            ring: "border-amber-200 bg-amber-50",
+            dot: "text-amber-700",
+            label: "text-amber-900",
+            sub: "text-amber-700",
+            heading: "Overridden",
+          }
+        : {
+            icon: "•",
+            ring: "border-gray-200 bg-gray-50",
+            dot: "text-gray-500",
+            label: "text-gray-700",
+            sub: "text-gray-500",
+            heading: "Not yet confirmed",
+          };
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        Verification
+      </p>
+      <div
+        className={`flex items-start gap-2.5 rounded-md border px-3 py-2.5 ${tone.ring}`}
+      >
+        <span aria-hidden className={`text-sm leading-5 ${tone.dot}`}>
+          {tone.icon}
+        </span>
+        <div className="min-w-0">
+          <p className={`text-sm font-medium ${tone.label}`}>{tone.heading}</p>
+          <p className={`mt-0.5 text-[11px] ${tone.sub}`}>{state.label}</p>
+        </div>
+      </div>
     </div>
   );
 }

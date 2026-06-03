@@ -114,12 +114,16 @@ export default function ReferralTargets({
           return (
             <div
               key={k}
-              className={`rounded-xl border overflow-hidden transition-colors ${
-                referring ? "border-emerald-200/80 bg-emerald-50/40" : isOpen ? "border-stone-300/80 bg-white" : "border-stone-200/70 bg-white/50"
+              className={`rounded-2xl overflow-hidden transition-all duration-200 ${
+                referring
+                  ? "bg-emerald-50/50 ring-1 ring-emerald-200/70"
+                  : isOpen
+                    ? "bg-white shadow-[0_8px_30px_rgba(28,25,23,0.09)]"
+                    : "bg-white/60 ring-1 ring-stone-200/60 hover:ring-stone-300/70"
               } ${dimmed ? "opacity-50" : ""} ${celebrating[k] ? "mro-pop" : ""}`}
             >
               <div
-                className={`flex items-center gap-3 px-4 py-3 ${guidance ? "cursor-pointer" : ""}`}
+                className={`flex items-center gap-3 px-5 py-3.5 ${guidance ? "cursor-pointer" : ""}`}
                 onClick={() => guidance && setExpanded(isOpen ? null : k)}
               >
                 <div className="flex-1 min-w-0">
@@ -155,34 +159,41 @@ export default function ReferralTargets({
               </div>
 
               {isOpen && guidance && (
-                <div className="px-4 pb-4 pt-1">
+                <div className="px-5 pb-6 pt-1.5">
                   {/* Who to ask for */}
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-stone-400">Ask for</div>
-                  <div className="text-[14px] font-semibold text-stone-900 mt-0.5">{guidance.askFor}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Who to ask for</div>
+                  <div className="text-[15px] font-semibold text-stone-900 mt-1">{guidance.askFor}</div>
 
-                  {/* The script — the hero */}
-                  <div className="mt-3 rounded-lg border-l-2 border-[#199087] bg-[#199087]/[0.05] pl-3.5 pr-3 py-2.5">
-                    <p className="text-[14px] text-stone-800 leading-relaxed">&ldquo;{guidance.opener}&rdquo;</p>
+                  {/* The script — the hero. Pure typography, one serif quote-mark detail. */}
+                  <div className="relative mt-6 pl-7">
+                    <span aria-hidden className="absolute left-0 -top-3 font-display text-[2.75rem] leading-none text-[#199087]/30 select-none">&ldquo;</span>
+                    <p className="text-[15.5px] text-stone-700 leading-[1.75]">{guidance.opener}</p>
+                    <button
+                      type="button"
+                      onClick={() => copyScript(guidance.opener, k)}
+                      className="mt-3 text-[12px] font-medium text-stone-400 hover:text-stone-700 transition-colors"
+                    >
+                      {copied === k ? "Copied ✓" : "Copy script"}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => copyScript(guidance.opener, k)}
-                    className="mt-1.5 text-[12px] font-medium text-stone-500 hover:text-stone-800 transition-colors"
-                  >
-                    {copied === k ? "Copied ✓" : "Copy script"}
-                  </button>
 
-                  {/* Supporting context — quiet one-liners */}
-                  <div className="mt-3.5 space-y-1.5 text-[12.5px] text-stone-500 leading-relaxed">
-                    <div><span className="text-stone-400">Your ask — </span>{guidance.ask}</div>
-                    <div><span className="text-stone-400">Why it works — </span>{guidance.whyCare}</div>
+                  {/* Supporting — quiet eyebrow, readable value */}
+                  <div className="mt-7 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Your ask</div>
+                      <div className="text-[13px] text-stone-600 mt-1 leading-relaxed">{guidance.ask}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">Why it works</div>
+                      <div className="text-[13px] text-stone-600 mt-1 leading-relaxed">{guidance.whyCare}</div>
+                    </div>
                   </div>
 
                   {/* The one primary action */}
                   {t.phone && (
                     <a
                       href={`tel:${t.phone}`}
-                      className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#199087] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_1px_4px_rgba(25,144,135,0.3)] hover:bg-[#147a72] hover:shadow-[0_3px_10px_rgba(25,144,135,0.35)] hover:-translate-y-px active:translate-y-0 transition-all"
+                      className="mt-7 inline-flex items-center gap-1.5 rounded-full bg-[#199087] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:bg-[#147a72] hover:shadow-[0_5px_16px_rgba(25,144,135,0.32)] hover:-translate-y-px active:translate-y-0 transition-all"
                     >
                       Call {t.phone} <span aria-hidden>→</span>
                     </a>

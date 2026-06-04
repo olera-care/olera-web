@@ -670,6 +670,8 @@ export function MedJobsTabPage({
             ? "No partners have open tasks. Add a custom step from the Partner drawer to bring one back."
             : "Nothing here right now."}
         </p>
+      ) : tab === "calls" ? (
+        <CallsSectioned rows={rows} renderRow={renderRow} />
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
@@ -886,3 +888,110 @@ export function MedJobsTabPage({
     </div>
   );
 }
+
+
+// ── v10 Bullet 7 (2026-06-04): Calls tab sectioned rendering ──────────────
+// Splits the rows into Today + Upcoming sections. "Today" = due_at by
+// end-of-day local; everything past that is Upcoming, grouped by day.
+// Sort priority: within Today, clicked-not-activated rows surface FIRST
+// (engagement-driven priority bump from Pass A strategy depth).
+
+function CallsSectioned({
+  rows,
+  renderRow,
+}: {
+  rows: TabRow[];
+  renderRow: (row: TabRow) => React.ReactNode;
+}) {
+  const endOfToday = (() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.getTime();
+  })();
+
+  // Partition by due_at; rows without due_call_task fall into Today as
+  // safety (overdue or anomalous — admin still sees them).
+  const todayRows: TabRow[] = [];
+  const upcomingRows: TabRow[] = [];
+  for (const r of rows) {
+    const dueIso = r.due_call_task?.due_at;
+    const due = dueIso ? new Date(dueIso).getTime() : 0;
+    if (!dueIso || due <= endOfToday) todayRows.push(r);
+    else upcomingRows.push(r);
+  }
+
+  // Today: clicked-not-activated first, then by due_at ASC.
+  todayRows.sort((a, b) => {
+    const ac = a.engagement_substate === "clicked_not_activated" ? 0 : 1;
+    const bc = b.engagement_substate === "clicked_not_activated" ? 0 : 1;
+    if (ac !== bc) return ac - bc;
+    const ad = a.due_call_task?.due_at ?? "";
+    const bd = b.due_call_task?.due_at ?? "";
+    return ad.localeCompare(bd);
+  });
+
+  // Upcoming: by due_at ASC. Group by day label for visual scanning.
+  upcomingRows.sort((a, b) =>
+    (a.due_call_task?.due_at ?? "").localeCompare(b.due_call_task?.due_at ?? ""),
+  );
+  const upcomingByDay = new Map<string, TabRow[]>();
+  for (const r of upcomingRows) {
+    const dueIso = r.due_call_task?.due_at;
+    if (!dueIso) continue;
+    const label = formatUpcomingDayLabel(dueIso);
+    const list = upcomingByDay.get(label) ?? [];
+    list.push(r);
+    upcomingByDay.set(label, list);
+  }
+
+  return (
+    <div className="space-y-6">
+      {todayRows.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Today’s Calls ({todayRows.length})
+          </h3>
+          <ul className="space-y-2">
+            {todayRows.map((row) => (
+              <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {upcomingByDay.size > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Upcoming ({upcomingRows.length})
+          </h3>
+          <div className="space-y-4">
+            {[...upcomingByDay.entries()].map(([dayLabel, dayRows]) => (
+              <div key={dayLabel}>
+                <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                  {dayLabel} · {dayRows.length}
+                </p>
+                <ul className="space-y-2">
+                  {dayRows.map((row) => (
+                    <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function formatUpcomingDayLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const oneDay = 86_400_000;
+  const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diff = Math.round((dayStart - startOfToday) / oneDay);
+  if (diff === 1) return "Tomorrow";
+  if (diff < 7) return d.toLocaleDateString(undefined, { weekday: "long" });
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+

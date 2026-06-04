@@ -884,6 +884,41 @@ Chunk 1+2 of Phase 1: engagement events captured + drawer surfaces updated.
 
 **Next chunk:** Bullets 7+8+9 — the big tab redesigns (Calls tab Today/Upcoming + Emails tab single-stream + Smartlead deep-link button). Pausing here for Logan to QA the drawer changes on Vercel preview before tackling the surface work.
 
+### Day 1 (continued) — Bullets 7, 8, 9 COMPLETE (chunk 3)
+
+Chunk 3 of Phase 1: Calls tab now has Today + Upcoming split with engagement-driven priority + per-row purpose hints; Emails (renamed Replies) tab gets Smartlead inbox deep-link buttons. Full v3-plan event-stream UI for Bullet 8 deferred as 8b follow-up (logged in known-issues).
+
+**Bullet 7 — Calls tab redesign — DONE.**
+- Queue endpoint `idsByCallsDue` widened from `due_at <= now` to `due_at <= end_of_next_week` (14-day window) so Today + Upcoming both surface.
+- `dueCallTasks` collection no longer filters by `nowIso` — includes both past-due and upcoming.
+- `dueCallTaskByOutreach` now tracks SOONEST task per outreach (was first-encountered) so legacy non-Calls reads stay sensible.
+- New `cadence_day` field on `due_call_task` (and on `DueCallTaskExpanded`) — extracted from `payload.day` so the per-row purpose hint can render.
+- New `engagement_substate` field on TabRow (queue endpoint computes from the loaded touchpoints via `computeEngagementSubState` helper).
+- New `smartlead_linkage` field on TabRow (queue endpoint reads from `research_data.smartlead.{lead_id, campaign_id}`).
+- `callsSlots` in `StakeholderCard.tsx`: new per-row purpose hint (Day 3 → "Did you get our email Monday?", Day 5 → "Anything I can help with? Or set up a quick call with Dr. DuBose?", Day 7 → "Last touch — better person to reach?"), "🖱 Clicked" pill on clicked-not-activated rows.
+- New `<CallsSectioned>` component in `MedJobsTabPage.tsx`: splits rows into Today's Calls (sorted with clicked-first priority, then by due_at) + Upcoming (grouped by day with "Tomorrow / weekday / month-day" labels).
+
+**Bullet 8 — Emails tab redesign — DONE (minimal viable scope).**
+- Tab label rename to "Emails" already shipped in Bullet 4.
+- Existing `RepliesGroupedList` smart sort surfaces the high-touch states (needs_followup → wants_meeting → engaged → awaiting_callback → mid_cadence) which already addresses the "Needs Reply pinned at top" requirement.
+- Engagement chips on email_sent rows in the drawer timeline (Bullet 5) gives admin per-email engagement context.
+- **DEFERRED to Phase 1b** (logged in `medjobs-known-issues.md`): dedicated Bounced pinned section + activity log filter chips + per-event-type card component (EmailEventCard) + URL-persisted filter state + 50-per-page pagination. These would require a new email-event-stream lib (~3 days). Logan evaluates whether current state suffices on Vercel preview.
+
+**Bullet 9 — Smartlead-inbox deep-link — DONE.**
+- New `smartleadInboxUrl(linkage)` builder: `https://app.smartlead.ai/app/master-inbox?lead_id=...&campaign_id=...` with graceful fallback to root master inbox when lead_id is missing.
+- New `renderSmartleadInboxLink(linkage)` returns a clickable accessory button.
+- Wired into `repliesSlots` as `headlineAccessory` on `engaged`, `wants_meeting`, `needs_followup` states (the states where admin would want to read the thread before logging).
+- URL convention pending live verification by Logan on Vercel preview (open issue logged in known-issues).
+
+**Typecheck:** clean across all 3 bullets.
+
+**Vercel preview surfaces these changes immediately when:**
+- Open the Calls tab — Today + Upcoming sections, clicked rows at top of Today with 🖱 pill, per-row purpose hint, phone tap-to-dial.
+- Open the Emails tab (renamed from Replies) — same content with new Smartlead inbox link on engaged/replied rows.
+- Drawer timeline still shows engagement chips on email_sent rows (Bullet 5).
+
+**Phase 1 progress:** 9 of 12 bullets done. Next chunk: 10+11+12 (Meetings tab redesign + new LogMeetingModal outcome + Calendly webhook). After chunk 4 the phase is ready to merge to staging.
+
 **Pending Logan signoffs** (per master plan §12 "Phase 0 stabilization" checklist; not blocking branch creation or strategy work):
 - Sender identity (`logan@findmedjobs.co` + `partnerships@findmedjobs.co` proposed)
 - Footer/unsubscribe copy

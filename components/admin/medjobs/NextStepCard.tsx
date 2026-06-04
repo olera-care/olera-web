@@ -49,6 +49,10 @@ import {
   formatRelative,
 } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import {
+  getEngagementSubState,
+  getLatestEngagementStats,
+} from "@/lib/student-outreach/engagement-state";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
@@ -216,15 +220,158 @@ function InOutreachBody({
   setError: (m: string | null) => void;
 }) {
   const [showLogReply, setShowLogReply] = useState(false);
+  const [schedulingCall, setSchedulingCall] = useState(false);
+
   // Find the next pending email or call task to surface the "what's
   // queued next" hint. Cheap inline scan — ctx.pending_tasks is small.
   const nextEmail = ctx.pending_tasks
     .filter((t) => t.task_type === "outreach_email_send")
     .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  const nextCall = ctx.pending_tasks
+    .filter((t) => t.task_type === "outreach_followup_call")
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
   const lastEmailSent = ctx.touchpoints
     .filter((t) => t.touchpoint_type === "email_sent")
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
+  // v10 Bullet 6: branch on engagement sub-state. Three branches:
+  //   no_engagement       → "Awaiting reply or click" (existing copy)
+  //   opened_not_clicked  → "They opened — give them time"
+  //   clicked_not_activated → "They clicked — call them" (HIGHLIGHTED;
+  //                          adds primary "Schedule call now" action)
+  const subState = getEngagementSubState({
+    status: ctx.outreach.status,
+    touchpoints: ctx.touchpoints,
+  });
+  const engagement = getLatestEngagementStats({
+    status: ctx.outreach.status,
+    touchpoints: ctx.touchpoints,
+  });
+
+  // v10 Bullet 6 (Pass C5): schedule a manual call task due today as the
+  // immediate response to a clicked-not-activated row. Uses the existing
+  // queue_manual_task action — no new action surface (G2 discipline).
+  const scheduleCallNow = async () => {
+    setSchedulingCall(true);
+    setError(null);
+    try {
+      const noteParts: string[] = ["Click follow-up"];
+      if (engagement?.clickedCtas[0]) {
+        noteParts.push(`(clicked: ${engagement.clickedCtas[0]})`);
+      }
+      await action("queue_manual_task", {
+        task_type: "outreach_followup_call",
+        due_at: new Date().toISOString(),
+        notes: noteParts.join(" "),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't schedule call");
+    } finally {
+      setSchedulingCall(false);
+    }
+  };
+
+  // ── Branch: clicked_not_activated (HIGHEST PRIORITY) ──────────────────
+  if (subState === "clicked_not_activated" && engagement) {
+    const ctaLabel = engagement.clickedCtas[0] ?? "an email link";
+    const lastClicked = engagement.lastClickedAt
+      ? formatRelative(engagement.lastClickedAt)
+      : "recently";
+    return (
+      <>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+            Clicked
+          </span>
+          <p className="text-sm font-semibold text-gray-900">
+            They clicked — call them.
+          </p>
+        </div>
+        <p className="mt-1 text-xs text-gray-600">
+          Visited{" "}
+          <span className="font-medium text-gray-800">{ctaLabel}</span>{" "}
+          {lastClicked}. Haven&apos;t accepted the pilot yet.
+        </p>
+        {nextCall && (
+          <p className="mt-1 text-xs text-gray-500">
+            Next scheduled call: {formatRelative(nextCall.due_at)}
+          </p>
+        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            onClick={scheduleCallNow}
+            disabled={schedulingCall}
+            title="Queue a call due today — they're warm, close the loop while it's fresh."
+            className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+          >
+            {schedulingCall ? "Scheduling…" : "Schedule call now →"}
+          </button>
+          <button
+            onClick={() => setShowLogReply(true)}
+            title="If they replied via email instead, log it here."
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Log reply
+          </button>
+        </div>
+        {showLogReply && (
+          <ReplyClassifierModalMount
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            onClose={() => setShowLogReply(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // ── Branch: opened_not_clicked (give them time) ────────────────────────
+  if (subState === "opened_not_clicked" && engagement) {
+    const openLabel = engagement.openCount === 1 ? "Opened once" : `Opened ${engagement.openCount}×`;
+    const lastOpened = engagement.lastOpenedAt
+      ? formatRelative(engagement.lastOpenedAt)
+      : "recently";
+    return (
+      <>
+        <p className="text-sm font-medium text-gray-900">
+          They opened — give them time.
+        </p>
+        <p className="mt-0.5 text-xs text-gray-500">
+          {openLabel} since {lastOpened}. No click yet — the cadence will keep working.
+        </p>
+        {nextEmail && (
+          <p className="mt-1 text-xs text-gray-500">
+            Next email: Day {String(nextEmail.payload?.day ?? "?")} ({formatRelative(nextEmail.due_at)})
+          </p>
+        )}
+        {nextCall && (
+          <p className="mt-0.5 text-xs text-gray-500">
+            Next call: {formatRelative(nextCall.due_at)}
+          </p>
+        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowLogReply(true)}
+            title="Log a reply you received in your inbox."
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Log reply
+          </button>
+        </div>
+        {showLogReply && (
+          <ReplyClassifierModalMount
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            onClose={() => setShowLogReply(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // ── Branch: no_engagement (existing copy) ──────────────────────────────
   const subline = nextEmail
     ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
     : lastEmailSent
@@ -662,6 +809,34 @@ function ConvertedBody({
   // last_edited_at after the transition is the closest proxy.
   const acceptedAt = ctx.provider_business_profile?.metadata
     ?.interview_terms_accepted_at as string | undefined;
+  // v10 Bullet 6: Pilot Active label when the pilot timer is set + future.
+  // The terminal state v3 plan calls this out as the "Pilot Active 🎉"
+  // headline — Phase 4+5 will set `pilot_active_through` at activation
+  // time; until then, fall back to the existing "Since {date}" copy.
+  const pilotThroughRaw = ctx.provider_business_profile?.metadata
+    ?.pilot_active_through as string | undefined;
+  const pilotThrough = pilotThroughRaw ? new Date(pilotThroughRaw) : null;
+  const isPilotActive =
+    pilotThrough != null && !isNaN(pilotThrough.getTime()) && pilotThrough.getTime() > Date.now();
+
+  if (isPilotActive && pilotThrough && acceptedAt) {
+    const daysLeft = Math.max(
+      0,
+      Math.ceil((pilotThrough.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+    );
+    return (
+      <>
+        <p className="text-sm font-semibold text-primary-800">Pilot Active 🎉</p>
+        <p className="mt-0.5 text-xs text-gray-600">
+          Activated {formatLongDate(acceptedAt)} · {daysLeft} {daysLeft === 1 ? "day" : "days"} left in the pilot.
+        </p>
+        <p className="mt-1 text-xs text-gray-500">
+          Ongoing tasks (seasonal check-ins, job-board posts) surface in the timeline below.
+        </p>
+      </>
+    );
+  }
+
   const sinceText = acceptedAt
     ? `Since ${formatLongDate(acceptedAt)}`
     : `Marked ${stageLabel.toLowerCase()}`;
@@ -722,6 +897,65 @@ function ClosedBody({
         </div>
       )}
     </>
+  );
+}
+
+/** v10 Bullet 6: shared ReplyClassifierModal mount used by the
+ *  engagement sub-state branches in InOutreachBody. Keeps the modal
+ *  dispatch logic single-sourced — same submit handlers as the
+ *  no_engagement branch's inline mount. */
+function ReplyClassifierModalMount({
+  ctx,
+  action,
+  setError,
+  onClose,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+  onClose: () => void;
+}) {
+  return (
+    <ReplyClassifierModal
+      organizationName={ctx.outreach.organization_name}
+      source="email_reply"
+      rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
+      onCancel={onClose}
+      onSubmit={async (classification, payload, _partner, redirect) => {
+        try {
+          if (classification === "became_client") {
+            await action("make_client", { notes: payload.notes });
+          } else if (classification === "redirected" && redirect) {
+            const derivedName =
+              [redirect.first_name, redirect.last_name]
+                .filter(Boolean)
+                .join(" ")
+                .trim() || redirect.email;
+            await action("add_contact", {
+              name: derivedName,
+              first_name: redirect.first_name || null,
+              last_name: redirect.last_name || null,
+              email: redirect.email || null,
+            });
+            await action("classify_reply", {
+              classification: "keep_emailing",
+              notes: payload.notes,
+              stop_cadence: true,
+            });
+          } else {
+            await action("classify_reply", {
+              classification,
+              notes: payload.notes,
+              meeting_at: payload.meeting_at,
+            });
+          }
+          onClose();
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Save failed");
+          throw e;
+        }
+      }}
+    />
   );
 }
 

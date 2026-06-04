@@ -838,6 +838,52 @@ All 12 bullets meet their per-bullet acceptance criteria PLUS:
 
 **Next:** Bullet 3 — Smartlead webhook expansion (email_open + email_link_click → update existing `email_sent` touchpoint payload).
 
+### Day 1 (continued) — Bullets 3, 4, 5, 6 COMPLETE
+
+Chunk 1+2 of Phase 1: engagement events captured + drawer surfaces updated.
+
+**Bullet 3 — Smartlead webhook expansion (open + click) — DONE.**
+- Discovery: the webhook already had open/click handlers but only updated a row-level aggregate (`research_data.smartlead.engagement`), not the `email_sent` touchpoint payload that Bullet 5 timeline + Bullet 6 sub-state predicates need.
+- Added `updateMatchingEmailSentPayload(outreachId, type, extract)` helper — matches event to the email_sent touchpoint by `outreach_id + sequence_step` (each cadence step has exactly one send per recipient); falls back to most-recent email_sent when sequence_step is absent.
+- Updated payload fields: `open_count`, `click_count`, `first_opened_at`, `last_opened_at`, `first_clicked_at`, `last_clicked_at`, `clicked_ctas` (capped at 10), `seen_engagement_events` (dedup ring, capped at 100).
+- Click URL extraction added to `extractLead`: accepts `link_url` / `clicked_url` / `url` / `link.url` aliases.
+- Legacy row-level aggregate preserved — both layers update in tandem so existing read paths keep working.
+- Two-layer dedup: row-level `seen_event_ids` (defense in depth) + per-touchpoint `seen_engagement_events`.
+
+**Bullet 4 — In Basket tab rename + smart-hide — DONE (label-only rename).**
+- Discovery: the `"replies"` key has wide infrastructure ties (queue endpoint, dedicated `/admin/medjobs/replies` page, sidebar URL routing, stats route — 18+ files).
+- Wisest move: change LABEL only ("Replies" → "Emails"), keep `key: "replies"` internally. Full key rename can happen during Bullet 8 (Emails tab redesign) when we're touching those surfaces anyway.
+- Updated `TABS` array: 7 tabs → 4 tabs (Prospects · Calls · Emails · Meetings). Tooltip rewritten to reflect new email-event-stream semantics.
+- Moved `clients`, `partners`, `candidates` from `TABS` into `MENU_TABS` (⋯ overflow).
+- Updated `VALID_TAB_KEYS` in `MedJobsTabPage.tsx` to union both `TABS` + `MENU_TABS` so deep links to moved tabs still resolve.
+
+**Bullet 5 — Timeline split (Upcoming + Past Activity) — DONE.**
+- `components/admin/medjobs/OutreachTimeline.tsx` restructured: single merged stream with "── now ──" divider → two visually distinct sections.
+- Upcoming section: pending tasks sorted ASC by due_at. Past Activity section: touchpoints sorted DESC by created_at.
+- Past Activity collapse: if >5 events, default to last 3 + "Show all past activity ({N} earlier events)" button.
+- `TimelineRow` → `TimelineRowView` rename to clear naming conflict with the type alias.
+- `EngagementChips` rewrite per Pass C3 spec: now reads from email_sent payload (open_count, click_count, clicked_ctas, last_opened_at) primarily, falls back to legacy `email_engagement[]` map for backward compat.
+- Chip format: "👁 3 opens · last Tue 4pm" + "🖱 1 click · welcome page".
+- `formatCtaLabel(url)` helper collapses Smartlead tracker URLs to "the link" and maps olera.care paths to human labels ("welcome page", "candidate board", "program PDF").
+- Added `emailSentPayload` field on PastRow so the row can carry the touchpoint payload to the chip renderer.
+
+**Bullet 6 — Next Step branches per post-launch stage — DONE.**
+- New shared lib `lib/student-outreach/engagement-state.ts` carrying `getEngagementSubState()`, `hasClickedNotActivation()`, `hasOpenedNotClicked()`, `getLatestEngagementStats()` — single source of truth used by NextStepCard + Calls tab (Bullet 7) + Emails tab (Bullet 8).
+- `InOutreachBody` in `NextStepCard.tsx` now branches on the engagement sub-state:
+  - `no_engagement` → existing "Awaiting reply" body
+  - `opened_not_clicked` → "They opened — give them time" with open count + last-opened relative
+  - `clicked_not_activated` → "**They clicked — call them**" with Clicked pill, CTA label, last-clicked relative, **primary "Schedule call now →" action**
+- `scheduleCallNow` handler dispatches existing `queue_manual_task` action (G2 — no new action surface) with `task_type: "outreach_followup_call"`, due_at: now, note: "Click follow-up (clicked: {cta})".
+- `ConvertedBody` updated: when `metadata.pilot_active_through > now()` AND `interview_terms_accepted_at` set → renders "Pilot Active 🎉" headline with days-left countdown. Falls back to existing "Since {date}" when pilot timer not set (admin path that didn't go through Phase 4+5 activation API).
+- Extracted `ReplyClassifierModalMount` helper at file end to keep the modal dispatch logic single-sourced across the three engagement-sub-state branches.
+
+**Surfaced (one minor finding — logged in `medjobs-known-issues.md`):**
+- The Smartlead deep-link URL convention should be verified during Bullet 9 build by manually testing one before committing to `app.smartlead.ai/app/master-inbox?lead_id=…&campaign_id=…`. Logged for follow-up.
+
+**Typecheck:** clean across all 4 bullets (only pre-existing unrelated `@vercel/functions` error remains).
+
+**Next chunk:** Bullets 7+8+9 — the big tab redesigns (Calls tab Today/Upcoming + Emails tab single-stream + Smartlead deep-link button). Pausing here for Logan to QA the drawer changes on Vercel preview before tackling the surface work.
+
 **Pending Logan signoffs** (per master plan §12 "Phase 0 stabilization" checklist; not blocking branch creation or strategy work):
 - Sender identity (`logan@findmedjobs.co` + `partnerships@findmedjobs.co` proposed)
 - Footer/unsubscribe copy

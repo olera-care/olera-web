@@ -25,7 +25,12 @@ Status: Drain log — bugs and optimizations surfaced during phase builds.
 
 ## Open
 
-(none yet)
+### 2026-06-04 — Smartlead deep-link URL convention needs live verification
+- Found in: Phase 1 Bullet 3 strategy depth pass
+- Severity: minor (works under assumption; worst case fallback URL)
+- Owner: Claude
+- Target resolution: verify during Bullet 9 build (the deep-link button)
+- Notes: Plan assumes `https://app.smartlead.ai/app/master-inbox?lead_id=<lead_id>&campaign_id=<campaign_id>` deep-links to the right thread. Verify by manually clicking one on Smartlead's UI before committing the URL constant. If Smartlead's UI URL convention has changed, fall back to root master inbox `https://app.smartlead.ai/app/master-inbox` and document in known-issues.
 
 ## Resolved
 

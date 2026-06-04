@@ -42,6 +42,7 @@ import type {
 } from "@/lib/student-outreach/types";
 import {
   STOP_OUTREACH_ACTIONS,
+  MENU_TABS,
   STOP_OUTREACH_LABELS,
   TABS,
   TYPE_FILTERS,
@@ -69,7 +70,13 @@ interface MedJobsTabPageProps {
   title?: string;
 }
 
-const VALID_TAB_KEYS: ReadonlySet<TabKey> = new Set(TABS.map((t) => t.key));
+// v10 (Phase 1 Bullet 4, 2026-06-04): valid keys span BOTH the primary
+// horizontal row and the ⋯ overflow menu so deep links to any tab — including
+// clients/partners/candidates which moved to MENU_TABS — still resolve.
+const VALID_TAB_KEYS: ReadonlySet<TabKey> = new Set([
+  ...TABS.map((t) => t.key),
+  ...MENU_TABS.map((t) => t.key),
+]);
 
 export function MedJobsTabPage({
   initialTab,

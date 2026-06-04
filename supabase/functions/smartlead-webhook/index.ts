@@ -18,10 +18,17 @@
 //   EMAIL_BOUNCE     → email_bounced touchpoint
 //   EMAIL_UNSUBSCRIBE → email_complained touchpoint + status=do_not_contact
 //                       (compliance: cannot continue cadence — mirrors Resend)
-//   EMAIL_OPEN       → research_data.smartlead.engagement.opens++ + timestamp
-//                       (NO touchpoint — Apple Mail Privacy Protection inflates
-//                        open counts; per-event timeline noise would be unhelpful)
-//   EMAIL_CLICK      → research_data.smartlead.engagement.clicks++ + timestamp
+//   EMAIL_OPEN       → UPDATE matching email_sent touchpoint payload
+//                       (open_count, last_opened_at, first_opened_at) +
+//                       legacy row-level aggregate (research_data.smartlead.
+//                       engagement). NO new touchpoint — Apple Mail Privacy
+//                       Protection inflates open counts; per-event timeline
+//                       noise would be unhelpful. Per-touchpoint granularity
+//                       lets the timeline render engagement chips per email
+//                       day (Day 0 vs Day 3 vs Day 7 attribution).
+//   EMAIL_CLICK      → UPDATE matching email_sent touchpoint payload
+//                       (click_count, last_clicked_at, first_clicked_at,
+//                       clicked_ctas[]) + legacy row-level aggregate.
 //
 // ── ARCHITECTURE NOTE — narrow, deliberate G4 exception ──────────────────
 // The Operational Brief's G4 rule is "all mutations through route.ts action
@@ -103,6 +110,10 @@ interface LeadExtract {
   sequenceStep?: number;
   eventId?: string;
   eventAt?: string;
+  /** For click events only: the URL the recipient clicked. Stored in the
+   *  email_sent touchpoint's clicked_ctas[] for timeline rendering ("clicked:
+   *  Review {campus} student caregivers"). */
+  clickUrl?: string;
 }
 
 /** Pull our CRM join keys (custom_fields.outreach_id, contact_id, etc.) out of
@@ -141,6 +152,15 @@ function extractLead(raw: unknown): LeadExtract {
   const eventAtRaw = r.timestamp ?? r.event_timestamp ?? r.occurred_at ?? r.time;
   const eventAt = eventAtRaw != null ? String(eventAtRaw) : new Date().toISOString();
 
+  // Click URL — only present on EMAIL_CLICK events. Field name varies across
+  // Smartlead webhook versions; we accept the common aliases defensively.
+  const clickUrlRaw =
+    r.link_url ??
+    r.clicked_url ??
+    r.url ??
+    (r.link as Record<string, unknown> | undefined)?.url;
+  const clickUrl = clickUrlRaw != null ? String(clickUrlRaw) : undefined;
+
   return {
     outreachId,
     email: email || undefined,
@@ -150,6 +170,7 @@ function extractLead(raw: unknown): LeadExtract {
     sequenceStep,
     eventId,
     eventAt,
+    clickUrl,
   };
 }
 
@@ -310,24 +331,39 @@ async function handleUnsubscribe(row: ResolvedRow, extract: LeadExtract) {
   }
 }
 
-/** Open and click events update aggregated counters on the row instead of
- *  emitting per-event touchpoints. We dedupe by event_id stored alongside the
- *  counters so Smartlead retries don't double-count. */
+/** Open and click events update TWO places (Phase 1 Bullet 3, 2026-06-04):
+ *
+ *   1. The matching email_sent touchpoint's payload (NEW) — so the outreach
+ *      timeline can render engagement chips per email day ("Day 0 email · 3
+ *      opens · 1 click on Review CTA"). Matched by outreach_id + sequence_step.
+ *
+ *   2. The legacy row-level aggregate at research_data.smartlead.engagement
+ *      (PRESERVED) — kept for backward compatibility with any read paths that
+ *      already key off the aggregate counters. Same fields as before.
+ *
+ * Dedup is enforced at BOTH layers (touchpoint payload's seen_engagement_events
+ * + row engagement's seen_event_ids) so retries never double-count, regardless
+ * of which path read state at request time. */
 async function handleEngagement(
   row: ResolvedRow,
   type: "open" | "click",
   extract: LeadExtract,
 ) {
+  // Layer 1 dedup: row-level (covers retries that miss the touchpoint match).
   const research = (row.research_data ?? {}) as Record<string, unknown>;
   const smartlead = (research.smartlead ?? {}) as Record<string, unknown>;
   const engagement = (smartlead.engagement ?? {}) as Record<string, unknown>;
   const seen = (engagement.seen_event_ids as string[] | undefined) ?? [];
 
   if (extract.eventId && seen.includes(extract.eventId)) {
-    // Already counted this retry — no-op.
-    return;
+    return; // Already counted this retry.
   }
 
+  // Layer A: update the matching email_sent touchpoint payload (best-effort —
+  // false return falls through to the row-level aggregate below).
+  await updateMatchingEmailSentPayload(row.id, type, extract);
+
+  // Layer B: update the legacy row-level aggregate.
   const opens = Number(engagement.opens ?? 0);
   const clicks = Number(engagement.clicks ?? 0);
   const nextEngagement: Record<string, unknown> = {
@@ -351,6 +387,82 @@ async function handleEngagement(
       },
     })
     .eq("id", row.id);
+}
+
+/** Find the email_sent touchpoint that an engagement event targets, and
+ *  update its payload with per-email open/click counters. Matched by
+ *  (outreach_id + sequence_step) — each cadence step has exactly one send
+ *  per recipient. Falls back to the most recent email_sent when sequence_step
+ *  is absent. Returns true on a successful update, false when no match. */
+async function updateMatchingEmailSentPayload(
+  outreachId: string,
+  type: "open" | "click",
+  extract: LeadExtract,
+): Promise<boolean> {
+  let query = supabase
+    .from("student_outreach_touchpoints")
+    .select("id, payload")
+    .eq("outreach_id", outreachId)
+    .eq("touchpoint_type", "email_sent");
+
+  if (extract.sequenceStep != null) {
+    query = query.filter(
+      "payload->>sequence_step",
+      "eq",
+      String(extract.sequenceStep),
+    );
+  }
+
+  const { data } = await query.order("created_at", { ascending: false }).limit(1);
+  const touchpoint = (data ?? [])[0] as
+    | { id: string; payload: Record<string, unknown> | null }
+    | undefined;
+  if (!touchpoint) return false;
+
+  const payload = (touchpoint.payload ?? {}) as Record<string, unknown>;
+
+  // Per-touchpoint dedup (catches the case where two engagement events for
+  // the same email arrive but happen to hit different sequence_steps via
+  // upstream confusion — defense in depth).
+  const seenHere = (payload.seen_engagement_events as string[] | undefined) ?? [];
+  if (extract.eventId && seenHere.includes(extract.eventId)) {
+    return true; // No-op but counts as handled.
+  }
+
+  let patch: Record<string, unknown>;
+  if (type === "open") {
+    const openCount = Number(payload.open_count ?? 0);
+    patch = {
+      ...payload,
+      open_count: openCount + 1,
+      last_opened_at: extract.eventAt,
+      first_opened_at: payload.first_opened_at ?? extract.eventAt,
+    };
+  } else {
+    const clickCount = Number(payload.click_count ?? 0);
+    const prevCtas = (payload.clicked_ctas as string[] | undefined) ?? [];
+    const nextCtas = extract.clickUrl
+      ? [...prevCtas, extract.clickUrl].slice(-10)
+      : prevCtas;
+    patch = {
+      ...payload,
+      click_count: clickCount + 1,
+      last_clicked_at: extract.eventAt,
+      first_clicked_at: payload.first_clicked_at ?? extract.eventAt,
+      clicked_ctas: nextCtas,
+    };
+  }
+
+  patch.seen_engagement_events = extract.eventId
+    ? [...seenHere, extract.eventId].slice(-100)
+    : seenHere;
+
+  await supabase
+    .from("student_outreach_touchpoints")
+    .update({ payload: patch })
+    .eq("id", touchpoint.id);
+
+  return true;
 }
 
 Deno.serve(async (req: Request) => {

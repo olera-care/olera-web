@@ -75,11 +75,13 @@ function FunnelStat({
   value,
   format,
   highlight,
+  subtitle,
 }: {
   label: string;
   value: number;
   format?: "number" | "percent";
   highlight?: boolean;
+  subtitle?: string;
 }) {
   return (
     <div
@@ -91,6 +93,9 @@ function FunnelStat({
         {format === "percent" ? `${value}%` : value.toLocaleString()}
       </div>
       <div className="mt-0.5 text-xs text-gray-500">{label}</div>
+      {subtitle && (
+        <div className="mt-0.5 text-[10px] text-gray-400">{subtitle}</div>
+      )}
     </div>
   );
 }
@@ -281,9 +286,24 @@ export default function ConnectionsTrackerPage() {
         {statsExpanded && list?.funnelStats && (
           <div className="mt-4 grid grid-cols-5 gap-3">
             <FunnelStat label="Total Leads" value={list.funnelStats.total} />
-            <FunnelStat label="Provider Viewed" value={list.funnelStats.providerViewedRate} format="percent" />
-            <FunnelStat label="Provider Engaged" value={list.funnelStats.providerEngagedRate} format="percent" />
-            <FunnelStat label="Responded" value={list.funnelStats.respondedRate} format="percent" />
+            <FunnelStat
+              label="Provider Viewed"
+              value={list.funnelStats.providerViewedRate}
+              format="percent"
+              subtitle={`${list.funnelStats.providerViewed} leads`}
+            />
+            <FunnelStat
+              label="Provider Engaged"
+              value={list.funnelStats.providerEngagedRate}
+              format="percent"
+              subtitle={`${list.funnelStats.providerEngaged} leads`}
+            />
+            <FunnelStat
+              label="Responded"
+              value={list.funnelStats.respondedRate}
+              format="percent"
+              subtitle={`${list.funnelStats.responded} leads`}
+            />
             <FunnelStat label="Connected" value={list.funnelStats.connected} highlight />
           </div>
         )}
@@ -312,9 +332,24 @@ export default function ConnectionsTrackerPage() {
         {actionsExpanded && list?.providerActions && (
           <div className="mt-4 grid grid-cols-4 gap-3">
             <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
-            <FunnelStat label="Copied Phone" value={list.providerActions.copiedPhoneRate} format="percent" />
-            <FunnelStat label="Copied Email" value={list.providerActions.copiedEmailRate} format="percent" />
-            <FunnelStat label="Continued to Inbox" value={list.providerActions.continuedToInboxRate} format="percent" />
+            <FunnelStat
+              label="Copied Phone"
+              value={list.providerActions.copiedPhoneRate}
+              format="percent"
+              subtitle={`${list.providerActions.copiedPhone} copied`}
+            />
+            <FunnelStat
+              label="Copied Email"
+              value={list.providerActions.copiedEmailRate}
+              format="percent"
+              subtitle={`${list.providerActions.copiedEmail} copied`}
+            />
+            <FunnelStat
+              label="Continued to Inbox"
+              value={list.providerActions.continuedToInboxRate}
+              format="percent"
+              subtitle={`${list.providerActions.continuedToInbox} clicked`}
+            />
           </div>
         )}
       </div>

@@ -42,6 +42,8 @@ const TIMELINE_ACTIVITY_EVENTS = [
   "claim_completed",
   "dashboard_arrival",
   "contact_revealed",
+  "phone_clicked",
+  "email_link_clicked",
   "reviews_cta_clicked",
   "lead_opened",
   "review_viewed",
@@ -113,7 +115,11 @@ function summarizeActivity(eventType: string, metadata: Record<string, unknown> 
       return source ? `Arrived at dashboard (from ${source})` : "Arrived at dashboard";
     }
     case "contact_revealed":
-      return "Revealed contact info";
+      return "Copied contact info";
+    case "phone_clicked":
+      return "Clicked to call family";
+    case "email_link_clicked":
+      return "Clicked to email family";
     case "reviews_cta_clicked":
       return "Clicked reviews CTA";
     case "lead_opened":

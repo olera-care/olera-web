@@ -78,7 +78,7 @@
     },
     {
       "path": "/api/cron/lead-response-nudge",
-      "schedule": "0 14 * * 4"
+      "schedule": "0 14 * * 2,4,6"
     },
     {
       "path": "/api/cron/lead-family-nudge",

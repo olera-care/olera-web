@@ -108,6 +108,8 @@ export async function GET(request: NextRequest) {
         subject: urSubject,
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
+        providerId: isFamily ? undefined : recipientProfileId,
+        metadata: { connection_id: conn.id },
       });
 
       // Build view URL with deep link to specific conversation

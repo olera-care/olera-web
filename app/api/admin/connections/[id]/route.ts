@@ -206,7 +206,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         .select(
           "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
         )
-        .eq("recipient", familyEmail.toLowerCase())
+        .ilike("recipient", familyEmail) // Case-insensitive match
         .in("email_type", FAMILY_EMAIL_TYPES)
         .gte("created_at", c.created_at)
         .order("created_at", { ascending: false })

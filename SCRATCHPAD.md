@@ -77,6 +77,33 @@ Master plan §12 rewritten as clean INDEX (phase table + workflow + traceability
 
 **Resume next session here →** Logan reviews Phase 1 detailed plan ([`plans/medjobs-phase-1-operational-backbone.md`](plans/medjobs-phase-1-operational-backbone.md)) at scope/bullet level. If approved, Phase 0 closes (TJ merges current branch + Smartlead env vars + Logan signoffs on sender/footer/copy) THEN Phase 1 branch is cut and build starts.
 
+**2026-06-04 — MVP COMPLETE. All four phase pairs merged to staging (~33 bullets across 12 weeks of planned work, single session):**
+- Phase 1 (PR #926) — Admin operational backbone
+- Phase 2+3 (PR #927) — Magic Link + Provider Landing
+- Phase 4+5 (PR #928) — Conversion gate + Pilot Active activation
+
+**Staging now at `bd2db628`. Cold-provider conversion path is end-to-end functional once TJ completes activation:**
+1. Set `MEDJOBS_MAGIC_LINK_SECRET` on Vercel prod + preview (`openssl rand -base64 48`)
+2. Upload `public/medjobs/pilot-agreement.pdf` (template version is fine)
+3. Run `npx tsx scripts/medjobs-refresh-smartlead-sequences.ts --apply` to push current templates to existing Smartlead campaigns (addresses Logan's stale-copy bug — Smartlead campaigns are stateful; existing ones retain baked-in sequence text until explicitly updated)
+4. Carry-over from earlier phases: Calendly webhook activation (CALENDLY_WEBHOOK_SECRET + URL registered); Smartlead webhook open/click subscription enabled
+
+**Logan QA path post-activation:** open Smartlead admin → spot-check sequence text shows new v10 copy → send fresh test email → click magic link → land on candidate board → activate pilot → board flips to full mode → drawer shows "Pilot Active 🎉" with countdown.
+
+**Deferred items (logged in `plans/medjobs-known-issues.md`):**
+- Phase 1 Bullet 8b: full event-stream UI for Emails tab (~3 days; Logan decides post-QA whether minimal-viable suffices)
+- Phase 1 Bullet 10b: unmatched Calendly bookings tray (G3 — needs new table)
+- Phase 2+3 Bullet 8: explicit preview-mode card UI with disabled-action buttons (moot until Phase 6+ adds the actions)
+- Phase 2+3 Bullet 9: catchment filter defaults from ?campus=<slug> (needs campus→geo mapping)
+- Phase 4+5 Bullet 5: PDF asset (TJ upload task)
+- Smartlead deep-link URL verification (live spot-check during Logan QA)
+
+**What's left (Phase 6 + 7 — deferred for post-MVP-data):**
+- **Phase 6 (post-launch ops):** pilot-active dormancy re-engagement, pilot metrics dashboard, provider feedback collection, pilot expiry behavior + Day-T-7 reach-out, self-serve End-Pilot surface. Plan skeleton at `plans/medjobs-phase-6-postlaunch-ops.md`.
+- **Phase 7 (polish):** provider self-serve admin tools, pilot continuation (needs TJ pricing input), inline Smartlead reply UI, magic-token verification flow, Calendly migration to Olera org, multi-team-member support. Plan skeleton at `plans/medjobs-phase-7-polish.md`. Demand-driven.
+
+**Resume next session here →** TJ activates secrets + uploads PDF + runs Smartlead refresh script. Logan QAs end-to-end on staging. After confirmation that the conversion path works for at least one fixture provider, decide whether to: (a) promote to main / production, (b) start Phase 6 if a couple real pilot providers exist and need post-launch ops attention, or (c) iterate on the deferred Phase 1 Bullet 8b / Phase 2+3 Bullet 8 / etc. based on QA findings.
+
 **2026-06-04 — PR #925 MERGED + Phase 1 COMPLETE (12 of 12 bullets, ~30 commits).** Branch `medjobs/phase-1-operational-backbone` carries the full Phase 1 build. Tomorrow's resume: Logan QA on Vercel preview, then PR + merge to staging.
 
 Phase 1 build summary (chunked 4-way for review checkpoints):

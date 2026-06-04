@@ -262,6 +262,17 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      // Find the last message timestamp (for staleness calculation)
+      const realMessages = thread.filter(
+        (m) => m.is_auto_reply !== true && m.type !== "system" && !!m.text?.trim() && !!m.created_at
+      );
+      const lastMessageAt = realMessages.length > 0
+        ? realMessages.reduce((latest, m) => {
+            if (!latest) return m.created_at!;
+            return new Date(m.created_at!).getTime() > new Date(latest).getTime() ? m.created_at! : latest;
+          }, null as string | null)
+        : null;
+
       // Extract message preview and care metadata
       let messagePreview = "";
       let careType: string | null = null;
@@ -382,6 +393,7 @@ export async function GET(request: NextRequest) {
         familyNudgedAt,
         workflowState,
         waitingOn,
+        lastMessageAt,
         temperature,
       };
     });
@@ -541,6 +553,18 @@ export async function GET(request: NextRequest) {
       if (c.familyRepliedAfterProvider) connectedCount++;
 
       // Calculate engagement level for this connection
+      // Use the most recent of: engagement event OR message timestamp
+      const engagementLastActivity = eng?.lastActivityAt ?? null;
+      const messageLastActivity = c.lastMessageAt ?? null;
+      let combinedLastActivity: string | null = null;
+      if (engagementLastActivity && messageLastActivity) {
+        combinedLastActivity = new Date(engagementLastActivity).getTime() > new Date(messageLastActivity).getTime()
+          ? engagementLastActivity
+          : messageLastActivity;
+      } else {
+        combinedLastActivity = engagementLastActivity || messageLastActivity;
+      }
+
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
         leadOpened: eng?.lead_opened ?? false,
@@ -548,7 +572,7 @@ export async function GET(request: NextRequest) {
         phoneClicked: eng?.phone_clicked ?? false,
         emailLinkClicked: eng?.email_link_clicked ?? false,
         providerMessaged: c.responded,
-        lastActivityAt: eng?.lastActivityAt ?? null,
+        lastActivityAt: combinedLastActivity,
       };
 
       const engResult = getEngagementLevel(engagementData, c.created_at, now);

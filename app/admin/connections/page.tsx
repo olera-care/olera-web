@@ -52,7 +52,7 @@ interface ProviderActions {
 }
 
 interface ListResponse {
-  connections: (ConnectionRowData & { provider: { activityKey: string | null }; engagementLevel: EngagementLevel })[];
+  connections: (ConnectionRowData & { provider: { activityKey: string | null }; engagementLevel: EngagementLevel; lastMessageAt: string | null })[];
   total: number;
   workflowCounts: WorkflowCounts;
   engagementCounts: EngagementCounts;

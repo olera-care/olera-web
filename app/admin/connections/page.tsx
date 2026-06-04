@@ -16,6 +16,15 @@ interface WorkflowCounts {
   stuck: number;
 }
 
+interface EngagementCounts {
+  all: number;
+  new: number;
+  viewed: number;
+  engaged: number;
+  connected: number;
+  stuck: number;
+}
+
 interface FunnelStats {
   total: number;
   providerViewed: number;
@@ -43,17 +52,21 @@ interface ProviderActions {
 }
 
 interface ListResponse {
-  connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];
+  connections: (ConnectionRowData & { provider: { activityKey: string | null }; engagementLevel: EngagementLevel })[];
   total: number;
   workflowCounts: WorkflowCounts;
+  engagementCounts: EngagementCounts;
   funnelStats: FunnelStats;
   providerActions: ProviderActions;
   engagement: Record<string, Engagement>;
   truncated: boolean;
 }
 
-// Workflow-based tabs
-type FilterKey = "all" | "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
+// Engagement level type
+type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck";
+
+// Engagement-based tabs
+type FilterKey = "all" | EngagementLevel;
 
 interface TabConfig {
   key: FilterKey;
@@ -63,11 +76,11 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { key: "needs_attention", label: "Needs Attention", description: "Ready to nudge", emptyMessage: "Nothing needs attention right now." },
-  { key: "awaiting_provider", label: "Awaiting Provider", description: "Nudged, waiting", emptyMessage: "No connections awaiting provider response." },
-  { key: "awaiting_family", label: "Awaiting Family", description: "Provider replied", emptyMessage: "No connections awaiting family response." },
-  { key: "connected", label: "Connected", description: "Both engaged", emptyMessage: "No connected conversations yet." },
-  { key: "stuck", label: "Stuck", description: "Need to call", emptyMessage: "No stuck connections." },
+  { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
+  { key: "viewed", label: "Viewed", description: "Provider opened the lead", emptyMessage: "No leads have been viewed yet." },
+  { key: "engaged", label: "Engaged", description: "Provider revealed contact info", emptyMessage: "No engaged leads yet." },
+  { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
+  { key: "stuck", label: "Stuck", description: "No activity for 14+ days", emptyMessage: "No stuck connections." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
@@ -112,7 +125,7 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterKey>("needs_attention"); // Default to Needs Attention
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("new"); // Default to New leads
   const [page, setPage] = useState(0);
 
   // Stats row state (collapsible)
@@ -189,10 +202,10 @@ export default function ConnectionsTrackerPage() {
 
   const activeTabConfig = TABS.find((t) => t.key === activeFilter);
 
-  // Get count for tab
+  // Get count for tab (using engagement counts)
   const getTabCount = (key: FilterKey): number => {
-    if (!list?.workflowCounts) return 0;
-    return list.workflowCounts[key] ?? 0;
+    if (!list?.engagementCounts) return 0;
+    return list.engagementCounts[key] ?? 0;
   };
 
   // Delete handlers
@@ -210,16 +223,16 @@ export default function ConnectionsTrackerPage() {
     setDeleting(true);
     setDeleteError(null);
 
-    // Optimistic removal - update both connections list and workflow counts
+    // Optimistic removal - update both connections list and engagement counts
     const connectionToDelete = pendingDelete;
     setList(prev => {
       if (!prev) return null;
 
-      // Decrement the appropriate workflow count
-      const workflowState = connectionToDelete.workflowState;
-      const updatedCounts = { ...prev.workflowCounts };
-      if (workflowState && updatedCounts[workflowState] > 0) {
-        updatedCounts[workflowState]--;
+      // Decrement the appropriate engagement count
+      const engagementLevel = connectionToDelete.engagementLevel;
+      const updatedCounts = { ...prev.engagementCounts };
+      if (engagementLevel && updatedCounts[engagementLevel] > 0) {
+        updatedCounts[engagementLevel]--;
         updatedCounts.all--;
       }
 
@@ -227,7 +240,7 @@ export default function ConnectionsTrackerPage() {
         ...prev,
         connections: prev.connections.filter(c => c.id !== connectionToDelete.id),
         total: prev.total - 1,
-        workflowCounts: updatedCounts,
+        engagementCounts: updatedCounts,
       };
     });
 

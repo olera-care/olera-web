@@ -9,6 +9,11 @@ import {
   calculateFamilyCompleteness,
   calculateProviderCompleteness,
 } from "@/lib/admin/profile-completeness";
+import {
+  getEngagementLevel,
+  type EngagementLevel,
+  type EngagementData,
+} from "@/lib/connection-engagement";
 
 /**
  * GET /api/admin/connections — rows for the connections tracker's
@@ -89,9 +94,9 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
   return Array.isArray(p) ? p[0] : p ?? undefined;
 }
 
-// Workflow-based tab filters
+// Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState;
+type TabFilter = "all" | WorkflowState | EngagementLevel;
 
 // Stuck threshold: 3+ nudges with no response
 const STUCK_NUDGE_THRESHOLD = 3;
@@ -101,6 +106,16 @@ interface WorkflowCounts {
   needs_attention: number;
   awaiting_provider: number;
   awaiting_family: number;
+  connected: number;
+  stuck: number;
+}
+
+// Engagement-based tab counts (new system)
+interface EngagementCounts {
+  all: number;
+  new: number;
+  viewed: number;
+  engaged: number;
   connected: number;
   stuck: number;
 }
@@ -393,6 +408,7 @@ export async function GET(request: NextRequest) {
       phone_clicked: boolean;
       email_link_clicked: boolean;
       continue_in_inbox: boolean;
+      lastActivityAt: string | null;
     }>();
 
     // Initialize all providers as not engaged
@@ -404,6 +420,7 @@ export async function GET(request: NextRequest) {
         phone_clicked: false,
         email_link_clicked: false,
         continue_in_inbox: false,
+        lastActivityAt: null,
       });
     }
 
@@ -411,9 +428,10 @@ export async function GET(request: NextRequest) {
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
-        .select("provider_id, event_type")
+        .select("provider_id, event_type, created_at")
         .in("provider_id", allProviderKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
+        .order("created_at", { ascending: false })
         .limit(10000);
 
       for (const ev of actEvents ?? []) {
@@ -426,6 +444,11 @@ export async function GET(request: NextRequest) {
         else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
         else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
         else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
+
+        // Track most recent activity
+        if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
+          eng.lastActivityAt = ev.created_at;
+        }
       }
     }
 
@@ -474,7 +497,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Workflow-based counts
+    // Workflow-based counts (legacy)
     const workflowCounts: WorkflowCounts = {
       all: 0,
       needs_attention: 0,
@@ -484,11 +507,24 @@ export async function GET(request: NextRequest) {
       stuck: 0,
     };
 
+    // Engagement-based counts (new system)
+    const engagementCounts: EngagementCounts = {
+      all: 0,
+      new: 0,
+      viewed: 0,
+      engaged: 0,
+      connected: 0,
+      stuck: 0,
+    };
+
     // Funnel stats
     let providerViewedCount = 0;
     let providerEngagedCount = 0;
     let respondedCount = 0;
     let connectedCount = 0;
+
+    // Calculate engagement level for each connection and store it
+    const connectionEngagementLevels = new Map<string, EngagementLevel>();
 
     for (const c of searched) {
       // Count workflow states (only active connections)
@@ -503,6 +539,24 @@ export async function GET(request: NextRequest) {
       if (eng?.contact_revealed || eng?.phone_clicked || eng?.email_link_clicked || eng?.continue_in_inbox) providerEngagedCount++;
       if (c.responded) respondedCount++;
       if (c.familyRepliedAfterProvider) connectedCount++;
+
+      // Calculate engagement level for this connection
+      const engagementData: EngagementData = {
+        emailClicked: eng?.email_clicked ?? false,
+        leadOpened: eng?.lead_opened ?? false,
+        contactRevealed: eng?.contact_revealed ?? false,
+        phoneClicked: eng?.phone_clicked ?? false,
+        emailLinkClicked: eng?.email_link_clicked ?? false,
+        providerMessaged: c.responded,
+        lastActivityAt: eng?.lastActivityAt ?? null,
+      };
+
+      const engResult = getEngagementLevel(engagementData, c.created_at, now);
+      connectionEngagementLevels.set(c.id, engResult.level);
+
+      // Count engagement levels
+      engagementCounts.all++;
+      engagementCounts[engResult.level]++;
     }
 
     // Calculate funnel rates
@@ -534,11 +588,21 @@ export async function GET(request: NextRequest) {
       continuedToInboxRate: actionViewedCount > 0 ? Math.round((actionContinuedToInboxCount / actionViewedCount) * 100) : 0,
     };
 
-    // Filtering by workflow state
+    // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
+    // Check if filter is an engagement level
+    const engagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck"];
+    const isEngagementFilter = engagementLevels.includes(responseFilter as EngagementLevel);
+
     if (responseFilter !== "all") {
-      list = list.filter((c) => c.workflowState === responseFilter);
+      if (isEngagementFilter) {
+        // Filter by engagement level
+        list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+      } else {
+        // Filter by workflow state (legacy)
+        list = list.filter((c) => c.workflowState === responseFilter);
+      }
     }
 
     // Sort by most recent first (matches Leads page behavior)
@@ -548,11 +612,17 @@ export async function GET(request: NextRequest) {
       return bTime - aTime;
     });
 
-    const page = list.slice(offset, offset + limit);
+    const pageRaw = list.slice(offset, offset + limit);
+
+    // Add engagement level to each connection in the page
+    const page = pageRaw.map((c) => ({
+      ...c,
+      engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
+    }));
 
     // Per-provider engagement data for UI badges (keyed by provider activityKey)
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
-    for (const c of page) {
+    for (const c of pageRaw) {
       const key = c.provider.activityKey;
       if (key && !engagement[key]) {
         const eng = providerEngagement.get(key);
@@ -576,6 +646,7 @@ export async function GET(request: NextRequest) {
       connections: page,
       total: list.length,
       workflowCounts,
+      engagementCounts,
       funnelStats,
       providerActions,
       engagement,

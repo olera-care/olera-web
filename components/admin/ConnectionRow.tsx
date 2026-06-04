@@ -14,6 +14,7 @@ interface ProfileCompleteness {
 }
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
+export type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck";
 
 export interface ConnectionRowData {
   id: string;
@@ -46,6 +47,7 @@ export interface ConnectionRowData {
   familyNudgedAt?: string | null;
   workflowState?: WorkflowState | null;
   waitingOn?: "provider" | "family" | null;
+  engagementLevel?: EngagementLevel;
   temperature: ConnectionTemperature;
 }
 
@@ -240,32 +242,27 @@ export default function ConnectionRow({
   const careType = c.family.careType;
   const timeline = c.family.timeline;
 
-  // Get waiting status and nudge count for collapsed row
-  const getWaitingStatus = (): { status: string; nudgeInfo: string | null; isStuck: boolean } => {
+  // Get engagement status for collapsed row display
+  const getEngagementStatus = (): { status: string; color: string; nudgeInfo: string | null } => {
     const providerNudges = c.providerNudgeCount || 0;
-    const familyNudges = c.familyNudgeCount || 0;
+    const engLevel = c.engagementLevel || "new";
 
-    if (c.workflowState === "connected") {
-      return { status: "Both engaged", nudgeInfo: null, isStuck: false };
+    switch (engLevel) {
+      case "connected":
+        return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
+      case "engaged":
+        return { status: "Engaged", color: "text-orange-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
+      case "viewed":
+        return { status: "Viewed", color: "text-amber-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
+      case "stuck":
+        return { status: "Stuck", color: "text-gray-500", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : "No activity 14+ days" };
+      case "new":
+      default:
+        return { status: "New", color: "text-blue-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
     }
-    if (c.workflowState === "stuck") {
-      if (c.waitingOn === "family") {
-        return { status: "Waiting on family", nudgeInfo: `Family nudged ${familyNudges}x`, isStuck: true };
-      }
-      return { status: "Waiting on provider", nudgeInfo: `Provider nudged ${providerNudges}x`, isStuck: true };
-    }
-    if (c.waitingOn === "family") {
-      const nudgeInfo = familyNudges > 0 ? `Family nudged ${familyNudges}x` : null;
-      return { status: "Waiting on family", nudgeInfo, isStuck: false };
-    }
-    if (c.waitingOn === "provider") {
-      const nudgeInfo = providerNudges > 0 ? `Provider nudged ${providerNudges}x` : null;
-      return { status: "Waiting on provider", nudgeInfo, isStuck: false };
-    }
-    return { status: "Pending", nudgeInfo: null, isStuck: false };
   };
 
-  const waitingStatus = getWaitingStatus();
+  const engagementStatus = getEngagementStatus();
 
   async function toggle() {
     const next = !open;
@@ -335,14 +332,14 @@ export default function ConnectionRow({
                 <span className="text-gray-300">|</span>
               </>
             )}
-            <span className={waitingStatus.isStuck ? "text-amber-600 font-medium" : ""}>
-              {waitingStatus.status}
+            <span className={`font-medium ${engagementStatus.color}`}>
+              {engagementStatus.status}
             </span>
-            {waitingStatus.nudgeInfo && (
+            {engagementStatus.nudgeInfo && (
               <>
                 <span className="text-gray-300">|</span>
-                <span className={waitingStatus.isStuck ? "text-amber-600" : "text-gray-400"}>
-                  {waitingStatus.nudgeInfo}
+                <span className="text-gray-400">
+                  {engagementStatus.nudgeInfo}
                 </span>
               </>
             )}
@@ -397,13 +394,13 @@ export default function ConnectionRow({
             <div className="space-y-4">
               {/* Section 1: Action bar */}
               {/* Stuck connection alert - show call options prominently */}
-              {c.workflowState === "stuck" && (
+              {c.engagementLevel === "stuck" && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
-                    This connection needs manual follow-up. Multiple nudges sent with no response.
+                    This connection needs manual follow-up. No activity for 14+ days.
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
-                    {c.waitingOn === "provider" && detail.provider.phone && (
+                    {detail.provider.phone && (
                       <a
                         href={`tel:${detail.provider.phone}`}
                         className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
@@ -411,29 +408,12 @@ export default function ConnectionRow({
                         Call Provider
                       </a>
                     )}
-                    {c.waitingOn === "family" && detail.family.phone && (
-                      <a
-                        href={`tel:${detail.family.phone}`}
-                        className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                      >
-                        Call Family
-                      </a>
-                    )}
-                    {/* Show both if available for convenience */}
-                    {c.waitingOn === "provider" && detail.family.phone && (
+                    {detail.family.phone && (
                       <a
                         href={`tel:${detail.family.phone}`}
                         className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
                       >
                         Call Family
-                      </a>
-                    )}
-                    {c.waitingOn === "family" && detail.provider.phone && (
-                      <a
-                        href={`tel:${detail.provider.phone}`}
-                        className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                      >
-                        Call Provider
                       </a>
                     )}
                   </div>
@@ -442,10 +422,10 @@ export default function ConnectionRow({
 
               {/* Regular action bar - nudge buttons + engagement badges */}
               <div className="flex items-center gap-3 flex-wrap">
-                {/* Nudge buttons - only show if not stuck (stuck connections use call) */}
-                {c.workflowState !== "stuck" && c.workflowState !== "connected" && (
+                {/* Nudge buttons - show for new/viewed/engaged (not stuck or connected) */}
+                {c.engagementLevel !== "stuck" && c.engagementLevel !== "connected" && (
                   <>
-                    {c.waitingOn === "provider" && detail.provider.hasEmail && (
+                    {detail.provider.hasEmail && (
                       <button
                         onClick={() => sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")}
                         disabled={nudging}
@@ -454,7 +434,7 @@ export default function ConnectionRow({
                         {nudging ? "Sending..." : "Nudge Provider"}
                       </button>
                     )}
-                    {c.waitingOn === "provider" && !detail.provider.hasEmail && detail.provider.phone && (
+                    {!detail.provider.hasEmail && detail.provider.phone && (
                       <a
                         href={`tel:${detail.provider.phone}`}
                         className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200"
@@ -462,29 +442,12 @@ export default function ConnectionRow({
                         Call Provider (no email)
                       </a>
                     )}
-                    {c.waitingOn === "family" && detail.family.email && (
-                      <button
-                        onClick={() => sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")}
-                        disabled={nudging}
-                        className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-                      >
-                        {nudging ? "Sending..." : "Nudge Family"}
-                      </button>
-                    )}
-                    {c.waitingOn === "family" && !detail.family.email && detail.family.phone && (
-                      <a
-                        href={`tel:${detail.family.phone}`}
-                        className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200"
-                      >
-                        Call Family (no email)
-                      </a>
-                    )}
                   </>
                 )}
 
-                {/* Connected state - no action needed */}
-                {c.workflowState === "connected" && (
-                  <span className="text-sm text-emerald-600 font-medium">Both parties engaged</span>
+                {/* Connected state - success message */}
+                {c.engagementLevel === "connected" && (
+                  <span className="text-sm text-emerald-600 font-medium">Provider reached out to family</span>
                 )}
 
                 {/* Engagement badges */}

@@ -133,6 +133,28 @@ export function generateNotificationUrl(
 }
 
 /**
+ * Generate a provider portal URL with embedded claim token.
+ * Used for email footer links (manage listing, settings) — enables one-click sign-in.
+ *
+ * @param providerSlug - Provider's slug or ID
+ * @param email - Provider's email for token generation
+ * @param destination - Portal destination: "manage" (dashboard) or "settings"
+ * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
+ */
+export function generateProviderPortalUrl(
+  providerSlug: string,
+  email: string,
+  destination: "manage" | "settings",
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken(providerSlug, email);
+  const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
+  url.searchParams.set("action", destination);
+  url.searchParams.set("otk", token);
+  return url.toString();
+}
+
+/**
  * Generate a MedJobs notification URL with embedded claim token.
  * Used for interview email links — routes to the one-click claim handler
  * which authenticates the provider and redirects to their calendar in a

@@ -28,6 +28,7 @@ function getActionRedirectUrl(
   action: string | null,
   actionId: string | null
 ): string {
+  // Actions that require an actionId
   if (action && actionId) {
     switch (action) {
       case "lead":
@@ -38,11 +39,19 @@ function getActionRedirectUrl(
         return `/provider/qna?id=${actionId}`;
       case "review":
         return `/provider/reviews?id=${actionId}`;
+    }
+  }
+  // Actions that don't require an actionId
+  if (action) {
+    switch (action) {
       case "interview":
         return "/provider/caregivers";
+      case "manage":
       case "claim":
       case "signup":
         return "/provider";
+      case "settings":
+        return "/account/settings";
     }
   }
   return "/provider";

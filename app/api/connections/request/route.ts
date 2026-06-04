@@ -822,15 +822,45 @@ async function handleGuestConnection({
   // Provider notifications (fire-and-forget)
   try {
     if (providerEmail && !providerLeadsUnsubscribed) {
-      const careTypeMap: Record<string, string> = {
+      const emailCareTypeMap: Record<string, string> = {
         home_care: "Home Care",
         home_health: "Home Health Care",
         assisted_living: "Assisted Living",
         memory_care: "Memory Care",
+        nursing_home: "Nursing Home",
+        independent_living: "Independent Living",
       };
 
+      // Map care recipient to display value for email
+      const careRecipientDisplayMap: Record<string, string> = {
+        parent: "their parent",
+        spouse: "their spouse",
+        self: "", // Omit for "myself"
+        other: "a family member",
+      };
+
+      // Build dynamic subject line
+      const safeFamilyName = firstName && !["anonymous", "careseeker", "care", "a", "family", "guest", "user"].includes(firstName.toLowerCase()) ? firstName : null;
+      const careTypeDisplay = intentData?.careType ? (emailCareTypeMap[intentData.careType] || intentData.careType) : null;
+
+      let emailSubject: string;
+      if (safeFamilyName && providerCity && careTypeDisplay) {
+        emailSubject = `${safeFamilyName} in ${providerCity} is looking for ${careTypeDisplay.toLowerCase()}`;
+      } else if (!safeFamilyName && providerCity && careTypeDisplay) {
+        emailSubject = `A family in ${providerCity} is looking for ${careTypeDisplay.toLowerCase()}`;
+      } else if (safeFamilyName && careTypeDisplay) {
+        emailSubject = `${safeFamilyName} is looking for ${careTypeDisplay.toLowerCase()}`;
+      } else if (safeFamilyName && providerCity) {
+        emailSubject = `${safeFamilyName} in ${providerCity} is looking for care`;
+      } else if (safeFamilyName) {
+        emailSubject = `${safeFamilyName} is looking for care`;
+      } else if (providerCity) {
+        emailSubject = `A family in ${providerCity} is looking for care`;
+      } else {
+        emailSubject = "A family is looking for care";
+      }
+
       // Reserve email log ID for tracking before generating links
-      const emailSubject = `A family is looking for care from ${providerDisplayName || providerName}`;
       const emailLogId = await reserveEmailLogId({
         to: providerEmail,
         subject: emailSubject,
@@ -839,27 +869,35 @@ async function handleGuestConnection({
         providerId: toProfileId,
       });
 
-      // Generate one-click claim URL with signed token
+      // Generate one-click claim URLs with signed tokens
       const siteUrl = getSiteUrl();
+      const slugForUrls = providerSlug || toProfileId;
+
       let viewUrl: string;
+      let manageListingUrl: string;
+      let settingsUrl: string;
+
       try {
-        const { generateNotificationUrl } = await import("@/lib/claim-tokens");
-        viewUrl = generateNotificationUrl(
-          providerSlug || toProfileId,
-          providerEmail,
-          "lead",
-          newConnection.id,
-          siteUrl
-        );
-        // Append email tracking params
+        const { generateNotificationUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
+        viewUrl = generateNotificationUrl(slugForUrls, providerEmail, "lead", newConnection.id, siteUrl);
+        manageListingUrl = generateProviderPortalUrl(slugForUrls, providerEmail, "manage", siteUrl);
+        settingsUrl = generateProviderPortalUrl(slugForUrls, providerEmail, "settings", siteUrl);
+        // Append email tracking params to main CTA
         viewUrl = appendTrackingParams(viewUrl, emailLogId);
       } catch {
-        // Fallback: direct URL without token
+        // Fallback: direct URLs without tokens
         viewUrl = appendTrackingParams(
-          `${siteUrl}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+          `${siteUrl}/provider/${slugForUrls}/onboard?action=lead&actionId=${newConnection.id}`,
           emailLogId
         );
+        manageListingUrl = `${siteUrl}/provider/${slugForUrls}/onboard?action=manage`;
+        settingsUrl = `${siteUrl}/provider/${slugForUrls}/onboard?action=settings`;
       }
+
+      // Get care recipient display value
+      const careRecipientDisplay = intentData?.careRecipient
+        ? (careRecipientDisplayMap[intentData.careRecipient] || null)
+        : null;
 
       await sendEmail({
         to: providerEmail,
@@ -867,10 +905,12 @@ async function handleGuestConnection({
         html: connectionRequestEmail({
           providerName: providerDisplayName || providerName,
           familyName: firstName || "A family",
-          careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
-          message: intentData?.additionalNotes || null,
+          careType: careTypeDisplay,
+          city: providerCity,
+          careRecipient: careRecipientDisplay,
           viewUrl,
-          providerSlug: providerSlug || undefined,
+          manageListingUrl,
+          settingsUrl,
         }),
         emailType: 'connection_request',
         recipientType: 'provider',
@@ -1806,15 +1846,50 @@ export async function POST(request: Request) {
     // 9b. Email notification to provider (fire-and-forget)
     try {
       if (providerEmail && admin && !providerLeadsUnsubscribedAuth) {
-        const careTypeMap: Record<string, string> = {
+        const emailCareTypeMapAuth: Record<string, string> = {
           home_care: "Home Care",
           home_health: "Home Health Care",
           assisted_living: "Assisted Living",
           memory_care: "Memory Care",
+          nursing_home: "Nursing Home",
+          independent_living: "Independent Living",
         };
 
+        // Map care recipient to display value for email
+        // Note: careRecipient here may already be in display format ("My parent") from seekerRelationship
+        const careRecipientDisplayMapAuth: Record<string, string> = {
+          parent: "their parent",
+          spouse: "their spouse",
+          self: "",
+          other: "a family member",
+          "My parent": "their parent",
+          "My spouse": "their spouse",
+          "Myself": "",
+          "Someone else": "a family member",
+        };
+
+        // Build dynamic subject line
+        const safeFamilyNameAuth = firstName && !["anonymous", "careseeker", "care", "a", "family", "guest", "user"].includes(firstName.toLowerCase()) ? firstName : null;
+        const careTypeDisplayAuth = careType ? (emailCareTypeMapAuth[careType] || careType) : null;
+
+        let emailSubject: string;
+        if (safeFamilyNameAuth && providerCity && careTypeDisplayAuth) {
+          emailSubject = `${safeFamilyNameAuth} in ${providerCity} is looking for ${careTypeDisplayAuth.toLowerCase()}`;
+        } else if (!safeFamilyNameAuth && providerCity && careTypeDisplayAuth) {
+          emailSubject = `A family in ${providerCity} is looking for ${careTypeDisplayAuth.toLowerCase()}`;
+        } else if (safeFamilyNameAuth && careTypeDisplayAuth) {
+          emailSubject = `${safeFamilyNameAuth} is looking for ${careTypeDisplayAuth.toLowerCase()}`;
+        } else if (safeFamilyNameAuth && providerCity) {
+          emailSubject = `${safeFamilyNameAuth} in ${providerCity} is looking for care`;
+        } else if (safeFamilyNameAuth) {
+          emailSubject = `${safeFamilyNameAuth} is looking for care`;
+        } else if (providerCity) {
+          emailSubject = `A family in ${providerCity} is looking for care`;
+        } else {
+          emailSubject = "A family is looking for care";
+        }
+
         // Reserve email log ID for tracking before generating links
-        const emailSubject = `A family is looking for care from ${providerDisplayName || providerName}`;
         const emailLogId = await reserveEmailLogId({
           to: providerEmail,
           subject: emailSubject,
@@ -1823,25 +1898,33 @@ export async function POST(request: Request) {
           providerId: toProfileId,
         });
 
-        // Generate one-click claim URL with signed token
+        // Generate one-click claim URLs with signed tokens
         const siteUrl = getSiteUrl();
+        const slugForUrlsAuth = providerSlug || toProfileId;
+
         let viewUrl: string;
+        let manageListingUrlAuth: string;
+        let settingsUrlAuth: string;
+
         try {
-          const { generateNotificationUrl } = await import("@/lib/claim-tokens");
-          viewUrl = generateNotificationUrl(
-            providerSlug || toProfileId,
-            providerEmail,
-            "lead",
-            newConnection.id,
-            siteUrl
-          );
+          const { generateNotificationUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
+          viewUrl = generateNotificationUrl(slugForUrlsAuth, providerEmail, "lead", newConnection.id, siteUrl);
+          manageListingUrlAuth = generateProviderPortalUrl(slugForUrlsAuth, providerEmail, "manage", siteUrl);
+          settingsUrlAuth = generateProviderPortalUrl(slugForUrlsAuth, providerEmail, "settings", siteUrl);
           viewUrl = appendTrackingParams(viewUrl, emailLogId);
         } catch {
           viewUrl = appendTrackingParams(
-            `${siteUrl}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+            `${siteUrl}/provider/${slugForUrlsAuth}/onboard?action=lead&actionId=${newConnection.id}`,
             emailLogId
           );
+          manageListingUrlAuth = `${siteUrl}/provider/${slugForUrlsAuth}/onboard?action=manage`;
+          settingsUrlAuth = `${siteUrl}/provider/${slugForUrlsAuth}/onboard?action=settings`;
         }
+
+        // Get care recipient display value
+        const careRecipientDisplayAuth = careRecipient
+          ? (careRecipientDisplayMapAuth[careRecipient] || null)
+          : null;
 
         await sendEmail({
           to: providerEmail,
@@ -1849,10 +1932,12 @@ export async function POST(request: Request) {
           html: connectionRequestEmail({
             providerName: providerDisplayName || providerName,
             familyName: account.display_name || "A family",
-            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
-            message: intentData?.additionalNotes || null,
+            careType: careTypeDisplayAuth,
+            city: providerCity,
+            careRecipient: careRecipientDisplayAuth,
             viewUrl,
-            providerSlug: providerSlug || undefined,
+            manageListingUrl: manageListingUrlAuth,
+            settingsUrl: settingsUrlAuth,
           }),
           emailType: 'connection_request',
           recipientType: 'provider',

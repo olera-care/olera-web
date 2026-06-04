@@ -26,16 +26,161 @@ step; tickets 1–11 are ready to cut.
 | Q12 | T&C agreement checkbox default? | **Unchecked.** Continue button disabled until checked. Required for e-consent enforceability (ESIGN / UETA / GDPR). |
 | Q13 | T&C reassurance bullet wording? | **Approved as drafted in P1.E T7.** Four plain-language bullets addressing payment / hiring obligation / employment responsibility / public listing requirement. |
 
-## What's next
+## Reconciliation pass (v3.1 — Logan's pass 6)
 
-→ **Next session: cut MVP Implementation Phase 1 tickets 1–11** (see
-P1.J). Each ticket is one PR; the journey heart (4 + 5 + 6 + 8) ships
-as a tight coupled sequence. Total scope ~23 days at one dev (~4.5
-weeks).
+Logan flagged that the post-launch operational tabs (Calls, Emails,
+Meetings) have not received the same depth of attention as the
+magic-link journey, despite being a major part of what we discussed.
+Honest reconciliation against the artifact:
 
-→ **Open follow-up for Logan to think about** (not blockers):
-- Q3 follow-up — Dr. DuBose's personal Calendly works for MVP (no integration needed yet) and for Phase 2 (one personal-plan webhook subscription). When we hit Phase 2, decide whether to move to an Olera org Calendly so multiple team members can host events.
-- Brand consistency at click time — cold email arrives from `*@findmedjobs.co` (Smartlead-warmed); magic link lands on `olera.care`. Worth a single sentence in the email body so the brand jump doesn't surprise readers ("...you'll land on olera.care, our main platform.").
+| Section | Lines in current plan |
+|---------|----------------------|
+| P1.E (magic-link journey + state model) | 311 |
+| P2.A (Next Step post-launch) | 16 |
+| P2.B (Timeline split) | 20 |
+| P2.C (In Basket tabs) | 10 |
+| **P2.D (Calls tab redesign)** | **6** |
+| P2.E (Emails tab redesign) | 39 |
+| P2.F (Meetings tab + Calendly) | 49 |
+
+The disparity isn't a planning bug — Phase 2 surfaces are deferred
+work, so they get sketched at strategy depth, not specified at
+ticket-cutting depth. But Logan's concern is fair: at 6 lines for the
+Calls tab against 311 for the journey, the surfaces will FEEL lost
+when we come back to them, and details we discussed (per-row
+component spec, voicemail outcome flow, contact-row vs general-
+contact dispatch) are not captured anywhere.
+
+### Reconciliation against Logan's six questions
+
+**1. What major items from prior planning are included in the current plan?**
+
+Strategy and conceptual locks for every domain Logan raised across the
+four feedback passes:
+
+- Day 0 call moved to Pre-Flight (P1.A — implemented; cadence change in MVP ticket 1)
+- Post-launch call cadence (Day 0 / 3 / 5 / 7, P1.A)
+- Per-call purpose (P1.B — "did you get our email?" / "anything we can help with?" / graceful close)
+- Pilot Active as terminal state (P1.C — collapses into existing `interview_terms_accepted_at`)
+- Magic-link email CTA, "Review {campus} student caregivers →" (P1.D)
+- Full T0–T10 journey + four-axis state model (P1.E, 311 lines)
+- Co-tenancy edge case + read-only fallback (P1.E)
+- Empty-state ladder with Logan demo profile (P1.F)
+- Pilot tier predicate extending `medjobs_subscription_active` (P1.I)
+- Public listing required while pilot active (P1.E.5)
+- Tracking touchpoints model — engagement updates `email_sent` payload, no new types (P1.H)
+- Strategic shifts S1–S16 (top of doc)
+- MVP scope: 11 tickets, ~23 days (P1.J)
+- **Conceptual locks for Phase 2 surfaces** (P2.A–G) — direction is set, depth is light
+
+**2. What major items are missing or under-treated?**
+
+These items came up in prior conversation and are EITHER missing from
+the current doc OR sketched at "concept" depth when they need
+"specification" depth:
+
+**Under-treated** (concept locked, depth missing):
+- **Calls tab UX** — 6 lines. Missing: per-row component spec (call-script payload integration, contact-row vs general-contact dispatch, "next call due tomorrow / Fri / next Mon" grouping, log-outcome inline vs in modal, voicemail-then-re-call edge case).
+- **Emails tab event taxonomy** — 39 lines. Single-stream model locked but missing: Smartlead webhook payload → CRM touchpoint mapping table, per-event-type row UI, the "open Smartlead inbox" deep-link mechanic (master inbox vs per-mailbox, reply-thread context handoff), how the activity log paginates.
+- **Meetings tab outcome state machine** — 49 lines. Calendly matching is sketched but missing: Calendly cancel/reschedule webhook handlers, post-meeting sub-state model ("needs follow-up email" / "needs follow-up call" / "asked for time to think" / "pre-pilot-active") that Logan explicitly raised, integration with `LogMeetingModal` outcome enum.
+- **Next Step content per post-launch stage** — 16 lines. Today's drawer has 8 stages (prospect / in_outreach / call_due / meeting_set / follow_up / bounce_fix / converted / closed); the Next Step table only covers 5 post-launch states. Missing: engagement-driven sub-states (opened-not-clicked, clicked-not-activated, pilot-active-going-dormant) and the per-stage action prompts.
+- **Engagement → call priority** — Logan said clicked rows should rise in admin attention. Mentioned in P2.A but no priority-queue logic specified.
+- **Pilot-active provider returning experience** — what does a returning Pilot Active provider see on their second visit? The plan handles first visit (T9) but not the returning-provider dashboard, settings, or re-engagement.
+
+**Truly missing** (not in the plan at all):
+- **Smartlead-inbox deep-link mechanic** — implied by P2.E but never specified. Needed for ticket cutting on the Emails tab.
+- **Calendly cancel / reschedule webhook events** — only `invitee.created` is in P2.F. `invitee.canceled` + reschedule are not covered.
+- **Email-engagement → outreach-row priority queue** — clicked rows should jump priority in the Calls tab; the trigger logic isn't defined.
+- **Pilot-active dormancy re-engagement** — provider activates pilot, doesn't invite anyone for a week — what happens? Not addressed.
+- **Provider feedback collection surface** — the pilot agreement says Olera "may request feedback" (optional). No surface for this exists in the plan.
+- **Brand consistency at click time** — cold email from `@findmedjobs.co` → landing on `olera.care`. Mentioned as a follow-up item but never specified as an email-body insertion.
+- **Admin pilot metrics dashboard** — tracking from P1.H (CTR, activation rate, etc.) needs a surface; not designed.
+
+**3. What items are intentionally deferred?**
+
+- Inline Smartlead reply UI (Phase 3) — volume-dependent
+- Magic-token verification (Phase 3) — existing verification flow is independent and stays as-is
+- Pilot continuation flow (Phase 3) — post-3-month paid conversion
+- Provider self-serve admin tools (Phase 3) — edit org info from welcome page
+- Self-serve End-Pilot surface (Phase 2) — MVP relies on "contact us" per PDF
+- Pilot expiry behavior (Phase 2 per Q6 decision)
+- Multi-org-per-user team support (long-term) — co-tenancy edge case punts on this
+
+**4. What items should be added before implementation?**
+
+Two tiers of "added back":
+
+**Tier 1 — Add before any code moves** (load-bearing for MVP):
+- A brief amendment to **MVP ticket 2** (email template rewrite) noting the brand-consistency one-liner ("...you'll land on olera.care, our main platform.") so we don't re-do email copy later.
+
+**Tier 2 — Deepen before Phase 2 tickets are cut** (load-bearing for Phase 2, not MVP):
+- P2.D Calls tab → 6 lines → ~50 lines (per-row spec + grouping logic + edge cases)
+- P2.E Emails tab → 39 lines → ~80 lines (event mapping table + Smartlead deep-link + row UI + activity-log pagination)
+- P2.F Meetings tab → 49 lines → ~90 lines (Calendly cancel/reschedule + post-meeting sub-states + LogMeetingModal updates)
+- P2.A Next Step → 16 lines → ~50 lines (all post-launch states + engagement-driven sub-states + action prompts)
+
+The work to deepen these is ~3 days of strategy work, not weeks of
+code. It would happen during MVP development (parallel) or right
+after MVP ships and before Phase 2 begins.
+
+**5. Are Calls, Emails, and Meetings being treated as a major workflow redesign or as minor follow-up work?**
+
+Honest answer: **conceptually treated as major workflow redesign;
+operationally treated as deferred Phase 2 work**. The strategic shifts
+(S6–S9) and the P2.A–G sections reflect that they're a major rethink,
+but the implementation depth isn't there yet — and won't be until we
+deepen them per Tier 2 above.
+
+The PHASING is correct: ship MVP (conversion path) first, deepen
+surfaces (admin UX) second. But the DEPTH of treatment for the
+Phase 2 surfaces in the current doc is lighter than it should be
+given how much we discussed. They're at "strategy + scaffolding"
+depth, not at "ticket-cuttable specification" depth.
+
+**6. Are there any other important topics we discussed that have fallen out of scope?**
+
+Mostly the items in question 2 (the "truly missing" bucket). One
+additional concern surfaced by writing this reconciliation:
+
+- The **student-side flow** when a provider invites them to interview is entirely outside the plan. The plan ends at "provider clicks Invite to interview" and assumes the student side just works. If the student-side experience isn't already designed, that's a parallel scope item that should be tracked separately.
+
+### Recommendation (what to do next)
+
+**Do NOT promote anything from Phase 2 to MVP.** The MVP scope
+(tickets 1–11, ~23 days) is the right shape — it ships the
+conversion path that the strategic shifts are about. Promoting
+surfaces would expand MVP into a multi-month project before
+providers see any change.
+
+**DO add a small amendment to MVP ticket 2** for the brand-
+consistency one-liner. ~30 minutes of work; locks the email copy
+before we write it.
+
+**DO write a "Phase 2 surface depth" pass** as a separate planning
+deliverable BEFORE Phase 2 tickets are cut. Suggested order:
+
+- Pass A: Deepen P2.D + P2.E (Calls + Emails) — these ship together because Emails-tab clicks drive Call priority. Half-day of strategy work each.
+- Pass B: Deepen P2.F (Meetings + Calendly) — full-day because of the webhook + outcome state machine.
+- Pass C: Deepen P2.A (Next Step per stage) — half-day to enumerate all post-launch sub-states.
+
+These can happen during MVP development (parallel) so Phase 2 tickets
+are ready to cut the moment MVP ships.
+
+**DO NOT do Pass A/B/C right now.** They depend on MVP data flowing
+to validate UX assumptions (e.g., do admins actually rank clicked
+rows higher? we don't know until we see open/click data). Doing them
+now risks designing surfaces against assumptions instead of
+observations.
+
+**Concrete next move**: Cut MVP tickets 1–11 (P1.J) as planned. Add
+the brand-consistency one-liner to ticket 2's scope. When MVP ships
+to staging, write Phase 2 deepening passes A/B/C using real data
+from the first wave of providers.
+
+If you'd rather do Phase 2 depth-passes NOW (before MVP), I can — but
+the trade-off is ~2 days of strategy work that will get partially
+re-done after we see real engagement data. The wiser path is to ship
+MVP first.
 
 ---
 

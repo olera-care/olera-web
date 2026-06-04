@@ -19,6 +19,8 @@
 
 **Resume next session here →** Cut MVP Implementation Phase 1 tickets 1–11 in the order defined in P1.J. Journey heart (tickets 4 + 5 + 6 + 8) ships as a coupled PR sequence. Branch from staging; no merge until end-to-end works on a Vercel preview.
 
+**Pass 6 (Logan, reconciliation):** Logan flagged that Phase 2 surfaces (Calls/Emails/Meetings tabs, Next Step, Timeline) are at lighter depth than the magic-link journey (P1.E = 311 lines; P2.D = 6 lines). I added a "Reconciliation pass (v3.1)" section to the plan answering Logan's 6 questions honestly. Verdict: phasing is right (ship MVP conversion path first, deepen surfaces second) but doc depth for Phase 2 is genuinely lighter than the discussion warrants. Recommendation: don't promote anything to MVP; add brand-consistency one-liner to ticket 2; deepen P2.A/D/E/F in three parallel passes (A/B/C) during MVP development so Phase 2 tickets are ready when MVP ships. Truly missing items identified (Smartlead-inbox deep-link, Calendly cancel/reschedule webhooks, post-meeting sub-state machine, engagement-driven call priority, returning-provider experience, brand-consistency in email body, admin pilot-metrics dashboard, provider feedback collection surface, student-side flow). Awaiting Logan's call: ship MVP first (recommended) or pause to deepen Phase 2 strategy now (~2 days).
+
 ---
 
 ### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.1 (no code yet)

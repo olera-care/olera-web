@@ -56,9 +56,11 @@ interface Engagement {
   email_clicked: boolean;
   lead_opened: boolean;
   contact_revealed: boolean;
+  phone_copied: boolean;
+  email_copied: boolean;
   phone_clicked: boolean;
   email_link_clicked: boolean;
-  continue_in_inbox: boolean;
+  messaged: boolean;
 }
 
 interface ThreadEntry {
@@ -152,12 +154,14 @@ function fmtDate(iso: string | null): string {
 function EngagementBadges({ engagement, compact = false }: { engagement?: Engagement; compact?: boolean }) {
   if (!engagement) return null;
 
+  // Build badges with specific labels for what the provider did
   const badges: { icon: string; label: string; active: boolean }[] = [
     { icon: "👁", label: "Viewed", active: engagement.lead_opened },
-    { icon: "📋", label: "Copied", active: engagement.contact_revealed },
+    { icon: "📋", label: "Copied Phone", active: engagement.phone_copied },
+    { icon: "📋", label: "Copied Email", active: engagement.email_copied },
     { icon: "📞", label: "Called", active: engagement.phone_clicked },
     { icon: "📧", label: "Emailed", active: engagement.email_link_clicked },
-    { icon: "💬", label: "In Inbox", active: engagement.continue_in_inbox },
+    { icon: "💬", label: "Messaged", active: engagement.messaged },
   ];
 
   const activeBadges = badges.filter(b => b.active);
@@ -172,7 +176,7 @@ function EngagementBadges({ engagement, compact = false }: { engagement?: Engage
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 flex-wrap">
       {activeBadges.map(b => (
         <span
           key={b.label}

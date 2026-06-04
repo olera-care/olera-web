@@ -5,7 +5,7 @@ import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
-type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean };
+type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; messaged: boolean };
 
 interface WorkflowCounts {
   all: number;

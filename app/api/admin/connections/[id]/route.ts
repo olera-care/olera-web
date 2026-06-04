@@ -118,7 +118,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
             : "system",
     }));
 
-    // Provider engagement (opened/clicked/contact revealed/continue in inbox).
+    // Provider engagement (opened/clicked/contact revealed).
     // Use all possible provider identifiers for engagement lookup (matches list API)
     const engagementKeys = [
       provider?.slug,
@@ -126,22 +126,36 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       provider?.id,
       c.to_profile_id,
     ].filter(Boolean) as string[];
-    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_clicked: false, email_link_clicked: false, continue_in_inbox: false };
+    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_copied: false, email_copied: false, phone_clicked: false, email_link_clicked: false, messaged: false };
     if (engagementKeys.length > 0) {
       const { data: events } = await db
         .from("provider_activity")
-        .select("event_type")
+        .select("event_type, metadata")
         .in("provider_id", engagementKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
-      engagement = {
-        email_clicked: (events ?? []).some((e) => e.event_type === "email_click"),
-        lead_opened: (events ?? []).some((e) => e.event_type === "lead_opened"),
-        contact_revealed: (events ?? []).some((e) => e.event_type === "contact_revealed"),
-        phone_clicked: (events ?? []).some((e) => e.event_type === "phone_clicked"),
-        email_link_clicked: (events ?? []).some((e) => e.event_type === "email_link_clicked"),
-        continue_in_inbox: (events ?? []).some((e) => e.event_type === "continue_in_inbox"),
-      };
+
+      for (const e of events ?? []) {
+        if (e.event_type === "email_click") engagement.email_clicked = true;
+        else if (e.event_type === "lead_opened") engagement.lead_opened = true;
+        else if (e.event_type === "contact_revealed") {
+          engagement.contact_revealed = true;
+          const meta = e.metadata as Record<string, unknown> | null;
+          if (meta?.contact_type === "phone") {
+            engagement.phone_copied = true;
+          } else {
+            engagement.email_copied = true;
+          }
+        }
+        else if (e.event_type === "phone_clicked") engagement.phone_clicked = true;
+        else if (e.event_type === "email_link_clicked") engagement.email_link_clicked = true;
+      }
     }
+
+    // Check if provider actually sent a message in the thread
+    const providerMessaged = rawThread.some(
+      (m) => m.from_profile_id === c.to_profile_id && m.is_auto_reply !== true && !!m.text?.trim()
+    );
+    engagement.messaged = providerMessaged;
 
     // Email trail — every notification sent to this provider since the lead
     // arrived (provider_id keys both manual nudges and the consolidated cron

@@ -417,6 +417,8 @@ export async function GET(request: NextRequest) {
       email_clicked: boolean;
       lead_opened: boolean;
       contact_revealed: boolean;
+      phone_copied: boolean;
+      email_copied: boolean;
       phone_clicked: boolean;
       email_link_clicked: boolean;
       continue_in_inbox: boolean;
@@ -429,6 +431,8 @@ export async function GET(request: NextRequest) {
         email_clicked: false,
         lead_opened: false,
         contact_revealed: false,
+        phone_copied: false,
+        email_copied: false,
         phone_clicked: false,
         email_link_clicked: false,
         continue_in_inbox: false,
@@ -436,11 +440,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch engagement events by provider
+    // Fetch engagement events by provider (include metadata for contact_revealed type)
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
-        .select("provider_id, event_type, created_at")
+        .select("provider_id, event_type, created_at, metadata")
         .in("provider_id", allProviderKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
         .order("created_at", { ascending: false })
@@ -452,7 +456,16 @@ export async function GET(request: NextRequest) {
 
         if (ev.event_type === "email_click") eng.email_clicked = true;
         else if (ev.event_type === "lead_opened") eng.lead_opened = true;
-        else if (ev.event_type === "contact_revealed") eng.contact_revealed = true;
+        else if (ev.event_type === "contact_revealed") {
+          eng.contact_revealed = true;
+          // Track what was copied (phone vs email)
+          const meta = ev.metadata as Record<string, unknown> | null;
+          if (meta?.contact_type === "phone") {
+            eng.phone_copied = true;
+          } else {
+            eng.email_copied = true; // Default to email if not specified
+          }
+        }
         else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
         else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
         else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
@@ -539,18 +552,8 @@ export async function GET(request: NextRequest) {
     const connectionEngagementLevels = new Map<string, EngagementLevel>();
 
     for (const c of searched) {
-      // Count workflow states (only active connections)
-      if (c.workflowState) {
-        workflowCounts.all++;
-        workflowCounts[c.workflowState]++;
-      }
-
-      // Funnel stats (based on provider engagement)
+      // Get engagement data for this provider
       const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
-      if (eng?.lead_opened) providerViewedCount++;
-      if (eng?.contact_revealed || eng?.phone_clicked || eng?.email_link_clicked || eng?.continue_in_inbox) providerEngagedCount++;
-      if (c.responded) respondedCount++;
-      if (c.familyRepliedAfterProvider) connectedCount++;
 
       // Calculate engagement level for this connection
       // Use the most recent of: engagement event OR message timestamp
@@ -578,9 +581,23 @@ export async function GET(request: NextRequest) {
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
 
-      // Count engagement levels
-      engagementCounts.all++;
-      engagementCounts[engResult.level]++;
+      // Only count active connections (those with workflowState)
+      // This ensures tab counts match the displayed connections
+      if (c.workflowState) {
+        // Count workflow states
+        workflowCounts.all++;
+        workflowCounts[c.workflowState]++;
+
+        // Count engagement levels
+        engagementCounts.all++;
+        engagementCounts[engResult.level]++;
+
+        // Funnel stats (based on provider engagement)
+        if (eng?.lead_opened) providerViewedCount++;
+        if (eng?.contact_revealed || eng?.phone_clicked || eng?.email_link_clicked || eng?.continue_in_inbox) providerEngagedCount++;
+        if (c.responded) respondedCount++;
+        if (c.familyRepliedAfterProvider) connectedCount++;
+      }
     }
 
     // Calculate funnel rates
@@ -645,7 +662,7 @@ export async function GET(request: NextRequest) {
     }));
 
     // Per-provider engagement data for UI badges (keyed by provider activityKey)
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; messaged: boolean }> = {};
     for (const c of pageRaw) {
       const key = c.provider.activityKey;
       if (key && !engagement[key]) {
@@ -654,9 +671,12 @@ export async function GET(request: NextRequest) {
           email_clicked: eng?.email_clicked ?? false,
           lead_opened: eng?.lead_opened ?? false,
           contact_revealed: eng?.contact_revealed ?? false,
+          phone_copied: eng?.phone_copied ?? false,
+          email_copied: eng?.email_copied ?? false,
           phone_clicked: eng?.phone_clicked ?? false,
           email_link_clicked: eng?.email_link_clicked ?? false,
-          continue_in_inbox: eng?.continue_in_inbox ?? false,
+          // "Messaged" = provider sent a message (more meaningful than "continue_in_inbox")
+          messaged: c.responded,
         };
       }
     }

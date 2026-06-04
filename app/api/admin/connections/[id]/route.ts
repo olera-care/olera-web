@@ -220,16 +220,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       familyFallbackEmails = (familyEmailLogs ?? []).filter(e => {
         if (foundIds.has(e.id)) return false; // Already found by connection_id
 
-        // Check if email was sent within 1 hour of connection creation (likely the confirmation)
-        const emailTime = e.created_at ? new Date(e.created_at).getTime() : 0;
-        const withinConnectionWindow = Math.abs(emailTime - connectionTime) < ONE_HOUR;
-
-        // Or check if metadata references this provider
         const emailMeta = e.metadata as Record<string, unknown> | null;
         const emailProviderId = emailMeta?.provider_id as string | undefined;
-        const matchesProvider = emailProviderId === c.to_profile_id;
 
-        return withinConnectionWindow || matchesProvider;
+        // If email has provider_id in metadata, it must match this connection's provider
+        if (emailProviderId) {
+          return emailProviderId === c.to_profile_id;
+        }
+
+        // For emails without provider_id (older data), only include if sent within
+        // 1 hour of connection creation (likely the confirmation email)
+        const emailTime = e.created_at ? new Date(e.created_at).getTime() : 0;
+        const withinConnectionWindow = Math.abs(emailTime - connectionTime) < ONE_HOUR;
+        return withinConnectionWindow;
       }) as EmailLogRow[];
 
       // Add these to foundIds to avoid duplicates

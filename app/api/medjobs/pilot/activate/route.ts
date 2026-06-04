@@ -31,6 +31,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { resolveOrClaimProviderProfile } from "@/lib/medjobs/claim-provider-profile";
 
 export async function POST(request: Request) {
   // ── 1. Session check ─────────────────────────────────────────────────
@@ -62,6 +63,35 @@ export async function POST(request: Request) {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  // ── 2.5. Resolve (or create) the user's account ──────────────────────
+  // The org owns the profile; this account is the owner. Magic-link sign-in
+  // already creates the account, but we create-if-missing for robustness
+  // (returning providers, direct visits).
+  let accountId: string;
+  {
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (account) {
+      accountId = (account as { id: string }).id;
+    } else {
+      const { data: newAcc, error: accErr } = await supabase
+        .from("accounts")
+        .insert({ user_id: user.id, onboarding_completed: true })
+        .select("id")
+        .single();
+      if (accErr || !newAcc) {
+        return NextResponse.json(
+          { error: "Could not resolve account" },
+          { status: 500 },
+        );
+      }
+      accountId = (newAcc as { id: string }).id;
+    }
+  }
+
   // ── 3. Resolve outreach row ──────────────────────────────────────────
   interface OutreachRowShape {
     id: string;
@@ -83,19 +113,10 @@ export async function POST(request: Request) {
       .maybeSingle();
     outreachRow = (data as unknown) as OutreachRowShape | null;
   } else {
-    // Resolve via user's account → business_profile → most recent outreach.
-    const { data: account } = await supabase
-      .from("accounts")
-      .select("id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (!account) {
-      return NextResponse.json(
-        { error: "No account context for this user" },
-        { status: 404 },
-      );
-    }
-    const accountId = (account as { id: string }).id;
+    // No explicit outreach_id (returning provider): resolve via the user's
+    // already-claimed business_profile → most recent outreach. Cold providers
+    // always arrive WITH an outreach_id (threaded from the magic link), so
+    // this branch only serves returning/linked providers.
     const { data: bps } = await supabase
       .from("business_profiles")
       .select("id")
@@ -137,95 +158,80 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── 4. Atomic state transition (mirrors handleMakeClient) ────────────
+  // ── 4. Combined claim + trial (decision 2) ───────────────────────────
+  // ONE act: claim the directory page AND enter the hiring pilot. The
+  // shared primitive owns the dedup-by-source_provider_id + account_id +
+  // unique-slug invariants (mirrors the directory claim; never duplicates).
   const nowIso = new Date().toISOString();
   const pilotActiveThroughIso = (() => {
     const d = new Date();
     d.setDate(d.getDate() + 90);
     return d.toISOString();
   })();
+  const pilotMetadata = {
+    interview_terms_accepted_at: nowIso,
+    pilot_active_through: pilotActiveThroughIso,
+    terms_accepted_via: "self_serve",
+  };
+
+  const oleraProviderId = (
+    outreachRow.research_data as { olera_provider_id?: string } | null
+  )?.olera_provider_id;
   let businessProfileId = outreachRow.provider_business_profile_id;
 
-  // Path A — no business_profile yet: create one from the olera-providers row.
-  if (!businessProfileId) {
-    const oleraProviderId = (
-      outreachRow.research_data as { olera_provider_id?: string } | null
-    )?.olera_provider_id;
-    if (!oleraProviderId) {
+  if (oleraProviderId) {
+    // Directory-sourced provider (the cold path): resolve-or-claim by
+    // source_provider_id. This also adopts an unowned row left by an admin
+    // make_client, and reuses an existing same-account claim (idempotent).
+    let result;
+    try {
+      result = await resolveOrClaimProviderProfile(supabase, {
+        oleraProviderId,
+        accountId,
+        pilotMetadata,
+        fallbackName: outreachRow.organization_name,
+      });
+    } catch (e) {
       return NextResponse.json(
-        { error: "Outreach missing both business_profile and olera_provider_id" },
+        { error: e instanceof Error ? e.message : "Claim failed" },
         { status: 500 },
       );
     }
-    const { data: oleraProvider } = await supabase
-      .from("olera-providers")
-      .select(
-        "provider_id, provider_name, city, state, email, phone, website, slug, address, zipcode",
-      )
-      .eq("provider_id", oleraProviderId)
-      .maybeSingle();
-    if (!oleraProvider) {
-      return NextResponse.json(
-        { error: `olera-providers entry not found: ${oleraProviderId}` },
-        { status: 500 },
-      );
-    }
-    const op = oleraProvider as {
-      provider_id: string;
-      provider_name: string | null;
-      city: string | null;
-      state: string | null;
-      email: string | null;
-      phone: string | null;
-      website: string | null;
-      slug: string | null;
-      address: string | null;
-      zipcode: string | number | null;
-    };
-    const { data: newBp, error: createErr } = await supabase
-      .from("business_profiles")
-      .insert({
-        type: "organization",
-        display_name: op.provider_name || outreachRow.organization_name,
-        city: op.city,
-        state: op.state,
-        email: op.email,
-        phone: op.phone,
-        website: op.website,
-        slug: op.slug,
-        address: op.address,
-        zip: op.zipcode != null ? String(op.zipcode) : null,
-        metadata: {
-          interview_terms_accepted_at: nowIso,
-          pilot_active_through: pilotActiveThroughIso,
-          terms_accepted_via: "self_serve",
+    if (result.conflict) {
+      // Co-tenancy (decision 3): org already owned by another account.
+      // Never duplicate, never transfer — surface for reconciliation.
+      await supabase.from("student_outreach_touchpoints").insert({
+        outreach_id: outreachRow.id,
+        contact_id: null,
+        touchpoint_type: "note_added",
+        channel: null,
+        outcome: null,
+        notes:
+          "Pilot activation blocked — org already linked to another account (co-tenancy).",
+        payload: {
+          reason: "claim_conflict",
+          existing_business_profile_id: result.business_profile_id,
+          attempted_account_id: accountId,
+          attempted_by_user: user.id,
         },
-        claim_state: "claimed",
-        verification_state: "unverified",
-        source_provider_id: oleraProviderId,
-        created_at: nowIso,
-        updated_at: nowIso,
-      })
-      .select("id")
-      .single();
-    if (createErr || !newBp) {
+        created_by: null,
+      });
       return NextResponse.json(
         {
-          error: `Failed to create business_profiles: ${createErr?.message ?? "unknown"}`,
+          error:
+            "This organization is already linked to another team member's account. Email logan@olera.care to be added to the existing team.",
+          code: "CLAIM_CONFLICT",
         },
-        { status: 500 },
+        { status: 409 },
       );
     }
-    businessProfileId = (newBp as { id: string }).id;
-    await supabase
-      .from("student_outreach")
-      .update({ provider_business_profile_id: businessProfileId })
-      .eq("id", outreachRow.id);
-  } else {
-    // Path B — business_profile exists: patch metadata + advance claim_state.
+    businessProfileId = result.business_profile_id;
+  } else if (businessProfileId) {
+    // Non-directory provider (already had a business_profile not sourced
+    // from olera-providers): patch metadata + claim directly.
     const { data: bp } = await supabase
       .from("business_profiles")
-      .select("metadata, claim_state")
+      .select("metadata, account_id")
       .eq("id", businessProfileId)
       .maybeSingle();
     if (!bp) {
@@ -234,29 +240,62 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+    const bpAccountId = (bp as { account_id: string | null }).account_id ?? null;
+    if (bpAccountId && bpAccountId !== accountId) {
+      return NextResponse.json(
+        {
+          error:
+            "This organization is already linked to another team member's account. Email logan@olera.care to be added to the existing team.",
+          code: "CLAIM_CONFLICT",
+        },
+        { status: 409 },
+      );
+    }
     const existingMeta =
-      ((bp as { metadata: Record<string, unknown> | null }).metadata as
-        | Record<string, unknown>
-        | null) ?? {};
-    const newMeta = {
-      ...existingMeta,
-      interview_terms_accepted_at: nowIso,
-      pilot_active_through: pilotActiveThroughIso,
-      terms_accepted_via: "self_serve",
-    };
+      ((bp as { metadata: Record<string, unknown> | null }).metadata) ?? {};
     const { error: bpErr } = await supabase
       .from("business_profiles")
       .update({
-        metadata: newMeta,
-        // Axis 2b advances: the pilot signature IS the formal "I represent
-        // this org" identification per master plan § P1.E (Q9 lock).
+        metadata: { ...existingMeta, ...pilotMetadata },
         claim_state: "claimed",
+        ...(bpAccountId ? {} : { account_id: accountId }),
         updated_at: nowIso,
       })
       .eq("id", businessProfileId);
     if (bpErr) {
       return NextResponse.json({ error: bpErr.message }, { status: 500 });
     }
+  } else {
+    return NextResponse.json(
+      { error: "Outreach missing both business_profile and olera_provider_id" },
+      { status: 500 },
+    );
+  }
+
+  // Link the outreach row to the resolved profile.
+  await supabase
+    .from("student_outreach")
+    .update({ provider_business_profile_id: businessProfileId })
+    .eq("id", outreachRow.id);
+
+  // ── 4b. Make the claim usable (mirror directory claim side-effects) ──
+  // Free membership + active profile so the claimed org appears in the
+  // provider portal. Best-effort: the canonical claim is already persisted.
+  if (businessProfileId) {
+    const { data: existingMembership } = await supabase
+      .from("memberships")
+      .select("id")
+      .eq("account_id", accountId)
+      .limit(1);
+    if (!existingMembership || existingMembership.length === 0) {
+      await supabase
+        .from("memberships")
+        .insert({ account_id: accountId, plan: "free", status: "free" });
+    }
+    await supabase
+      .from("accounts")
+      .update({ onboarding_completed: true, active_profile_id: businessProfileId })
+      .eq("id", accountId);
   }
 
   // ── 5. stage_change touchpoint ───────────────────────────────────────

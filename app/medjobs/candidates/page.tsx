@@ -39,6 +39,9 @@ function CandidateBrowseInner() {
   const showWelcome = searchParams?.get("welcome") === "1";
   const claimConflict = searchParams?.get("claim_conflict") === "1";
   const campusFromUrl = searchParams?.get("campus");
+  // Threaded from the magic-link landing so the Terms modal can activate the
+  // correct outreach/org (decision: org-owned, deterministic via outreach_id).
+  const outreachIdFromUrl = searchParams?.get("outreach_id") ?? undefined;
 
   // v10 Phase 2+3 Bullet 2 (2026-06-04): paid access AND active-pilot
   // access both unlock the full board. Uses medjobsAccessActive which OR's
@@ -55,11 +58,10 @@ function CandidateBrowseInner() {
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  // Bullet 9 (catchment defaults from ?campus=<slug>) deferred to
-  // Phase 2+3b — needs a campus→state/city mapping that the current
-  // CandidateFilterValues (city + state) doesn't natively support.
-  // Provider still sees all students; filter UI is unchanged.
-  void campusFromUrl;
+  // Chunk 5 (2026-06-04): ?campus=<slug> from the magic-link landing filters
+  // the board to the university's students. The API resolves slug → university
+  // (bridging the two registries by name) and filters server-side, so the
+  // city/state filter UI stays orthogonal.
   const [filters, setFilters] = useState<CandidateFilterValues>(DEFAULT_CANDIDATE_FILTERS);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -78,6 +80,7 @@ function CandidateBrowseInner() {
           pageSize: String(PAGE_SIZE),
           sort: filters.sort,
         });
+        if (campusFromUrl) params.set("campus", campusFromUrl);
         if (filters.city) params.set("city", filters.city);
         if (filters.state) params.set("state", filters.state);
         if (filters.track) params.set("programTrack", filters.track);
@@ -113,7 +116,7 @@ function CandidateBrowseInner() {
         setLoadingMore(false);
       }
     },
-    [filters]
+    [filters, campusFromUrl]
   );
 
   // Initial load, filter changes, and paid-status flips all trigger
@@ -205,6 +208,7 @@ function CandidateBrowseInner() {
           <WelcomeBanner
             claimConflict={claimConflict}
             isProvider={!!isProvider}
+            outreachId={outreachIdFromUrl}
           />
         )}
 

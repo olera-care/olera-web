@@ -350,7 +350,37 @@ All 12 bullets meet acceptance criteria PLUS:
 
 ## Build log
 
-(populated chunk-by-chunk during build)
+### Day 1 — 2026-06-04 (Wed) — all four chunks shipped
+
+**Chunk A — foundations (Bullets 1 + 2 + 5):**
+- `lib/medjobs/welcome-token.ts` — HMAC-SHA256 sign/verify primitives with v1 header, 30-day TTL (Q5), per-token JTI. `buildWelcomeUrl` helper normalizes email to lowercase. Verified via 9-test tsx round-trip script (sign/verify, tampered sig rejected, expired rejected, wrong secret rejected, malformed rejected, build URL correct, pilot tier predicate all paths).
+- `lib/medjobs/pilot-tier.ts` — `medjobsAccessActive` ORs paid subscription + active pilot. `medjobsAccessTier` returns `"none" | "pilot" | "subscription"` for surfaces that need to distinguish. `pilotDaysRemaining` for the Pilot Active 🎉 countdown.
+- Candidate board readers updated: `app/medjobs/candidates/page.tsx` + `app/medjobs/candidates/[slug]/page.tsx` now use the new predicate.
+
+**Chunk B — server flow (Bullets 3 + 4 + 7):**
+- `app/medjobs/m/[token]/route.ts` — GET Route Handler implementing T1–T8 journey: token decode → JTI check (one-shot via touchpoint ledger) → auth user resolve (`createUser({ email_confirm: true })` or `listUsers` lookup if exists) → account insert if new → business_profile axis 2a linkage (no `claim_state` mutation; co-tenancy edge case = read-only) → audit touchpoint emit → Supabase magiclink generation → final redirect with welcome URL carrying `?welcome=1[&campus=...][&claim_conflict=1]`. Defensive: bad token / Supabase failures redirect to `/medjobs/m/expired?reason=<x>` with per-reason copy.
+- `app/medjobs/m/expired/page.tsx` — clean error page; covers reasons: expired / invalid / missing / user / link / config.
+- `app/medjobs/m/used/page.tsx` — "link already used" page with candidate-board CTA + sign-in fallback prefilled with email.
+
+**Chunk C — email templates + Smartlead bridge (Bullet 6):**
+- Day 0/3/7 provider templates rewritten per v3 P1.D: single primary CTA "Review {campus} student caregivers →" pointing at `{welcome_url}`. Reply + Calendly stay as smaller secondary CTAs. **No "trial" language anywhere.** "Pilot" appears once per email as honest framing (master plan § Δ1). Brand-consistency line ("Lands on olera.care" / "you'll land on olera.care, our main platform") so the findmedjobs.co → olera.care brand jump isn't a surprise (§ 6.7). Subject reads "Texas A&M student caregivers · Olera" (replaces the old "Olera's Texas A&M Student Caregiver Program" — shorter, more inbox-friendly).
+- `substituteVars` accepts `welcome_url`; falls back to `PROGRAM_URL` when not provided.
+- `lib/medjobs/smartlead-bridge.ts` — `rowToLeads` now sets `custom_fields.welcome_url` per-recipient via `buildWelcomeUrl` (each lead's unique signed token). `finalizeTokens` maps `{welcome_url}` → `{{welcome_url}}` Smartlead merge tag. Falls back to `PROGRAM_URL` when secret unset (dev / preview).
+- Verified: all 9 template acceptance checks pass via tsx render script (welcome URL in CTAs, brand line, no trial language, pilot mentioned for honest framing).
+
+**Chunk D — UI (Bullets 10 + 11 + 12; Bullet 8 deferred; Bullet 9 deferred):**
+- `components/medjobs/WelcomeBanner.tsx` — first-arrival banner with two variants (default + claim-conflict). Default copy: "Welcome to the student caregiver board. Browse the students; accept the pilot agreement when you're ready to invite anyone to interview." Renders only when `?welcome=1` AND viewer is signed-in-but-not-pilot-active. Includes "Activate the pilot →" CTA (placeholder until Phase 4+5 wires the T&C modal — currently triggers `openAuth`).
+- `lib/medjobs/demo-candidate.ts` — Logan DuBose locked demo profile per Q4. Real bio + photo + prominent `DEMO` badge + bio prefix so no confusion possible.
+- `components/medjobs/EmptyCandidatesLadder.tsx` — combines rung-4 (recruiting-momentum banner) + rung-3 (demo candidate card with amber `DEMO · This is not a real student` header). Rung-2 (sample students from peer campuses) deferred — needs an API to fetch + anonymize across-campus profiles.
+- `app/medjobs/candidates/page.tsx` updated: reads `?welcome` + `?campus` + `?claim_conflict` from URL via `useSearchParams`; renders WelcomeBanner conditionally; renders EmptyCandidatesLadder when candidate list is empty AND viewer is cold-provider context.
+
+**Deferred items (logged for follow-up):**
+- **Bullet 8** (explicit preview-mode card rendering with disabled-action buttons): the existing candidate API already redacts contact info for non-paid viewers, so preview mode is effectively in place via the existing infrastructure. The disabled-action-buttons UX is moot until Phase 4+5 wires the actual Invite/Save/See-contact actions. Re-evaluate during Phase 4+5 detail pass.
+- **Bullet 9** (catchment defaults from `?campus=<slug>`): the current `CandidateFilterValues` shape uses `city + state` not `campus_slug`. Setting catchment defaults from the URL requires a campus→state/city mapping that doesn't exist today. Phase 2+3b follow-up.
+
+**Typecheck:** clean across all 4 chunks.
+
+**Phase 2+3 ready for QA** on the Vercel preview once the magic-link infrastructure is activated on staging (TJ sets `MEDJOBS_MAGIC_LINK_SECRET` env var).
 
 ## Open issues / mid-build findings
 

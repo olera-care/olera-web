@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
@@ -9,12 +10,35 @@ import CandidateFilters, { DEFAULT_CANDIDATE_FILTERS } from "@/components/medjob
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
+import WelcomeBanner from "@/components/medjobs/WelcomeBanner";
+import EmptyCandidatesLadder from "@/components/medjobs/EmptyCandidatesLadder";
 
 const PAGE_SIZE = 20;
 
+// v10 Phase 2+3 Bullets 9 + 12 (2026-06-04): a Suspense boundary
+// is required for useSearchParams in App Router client components.
 export default function CandidateBrowsePage() {
+  return (
+    <Suspense fallback={<div />}>
+      <CandidateBrowseInner />
+    </Suspense>
+  );
+}
+
+function CandidateBrowseInner() {
+  const searchParams = useSearchParams();
   const { openAuth, activeProfile, profiles } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+
+  // v10 Phase 2+3 Bullets 9 + 12 (2026-06-04): cold-provider context
+  // signals from the magic-link landing route.
+  //   ?welcome=1         — first arrival from the email click; show banner
+  //   ?campus=<slug>     — provider's catchment campus; default the filter
+  //   ?claim_conflict=1  — org already claimed by another account; banner
+  //                        variant explains read-only co-tenancy
+  const showWelcome = searchParams?.get("welcome") === "1";
+  const claimConflict = searchParams?.get("claim_conflict") === "1";
+  const campusFromUrl = searchParams?.get("campus");
 
   // v10 Phase 2+3 Bullet 2 (2026-06-04): paid access AND active-pilot
   // access both unlock the full board. Uses medjobsAccessActive which OR's
@@ -31,6 +55,11 @@ export default function CandidateBrowsePage() {
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
+  // Bullet 9 (catchment defaults from ?campus=<slug>) deferred to
+  // Phase 2+3b — needs a campus→state/city mapping that the current
+  // CandidateFilterValues (city + state) doesn't natively support.
+  // Provider still sees all students; filter UI is unchanged.
+  void campusFromUrl;
   const [filters, setFilters] = useState<CandidateFilterValues>(DEFAULT_CANDIDATE_FILTERS);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -166,6 +195,22 @@ export default function CandidateBrowsePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* v10 Phase 2+3 Bullet 12 (2026-06-04): welcome banner for
+            first-arrival from the magic-link click. Suppressed on
+            paid/pilot-active accounts + returning visits. */}
+        {showWelcome && !isPaid && (
+          <WelcomeBanner
+            claimConflict={claimConflict}
+            isProvider={!!isProvider}
+            onActivatePilot={() => {
+              // Phase 4+5 wires the actual T&C modal trigger. For now the
+              // CTA opens auth (existing primitive) so providers can at
+              // least get to the next step.
+              openAuth();
+            }}
+          />
+        )}
+
         {/* Filters */}
         <CandidateFilters
           filters={filters}
@@ -204,19 +249,27 @@ export default function CandidateBrowsePage() {
             ))}
           </div>
         ) : candidates.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
+          // v10 Phase 2+3 Bullet 10 (2026-06-04): empty-state ladder for
+          // cold-provider context (signed-in but not pilot-active +
+          // arriving from magic-link click). For other viewers, fall
+          // back to the existing minimal "no results" copy.
+          showWelcome && !isPaid ? (
+            <EmptyCandidatesLadder />
+          ) : (
+            <div className="text-center py-20">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-sm font-medium">
+                No caregivers found matching your filters.
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                Try broadening your search or removing some filters.
+              </p>
             </div>
-            <p className="text-gray-500 text-sm font-medium">
-              No caregivers found matching your filters.
-            </p>
-            <p className="text-gray-400 text-sm mt-1">
-              Try broadening your search or removing some filters.
-            </p>
-          </div>
+          )
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -116,8 +116,8 @@ export default function ConnectionsTrackerPage() {
   const [page, setPage] = useState(0);
 
   // Stats row state (collapsible)
-  const [statsExpanded, setStatsExpanded] = useState(true);
-  const [actionsExpanded, setActionsExpanded] = useState(true);
+  const [statsExpanded, setStatsExpanded] = useState(false);
+  const [actionsExpanded, setActionsExpanded] = useState(false);
 
   // Delete state
   const [pendingDelete, setPendingDelete] = useState<ConnectionRowData | null>(null);

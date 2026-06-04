@@ -80,15 +80,40 @@ Co-tenancy branch (decision 3): at step [2]→[3], if a profile already exists f
 
 Each chunk = one cohesive, revertable commit (G6). Typecheck before push. Migration-free where possible (G3); any schema need is surfaced for TJ, not assumed.
 
-### Chunk 0 — Shared claim primitive + identity fix (foundations)
-- New `lib/provider/resolve-or-claim-profile.ts`: `resolveOrClaimProviderProfile({ oleraProviderId, accountId, terms })` →
-  - Resolve existing `business_profiles` by `source_provider_id` (exclude `claim_state="rejected"`).
-  - None → create with `account_id`, `generateUniqueSlug`, `claim_state="claimed"`, `verification_state="unverified"`, `source_provider_id`, `source="claimed_from_directory"`.
-  - Exists, same `account_id` → reuse (patch metadata only).
-  - Exists, different `account_id` → return `{ conflict: true }` (co-tenancy; caller handles).
-- Refactor `claim-instant` and `pilot/activate` Path A/B to call this one primitive → kills D-DUP, D-OWNER, D-SLUG in both flows.
-- Replace the first-200 `listUsers` scan with a deterministic email→user lookup → kills D-IDENT.
-- **Acceptance:** activating a cold provider creates exactly one owned, claimed, uniquely-slugged profile; re-activating is idempotent; an already-directory-claimed listing is reused, not duplicated.
+### Chunk 0 — Make MedJobs activation behave like the directory claim (foundations)
+
+> **DIRECTORY-SAFETY GUARDRAIL (load-bearing).** This chunk is **additive, not
+> invasive**: it does **NOT** modify any live directory claim path
+> (`claim-instant`, `claim-listing`, `create-listing`, `claim/finalize` +
+> `send-code`/`validate-token`). Those flows are fraud-hardened chokepoints
+> (see the 2026-05 fraud postmortem) and stay byte-for-byte untouched. We fix
+> the **broken MedJobs write path to match the proven directory behavior** —
+> never the reverse. Converging all claim paths onto one shared primitive is a
+> *separate, independently-verified* future step (Chunk 7, optional), not part
+> of stabilization.
+
+- Fix `pilot/activate` Path A so it adopts the **same guards the directory
+  claim already enforces** (do not refactor `claim-instant` — replicate its
+  proven behavior):
+  - Resolve existing `business_profiles` by `source_provider_id` (exclude
+    `claim_state="rejected"`) **before** creating → kills D-DUP.
+  - On create: set `account_id` (the org's account) → kills D-OWNER;
+    `generateUniqueSlug(...)` instead of the raw directory slug → kills D-SLUG;
+    `claim_state="claimed"`, `verification_state="unverified"`,
+    `source="claimed_from_directory"`, `source_provider_id`.
+  - Exists, same `account_id` → reuse (patch pilot metadata only).
+  - Exists, different `account_id` → co-tenancy (decision 3): no create, no
+    transition, signal conflict to caller.
+- Replace the first-200 `listUsers` scan in the magic-link route with a
+  deterministic email→user lookup → kills D-IDENT. (Magic-link route only —
+  does not touch directory auth.)
+- **Acceptance:**
+  - Activating a cold provider creates exactly one owned, claimed,
+    uniquely-slugged profile; re-activating is idempotent.
+  - A listing already claimed via the directory is **reused, not duplicated**,
+    and (if owned by another account) yields co-tenancy.
+  - **Regression gate (see Directory-invariant checklist):** every directory
+    claim path produces an identical end-state to before this chunk.
 
 ### Chunk 1 — Magic-link → auth landing (D-ROUTE + D-OID)
 - Give the MedJobs magic-link flow a destination the auth layer actually honors (dedicated authenticated landing or `next`-shaped param) so the provider stays on Hire Caregivers instead of being thrown to `/portal/inbox`.
@@ -126,8 +151,43 @@ Each chunk = one cohesive, revertable commit (G6). Typecheck before push. Migrat
   - returning pilot-active provider (no welcome banner, full board)
   - two recipients of the same org clicking different links
 
+#### Directory-invariant checklist (regression gate for Chunk 0)
+Before/after Chunk 0, confirm the directory's claim + public surfaces are
+**unchanged**. These are the invariants the MedJobs write path must match and
+the live directory paths must keep:
+- [ ] `claim-instant`, `claim-listing`, `create-listing`, `claim/finalize`
+      source is **untouched** (diff shows no edits to these files).
+- [ ] Blocked-domain hard block still rejects abuse domains on every claim path.
+- [ ] `source_provider_id` "already claimed" → 409 guard still fires (anti-fraud
+      chokepoint) on the directory paths.
+- [ ] Claiming from the directory still produces: unique slug, `account_id` set,
+      `claim_state="claimed"`, `verification_state="unverified"`, membership row,
+      `active_profile_id` set.
+- [ ] Public provider page still renders the claimed profile (read by
+      `source_provider_id`/`slug`) — family search + provider detail unaffected.
+- [ ] Activity log (`claim_completed`) + Slack/Loops/deferred-notification
+      side-effects still fire on directory claims.
+- [ ] Exactly one `business_profiles` row per `source_provider_id` after any
+      mix of directory-claim and MedJobs-activation orderings (no duplicates).
+
+### Chunk 7 — (Optional, post-stabilization) Converge claim paths
+- Only after stabilization is shipped and QA-green: extract the resolve-or-claim
+  core into one shared primitive and migrate the directory claim paths onto it,
+  one at a time, each independently regression-tested against the
+  Directory-invariant checklist. Pure refactor, no behavior change. Skippable if
+  the regression surface isn't judged worth it.
+- **Acceptance:** every claim path produces byte-identical end-state to today;
+  the Directory-invariant checklist passes after each migration.
+
 ## Discipline / risk notes
-- Chunk 0's primitive is the load-bearing fix; everything else depends on a single, correctly-owned, deduped profile.
+- **Directory safety is non-negotiable.** No live directory claim path
+  (`claim-instant`, `claim-listing`, `create-listing`, `claim/finalize`,
+  `send-code`, `validate-token`) is modified during stabilization. We fix the
+  broken MedJobs path to match them; we never alter the proven, fraud-hardened
+  paths. Risk is confined to the MedJobs write path + the magic-link route.
+- Chunk 0 is the load-bearing fix; everything else depends on a single,
+  correctly-owned, deduped profile — achieved by replicating the directory's
+  existing guards, not by rewriting them.
 - G3: prefer no migrations. If a constraint (e.g. unique on `source_provider_id`) is wanted to *enforce* one-profile-per-listing, surface to TJ — single shared Supabase, manual dashboard apply, no staging isolation (see `docs/DATABASE_STRATEGY.md` is a non-adopted proposal; reality is one shared Supabase).
 - Keep admin `make_client` and self-serve `pilot/activate` in lockstep — any change to one mirrors to the other.
 

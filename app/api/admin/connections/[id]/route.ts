@@ -172,6 +172,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       "post_connection_followup",
       "first_lead_celebration",
       "first_response_confirmation",
+      "stale_conversation",        // Cron: conversation gone cold
+      "unread_reminder",           // Cron: unread messages 24h+
     ];
     // Family emails: confirmations, reports, nudges (these often lack connection_id in metadata)
     const FAMILY_EMAIL_TYPES = [
@@ -184,6 +186,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       "family_nudge",              // Nudge to complete profile
       "family_reengagement",       // Re-engagement nudge
       "connection_confirmation",   // Connection confirmation
+      "stale_conversation",        // Cron: conversation gone cold
+      "unread_reminder",           // Cron: unread messages 24h+
     ];
 
     // 1. Query emails with connection_id in metadata (most accurate)

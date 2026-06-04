@@ -180,13 +180,26 @@ export default function ConnectionsTrackerPage() {
     setDeleting(true);
     setDeleteError(null);
 
-    // Optimistic removal
+    // Optimistic removal - update both connections list and workflow counts
     const connectionToDelete = pendingDelete;
-    setList(prev => prev ? {
-      ...prev,
-      connections: prev.connections.filter(c => c.id !== connectionToDelete.id),
-      total: prev.total - 1,
-    } : null);
+    setList(prev => {
+      if (!prev) return null;
+
+      // Decrement the appropriate workflow count
+      const workflowState = connectionToDelete.workflowState;
+      const updatedCounts = { ...prev.workflowCounts };
+      if (workflowState && updatedCounts[workflowState] > 0) {
+        updatedCounts[workflowState]--;
+        updatedCounts.all--;
+      }
+
+      return {
+        ...prev,
+        connections: prev.connections.filter(c => c.id !== connectionToDelete.id),
+        total: prev.total - 1,
+        workflowCounts: updatedCounts,
+      };
+    });
 
     try {
       const res = await fetch(`/api/admin/connections/${connectionToDelete.id}`, {
@@ -195,6 +208,8 @@ export default function ConnectionsTrackerPage() {
 
       if (res.ok) {
         setPendingDelete(null);
+        // Refetch to get accurate funnel stats (optimistic update handles immediate UI)
+        fetchConnections();
       } else {
         // Rollback on error
         fetchConnections();
@@ -336,6 +351,7 @@ export default function ConnectionsTrackerPage() {
                   c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
                 }
                 onDelete={requestDelete}
+                onNudgeSuccess={fetchConnections}
               />
             ))}
           </div>

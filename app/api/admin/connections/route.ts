@@ -210,7 +210,6 @@ export async function GET(request: NextRequest) {
           m.from_profile_id === r.to_profile_id &&
           m.is_auto_reply !== true &&
           m.type !== "system" &&
-          m.from_profile_id !== "system" &&
           !!m.text?.trim()
       );
       const responded = !!providerMsg;
@@ -226,7 +225,6 @@ export async function GET(request: NextRequest) {
             m.from_profile_id === r.from_profile_id &&
             m.is_auto_reply !== true &&
             m.type !== "system" &&
-            m.from_profile_id !== "system" &&
             !!m.text?.trim() &&
             m.created_at &&
             new Date(m.created_at).getTime() > providerResponseTime
@@ -277,7 +275,6 @@ export async function GET(request: NextRequest) {
 
       // Determine workflow state
       // Logic: Check if stuck first, then determine waiting state
-      const hasProviderEmail = !!provider?.email;
       const providerIsActive = provider?.is_active !== false;
       const providerNudgedRecently = providerNudgedAt
         ? now - new Date(providerNudgedAt).getTime() < SEVEN_DAYS_MS

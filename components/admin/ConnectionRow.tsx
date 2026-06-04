@@ -181,10 +181,12 @@ export default function ConnectionRow({
   c,
   engagement,
   onDelete,
+  onNudgeSuccess,
 }: {
   c: ConnectionRowData;
   engagement?: Engagement;
   onDelete?: (id: string) => void;
+  onNudgeSuccess?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -290,6 +292,8 @@ export default function ConnectionRow({
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setNudgeMsg({ ok: true, text: successText });
+        // Notify parent to refresh list - connection should move to "Awaiting" tab
+        onNudgeSuccess?.();
       } else {
         setNudgeMsg({ ok: false, text: data.error || "Couldn't send." });
       }
@@ -451,7 +455,7 @@ export default function ConnectionRow({
                         Call Provider (no email)
                       </a>
                     )}
-                    {c.waitingOn === "family" && (
+                    {c.waitingOn === "family" && detail.family.email && (
                       <button
                         onClick={() => sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")}
                         disabled={nudging}
@@ -459,6 +463,14 @@ export default function ConnectionRow({
                       >
                         {nudging ? "Sending..." : "Nudge Family"}
                       </button>
+                    )}
+                    {c.waitingOn === "family" && !detail.family.email && detail.family.phone && (
+                      <a
+                        href={`tel:${detail.family.phone}`}
+                        className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200"
+                      >
+                        Call Family (no email)
+                      </a>
                     )}
                   </>
                 )}

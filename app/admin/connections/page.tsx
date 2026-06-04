@@ -290,19 +290,19 @@ export default function ConnectionsTrackerPage() {
               label="Provider Viewed"
               value={list.funnelStats.providerViewedRate}
               format="percent"
-              subtitle={`${list.funnelStats.providerViewed} leads`}
+              subtitle={`${list.funnelStats.providerViewed} ${list.funnelStats.providerViewed === 1 ? "lead" : "leads"}`}
             />
             <FunnelStat
               label="Provider Engaged"
               value={list.funnelStats.providerEngagedRate}
               format="percent"
-              subtitle={`${list.funnelStats.providerEngaged} leads`}
+              subtitle={`${list.funnelStats.providerEngaged} ${list.funnelStats.providerEngaged === 1 ? "lead" : "leads"}`}
             />
             <FunnelStat
               label="Responded"
               value={list.funnelStats.respondedRate}
               format="percent"
-              subtitle={`${list.funnelStats.responded} leads`}
+              subtitle={`${list.funnelStats.responded} ${list.funnelStats.responded === 1 ? "lead" : "leads"}`}
             />
             <FunnelStat label="Connected" value={list.funnelStats.connected} highlight />
           </div>

@@ -246,3 +246,52 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/admin/connections/[id] — permanently delete a connection
+ * Used to clean up test data from the connections tracker.
+ */
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const admin = await getAdminUser(user.id);
+    if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const { id } = await params;
+    const db = getServiceClient();
+
+    // First check if the connection exists
+    const { data: existing, error: checkError } = await db
+      .from("connections")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("[connections/:id DELETE] check error:", checkError);
+      return NextResponse.json({ error: "Failed to check connection" }, { status: 500 });
+    }
+
+    if (!existing) {
+      return NextResponse.json({ error: "Connection not found" }, { status: 404 });
+    }
+
+    // Delete the connection
+    const { error: deleteError } = await db
+      .from("connections")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("[connections/:id DELETE] delete error:", deleteError);
+      return NextResponse.json({ error: "Failed to delete connection" }, { status: 500 });
+    }
+
+    console.log(`[connections/:id DELETE] Connection ${id} deleted by admin ${user.id}`);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[connections/:id DELETE] fatal:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

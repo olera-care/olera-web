@@ -33,6 +33,25 @@ import {
 const FETCH_CAP = 3000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Label maps for care type and timeline display
+const CARE_TYPE_LABELS: Record<string, string> = {
+  home_care: "Home Care",
+  home_health: "Home Health",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+};
+
+const TIMELINE_LABELS: Record<string, string> = {
+  immediate: "ASAP",
+  asap: "ASAP",
+  within_1_month: "Within 1 month",
+  within_month: "Within 1 month",
+  within_3_months: "Within 3 months",
+  few_months: "Within 3 months",
+  exploring: "Exploring",
+  researching: "Exploring",
+};
+
 type FamilyProfile = {
   id?: string;
   display_name?: string | null;
@@ -199,16 +218,38 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Extract message preview
+      // Extract message preview and care metadata
       let messagePreview = "";
+      let careType: string | null = null;
+      let timeline: string | null = null;
+
       if (r.message) {
         try {
           const msgJson = JSON.parse(String(r.message));
           messagePreview = msgJson.additional_notes || msgJson.message || msgJson.notes || "";
+          // Extract care type and timeline for collapsed row display
+          if (msgJson.care_type) {
+            careType = CARE_TYPE_LABELS[msgJson.care_type] || msgJson.care_type;
+          }
+          if (msgJson.urgency) {
+            timeline = TIMELINE_LABELS[msgJson.urgency] || msgJson.urgency;
+          }
         } catch {
           messagePreview = String(r.message);
         }
       }
+      // Fallback to family profile care_types
+      if (!careType && family?.care_types?.length) {
+        careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
+      }
+      // Fallback to family metadata timeline
+      if (!timeline && family?.metadata) {
+        const familyMeta = family.metadata as Record<string, unknown>;
+        if (familyMeta.timeline) {
+          timeline = TIMELINE_LABELS[familyMeta.timeline as string] || (familyMeta.timeline as string);
+        }
+      }
+
       if (!messagePreview && thread.length > 0) {
         const familyMsg = thread.find(
           (m) => m.from_profile_id === r.from_profile_id && m.text && !m.is_auto_reply
@@ -265,6 +306,8 @@ export async function GET(request: NextRequest) {
           phone: family?.phone ?? null,
           image_url: family?.image_url ?? null,
           completeness: familyCompleteness,
+          careType,
+          timeline,
         },
         provider: {
           id: provider?.id ?? null,
@@ -385,11 +428,11 @@ export async function GET(request: NextRequest) {
     }
     // "all" or no filter shows everything
 
+    // Sort by most recent first (matches Leads page behavior)
     list.sort((a, b) => {
-      const pa = INTERVENTION_PRIORITY[a.temperature.state];
-      const pb = INTERVENTION_PRIORITY[b.temperature.state];
-      if (pa !== pb) return pa - pb;
-      return b.temperature.stalenessMs - a.temperature.stalenessMs; // oldest-waiting first
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime;
     });
 
     const page = list.slice(offset, offset + limit);
@@ -416,7 +459,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       connections: page,
-      total: searched.length,
+      total: list.length,  // Count after tab filter, for correct pagination
       engagedCount,
       noActivityCount,
       engagement,

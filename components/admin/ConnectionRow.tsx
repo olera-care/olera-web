@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   formatAge,
   type ConnectionTemperature,
@@ -17,6 +17,7 @@ export type ResponseCategory = "needs_attention" | "provider_nudged" | "family_n
 
 export interface ConnectionRowData {
   id: string;
+  created_at?: string;
   family: {
     id?: string | null;
     display_name: string | null;
@@ -24,6 +25,8 @@ export interface ConnectionRowData {
     phone?: string | null;
     image_url?: string | null;
     completeness?: ProfileCompleteness;
+    careType?: string | null;
+    timeline?: string | null;
   };
   provider: {
     id?: string | null;
@@ -137,12 +140,49 @@ function fmtDate(iso: string | null): string {
   }
 }
 
+// Engagement badges component
+function EngagementBadges({ engagement, compact = false }: { engagement?: Engagement; compact?: boolean }) {
+  if (!engagement) return null;
+
+  const badges: { icon: string; label: string; active: boolean }[] = [
+    { icon: "👁", label: "Viewed", active: engagement.lead_opened },
+    { icon: "📋", label: "Copied", active: engagement.contact_revealed },
+    { icon: "✉️", label: "Messaged", active: engagement.continue_in_inbox },
+  ];
+
+  const activeBadges = badges.filter(b => b.active);
+  if (activeBadges.length === 0) return null;
+
+  if (compact) {
+    return (
+      <span className="flex items-center gap-0.5 text-sm" title={activeBadges.map(b => b.label).join(", ")}>
+        {activeBadges.map(b => <span key={b.label}>{b.icon}</span>)}
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {activeBadges.map(b => (
+        <span
+          key={b.label}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600"
+        >
+          {b.icon} {b.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function ConnectionRow({
   c,
   engagement,
+  onDelete,
 }: {
   c: ConnectionRowData;
   engagement?: Engagement;
+  onDelete?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -153,7 +193,8 @@ export default function ConnectionRow({
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  // Email preview state
+  // Email trail state (collapsed by default)
+  const [showEmails, setShowEmails] = useState(false);
   const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
   const [emailHtmlCache, setEmailHtmlCache] = useState<Record<string, string | null>>({});
   const [emailHtmlLoading, setEmailHtmlLoading] = useState<string | null>(null);
@@ -161,15 +202,11 @@ export default function ConnectionRow({
   // Fetch email HTML when expanding
   async function toggleEmailPreview(emailId: string) {
     if (expandedEmailId === emailId) {
-      // Collapse
       setExpandedEmailId(null);
       return;
     }
-    // Expand
     setExpandedEmailId(emailId);
-    // If already cached, don't fetch again
     if (emailHtmlCache[emailId] !== undefined) return;
-    // Fetch HTML
     setEmailHtmlLoading(emailId);
     try {
       const res = await fetch(`/api/admin/emails/${emailId}/html`);
@@ -182,7 +219,6 @@ export default function ConnectionRow({
     } catch {
       setEmailHtmlCache((prev) => ({ ...prev, [emailId]: null }));
     } finally {
-      // Only clear loading if this email is still the one loading
       setEmailHtmlLoading((prev) => (prev === emailId ? null : prev));
     }
   }
@@ -191,21 +227,23 @@ export default function ConnectionRow({
   const provider = c.provider.display_name || "Provider";
   const age = formatAge(c.temperature.stalenessMs);
 
-  // Build status descriptions
-  const familyStatus = c.responded
-    ? c.familyRepliedAfterProvider
-      ? "replied"
-      : "hasn't replied"
-    : "sent request";
+  // Get care type and timeline for collapsed row
+  const careType = c.family.careType;
+  const timeline = c.family.timeline;
 
-  const providerStatus = (() => {
-    if (c.responded) return "replied";
-    if (engagement?.contact_revealed) return "copied contact";
-    if (engagement?.continue_in_inbox) return "went to inbox";
-    if (engagement?.lead_opened) return "viewed lead";
-    if (c.responseCategory === "no_email") return "no email";
-    return "no response";
-  })();
+  // Build compact status for collapsed row
+  const getCompactStatus = () => {
+    const nudgeCount = c.nudgeCount || 0;
+    if (c.responded) {
+      if (c.familyRepliedAfterProvider) return "Connected";
+      return "Provider replied";
+    }
+    if (nudgeCount > 0) {
+      return `Nudged ${nudgeCount}×, no reply`;
+    }
+    if (c.responseCategory === "no_email") return "No email";
+    return "Awaiting response";
+  };
 
   async function toggle() {
     const next = !open;
@@ -248,262 +286,188 @@ export default function ConnectionRow({
   }
 
   return (
-    <div>
-      {/* Collapsed row - clean, scannable */}
-      <button
-        onClick={toggle}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-stone-50/60 transition-colors"
-        aria-expanded={open}
-      >
-        {/* Main content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
+    <div className="group">
+      {/* Collapsed row - enhanced with more context */}
+      <div className="flex w-full items-center gap-3 px-4 py-3 hover:bg-stone-50/60 transition-colors">
+        <button
+          onClick={toggle}
+          className="flex-1 min-w-0 text-left"
+          aria-expanded={open}
+        >
+          {/* Primary line: names + engagement badges + age */}
+          <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
             <span className="font-medium text-gray-900 truncate">{provider}</span>
-            <span className="text-sm text-gray-400 shrink-0">{age}</span>
+            <EngagementBadges engagement={engagement} compact />
+            <span className="text-sm text-gray-400 shrink-0 ml-auto">{age} ago</span>
           </div>
-          <div className="mt-1 flex items-center gap-4 text-sm text-gray-500">
-            <span>Family: {familyStatus}</span>
-            <span className="text-gray-300">|</span>
-            <span>Provider: {providerStatus}</span>
+          {/* Secondary line: care type + timeline | nudge status */}
+          <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+            {(careType || timeline) && (
+              <>
+                <span className="truncate">
+                  {careType}{careType && timeline ? " · " : ""}{timeline}
+                </span>
+                <span className="text-gray-300">|</span>
+              </>
+            )}
+            <span>{getCompactStatus()}</span>
           </div>
-        </div>
+        </button>
+
+        {/* Delete button - hover reveal */}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(c.id);
+            }}
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 text-gray-300 hover:text-red-500 transition-all"
+            title="Delete connection"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
 
         {/* Expand chevron */}
-        <svg
-          className={`h-5 w-5 text-gray-300 transition-transform shrink-0 ${open ? "rotate-90" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden
+        <button
+          onClick={toggle}
+          className="p-1"
+          aria-label={open ? "Collapse" : "Expand"}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+          <svg
+            className={`h-5 w-5 text-gray-300 transition-transform shrink-0 ${open ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
 
-      {/* Expanded detail - two-column layout */}
+      {/* Expanded detail - simplified layout */}
       {open && (
-        <div className="border-t border-gray-100 bg-stone-50/40 px-4 py-5">
+        <div className="border-t border-gray-100 bg-stone-50/40 px-4 py-4">
           {loading ? (
             <p className="text-sm text-gray-400">Loading...</p>
           ) : loadError ? (
             <p className="text-sm text-rose-600">Could not load this connection. Try again.</p>
           ) : detail ? (
-            <div className="space-y-5">
-              {/* Two-column: Family | Provider */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* FAMILY column */}
-                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Family</h3>
+            <div className="space-y-4">
+              {/* Section 1: Action bar - nudge buttons + engagement badges */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Nudge buttons */}
+                {!c.responded && detail.provider.hasEmail && (
+                  <button
+                    onClick={() => sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")}
+                    disabled={nudging}
+                    className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    {nudging ? "Sending..." : "Nudge Provider"}
+                  </button>
+                )}
+                {!c.responded && !detail.provider.hasEmail && detail.provider.phone && (
+                  <a
+                    href={`tel:${detail.provider.phone}`}
+                    className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200"
+                  >
+                    Call Provider (no email)
+                  </a>
+                )}
+                {c.responded && !c.familyRepliedAfterProvider && (
+                  <button
+                    onClick={() => sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")}
+                    disabled={nudging}
+                    className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    {nudging ? "Sending..." : "Nudge Family to Reply"}
+                  </button>
+                )}
+
+                {/* Engagement badges */}
+                <EngagementBadges engagement={detail.engagement} />
+
+                {/* Nudge feedback */}
+                {nudgeMsg && (
+                  <span className={`text-sm ${nudgeMsg.ok ? "text-emerald-600" : "text-rose-600"}`}>
+                    {nudgeMsg.text}
+                  </span>
+                )}
+              </div>
+
+              {/* Section 2: Contact cards - horizontal layout */}
+              <div className="flex gap-4 flex-wrap">
+                {/* Family contact */}
+                <div className="flex-1 min-w-[200px] bg-white rounded-lg border border-gray-200 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Family</span>
                     {detail.family.id && (
-                      <a
-                        href={`/admin/care-seekers/${detail.family.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-gray-400 hover:text-gray-600"
-                      >
-                        View profile
+                      <a href={`/admin/care-seekers/${detail.family.id}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                        View
                       </a>
                     )}
                   </div>
-
-                  <p className="font-medium text-gray-900 mb-1">
-                    {detail.family.display_name || "Unknown"}
-                  </p>
-
-                  {/* Care metadata tags */}
+                  <p className="font-medium text-gray-900 text-sm truncate">{detail.family.display_name || "Unknown"}</p>
+                  <div className="mt-1 space-y-0.5 text-sm">
+                    {detail.family.email && (
+                      <a href={`mailto:${detail.family.email}`} className="block text-blue-600 hover:underline truncate">{detail.family.email}</a>
+                    )}
+                    {detail.family.phone && (
+                      <a href={`tel:${detail.family.phone}`} className="block text-blue-600 hover:underline">{detail.family.phone}</a>
+                    )}
+                  </div>
                   {(detail.family.careType || detail.family.timeline) && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
+                    <div className="mt-2 flex flex-wrap gap-1">
                       {detail.family.careType && (
-                        <span className="inline-flex px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700">
-                          {detail.family.careType}
-                        </span>
+                        <span className="px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700">{detail.family.careType}</span>
                       )}
                       {detail.family.timeline && (
-                        <span className="inline-flex px-2 py-0.5 rounded text-xs bg-amber-50 text-amber-700">
-                          {detail.family.timeline}
-                        </span>
+                        <span className="px-2 py-0.5 rounded text-xs bg-amber-50 text-amber-700">{detail.family.timeline}</span>
                       )}
                     </div>
                   )}
-
-                  {/* Contact info */}
-                  <div className="space-y-1.5 mb-3">
-                    {detail.family.email ? (
-                      <a
-                        href={`mailto:${detail.family.email}`}
-                        className="block text-sm text-blue-600 hover:underline truncate"
-                      >
-                        {detail.family.email}
-                      </a>
-                    ) : (
-                      <p className="text-sm text-gray-400">No email</p>
-                    )}
-                    {detail.family.phone ? (
-                      <a
-                        href={`tel:${detail.family.phone}`}
-                        className="block text-sm text-blue-600 hover:underline"
-                      >
-                        {detail.family.phone}
-                      </a>
-                    ) : (
-                      <p className="text-sm text-gray-400">No phone</p>
-                    )}
-                  </div>
-
-                  {/* Status */}
-                  <div className="text-sm text-gray-600 mb-3">
-                    Status: {c.responded
-                      ? c.familyRepliedAfterProvider
-                        ? "Replied to provider"
-                        : "Provider responded, hasn't replied yet"
-                      : "Sent connection request"}
-                  </div>
-
-                  {/* Nudge history */}
-                  <div className="text-xs text-gray-500 mb-3">
-                    {detail.family.nudgeCount > 0 ? (
-                      <>
-                        Nudged {detail.family.nudgeCount} time{detail.family.nudgeCount !== 1 ? "s" : ""}
-                        {detail.family.lastNudgedAt && (
-                          <span className="ml-1">/ Last: {fmtDate(detail.family.lastNudgedAt)}</span>
-                        )}
-                      </>
-                    ) : (
-                      "Not nudged yet"
-                    )}
-                    <p className="mt-0.5 text-gray-400">
-                      Automated nudges remind family to check provider responses
+                  {detail.family.nudgeCount > 0 && (
+                    <p className="mt-2 text-xs text-gray-400">
+                      Nudged {detail.family.nudgeCount}× {detail.family.lastNudgedAt && `· Last: ${fmtDate(detail.family.lastNudgedAt)}`}
                     </p>
-                  </div>
-
-                  {/* Action */}
-                  {c.responded && !c.familyRepliedAfterProvider && (
-                    <button
-                      onClick={() =>
-                        sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")
-                      }
-                      disabled={nudging}
-                      className="w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-                    >
-                      {nudging ? "Sending..." : "Nudge Family"}
-                    </button>
                   )}
                 </div>
 
-                {/* PROVIDER column */}
-                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Provider</h3>
+                {/* Provider contact */}
+                <div className="flex-1 min-w-[200px] bg-white rounded-lg border border-gray-200 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Provider</span>
                     {detail.provider.slug && (
-                      <a
-                        href={`/admin/directory/${detail.provider.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-gray-400 hover:text-gray-600"
-                      >
-                        View profile
+                      <a href={`/admin/directory/${detail.provider.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                        View
                       </a>
                     )}
                   </div>
-
-                  <p className="font-medium text-gray-900 mb-2">
-                    {detail.provider.display_name || "Unknown"}
-                  </p>
-
-                  {/* Contact info */}
-                  <div className="space-y-1.5 mb-3">
+                  <p className="font-medium text-gray-900 text-sm truncate">{detail.provider.display_name || "Unknown"}</p>
+                  <div className="mt-1 space-y-0.5 text-sm">
                     {detail.provider.email ? (
-                      <a
-                        href={`mailto:${detail.provider.email}`}
-                        className="block text-sm text-blue-600 hover:underline truncate"
-                      >
-                        {detail.provider.email}
-                      </a>
+                      <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate">{detail.provider.email}</a>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-amber-600">No email on file</span>
-                        <a
-                          href="/admin/leads?tab=needs_email"
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          Add email
-                        </a>
-                      </div>
+                      <span className="text-amber-600">No email</span>
                     )}
-                    {detail.provider.phone ? (
-                      <a
-                        href={`tel:${detail.provider.phone}`}
-                        className="block text-sm text-blue-600 hover:underline"
-                      >
-                        {detail.provider.phone}
-                      </a>
-                    ) : (
-                      <p className="text-sm text-gray-400">No phone</p>
+                    {detail.provider.phone && (
+                      <a href={`tel:${detail.provider.phone}`} className="block text-blue-600 hover:underline">{detail.provider.phone}</a>
                     )}
                   </div>
-
-                  {/* Engagement status */}
-                  <div className="text-sm text-gray-600 mb-3">
-                    {(() => {
-                      if (c.responded) return "Status: Replied to family";
-                      if (detail.engagement.contact_revealed) return "Status: Copied family contact";
-                      if (detail.engagement.continue_in_inbox) return "Status: Went to inbox to message";
-                      if (detail.engagement.lead_opened) return "Status: Viewed lead";
-                      return "Status: No engagement yet";
-                    })()}
-                  </div>
-
-                  {/* Nudge history */}
-                  <div className="text-xs text-gray-500 mb-3">
-                    {detail.provider.nudgeCount > 0 ? (
-                      <>
-                        Nudged {detail.provider.nudgeCount} time{detail.provider.nudgeCount !== 1 ? "s" : ""}
-                        {detail.provider.lastNudgedAt && (
-                          <span className="ml-1">/ Last: {fmtDate(detail.provider.lastNudgedAt)}</span>
-                        )}
-                      </>
-                    ) : (
-                      "Not nudged yet"
-                    )}
-                    <p className="mt-0.5 text-gray-400">
-                      Automated nudges remind provider about pending family inquiries
+                  {detail.provider.nudgeCount > 0 && (
+                    <p className="mt-2 text-xs text-gray-400">
+                      Nudged {detail.provider.nudgeCount}× {detail.provider.lastNudgedAt && `· Last: ${fmtDate(detail.provider.lastNudgedAt)}`}
                     </p>
-                  </div>
-
-                  {/* Action */}
-                  {!c.responded && detail.provider.hasEmail && (
-                    <button
-                      onClick={() =>
-                        sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")
-                      }
-                      disabled={nudging}
-                      className="w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-                    >
-                      {nudging ? "Sending..." : "Nudge Provider"}
-                    </button>
-                  )}
-                  {!c.responded && !detail.provider.hasEmail && detail.provider.phone && (
-                    <a
-                      href={`tel:${detail.provider.phone}`}
-                      className="block w-full text-center rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-200"
-                    >
-                      Call Provider
-                    </a>
                   )}
                 </div>
               </div>
 
-              {/* Nudge feedback */}
-              {nudgeMsg && (
-                <p className={`text-sm ${nudgeMsg.ok ? "text-emerald-600" : "text-rose-600"}`}>
-                  {nudgeMsg.text}
-                </p>
-              )}
-
-              {/* Conversation thread */}
+              {/* Section 3: Conversation thread (collapsible, default open) */}
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
                   Conversation
@@ -519,104 +483,95 @@ export default function ConnectionRow({
                             {m.role === "family" ? "Family" : m.role === "provider" ? "Provider" : "System"}
                           </span>
                           {m.is_auto_reply && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                              automated
-                            </span>
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">auto</span>
                           )}
                           {m.created_at && (
                             <span className="text-xs text-gray-400">{fmtDate(m.created_at)}</span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-700">
-                          {m.text || <span className="text-gray-300">-</span>}
-                        </p>
+                        <p className="text-sm text-gray-700">{m.text || <span className="text-gray-300">-</span>}</p>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Email trail */}
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                  Emails Sent
-                </h3>
-                {detail.emails.length === 0 ? (
-                  <p className="text-sm text-gray-400">
-                    {detail.provider.nudgeCount > 0
-                      ? "Nudges sent by automated system - no itemized log."
-                      : "No emails sent yet."}
-                  </p>
-                ) : (
-                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                    {detail.emails.map((e) => (
-                      <div key={e.id}>
-                        <button
-                          type="button"
-                          onClick={() => toggleEmailPreview(e.id)}
-                          className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="min-w-0 flex items-center gap-2">
-                            <svg
-                              className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expandedEmailId === e.id ? "rotate-90" : ""}`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                            <span className="text-sm text-gray-700">{emailLabel(e.email_type)}</span>
-                            <span className="text-gray-300">-</span>
-                            <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
-                            {e.recipient && (
-                              <span className="text-xs text-gray-400 truncate hidden sm:inline">to {e.recipient}</span>
-                            )}
-                          </div>
-                          <EmailStatusPill
-                            status={e.status}
-                            sentAt={e.created_at}
-                            delivered_at={e.delivered_at}
-                            first_opened_at={e.first_opened_at}
-                            first_clicked_at={e.first_clicked_at}
-                            bounced_at={e.bounced_at}
-                            complained_at={e.complained_at}
-                            className="shrink-0"
-                          />
-                        </button>
-                        {expandedEmailId === e.id && (
-                          <div className="border-t border-gray-100 p-3 bg-gray-50">
-                            {emailHtmlLoading === e.id ? (
-                              <p className="text-sm text-gray-400 text-center py-4">Loading preview...</p>
-                            ) : emailHtmlCache[e.id] ? (
-                              <div className="rounded border border-gray-200 bg-white overflow-hidden">
-                                <iframe
-                                  srcDoc={emailHtmlCache[e.id]!}
-                                  className="w-full border-0"
-                                  style={{ minHeight: "300px" }}
-                                  title="Email preview"
-                                  sandbox=""
-                                />
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-400 text-center py-4">
-                                No preview available for this email.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* Section 4: Email trail (collapsed by default) */}
+              {detail.emails.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmails(!showEmails)}
+                    className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      className={`w-3 h-3 transition-transform ${showEmails ? "rotate-90" : ""}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                    </svg>
+                    Show {detail.emails.length} email{detail.emails.length !== 1 ? "s" : ""} sent
+                  </button>
 
-              {/* Next steps guidance */}
-              <div className="rounded-lg border border-gray-200 bg-white p-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                  Recommended Next Step
-                </h3>
-                <p className="text-sm text-gray-700">{detail.nextStep.label}</p>
-              </div>
+                  {showEmails && (
+                    <div className="mt-2 bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                      {detail.emails.map((e) => (
+                        <div key={e.id}>
+                          <button
+                            type="button"
+                            onClick={() => toggleEmailPreview(e.id)}
+                            className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="min-w-0 flex items-center gap-2">
+                              <svg
+                                className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expandedEmailId === e.id ? "rotate-90" : ""}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                              <span className="text-sm text-gray-700">{emailLabel(e.email_type)}</span>
+                              <span className="text-gray-300">·</span>
+                              <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
+                            </div>
+                            <EmailStatusPill
+                              status={e.status}
+                              sentAt={e.created_at}
+                              delivered_at={e.delivered_at}
+                              first_opened_at={e.first_opened_at}
+                              first_clicked_at={e.first_clicked_at}
+                              bounced_at={e.bounced_at}
+                              complained_at={e.complained_at}
+                              className="shrink-0"
+                            />
+                          </button>
+                          {expandedEmailId === e.id && (
+                            <div className="border-t border-gray-100 p-3 bg-gray-50">
+                              {emailHtmlLoading === e.id ? (
+                                <p className="text-sm text-gray-400 text-center py-4">Loading preview...</p>
+                              ) : emailHtmlCache[e.id] ? (
+                                <div className="rounded border border-gray-200 bg-white overflow-hidden">
+                                  <iframe
+                                    srcDoc={emailHtmlCache[e.id]!}
+                                    className="w-full border-0"
+                                    style={{ minHeight: "300px" }}
+                                    title="Email preview"
+                                    sandbox=""
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-400 text-center py-4">No preview available.</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : null}
         </div>

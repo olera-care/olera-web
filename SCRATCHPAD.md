@@ -29,7 +29,22 @@ Sections:
 13. Glossary
 14. Master plan status
 
-**Resume next session here →** Logan reviews master plan. Once he confirms nothing major is missing, next conversation is the phasing discussion (per Logan's directive: completeness first, phasing second). Key question for phasing: do we go straight from Phase 1 implementation into Phase 2, or pause after Phase 1 to gather real engagement data and design Phase 2 against observations?
+**Updated 2026-06-04 (Wed) — Phasing breakdown added to master plan** ([§12](plans/medjobs-master-plan.md#12-development-phases), 1000 total lines). Six phases plus out-of-scope, with full traceability matrix mapping every master-plan §§3-7+10.4 item to exactly one phase (or explicit OUT-OF-SCOPE).
+
+**Phase summary:**
+- **Phase 0 — Stabilize what's shipped** (~2 days, mostly waiting). QA merge/medjobs-staging-2026-06-02 → staging; Logan Smartlead signoffs; Smartlead env vars + webhook URL registration.
+- **Phase 1 — Conversion path MVP** (~23 days / ~4.5 weeks). v3 plan's 11 tickets + brand-consistency one-liner amendment. Cadence + email rewrite + pilot-tier predicate + magic-link infra + preview-mode board + T&C modal + empty-state ladder + co-tenancy + Smartlead open/click webhook + CRM stage signals + deletion guard.
+- **Phase 2 — Strategy depth pass** (~3 days, NO CODE). Three parallel passes A/B/C to deepen Calls/Emails/Meetings/Next Step/Timeline specs from concept to ticket-cuttable. Resolves §6.1/6.2/6.3 gaps. Can run parallel to Phase 1 dev.
+- **Phase 3 — Operational surface implementation** (~3-4 weeks). 7 tickets: in-basket tab rename + timeline split + Next Step branches + Emails tab + Calls tab + Meetings tab base + Calendly webhook.
+- **Phase 4 — Engagement-driven workflows** (~2 weeks). Engagement → call priority bumping + dormancy re-engagement + pilot-metrics dashboard + returning-provider experience.
+- **Phase 5 — Pilot lifecycle** (~2 weeks). Pilot expiry behavior + self-serve End-Pilot + provider feedback collection + pilot continuation (needs TJ product decision on post-pilot pricing).
+- **Phase 6 — Long-tail polish** (open-ended). Inline Smartlead reply UI / magic-token verification / provider self-serve admin / Calendly migration / multi-team-member support.
+
+**Out-of-scope (tracked separately):** student-side flow (critical: confirm minimum notification path before Phase 1 ships invites at volume); adjacent workstreams (market diagnostic, family-side, benefits, general platform).
+
+**Total to Phase 5 complete: ~10 weeks** at 1 dev. Phase 6 ongoing as demand surfaces.
+
+**Resume next session here →** Logan reviews phasing breakdown in §12 of master plan. If approved, start Phase 0 (QA the staging branch). Phase 1 ticket cutting begins after Phase 0 closes.
 
 ---
 

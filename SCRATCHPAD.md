@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+### 2026-06-04 (Wed) — MedJobs MASTER PLAN drafted
+
+**Context:** Logan asked for one master plan capturing everything we've discussed across all sessions — completeness before phasing. Goal: source of truth so nothing important is lost as planning has evolved.
+
+**Drafted:** [`plans/medjobs-master-plan.md`](plans/medjobs-master-plan.md) (686 lines, 14 sections). Structured as a CATALOG that points to canonical detailed plans, NOT a re-specification. Each item carries a status tag (SHIPPED / STAGING / LOCKED / SKETCHED / GAP / DEFERRED / OUT-OF-SCOPE) so the depth disparity from v3.1 reconciliation stays visible.
+
+Sections:
+1. North star + funnel architecture
+2. Architecture summary (state model, G1-G10 discipline, outcomes map)
+3. What's already SHIPPED (Pre-Flight v9.x Research Card consolidation, Pre-Flight call modal, Decision Maker single-slot, "Mark not available" flags, Smartlead bridge PR #900, catchment correction PR #919, Find Email/Form enrichment PR #925, Connections tracker, pre-existing CRM scaffold)
+4. What's LOCKED but not built (17 sub-items from v3 plan — cadence, terminal state, magic-link journey, four-axis state, welcome page, empty-state ladder, T&C triggers + UX, pilot activation API, co-tenancy, deletion policy, pilot tier, engagement tracking, token security, Smartlead webhook expansion)
+5. CRM operational surfaces SKETCHED (in-basket tabs locked but P2.A-F at light depth — Calls 6 lines, Emails 39, Meetings 49 vs P1.E magic-link 311; plus gaps for engagement→call priority, returning-provider experience)
+6. Items requiring deeper specification (truly missing: Smartlead-inbox deep-link, Calendly cancel/reschedule, post-meeting sub-state machine, pilot-metrics dashboard, feedback collection, dormancy re-engagement, brand-consistency one-liner)
+7. Adjacent/parallel systems (student-side flow OUT, stakeholder funnel SHIPPED, multi-team-member DEFERRED, pilot continuation DEFERRED, etc.)
+8. Canonical references table
+9. Decisions log consolidated (Pre-Flight redesign + v3 13 questions + infrastructure constraints)
+10. Open items / unresolved
+11. Risks consolidated
+12. Provisional phase structure (Phase 0 Pre-Flight DONE / Phase 1 Conversion MVP LOCKED / Phase 2 Operational surfaces with strategy-depth-pass-first / Phase 3 Polish DEFERRED)
+13. Glossary
+14. Master plan status
+
+**Resume next session here →** Logan reviews master plan. Once he confirms nothing major is missing, next conversation is the phasing discussion (per Logan's directive: completeness first, phasing second). Key question for phasing: do we go straight from Phase 1 implementation into Phase 2, or pause after Phase 1 to gather real engagement data and design Phase 2 against observations?
+
+---
+
 ### 2026-06-03 (Tue) — Post-launch outreach plan **v3 FINAL** (ready for ticket cutting)
 
 **Context:** Four feedback passes from Logan over one session (v1 → v2 → v2.1 → v2.2 → v3). v3 is the decision-locked final. All 13 questions resolved. Ready to cut MVP Implementation Phase 1 tickets 1–11 next session.

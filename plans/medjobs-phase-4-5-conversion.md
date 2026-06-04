@@ -202,7 +202,42 @@ Chunks:
 
 ## Build log
 
-(populated chunk-by-chunk during build)
+### Day 1 — 2026-06-04 (Wed) — all chunks shipped
+
+**Chunk A — backend (Bullets 1 + 2):**
+- `app/api/medjobs/pilot/activate/route.ts` (new): POST handler that mirrors `handleMakeClient`'s atomic state transition with `terms_accepted_via = "self_serve"`. Resolves outreach row from `body.outreach_id` OR the signed-in user's most recent linked outreach. Creates business_profiles row from `olera-providers` data if none exists yet, OR updates existing metadata + advances `claim_state = "claimed"`. Emits `stage_change` touchpoint with `via: "self_serve_activation"` audit, transitions outreach to `active_partner`, cancels pending tasks. Heavily documented as mirror — future changes to handleMakeClient MUST be mirrored here and vice-versa.
+- `app/api/auth/delete-profile/route.ts`: added a pilot-active guard right after the ownership check. Returns 409 with clear message when `metadata.pilot_active_through > now()`. Provider gets directed to email logan@olera.care to end the pilot first (per pilot agreement's written-notice clause).
+
+**Chunk B — UI (Bullets 3 + 4 + 5):**
+- `components/medjobs/PilotTermsModal.tsx` (new): T&C modal with verb-matched title + 4 reassurance bullets (locked Q13) + agreement PDF link + download PDF link + unchecked agreement checkbox (Q12 lock) + verb-matched continue button (disabled until checked). Calls `POST /api/medjobs/pilot/activate` on accept; surfaces server errors inline.
+- `components/medjobs/WelcomeBanner.tsx`: replaced the `openAuth()` placeholder with the actual PilotTermsModal mount. The "Activate the pilot →" CTA now opens the modal directly; on success the page reloads with `?welcome=1` + `?claim_conflict=1` stripped from the URL so the welcome banner doesn't re-appear.
+- `app/medjobs/candidates/page.tsx`: removed the obsolete `onActivatePilot` prop; banner is now self-contained.
+- **PDF asset deferred to TJ** (logged in `medjobs-known-issues.md`): the modal references `/medjobs/pilot-agreement.pdf`. TJ uploads the agreement template post-merge. Modal still works without it; just the two PDF links 404 until uploaded.
+
+**Chunk C — polish (Bullet 6):**
+- `lib/student-outreach/narration.ts`: enhanced both `stage_change` and `note_added` cases to render the new touchpoint variants meaningfully:
+  - `stage_change(via: "self_serve_activation")` → "🎉 Pilot Active — provider accepted the agreement on the candidate board."
+  - `stage_change(via: "admin_make_client")` → "🎉 Pilot Active — admin activated on the provider's behalf."
+  - `note_added(reason: "platform_visited")` → "🔗 Provider clicked the magic link and visited the candidate board."
+  - `note_added(reason: "claim_conflict")` → "⚠️ Magic-link click on an organization already linked to another account."
+  - `note_added(reason: "calendly_reschedule_pending")` → "📅 Calendly reschedule in progress..." (Phase 1 Bullet 12 touchpoint type narrates cleanly now)
+
+**Phase 4+5 COMPLETE.** Branch `medjobs/phase-4-5-conversion` ready for QA + merge.
+
+**Typecheck:** clean across all 3 chunks.
+
+**Activation gate (post-merge, not code):**
+- TJ uploads `public/medjobs/pilot-agreement.pdf` (template version is sufficient for MVP).
+
+**End-to-end test path** (after merge + secret set + PDF uploaded):
+1. Cold provider receives outreach with new template (Phase 2+3 ship). CTA: "Review {campus} student caregivers →" linking to `olera.care/medjobs/m/<token>`.
+2. Provider clicks → Phase 2+3 landing route signs them in + audit touchpoint emits.
+3. Lands on `/medjobs/candidates?welcome=1` → WelcomeBanner renders.
+4. Provider clicks "Activate the pilot →" → PilotTermsModal opens.
+5. Provider reads bullets / PDF, checks the agreement checkbox, clicks "Agree and activate the pilot".
+6. Modal calls `POST /api/medjobs/pilot/activate` → server runs the atomic transition.
+7. Modal closes → page reloads with `?welcome` stripped → candidate board renders in full mode.
+8. CRM reflects: stage_change touchpoint emits with `via: "self_serve_activation"` → outreach drawer narrates "🎉 Pilot Active — provider accepted the agreement on the candidate board." → row drops out of active In Basket tabs → Pilot Active 🎉 branch in NextStepCard.
 
 ## References
 

@@ -32,6 +32,13 @@ Status: Drain log — bugs and optimizations surfaced during phase builds.
 - Target resolution: spot-check on Vercel preview before Phase 1 merges to staging
 - Notes: Plan assumes `https://app.smartlead.ai/app/master-inbox?lead_id=<lead_id>&campaign_id=<campaign_id>` deep-links to the right thread. Bullet 9 ships with this URL. The link builder gracefully falls back to root master inbox when lead_id is missing. If Smartlead's UI URL convention has changed, update the URL in `smartleadInboxUrl()` in `components/admin/medjobs/cards/StakeholderCard.tsx`.
 
+### 2026-06-04 — Phase 4+5: pilot agreement PDF needs to be uploaded
+- Found in: Phase 4+5 Bullet 5 ship
+- Severity: minor (modal still works without it; "Read full agreement / Download PDF" links would 404)
+- Owner: TJ
+- Target resolution: drop the PDF at `public/medjobs/pilot-agreement.pdf` post-staging-merge
+- Notes: The PilotTermsModal references `/medjobs/pilot-agreement.pdf` for both the "Read the full pilot agreement →" link and the "Download as PDF →" link. TJ should drop a copy of the pilot agreement template (HomeSpark-style, org-agnostic) at that path. Org-personalization (replacing `{org_name}` in the PDF) is a future enhancement — for MVP the static template is sufficient since the provider's identity is in the modal context, not the PDF text.
+
 ### 2026-06-04 — Phase 2+3 Bullet 8 follow-up: explicit preview-mode card UI deferred
 - Found in: Phase 2+3 Chunk D build
 - Severity: deferred (existing API redaction handles preview semantics)

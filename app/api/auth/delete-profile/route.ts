@@ -71,6 +71,29 @@ export async function DELETE(request: Request) {
       );
     }
 
+    // v10 Phase 4+5 Bullet 2 (2026-06-04): pilot-active providers can't
+    // delete their public listing — students invited to interview need
+    // to be able to research the agency; families clicking through
+    // Olera need to find them; the pilot ecosystem assumes the listing
+    // is part of the provider's public face (master plan § P1.E.5).
+    // To delete, end the pilot first via email to logan@olera.care.
+    const meta = (profile.metadata as Record<string, unknown> | null) ?? {};
+    const pilotThroughRaw = meta.pilot_active_through;
+    if (typeof pilotThroughRaw === "string") {
+      const pilotThroughMs = new Date(pilotThroughRaw).getTime();
+      if (Number.isFinite(pilotThroughMs) && pilotThroughMs > Date.now()) {
+        return NextResponse.json(
+          {
+            error:
+              "Your public listing is required while your MedJobs pilot is active. To delete, please email logan@olera.care to end the pilot first.",
+            pilotActive: true,
+            pilotActiveThrough: pilotThroughRaw,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     // Count remaining profiles
     const { count } = await admin
       .from("business_profiles")

@@ -294,6 +294,34 @@ Phase 1 build summary (chunked 4-way for review checkpoints):
 
 ---
 
+### 2026-06-02 (Tue) — PMF strategy session: Comfort Keepers / College Station paid-acquisition analysis (no code)
+
+**Context:** Deep strategy conversation, no code. TJ asked me to absorb the Comfort Keepers meeting (5/22) + recent product-team meetings (5/5, 5/20, 5/29) and think through Olera's path to PMF. Worked through a chain of his pushbacks to a concrete recommendation.
+
+**The thinking, in order (each step was a real update, not hand-waving):**
+1. **Two working halves that don't meet.** Care-seeker funnel produces demand (~700 visitors/day, ~20 conv/day, ~600 leads/mo); provider side engaged (131 claims/30d, self-running) — but only 3 providers have ever reached out to a family. KPI = connections, not leads.
+2. **Why they don't meet:** plumbing (small, the gating thread), empty shelf (structural — 75k providers thin across thousands of cities), behavioral (families ghost; 2 of 47 publish).
+3. **TJ's "build useful → monetization follows" thesis:** right in spirit, but in senior care you can't monetize attention-at-scale (too niche) — "useful" has to mean *delivering the outcome (connections/clients)*, and the monetizable engagement is the *provider's* (recurring), not the seeker's (episodic).
+4. **TJ pushed: that runs counter to "win one city."** Real fork surfaced — horizontal utility (monetize scale) vs. marketplace (monetize local liquidity). Evidence (engagement grew, connections stayed ~0) says outcomes don't emerge from breadth; they're manufactured. Reconciled: product/supply stays broad (the useful engine), liquidity *effort* goes narrow.
+5. **TJ: 700/day "might be worth something."** Correct — it retires the "will anyone show up" risk and is *inventory for a lead-gen business* (the A Place for Mom / Caring.com model), which fits the traffic + is proven in senior care. Gate: leads must be qualified (Door B, not email-only) + a provider must pay. CK = the buyer.
+6. **TJ: but no organic leads in College Station where CK is.** True — organic is scattered, no clusters yet. So the question becomes "can we *manufacture* density with paid?" → led to the PPC analysis.
+
+**Researched + delivered — College Station paid-acquisition unit economics** (web-sourced 2026 in-home-care benchmarks):
+- Cost to make a CS home-care lead ≈ **$90–175** (~$130 planning). Worth to CK ≈ **$550–900 gross profit/lead** (LTV ~$18,500; ~30–40% margin; 10–20% close). ~4x spread = the business.
+- Catches: (1) CS is a senior-thin college town → volume-capped ~10–25 leads/mo; (2) bidding vs CK's own ads; (3) pure arbitrage is thin → price on **closed clients**, not clicks.
+- Recommendation: small CK-co-funded paid test ($1–1.5k/mo), Google + B-CS FB groups, route through Olera's funnel, per-closed-client referral fee. 60–90 day **motion proof** (not scale). If it works → replicate in denser metros.
+
+**Artifacts created (Notion):**
+- 📍 [Paid Acquisition Analysis](https://www.notion.so/3725903a0ffe815e99e6f7d2049875d7) (child of the 💰 Olera Pro 2.0 monetization card) — full model + sources + branch-resume command appended + the draft email to Susan.
+- 🧪 [TEST: College Station Paid Acquisition — 60–90 day motion proof](https://www.notion.so/3725903a0ffe8192a6e0e25b35551b34) — tracked spec: metrics table, weekly tracker, 30/60/90 go-no-go gates.
+- ✉️ Draft email to Susan (co-funded test pitch, soft pricing, re-requests her ad spend + asks client LTV) — saved at the bottom of the test page. **Not sent.**
+
+**Also this session (tooling):** Made the `find-branch` skill (aka "branch finder" — maps a branch → worktree path, prints a `cd` line) **user-global**: moved `~/Desktop/TJ-hq/.claude/skills/find-branch/` → `~/.claude/skills/find-branch/` so `/find-branch` loads in every session, not just TJ-hq. Single canonical copy (no duplicate). Exception to the "personal skills live in TJ-hq" convention. Restart sessions to pick it up.
+
+**Resume next session here →** (1) Decide whether to **send the email to Susan** (or firm up co-funding/referral terms first; offered a Gmail draft — needs her address). (2) Get Susan's outstanding inputs: current ad spend + platforms, and avg client value (hours/wk × tenure). (3) Optionally add the concrete campaign plan (keywords, FB targeting, intake flow) to the test page. (4) Decide funding + who runs the campaign. Memory: `project_comfort_keepers`, `project_careseeker_leads_reframe`.
+
+---
+
 ### 2026-06-01 (Mon) — Smartlead cold-email BRIDGE built end-to-end (PR #900 → staging, inert)
 
 **Context:** Resumed the cold-outreach engine (mailboxes `logan@`/`partnerships@findmedjobs.co` warming since 5/29, ~late June ready). Goal: build the software that turns CRM rows into live Smartlead campaigns — the "engine room" — ahead of warmup, then demo it. Branch `medjobs-smartlead-bridge` off `staging`; `lib/smartlead.ts` cherry-picked onto it from `save/email-deliverability-session`.
@@ -325,7 +353,6 @@ Phase 1 build summary (chunked 4-way for review checkpoints):
 5. **Clean up** demo campaigns (`deleteCampaign` 3433423/3433546/3434880) when team's done; consider disconnecting tj@ from Smartlead.
 6. **3 sibling deliverability tasks** on Web App board (P2/P3): activate provider-notify domain split (#860, `PROVIDER_NOTIFY_FROM` unset in prod), fix complaint-rate instrumentation (reads 0.00%), move provider cold off Loops. + confirm staffing-outreach retired (P4).
 - Refs: memory `project_smartlead_bridge`; Logan one-pager (Notion, updated); spec `docs/medjobs/SMARTLEAD_BRIDGE_SPEC.md`.
-
 
 ---
 

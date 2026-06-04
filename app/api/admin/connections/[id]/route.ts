@@ -201,12 +201,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const familyEmail = family?.email;
     let familyFallbackEmails: EmailLogRow[] = [];
     if (familyEmail) {
+      // Escape ILIKE special characters (% and _) for literal matching
+      const escapedEmail = familyEmail.replace(/%/g, "\\%").replace(/_/g, "\\_");
       const { data: familyEmailLogs } = await db
         .from("email_log")
         .select(
           "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
         )
-        .ilike("recipient", familyEmail) // Case-insensitive match
+        .ilike("recipient", escapedEmail) // Case-insensitive match with escaped wildcards
         .in("email_type", FAMILY_EMAIL_TYPES)
         .gte("created_at", c.created_at)
         .order("created_at", { ascending: false })

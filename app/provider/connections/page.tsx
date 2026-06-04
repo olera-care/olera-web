@@ -104,6 +104,8 @@ function LeadDetailDrawer({
   onRestore,
   onDelete,
   onContactReveal,
+  onPhoneClick,
+  onEmailClick,
   onContinueInInbox,
   onMarkAsReplied,
   isVerified = true,
@@ -116,6 +118,8 @@ function LeadDetailDrawer({
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
   onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
+  onPhoneClick?: (leadId: string) => void;
+  onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
   onMarkAsReplied?: (leadId: string) => void;
   isVerified?: boolean;
@@ -313,6 +317,7 @@ function LeadDetailDrawer({
               <div className="flex items-center gap-1.5 shrink-0">
                 <a
                   href={`tel:${lead.phone}`}
+                  onClick={() => onPhoneClick?.(lead.id)}
                   className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                   aria-label="Call"
                 >
@@ -352,6 +357,7 @@ function LeadDetailDrawer({
               <div className="flex items-center gap-1.5 shrink-0">
                 <a
                   href={`mailto:${lead.email}`}
+                  onClick={() => onEmailClick?.(lead.id)}
                   className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                   aria-label="Send email"
                 >
@@ -1879,6 +1885,32 @@ export default function ProviderLeadsPage() {
               provider_id: providerKey,
               event_type: "contact_revealed",
               metadata: { lead_id: leadId, contact_type: contactType },
+            }),
+          }).catch(() => {});
+        }}
+        onPhoneClick={(leadId) => {
+          if (!providerProfile) return;
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: providerKey,
+              event_type: "phone_clicked",
+              metadata: { lead_id: leadId },
+            }),
+          }).catch(() => {});
+        }}
+        onEmailClick={(leadId) => {
+          if (!providerProfile) return;
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: providerKey,
+              event_type: "email_link_clicked",
+              metadata: { lead_id: leadId },
             }),
           }).catch(() => {});
         }}

@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         .from("provider_activity")
         .select("provider_id, event_type")
         .in("provider_id", providerKeyArray)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed"])
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked"])
         .limit(10000);
 
       if (dateFrom) activityQuery = activityQuery.gte("created_at", dateFrom);
@@ -122,7 +122,10 @@ export async function GET(request: NextRequest) {
       for (const a of activities ?? []) {
         if (a.event_type === "email_click") clickedProviders.add(a.provider_id);
         if (a.event_type === "lead_opened") viewedProviders.add(a.provider_id);
-        if (a.event_type === "contact_revealed") revealedProviders.add(a.provider_id);
+        // contact_revealed, phone_clicked, email_link_clicked all count as "contact revealed"
+        if (a.event_type === "contact_revealed" || a.event_type === "phone_clicked" || a.event_type === "email_link_clicked") {
+          revealedProviders.add(a.provider_id);
+        }
       }
 
       emailsClicked = clickedProviders.size;

@@ -5,7 +5,7 @@ import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
-type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; continue_in_inbox: boolean };
+type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean };
 
 interface WorkflowCounts {
   all: number;
@@ -32,9 +32,13 @@ interface ProviderActions {
   viewed: number;
   copiedPhone: number;
   copiedEmail: number;
+  clickedPhone: number;
+  clickedEmail: number;
   continuedToInbox: number;
   copiedPhoneRate: number;
   copiedEmailRate: number;
+  clickedPhoneRate: number;
+  clickedEmailRate: number;
   continuedToInboxRate: number;
 }
 
@@ -330,7 +334,7 @@ export default function ConnectionsTrackerPage() {
         </button>
 
         {actionsExpanded && list?.providerActions && (
-          <div className="mt-4 grid grid-cols-4 gap-3">
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
             <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
             <FunnelStat
               label="Copied Phone"
@@ -343,6 +347,18 @@ export default function ConnectionsTrackerPage() {
               value={list.providerActions.copiedEmailRate}
               format="percent"
               subtitle={`${list.providerActions.copiedEmail} copied`}
+            />
+            <FunnelStat
+              label="Clicked to Call"
+              value={list.providerActions.clickedPhoneRate}
+              format="percent"
+              subtitle={`${list.providerActions.clickedPhone} called`}
+            />
+            <FunnelStat
+              label="Clicked to Email"
+              value={list.providerActions.clickedEmailRate}
+              format="percent"
+              subtitle={`${list.providerActions.clickedEmail} emailed`}
             />
             <FunnelStat
               label="Continued to Inbox"

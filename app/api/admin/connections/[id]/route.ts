@@ -126,17 +126,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       provider?.id,
       c.to_profile_id,
     ].filter(Boolean) as string[];
-    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, continue_in_inbox: false };
+    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_clicked: false, email_link_clicked: false, continue_in_inbox: false };
     if (engagementKeys.length > 0) {
       const { data: events } = await db
         .from("provider_activity")
         .select("event_type")
         .in("provider_id", engagementKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "continue_in_inbox"]);
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
       engagement = {
         email_clicked: (events ?? []).some((e) => e.event_type === "email_click"),
         lead_opened: (events ?? []).some((e) => e.event_type === "lead_opened"),
         contact_revealed: (events ?? []).some((e) => e.event_type === "contact_revealed"),
+        phone_clicked: (events ?? []).some((e) => e.event_type === "phone_clicked"),
+        email_link_clicked: (events ?? []).some((e) => e.event_type === "email_link_clicked"),
         continue_in_inbox: (events ?? []).some((e) => e.event_type === "continue_in_inbox"),
       };
     }

@@ -53,6 +53,8 @@ interface Engagement {
   email_clicked: boolean;
   lead_opened: boolean;
   contact_revealed: boolean;
+  phone_clicked: boolean;
+  email_link_clicked: boolean;
   continue_in_inbox: boolean;
 }
 
@@ -150,7 +152,9 @@ function EngagementBadges({ engagement, compact = false }: { engagement?: Engage
   const badges: { icon: string; label: string; active: boolean }[] = [
     { icon: "👁", label: "Viewed", active: engagement.lead_opened },
     { icon: "📋", label: "Copied", active: engagement.contact_revealed },
-    { icon: "✉️", label: "Messaged", active: engagement.continue_in_inbox },
+    { icon: "📞", label: "Called", active: engagement.phone_clicked },
+    { icon: "📧", label: "Emailed", active: engagement.email_link_clicked },
+    { icon: "💬", label: "In Inbox", active: engagement.continue_in_inbox },
   ];
 
   const activeBadges = badges.filter(b => b.active);

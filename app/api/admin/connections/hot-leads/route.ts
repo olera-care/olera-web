@@ -12,7 +12,9 @@ import { isSuccessfulConnection } from "@/lib/connection-temperature";
  * These are prime monetization targets — highly engaged but haven't converted.
  *
  * Heat Score Calculation:
- *   - contact_revealed: +40 (strongest signal — copied family's phone/email)
+ *   - phone_clicked: +45 (called family directly — strongest)
+ *   - email_link_clicked: +45 (emailed family directly — strongest)
+ *   - contact_revealed: +40 (copied family's phone/email)
  *   - account_claimed: +30
  *   - one_click_access: +25
  *   - lead_opened: +20
@@ -22,7 +24,9 @@ import { isSuccessfulConnection } from "@/lib/connection-temperature";
  */
 
 const HEAT_WEIGHTS = {
-  contact_revealed: 40,
+  phone_clicked: 45,       // Called family directly - strongest intent
+  email_link_clicked: 45,  // Emailed family directly - strongest intent
+  contact_revealed: 40,    // Copied contact info
   claim_completed: 30,
   one_click_access: 25,
   lead_opened: 20,
@@ -52,6 +56,10 @@ interface HotLead {
     lead_opened_at: string | null;
     contact_revealed: boolean;
     contact_revealed_at: string | null;
+    phone_clicked: boolean;
+    phone_clicked_at: string | null;
+    email_link_clicked: boolean;
+    email_link_clicked_at: string | null;
     account_claimed: boolean;
     claimed_at: string | null;
     one_click_access: boolean;
@@ -128,7 +136,7 @@ export async function GET(request: NextRequest) {
       .from("provider_activity")
       .select("provider_id, event_type, created_at")
       .in("provider_id", [...new Set(providerKeys)])
-      .in("event_type", ["email_click", "lead_opened", "contact_revealed", "one_click_access", "claim_completed"])
+      .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "one_click_access", "claim_completed"])
       .order("created_at", { ascending: false })
       .limit(10000);
 
@@ -137,6 +145,8 @@ export async function GET(request: NextRequest) {
       email_clicked_at: string | null;
       lead_opened_at: string | null;
       contact_revealed_at: string | null;
+      phone_clicked_at: string | null;
+      email_link_clicked_at: string | null;
       one_click_at: string | null;
       claimed_at: string | null;
     }>();
@@ -147,6 +157,8 @@ export async function GET(request: NextRequest) {
           email_clicked_at: null,
           lead_opened_at: null,
           contact_revealed_at: null,
+          phone_clicked_at: null,
+          email_link_clicked_at: null,
           one_click_at: null,
           claimed_at: null,
         });
@@ -163,6 +175,8 @@ export async function GET(request: NextRequest) {
       if (a.event_type === "email_click") updateIfEarlier("email_clicked_at", a.created_at);
       if (a.event_type === "lead_opened") updateIfEarlier("lead_opened_at", a.created_at);
       if (a.event_type === "contact_revealed") updateIfEarlier("contact_revealed_at", a.created_at);
+      if (a.event_type === "phone_clicked") updateIfEarlier("phone_clicked_at", a.created_at);
+      if (a.event_type === "email_link_clicked") updateIfEarlier("email_link_clicked_at", a.created_at);
       if (a.event_type === "one_click_access") updateIfEarlier("one_click_at", a.created_at);
       if (a.event_type === "claim_completed") updateIfEarlier("claimed_at", a.created_at);
     }
@@ -185,6 +199,8 @@ export async function GET(request: NextRequest) {
         eng.email_clicked_at ||
         eng.lead_opened_at ||
         eng.contact_revealed_at ||
+        eng.phone_clicked_at ||
+        eng.email_link_clicked_at ||
         eng.one_click_at ||
         eng.claimed_at;
 
@@ -192,6 +208,8 @@ export async function GET(request: NextRequest) {
 
       // Calculate base heat score
       let baseScore = 0;
+      if (eng.phone_clicked_at) baseScore += HEAT_WEIGHTS.phone_clicked;
+      if (eng.email_link_clicked_at) baseScore += HEAT_WEIGHTS.email_link_clicked;
       if (eng.contact_revealed_at) baseScore += HEAT_WEIGHTS.contact_revealed;
       if (eng.claimed_at) baseScore += HEAT_WEIGHTS.claim_completed;
       if (eng.one_click_at) baseScore += HEAT_WEIGHTS.one_click_access;
@@ -203,6 +221,8 @@ export async function GET(request: NextRequest) {
         eng.email_clicked_at,
         eng.lead_opened_at,
         eng.contact_revealed_at,
+        eng.phone_clicked_at,
+        eng.email_link_clicked_at,
         eng.one_click_at,
         eng.claimed_at,
       ].filter(Boolean) as string[];
@@ -243,6 +263,10 @@ export async function GET(request: NextRequest) {
           lead_opened_at: eng.lead_opened_at,
           contact_revealed: !!eng.contact_revealed_at,
           contact_revealed_at: eng.contact_revealed_at,
+          phone_clicked: !!eng.phone_clicked_at,
+          phone_clicked_at: eng.phone_clicked_at,
+          email_link_clicked: !!eng.email_link_clicked_at,
+          email_link_clicked_at: eng.email_link_clicked_at,
           account_claimed: !!eng.claimed_at,
           claimed_at: eng.claimed_at,
           one_click_access: !!eng.one_click_at,

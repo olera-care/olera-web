@@ -123,10 +123,14 @@ interface ProviderActions {
   viewed: number;
   copiedPhone: number;
   copiedEmail: number;
+  clickedPhone: number;
+  clickedEmail: number;
   continuedToInbox: number;
   // Rates as percentage of viewed
   copiedPhoneRate: number;
   copiedEmailRate: number;
+  clickedPhoneRate: number;
+  clickedEmailRate: number;
   continuedToInboxRate: number;
 }
 
@@ -386,6 +390,8 @@ export async function GET(request: NextRequest) {
       email_clicked: boolean;
       lead_opened: boolean;
       contact_revealed: boolean;
+      phone_clicked: boolean;
+      email_link_clicked: boolean;
       continue_in_inbox: boolean;
     }>();
 
@@ -395,6 +401,8 @@ export async function GET(request: NextRequest) {
         email_clicked: false,
         lead_opened: false,
         contact_revealed: false,
+        phone_clicked: false,
+        email_link_clicked: false,
         continue_in_inbox: false,
       });
     }
@@ -405,7 +413,7 @@ export async function GET(request: NextRequest) {
         .from("provider_activity")
         .select("provider_id, event_type")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "continue_in_inbox"])
+        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
         .limit(10000);
 
       for (const ev of actEvents ?? []) {
@@ -415,15 +423,19 @@ export async function GET(request: NextRequest) {
         if (ev.event_type === "email_click") eng.email_clicked = true;
         else if (ev.event_type === "lead_opened") eng.lead_opened = true;
         else if (ev.event_type === "contact_revealed") eng.contact_revealed = true;
+        else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
+        else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
         else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
       }
     }
 
     // Query provider actions with metadata for detailed breakdown
-    // This gives us granular counts: viewed, copied phone, copied email, continued to inbox
+    // This gives us granular counts: viewed, copied phone, copied email, clicked phone, clicked email, continued to inbox
     let actionViewedCount = 0;
     let actionCopiedPhoneCount = 0;
     let actionCopiedEmailCount = 0;
+    let actionClickedPhoneCount = 0;
+    let actionClickedEmailCount = 0;
     let actionContinuedToInboxCount = 0;
 
     if (allProviderKeys.length > 0) {
@@ -431,7 +443,7 @@ export async function GET(request: NextRequest) {
         .from("provider_activity")
         .select("event_type, metadata")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["lead_opened", "contact_revealed", "continue_in_inbox"]);
+        .in("event_type", ["lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
 
       // Apply date filters to match the connections date range
       if (dateFrom) actionQuery = actionQuery.gte("created_at", dateFrom);
@@ -452,6 +464,10 @@ export async function GET(request: NextRequest) {
             // Default to email if contact_type not specified
             actionCopiedEmailCount++;
           }
+        } else if (ev.event_type === "phone_clicked") {
+          actionClickedPhoneCount++;
+        } else if (ev.event_type === "email_link_clicked") {
+          actionClickedEmailCount++;
         } else if (ev.event_type === "continue_in_inbox") {
           actionContinuedToInboxCount++;
         }
@@ -484,7 +500,7 @@ export async function GET(request: NextRequest) {
       // Funnel stats (based on provider engagement)
       const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
       if (eng?.lead_opened) providerViewedCount++;
-      if (eng?.contact_revealed || eng?.continue_in_inbox) providerEngagedCount++;
+      if (eng?.contact_revealed || eng?.phone_clicked || eng?.email_link_clicked || eng?.continue_in_inbox) providerEngagedCount++;
       if (c.responded) respondedCount++;
       if (c.familyRepliedAfterProvider) connectedCount++;
     }
@@ -508,9 +524,13 @@ export async function GET(request: NextRequest) {
       viewed: actionViewedCount,
       copiedPhone: actionCopiedPhoneCount,
       copiedEmail: actionCopiedEmailCount,
+      clickedPhone: actionClickedPhoneCount,
+      clickedEmail: actionClickedEmailCount,
       continuedToInbox: actionContinuedToInboxCount,
       copiedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
       copiedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
+      clickedPhoneRate: actionViewedCount > 0 ? Math.round((actionClickedPhoneCount / actionViewedCount) * 100) : 0,
+      clickedEmailRate: actionViewedCount > 0 ? Math.round((actionClickedEmailCount / actionViewedCount) * 100) : 0,
       continuedToInboxRate: actionViewedCount > 0 ? Math.round((actionContinuedToInboxCount / actionViewedCount) * 100) : 0,
     };
 
@@ -531,7 +551,7 @@ export async function GET(request: NextRequest) {
     const page = list.slice(offset, offset + limit);
 
     // Per-provider engagement data for UI badges (keyed by provider activityKey)
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; continue_in_inbox: boolean }> = {};
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
     for (const c of page) {
       const key = c.provider.activityKey;
       if (key && !engagement[key]) {
@@ -540,6 +560,8 @@ export async function GET(request: NextRequest) {
           email_clicked: eng?.email_clicked ?? false,
           lead_opened: eng?.lead_opened ?? false,
           contact_revealed: eng?.contact_revealed ?? false,
+          phone_clicked: eng?.phone_clicked ?? false,
+          email_link_clicked: eng?.email_link_clicked ?? false,
           continue_in_inbox: eng?.continue_in_inbox ?? false,
         };
       }

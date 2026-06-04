@@ -58,17 +58,26 @@ const TABS: TabConfig[] = [
 
 const PAGE_SIZE = 50;
 
-// Funnel stat component
-function FunnelStat({ label, value, rate, highlight }: { label: string; value: number; rate?: number; highlight?: boolean }) {
+// Funnel stat component - matches Care Seekers style
+function FunnelStat({
+  label,
+  value,
+  format,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  format?: "number" | "percent";
+  highlight?: boolean;
+}) {
   return (
-    <div className={`rounded-lg border px-4 py-3 ${highlight ? "border-emerald-200 bg-emerald-50/50" : "border-gray-200 bg-white"}`}>
-      <div className="flex items-baseline gap-2">
-        <span className={`text-2xl font-semibold tabular-nums ${highlight ? "text-emerald-600" : "text-gray-900"}`}>
-          {value.toLocaleString()}
-        </span>
-        {rate !== undefined && (
-          <span className="text-sm text-gray-400">{rate}%</span>
-        )}
+    <div
+      className={`rounded-xl border px-3 py-2.5 ${
+        highlight ? "border-emerald-200 bg-emerald-50/50" : "border-gray-200 bg-white"
+      }`}
+    >
+      <div className={`text-xl font-semibold tabular-nums ${highlight ? "text-emerald-600" : "text-gray-900"}`}>
+        {format === "percent" ? `${value}%` : value.toLocaleString()}
       </div>
       <div className="mt-0.5 text-xs text-gray-500">{label}</div>
     </div>
@@ -260,10 +269,10 @@ export default function ConnectionsTrackerPage() {
         {statsExpanded && list?.funnelStats && (
           <div className="mt-4 grid grid-cols-5 gap-3">
             <FunnelStat label="Total Leads" value={list.funnelStats.total} />
-            <FunnelStat label="Provider Viewed" value={list.funnelStats.providerViewed} rate={list.funnelStats.providerViewedRate} />
-            <FunnelStat label="Provider Engaged" value={list.funnelStats.providerEngaged} rate={list.funnelStats.providerEngagedRate} />
-            <FunnelStat label="Responded" value={list.funnelStats.responded} rate={list.funnelStats.respondedRate} />
-            <FunnelStat label="Connected" value={list.funnelStats.connected} rate={list.funnelStats.connectedRate} highlight />
+            <FunnelStat label="Provider Viewed" value={list.funnelStats.providerViewedRate} format="percent" />
+            <FunnelStat label="Provider Engaged" value={list.funnelStats.providerEngagedRate} format="percent" />
+            <FunnelStat label="Responded" value={list.funnelStats.respondedRate} format="percent" />
+            <FunnelStat label="Connected" value={list.funnelStats.connected} highlight />
           </div>
         )}
       </div>

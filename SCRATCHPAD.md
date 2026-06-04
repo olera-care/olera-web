@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-06-04 — Market Diagnostic PHASE 2: compute-on-visit for any city (PR #924 → staging, OPEN)
+
+**Goal:** the diagnostic works for **any provider's city**, computed on first visit + cached — not College-Station-by-hand. Then flip `lib/market-gate.ts` for rollout.
+
+**Decided lazy-only (NOT batch), grounded in live data:** pulled `get_coverage_summary()` → **74,159 providers / 4,008 cities; top 100 cities = only 12.8%** (Houston #1 = 0.3%). Flat tail, no head to batch; and only a sliver of providers ever open Find Families → a batch would be ~90% wasted spend. So compute a city only when a real provider lands on it; cache shared by city×care-type (2nd provider in a city = instant). (Earlier I misread a stale `24MAR` CSV showing 38K/2K — TJ corrected; live numbers above.)
+
+**Built (branch `market-diagnostic-phase2`, worktree `/Users/tfalohun/.claude-worktrees/olera-web/market-phase2`):**
+- **migration 098** `market_diagnostics` (city,state,care_type → data jsonb, status pending|ready|failed, cost_estimate; unique triple; atomic pending-claim). **APPLIED by TJ + verified** (table writable, CHECK enforced, probes cleaned).
+- **`lib/market-diagnostic/`** — engine ported to server TS: `resolve` (free city→lat/lng+ZCTA from `data/geo/city-zips.json`, a slim port of the expansion-map cities.json — no geocoding), `fetch` (Places+Census+Olera; **lean** = referral queries 1 page + 2 weakest roles dropped → ~40% fewer Places calls → ~$1/city/~90s), `analyze` (Haiku; output shape == committed `*.analysis.json`), `cache` (serve/claim/write, **90-day TTL** stale-while-revalidate, **$300/mo circuit-breaker** + Slack).
+- **serve route** cache-first; miss → claim pending + compute in background via Next `after()` → `{status:"building"}`; committed CS file served from disk as zero-cost fallback (no regression). **client** `FindFamiliesMarketView` polls until ready, `MarketLoading` softens to "still building, check back" after ~20s (TJ's pick). **admin** `/api/admin/market-backfill` (GET seed/warm/status + month spend).
+- **Validated live (CS, ~$1 real spend):** 97s, $1.03, 20 competitors, Comfort Keepers #1 @15.3% SoV, 76 referral sources. `tsc` clean (only pre-existing dep-skew).
+
+**Next:** #924 merges → watch cost/quality on a few real cities → flip the gate. Notes: `maxDuration=300` assumes Pro (confirm; cron-drain fallback in plan); city-own-ZIPs → city-scoped demand vs CS file's metro number. Plan: `plans/market-diagnostic-phase2-plan.md`. Memory: `project_market_diagnostic`.
+
 ### 2026-06-04 (Wed) — MedJobs MASTER PLAN drafted
 
 **Context:** Logan asked for one master plan capturing everything we've discussed across all sessions — completeness before phasing. Goal: source of truth so nothing important is lost as planning has evolved.

@@ -125,7 +125,7 @@ async function handleFeedView(db: any, opts: {
       // Legacy standalone suspicious_claim rows are also surfaced.
       query = query
         .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "email_click", "question_responded"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "email_click", "question_responded", "market_diagnostic_viewed_no_leads"].includes(emailType)) {
       // These are event_type values, not email_type
       query = query.eq("event_type", emailType);
     } else {
@@ -244,7 +244,7 @@ async function handleProvidersView(db: any, opts: {
     if (emailType === "suspicious_claim") {
       query = query
         .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "question_responded"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "question_responded", "market_diagnostic_viewed_no_leads"].includes(emailType)) {
       query = query.eq("event_type", emailType);
     } else {
       query = query.eq("email_type", emailType);

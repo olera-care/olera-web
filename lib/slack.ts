@@ -483,6 +483,54 @@ export function slackAnalyticsTeaserCtaClicked(opts: {
   };
 }
 
+/**
+ * 🏙️ Provider with NO local leads viewed "Your Market" — the market
+ * diagnostic that defaults the Find Families tab when a provider's city has
+ * no registered families yet. This is the ~99% default state, so it doubles
+ * as the canonical "a provider is looking at the market product" signal.
+ * Fires on every such visit. The market product is gated/rolled out via
+ * lib/market-gate.ts; once flipped on, this surfaces real provider interest.
+ */
+export function slackMarketDiagnosticNoLeads(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  email: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  const fields: { type: string; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Market:*\n${where}` },
+  ];
+  if (opts.email) {
+    fields.push({ type: "mrkdwn", text: `*Email:*\n${opts.email}` });
+  }
+  return {
+    text: `Market view (no leads): ${opts.providerName} — ${where}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🏙️ Provider Viewed Their Market (No Leads)", emoji: true },
+      },
+      {
+        type: "section",
+        fields,
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=market_diagnostic_viewed_no_leads|Activity Center>`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 // ── Post-answer engagement chain alerts ──────────────────────────
 // These three fire across the redirect → hero → action flow that ships
 // providers from the question email into profile activation. Real-time

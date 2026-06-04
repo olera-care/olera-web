@@ -135,7 +135,12 @@ const PAGE_SIZE = 12;
 
 function trackMatchesEvent(
   providerId: string,
-  eventType: "matches_page_viewed" | "matches_card_clicked" | "matches_message_generated" | "matches_outreach_sent",
+  eventType:
+    | "matches_page_viewed"
+    | "matches_card_clicked"
+    | "matches_message_generated"
+    | "matches_outreach_sent"
+    | "market_diagnostic_viewed_no_leads",
   metadata?: Record<string, unknown>
 ) {
   fetch("/api/activity/track", {
@@ -1360,6 +1365,37 @@ export default function ProviderMatchesPage() {
       });
     }
   }, [providerProfile?.slug, activeTab]);
+
+  // Track when a provider with NO local leads lands on "Your Market" (the
+  // market-diagnostic default of Find Families). Waits for the families fetch
+  // to resolve so we don't fire on the pre-load empty state, then fires once
+  // per visit. Powers a Slack alert + the Activity Center feed. Providers WITH
+  // local leads see the leads strip and are intentionally not signalled here.
+  const hasTrackedMarketNoLeads = useRef(false);
+  useEffect(() => {
+    if (
+      !providerProfile?.slug ||
+      !marketGateOn ||
+      forceLeads ||
+      loading ||
+      !hasFetchedOnceRef.current ||
+      hasTrackedMarketNoLeads.current
+    ) {
+      return;
+    }
+    const pcity = providerProfile.city?.toLowerCase();
+    const localLeadCount = pcity
+      ? families.filter((f) => f.city?.toLowerCase() === pcity).length
+      : 0;
+    if (localLeadCount > 0) return; // has local leads → not the no-leads signal
+    hasTrackedMarketNoLeads.current = true;
+    trackMatchesEvent(providerProfile.slug, "market_diagnostic_viewed_no_leads", {
+      provider_name: providerProfile.display_name,
+      city: providerProfile.city,
+      state: providerProfile.state,
+      email: user?.email,
+    });
+  }, [providerProfile, marketGateOn, forceLeads, loading, families, user?.email]);
 
   // Poll for updates every 45 seconds (family profile changes, new listings)
   // Pass isBackgroundRefresh=true to avoid showing loading skeleton during refresh

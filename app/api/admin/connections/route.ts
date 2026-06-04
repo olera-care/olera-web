@@ -427,12 +427,17 @@ export async function GET(request: NextRequest) {
     let actionContinuedToInboxCount = 0;
 
     if (allProviderKeys.length > 0) {
-      const { data: actionEvents } = await db
+      let actionQuery = db
         .from("provider_activity")
         .select("event_type, metadata")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["lead_opened", "contact_revealed", "continue_in_inbox"])
-        .limit(10000);
+        .in("event_type", ["lead_opened", "contact_revealed", "continue_in_inbox"]);
+
+      // Apply date filters to match the connections date range
+      if (dateFrom) actionQuery = actionQuery.gte("created_at", dateFrom);
+      if (dateTo) actionQuery = actionQuery.lte("created_at", dateTo);
+
+      const { data: actionEvents } = await actionQuery.limit(10000);
 
       for (const ev of actionEvents ?? []) {
         if (ev.event_type === "lead_opened") {

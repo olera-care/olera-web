@@ -318,13 +318,12 @@ export default function ConnectionRow({
           className="flex-1 min-w-0 text-left"
           aria-expanded={open}
         >
-          {/* Primary line: names + engagement badges + age */}
+          {/* Primary line: names + engagement badges */}
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
             <span className="font-medium text-gray-900 truncate">{provider}</span>
             <EngagementBadges engagement={engagement} compact />
-            <span className="text-sm text-gray-400 shrink-0 ml-auto">{age} ago</span>
           </div>
           {/* Secondary line: care type + timeline | waiting status | nudge info */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
@@ -349,6 +348,9 @@ export default function ConnectionRow({
             )}
           </div>
         </button>
+
+        {/* Timestamp - vertically centered with other controls */}
+        <span className="text-sm text-gray-400 shrink-0">{age} ago</span>
 
         {/* Delete button - hover reveal */}
         {onDelete && (

@@ -32,6 +32,27 @@ Status: Drain log — bugs and optimizations surfaced during phase builds.
 - Target resolution: spot-check on Vercel preview before Phase 1 merges to staging
 - Notes: Plan assumes `https://app.smartlead.ai/app/master-inbox?lead_id=<lead_id>&campaign_id=<campaign_id>` deep-links to the right thread. Bullet 9 ships with this URL. The link builder gracefully falls back to root master inbox when lead_id is missing. If Smartlead's UI URL convention has changed, update the URL in `smartleadInboxUrl()` in `components/admin/medjobs/cards/StakeholderCard.tsx`.
 
+### 2026-06-04 — Phase 2+3 Bullet 8 follow-up: explicit preview-mode card UI deferred
+- Found in: Phase 2+3 Chunk D build
+- Severity: deferred (existing API redaction handles preview semantics)
+- Owner: revisit during Phase 4+5 detail pass
+- Target resolution: re-evaluate once Phase 4+5 wires the Invite/Save/See-contact actions
+- Notes: The v3 plan's Bullet 8 called for explicit "preview cards with disabled action buttons" UX for authenticated-but-not-pilot-active accounts. The existing `/api/medjobs/candidates` API already redacts contact info for non-paid viewers, which IS the preview semantic. The disabled-action-buttons UI is moot until Phase 4+5 wires the actual Invite/Save/See-contact actions — there's nothing to disable today. When Phase 4+5 builds those actions, decide whether to render them disabled-with-tooltip or to render the welcome banner's "Activate the pilot" CTA more prominently as the path forward.
+
+### 2026-06-04 — Phase 2+3 Bullet 9 follow-up: catchment-based filter defaults deferred
+- Found in: Phase 2+3 Chunk D build
+- Severity: minor (cold providers see all students; can filter manually)
+- Owner: Phase 2+3b cleanup
+- Target resolution: Phase 2+3b — small follow-up
+- Notes: The magic-link landing route writes `?campus=<slug>` into the welcome URL, but the `CandidateFilterValues` shape uses `city + state` not `campus_slug`. Setting catchment defaults from the URL requires a campus→state/city mapping (Texas A&M → {state: "TX", city: "College Station"}, etc.). Either add a `campusSlug` field to the filter values + the API, or thread a server-side mapping through. Defer until provider feedback indicates this matters.
+
+### 2026-06-04 — Phase 2+3: MEDJOBS_MAGIC_LINK_SECRET activation needed
+- Found in: Phase 2+3 Chunks A+B+C ship
+- Severity: blocker for live cold-provider testing on staging
+- Owner: TJ
+- Target resolution: post-Phase 2+3 merge
+- Notes: New env var `MEDJOBS_MAGIC_LINK_SECRET` must be set on Vercel prod + preview before any cold-provider email goes out. Suggested: `openssl rand -base64 48`. Without the secret, `buildWelcomeUrl` falls back to `PROGRAM_URL` (the email still has a working link, just not the magic-link experience). The landing route returns `/medjobs/m/expired?reason=config` when the secret is missing.
+
 ### 2026-06-04 — Phase 1 Bullet 10 follow-up: unmatched Calendly bookings tray deferred
 - Found in: Phase 1 Bullet 10 build
 - Severity: deferred (low-risk; admin sees the booking natively in Calendly's UI when unmatched)

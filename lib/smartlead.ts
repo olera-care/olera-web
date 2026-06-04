@@ -238,3 +238,57 @@ export async function deleteCampaign(
 ): Promise<SmartleadResult<{ ok?: boolean }>> {
   return smartleadRequest("DELETE", `/campaigns/${campaignId}`);
 }
+
+/**
+ * v10 Phase 2+3 Bullet 6 follow-up (2026-06-04): list all leads currently
+ * enrolled in a Smartlead campaign. Used by the
+ * /admin/medjobs/smartlead-refresh-leads page to walk every existing lead
+ * and backfill `custom_fields.welcome_url` after the magic-link rollout.
+ *
+ * Smartlead paginates this endpoint; we fetch one page at a time. The
+ * caller drives the offset/limit loop.
+ */
+export interface SmartleadCampaignLead {
+  /** Smartlead-internal lead id (used by updateLead). */
+  lead_id?: number;
+  id?: number;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+  custom_fields?: Record<string, unknown> | null;
+}
+
+export async function listCampaignLeads(
+  campaignId: number,
+  options: { limit?: number; offset?: number } = {}
+): Promise<SmartleadResult<{ data?: SmartleadCampaignLead[]; total_leads?: number }>> {
+  const limit = options.limit ?? 100;
+  const offset = options.offset ?? 0;
+  return smartleadRequest(
+    "GET",
+    `/campaigns/${campaignId}/leads?limit=${limit}&offset=${offset}`
+  );
+}
+
+/**
+ * v10 Phase 2+3 Bullet 6 follow-up (2026-06-04): update a single lead's
+ * fields inside a campaign. Used to backfill `custom_fields.welcome_url`
+ * on existing leads after the magic-link rollout — new leads get it
+ * automatically via `rowToLeads`; existing ones predate the field.
+ *
+ * Smartlead's update-lead-in-campaign endpoint accepts a partial lead
+ * shape; only the fields you pass are updated. Smartlead-internal IDs
+ * + email stay as-is.
+ */
+export async function updateLeadInCampaign(
+  campaignId: number,
+  leadId: number,
+  patch: { custom_fields?: Record<string, unknown>; first_name?: string; last_name?: string }
+): Promise<SmartleadResult<{ ok?: boolean }>> {
+  return smartleadRequest(
+    "POST",
+    `/campaigns/${campaignId}/leads/${leadId}`,
+    patch
+  );
+}

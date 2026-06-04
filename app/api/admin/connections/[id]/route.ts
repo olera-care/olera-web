@@ -158,42 +158,42 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       complained_at: string | null;
       metadata?: Record<string, unknown> | null;
     };
-    // Only lead/connection-relevant mail — not weekly digests or profile nudges.
-    const PROVIDER_EMAIL_TYPES = [
-      "provider_nudge",
-      "add_email_notification",
+    // Email types that are only relevant via provider_id fallback (for older emails without connection_id)
+    // These are lead-specific types that we want to show even for older data
+    const PROVIDER_FALLBACK_EMAIL_TYPES = [
       "connection_request",
+      "add_email_notification",
       "guest_connection",
+      "provider_nudge",
       "question_received",
       "new_message",
       "post_connection_followup",
+      "first_lead_celebration",
+      "first_response_confirmation",
     ];
-    // Query provider emails - prefer filtering by connection_id in metadata
-    // Some older emails don't have connection_id, so we fall back to provider_id matching
+
+    // Query ALL emails with this connection_id in metadata (most accurate, no type filter)
+    const { data: connectionEmails } = await db
+      .from("email_log")
+      .select(
+        "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
+      )
+      .contains("metadata", { connection_id: c.id })
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    // Get IDs of emails already found by connection_id
+    const foundIds = new Set((connectionEmails ?? []).map(e => e.id));
+
+    // Fall back to provider_id matching for older emails without connection_id
+    // Only needed for provider emails since family emails always have connection_id
     const emailProviderKeys = [
       c.to_profile_id,
       provider?.slug,
       provider?.source_provider_id,
     ].filter(Boolean) as string[];
 
-    let providerEmails: EmailLogRow[] = [];
-
-    // First, try to get emails with connection_id in metadata (most accurate)
-    const { data: connIdLogs } = await db
-      .from("email_log")
-      .select(
-        "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
-      )
-      .contains("metadata", { connection_id: c.id })
-      .in("email_type", PROVIDER_EMAIL_TYPES)
-      .order("created_at", { ascending: false })
-      .limit(25);
-
-    // Get IDs of emails already found by connection_id
-    const foundIds = new Set((connIdLogs ?? []).map(e => e.id));
-
-    // Fall back to provider_id matching for emails without connection_id
-    // But only include emails that weren't already found AND don't belong to a different connection
+    let fallbackEmails: EmailLogRow[] = [];
     if (emailProviderKeys.length > 0) {
       const { data: providerIdLogs } = await db
         .from("email_log")
@@ -201,59 +201,29 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
         )
         .in("provider_id", emailProviderKeys)
-        .in("email_type", PROVIDER_EMAIL_TYPES)
+        .in("email_type", PROVIDER_FALLBACK_EMAIL_TYPES)
         .gte("created_at", c.created_at)
         .order("created_at", { ascending: false })
-        .limit(50); // Fetch more since we'll filter some out
+        .limit(50);
 
       // Filter out emails that have connection_id for a DIFFERENT connection
-      // (they belong to another connection with the same provider)
-      const filteredProviderIdLogs = (providerIdLogs ?? []).filter(e => {
+      fallbackEmails = (providerIdLogs ?? []).filter(e => {
+        if (foundIds.has(e.id)) return false; // Already found
         const emailMeta = e.metadata as Record<string, unknown> | null;
         const emailConnId = emailMeta?.connection_id as string | undefined;
         // Include if: no connection_id, or connection_id matches this connection
         return !emailConnId || emailConnId === c.id;
-      });
-
-      // Combine, avoiding duplicates
-      const allProviderEmails = [
-        ...(connIdLogs ?? []),
-        ...filteredProviderIdLogs.filter(e => !foundIds.has(e.id))
-      ];
-      providerEmails = allProviderEmails as EmailLogRow[];
-    } else {
-      providerEmails = (connIdLogs as EmailLogRow[]) ?? [];
+      }) as EmailLogRow[];
     }
 
-    // Query family emails by connection_id in metadata
-    // Family emails don't have provider_id set, so we query by metadata
-    let familyEmails: EmailLogRow[] = [];
-    const { data: familyLogs } = await db
-      .from("email_log")
-      .select(
-        "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
-      )
-      .eq("recipient_type", "family")
-      .contains("metadata", { connection_id: c.id })
-      .gte("created_at", c.created_at)
-      .order("created_at", { ascending: false })
-      .limit(25);
-    familyEmails = (familyLogs as EmailLogRow[]) ?? [];
-
-    // Merge and deduplicate by ID, then sort by created_at descending
-    const seenEmailIds = new Set<string>();
-    const emails = [...providerEmails, ...familyEmails]
-      .filter(e => {
-        if (seenEmailIds.has(e.id)) return false;
-        seenEmailIds.add(e.id);
-        return true;
-      })
+    // Merge connection emails with fallback provider emails, sort by date
+    const emails = [...(connectionEmails ?? []), ...fallbackEmails]
       .sort((a, b) => {
         const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
         const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
         return bTime - aTime;
       })
-      .slice(0, 25);
+      .slice(0, 30) as EmailLogRow[];
 
     // Family nudge info
     const familyNudgeCount = (meta.family_nudge_count as number) || 0;

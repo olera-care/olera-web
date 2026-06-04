@@ -1284,20 +1284,7 @@ export default function ProviderLeadsPage() {
           event_type: "lead_opened",
           metadata: { lead_id: lead.id, connection_id: lead.connectionId },
         }),
-      }).then(res => {
-        if (!res.ok) {
-          console.error("[lead_opened] Track failed:", res.status);
-        }
-      }).catch((err) => {
-        console.error("[lead_opened] Track error:", err);
-      });
-    } else {
-      console.warn("[lead_opened] No providerKey available:", {
-        hasProfile: !!providerProfile,
-        slug: providerProfile?.slug,
-        sourceProviderId: providerProfile?.source_provider_id,
-        id: providerProfile?.id
-      });
+      }).catch(() => {});
     }
   }, [providerProfile]);
 
@@ -1883,10 +1870,7 @@ export default function ProviderLeadsPage() {
         onDelete={handleDeleteLead}
         onMarkAsReplied={handleMarkAsReplied}
         onContactReveal={(leadId, contactType) => {
-          if (!providerProfile) {
-            console.warn("[contact_revealed] No providerProfile");
-            return;
-          }
+          if (!providerProfile) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",
@@ -1896,15 +1880,10 @@ export default function ProviderLeadsPage() {
               event_type: "contact_revealed",
               metadata: { lead_id: leadId, contact_type: contactType },
             }),
-          }).then(res => {
-            if (!res.ok) console.error("[contact_revealed] Track failed:", res.status);
-          }).catch(err => console.error("[contact_revealed] Track error:", err));
+          }).catch(() => {});
         }}
         onContinueInInbox={(leadId) => {
-          if (!providerProfile) {
-            console.warn("[continue_in_inbox] No providerProfile");
-            return;
-          }
+          if (!providerProfile) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",
@@ -1914,9 +1893,7 @@ export default function ProviderLeadsPage() {
               event_type: "continue_in_inbox",
               metadata: { lead_id: leadId },
             }),
-          }).then(res => {
-            if (!res.ok) console.error("[continue_in_inbox] Track failed:", res.status);
-          }).catch(err => console.error("[continue_in_inbox] Track error:", err));
+          }).catch(() => {});
         }}
         isVerified={isVerified}
         onVerifyClick={handleVerifyFromDrawer}

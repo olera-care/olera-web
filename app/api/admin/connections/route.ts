@@ -118,6 +118,18 @@ interface FunnelStats {
   connectedRate: number;
 }
 
+// Provider action breakdown stats
+interface ProviderActions {
+  viewed: number;
+  copiedPhone: number;
+  copiedEmail: number;
+  continuedToInbox: number;
+  // Rates as percentage of viewed
+  copiedPhoneRate: number;
+  copiedEmailRate: number;
+  continuedToInboxRate: number;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -407,6 +419,40 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Query provider actions with metadata for detailed breakdown
+    // This gives us granular counts: viewed, copied phone, copied email, continued to inbox
+    let actionViewedCount = 0;
+    let actionCopiedPhoneCount = 0;
+    let actionCopiedEmailCount = 0;
+    let actionContinuedToInboxCount = 0;
+
+    if (allProviderKeys.length > 0) {
+      const { data: actionEvents } = await db
+        .from("provider_activity")
+        .select("event_type, metadata")
+        .in("provider_id", allProviderKeys)
+        .in("event_type", ["lead_opened", "contact_revealed", "continue_in_inbox"])
+        .limit(10000);
+
+      for (const ev of actionEvents ?? []) {
+        if (ev.event_type === "lead_opened") {
+          actionViewedCount++;
+        } else if (ev.event_type === "contact_revealed") {
+          const meta = ev.metadata as Record<string, unknown> | null;
+          if (meta?.contact_type === "phone") {
+            actionCopiedPhoneCount++;
+          } else if (meta?.contact_type === "email") {
+            actionCopiedEmailCount++;
+          } else {
+            // Default to email if contact_type not specified
+            actionCopiedEmailCount++;
+          }
+        } else if (ev.event_type === "continue_in_inbox") {
+          actionContinuedToInboxCount++;
+        }
+      }
+    }
+
     // Workflow-based counts
     const workflowCounts: WorkflowCounts = {
       all: 0,
@@ -452,6 +498,17 @@ export async function GET(request: NextRequest) {
       connectedRate: totalActive > 0 ? Math.round((connectedCount / totalActive) * 100) : 0,
     };
 
+    // Provider action breakdown - rates as percentage of viewed
+    const providerActions: ProviderActions = {
+      viewed: actionViewedCount,
+      copiedPhone: actionCopiedPhoneCount,
+      copiedEmail: actionCopiedEmailCount,
+      continuedToInbox: actionContinuedToInboxCount,
+      copiedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
+      copiedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
+      continuedToInboxRate: actionViewedCount > 0 ? Math.round((actionContinuedToInboxCount / actionViewedCount) * 100) : 0,
+    };
+
     // Filtering by workflow state
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
@@ -493,6 +550,7 @@ export async function GET(request: NextRequest) {
       total: list.length,
       workflowCounts,
       funnelStats,
+      providerActions,
       engagement,
       truncated,
     });

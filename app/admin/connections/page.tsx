@@ -28,11 +28,22 @@ interface FunnelStats {
   connectedRate: number;
 }
 
+interface ProviderActions {
+  viewed: number;
+  copiedPhone: number;
+  copiedEmail: number;
+  continuedToInbox: number;
+  copiedPhoneRate: number;
+  copiedEmailRate: number;
+  continuedToInboxRate: number;
+}
+
 interface ListResponse {
   connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];
   total: number;
   workflowCounts: WorkflowCounts;
   funnelStats: FunnelStats;
+  providerActions: ProviderActions;
   engagement: Record<string, Engagement>;
   truncated: boolean;
 }
@@ -97,6 +108,7 @@ export default function ConnectionsTrackerPage() {
 
   // Stats row state (collapsible)
   const [statsExpanded, setStatsExpanded] = useState(true);
+  const [actionsExpanded, setActionsExpanded] = useState(true);
 
   // Delete state
   const [pendingDelete, setPendingDelete] = useState<ConnectionRowData | null>(null);
@@ -273,6 +285,36 @@ export default function ConnectionsTrackerPage() {
             <FunnelStat label="Provider Engaged" value={list.funnelStats.providerEngagedRate} format="percent" />
             <FunnelStat label="Responded" value={list.funnelStats.respondedRate} format="percent" />
             <FunnelStat label="Connected" value={list.funnelStats.connected} highlight />
+          </div>
+        )}
+      </div>
+
+      {/* Collapsible Provider Actions */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setActionsExpanded(!actionsExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-3 h-3 transition-transform ${actionsExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+          Provider Actions
+          <span className="text-xs text-gray-400 font-normal">
+            {range.preset === "all" ? "all time" : range.preset === "30d" ? "last 30 days" : range.preset === "7d" ? "last 7 days" : "custom range"}
+          </span>
+        </button>
+
+        {actionsExpanded && list?.providerActions && (
+          <div className="mt-4 grid grid-cols-4 gap-3">
+            <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
+            <FunnelStat label="Copied Phone" value={list.providerActions.copiedPhoneRate} format="percent" />
+            <FunnelStat label="Copied Email" value={list.providerActions.copiedEmailRate} format="percent" />
+            <FunnelStat label="Continued to Inbox" value={list.providerActions.continuedToInboxRate} format="percent" />
           </div>
         )}
       </div>

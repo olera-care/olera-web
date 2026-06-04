@@ -220,6 +220,16 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
   // When the magic-link secret isn't configured (dev / preview), fall
   // back to PROGRAM_URL — the email still has a working link.
   const magicLinkSecret = process.env.MEDJOBS_MAGIC_LINK_SECRET ?? "";
+  // Chunk 6 env guard: a missing secret silently degrades every CTA to the
+  // generic PROGRAM_URL (no auth, no campus filter). That's fine for dev but
+  // a real misconfiguration in prod — warn loudly, once per launch, so it's
+  // visible in logs rather than shipping broken magic links unnoticed.
+  if (!magicLinkSecret) {
+    console.warn(
+      "[smartlead-bridge] MEDJOBS_MAGIC_LINK_SECRET unset — outreach CTAs will " +
+        "fall back to PROGRAM_URL (no silent magic-link auth). Set it on this env.",
+    );
+  }
   const buildWelcomeFor = (email: string): string => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {

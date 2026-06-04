@@ -191,6 +191,52 @@ the live directory paths must keep:
 - G3: prefer no migrations. If a constraint (e.g. unique on `source_provider_id`) is wanted to *enforce* one-profile-per-listing, surface to TJ — single shared Supabase, manual dashboard apply, no staging isolation (see `docs/DATABASE_STRATEGY.md` is a non-adopted proposal; reality is one shared Supabase).
 - Keep admin `make_client` and self-serve `pilot/activate` in lockstep — any change to one mirrors to the other.
 
+## Build log
+
+### 2026-06-04 — all chunks implemented (off staging)
+
+- **Chunk 0** — `lib/medjobs/claim-provider-profile.ts` new shared primitive
+  `resolveOrClaimProviderProfile` (dedup by `source_provider_id` via
+  fetch-then-filter so legacy NULL `claim_state` rows are caught; sets
+  `account_id`; `generateUniqueSlug`; `claim_state="claimed"`,
+  `verification_state="unverified"`; co-tenancy returns `{conflict:true}`).
+  `pilot/activate` Path A/B and admin `handleMakeClient` both rewritten to call
+  it (parity / Q1). `handleMakeClient` passes `accountId=null` (adopted later).
+  Magic-link route user resolution switched from the first-200 `listUsers` scan
+  to deterministic `createUser`-or-`generateLink` (D-IDENT).
+- **Chunk 1** — magic-link route stops the `/portal/inbox` hijack by passing
+  `?next=<board>` (AuthProvider honors it; no change to shared auth code) and
+  threads `outreach_id` into the board URL.
+- **Chunk 2** — magic-link route resolves co-tenancy by `source_provider_id`
+  (detection only; no mutation until terms). All claim/link mutation deferred to
+  terms acceptance.
+- **Chunk 3** — `outreach_id` threaded page → `WelcomeBanner` → `PilotTermsModal`
+  so cold activation targets the right org (kills the 404 dead-end). Terms copy
+  updated to disclose the combined directory claim + claim≠verification note.
+- **Chunk 4** — candidates API split into two gates: full-profile view unlocks
+  with `medjobsAccessActive` (pilot OR subscription, shared with the page);
+  contact (email/phone/résumé/LinkedIn) stays behind `hasFullAccess`
+  (paid AND verified) — de-platforming moat intact.
+- **Chunk 5** — `lib/medjobs/campus-university-bridge.ts` maps campus slug →
+  `medjobs_universities` by name (slug-drift-proof); candidates API filters by
+  `metadata->>university_id`; page passes `?campus` through. No schema/data change.
+- **Chunk 6** — Smartlead env guard warns when `MEDJOBS_MAGIC_LINK_SECRET` is
+  unset (no more silent marketing-URL fallback in prod). QA matrix +
+  Directory-invariant checklist above.
+
+**Verification:** `npx tsc --noEmit` clean (0 errors) across the project.
+Directory claim paths (`claim-instant`, `claim-listing`, `create-listing`,
+`claim/finalize`) NOT modified — diff confirms. Live-flow QA against the shared
+Supabase still pending (needs `MEDJOBS_MAGIC_LINK_SECRET` set on the env + a
+fixture outreach row); see QA matrix.
+
+### Still requires a human / manual step
+- `MEDJOBS_MAGIC_LINK_SECRET` must be set on the target Vercel/Supabase env (TJ).
+- Terms / pilot-agreement **PDF** (`/medjobs/pilot-agreement.pdf`) copy should be
+  updated to match the modal's combined-claim language (Logan/legal).
+- Optional: DB slug reconciliation + a unique constraint on `source_provider_id`
+  (schema change — surface to TJ; not required for correctness today).
+
 ## Open items for Logan
 - Combined Terms / pilot-agreement PDF copy: needs the directory-claim language added (legal/marketing review).
 - Whether to add a DB unique constraint on `source_provider_id` (enforcement vs flexibility; schema change).

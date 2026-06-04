@@ -135,6 +135,53 @@ function offRampBlock(providerSlug?: string): string {
     </div>`;
 }
 
+/**
+ * Dr. Logan's signature block with photo for lead notification emails.
+ * Includes intro paragraph, soft urgency line, and credentials.
+ */
+function loganLeadSignature(): string {
+  const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
+  return `
+    <div style="margin:24px 0 0;">
+      <p style="font-size:14px;color:#374151;margin:0 0 16px;line-height:1.6;">
+        I'm Dr. Logan DuBose, Olera's COO. We're an NIH-backed platform built by a team with backgrounds in medicine and research — we made Olera so families can find trustworthy care and connect with good providers directly, without a broker in the middle.
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 20px;line-height:1.6;">
+        Families usually reach out to a few providers while they decide, so even a short reply means a lot to them.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
+            <p style="margin:0;font-weight:600;color:#111827;">— Dr. Logan DuBose</p>
+            <p style="margin:2px 0 0;color:#6b7280;">COO, Olera · Affiliate Faculty, Texas A&amp;M College of Nursing</p>
+          </td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+/**
+ * Provider-specific off-ramp block with magic link URLs for managing listing and settings.
+ * @param manageListingUrl - Magic link URL to provider dashboard
+ * @param settingsUrl - Magic link URL to provider settings (lead preferences)
+ */
+function providerOffRampBlock(manageListingUrl: string, settingsUrl: string): string {
+  return `
+    <div style="margin:28px 0 0;padding:16px 0 0;border-top:1px solid #e5e7eb;">
+      <p style="font-size:13px;color:#6b7280;margin:0 0 8px;line-height:1.5;">
+        Not the right person? Forward this to whoever handles new inquiries.
+      </p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;">
+        ${secondaryLink("Manage your listing", manageListingUrl)} &middot;
+        ${secondaryLink("Update lead preferences", settingsUrl)} &middot;
+        Or call us at <a href="tel:+19792439801" style="color:#9ca3af;text-decoration:underline;">(979) 243-9801</a>
+      </p>
+    </div>`;
+}
+
 // ── Templates ───────────────────────────────────────────────────
 
 /** Verification code email for provider claims (existing flow) */
@@ -178,34 +225,134 @@ export function verificationOtpEmail(opts: {
   `, "Your verification code for Olera");
 }
 
-/** Email to provider when a family sends a connection request */
+/**
+ * Email to provider when a family sends a connection request.
+ *
+ * Includes Dr. Logan's signature and smart fallbacks for missing data.
+ * Footer links use magic link tokens for frictionless sign-in.
+ *
+ * @param opts.providerName - Provider's display name (for greeting)
+ * @param opts.familyName - Family's name (for personalization)
+ * @param opts.careType - Type of care being sought (e.g., "Assisted Living")
+ * @param opts.city - City where care is needed (usually provider's city)
+ * @param opts.careRecipient - Who the care is for (e.g., "their parent")
+ * @param opts.viewUrl - Magic link URL to view the lead
+ * @param opts.manageListingUrl - Magic link URL to provider dashboard (optional, uses legacy footer if not provided)
+ * @param opts.settingsUrl - Magic link URL to provider settings (optional)
+ * @param opts.providerSlug - Provider's slug for legacy unsubscribe link (optional, used if manageListingUrl not provided)
+ */
 export function connectionRequestEmail(opts: {
   providerName: string;
   familyName: string;
   careType: string | null;
-  message: string | null;
+  city?: string | null;
+  careRecipient?: string | null;
   viewUrl: string;
+  manageListingUrl?: string;
+  settingsUrl?: string;
   providerSlug?: string;
 }): string {
-  const safeFamilyName = firstName(opts.familyName);
-  const careLine = opts.careType
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;"><strong>Care type:</strong> ${escapeHtml(opts.careType)}</p>`
-    : "";
+  // Extract first name, fallback to null if placeholder
+  const safeFamilyName = firstName(opts.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!opts.city;
+  const hasCareType = !!opts.careType;
+  const hasCareRecipient = !!opts.careRecipient;
+
+  // Determine pronoun based on care recipient (defaults to "their" if unknown)
+  // "her mother" → "her", "his father" → "his", otherwise "their"
+  let pronoun = "their";
+  let possessivePronoun = "their";
+  if (hasCareRecipient) {
+    const recipientLower = opts.careRecipient!.toLowerCase();
+    if (recipientLower.includes("mother") || recipientLower.includes("mom") ||
+        recipientLower.includes("grandmother") || recipientLower.includes("wife") ||
+        recipientLower.includes("sister") || recipientLower.includes("aunt")) {
+      pronoun = "her";
+      possessivePronoun = "her";
+    } else if (recipientLower.includes("father") || recipientLower.includes("dad") ||
+               recipientLower.includes("grandfather") || recipientLower.includes("husband") ||
+               recipientLower.includes("brother") || recipientLower.includes("uncle")) {
+      pronoun = "him";
+      possessivePronoun = "his";
+    }
+  }
+
+  // Build subject line with fallbacks
+  // Full: "Margaret in Bryan is looking for assisted living"
+  // No name: "A family in Bryan is looking for assisted living"
+  // No city: "Margaret is looking for assisted living"
+  // Minimal: "A family is looking for care"
+  let subject: string;
+  if (hasName && hasCity && hasCareType) {
+    subject = `${safeFamilyName} in ${opts.city} is looking for ${opts.careType!.toLowerCase()}`;
+  } else if (!hasName && hasCity && hasCareType) {
+    subject = `A family in ${opts.city} is looking for ${opts.careType!.toLowerCase()}`;
+  } else if (hasName && !hasCity && hasCareType) {
+    subject = `${safeFamilyName} is looking for ${opts.careType!.toLowerCase()}`;
+  } else if (hasName && hasCity && !hasCareType) {
+    subject = `${safeFamilyName} in ${opts.city} is looking for care`;
+  } else if (hasName) {
+    subject = `${safeFamilyName} is looking for care`;
+  } else if (hasCity) {
+    subject = `A family in ${opts.city} is looking for care`;
+  } else {
+    subject = "A family is looking for care";
+  }
+
+  // Build preheader with pronoun fallback
+  const preheader = hasName
+    ? `See ${possessivePronoun} full request and message ${pronoun} directly.`
+    : "See their full request and message them directly.";
+
+  // Build greeting line
+  const greeting = `Hi ${escapeHtml(opts.providerName)},`;
+
+  // Build main body line with smart fallbacks
+  // Full: "Margaret is looking for assisted living for her mother in Bryan — and chose your team."
+  // No recipient: "Margaret is looking for assisted living in Bryan — and chose your team."
+  // No city: "Margaret is looking for assisted living — and chose your team."
+  // No care type: "Margaret is looking for care in Bryan — and chose your team."
+  // Minimal: "A family is looking for care — and chose your team."
+  let bodyLine: string;
+  const familyRef = hasName ? safeFamilyName : "A family";
+  const careTypeRef = hasCareType ? opts.careType!.toLowerCase() : "care";
+
+  if (hasCareRecipient && hasCity) {
+    bodyLine = `${familyRef} is looking for ${careTypeRef} for ${opts.careRecipient} in ${opts.city} — and chose your team.`;
+  } else if (hasCareRecipient && !hasCity) {
+    bodyLine = `${familyRef} is looking for ${careTypeRef} for ${opts.careRecipient} — and chose your team.`;
+  } else if (hasCity) {
+    bodyLine = `${familyRef} in ${opts.city} is looking for ${careTypeRef} — and chose your team.`;
+  } else {
+    bodyLine = `${familyRef} is looking for ${careTypeRef} — and chose your team.`;
+  }
+
+  // Build CTA explanation with pronoun fallback
+  const ctaExplanation = hasName
+    ? `Open ${possessivePronoun} request and you'll see ${possessivePronoun} full contact details, and you can message ${pronoun} directly through Olera. There's no fee, and we never sell your information.`
+    : "Open their request and you'll see their contact details, and you can message them directly through Olera. There's no fee, and we never sell your information.";
+
+  // Button text with name fallback (escape for HTML safety)
+  const buttonText = hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the family's request →";
+
+  // Use new footer with magic links if URLs provided, otherwise fall back to legacy footer
+  const footerBlock = opts.manageListingUrl && opts.settingsUrl
+    ? providerOffRampBlock(opts.manageListingUrl, opts.settingsUrl)
+    : offRampBlock(opts.providerSlug);
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family is looking for care from ${escapeHtml(opts.providerName)}</h1>
-    ${trustIntro()}
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      <strong>${escapeHtml(safeFamilyName)}</strong> is actively searching for care and chose to reach out to your organization.
+      ${escapeHtml(bodyLine)}
     </p>
-    ${careLine}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A timely response makes all the difference for families navigating care decisions. Log in to view the full inquiry and respond.</p>
-    <div style="margin:0 0 24px;">${button("View care inquiry", opts.viewUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.6;">
+      ${ctaExplanation}
     </p>
-    ${offRampBlock(opts.providerSlug)}
-  `, `${safeFamilyName} is looking for care — respond to connect`);
+    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganLeadSignature()}
+    ${footerBlock}
+  `, preheader);
 }
 
 /** Confirmation email to family after they send a connection request */

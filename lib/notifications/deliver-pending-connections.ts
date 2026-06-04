@@ -174,7 +174,6 @@ async function notifyRecipient(
           providerName: recipientName,
           familyName: providerName,
           careType: careType ? formatCareType(careType) : null,
-          message: messageText,
           viewUrl,
           providerSlug,
         }),

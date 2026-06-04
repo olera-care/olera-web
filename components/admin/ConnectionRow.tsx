@@ -307,7 +307,7 @@ export default function ConnectionRow({
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
-      <div className="flex w-full items-center gap-3 px-4 py-3 hover:bg-stone-50/60 transition-colors">
+      <div className="flex w-full items-center gap-3 px-4 py-4 hover:bg-stone-50/60 transition-colors">
         <button
           onClick={toggle}
           className="flex-1 min-w-0 text-left"

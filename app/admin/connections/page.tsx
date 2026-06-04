@@ -342,7 +342,7 @@ export default function ConnectionsTrackerPage() {
             {activeTabConfig?.emptyMessage ?? "No connections found."}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-100">
             {list.connections.map((c) => (
               <ConnectionRow
                 key={c.id}

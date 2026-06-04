@@ -21,9 +21,13 @@ import PilotTermsModal from "@/components/medjobs/PilotTermsModal";
 export default function WelcomeBanner({
   claimConflict,
   isProvider,
+  outreachId,
 }: {
   claimConflict: boolean;
   isProvider: boolean;
+  /** Threaded from the magic-link landing so activation targets the right
+   *  org deterministically (decision: org-owned). */
+  outreachId?: string;
 }) {
   const [dismissed, setDismissed] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -68,6 +72,7 @@ export default function WelcomeBanner({
 
       {showTermsModal && (
         <PilotTermsModal
+          outreachId={outreachId}
           onCancel={() => setShowTermsModal(false)}
           onSuccess={() => {
             setShowTermsModal(false);

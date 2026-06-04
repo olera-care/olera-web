@@ -97,7 +97,7 @@ export async function GET(
     .from("student_outreach")
     .select(
       "id, provider_business_profile_id, organization_name, campus_id, " +
-        "campuses:campus_id ( slug )",
+        "research_data, campuses:campus_id ( slug )",
     )
     .eq("id", outreach_id)
     .maybeSingle();
@@ -111,34 +111,29 @@ export async function GET(
     provider_business_profile_id: string | null;
     organization_name: string | null;
     campus_id: string | null;
+    research_data: { olera_provider_id?: string } | null;
     campuses: { slug: string | null } | null;
   };
   const campusSlug = outreachRow.campuses?.slug ?? null;
+  const oleraProviderId = outreachRow.research_data?.olera_provider_id ?? null;
 
-  // ── 5. Resolve auth.users ────────────────────────────────────────────
+  // ── 5. Resolve auth.users (deterministic, no pagination) ─────────────
+  // createUser mints a new user; on "already exists" we resolve the id via
+  // generateLink, which returns the user for an existing email. This avoids
+  // the old first-200 listUsers scan that silently failed for established
+  // provider accounts (D-IDENT).
   let userId: string | undefined;
   const { data: createRes, error: createErr } = await supabase.auth.admin
     .createUser({ email, email_confirm: true });
   if (createErr) {
-    const msg = createErr.message ?? "";
-    if (
-      msg.includes("already") ||
-      msg.includes("registered") ||
-      msg.includes("exists")
-    ) {
-      // Existing user — look up by email via the admin list. Page through
-      // until we find the match. listUsers is paginated; for the cold-
-      // provider flow we expect this to land in the first page.
-      const { data: list } = await supabase.auth.admin.listUsers({
-        page: 1,
-        perPage: 200,
-      });
-      const found = list?.users.find(
-        (u) => u.email?.toLowerCase() === email.toLowerCase(),
-      );
-      userId = found?.id;
-    } else {
-      console.error("[medjobs/m] createUser failed:", createErr);
+    const { data: idLink } = await supabase.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo: requestUrl.origin },
+    });
+    userId = idLink?.user?.id;
+    if (!userId) {
+      console.error("[medjobs/m] user resolution failed:", createErr);
     }
   } else {
     userId = createRes.user?.id;
@@ -175,37 +170,51 @@ export async function GET(
     }
   }
 
-  // ── 7. Resolve business_profile linkage (axis 2a only) ──────────────
-  // Magic-link click does NOT set claim_state = "claimed" (axis 2b stays
-  // unclaimed). Only the Phase 4+5 terms-acceptance flow advances 2b.
+  // ── 7. Co-tenancy DETECTION only (no mutation) ──────────────────────
+  // The magic-link click authenticates but does NOT claim. All profile
+  // mutation (account link + claim_state + pilot) happens atomically at
+  // terms acceptance via resolveOrClaimProviderProfile. Here we only DETECT
+  // whether the org is already owned by a DIFFERENT account, so the welcome
+  // board can render the read-only co-tenancy banner (decision 3). The
+  // canonical key is source_provider_id; provider_business_profile_id is a
+  // legacy fallback for non-directory rows.
   let businessProfileId: string | null = null;
   let claimConflict = false;
-  if (outreachRow.provider_business_profile_id) {
-    const { data: bp } = await supabase
-      .from("business_profiles")
-      .select("id, account_id")
-      .eq("id", outreachRow.provider_business_profile_id)
-      .maybeSingle();
+  {
+    let bp: { id: string; account_id: string | null } | null = null;
+    if (oleraProviderId) {
+      // Fetch-then-filter so a legacy NULL claim_state row is still detected
+      // (matches the resolve-or-claim primitive's dedup logic).
+      const { data } = await supabase
+        .from("business_profiles")
+        .select("id, account_id, claim_state")
+        .eq("source_provider_id", oleraProviderId)
+        .order("created_at", { ascending: true });
+      bp =
+        ((data ?? []) as Array<{
+          id: string;
+          account_id: string | null;
+          claim_state: string | null;
+        }>).find((r) => r.claim_state !== "rejected") ?? null;
+    }
+    if (!bp && outreachRow.provider_business_profile_id) {
+      const { data } = await supabase
+        .from("business_profiles")
+        .select("id, account_id")
+        .eq("id", outreachRow.provider_business_profile_id)
+        .maybeSingle();
+      bp = (data as { id: string; account_id: string | null } | null) ?? null;
+    }
     if (bp) {
-      businessProfileId = bp.id as string;
-      const bpAccountId = (bp.account_id as string | null) ?? null;
-      if (bpAccountId == null && accountId) {
-        // Axis 2a advance: link this account. Leave claim_state alone.
-        await supabase
-          .from("business_profiles")
-          .update({ account_id: accountId })
-          .eq("id", bp.id);
-      } else if (bpAccountId != null && accountId && bpAccountId !== accountId) {
-        // Bullet 4: co-tenancy — DO NOT mutate account_id. Sign in
-        // anyway so the user can browse, but flag the conflict.
+      businessProfileId = bp.id;
+      const bpAccountId = bp.account_id ?? null;
+      // Owned by another account → co-tenancy. Unowned (admin-created) or
+      // owned by this account → no conflict; terms acceptance adopts it.
+      if (bpAccountId && accountId && bpAccountId !== accountId) {
         claimConflict = true;
       }
-      // else: already linked to this account, no-op.
     }
   }
-  // Outreach with no BP yet (cold provider, BP not yet created) — defer
-  // BP creation to Phase 4+5 terms-acceptance. Provider still signs in
-  // and can browse the board.
 
   // ── 8. Audit touchpoint(s) ───────────────────────────────────────────
   await supabase.from("student_outreach_touchpoints").insert({
@@ -246,10 +255,21 @@ export async function GET(
   }
 
   // ── 9. Generate Supabase magiclink for session establishment ─────────
+  // Build the final board URL (welcome banner + campus + outreach_id so the
+  // Terms modal can activate the right org). We ALSO pass `next` pointing at
+  // that same board URL: the global AuthProvider honors `?next=` and would
+  // otherwise hard-redirect every magic-link sign-in to /portal/inbox
+  // (D-ROUTE). `next` keeps the provider on Hire Caregivers.
+  const boardParams = new URLSearchParams();
+  boardParams.set("welcome", "1");
+  if (campusSlug) boardParams.set("campus", campusSlug);
+  boardParams.set("outreach_id", outreach_id);
+  if (claimConflict) boardParams.set("claim_conflict", "1");
+  const boardPath = `/medjobs/candidates?${boardParams.toString()}`;
+
   const welcomeUrl = new URL("/medjobs/candidates", request.url);
-  welcomeUrl.searchParams.set("welcome", "1");
-  if (campusSlug) welcomeUrl.searchParams.set("campus", campusSlug);
-  if (claimConflict) welcomeUrl.searchParams.set("claim_conflict", "1");
+  for (const [k, v] of boardParams) welcomeUrl.searchParams.set(k, v);
+  welcomeUrl.searchParams.set("next", boardPath);
 
   const { data: linkData, error: linkErr } = await supabase.auth.admin
     .generateLink({

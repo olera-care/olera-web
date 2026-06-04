@@ -68,6 +68,186 @@ This is bigger than my earlier 4-week estimate because the strategy depth pass +
 - Component-level UX decisions made for Calls / Emails / Meetings tabs
 - Logan reviews the deepened spec at end of Pass C; if approved, build starts immediately
 
+#### Pass A — Calls + Emails locked decisions (2026-06-04)
+
+After surveying the existing bullets 5-9, most spec depth is already in place. Pass A locks the remaining open UX decisions:
+
+**A1. Smartlead-inbox deep-link URL (Bullet 9):**
+Verified against `lib/smartlead.ts` (API base `server.smartlead.ai/api/v1`) and `lib/medjobs/smartlead-bridge.ts` (references to "Master Inbox"). The CRM admin UI deep-links into the WEB UI at `app.smartlead.ai`:
+
+```
+https://app.smartlead.ai/app/master-inbox?lead_id=<lead_id>&campaign_id=<campaign_id>
+```
+
+Lead ID + campaign ID come from `outreach.research_data.smartlead` linkage written at enrollment time. Fallback (legacy rows without linkage): `https://app.smartlead.ai/app/master-inbox` (root — admin manually finds thread).
+
+**Build note:** verify the URL format actually deep-links on Smartlead's current UI by manually testing one before the Emails tab build closes. If Smartlead's URL convention has changed, update the constant and fallback gracefully.
+
+**A2. Activity log pagination (Bullet 8):**
+- 50 events per page (default)
+- "Load more" button at bottom; appends next 50
+- Filter chip state resets pagination to page 1
+- No infinite scroll — explicit "Load more" so admin doesn't accidentally trigger heavy renders
+
+**A3. Calls tab priority sort (Bullet 7):**
+
+```
+clicked-not-activated rows FIRST (engagement-driven priority bump)
+  ↓
+within that group: by due_at ASC
+  ↓
+non-clicked rows: by due_at ASC, then created_at ASC (existing default)
+```
+
+`hasClickedNoActivation` predicate (lib code):
+```ts
+function hasClickedNoActivation(outreach: Outreach): boolean {
+  if (outreach.status === "active_partner") return false  // already Pilot Active
+  const latestEmailSent = outreach.touchpoints
+    .filter(t => t.touchpoint_type === "email_sent")
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+  if (!latestEmailSent) return false
+  return (latestEmailSent.payload?.click_count ?? 0) > 0
+}
+```
+
+Visual marker on bumped rows: small 🖱 + "clicked" pill (matches existing pill styling from connections tracker).
+
+**A4. Emails tab default filter set (Bullet 8):**
+- Shown by default: Sends + Clicks + Replies + Bounces
+- Hidden by default: Opens (low signal, high volume)
+- Filter chips: [Sent] [Opened] [Clicked] [Replied] [Bounced] [All]
+- "All" = override to show every event regardless of filter state
+- Filter state persists in URL query params (`?filter=clicks,replies`) so admin's view survives reload
+
+**A5. "Needs Reply" detection predicate (Bullet 8):**
+A row is "Needs Reply" when:
+- Latest touchpoint on the outreach is `email_replied` AND
+- No subsequent admin action: no later `email_sent` (admin reply), no `note_added(reason: "marked_handled")`, no stage-change to closed status
+
+Implementation: SQL predicate on the outreach query, not a stored field. Renders dynamically.
+
+**A6. "Bounced" detection predicate (Bullet 8):**
+A row is "Bounced (needs fix)" when:
+- Latest touchpoint type is `email_bounced` AND
+- No subsequent `email_sent` (admin hasn't re-launched after fixing the email)
+
+Same approach: SQL predicate, not stored.
+
+#### Pass B — Meetings + Calendly locked decisions (2026-06-04)
+
+**B1. Calendly webhook signature verification (Bullet 12):**
+Calendly uses HMAC-SHA256 signatures with a shared secret. Format per Calendly docs:
+
+```
+Header: Calendly-Webhook-Signature: t=<timestamp>,v1=<signature>
+where signature = HMAC-SHA256(secret, timestamp + "." + raw_body)
+```
+
+Verification logic in webhook handler (Supabase edge function): split header, compute HMAC with `CALENDLY_WEBHOOK_SECRET` env var, compare via constant-time equality. Reject 401 if signature invalid OR timestamp >5min old (replay protection).
+
+**B2. Post-meeting sub-state model (Bullet 10):**
+Existing `LogMeetingModal` outcomes are the truth source for sub-states. Mapping to Meetings tab sections:
+
+| Modal outcome | replies_state | meeting_state | Meetings tab section |
+|---------------|---------------|---------------|----------------------|
+| `booked` | — | `scheduled` | Upcoming |
+| `finding_time` | `engaged` | `in_flight` | (drops off Meetings — shows in Replies until booked) |
+| `no_show` | — | `in_flight` | No-shows |
+| `done_followup` | `needs_followup` | — | Needs Follow-up |
+| `done_partner` (stakeholder) | — | — | Converted (drops off Meetings) |
+| `done_client` (provider) | — | — | Converted (drops off Meetings) |
+| `not_a_fit` | — | — | Closed (drops off Meetings) |
+| **NEW: `activate_pilot`** (Bullet 11) | — | — | Converted (drops off Meetings, Pilot Active) |
+
+Sub-state nuance Logan mentioned ("asked for time to think" / "needs follow-up email" / "needs follow-up call") is captured as **free-text in the existing `notes` field** on `done_followup` outcomes. The Meetings tab's "Needs Follow-up" section reads the latest note preview. No new state values; the notes text is the differentiator. This avoids over-engineering the state model + new enum values (G5 discipline).
+
+**B3. Calendly reschedule event handling (Bullet 12):**
+Calendly emits `invitee.canceled` (old time) + `invitee.created` (new time) for reschedules — verified against their API docs. Handler logic:
+- On `invitee.canceled`: match outreach row → if currently has `meeting_state = "scheduled"` AND matching `calendly_event_uri`, emit `note_added(reason: "calendly_reschedule_pending")`. Do NOT immediately clear meeting_state — wait for the paired created event.
+- On `invitee.created` arriving within 60 seconds of a pending reschedule for the same outreach: treat as reschedule completion → update `meeting_at` to new time, emit `note_added(reason: "calendly_reschedule_completed")`, clear pending state.
+- On `invitee.created` with no pending reschedule: new booking (standard flow).
+- On `invitee.canceled` with no paired creation within 60s: actual cancellation → `mark_meeting_canceled` action.
+
+**B4. Unmatched bookings tray ergonomics (Bullet 10):**
+- Renders at top of Meetings tab when `calendly_unmatched_bookings.resolved_at IS NULL` rows exist
+- Per-row: invitee name + email + meeting time + age ("booked 2 hours ago")
+- "Match to outreach" button → opens a modal with search field (search by org name / email / phone) → admin picks the right outreach row → backend dispatches `mark_meeting_scheduled` retroactively + sets `resolved_at + resolved_outreach_id`
+
+#### Pass C — Next Step + Timeline locked decisions (2026-06-04)
+
+**C1. Engagement-driven sub-state predicates (Bullet 6):**
+
+```ts
+function getEngagementSubState(outreach: Outreach): "no_engagement" | "opened_not_clicked" | "clicked_not_activated" | null {
+  if (outreach.status === "active_partner") return null  // already Pilot Active — no engagement sub-state
+  if (outreach.status !== "engaged" && outreach.status !== "outreach_sent") return null  // only applies mid-cadence
+
+  const latestEmailSent = outreach.touchpoints
+    .filter(t => t.touchpoint_type === "email_sent")
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+
+  if (!latestEmailSent) return "no_engagement"
+
+  const clickCount = latestEmailSent.payload?.click_count ?? 0
+  const openCount = latestEmailSent.payload?.open_count ?? 0
+
+  if (clickCount > 0) return "clicked_not_activated"
+  if (openCount > 0) return "opened_not_clicked"
+  return "no_engagement"
+}
+```
+
+Used by NextStepCard (Bullet 6) AND Calls tab priority sort (Bullet 7) AND Emails tab activity log filters (Bullet 8) — single source of truth.
+
+**C2. Timeline collapse threshold (Bullet 5):**
+- If past activity has ≤5 events total: show all
+- If past activity has >5 events: default to last 3 + "Show all past activity (X earlier events)" button
+- Upcoming section always fully expanded (typically <5 items)
+
+**C3. Engagement chip rendering on email_sent rows (Bullet 5):**
+
+```
+📧 Day 0 email sent (Mon · 2 days ago)
+   👁 3 opens · last Tue 4pm
+   🖱 1 click · "Review Texas A&M student caregivers"
+```
+
+Chip rules:
+- `👁 N opens` rendered if `open_count > 0`; "last {relative}" appended if `open_count > 1`
+- `🖱 N clicks` rendered if `click_count > 0`; CTA label from `clicked_ctas[0]` (most recent click target)
+- If both 0: no chip line at all (just the bare email_sent row)
+- Multiple clicked CTAs (rare): show count "🖱 3 clicks · welcome page +2 others"
+
+**C4. Next Step body copy (Bullet 6):**
+Locked content table:
+
+| Stage / sub-state | Headline | Sub-line | Primary action |
+|-------------------|----------|----------|----------------|
+| prospect (existing) | "Pre-Flight in progress" | "Complete the Research Card below" | (none — handled in Research Card) |
+| in_outreach + no_engagement | "Awaiting reply or click" | "Next email: Day {X} on {date}. Next call: {date}." | Log reply (secondary) |
+| in_outreach + opened_not_clicked | "They opened — give them time" | "Opened {N}× since {date}. No click yet." | Log call (when due, secondary) |
+| in_outreach + clicked_not_activated | "**They clicked — call them**" (highlight) | "Visited the welcome page {date}. Haven't activated yet." | "Schedule call now" (primary, jumps priority) |
+| call_due (existing) | (unchanged from current) | | |
+| meeting_set (existing) | (unchanged) | | |
+| follow_up (existing) | (unchanged) | | |
+| bounce_fix (existing) | (unchanged) | | |
+| converted + Pilot Active | "Pilot Active 🎉" | "Activated {date}. Last candidate viewed: {date}." | "Schedule check-in" (secondary; for Phase 6 dormancy bullet) |
+| closed (existing) | (unchanged) | | |
+
+**C5. "Schedule call now" action (Bullet 6):**
+On clicked-not-activated state, primary action button "Schedule call now" creates a manual `outreach_followup_call` task due TODAY (not the next cadence day). Task payload: `{reason: "engagement_click_response", manual: true}`. Surfaces immediately in the Calls tab Today section.
+
+---
+
+### Strategy depth pass — outcome
+
+All open UX decisions across bullets 5-12 are now locked. The existing bullet sections below carry the operational spec; Pass A/B/C added the per-decision detail.
+
+**No changes needed** to bullets 2-4 (cadence, Smartlead webhook expansion, tab rename) — they were already at ticket-cuttable depth.
+
+**Build can begin.** Bullet ordering (week 1 → week 6) stands.
+
 ---
 
 ### Bullet 2 — New post-launch cadence (1 day)
@@ -633,10 +813,23 @@ All 12 bullets meet their per-bullet acceptance criteria PLUS:
 
 ## Build log
 
-(populated daily during build)
+### Day 1 — 2026-06-04 (Wed) — Strategy depth pass complete + branch cut
 
-### Day 1 (TBD)
-- ...
+**Done:**
+- PR #925 (`merge/medjobs-staging-2026-06-02` → `staging`) merged via `mcp__github__merge_pull_request`. Staging now at `0f61caf57aa55106e2b976953daaec7e7301195e`.
+- Phase 1 branch `medjobs/phase-1-operational-backbone` cut off the new staging tip + pushed to origin.
+- **Bullet 1 — Strategy depth pass: COMPLETE.** Pass A (Calls + Emails) + Pass B (Meetings + Calendly) + Pass C (Next Step + Timeline) all locked. Pass output captured in Bullet 1 section above. Six open UX decisions resolved: Smartlead deep-link URL format, activity log pagination, Calls priority predicate, Email tab default filter set, post-meeting sub-state model (uses existing LogMeetingModal outcomes + notes free-text — no new enum values), Calendly reschedule handler logic.
+- No code changes today; strategy work captured in plan file.
+
+**Surfaced for verification (small follow-ups, not blockers):**
+- Verify the Smartlead deep-link URL format (`app.smartlead.ai/app/master-inbox?lead_id=...&campaign_id=...`) actually deep-links to the thread — easy spot-check during Bullet 9 build. If their UI changed, fall back to root master inbox.
+
+**Tomorrow (Day 2):** Begin Bullet 2 — cadence change in `cadence.ts`. Smallest atomic ticket; good warmup before the multi-day surface work.
+
+**Pending Logan signoffs** (per master plan §12 "Phase 0 stabilization" checklist; not blocking branch creation or strategy work):
+- Sender identity (`logan@findmedjobs.co` + `partnerships@findmedjobs.co` proposed)
+- Footer/unsubscribe copy
+- Outreach body copy walkthrough (relevant for Phase 2+3 ticket cuts, not Phase 1)
 
 ## Open issues / mid-build findings
 

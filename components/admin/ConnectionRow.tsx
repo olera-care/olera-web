@@ -67,6 +67,7 @@ interface EmailTrailEntry {
   id: string;
   email_type: string | null;
   recipient: string | null;
+  recipient_type: string | null;
   status: string | null;
   created_at: string | null;
   delivered_at: string | null;
@@ -624,6 +625,14 @@ export default function ConnectionRow({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                               <span className="text-sm text-gray-700">{emailLabel(e.email_type)}</span>
+                              <span className="text-gray-300">·</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                e.recipient_type === "family"
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "bg-purple-50 text-purple-600"
+                              }`}>
+                                {e.recipient_type === "family" ? "To Family" : "To Provider"}
+                              </span>
                               <span className="text-gray-300">·</span>
                               <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
                             </div>

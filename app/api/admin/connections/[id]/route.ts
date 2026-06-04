@@ -148,6 +148,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       id: string;
       email_type: string | null;
       recipient: string | null;
+      recipient_type: string | null;
       status: string | null;
       created_at: string | null;
       delivered_at: string | null;
@@ -157,7 +158,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       complained_at: string | null;
     };
     // Only lead/connection-relevant mail — not weekly digests or profile nudges.
-    const LEAD_EMAIL_TYPES = [
+    const PROVIDER_EMAIL_TYPES = [
       "provider_nudge",
       "add_email_notification",
       "connection_request",
@@ -166,28 +167,91 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       "new_message",
       "post_connection_followup",
     ];
-    // Query emails by all possible provider identifiers
-    // Emails may be logged with profile ID, slug, or source_provider_id depending on context
+    const FAMILY_EMAIL_TYPES = [
+      "family_reengagement",
+      "family_nudge",
+      "new_message",
+      "post_connection_followup",
+      "connection_confirmation",
+    ];
+
+    // Query provider emails - prefer filtering by connection_id in metadata
+    // Some older emails don't have connection_id, so we fall back to provider_id matching
     const emailProviderKeys = [
       c.to_profile_id,
       provider?.slug,
       provider?.source_provider_id,
     ].filter(Boolean) as string[];
 
-    let emails: EmailLogRow[] = [];
+    let providerEmails: EmailLogRow[] = [];
+
+    // First, try to get emails with connection_id in metadata (most accurate)
+    const { data: connIdLogs } = await db
+      .from("email_log")
+      .select(
+        "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
+      )
+      .contains("metadata", { connection_id: c.id })
+      .in("email_type", PROVIDER_EMAIL_TYPES)
+      .order("created_at", { ascending: false })
+      .limit(25);
+
+    // Get IDs of emails already found by connection_id
+    const foundIds = new Set((connIdLogs ?? []).map(e => e.id));
+
+    // Fall back to provider_id matching for emails without connection_id
+    // But only include emails that weren't already found
     if (emailProviderKeys.length > 0) {
-      const { data: logs } = await db
+      const { data: providerIdLogs } = await db
         .from("email_log")
         .select(
-          "id, email_type, recipient, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
+          "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
         )
         .in("provider_id", emailProviderKeys)
-        .in("email_type", LEAD_EMAIL_TYPES)
+        .in("email_type", PROVIDER_EMAIL_TYPES)
         .gte("created_at", c.created_at)
         .order("created_at", { ascending: false })
         .limit(25);
-      emails = (logs as EmailLogRow[]) ?? [];
+
+      // Combine, avoiding duplicates
+      const allProviderEmails = [
+        ...(connIdLogs ?? []),
+        ...(providerIdLogs ?? []).filter(e => !foundIds.has(e.id))
+      ];
+      providerEmails = allProviderEmails as (EmailLogRow & { recipient_type?: string })[];
+    } else {
+      providerEmails = (connIdLogs as (EmailLogRow & { recipient_type?: string })[]) ?? [];
     }
+
+    // Query family emails by connection_id in metadata
+    // Family emails don't have provider_id set, so we query by metadata
+    let familyEmails: EmailLogRow[] = [];
+    const { data: familyLogs } = await db
+      .from("email_log")
+      .select(
+        "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at"
+      )
+      .eq("recipient_type", "family")
+      .contains("metadata", { connection_id: c.id })
+      .gte("created_at", c.created_at)
+      .order("created_at", { ascending: false })
+      .limit(25);
+    familyEmails = (familyLogs as (EmailLogRow & { recipient_type?: string })[]) ?? [];
+
+    // Merge and deduplicate by ID, then sort by created_at descending
+    const seenEmailIds = new Set<string>();
+    const emails = [...providerEmails, ...familyEmails]
+      .filter(e => {
+        if (seenEmailIds.has(e.id)) return false;
+        seenEmailIds.add(e.id);
+        return true;
+      })
+      .sort((a, b) => {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime;
+      })
+      .slice(0, 25);
 
     // Family nudge info
     const familyNudgeCount = (meta.family_nudge_count as number) || 0;

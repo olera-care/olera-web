@@ -24,6 +24,7 @@
 
 import { useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
@@ -62,33 +63,38 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   const gc = ctx.outreach.research_data?.general_contact ?? {};
   const generalEmail =
     gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
-  const generalPhone =
-    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
 
-  const hasEmail = Boolean(generalEmail?.includes("@"));
-  const hasPhone = Boolean(generalPhone);
+  const hasGeneralEmail = Boolean(generalEmail?.includes("@"));
 
-  // v9 final: pre-flight gate. Required in every case:
-  //   - General Contact email (org-level outreach lane)
-  //   - General Contact phone (call cadence)
-  // Required only when a contact_form_url is on file:
-  //   - admin must mark Submitted / Skipped / Not available
-  // Recommended (non-blocking): Website, Address, Contact form URL, Fax.
-  // Address demoted to recommended — snail mail is a future channel,
-  // shouldn't block email/phone outreach.
-  const contactFormUrl = gc.contact_form_url ?? "";
-  const contactFormResolved =
-    !contactFormUrl ||
-    ctx.touchpoints.some((t) => t.touchpoint_type === "contact_form_submitted");
+  // v9.x simplified launch gate: a valid outreach destination + a verified
+  // call. EITHER a General Contact email OR a Decision Maker email satisfies
+  // the email requirement. Address / Website / Fax / Contact form / Decision
+  // Maker show in the checklist but DON'T gate — the philosophy is "do we
+  // know enough to confidently send outreach to the correct person?", not
+  // "force perfect data collection".
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const hasDecisionMakerEmail = Boolean(dm?.email && dm.email.includes("@"));
+  const hasEmail = hasGeneralEmail || hasDecisionMakerEmail;
 
-  const launchEnabled = hasEmail && hasPhone && contactFormResolved;
+  // v9.x simplified verification gate. Two unlock paths:
+  //   1. Verified — admin confirmed contacts on a call.
+  //   2. Override — admin bypassed Pre-Flight (already verified elsewhere,
+  //      trusted source, leadership exception).
+  // Email-on-file is AND-ed in below so an override without a destination
+  // still can't fire outreach. See verification-state.ts.
+  const preFlightOverridden =
+    ctx.outreach.research_data?.pre_flight_overridden === true;
+  const verificationState = getVerificationState(
+    ctx.touchpoints,
+    preFlightOverridden,
+  );
+
+  const launchEnabled = hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
-    ? "Add a General Contact email — a Specific Contact email is not enough."
-    : !hasPhone
-      ? "Add a General Contact phone — a Specific Contact phone is not enough."
-      : !contactFormResolved
-        ? "Resolve the contact form (Submitted / Skipped / Not available) before launching."
-        : undefined;
+    ? "Add an email — General Contact or Decision Maker."
+    : !verificationState.can_launch
+      ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
+      : undefined;
 
   return (
     <div className="space-y-6">
@@ -98,21 +104,25 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           live in the General Contact section below, and the campus is
           already in the panel header. */}
 
-      {/* Zone 2 · Next Step */}
-      <NextStepCard
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        launchEnabled={launchEnabled}
-        launchDisabledReason={launchDisabledReason}
-      />
+      {/* Zone 2 · Next Step. v9.x Phase 2e: for prospect/researched
+          rows this is now a thin stage indicator — the operational
+          surface (checklist + Visit Website + Call to Confirm +
+          Launch Outreach) lives in the Research Card below. */}
+      <NextStepCard ctx={ctx} action={action} setError={setError} />
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
           General Contact + Specific Contacts + research notes the
           admin works through to complete pre-flight. Post-launch
           the snapshot lives inside More Details. */}
       {isPreLaunch && (
-        <ProviderSnapshotCard ctx={ctx} action={action} setError={setError} />
+        <ProviderSnapshotCard
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          verificationState={verificationState}
+          launchEnabled={launchEnabled}
+          launchDisabledReason={launchDisabledReason}
+        />
       )}
 
       {/* Zone 4 · Outreach Timeline (touchpoints + Day 0 activities).

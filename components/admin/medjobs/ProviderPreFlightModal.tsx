@@ -50,10 +50,8 @@ import {
   type CadenceKey,
 } from "@/lib/student-outreach/cadence";
 import {
-  defaultSnapshotsByVariant,
   defaultCallScriptsFor,
   defaultCallTipsForDay,
-  type EmailSnapshot,
   type RecipientPlan,
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
@@ -90,21 +88,13 @@ interface Props {
     email?: string | null;
     phone?: string | null;
   } | null;
-  /** v9.x cold-email engine. When "smartlead", the modal renders a
-   *  Smartlead-native preview banner above the existing variant editors
-   *  so admin sees WHAT WILL BE SENT (per-recipient salutations,
-   *  Smartlead-rendered HTML bodies with sample substitutions, Day 0/3/7
-   *  schedule). The body editors stay visible for reference but are
-   *  marked as not affecting Smartlead sends in this mode. */
-  engine?: "resend" | "smartlead";
-  /** v9.x Smartlead preview snapshot — server-precomputed via
-   *  buildSmartleadPreview. Present only when engine === "smartlead" and
-   *  the row has at least one usable recipient. */
-  smartleadPreview?: SmartleadPreviewSnapshot | null;
+  /** Smartlead preview snapshot — server-precomputed via
+   *  buildSmartleadPreview. Always present unless the row has no usable
+   *  recipient (which the pre-flight checklist prevents). */
+  smartleadPreview: SmartleadPreviewSnapshot | null;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
-    email_snapshots_by_variant: { general: EmailSnapshot[]; named: EmailSnapshot[] };
     call_scripts: CallScript[];
   }) => Promise<void>;
 }
@@ -150,27 +140,6 @@ function substituteStaticVars(
     .replace(/\{admin_first_name\}/g, vars.admin_first_name);
 }
 
-/**
- * v9: full preview substitution including a sample {first_name}.
- * Used by VariantEditor's preview pane so admin can screen what
- * the recipient will actually see.
- */
-function substitutePreviewVars(
-  text: string,
-  vars: {
-    first_name: string;
-    organization_name: string;
-    campus_name: string;
-    admin_first_name: string;
-  },
-): string {
-  return text
-    .replace(/\{first_name\}/g, vars.first_name)
-    .replace(/\{organization_name\}/g, vars.organization_name)
-    .replace(/\{campus_name\}/g, vars.campus_name)
-    .replace(/\{admin_first_name\}/g, vars.admin_first_name);
-}
-
 export function ProviderPreFlightModal({
   organizationName,
   campusName,
@@ -178,12 +147,10 @@ export function ProviderPreFlightModal({
   campusProgramPdfUrl,
   contacts,
   generalContact,
-  engine = "resend",
-  smartleadPreview = null,
+  smartleadPreview,
   onCancel,
   onSubmit,
 }: Props) {
-  const smartleadMode = engine === "smartlead" && smartleadPreview != null;
   // v9 final: surface the Program PDF that will be attached so
   // admin sees the outreach package before launching. Resolution
   // mirrors the server's loadProgramPdfAttachment order:
@@ -273,25 +240,6 @@ export function ProviderPreFlightModal({
     () => new Set(recipientRows.map(recipientKeyOf)),
   );
 
-  // Snapshots seeded from defaults. Provider templates branch per
-  // variant; for non-provider cadences this still produces the same
-  // body for both general + named (templates ignore variant). MVP
-  // assumes this modal is provider-only — caller wires it via
-  // NextStepCard for kind='provider' rows.
-  const defaults = useMemo(
-    () =>
-      defaultSnapshotsByVariant(PROVIDER_CADENCE_KEY, {
-        organization_name: organizationName,
-        campus_name: campusName,
-        contacts,
-      }),
-    [organizationName, campusName, contacts],
-  );
-
-  const [generalSnaps, setGeneralSnaps] = useState<EmailSnapshot[]>(
-    defaults.general,
-  );
-  const [namedSnaps, setNamedSnaps] = useState<EmailSnapshot[]>(defaults.named);
   // v9: substitute static vars at seed time so admin sees the script
   // with org/campus/admin filled in. {recipient_name} stays as a
   // placeholder — planSequence substitutes per-task at queue time
@@ -329,8 +277,6 @@ export function ProviderPreFlightModal({
   // Derived state — what will the queue look like with the current
   // recipient selection?
   const includedRows = recipientRows.filter((r) => includedIds.has(recipientKeyOf(r)));
-  const generalRows = includedRows.filter((r) => r.is_general);
-  const namedRows = includedRows.filter((r) => !r.is_general);
   const emailRows = includedRows.filter((r) => r.hasEmail);
   const callRows = includedRows.filter((r) => r.hasPhone);
 
@@ -353,16 +299,6 @@ export function ProviderPreFlightModal({
     });
   };
 
-  const updateGeneral = (day: number, patch: Partial<EmailSnapshot>) => {
-    setGeneralSnaps((cur) =>
-      cur.map((s) => (s.day === day ? { ...s, ...patch } : s)),
-    );
-  };
-  const updateNamed = (day: number, patch: Partial<EmailSnapshot>) => {
-    setNamedSnaps((cur) =>
-      cur.map((s) => (s.day === day ? { ...s, ...patch } : s)),
-    );
-  };
   const updateScript = (day: number, script: string) => {
     setCallScripts((cur) =>
       cur.map((s) => (s.day === day ? { ...s, script } : s)),
@@ -374,23 +310,6 @@ export function ProviderPreFlightModal({
     if (queuedEmails === 0 && queuedCalls === 0) {
       setErr("Select at least one recipient with email or phone to launch.");
       return;
-    }
-    // Validate snapshot copy is non-empty for the variants in use.
-    if (generalRows.length > 0 && emailDayCount > 0) {
-      for (const s of generalSnaps) {
-        if (!s.subject?.trim() || !s.body?.trim()) {
-          setErr(`Day ${s.day} general subject + body required`);
-          return;
-        }
-      }
-    }
-    if (namedRows.length > 0 && emailDayCount > 0) {
-      for (const s of namedSnaps) {
-        if (!s.subject?.trim() || !s.body?.trim()) {
-          setErr(`Day ${s.day} named subject + body required`);
-          return;
-        }
-      }
     }
 
     const plans: RecipientPlan[] = includedRows.map((r) => ({
@@ -412,10 +331,6 @@ export function ProviderPreFlightModal({
     try {
       await onSubmit({
         recipients: plans,
-        email_snapshots_by_variant: {
-          general: generalSnaps,
-          named: namedSnaps,
-        },
         call_scripts: callScripts,
       });
     } catch (e) {
@@ -434,17 +349,8 @@ export function ProviderPreFlightModal({
               Confirm outreach plan
             </h3>
             <p className="mt-0.5 text-xs text-gray-500">
-              {smartleadMode ? (
-                <>
-                  {organizationName} · Smartlead campaign. Emails ship from
-                  findmedjobs.co (warmed); calls queue to the Calls tab.
-                </>
-              ) : (
-                <>
-                  {organizationName} · per-recipient cadence. Day 0 emails fire
-                  inline; calls queue to the Calls tab.
-                </>
-              )}
+              {organizationName} · Smartlead campaign. Emails ship from
+              findmedjobs.co (warmed); calls queue to the Calls tab.
             </p>
           </div>
           <button
@@ -463,72 +369,50 @@ export function ProviderPreFlightModal({
             </p>
           )}
 
-          {smartleadMode && smartleadPreview && (
-            <SmartleadPreviewSection preview={smartleadPreview} />
-          )}
-
-          {/* v9 final: PDF attachment indicator. Two modes:
-              programPdfAttachment is set    → green confirmation
-                                                with filename + source
-                                                label + Preview link
-              null (no config + no override) → amber notice so admin
-                                                knows the send goes
-                                                without a PDF
-              Either way, the source of truth is visible before launch. */}
-          <section className="rounded-md border border-gray-200 bg-white">
-            <header className="border-b border-gray-100 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                PDF attachment
-              </p>
-            </header>
-            {programPdfAttachment ? (
-              <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-                <div className="flex items-center gap-2">
-                  <span aria-hidden className="text-base">📎</span>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium text-gray-900">
-                        {programPdfAttachment.filename}
-                      </p>
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                          programPdfAttachment.source === "custom"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-primary-50 text-primary-700"
-                        }`}
-                      >
-                        {programPdfAttachment.source === "custom"
-                          ? "Custom upload"
-                          : `Default · ${campusName} template`}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-gray-500">
-                      Attached to every outreach email queued from this launch.
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href={programPdfAttachment.previewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Preview ↗
-                </a>
-              </div>
-            ) : (
-              <div className="px-3 py-2.5">
-                <p className="text-xs text-amber-800">
-                  No PDF configured for this campus. The send will go
-                  without an attachment. To wire one up, register a
-                  config in <code className="rounded bg-gray-100 px-1 font-mono text-[10px]">lib/program-pdf/configs/</code>{" "}
-                  or set <code className="rounded bg-gray-100 px-1 font-mono text-[10px]">program_pdf_url</code> on the campus row.
-                </p>
-              </div>
-            )}
+          {/* Summary strip — sender pool, recipient + queue counts, PDF
+              status. Replaces the standalone PDF banner + queue footer
+              from the old layout, since both restate things repeated in
+              the per-day cards below. */}
+          <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Launch summary
+            </p>
+            <p className="mt-1 text-xs text-gray-700">
+              <strong className="tabular-nums">{queuedEmails}</strong> email
+              {queuedEmails === 1 ? "" : "s"} +{" "}
+              <strong className="tabular-nums">{queuedCalls}</strong> call
+              {queuedCalls === 1 ? "" : "s"} across the cadence below
+            </p>
+            <p className="mt-0.5 text-[11px] text-gray-600">
+              {smartleadPreview?.sender_pool.length
+                ? `Sender: ${smartleadPreview.sender_pool.join(" / ")} (rotated by Smartlead)`
+                : "Sender: all connected Smartlead mailboxes (rotated)"}
+            </p>
+            <p className="mt-0.5 text-[11px]">
+              Program PDF:{" "}
+              {programPdfAttachment ? (
+                <span className="text-gray-700">
+                  ✓ linked in body per email ({programPdfAttachment.filename}){" "}
+                  <a
+                    href={programPdfAttachment.previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-700 hover:underline"
+                  >
+                    preview ↗
+                  </a>
+                </span>
+              ) : (
+                <span className="text-amber-700">
+                  ✗ no PDF configured for {campusName} — emails will ship
+                  without a program PDF link
+                </span>
+              )}
+            </p>
           </section>
 
-          {/* Recipients section */}
+          {/* Recipients — include/exclude only. Variant labels removed; the
+              cadence section below shows exactly what each recipient receives. */}
           <section className="rounded-md border border-gray-200 bg-white">
             <header className="border-b border-gray-100 px-3 py-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -560,23 +444,10 @@ export function ProviderPreFlightModal({
                               {r.name}
                             </span>
                             {r.role && (
-                              <span
-                                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                  r.is_general
-                                    ? "bg-blue-50 text-blue-700"
-                                    : "bg-gray-100 text-gray-700"
-                                }`}
-                              >
+                              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700">
                                 {r.role}
                               </span>
                             )}
-                            <span
-                              className={`text-[10px] font-medium uppercase tracking-wide ${
-                                r.is_general ? "text-blue-700" : "text-primary-700"
-                              }`}
-                            >
-                              {r.is_general ? "general variant" : "named variant"}
-                            </span>
                           </div>
                           <p className="mt-0.5 truncate text-xs text-gray-500">
                             {r.hasEmail ? (
@@ -598,111 +469,120 @@ export function ProviderPreFlightModal({
                 })}
               </ul>
             )}
-            <footer className="border-t border-gray-100 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
-              Will queue:{" "}
-              <strong className="tabular-nums">{queuedEmails}</strong> email
-              {queuedEmails === 1 ? "" : "s"} (
-              {emailRows.length} recipient{emailRows.length === 1 ? "" : "s"} ×{" "}
-              {emailDayCount} day{emailDayCount === 1 ? "" : "s"}) ·{" "}
-              <strong className="tabular-nums">{queuedCalls}</strong> call
-              {queuedCalls === 1 ? "" : "s"} (
-              {callRows.length} callable × {phoneDayCount} call day
-              {phoneDayCount === 1 ? "" : "s"}). Day 0 fires inline.
-            </footer>
           </section>
 
-          {/* Per-day editors */}
-          {cadenceDays.map((d) => {
-            const isOpen = openDay === d.day;
-            const general = generalSnaps.find((s) => s.day === d.day);
-            const named = namedSnaps.find((s) => s.day === d.day);
-            const script = callScripts.find((s) => s.day === d.day);
-            const hasEmailStep = d.steps.some((s) => s.channel === "email");
-            const hasPhoneStep = d.steps.some((s) => s.channel === "phone");
-            return (
-              <div
-                key={d.day}
-                className="rounded-md border border-gray-200 bg-white"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenDay(isOpen ? null : d.day)}
-                  className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-gray-50"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {d.title}
-                    </p>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {hasEmailStep &&
-                        `${generalRows.length} general + ${namedRows.length} named email${
-                          generalRows.length + namedRows.length === 1 ? "" : "s"
-                        }`}
-                      {hasEmailStep && hasPhoneStep && " · "}
-                      {hasPhoneStep && `${callRows.length} call${callRows.length === 1 ? "" : "s"}`}
-                    </p>
+          {/* Cadence — accordion per day. Each day expands to show every
+              communication scheduled (email previews per recipient + shared
+              call script + callable list). This is the source of truth for
+              "what will happen on Day N" — replaces the separate Smartlead
+              preview panel above. */}
+          <section>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Cadence
+            </p>
+            <div className="space-y-2">
+              {cadenceDays.map((d) => {
+                const isOpen = openDay === d.day;
+                const script = callScripts.find((s) => s.day === d.day);
+                const hasEmailStep = d.steps.some((s) => s.channel === "email");
+                const hasPhoneStep = d.steps.some((s) => s.channel === "phone");
+                const previewStep = smartleadPreview?.steps.find(
+                  (s) => s.cadence_day === d.day,
+                );
+                const dayEmailRows = hasEmailStep ? emailRows : [];
+                const dayCallRows = hasPhoneStep ? callRows : [];
+                return (
+                  <div
+                    key={d.day}
+                    className="rounded-md border border-gray-200 bg-white"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenDay(isOpen ? null : d.day)}
+                      className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-gray-50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {d.title}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                          {hasEmailStep &&
+                            `${dayEmailRows.length} email${dayEmailRows.length === 1 ? "" : "s"}`}
+                          {hasEmailStep && hasPhoneStep && " · "}
+                          {hasPhoneStep &&
+                            `${dayCallRows.length} call${dayCallRows.length === 1 ? "" : "s"}`}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {isOpen ? "▾" : "▸"}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="space-y-3 border-t border-gray-100 px-3 pb-3 pt-2">
+                        {hasEmailStep && previewStep &&
+                          dayEmailRows.map((r) => {
+                            const previewRecipient = smartleadPreview?.recipients.find(
+                              (pr) =>
+                                pr.contact_id === r.contact_id ||
+                                (pr.recipient_kind === "general" && r.is_general),
+                            );
+                            if (!previewRecipient || !smartleadPreview) {
+                              return null;
+                            }
+                            return (
+                              <EmailPreviewCard
+                                key={`email-${r.contact_id ?? "general"}`}
+                                recipient={previewRecipient}
+                                step={previewStep}
+                                sample={smartleadPreview.sample_used}
+                                senderPool={smartleadPreview.sender_pool}
+                                pdfConfigured={programPdfAttachment != null}
+                              />
+                            );
+                          })}
+                        {hasEmailStep && dayEmailRows.length === 0 && (
+                          <p className="text-xs italic text-gray-400">
+                            No email recipients selected for this day.
+                          </p>
+                        )}
+
+                        {hasPhoneStep && dayCallRows.length > 0 && script && (
+                          <div className="space-y-2 rounded-md border border-amber-200 bg-white">
+                            <header className="bg-amber-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                              Call script — {dayCallRows.length} callable
+                            </header>
+                            <div className="space-y-2 px-3 py-2">
+                              <ul className="space-y-1 rounded-md bg-amber-50/50 px-2.5 py-1.5 text-[11px] text-amber-900">
+                                {dayCallRows.map((r) => (
+                                  <li key={`call-${r.contact_id ?? "general"}`}>
+                                    ☎ Will call <strong>{r.name}</strong>
+                                    {r.role && ` (${r.role})`}
+                                    {" · "}
+                                    <span className="font-mono">{r.phone}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              <CallScriptEditor
+                                label={`Day ${d.day} script (shared by all callers above)`}
+                                script={script.script}
+                                onChange={(s) => updateScript(d.day, s)}
+                                tips={defaultCallTipsForDay("provider", d.day)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {hasPhoneStep && dayCallRows.length === 0 && (
+                          <p className="text-xs italic text-gray-400">
+                            No callable recipients selected for this day.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
-                </button>
-                {isOpen && (
-                  <div className="space-y-3 border-t border-gray-100 px-3 pb-3 pt-2">
-                    {hasEmailStep && generalRows.length > 0 && general && (
-                      <VariantEditor
-                        label={`General variant · ${generalRows.length} recipient${generalRows.length === 1 ? "" : "s"}`}
-                        tone="blue"
-                        snapshot={general}
-                        onChange={(p) => updateGeneral(d.day, p)}
-                        previewVars={{
-                          first_name:
-                            namedRows[0]?.first_name ||
-                            namedRows[0]?.name?.split(/\s+/)[0] ||
-                            "there",
-                          organization_name: organizationName,
-                          campus_name: campusName,
-                          admin_first_name: "Graize",
-                        }}
-                      />
-                    )}
-                    {hasEmailStep && namedRows.length > 0 && named && (
-                      <VariantEditor
-                        label={`Named variant · ${namedRows.length} recipient${namedRows.length === 1 ? "" : "s"}`}
-                        tone="emerald"
-                        snapshot={named}
-                        onChange={(p) => updateNamed(d.day, p)}
-                        previewVars={{
-                          first_name:
-                            namedRows[0]?.first_name ||
-                            namedRows[0]?.name?.split(/\s+/)[0] ||
-                            "there",
-                          organization_name: organizationName,
-                          campus_name: campusName,
-                          admin_first_name: "Graize",
-                        }}
-                      />
-                    )}
-                    {hasPhoneStep && callRows.length > 0 && script && (
-                      <CallScriptEditor
-                        label={`Call script · ${callRows.length} callable`}
-                        script={script.script}
-                        onChange={(s) => updateScript(d.day, s)}
-                        tips={defaultCallTipsForDay("provider", d.day)}
-                      />
-                    )}
-                    {hasEmailStep && generalRows.length === 0 && namedRows.length === 0 && (
-                      <p className="text-xs italic text-gray-400">
-                        No email recipients selected for this day.
-                      </p>
-                    )}
-                    {hasPhoneStep && callRows.length === 0 && (
-                      <p className="text-xs italic text-gray-400">
-                        No callable recipients selected for this day.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </section>
         </div>
 
         <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">
@@ -736,85 +616,6 @@ export function ProviderPreFlightModal({
 
 // ── Editors ─────────────────────────────────────────────────────────────
 
-function VariantEditor({
-  label,
-  tone,
-  snapshot,
-  onChange,
-  previewVars,
-}: {
-  label: string;
-  tone: "blue" | "emerald";
-  snapshot: EmailSnapshot;
-  onChange: (patch: Partial<EmailSnapshot>) => void;
-  /** v9: vars used by the preview pane so admin can screen the
-   *  rendered output (substitutions filled in) before launch. */
-  previewVars: {
-    first_name: string;
-    organization_name: string;
-    campus_name: string;
-    admin_first_name: string;
-  };
-}) {
-  const [showPreview, setShowPreview] = useState(false);
-  const borderClass = tone === "blue" ? "border-blue-200" : "border-primary-200";
-  const tagBg = tone === "blue" ? "bg-blue-50 text-blue-800" : "bg-primary-50 text-primary-800";
-  const previewSubject = substitutePreviewVars(snapshot.subject, previewVars);
-  const previewBody = substitutePreviewVars(snapshot.body, previewVars);
-  return (
-    <div className={`rounded-md border ${borderClass} bg-white`}>
-      <header className={`px-3 py-1.5 ${tagBg} text-[11px] font-semibold uppercase tracking-wide`}>
-        {label}
-      </header>
-      <div className="space-y-2 px-3 py-2">
-        <Input
-          label="Subject"
-          value={snapshot.subject}
-          onChange={(e) => onChange({ subject: e.target.value })}
-          size="sm"
-        />
-        <div>
-          <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold text-gray-700">
-            <span>Body</span>
-            <span className="text-[11px] font-normal text-gray-500">
-              Variables: <code>{"{first_name}"}</code>{" "}
-              <code>{"{organization_name}"}</code>{" "}
-              <code>{"{campus_name}"}</code>
-            </span>
-          </div>
-          <Input
-            as="textarea"
-            value={snapshot.body}
-            onChange={(e) => onChange({ body: e.target.value })}
-            rows={8}
-            size="sm"
-            className="font-mono"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowPreview((s) => !s)}
-          className="text-[11px] font-medium text-primary-700 hover:underline"
-        >
-          {showPreview ? "Hide preview" : "Preview substitution"}
-        </button>
-        {showPreview && (
-          <div className="space-y-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-              Preview (sample first_name: {previewVars.first_name})
-            </p>
-            <p className="font-medium text-gray-700">Subject:</p>
-            <p className="text-gray-800">{previewSubject}</p>
-            <p className="mt-2 font-medium text-gray-700">Body:</p>
-            <pre className="whitespace-pre-wrap text-gray-800 font-sans">
-              {previewBody}
-            </pre>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /**
  * v9.1 Graize 05.13 audit (Item 8): tips render as a read-only
@@ -882,136 +683,123 @@ function CallScriptEditor({
  * transition. A small note clarifies that in Smartlead mode the variant
  * editors are reference-only.
  */
-function SmartleadPreviewSection({
-  preview,
+/**
+ * Substitute Smartlead `{{...}}` merge tags client-side so admin sees the
+ * exact rendering for ANY recipient (not just the server-sampled default).
+ * Mirrors what Smartlead does per-lead at send time:
+ *
+ *   {{salutation}}    → recipient.salutation     ("Hello" / "Hi Susan" / "Dear Dr. Jones")
+ *   {{first_name}}    → recipient first_name     (empty for General Contact)
+ *   {{company_name}}  → preview.sample_used.company
+ *   {{campus}}        → preview.sample_used.campus
+ *
+ * Per-recipient substitution lets admin click each recipient and see
+ * "what THAT lead will receive" — fulfilling the General Contact + Specific
+ * Contact preview parity requirement.
+ */
+function substituteSmartleadMergeTags(
+  text: string,
+  recipient: SmartleadPreviewSnapshot["recipients"][number],
+  sample: SmartleadPreviewSnapshot["sample_used"],
+): string {
+  const firstName =
+    recipient.recipient_kind === "named"
+      ? recipient.salutation.replace(/^(Hi|Dear)\s+(Dr\.\s+|Prof\.\s+)?/, "").split(/\s+/)[0]
+      : "";
+  return text
+    .replace(/\{\{\s*salutation\s*\}\}/g, recipient.salutation)
+    .replace(/\{\{\s*first_name\s*\}\}/g, firstName)
+    .replace(/\{\{\s*company_name\s*\}\}/g, sample.company)
+    .replace(/\{\{\s*campus\s*\}\}/g, sample.campus);
+}
+
+
+/**
+ * v9.x cadence-first email card. One per recipient × email day. Renders the
+ * exact subject + body that Smartlead will send to THIS recipient on THIS
+ * day, using per-lead `{{...}}` substitution. Replaces the standalone
+ * Smartlead preview panel — the cadence accordions now ARE the preview.
+ *
+ * Lives next to the day's call script editor in the per-day accordion so
+ * admin sees "Day N: email to X, email to Y, call to X, call to Y" as one
+ * grouped block, not three separate sections of the modal.
+ */
+function EmailPreviewCard({
+  recipient,
+  step,
+  sample,
+  senderPool,
+  pdfConfigured,
 }: {
-  preview: SmartleadPreviewSnapshot;
+  recipient: SmartleadPreviewSnapshot["recipients"][number];
+  step: SmartleadPreviewSnapshot["steps"][number];
+  sample: SmartleadPreviewSnapshot["sample_used"];
+  senderPool: string[];
+  pdfConfigured: boolean;
 }) {
-  const [activeStep, setActiveStep] = useState(0);
-  const step = preview.steps[activeStep];
-  const samplePill =
-    preview.sample_used.first_name && preview.sample_used.first_name !== "there"
-      ? `Preview rendered for ${preview.sample_used.first_name}`
-      : `Preview rendered with generic recipient`;
-
+  const subject = substituteSmartleadMergeTags(step.subject_template, recipient, sample);
+  const bodyHtml = substituteSmartleadMergeTags(step.body_html_template, recipient, sample);
   return (
-    <section className="rounded-md border border-primary-200 bg-white">
-      <header className="border-b border-primary-100 bg-primary-50/50 px-3 py-2">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-800">
-            Smartlead preview · {preview.campaign_name}
-          </p>
-          <p className="text-[10px] text-primary-700">{samplePill}</p>
-        </div>
-        <p className="mt-1 text-[11px] text-primary-700">
-          {preview.recipients.length === 1
-            ? "1 lead will enroll"
-            : `${preview.recipients.length} leads will enroll`}{" "}
-          ·{" "}
-          {preview.sender_pool.length > 0
-            ? `from ${preview.sender_pool.join(" / ")} (rotated)`
-            : "sender pool: all connected Smartlead mailboxes"}
-        </p>
+    <div className="rounded-md border border-primary-200 bg-white">
+      <header className="bg-primary-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-800">
+        {recipient.recipient_kind === "general" ? "✉ Email to org" : "✉ Email to named"}
+        {" — "}
+        <span className="normal-case text-primary-900">{recipient.name}</span>
+        {recipient.role && (
+          <span className="ml-1.5 normal-case text-primary-700">
+            ({recipient.role})
+          </span>
+        )}
       </header>
-
-      <div className="space-y-3 px-3 py-3">
-        {/* Recipient roster — admin verifies each lead before launch. */}
+      <div className="space-y-2 px-3 py-2 text-xs">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-600">
+          <span>
+            To:{" "}
+            <span className="font-mono text-gray-800">{recipient.email}</span>
+          </span>
+          <span>
+            From:{" "}
+            <span className="text-gray-800">
+              {senderPool.length > 0 ? senderPool.join(" / ") : "Smartlead mailbox pool"}
+            </span>
+          </span>
+        </div>
         <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            Recipients
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            Subject
           </p>
-          <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
-            {preview.recipients.map((r, i) => (
-              <li key={i} className="flex items-baseline justify-between gap-2 px-2.5 py-1.5 text-xs">
-                <div className="min-w-0">
-                  <span
-                    className={`rounded px-1 py-0.5 text-[10px] font-semibold uppercase ${
-                      r.recipient_kind === "general"
-                        ? "bg-gray-100 text-gray-700"
-                        : "bg-primary-100 text-primary-800"
-                    }`}
-                  >
-                    {r.recipient_kind === "general" ? "Org" : "Named"}
-                  </span>
-                  <span className="ml-1.5 text-gray-900">{r.name}</span>
-                  {r.role && (
-                    <span className="ml-1.5 text-[10px] text-gray-500">
-                      ({r.role})
-                    </span>
-                  )}
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-mono text-[11px] text-gray-700">{r.email}</p>
-                  <p className="text-[10px] text-gray-500">
-                    Greeting:{" "}
-                    <span className="text-gray-700">{r.salutation},</span>
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <p className="mt-0.5 text-sm font-medium text-gray-900">{subject}</p>
         </div>
-
-        {/* Step picker + rendered preview */}
         <div>
-          <div className="mb-1.5 flex items-baseline justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-              Cadence
-            </p>
-            <div className="flex gap-1">
-              {preview.steps.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveStep(i)}
-                  type="button"
-                  className={`rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                    activeStep === i
-                      ? "bg-primary-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  Day {s.cadence_day}
-                </button>
-              ))}
-            </div>
-          </div>
-          {step && (
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wide text-gray-500">
-                Step {step.seq_number} · delay {step.delay_in_days}d after
-                previous email
-              </p>
-              <p className="mt-1 text-sm font-medium text-gray-900">
-                {step.subject_preview}
-              </p>
-              <div
-                className="mt-2 max-h-72 overflow-y-auto rounded border border-gray-200 bg-white p-3 text-[12px] leading-snug"
-                dangerouslySetInnerHTML={{ __html: step.body_html_preview }}
-              />
-            </div>
-          )}
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            Body — what {recipient.name} will see
+          </p>
+          <div
+            className="mt-1 max-h-64 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2.5 text-[12px] leading-snug"
+            dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          />
         </div>
-
-        <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
-          <span className="font-semibold">Smartlead mode:</span> the email
-          body editors below are reference-only — Smartlead sends the
-          canonical template above with per-lead merge tags{" "}
-          (<code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{salutation}}"}
-          </code>,{" "}
-          <code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{first_name}}"}
-          </code>,{" "}
-          <code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{company_name}}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-amber-100 px-1 text-[10px]">
-            {"{{campus}}"}
-          </code>
-          ). Per-day call scripts still apply.
+        <p className="text-[10px] text-gray-500">
+          Variables substituted: {"{{salutation}}"} → {recipient.salutation} ·{" "}
+          {"{{company_name}}"} → {sample.company} · {"{{campus}}"} → {sample.campus}
+          {recipient.recipient_kind === "named" && (
+            <>
+              {" · "}
+              {"{{first_name}}"} → {recipient.salutation.replace(/^(Hi|Dear)\s+(Dr\.\s+|Prof\.\s+)?/, "").split(/\s+/)[0]}
+            </>
+          )}
+        </p>
+        <p className="text-[10px] text-gray-500">
+          Program PDF:{" "}
+          {pdfConfigured ? (
+            <span className="text-gray-700">linked in the body</span>
+          ) : (
+            <span className="text-amber-700">
+              not configured for this campus
+            </span>
+          )}
         </p>
       </div>
-    </section>
+    </div>
   );
 }

@@ -1,49 +1,42 @@
 "use client";
 
 /**
- * CallForEmailModal — v9 Phase 4.
+ * Pre-Flight Outcome Modal (formerly CallForEmailModal).
  *
- * Used when admin clicks "Call to obtain information" on a Provider
- * Prospect during pre-flight. Logs a call attempt as a touchpoint and,
- * if a new email was obtained on the call, threads the contact into
- * the SnapshotCard via add_contact.
+ * One modal, six outcomes — the admin clicks Call to Confirm, picks the
+ * outcome that happened, and the modal dispatches the right action. The
+ * verification gate in `verification-state.ts` reads the resulting
+ * touchpoints + research_data.pre_flight_overridden flag to decide whether
+ * Launch Outreach unlocks.
  *
- * Pre-flight as operational interaction stage (commit 5): when admin
- * reaches someone, the modal also offers an optional engagement
- * follow-on (Interested / Promised callback / Became a Client / Not
- * interested) that reuses the existing log_call_outcome action. This
- * lets a research call short-circuit the campaign when the call
- * itself produces a meaningful outcome — admin doesn't have to
- * pretend the conversation didn't happen and queue Day 0 anyway.
+ * Outcomes
+ * --------
+ * - Confirmed Contact Information  → log_research_call (connected + verified)
+ *                                    Pre-Flight passes immediately.
+ * - No Answer                      → log_research_call (no_answer)
+ *                                    Prospect stays in Pre-Flight.
+ * - Voicemail                      → log_research_call (voicemail)
+ *                                    Prospect stays in Pre-Flight.
+ * - Wrong Number                   → log_research_call (wrong_number)
+ *                                    Prospect stays in Pre-Flight, research required.
+ * - Not Interested                 → log_call_outcome (connected_not_interested)
+ *                                    Row closes (status → not_interested).
+ * - Override Pre-Flight            → override_pre_flight
+ *                                    Sets research_data.pre_flight_overridden = true,
+ *                                    emits a note_added touchpoint for audit.
  *
- * C4: uses LogModalShell + StatusCard pattern for visual consistency
- * with LogCallOutcomeModal, ReplyClassifierModal, and LogMeetingModal.
- * Phone link moves to the subtitle slot. Engagement panel and
- * contact-add form remain conditional under "Reached someone".
+ * All six outcomes are single-click — no engagement panel, no inline
+ * contact form (Decision Maker now lives in the Research Card; admin
+ * captures it there during research). Optional notes field below the
+ * outcome buttons for free-text context.
  *
- * Four outcomes match the existing call_* touchpoint vocabulary so
- * the timeline narrates consistently:
- *   - No answer        →   call_no_answer       (log_research_call)
- *   - Voicemail        →   call_voicemail       (log_research_call;
- *                          state-derivation auto-flips replies_state
- *                          to awaiting_callback)
- *   - Reached someone  →   call_connected       (log_research_call by
- *                          default; log_call_outcome when an
- *                          engagement follow-on is selected — one
- *                          touchpoint per real phone call)
- *   - Wrong number     →   call_wrong_number    (log_research_call)
- *
- * Reached-someone is the only branch that surfaces the new-contact
- * form AND the engagement follow-on. The contact-add flow runs
- * independently of the dispatch path so admin can capture both a new
- * contact and a meaningful outcome from the same call.
+ * Visual: same LogModalShell + StatusCard pattern as LogCallOutcomeModal
+ * and ReplyClassifierModal so admins recognize the shape.
  */
 
 import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 import type { DrawerContext } from "@/lib/student-outreach/types";
-import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
-import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
 
 type ActionFn = (
@@ -51,80 +44,67 @@ type ActionFn = (
   payload?: Record<string, unknown>,
 ) => Promise<DrawerContext>;
 
-type Outcome = "no_answer" | "voicemail" | "connected" | "wrong_number";
+type Outcome =
+  | "confirmed"
+  | "no_answer"
+  | "voicemail"
+  | "wrong_number"
+  | "not_interested"
+  | "override";
 
 interface OutcomeChoice {
   key: Outcome;
   label: string;
   blurb: string;
+  /** Visually distinguishes the unlock-the-gate outcomes (green) from
+   *  the keep-in-pre-flight outcomes (neutral) and the override (amber). */
+  tone: "unlock" | "stay" | "override" | "close";
 }
 
 const OUTCOME_CHOICES: OutcomeChoice[] = [
   {
+    key: "confirmed",
+    label: "Confirmed Contact Information",
+    blurb: "Reached someone. Verified email, phone, decision maker. Pre-Flight passes.",
+    tone: "unlock",
+  },
+  {
     key: "no_answer",
-    label: "No answer",
-    blurb: "Marks this call complete. Future call days still fire on schedule.",
+    label: "No Answer",
+    blurb: "Nobody answered. Prospect stays in Pre-Flight — try again later.",
+    tone: "stay",
   },
   {
     key: "voicemail",
-    label: "Voicemail / message left",
-    blurb:
-      "Row moves to Replies as awaiting callback. Future call days still fire on schedule.",
-  },
-  {
-    key: "connected",
-    label: "Reached someone",
-    blurb: "Pick what happened on the call below — and add a new contact if useful.",
+    label: "Voicemail",
+    blurb: "Left a voicemail. Prospect stays in Pre-Flight — try again later.",
+    tone: "stay",
   },
   {
     key: "wrong_number",
-    label: "Wrong number",
-    blurb: "Marks the contact unreachable on this number. Closes the row.",
-  },
-];
-
-// Engagement follow-on options for the `connected` outcome. Reuses the
-// existing log_call_outcome vocabulary verbatim — no new enum values.
-// Provider-only because this modal is provider-only (convert_to_partner
-// is stakeholder-only and intentionally omitted). "none" preserves the
-// existing research-call dispatch path.
-type Engagement =
-  | "none"
-  | "promised_callback"
-  | "connected_engaged"
-  | "convert_to_client"
-  | "connected_not_interested";
-
-const ENGAGEMENT_OPTIONS: Array<{ key: Engagement; label: string; blurb: string }> = [
-  {
-    key: "none",
-    label: "Just got info",
-    blurb: "No operational outcome — research call only. Day 0 outreach still launches when ready.",
+    label: "Wrong Number",
+    blurb: "Contact info is invalid. Research a new number before retrying.",
+    tone: "stay",
   },
   {
-    key: "promised_callback",
-    label: "Promised to call back",
-    blurb: "Row moves to Replies as awaiting callback.",
+    key: "not_interested",
+    label: "Not Interested",
+    blurb: "They don't want information. Closes the row — no outreach.",
+    tone: "close",
   },
   {
-    key: "connected_engaged",
-    label: "Interested",
-    blurb: "Stops the email and call cadence. Skips the Day 0 launch.",
-  },
-  {
-    key: "convert_to_client",
-    label: "Became a Client ✓",
-    blurb: "Marks the provider as a Client and unlocks Partner Prospects for catchment Sites.",
-  },
-  {
-    key: "connected_not_interested",
-    label: "Not interested",
-    blurb: "Closes the row. Cancels remaining email and call tasks.",
+    key: "override",
+    label: "Override Pre-Flight",
+    blurb:
+      "Bypass verification (already verified elsewhere, trusted source, leadership exception). Launch unlocks.",
+    tone: "override",
   },
 ];
 
 interface Props {
   organizationName: string;
+  /** Campus display name for the suggested-script `{campus_name}` substitution. */
+  campusName?: string | null;
   phone: string | null;
   action: ActionFn;
   onCancel: () => void;
@@ -134,83 +114,67 @@ interface Props {
 
 export function CallForEmailModal({
   organizationName,
+  campusName,
   phone,
   action,
   onCancel,
   onDone,
   setError,
 }: Props) {
-  const [outcome, setOutcome] = useState<Outcome>("no_answer");
-  const [engagement, setEngagement] = useState<Engagement>("none");
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [notes, setNotes] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState("");
-  const [roleOther, setRoleOther] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newPhone, setNewPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Engagement only applies when the admin actually reached someone.
-  // If they switch outcome away from connected, drop any selection so
-  // we don't dispatch a stale engagement on submit.
-  const handleOutcomeChange = (next: Outcome) => {
-    setOutcome(next);
-    if (next !== "connected") setEngagement("none");
-  };
-
   const submit = async () => {
+    if (!outcome) return;
     setSaving(true);
     setLocalError(null);
     setError(null);
     try {
-      // One real phone call = one timeline entry. When engagement is
-      // selected, dispatch the existing log_call_outcome path so the
-      // touchpoint carries the operational outcome (and triggers
-      // status transitions / cadence supersession / make_client). The
-      // research-call dispatch path is preserved verbatim for every
-      // other case so prior behavior is unchanged.
-      if (outcome === "connected" && engagement !== "none") {
-        await action("log_call_outcome", {
-          outcome: engagement,
-          notes: notes.trim() || null,
-        });
-      } else {
-        await action("log_research_call", { outcome, notes: notes.trim() || null });
-      }
-
-      // If admin obtained a new contact during the call, add it. The
-      // contact lands in the snapshot's Outreach Contacts list and
-      // (if email present) enables the launch gate. Independent of
-      // the engagement dispatch — admin may capture a new contact
-      // AND log a meaningful outcome from the same call.
-      const trimmedEmail = newEmail.trim();
-      const trimmedPhone = newPhone.trim();
-      const trimmedFirst = firstName.trim();
-      const trimmedLast = lastName.trim();
-      const resolvedRole =
-        role === OTHER ? roleOther.trim() || null : role || null;
-      const hasContactData =
-        outcome === "connected" &&
-        (trimmedEmail || trimmedPhone || trimmedFirst || trimmedLast);
-      if (hasContactData) {
-        const derivedName =
-          [trimmedFirst, trimmedLast].filter(Boolean).join(" ").trim() ||
-          resolvedRole ||
-          organizationName;
-        await action("add_contact", {
-          name: derivedName,
-          first_name: trimmedFirst || null,
-          last_name: trimmedLast || null,
-          role: resolvedRole,
-          email: trimmedEmail || null,
-          phone: trimmedPhone || null,
-        });
+      const trimmedNotes = notes.trim() || null;
+      switch (outcome) {
+        case "confirmed":
+          await action("log_research_call", {
+            outcome: "connected",
+            verified: true,
+            notes: trimmedNotes,
+          });
+          break;
+        case "no_answer":
+          await action("log_research_call", {
+            outcome: "no_answer",
+            notes: trimmedNotes,
+          });
+          break;
+        case "voicemail":
+          await action("log_research_call", {
+            outcome: "voicemail",
+            notes: trimmedNotes,
+          });
+          break;
+        case "wrong_number":
+          await action("log_research_call", {
+            outcome: "wrong_number",
+            notes: trimmedNotes,
+          });
+          break;
+        case "not_interested":
+          // Reuses the existing log_call_outcome path so the row
+          // transitions to status=not_interested and the cadence is
+          // superseded. One real phone call = one timeline entry.
+          await action("log_call_outcome", {
+            outcome: "connected_not_interested",
+            notes: trimmedNotes,
+          });
+          break;
+        case "override":
+          await action("override_pre_flight", { notes: trimmedNotes });
+          break;
       }
       onDone();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to log call";
+      const msg = e instanceof Error ? e.message : "Failed to log outcome";
       setLocalError(msg);
       setError(msg);
     } finally {
@@ -232,11 +196,16 @@ export function CallForEmailModal({
     </>
   );
 
-  const submitLabel = outcome === "connected" && engagement !== "none" ? "Log outcome" : "Log call";
+  const submitLabel =
+    outcome === "override"
+      ? "Override Pre-Flight"
+      : outcome === "not_interested"
+        ? "Close prospect"
+        : "Log call";
 
   return (
     <LogModalShell
-      title="Log pre-flight call"
+      title="Log Pre-Flight outcome"
       subtitle={subtitle}
       error={localError}
       onCancel={onCancel}
@@ -251,7 +220,7 @@ export function CallForEmailModal({
           </button>
           <button
             onClick={submit}
-            disabled={saving}
+            disabled={saving || !outcome}
             className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
           >
             {saving ? "Logging…" : submitLabel}
@@ -259,96 +228,20 @@ export function CallForEmailModal({
         </>
       }
     >
+      <SuggestedScript campusName={campusName ?? null} />
+
       <div className="space-y-1.5">
         {OUTCOME_CHOICES.map((opt) => (
           <StatusCard
             key={opt.key}
             active={outcome === opt.key}
-            onSelect={() => handleOutcomeChange(opt.key)}
+            onSelect={() => setOutcome(opt.key)}
             label={opt.label}
             blurb={opt.blurb}
+            tone={opt.tone}
           />
         ))}
       </div>
-
-      {outcome === "connected" && (
-        <div className="space-y-3 rounded-md border border-primary-200 bg-primary-50/30 px-3 py-3">
-          <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
-              What happened on the call?
-            </p>
-            <div className="space-y-1.5">
-              {ENGAGEMENT_OPTIONS.map((opt) => (
-                <StatusCard
-                  key={opt.key}
-                  active={engagement === opt.key}
-                  onSelect={() => setEngagement(opt.key)}
-                  label={opt.label}
-                  blurb={opt.blurb}
-                  compact
-                />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary-700">
-              New contact (optional)
-            </p>
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First name"
-                  size="sm"
-                />
-                <Input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last name"
-                  size="sm"
-                />
-              </div>
-              <Select
-                value={role}
-                onChange={(val) => setRole(val)}
-                placeholder="(no role)"
-                size="sm"
-                options={[
-                  { value: "", label: "(no role)" },
-                  ...PROVIDER_CONTACT_ROLES.map((r) => ({ value: r, label: r })),
-                ]}
-              />
-              {role === OTHER && (
-                <Input
-                  type="text"
-                  value={roleOther}
-                  onChange={(e) => setRoleOther(e.target.value)}
-                  placeholder="Custom role"
-                  size="sm"
-                />
-              )}
-              <Input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="Email (if obtained)"
-                size="sm"
-              />
-              <Input
-                type="tel"
-                value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value)}
-                placeholder="Direct phone / extension (optional)"
-                size="sm"
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="pt-1">
         <Input
@@ -357,11 +250,13 @@ export function CallForEmailModal({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder={
-            outcome === "voicemail"
-              ? "Voicemail or front-desk message? What did they say or when to try again?"
-              : outcome === "connected"
-                ? "Anything they said that's useful for future outreach?"
-                : "Context for this call attempt."
+            outcome === "confirmed"
+              ? "What did the provider confirm? Anything useful for outreach copy?"
+              : outcome === "override"
+                ? "Why are you overriding (audit trail)?"
+                : outcome === "not_interested"
+                  ? "What did they say? Useful for future re-engage decisions."
+                  : "Context for this attempt."
           }
           rows={3}
           size="sm"
@@ -371,50 +266,97 @@ export function CallForEmailModal({
   );
 }
 
-// Locally-defined StatusCard mirroring the pattern used by
-// LogMeetingModal and ReplyClassifierModal. The `compact` variant
-// matches the engagement sub-panel's tighter visual rhythm.
 function StatusCard({
   active,
   onSelect,
   label,
   blurb,
-  compact = false,
+  tone,
 }: {
   active: boolean;
   onSelect: () => void;
   label: string;
   blurb: string;
-  compact?: boolean;
+  tone: "unlock" | "stay" | "override" | "close";
 }) {
+  const activeBorder =
+    tone === "unlock"
+      ? "border-primary-500 bg-primary-50"
+      : tone === "override"
+        ? "border-amber-500 bg-amber-50"
+        : tone === "close"
+          ? "border-gray-500 bg-gray-100"
+          : "border-gray-400 bg-gray-50";
+  const idleHover =
+    tone === "unlock"
+      ? "hover:border-primary-300 hover:bg-primary-50/30"
+      : tone === "override"
+        ? "hover:border-amber-300 hover:bg-amber-50/30"
+        : "hover:border-gray-400 hover:bg-gray-50";
+  const dotActive =
+    tone === "unlock"
+      ? "border-primary-600 bg-primary-600"
+      : tone === "override"
+        ? "border-amber-600 bg-amber-600"
+        : "border-gray-600 bg-gray-600";
   return (
     <button
       onClick={onSelect}
       type="button"
-      className={`flex w-full items-start gap-3 rounded-lg border-2 ${compact ? "p-2.5" : "p-3"} text-left transition-colors ${
-        active
-          ? "border-primary-500 bg-primary-50"
-          : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
+      className={`flex w-full items-start gap-3 rounded-lg border-2 p-3 text-left transition-colors ${
+        active ? activeBorder : `border-gray-200 ${idleHover}`
       }`}
     >
       <span
         className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 ${
-          active ? "border-primary-600 bg-primary-600" : "border-gray-300 bg-white"
+          active ? dotActive : "border-gray-300 bg-white"
         }`}
         aria-hidden
       >
         {active && (
-          <span className="block h-full w-full rounded-full border-2 border-white bg-primary-600" />
+          <span
+            className={`block h-full w-full rounded-full border-2 border-white ${
+              tone === "unlock"
+                ? "bg-primary-600"
+                : tone === "override"
+                  ? "bg-amber-600"
+                  : "bg-gray-600"
+            }`}
+          />
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`block ${compact ? "text-xs" : "text-sm"} font-medium text-gray-900`}>
-          {label}
-        </span>
-        <span className={`mt-0.5 block ${compact ? "text-[11px]" : "text-xs"} text-gray-600`}>
-          {blurb}
-        </span>
+        <span className="block text-sm font-medium text-gray-900">{label}</span>
+        <span className="mt-0.5 block text-xs text-gray-600">{blurb}</span>
       </span>
     </button>
+  );
+}
+
+/**
+ * Pre-Flight call script — what to say when reaching the provider. The
+ * goal isn't to verify every field; it's to confirm the email we found
+ * and ask whether there's a better Decision Maker to send to. Shown
+ * read-only at the top of the modal so admin sees it before picking
+ * an outcome.
+ */
+function SuggestedScript({ campusName }: { campusName: string | null }) {
+  const campus = campusName?.trim() || "your campus";
+  return (
+    <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+        Suggested script
+      </p>
+      <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
+        &ldquo;Hi, this is Graize calling on behalf of Dr. Logan DuBose
+        and Olera&apos;s {campus} Student Caregiver Program. We found
+        this email online and are planning to send over information
+        about the program. Before we do, we wanted to confirm this is
+        the right general email — and ask whether there&apos;s someone
+        in hiring, recruiting, or ownership who would be the best
+        person to review the program info. Is there a specific person
+        we should send it to?&rdquo;
+      </p>
+    </section>
   );
 }

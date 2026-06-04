@@ -66,6 +66,27 @@ export interface ContactFormResult {
   source: FinderSource;
 }
 
+export interface PhoneResult {
+  phone: string | null;
+  source: FinderSource;
+}
+
+export interface FaxResult {
+  fax: string | null;
+  source: FinderSource;
+}
+
+/** Address pulled from the site or Perplexity. Fields land in the same
+ *  research_data.general_contact.{street,city,state,zip} slots the inline
+ *  editor writes to, so the consumer can apply each part to its input. */
+export interface AddressResult {
+  street: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  source: FinderSource;
+}
+
 // ---------------------------------------------------------------------------
 // Low-level helpers (TS port of enrich-city.js scaffolding)
 // ---------------------------------------------------------------------------
@@ -444,6 +465,186 @@ async function perplexityContactForm(
   const out = await perplexityJson(prompt, cost);
   const url = out && typeof out.url === "string" ? normalizeWebsite(out.url) : null;
   return url;
+}
+
+// ---------------------------------------------------------------------------
+// Phone / fax / address finders. Same scrape-first → Perplexity-fallback
+// pattern as findEmail / findContactFormUrl.
+// ---------------------------------------------------------------------------
+
+/** US phone-number regex. Matches:
+ *   (555) 123-4567 · 555-123-4567 · 555.123.4567 · 555 123 4567 · 5551234567
+ *   +1 prefix optional. Excludes most 1-800 numbers we'd want to skip if
+ *   bracketed by toll-free context.
+ */
+const PHONE_RE =
+  /(?:\+?1[-.\s]?)?\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})/g;
+
+function normalizePhone(match: RegExpExecArray): string {
+  return `(${match[1]}) ${match[2]}-${match[3]}`;
+}
+
+/** Pull all phone numbers from HTML. Returns ordered list — `tel:` links
+ *  first (they're authoritative), then visible matches in document order.
+ *  Each entry comes with a small BEFORE-context (the 40 characters
+ *  preceding the match) so the caller can tell fax from phone — "fax"
+ *  labels in human-written copy appear BEFORE the number, not after. A
+ *  wider any-direction window false-positives in tight markup where
+ *  the next phone is "Fax: …". */
+function extractPhonesFromHtml(html: string): Array<{ phone: string; context: string }> {
+  const out: Array<{ phone: string; context: string }> = [];
+  const seen = new Set<string>();
+  // 1. tel: links — most authoritative
+  const telRe = /([^>]{0,40})href=["']tel:([+\d().\s-]+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = telRe.exec(html))) {
+    const digits = m[2].replace(/\D/g, "");
+    if (digits.length !== 10 && !(digits.length === 11 && digits.startsWith("1"))) continue;
+    const d = digits.length === 11 ? digits.slice(1) : digits;
+    const formatted = `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    if (seen.has(formatted)) continue;
+    seen.add(formatted);
+    out.push({ phone: formatted, context: m[1] });
+  }
+  // 2. visible regex matches — context is the 40 chars BEFORE the number.
+  PHONE_RE.lastIndex = 0;
+  while ((m = PHONE_RE.exec(html))) {
+    const formatted = normalizePhone(m);
+    if (seen.has(formatted)) continue;
+    seen.add(formatted);
+    const start = Math.max(0, m.index - 40);
+    out.push({ phone: formatted, context: html.slice(start, m.index) });
+  }
+  return out;
+}
+
+/** True when "fax" appears in the BEFORE-context of a phone match. */
+function looksLikeFax(context: string): boolean {
+  return /\bfax\b/i.test(context);
+}
+
+/** Scrape-then-Perplexity finder for the General Contact phone. Skips
+ *  numbers that look like a fax line. */
+export async function findPhone(
+  ctx: ProviderContext,
+  cost?: CostTracker,
+): Promise<PhoneResult> {
+  const website = await resolveWebsite(ctx, cost);
+  if (website) {
+    const origin = new URL(website).origin;
+    const pages = [website, `${origin}/contact`, `${origin}/contact-us`];
+    for (const page of pages) {
+      const html = await fetchHtml(page);
+      if (!html) continue;
+      const phones = extractPhonesFromHtml(html);
+      // Prefer the first non-fax phone.
+      const phone = phones.find((p) => !looksLikeFax(p.context));
+      if (phone) return { phone: phone.phone, source: "scrape" };
+    }
+  }
+  const fromPplx = await perplexityPhone(ctx, cost);
+  if (fromPplx) return { phone: fromPplx, source: "perplexity" };
+  return { phone: null, source: null };
+}
+
+/** Same as findPhone but looks for fax-tagged numbers. Hit rate is low in
+ *  practice — most agencies don't publish fax lines anymore. */
+export async function findFax(
+  ctx: ProviderContext,
+  cost?: CostTracker,
+): Promise<FaxResult> {
+  const website = await resolveWebsite(ctx, cost);
+  if (website) {
+    const origin = new URL(website).origin;
+    const pages = [`${origin}/contact`, `${origin}/contact-us`, website];
+    for (const page of pages) {
+      const html = await fetchHtml(page);
+      if (!html) continue;
+      const phones = extractPhonesFromHtml(html);
+      const fax = phones.find((p) => looksLikeFax(p.context));
+      if (fax) return { fax: fax.phone, source: "scrape" };
+    }
+  }
+  // Perplexity for fax is usually noise; only ask if the prompt is cheap +
+  // the call is gated by env key.
+  const fromPplx = await perplexityFax(ctx, cost);
+  if (fromPplx) return { fax: fromPplx, source: "perplexity" };
+  return { fax: null, source: null };
+}
+
+async function perplexityPhone(
+  ctx: ProviderContext,
+  cost?: CostTracker,
+): Promise<string | null> {
+  if (!perplexityKey() || !ctx.name) return null;
+  const loc = [ctx.city, ctx.state].filter(Boolean).join(", ");
+  const prompt = `What is the publicly listed phone number for "${ctx.name}"${
+    loc ? ` in ${loc}` : ""
+  }${ctx.website ? ` (website ${ctx.website})` : ""}? Return ONLY JSON: {"phone": "(555) 123-4567 or null"}. Use US format. Do not guess.`;
+  const out = await perplexityJson(prompt, cost);
+  if (!out || typeof out.phone !== "string") return null;
+  const digits = out.phone.replace(/\D/g, "");
+  const d = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (d.length !== 10) return null;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+async function perplexityFax(
+  ctx: ProviderContext,
+  cost?: CostTracker,
+): Promise<string | null> {
+  if (!perplexityKey() || !ctx.name) return null;
+  const loc = [ctx.city, ctx.state].filter(Boolean).join(", ");
+  const prompt = `What is the publicly listed FAX number for "${ctx.name}"${
+    loc ? ` in ${loc}` : ""
+  }${ctx.website ? ` (website ${ctx.website})` : ""}? Many small agencies don't have one — return null if none. Return ONLY JSON: {"fax": "(555) 123-4567 or null"}.`;
+  const out = await perplexityJson(prompt, cost);
+  if (!out || typeof out.fax !== "string") return null;
+  const digits = out.fax.replace(/\D/g, "");
+  const d = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (d.length !== 10) return null;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+/** Find + parse a US address into structured parts. Lets Perplexity do the
+ *  parsing because scraped addresses arrive in many shapes (single line,
+ *  multi-line, with country, with "Suite" variations) and the four-part
+ *  structured form is what `research_data.general_contact` stores. */
+export async function findAddress(
+  ctx: ProviderContext,
+  cost?: CostTracker,
+): Promise<AddressResult> {
+  // Perplexity-first here: structured JSON output beats heuristic parsing
+  // of arbitrarily-shaped scraped addresses. Admins can still edit the
+  // parts manually if any field is off.
+  const fromPplx = await perplexityAddress(ctx, cost);
+  if (fromPplx) return { ...fromPplx, source: "perplexity" };
+  return { street: null, city: null, state: null, zip: null, source: null };
+}
+
+async function perplexityAddress(
+  ctx: ProviderContext,
+  cost?: CostTracker,
+): Promise<{ street: string | null; city: string | null; state: string | null; zip: string | null } | null> {
+  if (!perplexityKey() || !ctx.name) return null;
+  const loc = [ctx.city, ctx.state].filter(Boolean).join(", ");
+  const prompt = `What is the publicly listed US street address for "${ctx.name}"${
+    loc ? ` in ${loc}` : ""
+  }${ctx.website ? ` (website ${ctx.website})` : ""}? Return ONLY JSON: {"street": "1234 Main St, Suite 200 or null", "city": "City or null", "state": "TX or null", "zip": "12345 or null"}. Use 2-letter state, 5-digit ZIP. Do not guess if not findable.`;
+  const out = await perplexityJson(prompt, cost);
+  if (!out) return null;
+  const street = typeof out.street === "string" && out.street.trim() ? out.street.trim() : null;
+  const city = typeof out.city === "string" && out.city.trim() ? out.city.trim() : null;
+  const state =
+    typeof out.state === "string" && /^[A-Z]{2}$/i.test(out.state.trim())
+      ? out.state.trim().toUpperCase()
+      : null;
+  const zip =
+    typeof out.zip === "string" && /^\d{5}(?:-\d{4})?$/.test(out.zip.trim())
+      ? out.zip.trim()
+      : null;
+  if (!street && !city && !state && !zip) return null;
+  return { street, city, state, zip };
 }
 
 // ---------------------------------------------------------------------------

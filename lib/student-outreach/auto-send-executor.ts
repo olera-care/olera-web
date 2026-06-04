@@ -162,210 +162,23 @@ export async function executeEmailTask(taskId: string): Promise<ExecuteResult> {
   }
   const row = rowData as OutreachRow;
 
-  if (!ACTIVE_STATUSES_FOR_SEND.has(row.status)) {
-    await annotateOutcome(db, taskId, "skipped_stage_changed", { row_status: row.status });
-    return {
-      task_id: taskId,
-      outcome: "skipped_stage_changed",
-      recipient_count: 0,
-      success_count: 0,
-      failure_count: 0,
-    };
-  }
-
-  const { data: campus } = await db
-    .from("student_outreach_campuses")
-    .select("name, slug, program_pdf_url")
-    .eq("id", row.campus_id)
-    .single();
-
-  // v9 Phase 9: per-recipient mode. Three sub-modes:
-  //   - recipient_kind='general' → synthetic recipient (no contact
-  //     row). Build the recipient from payload.recipient_email +
-  //     recipient_name. Used for the General Contact row.
-  //   - recipient_contact_id set (recipient_kind='specific') → scope
-  //     send to that single contact. Abort if the contact has gone
-  //     stale/incorrect or lost their email since queue time.
-  //   - neither set (legacy) → send to every active contact with
-  //     email. Stakeholder paths still use this.
-  const payloadPeek = claimed.payload ?? {};
-  const recipientKind =
-    typeof payloadPeek.recipient_kind === "string"
-      ? payloadPeek.recipient_kind
-      : null;
-  const pinnedContactId =
-    typeof payloadPeek.recipient_contact_id === "string"
-      ? payloadPeek.recipient_contact_id
-      : null;
-
-  let recipients: EmailRecipient[];
-  if (recipientKind === "general") {
-    const syntheticEmail =
-      typeof payloadPeek.recipient_email === "string"
-        ? payloadPeek.recipient_email.trim()
-        : "";
-    if (!syntheticEmail) {
-      recipients = [];
-    } else {
-      const syntheticName =
-        (typeof payloadPeek.recipient_name === "string" &&
-          payloadPeek.recipient_name.trim()) ||
-        row.organization_name;
-      recipients = [
-        {
-          // contact_id stays empty string for the synthetic recipient —
-          // touchpoint inserts pass null for contact_id below when the
-          // kind is general, so this value is never written to the DB.
-          contact_id: "",
-          name: syntheticName,
-          first_name: null,
-          last_name: null,
-          title: null,
-          email: syntheticEmail,
-        },
-      ];
-    }
-  } else {
-    let recipientQuery = db
-      .from("student_outreach_contacts")
-      .select("*")
-      .eq("outreach_id", row.id)
-      .eq("status", "active");
-    if (pinnedContactId) {
-      recipientQuery = (recipientQuery as any).eq("id", pinnedContactId);
-    }
-    const { data: contactRows } = await recipientQuery;
-    recipients = ((contactRows ?? []) as Contact[])
-      .filter((c) => c.email && c.email.trim().length > 0)
-      .map((c) => ({
-        contact_id: c.id,
-        name: c.name,
-        first_name: c.first_name,
-        last_name: c.last_name,
-        title: c.title,
-        email: c.email!,
-      }));
-  }
-
-  if (recipients.length === 0) {
-    await annotateOutcome(db, taskId, "skipped_no_recipients");
-    await queueManualFollowup(db, row.id, "no_recipients_at_send_time", {
-      task_id: taskId,
-    });
-    await insertTouchpoint(db, row.id, "note_added", {
-      reason: "skipped_no_recipients",
-      task_id: taskId,
-    });
-    return {
-      task_id: taskId,
-      outcome: "skipped_no_recipients",
-      recipient_count: 0,
-      success_count: 0,
-      failure_count: 0,
-    };
-  }
-
-  // Snapshot from payload, set at scheduling time.
-  const payload = claimed.payload ?? {};
-  const subject = String(payload.subject ?? "");
-  const body = String(payload.body ?? "");
-  const day = Number(payload.day ?? row.cadence_day ?? 0);
-  const template = String(payload.template ?? "intro");
-
-  if (!subject || !body) {
-    await annotateOutcome(db, taskId, "failed", { reason: "missing_snapshot" });
-    await queueManualFollowup(db, row.id, "missing_email_snapshot", { task_id: taskId });
-    return {
-      task_id: taskId,
-      outcome: "failed",
-      recipient_count: recipients.length,
-      success_count: 0,
-      failure_count: recipients.length,
-    };
-  }
-
-  // v9: all outreach emails are sent from Graize (Dr. Logan DuBose's
-  // assistant). The {admin_first_name} placeholder still lives in
-  // legacy template bodies where the inline sign-off used to live;
-  // v9 templates moved the close-out into SIGN_OFF so this default
-  // mostly affects legacy text. Replies route via Reply-To env, so
-  // the identity reflected back to the recipient is consistent.
-  const adminFirstName = "Graize";
-
-  const campusRow = campus as
-    | { name: string; slug: string; program_pdf_url: string | null }
-    | null;
-  const result = await sendOutreachEmail({
-    outreach_id: row.id,
-    stakeholder_type: row.stakeholder_type,
-    campus_name: campusRow?.name ?? "your campus",
-    campus_slug: campusRow?.slug ?? null,
-    campus_program_pdf_url: campusRow?.program_pdf_url ?? null,
-    organization_name: row.organization_name,
-    admin_first_name: adminFirstName,
-    subject,
-    body,
-    recipients,
-    cadence_day: day,
-    template,
+  // Smartlead owns MedJobs cold-outreach delivery. If a pre-cutover task
+  // is still in the queue when the cron picks it up, short-circuit so it
+  // can't fire through Resend — the row's already enrolled in Smartlead.
+  // The route.ts launch path no longer queues `outreach_email_send` tasks,
+  // so this is belt-and-suspenders for stale tasks queued before cutover.
+  await annotateOutcome(db, taskId, "skipped_smartlead_owned", {
+    reason: "MedJobs cold outreach moved to Smartlead",
+    row_kind: row.kind,
   });
-
-  // Per-recipient touchpoints. Synthetic general recipients have
-  // no contact_id — write null and stamp the kind on the payload
-  // so the timeline + webhook can distinguish synthetic sends from
-  // specific-contact sends.
-  for (const r of result.results) {
-    await insertTouchpoint(
-      db,
-      row.id,
-      "email_sent",
-      {
-        cadence_day: day,
-        template,
-        recipient_email: r.recipient_email,
-        recipient_name: r.recipient_name,
-        recipient_kind: recipientKind === "general" ? "general" : "specific",
-        success: r.success,
-        email_log_id: r.email_log_id,
-        error: r.error,
-        attachment_present: result.attachment_present,
-        outcome: r.success ? "sent" : "failed",
-        task_id: taskId,
-      },
-      recipientKind === "general" ? null : r.contact_id || null,
-    );
-  }
-
-  let outcome: ExecuteResult["outcome"];
-  if (result.success_count === recipients.length) outcome = "sent_all";
-  else if (result.success_count > 0) outcome = "sent_partial";
-  else outcome = "failed";
-
-  await annotateOutcome(db, taskId, outcome, {
-    success_count: result.success_count,
-    failure_count: result.failure_count,
-  });
-
-  // If all failed → admin needs to know.
-  if (result.success_count === 0) {
-    await queueManualFollowup(db, row.id, "all_recipients_failed", {
-      task_id: taskId,
-      day,
-    });
-  }
-
-  // After active_partner seasonal completes, queue the next seasonal.
-  if (row.status === "active_partner" && outcome !== "failed") {
-    await queueNextSeasonal(db, row);
-  }
-
   return {
     task_id: taskId,
-    outcome,
-    recipient_count: recipients.length,
-    success_count: result.success_count,
-    failure_count: result.failure_count,
+    outcome: "skipped_stage_changed",
+    recipient_count: 0,
+    success_count: 0,
+    failure_count: 0,
   };
+
 }
 
 /** Queue the next seasonal `outreach_email_send` task for an active partner. */

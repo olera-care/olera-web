@@ -651,6 +651,9 @@ Phase 5 complete, assuming one dev. Phase 6 is open-ended.
 
 ### Phase 0 — Stabilize what's shipped (~2 days, mostly waiting)
 
+→ **Detailed plan: [`medjobs-phase-0-stabilization.md`](medjobs-phase-0-stabilization.md)** (drafted; awaiting Logan review)
+
+
 **Goal:** Get already-completed work into staging and prepare for
 Phase 1 to launch live emails.
 

@@ -46,6 +46,8 @@ Sections:
 
 **Resume next session here →** Logan reviews phasing breakdown in §12 of master plan. If approved, start Phase 0 (QA the staging branch). Phase 1 ticket cutting begins after Phase 0 closes.
 
+**2026-06-04 update — going phase by phase.** Logan flagged the phasing in §12 was at "schedule depth" not "executable depth." Approach now: one detailed plan per phase, stored as `plans/medjobs-phase-N-<name>.md`, reviewed + approved sequentially. Master plan §12 stays as the index. **Phase 0 detail plan drafted:** [`plans/medjobs-phase-0-stabilization.md`](plans/medjobs-phase-0-stabilization.md) — 6 work items (Pre-Flight QA test plan with 8 tests, staging merge, Smartlead env vars, webhook registration, Logan signoffs on sender/footer/body, sender warmup status check). Definition-of-done checklist + risks per item. Awaiting Logan review of Phase 0 before drafting Phase 1.
+
 ---
 
 ### 2026-06-03 (Tue) — Post-launch outreach plan **v3 FINAL** (ready for ticket cutting)

@@ -3125,6 +3125,16 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
   }
 
   const nowIso = new Date().toISOString();
+  // v10 Phase 1 Bullet 11 (2026-06-04): admin-driven conversion now also
+  // sets the 90-day pilot timer (Q1 locked: "admin path also sets
+  // pilot_active_through so admin and self-serve paths produce identical
+  // state"). terms_accepted_via=admin differentiates from self-serve so
+  // the audit trail tells us which path the provider took.
+  const pilotActiveThroughIso = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return d.toISOString();
+  })();
   let businessProfileId = row.provider_business_profile_id;
 
   // For olera-providers based rows, we need to create a business_profiles
@@ -3160,7 +3170,11 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
         slug: oleraProvider.slug,
         address: oleraProvider.address,
         zip: oleraProvider.zipcode?.toString() || null,
-        metadata: { interview_terms_accepted_at: nowIso },
+        metadata: {
+          interview_terms_accepted_at: nowIso,
+          pilot_active_through: pilotActiveThroughIso,
+          terms_accepted_via: "admin",
+        },
         source_provider_id: oleraProviderId,
         created_at: nowIso,
         updated_at: nowIso,
@@ -3192,6 +3206,8 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
     const newMeta = {
       ...existingMeta,
       interview_terms_accepted_at: nowIso,
+      pilot_active_through: pilotActiveThroughIso,
+      terms_accepted_via: "admin",
     };
 
     const { error: bpErr } = await db

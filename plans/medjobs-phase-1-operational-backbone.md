@@ -919,6 +919,52 @@ Chunk 3 of Phase 1: Calls tab now has Today + Upcoming split with engagement-dri
 
 **Phase 1 progress:** 9 of 12 bullets done. Next chunk: 10+11+12 (Meetings tab redesign + new LogMeetingModal outcome + Calendly webhook). After chunk 4 the phase is ready to merge to staging.
 
+### Day 1 (continued) — Bullets 10, 11, 12 COMPLETE (chunk 4) — Phase 1 DONE
+
+Final chunk of Phase 1. Meetings tab sectioned, LogMeetingModal repurposed for pilot activation, Calendly webhook live (inert until secret + URL registered in Calendly admin).
+
+**Bullet 11 — LogMeetingModal "Activate pilot" outcome — DONE.**
+- Existing `done_client` outcome relabeled "Activate pilot on their behalf 🎉" (the underlying behavior is the new conversion — no need to add a parallel outcome alongside `done_client`).
+- Submit button label updated from "Mark as Client" to "Activate pilot".
+- Blurb rewritten to convey the pilot semantics ("Activates Pilot Active for 90 days, sets pilot terms accepted (via admin), and unlocks Partner Prospects").
+- `handleMakeClient` in `app/api/admin/student-outreach/[id]/route.ts` extended (per Q1 decision):
+  - Sets `metadata.pilot_active_through = now + 90 days`
+  - Sets `metadata.terms_accepted_via = "admin"` (audit field — differentiates from self-serve)
+  - Both paths updated: new business_profile creation (line ~3163) AND existing business_profile metadata patch (line ~3192)
+- Admin path now produces identical state to the Phase 4+5 self-serve path.
+
+**Bullet 12 — Calendly webhook — DONE.**
+- New `supabase/functions/calendly-webhook/index.ts` (+ README) ingests Calendly invitee events into the CRM.
+- Events handled: `invitee.created` (→ `meeting_scheduled` touchpoint with start_time + viewed_at reset), `invitee.canceled` (→ `meeting_no_show` standalone OR `note_added(reason: calendly_reschedule_pending)` when paired with a created within 60s), `invitee.rescheduled` (treated as created).
+- HMAC-SHA256 signature verification per Pass B locked decision: split `t=<unix>,v1=<sig>` header → recompute HMAC over `timestamp.body` → constant-time compare → reject if timestamp >5min stale (replay protection).
+- Fallback `?secret=...` query for manual testing (matches Smartlead pattern).
+- Three-layer email match resolver: `research_data.general_contact.email` → `research_data.decision_maker.email` → `business_profiles.email`. Single matches advance; ambiguous (multiple) and zero matches log + 200 no-op.
+- Idempotency by `calendly_invitee_uri` in touchpoint payload — retries are safe.
+- **INERT until activated**: `CALENDLY_WEBHOOK_SECRET` not set → logged no-op. Admin setup steps in the README.
+
+**Bullet 10 — Meetings tab redesign — DONE.**
+- New `MeetingsSectioned` component splits Meetings rows into three sections:
+  - **Upcoming** — `meeting_state="scheduled"` AND `meeting_at > now()` (sorted by meeting_at ASC). Calendly self-bookings land here automatically.
+  - **Needs logging** — `meeting_state="scheduled"` AND `meeting_at <= now()` (meeting happened; admin needs to log the outcome). Sub-line: "Meeting time has passed — log the outcome to move the row forward."
+  - **Finding a time** — `meeting_state="in_flight"` (coordinating; awaiting reschedule; etc.)
+- Sort within each section is operationally meaningful (Upcoming by meeting_at ASC, Needs logging by meeting_at DESC, In-flight by last_activity_at DESC).
+- No backend change — uses the existing TabRow shape; the queue endpoint already returns meeting_state + meeting_at.
+- **Unmatched Calendly bookings tray DEFERRED** — would require a new table (against G3). Logged in known-issues as a follow-up; MVP behavior is "log and continue" (admin sees the booking in Calendly's UI if unmatched).
+
+**Typecheck:** clean across all 3 bullets.
+
+**Phase 1 COMPLETE — 12 of 12 bullets done.** Branch `medjobs/phase-1-operational-backbone` is ready for Logan QA on Vercel preview, then merge to staging.
+
+**Calendly webhook activation steps (manual, post-merge):**
+1. Generate a fresh secret value (UUIDv4 or similar)
+2. Deploy: `supabase functions deploy calendly-webhook --project-ref <ref>`
+3. Set: `supabase secrets set CALENDLY_WEBHOOK_SECRET=<value> --project-ref <ref>`
+4. Dr. DuBose's Calendly admin → Integrations → Webhooks → add subscription:
+   - URL: `https://<project-ref>.supabase.co/functions/v1/calendly-webhook`
+   - Events: `invitee.created`, `invitee.canceled`
+   - Signing key: the same secret value
+5. Spot-test by self-booking a slot on Dr. DuBose's Calendly using an email that matches an active outreach row → confirm meeting surfaces in Meetings tab Upcoming within ~5 seconds.
+
 **Pending Logan signoffs** (per master plan §12 "Phase 0 stabilization" checklist; not blocking branch creation or strategy work):
 - Sender identity (`logan@findmedjobs.co` + `partnerships@findmedjobs.co` proposed)
 - Footer/unsubscribe copy

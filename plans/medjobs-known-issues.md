@@ -32,6 +32,20 @@ Status: Drain log — bugs and optimizations surfaced during phase builds.
 - Target resolution: spot-check on Vercel preview before Phase 1 merges to staging
 - Notes: Plan assumes `https://app.smartlead.ai/app/master-inbox?lead_id=<lead_id>&campaign_id=<campaign_id>` deep-links to the right thread. Bullet 9 ships with this URL. The link builder gracefully falls back to root master inbox when lead_id is missing. If Smartlead's UI URL convention has changed, update the URL in `smartleadInboxUrl()` in `components/admin/medjobs/cards/StakeholderCard.tsx`.
 
+### 2026-06-04 — Phase 1 Bullet 10 follow-up: unmatched Calendly bookings tray deferred
+- Found in: Phase 1 Bullet 10 build
+- Severity: deferred (low-risk; admin sees the booking natively in Calendly's UI when unmatched)
+- Owner: Claude (resume in Phase 1b if needed)
+- Target resolution: Phase 1b after Logan QA. Decide whether the in-CRM tray is worth a migration.
+- Notes: The v3 plan called for an "Unmatched Calendly bookings" tray on the Meetings tab. This would require a new `calendly_unmatched_bookings` table to persist bookings whose invitee email didn't resolve to an outreach row. That's against G3 (no new migrations during feature work). MVP behavior is "log and continue" — the calendly-webhook returns 200 with a "unmatched" log entry; admin sees the booking natively in Calendly and can manually create the CRM entry if needed.
+
+### 2026-06-04 — Calendly webhook needs activation (deploy + admin setup)
+- Found in: Phase 1 Bullet 12 ship
+- Severity: blocker for Phase 2+3 Calendly integration; not blocking Phase 1 merge
+- Owner: TJ (admin access to Calendly + Supabase secrets)
+- Target resolution: post-Phase-1-merge, before Phase 2+3 starts
+- Notes: New edge function `supabase/functions/calendly-webhook/` is INERT until `CALENDLY_WEBHOOK_SECRET` is set in Supabase + the webhook URL is registered in Dr. DuBose's Calendly admin. Steps documented at the end of the Phase 1 build log + in the calendly-webhook README. Test by self-booking a slot with a matching email and confirming the meeting appears in the CRM Meetings tab.
+
 ### 2026-06-04 — Phase 1 Bullet 8 follow-up: full event-stream UI deferred
 - Found in: Phase 1 Bullet 8 build
 - Severity: deferred enhancement (current state is fully functional)

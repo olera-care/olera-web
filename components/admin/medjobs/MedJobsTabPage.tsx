@@ -672,6 +672,8 @@ export function MedJobsTabPage({
         </p>
       ) : tab === "calls" ? (
         <CallsSectioned rows={rows} renderRow={renderRow} />
+      ) : tab === "meetings" ? (
+        <MeetingsSectioned rows={rows} renderRow={renderRow} />
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
@@ -995,3 +997,99 @@ function formatUpcomingDayLabel(iso: string): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+
+// ── v10 Bullet 10 (2026-06-04): Meetings tab sectioned rendering ──────────
+// Splits Meetings rows into three sections so admin sees what needs action
+// vs what's in flight:
+//   Upcoming    — meeting_state="scheduled" AND meeting_at > now()
+//   In-flight   — meeting_state="in_flight" (coordinating; needs admin
+//                 attention to book a time or handle a reschedule)
+//   Past        — meeting_state="scheduled" AND meeting_at <= now()
+//                 (meeting happened — admin needs to log the outcome)
+//
+// Calendly self-bookings ingested via the calendly-webhook flow into
+// meeting_scheduled touchpoints surface here as Upcoming automatically.
+
+function MeetingsSectioned({
+  rows,
+  renderRow,
+}: {
+  rows: TabRow[];
+  renderRow: (row: TabRow) => React.ReactNode;
+}) {
+  const now = Date.now();
+  const upcomingRows: TabRow[] = [];
+  const inFlightRows: TabRow[] = [];
+  const pastRows: TabRow[] = [];
+
+  for (const r of rows) {
+    if (r.meeting_state === "scheduled") {
+      const t = r.meeting_at ? new Date(r.meeting_at).getTime() : 0;
+      if (t && t > now) upcomingRows.push(r);
+      else pastRows.push(r);
+    } else if (r.meeting_state === "in_flight") {
+      inFlightRows.push(r);
+    } else {
+      // Defensive — meetings tab data shouldn't surface other states,
+      // but if it does, treat as in-flight to keep them visible.
+      inFlightRows.push(r);
+    }
+  }
+
+  // Upcoming sorts by meeting_at ASC (soonest first). In-flight by
+  // last_activity_at DESC (most recent first). Past by meeting_at DESC
+  // (most recent meeting first — that's what needs logging).
+  upcomingRows.sort((a, b) =>
+    (a.meeting_at ?? "").localeCompare(b.meeting_at ?? ""),
+  );
+  inFlightRows.sort((a, b) =>
+    (b.last_activity_at ?? "").localeCompare(a.last_activity_at ?? ""),
+  );
+  pastRows.sort((a, b) =>
+    (b.meeting_at ?? "").localeCompare(a.meeting_at ?? ""),
+  );
+
+  return (
+    <div className="space-y-6">
+      {upcomingRows.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Upcoming ({upcomingRows.length})
+          </h3>
+          <ul className="space-y-2">
+            {upcomingRows.map((row) => (
+              <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {pastRows.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Needs logging ({pastRows.length})
+          </h3>
+          <p className="mb-2 text-[11px] text-gray-500">
+            Meeting time has passed — log the outcome to move the row forward.
+          </p>
+          <ul className="space-y-2">
+            {pastRows.map((row) => (
+              <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {inFlightRows.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Finding a time ({inFlightRows.length})
+          </h3>
+          <ul className="space-y-2">
+            {inFlightRows.map((row) => (
+              <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}

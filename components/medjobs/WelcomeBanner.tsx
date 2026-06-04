@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import PilotTermsModal from "@/components/medjobs/PilotTermsModal";
 
 /**
  * WelcomeBanner — first-arrival banner for cold-provider magic-link clicks.
- * Phase 2+3 Bullet 12 (2026-06-04).
+ * Phase 2+3 Bullet 12 (2026-06-04). Phase 4+5 Bullet 4 (2026-06-04): wires
+ * the "Activate the pilot →" CTA to PilotTermsModal — the conversion gate.
  *
  * Two variants:
  *   - Default: "Welcome to the candidate board. Browse the students; accept
@@ -15,21 +17,16 @@ import { useState } from "react";
  * Suppressed for paid/pilot-active accounts (those don't need the welcome)
  * and for returning visits without `?welcome=1` (the page handles that
  * gating).
- *
- * The "Activate pilot" CTA is a Phase 4+5 hook — for now it triggers the
- * generic auth modal so providers can at least take a next step. When the
- * full T&C modal lands in Phase 4+5, that CTA wires to it.
  */
 export default function WelcomeBanner({
   claimConflict,
   isProvider,
-  onActivatePilot,
 }: {
   claimConflict: boolean;
   isProvider: boolean;
-  onActivatePilot: () => void;
 }) {
   const [dismissed, setDismissed] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   if (dismissed) return null;
 
   return (
@@ -58,7 +55,7 @@ export default function WelcomeBanner({
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={onActivatePilot}
+            onClick={() => setShowTermsModal(true)}
             className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
           >
             Activate the pilot →
@@ -67,6 +64,23 @@ export default function WelcomeBanner({
             Free for 3 months · No payment info needed
           </p>
         </div>
+      )}
+
+      {showTermsModal && (
+        <PilotTermsModal
+          onCancel={() => setShowTermsModal(false)}
+          onSuccess={() => {
+            setShowTermsModal(false);
+            // Force a full refresh so the candidate board re-evaluates
+            // medjobsAccessActive (now true) and renders full mode.
+            // Strip ?welcome=1 from the URL so the banner doesn't
+            // re-appear after the reload.
+            const url = new URL(window.location.href);
+            url.searchParams.delete("welcome");
+            url.searchParams.delete("claim_conflict");
+            window.location.assign(url.toString());
+          }}
+        />
       )}
     </div>
   );

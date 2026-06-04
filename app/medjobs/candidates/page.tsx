@@ -197,17 +197,14 @@ function CandidateBrowseInner() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* v10 Phase 2+3 Bullet 12 (2026-06-04): welcome banner for
             first-arrival from the magic-link click. Suppressed on
-            paid/pilot-active accounts + returning visits. */}
+            paid/pilot-active accounts + returning visits.
+            v10 Phase 4+5 Bullet 4 (2026-06-04): "Activate the pilot →"
+            CTA wires to PilotTermsModal internally — no parent handler
+            needed. */}
         {showWelcome && !isPaid && (
           <WelcomeBanner
             claimConflict={claimConflict}
             isProvider={!!isProvider}
-            onActivatePilot={() => {
-              // Phase 4+5 wires the actual T&C modal trigger. For now the
-              // CTA opens auth (existing primitive) so providers can at
-              // least get to the next step.
-              openAuth();
-            }}
           />
         )}
 

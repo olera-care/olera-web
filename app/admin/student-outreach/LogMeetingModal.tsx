@@ -116,7 +116,7 @@ export function LogMeetingModal({
   const submitLabel = isPartner
     ? "Mark as Partner"
     : isClient
-      ? "Mark as Client"
+      ? "Activate pilot"
       : status === "done_followup"
         ? "Send to Replies"
         : isNotAFit
@@ -219,8 +219,8 @@ export function LogMeetingModal({
               <StatusCard
                 active={status === "done_client"}
                 onSelect={() => setStatus("done_client")}
-                label="Became a Client ✓"
-                blurb="They committed to the caregiver-hiring pilot. Marks the provider as a Client and unlocks Partner Prospects for catchment Sites."
+                label="Activate pilot on their behalf 🎉"
+                blurb="They verbally agreed to the pilot. Activates Pilot Active for 90 days, sets pilot terms accepted (via admin), and unlocks Partner Prospects for catchment Sites."
               />
             )}
             <StatusCard

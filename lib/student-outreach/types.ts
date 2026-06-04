@@ -408,8 +408,34 @@ export interface TabRow extends OutreachRow {
   followup_author: string | null;
   followup_at: string | null;
   last_activity_at: string | null;
-  /** Calls tab only: the due call task to surface "Tap to dial" UX. */
-  due_call_task: { id: string; due_at: string } | null;
+  /** Calls tab only: the due call task to surface "Tap to dial" UX.
+   *  v10 Bullet 7 (2026-06-04): now includes both past-due and upcoming
+   *  call tasks (window: due_at <= end_of_next_week). MedJobsTabPage
+   *  client-side splits the rendered list into Today + Upcoming sections.
+   *  `cadence_day` lets the per-row purpose hint render ("Day 3 — Did
+   *  you get our email Monday?"). */
+  due_call_task: {
+    id: string;
+    due_at: string;
+    cadence_day: number | null;
+  } | null;
+  /** v10 Bullet 7: engagement sub-state for the Calls tab priority
+   *  sort + per-row "clicked" pill. Read from the latest email_sent
+   *  touchpoint's payload (Bullet 3 wires the counters). Null when
+   *  not applicable (Pilot Active, or row not in cadence). */
+  engagement_substate?:
+    | "no_engagement"
+    | "opened_not_clicked"
+    | "clicked_not_activated"
+    | null;
+  /** v10 Bullet 7: smartlead linkage for the "Reply via Smartlead inbox"
+   *  deep-link button on the Emails tab (Bullet 9). Reads from
+   *  research_data.smartlead.{lead_id, campaign_id}. Both null when
+   *  the row hasn't been enrolled via the bridge yet. */
+  smartlead_linkage?: {
+    lead_id: string | null;
+    campaign_id: string | null;
+  } | null;
   /**
    * v9 Phase 9: list of recipient names from pending call tasks
    * (per-recipient mode). Populated on Calls tab. Legacy rows

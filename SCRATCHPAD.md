@@ -77,6 +77,21 @@ Master plan §12 rewritten as clean INDEX (phase table + workflow + traceability
 
 **Resume next session here →** Logan reviews Phase 1 detailed plan ([`plans/medjobs-phase-1-operational-backbone.md`](plans/medjobs-phase-1-operational-backbone.md)) at scope/bullet level. If approved, Phase 0 closes (TJ merges current branch + Smartlead env vars + Logan signoffs on sender/footer/copy) THEN Phase 1 branch is cut and build starts.
 
+**2026-06-04 — PR #925 MERGED + Phase 1 COMPLETE (12 of 12 bullets, ~30 commits).** Branch `medjobs/phase-1-operational-backbone` carries the full Phase 1 build. Tomorrow's resume: Logan QA on Vercel preview, then PR + merge to staging.
+
+Phase 1 build summary (chunked 4-way for review checkpoints):
+- **Chunk 1+2** (Bullets 1-6): strategy depth pass + cadence (v9 → v10) + Smartlead webhook expansion (per-touchpoint open/click payload) + tab rename ("Emails") + smart-hide of clients/partners/candidates + timeline split (Upcoming/Past + engagement chips) + Next Step engagement branches + Pilot Active 🎉 ConvertedBody.
+- **Chunk 3** (Bullets 7-9): Calls tab sectioned (Today + Upcoming) + clicked-priority sort + per-row purpose hint + 🖱 Clicked pill; Emails tab minimal viable (tab label + Smartlead inbox deep-link button as headlineAccessory).
+- **Chunk 4** (Bullets 10-12): LogMeetingModal "Activate pilot" outcome + handleMakeClient extended to set pilot_active_through + terms_accepted_via="admin"; Calendly webhook edge function (INERT until secret + URL registered); Meetings tab sectioned (Upcoming/Needs logging/Finding a time).
+
+**Deferred follow-ups logged in `plans/medjobs-known-issues.md`:**
+- Bullet 8b: full event-stream UI (Bounced pinned section + filter chips + EmailEventCard + URL-persisted pagination). ~3 days. Logan decides post-QA whether the current minimal-viable Emails tab suffices.
+- Bullet 10b: unmatched Calendly bookings tray (requires new table against G3). MVP behavior is admin sees the booking natively in Calendly's UI.
+- Calendly webhook activation: TJ deploys + sets secret + registers URL in Dr. DuBose's Calendly admin (post-staging-merge).
+- Smartlead deep-link URL convention: spot-check live during Logan QA.
+
+**Next session:** Logan QA on Vercel preview → if green, PR `medjobs/phase-1-operational-backbone` → `staging` → merge → Phase 2+3 detail pass starts (magic-link + landing experience).
+
 ---
 
 ### 2026-06-03 (Tue) — Post-launch outreach plan **v3 FINAL** (ready for ticket cutting)

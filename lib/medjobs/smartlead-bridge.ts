@@ -11,10 +11,10 @@
  * Everything here is pure so it can be exercised without the Smartlead key.
  *
  * Channel split (the load-bearing invariant): Smartlead owns the EMAIL
- * drip only. The provider cadence interleaves phone days (0, 1, 5) which
- * stay as CRM `outreach_followup_call` tasks; only the email days
- * (0 `provider_intro`, 3 `provider_followup`, 7 `provider_final`) become
- * Smartlead sequence steps.
+ * drip only. The provider cadence interleaves phone days (3, 5 under
+ * v10 — was 0, 1, 5 pre-v10) which stay as CRM `outreach_followup_call`
+ * tasks; only the email days (0 `provider_intro`, 3 `provider_followup`,
+ * 7 `provider_final`) become Smartlead sequence steps.
  */
 
 import {

@@ -73,36 +73,53 @@ export interface TabDef {
 // Categories surface in In Basket only when they have active work
 // (unread + undone, excluding completed which moves to the Logs page).
 // Completed rows move out of In Basket; they don't pad the tab counts.
-// v9.1 In Basket tab order mirrors the MedJobs sidebar order so admins
-// learn one consistent operational sequence across both surfaces:
-// Prospects (top of funnel) → Calls / Replies / Meetings (hot
-// responsiveness queues) → Clients / Partners / Candidates (warm
-// relationships and supply side). Sites is intentionally NOT a primary
-// tab here — it's an organizational anchor and lives in the sidebar
-// only. Deep links to ?tab=sites still resolve (the page keeps a
-// graceful render branch) but the tab bar no longer surfaces it.
+// v10 (Phase 1 Bullet 4, 2026-06-04): In Basket tab row simplified to the
+// four operational hot zones for an admin sitting down to work the funnel:
+//
+//   Prospects · Calls · Emails · Meetings
+//
+// Clients / Partners / Candidates move into the ⋯ overflow menu — they're
+// warm follow-up surfaces, not the daily-triage row. The TabKey union
+// retains them (and `replies`) for backward compatibility with the queue
+// endpoint + deep links.
+//
+// The internal "replies" key is preserved (data layer, queue route, dedicated
+// /admin/medjobs/replies page, sidebar URL routing) — only the user-facing
+// LABEL changes to "Emails" to reflect the broader event-stream semantics
+// (replies + opens + clicks + bounces, per Bullet 8 redesign). A full key
+// migration ("replies" → "emails") can happen during Bullet 8 when we're
+// touching those surfaces anyway; doing it now would cascade 18+ files for
+// a cosmetic win.
+//
+// Sites is intentionally NOT in either row — it's an organizational anchor
+// that lives in the sidebar only. Deep links ?tab=sites still resolve via
+// the page's graceful render branch.
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
   { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment. Top of the funnel." },
   { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "replies",    label: "Replies",    tooltip: "Email replies, callbacks, voicemails. Triage and pick the next step." },
+  { key: "replies",    label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
   { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "clients",    label: "Clients",    tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
-  { key: "partners",   label: "Partners",   tooltip: "Active partners with a pending custom task. Smart-hidden when no partners have open tasks." },
-  { key: "candidates", label: "Candidates", tooltip: "Live candidates with a pending review or action." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
 // the end of the tab row. Each menu view is a hidden top-level tab that
 // behaves the same as primary tabs (data viewport + filters + cards) —
 // just accessed through the ⋯ for a quieter primary tab row.
+//
+// v10 additions: Clients / Partners / Candidates moved here from TABS so
+// the primary row stays focused on daily triage. They're still discoverable
+// via the menu and via direct sidebar URLs.
 export const MENU_TABS: TabDef[] = [
+  { key: "clients",     label: "Clients",      tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
+  { key: "partners",    label: "Partners",     tooltip: "Active partners with a pending custom task." },
+  { key: "candidates",  label: "Candidates",   tooltip: "Live candidates with a pending review or action." },
   { key: "all",         label: "All",          tooltip: "Search and filter every stakeholder across all stages." },
   { key: "emails_sent", label: "Emails Sent",  tooltip: "All email-send touchpoints across stakeholders. (Coming soon.)" },
   { key: "outbound",    label: "Outbound",     tooltip: "Aggregated outbound activity log — emails, IG DMs, contact-form sends. Replied threads float to the top. (Coming soon.)" },
   { key: "signups",     label: "Signups",      tooltip: "Every student who entered the funnel — broader acquisition volume (live + incomplete profiles). Candidates ⊂ Signups." },
-  { key: "archive",     label: "Archive",      tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Replies if they reply or call back later." },
+  { key: "archive",     label: "Archive",      tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Emails if they reply or call back later." },
 ];
 
 // v8.10.38: per-tab PulseHeader metric. Each tab points at a server

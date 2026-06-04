@@ -89,19 +89,33 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
   return Array.isArray(p) ? p[0] : p ?? undefined;
 }
 
-// Simplified tab filters: All | Engaged | No Activity
-type TabFilter = "all" | "engaged" | "no_activity";
-// Legacy filters (still supported for backwards compatibility)
-type ResponseFilter = TabFilter | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
-type ResponseCategory = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+// Workflow-based tab filters
+type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
+type TabFilter = "all" | WorkflowState;
 
-interface ResponseCounts {
+// Stuck threshold: 3+ nudges with no response
+const STUCK_NUDGE_THRESHOLD = 3;
+
+interface WorkflowCounts {
   all: number;
   needs_attention: number;
-  provider_nudged: number;
-  family_nudged: number;
+  awaiting_provider: number;
+  awaiting_family: number;
+  connected: number;
+  stuck: number;
+}
+
+// Funnel stats for the stats row
+interface FunnelStats {
+  total: number;
+  providerViewed: number;
+  providerViewedRate: number;
+  providerEngaged: number;
+  providerEngagedRate: number;
   responded: number;
-  no_email: number;
+  respondedRate: number;
+  connected: number;
+  connectedRate: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -112,7 +126,7 @@ export async function GET(request: NextRequest) {
     if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
-    const responseFilter = (searchParams.get("filter") || "all") as ResponseFilter;
+    const responseFilter = (searchParams.get("filter") || "all") as TabFilter;
     const stateFilter = searchParams.get("state") as ConnectionTemperatureState | null;
     const includeClosed = searchParams.get("include_closed") === "true";
     const search = (searchParams.get("search") || "").trim().toLowerCase();
@@ -183,7 +197,8 @@ export async function GET(request: NextRequest) {
       // Extract nudge info from metadata
       const providerNudgedAt = (meta.nudged_at as string) || null;
       const familyNudgedAt = (meta.family_nudged_at as string) || null;
-      const nudgeCount = (meta.nudge_count as number) || 0;
+      const providerNudgeCount = (meta.nudge_count as number) || 0;
+      const familyNudgeCount = (meta.family_nudge_count as number) || 0;
 
       // Check for provider response and conversation state
       type ThreadMsg = { from_profile_id: string; text?: string; is_auto_reply?: boolean; created_at?: string; type?: string };
@@ -260,8 +275,8 @@ export async function GET(request: NextRequest) {
         messagePreview = messagePreview.substring(0, 77) + "...";
       }
 
-      // Determine response-based category
-      // Logic: First check provider state, then if provider responded check family state
+      // Determine workflow state
+      // Logic: Check if stuck first, then determine waiting state
       const hasProviderEmail = !!provider?.email;
       const providerIsActive = provider?.is_active !== false;
       const providerNudgedRecently = providerNudgedAt
@@ -271,26 +286,35 @@ export async function GET(request: NextRequest) {
         ? now - new Date(familyNudgedAt).getTime() < SEVEN_DAYS_MS
         : false;
 
-      let responseCategory: ResponseCategory | null;
+      // Determine who we're waiting on and workflow state
+      let workflowState: WorkflowState | null = null;
+      let waitingOn: "provider" | "family" | null = null;
+
       if (!providerIsActive) {
-        responseCategory = null; // Inactive providers excluded from all counts
-      } else if (!hasProviderEmail) {
-        responseCategory = "no_email"; // Can't email, must call
+        workflowState = null; // Inactive providers excluded
+      } else if (familyRepliedAfterProvider) {
+        // Both parties engaged - truly connected
+        workflowState = "connected";
+        waitingOn = null;
       } else if (responded) {
-        // Provider responded - now check family state
-        if (familyRepliedAfterProvider) {
-          responseCategory = "responded"; // Both parties engaged - truly connected
+        // Provider responded, waiting on family
+        waitingOn = "family";
+        if (familyNudgeCount >= STUCK_NUDGE_THRESHOLD) {
+          workflowState = "stuck";
         } else if (familyNudgedRecently) {
-          responseCategory = "family_nudged"; // Waiting on family to reply
+          workflowState = "awaiting_family";
         } else {
-          responseCategory = "responded"; // Provider responded, ready for family nudge
+          workflowState = "needs_attention"; // Ready to nudge family
         }
       } else {
         // Provider hasn't responded yet
-        if (providerNudgedRecently) {
-          responseCategory = "provider_nudged"; // Waiting on provider
+        waitingOn = "provider";
+        if (providerNudgeCount >= STUCK_NUDGE_THRESHOLD) {
+          workflowState = "stuck";
+        } else if (providerNudgedRecently) {
+          workflowState = "awaiting_provider";
         } else {
-          responseCategory = "needs_attention"; // Ready to nudge provider
+          workflowState = "needs_attention"; // Ready to nudge provider
         }
       }
 
@@ -324,10 +348,12 @@ export async function GET(request: NextRequest) {
         messagePreview,
         responded,
         familyRepliedAfterProvider,
-        nudgeCount,
+        providerNudgeCount,
+        familyNudgeCount,
         providerNudgedAt,
         familyNudgedAt,
-        responseCategory,
+        workflowState,
+        waitingOn,
         temperature,
       };
     });
@@ -341,27 +367,12 @@ export async function GET(request: NextRequest) {
         )
       : all;
 
-    // Temperature-based counts (legacy)
-    const counts: Record<ConnectionTemperatureState, number> = {
-      awaiting_provider: 0,
-      awaiting_family: 0,
-      live: 0,
-      going_cold: 0,
-      closed: 0,
-    };
-    for (const c of searched) counts[c.temperature.state]++;
-
-    // Engagement-based counts (per-provider for now - legacy events don't have per-connection IDs)
-    // Engaged = provider opened ANY lead OR copied ANY contact
-    // No Activity = provider has no engagement events
-
     // Build provider keys for engagement lookup
     const allProviderKeys = [...new Set(
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
     // Per-provider engagement tracking
-    // Engaged = opened lead OR copied contact OR clicked continue in inbox
     const providerEngagement = new Map<string, {
       email_clicked: boolean;
       lead_opened: boolean;
@@ -399,34 +410,57 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Count engaged vs no_activity
-    let engagedCount = 0;
-    let noActivityCount = 0;
-    const connectionEngaged = new Map<string, boolean>();
+    // Workflow-based counts
+    const workflowCounts: WorkflowCounts = {
+      all: 0,
+      needs_attention: 0,
+      awaiting_provider: 0,
+      awaiting_family: 0,
+      connected: 0,
+      stuck: 0,
+    };
+
+    // Funnel stats
+    let providerViewedCount = 0;
+    let providerEngagedCount = 0;
+    let respondedCount = 0;
+    let connectedCount = 0;
 
     for (const c of searched) {
-      const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
-      // Engaged = opened lead drawer OR copied contact OR clicked continue in inbox
-      // email_click alone doesn't count - they might have bounced before seeing the lead
-      const isEngaged = !!(eng?.lead_opened || eng?.contact_revealed || eng?.continue_in_inbox);
-      connectionEngaged.set(c.id, isEngaged);
-
-      if (isEngaged) {
-        engagedCount++;
-      } else {
-        noActivityCount++;
+      // Count workflow states (only active connections)
+      if (c.workflowState) {
+        workflowCounts.all++;
+        workflowCounts[c.workflowState]++;
       }
+
+      // Funnel stats (based on provider engagement)
+      const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
+      if (eng?.lead_opened) providerViewedCount++;
+      if (eng?.contact_revealed || eng?.continue_in_inbox) providerEngagedCount++;
+      if (c.responded) respondedCount++;
+      if (c.familyRepliedAfterProvider) connectedCount++;
     }
 
-    // Filtering: all, engaged, no_activity
-    let list = searched;
+    // Calculate funnel rates
+    const totalActive = workflowCounts.all;
+    const funnelStats: FunnelStats = {
+      total: totalActive,
+      providerViewed: providerViewedCount,
+      providerViewedRate: totalActive > 0 ? Math.round((providerViewedCount / totalActive) * 100) : 0,
+      providerEngaged: providerEngagedCount,
+      providerEngagedRate: totalActive > 0 ? Math.round((providerEngagedCount / totalActive) * 100) : 0,
+      responded: respondedCount,
+      respondedRate: totalActive > 0 ? Math.round((respondedCount / totalActive) * 100) : 0,
+      connected: connectedCount,
+      connectedRate: totalActive > 0 ? Math.round((connectedCount / totalActive) * 100) : 0,
+    };
 
-    if (responseFilter === "engaged") {
-      list = list.filter((c) => connectionEngaged.get(c.id) === true);
-    } else if (responseFilter === "no_activity") {
-      list = list.filter((c) => connectionEngaged.get(c.id) === false);
+    // Filtering by workflow state
+    let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
+
+    if (responseFilter !== "all") {
+      list = list.filter((c) => c.workflowState === responseFilter);
     }
-    // "all" or no filter shows everything
 
     // Sort by most recent first (matches Leads page behavior)
     list.sort((a, b) => {
@@ -459,9 +493,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       connections: page,
-      total: list.length,  // Count after tab filter, for correct pagination
-      engagedCount,
-      noActivityCount,
+      total: list.length,
+      workflowCounts,
+      funnelStats,
       engagement,
       truncated,
     });

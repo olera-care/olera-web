@@ -7,31 +7,73 @@ import ConnectionRow, { type ConnectionRowData } from "@/components/admin/Connec
 
 type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; continue_in_inbox: boolean };
 
+interface WorkflowCounts {
+  all: number;
+  needs_attention: number;
+  awaiting_provider: number;
+  awaiting_family: number;
+  connected: number;
+  stuck: number;
+}
+
+interface FunnelStats {
+  total: number;
+  providerViewed: number;
+  providerViewedRate: number;
+  providerEngaged: number;
+  providerEngagedRate: number;
+  responded: number;
+  respondedRate: number;
+  connected: number;
+  connectedRate: number;
+}
+
 interface ListResponse {
   connections: (ConnectionRowData & { provider: { activityKey: string | null } })[];
   total: number;
-  engagedCount?: number;
-  noActivityCount?: number;
+  workflowCounts: WorkflowCounts;
+  funnelStats: FunnelStats;
   engagement: Record<string, Engagement>;
   truncated: boolean;
 }
 
-// Simplified tabs: All, Engaged, No Activity
-type FilterKey = "all" | "engaged" | "no_activity";
+// Workflow-based tabs
+type FilterKey = "all" | "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
 
 interface TabConfig {
   key: FilterKey;
   label: string;
+  description: string;
   emptyMessage: string;
 }
 
 const TABS: TabConfig[] = [
-  { key: "all", label: "All", emptyMessage: "No connections yet." },
-  { key: "engaged", label: "Engaged", emptyMessage: "No engaged providers yet." },
-  { key: "no_activity", label: "No Activity", emptyMessage: "All providers have engaged." },
+  { key: "needs_attention", label: "Needs Attention", description: "Ready to nudge", emptyMessage: "Nothing needs attention right now." },
+  { key: "awaiting_provider", label: "Awaiting Provider", description: "Nudged, waiting", emptyMessage: "No connections awaiting provider response." },
+  { key: "awaiting_family", label: "Awaiting Family", description: "Provider replied", emptyMessage: "No connections awaiting family response." },
+  { key: "connected", label: "Connected", description: "Both engaged", emptyMessage: "No connected conversations yet." },
+  { key: "stuck", label: "Stuck", description: "Need to call", emptyMessage: "No stuck connections." },
+  { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
 const PAGE_SIZE = 50;
+
+// Funnel stat component
+function FunnelStat({ label, value, rate, highlight }: { label: string; value: number; rate?: number; highlight?: boolean }) {
+  return (
+    <div className={`rounded-lg border px-4 py-3 ${highlight ? "border-emerald-200 bg-emerald-50/50" : "border-gray-200 bg-white"}`}>
+      <div className="flex items-baseline gap-2">
+        <span className={`text-2xl font-semibold tabular-nums ${highlight ? "text-emerald-600" : "text-gray-900"}`}>
+          {value.toLocaleString()}
+        </span>
+        {rate !== undefined && (
+          <span className="text-sm text-gray-400">{rate}%</span>
+        )}
+      </div>
+      <div className="mt-0.5 text-xs text-gray-500">{label}</div>
+    </div>
+  );
+}
 
 export default function ConnectionsTrackerPage() {
   const [range, setRange] = useState<DateRangeValue>({
@@ -41,8 +83,11 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("needs_attention"); // Default to Needs Attention
   const [page, setPage] = useState(0);
+
+  // Stats row state (collapsible)
+  const [statsExpanded, setStatsExpanded] = useState(true);
 
   // Delete state
   const [pendingDelete, setPendingDelete] = useState<ConnectionRowData | null>(null);
@@ -116,11 +161,8 @@ export default function ConnectionsTrackerPage() {
 
   // Get count for tab
   const getTabCount = (key: FilterKey): number => {
-    if (!list) return 0;
-    if (key === "all") return list.total;
-    if (key === "engaged") return list.engagedCount ?? 0;
-    if (key === "no_activity") return list.noActivityCount ?? 0;
-    return 0;
+    if (!list?.workflowCounts) return 0;
+    return list.workflowCounts[key] ?? 0;
   };
 
   // Delete handlers
@@ -180,6 +222,37 @@ export default function ConnectionsTrackerPage() {
         onRangeChange={setRange}
       />
 
+      {/* Collapsible Funnel Stats */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setStatsExpanded(!statsExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-3 h-3 transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+          Connection Funnel
+          <span className="text-xs text-gray-400 font-normal">
+            {range.preset === "all" ? "all time" : range.preset === "30d" ? "last 30 days" : range.preset === "7d" ? "last 7 days" : "custom range"}
+          </span>
+        </button>
+
+        {statsExpanded && list?.funnelStats && (
+          <div className="mt-4 grid grid-cols-5 gap-3">
+            <FunnelStat label="Total Leads" value={list.funnelStats.total} />
+            <FunnelStat label="Provider Viewed" value={list.funnelStats.providerViewed} rate={list.funnelStats.providerViewedRate} />
+            <FunnelStat label="Provider Engaged" value={list.funnelStats.providerEngaged} rate={list.funnelStats.providerEngagedRate} />
+            <FunnelStat label="Responded" value={list.funnelStats.responded} rate={list.funnelStats.respondedRate} />
+            <FunnelStat label="Connected" value={list.funnelStats.connected} rate={list.funnelStats.connectedRate} highlight />
+          </div>
+        )}
+      </div>
+
       {/* Search bar */}
       <div className="mb-6">
         <div className="relative">
@@ -215,8 +288,8 @@ export default function ConnectionsTrackerPage() {
         </div>
       </div>
 
-      {/* Tabs - underline style like Leads page */}
-      <div className="flex gap-1 mb-6 border-b border-gray-100">
+      {/* Tabs - underline style */}
+      <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">
         {TABS.map((tab) => {
           const count = getTabCount(tab.key);
           const isActive = activeFilter === tab.key;
@@ -225,7 +298,8 @@ export default function ConnectionsTrackerPage() {
               key={tab.key}
               type="button"
               onClick={() => setActiveFilter(tab.key)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              title={tab.description}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 isActive
                   ? "border-gray-900 text-gray-900"
                   : "border-transparent text-gray-400 hover:text-gray-600"

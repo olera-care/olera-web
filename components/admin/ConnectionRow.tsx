@@ -13,7 +13,7 @@ interface ProfileCompleteness {
   missingFields: string[];
 }
 
-export type ResponseCategory = "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email";
+export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
 
 export interface ConnectionRowData {
   id: string;
@@ -40,10 +40,12 @@ export interface ConnectionRowData {
   messagePreview?: string;
   responded?: boolean;
   familyRepliedAfterProvider?: boolean;
-  nudgeCount?: number;
+  providerNudgeCount?: number;
+  familyNudgeCount?: number;
   providerNudgedAt?: string | null;
   familyNudgedAt?: string | null;
-  responseCategory?: ResponseCategory | null;
+  workflowState?: WorkflowState | null;
+  waitingOn?: "provider" | "family" | null;
   temperature: ConnectionTemperature;
 }
 
@@ -231,19 +233,32 @@ export default function ConnectionRow({
   const careType = c.family.careType;
   const timeline = c.family.timeline;
 
-  // Build compact status for collapsed row
-  const getCompactStatus = () => {
-    const nudgeCount = c.nudgeCount || 0;
-    if (c.responded) {
-      if (c.familyRepliedAfterProvider) return "Connected";
-      return "Provider replied";
+  // Get waiting status and nudge count for collapsed row
+  const getWaitingStatus = (): { status: string; nudgeInfo: string | null; isStuck: boolean } => {
+    const providerNudges = c.providerNudgeCount || 0;
+    const familyNudges = c.familyNudgeCount || 0;
+
+    if (c.workflowState === "connected") {
+      return { status: "Both engaged", nudgeInfo: null, isStuck: false };
     }
-    if (nudgeCount > 0) {
-      return `Nudged ${nudgeCount}×, no reply`;
+    if (c.workflowState === "stuck") {
+      if (c.waitingOn === "family") {
+        return { status: "Waiting on family", nudgeInfo: `Family nudged ${familyNudges}x`, isStuck: true };
+      }
+      return { status: "Waiting on provider", nudgeInfo: `Provider nudged ${providerNudges}x`, isStuck: true };
     }
-    if (c.responseCategory === "no_email") return "No email";
-    return "Awaiting response";
+    if (c.waitingOn === "family") {
+      const nudgeInfo = familyNudges > 0 ? `Family nudged ${familyNudges}x` : null;
+      return { status: "Waiting on family", nudgeInfo, isStuck: false };
+    }
+    if (c.waitingOn === "provider") {
+      const nudgeInfo = providerNudges > 0 ? `Provider nudged ${providerNudges}x` : null;
+      return { status: "Waiting on provider", nudgeInfo, isStuck: false };
+    }
+    return { status: "Pending", nudgeInfo: null, isStuck: false };
   };
+
+  const waitingStatus = getWaitingStatus();
 
   async function toggle() {
     const next = !open;
@@ -302,7 +317,7 @@ export default function ConnectionRow({
             <EngagementBadges engagement={engagement} compact />
             <span className="text-sm text-gray-400 shrink-0 ml-auto">{age} ago</span>
           </div>
-          {/* Secondary line: care type + timeline | nudge status */}
+          {/* Secondary line: care type + timeline | waiting status | nudge info */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
             {(careType || timeline) && (
               <>
@@ -312,7 +327,17 @@ export default function ConnectionRow({
                 <span className="text-gray-300">|</span>
               </>
             )}
-            <span>{getCompactStatus()}</span>
+            <span className={waitingStatus.isStuck ? "text-amber-600 font-medium" : ""}>
+              {waitingStatus.status}
+            </span>
+            {waitingStatus.nudgeInfo && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className={waitingStatus.isStuck ? "text-amber-600" : "text-gray-400"}>
+                  {waitingStatus.nudgeInfo}
+                </span>
+              </>
+            )}
           </div>
         </button>
 
@@ -359,34 +384,88 @@ export default function ConnectionRow({
             <p className="text-sm text-rose-600">Could not load this connection. Try again.</p>
           ) : detail ? (
             <div className="space-y-4">
-              {/* Section 1: Action bar - nudge buttons + engagement badges */}
+              {/* Section 1: Action bar */}
+              {/* Stuck connection alert - show call options prominently */}
+              {c.workflowState === "stuck" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
+                  <p className="text-sm font-medium text-amber-800 mb-2">
+                    This connection needs manual follow-up. Multiple nudges sent with no response.
+                  </p>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {c.waitingOn === "provider" && detail.provider.phone && (
+                      <a
+                        href={`tel:${detail.provider.phone}`}
+                        className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
+                      >
+                        Call Provider
+                      </a>
+                    )}
+                    {c.waitingOn === "family" && detail.family.phone && (
+                      <a
+                        href={`tel:${detail.family.phone}`}
+                        className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
+                      >
+                        Call Family
+                      </a>
+                    )}
+                    {/* Show both if available for convenience */}
+                    {c.waitingOn === "provider" && detail.family.phone && (
+                      <a
+                        href={`tel:${detail.family.phone}`}
+                        className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
+                      >
+                        Call Family
+                      </a>
+                    )}
+                    {c.waitingOn === "family" && detail.provider.phone && (
+                      <a
+                        href={`tel:${detail.provider.phone}`}
+                        className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
+                      >
+                        Call Provider
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Regular action bar - nudge buttons + engagement badges */}
               <div className="flex items-center gap-3 flex-wrap">
-                {/* Nudge buttons */}
-                {!c.responded && detail.provider.hasEmail && (
-                  <button
-                    onClick={() => sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")}
-                    disabled={nudging}
-                    className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-                  >
-                    {nudging ? "Sending..." : "Nudge Provider"}
-                  </button>
+                {/* Nudge buttons - only show if not stuck (stuck connections use call) */}
+                {c.workflowState !== "stuck" && c.workflowState !== "connected" && (
+                  <>
+                    {c.waitingOn === "provider" && detail.provider.hasEmail && (
+                      <button
+                        onClick={() => sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")}
+                        disabled={nudging}
+                        className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                      >
+                        {nudging ? "Sending..." : "Nudge Provider"}
+                      </button>
+                    )}
+                    {c.waitingOn === "provider" && !detail.provider.hasEmail && detail.provider.phone && (
+                      <a
+                        href={`tel:${detail.provider.phone}`}
+                        className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200"
+                      >
+                        Call Provider (no email)
+                      </a>
+                    )}
+                    {c.waitingOn === "family" && (
+                      <button
+                        onClick={() => sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")}
+                        disabled={nudging}
+                        className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                      >
+                        {nudging ? "Sending..." : "Nudge Family"}
+                      </button>
+                    )}
+                  </>
                 )}
-                {!c.responded && !detail.provider.hasEmail && detail.provider.phone && (
-                  <a
-                    href={`tel:${detail.provider.phone}`}
-                    className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200"
-                  >
-                    Call Provider (no email)
-                  </a>
-                )}
-                {c.responded && !c.familyRepliedAfterProvider && (
-                  <button
-                    onClick={() => sendNudge("/api/admin/send-family-nudge", "Follow-up sent to family.")}
-                    disabled={nudging}
-                    className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
-                  >
-                    {nudging ? "Sending..." : "Nudge Family to Reply"}
-                  </button>
+
+                {/* Connected state - no action needed */}
+                {c.workflowState === "connected" && (
+                  <span className="text-sm text-emerald-600 font-medium">Both parties engaged</span>
                 )}
 
                 {/* Engagement badges */}

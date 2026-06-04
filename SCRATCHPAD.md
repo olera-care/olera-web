@@ -46,7 +46,36 @@ Sections:
 
 **Resume next session here →** Logan reviews phasing breakdown in §12 of master plan. If approved, start Phase 0 (QA the staging branch). Phase 1 ticket cutting begins after Phase 0 closes.
 
-**2026-06-04 update — going phase by phase.** Logan flagged the phasing in §12 was at "schedule depth" not "executable depth." Approach now: one detailed plan per phase, stored as `plans/medjobs-phase-N-<name>.md`, reviewed + approved sequentially. Master plan §12 stays as the index. **Phase 0 detail plan drafted:** [`plans/medjobs-phase-0-stabilization.md`](plans/medjobs-phase-0-stabilization.md) — 6 work items (Pre-Flight QA test plan with 8 tests, staging merge, Smartlead env vars, webhook registration, Logan signoffs on sender/footer/body, sender warmup status check). Definition-of-done checklist + risks per item. Awaiting Logan review of Phase 0 before drafting Phase 1.
+**2026-06-04 update — going phase by phase.** Logan flagged the phasing in §12 was at "schedule depth" not "executable depth." Approach now: one detailed plan per phase, stored as `plans/medjobs-phase-N-<name>.md`, reviewed + approved sequentially. Master plan §12 stays as the index.
+
+**Updated 2026-06-04 second pass — Logan reframed into 5 build phases by feature coherence.** He pushed back on the Phase 0 detail expanding into Pre-Flight QA (already done; TJ just needs to merge the branch). New framing:
+- **Phase I (~6 wks):** Admin operational backbone (tab redesign, Calls/Emails/Meetings, new cadence, open/click tracking, Calendly webhook)
+- **Phase II+III (~3 wks):** Magic link + provider landing experience (ships to prod together)
+- **Phase IV+V (~2 wks):** Conversion gate + activation (ships to prod together)
+- **Phase VI:** Post-launch ops (deferred, after real pilot providers exist)
+- **Phase VII:** Polish + extensions (demand-driven)
+
+Phase 0 obsolete plan deleted. New phase plan files created:
+- [`plans/medjobs-phase-1-operational-backbone.md`](plans/medjobs-phase-1-operational-backbone.md) — **DETAILED** plan, 12 bullets, ~1000 lines, ready for Logan scope approval
+- [`plans/medjobs-phase-2-3-magic-link-and-landing.md`](plans/medjobs-phase-2-3-magic-link-and-landing.md) — skeleton, detail-pass before build
+- [`plans/medjobs-phase-4-5-conversion.md`](plans/medjobs-phase-4-5-conversion.md) — skeleton
+- [`plans/medjobs-phase-6-postlaunch-ops.md`](plans/medjobs-phase-6-postlaunch-ops.md) — skeleton, deferred
+- [`plans/medjobs-phase-7-polish.md`](plans/medjobs-phase-7-polish.md) — skeleton, demand-driven
+- [`plans/medjobs-known-issues.md`](plans/medjobs-known-issues.md) — empty drain log for mid-build findings
+
+**Workflow protocols locked:**
+- Plans live in the filesystem, not the conversation. Ideas captured to disk IMMEDIATELY.
+- One feature branch per phase pair. Phase 1 alone; then II+III; then IV+V; then VI; then VII.
+- Phase complete = acceptance criteria met on Vercel preview → Logan QAs → TJ merges to staging.
+- Inter-phase bug fixes: small ones patch staging directly; bigger ones roll into next phase's first commit.
+- Logan approves at scope/bullet level. No per-commit gating during build.
+- Build log section + Open Issues section maintained per phase plan as build progresses.
+- End-of-session: update SCRATCHPAD "Resume here" pointer (reanchors next session in ~5 seconds).
+- New sessions start with reading active phase plan + master plan §12.
+
+Master plan §12 rewritten as clean INDEX (phase table + workflow + traceability matrix). Old per-phase detail removed from §12 since it's now in per-phase files. New traceability matrix maps every § 3-7 item to Logan's I-V framing — no decisions lost across the four prior planning passes.
+
+**Resume next session here →** Logan reviews Phase 1 detailed plan ([`plans/medjobs-phase-1-operational-backbone.md`](plans/medjobs-phase-1-operational-backbone.md)) at scope/bullet level. If approved, Phase 0 closes (TJ merges current branch + Smartlead env vars + Logan signoffs on sender/footer/copy) THEN Phase 1 branch is cut and build starts.
 
 ---
 

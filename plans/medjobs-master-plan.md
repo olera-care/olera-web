@@ -631,341 +631,108 @@ Pulled from the v3 risks table + earlier session risks:
 ## 12. Development phases
 
 **Principle:** every item from §§ 3–7 lands in exactly one phase.
-Each phase has a single goal, an explicit scope (with §-references
-back to this catalog so nothing is orphaned), dependencies on prior
-phases, a time estimate, and a definition-of-done.
-
-**Phase ordering rationale:**
-- Phase 0 ships the work we've already finished (stabilization, no new code)
-- Phase 1 ships the conversion path that the v3 plan locked
-- Phase 2 is a SHORT strategy depth-pass (no code) to unblock Phase 3
-- Phase 3 ships the operational surfaces (admin UX)
-- Phase 4 ships engagement-driven workflows (depends on Phase 1+3 data)
-- Phase 5 ships pilot lifecycle (depends on real Pilot Active providers)
-- Phase 6 is ongoing polish + long-tail extensions
-
-**Suggested running total: ~10 weeks** from Phase 0 start through
-Phase 5 complete, assuming one dev. Phase 6 is open-ended.
-
----
-
-### Phase 0 — Stabilize what's shipped (~2 days, mostly waiting)
-
-→ **Detailed plan: [`medjobs-phase-0-stabilization.md`](medjobs-phase-0-stabilization.md)** (drafted; awaiting Logan review)
-
-
-**Goal:** Get already-completed work into staging and prepare for
-Phase 1 to launch live emails.
-
-**Scope:**
-- QA the `merge/medjobs-staging-2026-06-02` branch on Vercel preview (§ 3.1) — walk prospect / call_due / meeting_set / in_outreach / converted / closed drawer stages; confirm Phase 2b–2e renders correctly; test launch flow + override path
-- Merge `merge/medjobs-staging-2026-06-02` → `staging` once QA passes
-- Logan signoff on Smartlead sender identity + footer/unsubscribe copy (§ 10.4)
-- Logan signoff on outreach email-body copy walkthrough (§ 10.4)
-- Set `SMARTLEAD_SENDER_EMAILS` env in prod
-- Verify Smartlead webhook payload shape against their docs; set `SMARTLEAD_WEBHOOK_SECRET`; register webhook URL in Smartlead admin (D2 activation prep)
-
-**Dependencies:** None. All code already written.
-
-**Time estimate:** ~2 days, mostly review + signoff cycles, not engineering.
-
-**Definition of done:**
-- `merge/medjobs-staging-2026-06-02` is in `staging`
-- Staging Vercel preview demonstrates the Research Card consolidation end-to-end
-- Smartlead environment variables are set in prod
-- Logan has signed off on sender identity, copy, and footer
-- Webhook is registered (still PAUSED-only; will activate D2 in Phase 1)
-
----
-
-### Phase 1 — Conversion path MVP (~23 days / ~4.5 weeks at 1 dev)
-
-**Goal:** Ship the magic-link → candidate board → T&C → Pilot Active
-conversion path. Cold providers can self-serve onto the platform
-without admin intervention.
-
-**Scope** — 11 tickets from v3 plan § P1.J, plus one amendment.
-Each ticket = one PR. Order matters (see "Ticket order" below).
-
-**Tickets:**
-
-1. **Cadence change** (§ 4.1) — `lib/student-outreach/cadence.ts`. Day 0 email-only, Day 3 email+call, Day 5 call, Day 7 email. **1 day.**
-
-2. **Email template rewrite + brand-consistency amendment** (§ 4.4 + § 6.7) — `lib/student-outreach/templates.ts`. Campus-personalized CTA "Review {campus} student caregivers →"; magic-link URL embed; "…you'll land on olera.care, our main platform." one-liner. No "trial" language. **1 day.**
-
-3. **Pilot-tier predicate** (§ 4.14) — extend `medjobs_subscription_active` predicate (Option A); add `business_profiles.metadata.pilot_active_through` field. **1 day.**
-
-4. **Magic-link infrastructure** (§ 4.5 + § 4.16) — `lib/medjobs/welcome-token.ts` (sign/verify/JTI revocation) + `app/medjobs/m/[token]/route.ts` server handler implementing T1–T4 journey. **4 days.**
-
-5. **Candidate board preview-mode rendering** (§ 4.7) — extend `app/medjobs/candidates/page.tsx` to honor axis-3 state: pre-pilot accounts see preview cards (no contact, disabled action buttons with action-verb tooltips); pilot-active accounts see full mode. No welcome banner. **3 days.**
-
-6. **T&C action-trigger modal + pilot activation API** (§ 4.9 + § 4.10 + § 4.11) — modal opens on Invite / Save / See contact (the three locked triggers). Renders v2.2 spec (action-verb-matched title, 4 reassurance bullets, full-agreement link, PDF link, unchecked checkbox, action-verb-matched continue button). On accept, `POST /api/medjobs/pilot/activate` advances axes 2b + 3 + transitions outreach to `active_partner` + original action proceeds. **3 days.**
-
-7. **Empty-state ladder with Logan demo profile** (§ 4.8) — `components/medjobs/EmptyCandidates.tsx`: real → sample → demo (Logan profile clearly labeled) → recruiting-in-progress. **3 days.**
-
-8. **Co-tenancy edge case** (§ 4.12) — when `business_profile.account_id` belongs to another user, sign in but stay in permanent preview mode; emit `note_added(reason: "claim_conflict")` admin task. **2 days.**
-
-9. **Smartlead webhook expansion (open + click)** (§ 4.17) — extend `supabase/functions/smartlead-webhook/` with `email_open` + `email_link_click` handlers that UPDATE the existing `email_sent` touchpoint payload (no new touchpoint types). **2 days.**
-
-10. **CRM stage signals** (§ 4.15) — `note_added(reason: "platform_visited")` from welcome handler; `stage_change` from `/api/medjobs/pilot/activate`. Outreach drawer's `lib/student-outreach/narration.ts` renders the new payload reasons. **2 days.**
-
-11. **Pilot-required listing deletion guard** (§ 4.13) — backend guard in the existing provider-delete handler returns 409 when `pilot_active_through > now()`. **1 day.**
-
-**Ticket order** (the load-bearing detail):
-- **Week 1**: Tickets 1, 2, 3 (independent, tiny) + start 4 (magic-link infra)
-- **Week 2**: Finish 4; start 5 + 6 as a tightly coupled pair (the journey heart)
-- **Week 3**: Finish 5 + 6; parallel 7 (empty-state) + 8 (co-tenancy)
-- **Week 4**: Finish 7 + 8; ship 9 (webhook) + 10 (narration) + 11 (deletion guard)
-
-Tickets 5 + 6 are the highest-risk pair — they touch the candidate board AND introduce the activation API. Pair them as one PR sequence so the UX/state transitions match.
-
-**Dependencies:**
-- Phase 0 complete (Smartlead env vars set, sender warmed, copy approved)
-- No new schema migrations needed (everything goes in JSONB or existing columns)
-
-**Definition of done:**
-- A real cold provider can: receive a Day-0 email, click the magic link, land authenticated on the candidate board in preview mode, click "Invite to interview," accept the T&C modal, become Pilot Active, and have the invite proceed
-- All 11 tickets merged to `staging`
-- E2E test: walk a fixture row from email send → magic-link click → preview browse → T&C accept → `interview_terms_accepted_at` set + `pilot_active_through` set + outreach status = `active_partner` + Partner Prospects unlock
-- Smartlead open/click events flow into `email_sent` touchpoint payloads visible in the timeline
-- Deletion guard verified: cannot delete a `business_profile` while `pilot_active_through > now()`
-
----
-
-### Phase 2 — Strategy depth pass for operational surfaces (~3 days, strategy only)
-
-**Goal:** Deepen the Phase 2 surface specs from "concept locked" to
-"ticket-cuttable" so Phase 3 can begin without re-litigation. NO
-CODE in this phase.
-
-**Scope** — three sub-passes, parallelizable:
-
-- **Pass A — Calls tab + Emails tab depth** (§ 5.4 + § 5.5 + § 6.1)
-   - Calls tab: per-row component spec, call-script payload integration, voicemail flow, contact-row vs general-contact dispatch, "Load more upcoming" pagination
-   - Emails tab: Smartlead webhook payload → touchpoint mapping table, per-event row UI, master-inbox vs per-mailbox-inbox deep-link mechanic, reply-thread context handoff, activity-log pagination + filter behavior
-   - These ship together because Email-clicked events drive Call priority bumping
-   - **~1 day strategy work**
-
-- **Pass B — Meetings tab + Calendly depth** (§ 5.6 + § 6.2 + § 6.3)
-   - Calendly cancel + reschedule webhook handlers
-   - Post-meeting sub-state model: "asked for time to think" / "needs follow-up email" / "needs follow-up call" / "pre-pilot-active" / etc. (the nuance Logan raised; LogMeetingModal's current outcomes are coarser)
-   - New LogMeetingModal outcome: "Activate pilot on their behalf" that runs `make_client` AND sets `pilot_active_through = now + 90d`
-   - Unmatched-bookings tray ergonomics
-   - **~1 day strategy work**
-
-- **Pass C — Next Step + Timeline depth** (§ 5.2 + § 5.3)
-   - Next Step content for ALL 8 post-launch stages + engagement-driven sub-states (opened-not-clicked, clicked-not-activated, pilot-active-going-dormant)
-   - Timeline split (Upcoming / Past Activity): collapse/expand behavior on long timelines; engagement-chip grouping rules under each `email_sent` row; "show all" pagination
-   - **~1 day strategy work**
-
-**Dependencies:**
-- Phase 1 implementation in flight (can run in parallel; Phase 2 strategy work doesn't block Phase 1 code)
-- Phase 1 doesn't need to be complete for Phase 2 strategy to start, but the writer (Claude) should have seen at least the first few real engagement events before locking Pass A specs
-
-**Time estimate:** ~3 days strategy work, parallelizable with Phase 1 dev.
-
-**Definition of done:**
-- Pass A, B, C each have a section in the v3 post-launch plan (or a new spec doc) at the same depth as P1.E (300+ lines for the journey, similar for each surface)
-- Each Phase 3 ticket has a one-paragraph scope, file paths, and verify steps
-- Logan signed off on the deepened specs
-
----
-
-### Phase 3 — Operational surface implementation (~3–4 weeks)
-
-**Goal:** Ship the admin-facing CRM workflow redesigns that Phase 2
-strategy locked. After Phase 3, admins work the funnel through the
-new tabs / timeline / Next Step.
-
-**Scope** — 7 tickets, ordered:
-
-1. **In Basket tabs final set** (§ 5.1) — rename `Replies` → `Emails`; smart-hide `Clients / Partners / Candidates` from horizontal tab row (move to sidebar-only); confirm Prospects · Calls · Emails · Meetings is the only horizontal set. **1 day.**
-
-2. **Timeline split — Upcoming vs Past Activity** (§ 5.3) — `components/admin/medjobs/OutreachTimeline.tsx`. Two sections; engagement-chip grouping under email_sent rows. **3 days.**
-
-3. **Next Step post-launch branches** (§ 5.2) — `components/admin/medjobs/NextStepCard.tsx`. Add stage bodies for engagement-driven sub-states (opened-not-clicked, clicked-not-activated, etc.). Per-stage primary action + action prompts. **3 days.**
-
-4. **Emails tab redesign** (§ 5.5 + § 6.1) — single continuous event stream with pinned Needs Reply + Bounced; activity log with default filter (hide opens, show clicks/sends); Smartlead-inbox deep-link button on each Needs Reply row. **5 days.**
-
-5. **Calls tab redesign** (§ 5.4) — Today + Upcoming sections; per-row spec with phone tap + purpose hint + log-outcome inline. **4 days.**
-
-6. **Meetings tab base** (§ 5.6 minus webhook) — Upcoming + Needs Follow-up + No-show sections; new LogMeetingModal outcome "Activate pilot on their behalf" (post-meeting sub-state model). **3 days.**
-
-7. **Calendly webhook + matching** (§ 5.6 + § 6.2) — `supabase/functions/calendly-webhook/` edge function; `invitee.created` + `invitee.canceled` + reschedule handlers; case-insensitive email match to outreach row; dispatch `mark_meeting_scheduled`; unmatched-bookings tray. **5 days.**
-
-**Ticket order:**
-- **Week 1**: Tickets 1 + 2 (tab rename + timeline split)
-- **Week 2**: Ticket 3 (Next Step branches) + start 4 (Emails tab)
-- **Week 3**: Finish 4; start 5 (Calls tab)
-- **Week 4**: Finish 5; ship 6 (Meetings base) + 7 (Calendly webhook)
-
-**Dependencies:**
-- Phase 1 complete and producing engagement data
-- Phase 2 strategy depth-pass complete
-- Phase 0 Calendly admin access confirmed (Dr. DuBose's personal account, per Q3)
-
-**Time estimate:** ~3–4 weeks at 1 dev (~18–20 days).
-
-**Definition of done:**
-- Admin uses the new tabs to work the funnel daily
-- Engagement events surface in the right tabs at the right priority
-- Provider self-booked Calendly meetings land in Meetings tab automatically
-- Admin can activate the pilot on a provider's behalf from LogMeetingModal
-- E2E: simulate provider clicks email → opens timeline shows engagement → admin gets called via Day-3 row in Calls tab → admin logs outcome → flow continues
-
----
-
-### Phase 4 — Engagement-driven workflows (~2 weeks)
-
-**Goal:** Wire the engagement signals (opens/clicks/replies) into
-admin attention so the system surfaces the right rows at the right
-time, not just passive data.
-
-**Scope** — 4 tickets:
-
-1. **Engagement → call-task priority bumping** (§ 5.7) — clicked rows rise to the top of the Day-5 calls queue; opened-but-not-clicked rows stay neutral; bounced rows generate a dedicated "fix email" task. Touches Calls tab ordering + a small priority field in `pending_tasks`. **3 days.**
-
-2. **Pilot-active dormancy re-engagement** (§ 6.6) — provider activates but doesn't invite a student in 7 days → admin gets a "check in with {org}" task; provider doesn't visit in 14 days → admin reach-out task. **3 days.**
-
-3. **Admin pilot-metrics dashboard** (§ 6.4) — surface at `/admin/medjobs/metrics` showing CTR (clicks/sent), activation rate (pilot_active/sent), reply rate, meeting rate, by campus and by week. Reuses the connections-tracker pattern. **4 days.**
-
-4. **Returning Pilot Active provider experience** (§ 5.8) — when a Pilot Active provider visits olera.care/medjobs/candidates directly (no magic link), they land on the full board with a thin "Welcome back, {org_name} · {N} days left in your pilot" header. Settings + Verify-your-listing affordances surfaced. **2 days.**
-
-**Dependencies:**
-- Phase 1 complete (engagement data flowing)
-- Phase 3 surfaces complete (places to render the priority bumps)
-- Some real Pilot Active providers exist (at least a handful for testing)
-
-**Time estimate:** ~2 weeks at 1 dev (~12 days).
-
-**Definition of done:**
-- Clicked rows visibly rise in Calls tab
-- Dormant pilot-active providers generate admin tasks at the 7d and 14d marks
-- Admin dashboard shows real funnel numbers
-- Returning providers land on the full board with their session
-
----
-
-### Phase 5 — Pilot lifecycle (~2 weeks)
-
-**Goal:** Handle the pilot's end-of-life — expiry, end-pilot
-self-serve, post-pilot continuation conversation.
-
-**Scope** — 4 tickets:
-
-1. **Pilot expiry behavior** (§ 7.7) — Day-T-7 admin reach-out task automatically generated; on `pilot_active_through < now()`, candidate board re-redacts (free tier predicate stops returning true); outreach drawer surfaces "pilot expired" status. **3 days.**
-
-2. **Self-serve End-Pilot surface** (§ 7 + § 4.13) — provider portal page where Pilot Active providers can voluntarily end the pilot. Sets `pilot_active_through = now()` + emits admin notification + unlocks listing deletion. **3 days.**
-
-3. **Provider feedback collection** (§ 6.5) — surface for the optional feedback the pilot agreement mentions ("Olera may request feedback... feedback sessions, surveys, or other formal or informal ways"). MVP: simple "How's the pilot going?" prompt + free-text + optional follow-up call request. Triggered at Day-30 + Day-60 of pilot. **3 days.**
-
-4. **Pilot continuation flow** (§ 7.4) — post-3-month conversion to paid. New agreement template (separate from pilot agreement per PDF). Admin task at Day-T-14 to start conversation. Pricing + tier model TBD with TJ. **5 days + product-decision time.**
-
-**Dependencies:**
-- Phase 1 complete + at least one provider is approaching the 90-day mark
-- TJ has decided post-pilot pricing model (NEW input needed)
-
-**Time estimate:** ~2 weeks at 1 dev (~14 days), plus product decision cycles for ticket 4.
-
-**Definition of done:**
-- First Pilot Active provider reaching Day 83 generates the reach-out task
-- Provider can end the pilot from settings; admin gets notified
-- Feedback surface collects responses
-- Continuation flow handles at least one real provider's conversion
-
----
-
-### Phase 6 — Long-tail polish + extensions (open-ended, ongoing)
-
-**Goal:** Capture low-priority items so they're tracked, not lost.
-
-**Scope** — pulled from §§ 7 + 10 + DEFERRED items:
-
-- **Inline Smartlead reply UI** (§ 7.5) — replace the "open Smartlead inbox →" deep-link with inline composition via Smartlead's reply API. Volume-dependent; ship when admins want it.
-- **Magic-token verification flow** (§ 7.6) — collapse the existing formal verification flow into the magic-link path so Pilot Active providers get the "Verified" badge in one click. Big UX win but big code lift.
-- **Provider self-serve admin tools** (§ 5.9) — let Pilot Active providers edit their public org info / verify their listing / configure notifications from the welcome page. Phase 3 in v3 deferred items.
-- **Calendly account migration** (§ 7 + Q3 follow-up) — move from Dr. DuBose's personal Calendly to an Olera org account when ≥2 team members host events.
-- **Multi-team-member support** (§ 7.3) — proper team-per-org schema rework. Unblocks the co-tenancy edge case. Long-term.
-
-**Dependencies:**
-- Phases 1–5 done
-- Real demand signals (volume / team-size / admin feedback)
-
-**Time estimate:** open-ended; each item is its own 1–2 week project.
-
-**Definition of done:** N/A — items ship as demand surfaces.
-
----
-
-### Out of scope for the MedJobs master plan
-
-(For audit trail — explicitly out of this plan, tracked separately.)
-
-- **Student-side flow** (§ 7.1) — what happens to the student after "Invite to interview" fires. Adjacent project; needs its own master plan. **Critical path:** before Phase 1 ships invites at volume, confirm student-side has at minimum a notification path.
-- **Adjacent workstreams** (§ 7.8) — market diagnostic, family-side, benefits finder, general platform. Each has its own planning artifact.
-
----
+Each phase has its own detailed plan file (the source of truth for that
+phase). This master plan's §12 is the **index** — point to the per-phase
+plans for detail.
+
+### Phase plans (filesystem)
+
+| Phase | Plan file | Status | Coupling |
+|-------|-----------|--------|----------|
+| **Phase 1 — Admin operational backbone** | [`medjobs-phase-1-operational-backbone.md`](medjobs-phase-1-operational-backbone.md) | **DETAILED** (~6 weeks; 12 bullets) | Ships standalone |
+| **Phase 2+3 — Magic link + Provider landing** | [`medjobs-phase-2-3-magic-link-and-landing.md`](medjobs-phase-2-3-magic-link-and-landing.md) | SKELETON (detail pass before build) | **Ships to prod together** |
+| **Phase 4+5 — Conversion gate + Activation** | [`medjobs-phase-4-5-conversion.md`](medjobs-phase-4-5-conversion.md) | SKELETON (detail pass before build) | **Ships to prod together** |
+| **Phase 6 — Post-launch ops** | [`medjobs-phase-6-postlaunch-ops.md`](medjobs-phase-6-postlaunch-ops.md) | SKELETON (deferred until real pilot providers exist) | Standalone |
+| **Phase 7 — Polish + extensions** | [`medjobs-phase-7-polish.md`](medjobs-phase-7-polish.md) | SKELETON (demand-driven) | Per-bullet |
+| Known issues / mid-build drain | [`medjobs-known-issues.md`](medjobs-known-issues.md) | Empty drain log | — |
+
+### Workflow protocols
+
+The full protocols live in the SCRATCHPAD + each phase plan. Summary:
+
+- **Plans live in the filesystem**, not the conversation. Ideas captured to disk immediately.
+- **One feature branch per phase pair.** Phase 1 alone. Then II+III on a branch. Then IV+V. Then VI. Then VII.
+- **Phase complete = acceptance criteria met on Vercel preview** → Logan QAs → TJ merges to staging.
+- **Inter-phase bug fixes** either patch staging directly (small) or roll into next phase's first commit.
+- **Each phase plan has a Build log section** updated daily; an Open Issues section for cross-reference to `medjobs-known-issues.md`.
+- **Logan approves at scope level** (the bullets). No per-commit gating during build.
+
+### Phase ordering + estimated time
+
+| Phase | Time | Starts after |
+|-------|------|--------------|
+| Phase 1 | ~6 weeks | Phase 0 (Smartlead env + Logan signoffs) clears |
+| Phase 2+3 | ~3 weeks combined | Phase 1 ships to staging |
+| Phase 4+5 | ~2 weeks combined | Phase 2+3 ships to staging |
+| Phase 6 | ~2 weeks | Phase 5 ships + real Pilot Active providers exist |
+| Phase 7 | Open-ended | Demand-driven; per-bullet |
+
+**Total to Phase 5 (full conversion path live): ~11 weeks at 1 dev.**
+Phase 6 + 7 are post-MVP polish.
+
+### Phase 0 stabilization (no separate plan)
+
+Phase 0 was reframed (2026-06-04) to drop the elaborate Pre-Flight QA expansion — that work just needs TJ to merge `merge/medjobs-staging-2026-06-02` → `staging` as a normal promotion. The remaining Phase 0 prep is small enough to live as inline pre-Phase-1 checklist:
+
+- [ ] TJ merges `merge/medjobs-staging-2026-06-02` → `staging`
+- [ ] Smartlead env vars set on Vercel prod + preview (`SMARTLEAD_API_KEY`, `SMARTLEAD_SENDER_EMAILS`, `SMARTLEAD_WEBHOOK_SECRET`) — `MEDJOBS_OUTREACH_ENGINE` stays UNSET until Phase 1+2+3+4+5 ship
+- [ ] Smartlead webhook URL registered in Smartlead admin with `email_reply` + `email_bounce` events (open/click events added during Phase 1 Bullet 3)
+- [ ] Logan signs off on sender identity (`logan@findmedjobs.co` + `partnerships@findmedjobs.co` proposed default), footer + unsubscribe copy, and outreach body copy walkthrough
+- [ ] All approved senders confirmed warm + ready for cold sends
+
+When this checklist closes, Phase 1 ticket cutting begins.
 
 ### Phase task → master-plan-section traceability matrix
 
-Every master-plan item maps to exactly one phase:
+Every master-plan item maps to exactly one phase (or explicit OUT-OF-SCOPE / SHIPPED):
 
 | Master plan section | Phase | Note |
 |---------------------|-------|------|
-| § 3.1 Pre-Flight v9.x | Phase 0 | QA + merge |
-| § 3.2 Pre-Flight call modal | SHIPPED | — |
-| § 3.3 Decision Maker single-slot | SHIPPED | — |
-| § 3.4 "Mark not available" flags | SHIPPED | — |
+| § 3.1 Pre-Flight v9.x | Phase 0 | TJ merges branch to staging |
+| § 3.2-3.4, 3.6-3.9 Pre-Flight + Decision Maker + Mark-not-available + Catchment + Find Email/Form + Connections tracker + CRM scaffold | SHIPPED | — |
 | § 3.5 Smartlead bridge | Phase 0 | Env vars + Logan signoff |
-| § 3.6 Catchment correction | SHIPPED | — |
-| § 3.7 Find Email / Contact Form | SHIPPED | — |
-| § 3.8 Connections tracker | SHIPPED | — |
-| § 3.9 Pre-existing CRM scaffold | SHIPPED | — |
-| § 4.1 Cadence change | Phase 1 ticket 1 | — |
-| § 4.2 Per-call purpose | Phase 1 ticket 2 (in template copy) | — |
-| § 4.3 Pilot Active terminal | Phase 1 ticket 6 (in activation API) | — |
-| § 4.4 Email CTA + body | Phase 1 ticket 2 | — |
-| § 4.5 Magic-link journey | Phase 1 ticket 4 | — |
-| § 4.6 Four orthogonal axes | Phase 1 tickets 4 + 6 | Embedded in handlers |
-| § 4.7 Welcome page = board | Phase 1 ticket 5 | — |
-| § 4.8 Empty-state ladder | Phase 1 ticket 7 | — |
-| § 4.9 T&C action triggers | Phase 1 ticket 6 | — |
-| § 4.10 T&C modal UX | Phase 1 ticket 6 | — |
-| § 4.11 Pilot activation API | Phase 1 ticket 6 | — |
-| § 4.12 Co-tenancy edge case | Phase 1 ticket 8 | — |
-| § 4.13 Listing deletion policy | Phase 1 ticket 11 | — |
-| § 4.14 Pilot tier predicate | Phase 1 ticket 3 | — |
-| § 4.15 Engagement tracking model | Phase 1 ticket 10 | Embedded in narration |
-| § 4.16 Token security | Phase 1 ticket 4 | — |
-| § 4.17 Smartlead webhook expansion | Phase 1 ticket 9 | — |
-| § 5.1 In Basket tabs | Phase 3 ticket 1 | — |
-| § 5.2 Next Step post-launch | Phase 2 Pass C strategy + Phase 3 ticket 3 | — |
-| § 5.3 Timeline split | Phase 2 Pass C strategy + Phase 3 ticket 2 | — |
-| § 5.4 Calls tab redesign | Phase 2 Pass A strategy + Phase 3 ticket 5 | — |
-| § 5.5 Emails tab redesign | Phase 2 Pass A strategy + Phase 3 ticket 4 | — |
-| § 5.6 Meetings tab + Calendly | Phase 2 Pass B strategy + Phase 3 tickets 6 + 7 | — |
-| § 5.7 Engagement → call priority | Phase 4 ticket 1 | — |
-| § 5.8 Returning provider experience | Phase 4 ticket 4 | — |
-| § 5.9 Provider self-serve admin | Phase 6 | DEFERRED in v3 |
-| § 6.1 Smartlead-inbox deep-link | Phase 2 Pass A strategy + Phase 3 ticket 4 | — |
-| § 6.2 Calendly cancel/reschedule | Phase 2 Pass B strategy + Phase 3 ticket 7 | — |
-| § 6.3 Post-meeting sub-state | Phase 2 Pass B strategy + Phase 3 ticket 6 | — |
-| § 6.4 Pilot-metrics dashboard | Phase 4 ticket 3 | — |
-| § 6.5 Provider feedback collection | Phase 5 ticket 3 | — |
-| § 6.6 Pilot-active dormancy | Phase 4 ticket 2 | — |
-| § 6.7 Brand-consistency one-liner | Phase 1 ticket 2 amendment | — |
-| § 7.1 Student-side flow | OUT-OF-SCOPE | Separate plan |
+| § 4.1 Cadence change | **Phase 1** bullet 2 | — |
+| § 4.2 Per-call purpose copy | **Phase 2+3** bullet 6 (template rewrite) | — |
+| § 4.3 Pilot Active terminal state | **Phase 4+5** bullet 5/1 (activation API) | — |
+| § 4.4 Email CTA + body | **Phase 2+3** bullet 6 | — |
+| § 4.5 Magic-link journey | **Phase 2+3** bullets 1-3 | — |
+| § 4.6 Four orthogonal axes | **Phase 2+3** bullet 3 (axis 1+2a) + **Phase 4+5** bullet 1 (axis 2b+3) | — |
+| § 4.7 Welcome page = board | **Phase 2+3** bullets 3-4 | — |
+| § 4.8 Empty-state ladder | **Phase 2+3** bullet 6 | — |
+| § 4.9-4.11 T&C triggers + modal + activation API | **Phase 4+5** Phase 4 bullets 1-6 + Phase 5 bullet 1 | — |
+| § 4.12 Co-tenancy edge case | **Phase 2+3** bullet 4 | — |
+| § 4.13 Listing deletion policy | **Phase 4+5** Phase 5 bullet 3 | — |
+| § 4.14 Pilot tier predicate | **Phase 2+3** Phase 3 bullet 2 | — |
+| § 4.15 Engagement tracking model | **Phase 1** bullet 3 (Smartlead webhook expansion) | — |
+| § 4.16 Token security | **Phase 2+3** bullet 5 | — |
+| § 4.17 Smartlead webhook expansion | **Phase 1** bullet 3 | — |
+| § 5.1 In Basket tabs | **Phase 1** bullet 4 | — |
+| § 5.2 Next Step post-launch | **Phase 1** bullets 1 (strategy) + 6 | — |
+| § 5.3 Timeline split | **Phase 1** bullets 1 (strategy) + 5 | — |
+| § 5.4 Calls tab redesign | **Phase 1** bullets 1 (strategy) + 7 | — |
+| § 5.5 Emails tab redesign | **Phase 1** bullets 1 (strategy) + 8 | — |
+| § 5.6 Meetings tab + Calendly | **Phase 1** bullets 1 (strategy) + 10 + 12 | — |
+| § 5.7 Engagement → call priority | **Phase 1** bullet 7 (folded into Calls tab redesign) | — |
+| § 5.8 Returning provider experience | **Phase 4+5** Phase 5 bullet 4 | — |
+| § 5.9 Provider self-serve admin | **Phase 7** | — |
+| § 6.1 Smartlead-inbox deep-link | **Phase 1** bullet 9 | — |
+| § 6.2 Calendly cancel/reschedule | **Phase 1** bullet 12 (in webhook handlers) | — |
+| § 6.3 Post-meeting sub-state machine | **Phase 1** bullets 1 (strategy) + 10 | — |
+| § 6.4 Pilot-metrics dashboard | **Phase 6** | — |
+| § 6.5 Provider feedback collection | **Phase 6** | — |
+| § 6.6 Pilot-active dormancy | **Phase 6** | — |
+| § 6.7 Brand-consistency one-liner | **Phase 2+3** bullet 7 | — |
+| § 7.1 Student-side flow | OUT-OF-SCOPE | Separate plan; critical-path note in Phase 2+3 plan |
 | § 7.2 Stakeholder funnel | SHIPPED | Ongoing |
-| § 7.3 Multi-team-member | Phase 6 | Long-term |
-| § 7.4 Pilot continuation | Phase 5 ticket 4 | — |
-| § 7.5 Inline Smartlead reply | Phase 6 | Volume-dependent |
-| § 7.6 Magic-token verification | Phase 6 | DEFERRED in v3 |
-| § 7.7 Pilot expiry behavior | Phase 5 ticket 1 | — |
+| § 7.3 Multi-team-member | **Phase 7** | Long-term |
+| § 7.4 Pilot continuation | **Phase 7** | Needs TJ pricing |
+| § 7.5 Inline Smartlead reply | **Phase 7** | Volume-dependent |
+| § 7.6 Magic-token verification | **Phase 7** | — |
+| § 7.7 Pilot expiry behavior | **Phase 6** | — |
 | § 7.8 Adjacent workstreams | OUT-OF-SCOPE | — |
 | § 10.4 Smartlead signoff pending | Phase 0 | — |
 
-**Coverage check:** every § 3–§ 7 + § 10.4 item is in a phase or
-explicitly OUT-OF-SCOPE. Nothing orphaned.
+**Coverage check:** every § 3–§ 7 + § 10.4 item is in a phase, SHIPPED, or explicitly OUT-OF-SCOPE. Nothing orphaned. New Logan I-V framing preserves all decisions from prior planning passes.
 
 ---
 

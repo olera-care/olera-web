@@ -784,6 +784,7 @@ async function handleGuestConnection({
         subject: `Your inquiry to ${providerName} was sent`,
         emailType: "guest_connection",
         recipientType: "family",
+        metadata: { connection_id: newConnection.id, provider_id: toProfileId },
       });
 
       const inboxDest = appendTrackingParams("/portal/inbox", welcomeEmailLogId);
@@ -1155,6 +1156,7 @@ async function handleGuestConnection({
       }),
       emailType: "care_report",
       recipientType: "family",
+      metadata: { connection_id: newConnection.id, provider_id: toProfileId },
     });
   } catch (err) {
     console.error("[care-report-email] error:", err);
@@ -1767,6 +1769,7 @@ export async function POST(request: Request) {
           emailType: "connection_sent",
           recipientType: "family",
           providerId: toProfileId,
+          metadata: { connection_id: newConnection.id },
         });
 
         const careTypeMap0: Record<string, string> = {

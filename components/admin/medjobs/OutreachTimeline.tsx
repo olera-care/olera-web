@@ -1,33 +1,37 @@
 "use client";
 
 /**
- * OutreachTimeline — unified chronological renderer for the drawer.
+ * OutreachTimeline — split-section drawer timeline (v10, Phase 1 Bullet 5).
  *
- * Zone 4 of the unified drawer skeleton. Single component, single
- * row type, single source of truth for "what's happened + what's
- * coming up" on an outreach row. Replaces:
- *   - HistorySection (past touchpoints, narrated)            absorbed
- *   - OutreachStepList (future cadence steps)                absorbed
- *   - EntityStepBoard's drawer-level use (custom tasks)      absorbed
+ * Zone 4 of the unified drawer skeleton. Renders TWO sections:
+ *   1. Upcoming      — pending tasks sorted by due_at ASC (soonest first)
+ *   2. Past Activity — touchpoints sorted by created_at DESC (newest first)
  *
- * Three data sources, one merged stream:
- *   - touchpoints       (past events: email_sent, call_logged, etc.)
- *   - pending_tasks     (future events: queued emails, calls, custom)
- *   - email_engagement  (per-email_log_id: delivered/opened/clicked/bounced)
+ * Replaces the v9 single-stream timeline (which used a "── now ──" divider
+ * between merged rows). Sections are visually distinct so admin scans
+ * "what's next" → "what's happened" without parsing a divider.
  *
- * Sort order: future events first (soonest due_at first), then past
- * events (newest first). Visual separator marks the now-boundary so
- * admin scans top-to-bottom from "what's next" to "what happened".
+ * Data sources:
+ *   - touchpoints       (Past Activity: email_sent, call_logged, etc.)
+ *   - pending_tasks     (Upcoming: queued emails, calls, custom)
  *
- * Engagement chips: each email_sent row decorated with a chip cluster
- * from email_engagement[email_log_id]. ✓ delivered · 👁 opened ·
- * 🔗 clicked · ⚠ bounced · ⚠ complained. No counts in MVP — chips
- * read off email_log's denormalized columns (true/false). Per-event
- * drill-down deferred.
+ * Engagement chips (per Phase 1 Pass C spec):
+ *   - Each email_sent row in Past Activity renders engagement chips inline
+ *   - Chips read from the touchpoint payload (open_count, click_count,
+ *     clicked_ctas, last_opened_at) — see Smartlead webhook Bullet 3 for
+ *     where these fields are written
+ *   - Format: "👁 3 opens" / "🖱 1 click · Review {campus} student caregivers"
+ *   - If both counts are 0: no chip line at all (the bare email_sent row)
+ *   - Backward compat: falls back to legacy email_engagement[email_log_id]
+ *     when the touchpoint payload doesn't carry counts (older rows)
+ *
+ * Past Activity collapse (long timelines):
+ *   - If past events ≤ 5: show all
+ *   - If past events > 5: default to last 3 + "Show all past activity ({N} earlier events)"
  *
  * Custom-event footer: "+ Add" form lets admin queue a manual
  * follow-up via the existing queue_manual_task action. Custom events
- * appear inline in the future-stream — no separate Task Board zone.
+ * appear inline in the Upcoming section — no separate Task Board zone.
  *
  * Mounted by both Provider and Partner drawers. Stage-agnostic — it
  * doesn't care about Stage; it just renders what's there.
@@ -80,8 +84,14 @@ interface PastRow {
   title: string;
   subline: string | null;
   /** When the past event is an email_sent, this carries the
-   *  email_log_id so the row can render engagement chips. */
+   *  email_log_id so the row can render engagement chips (legacy
+   *  source — Bullet 5 prefers payload-based engagement). */
   emailLogId: string | null;
+  /** v10 Bullet 5: when the past event is an email_sent, the full
+   *  touchpoint payload travels with the row so EngagementChips can
+   *  read open_count / click_count / clicked_ctas / last_opened_at
+   *  directly (primary source, written by Smartlead webhook Bullet 3). */
+  emailSentPayload: Record<string, unknown> | null;
   /** Admin who logged the event (relative to the system). */
   admin: string | null;
 }
@@ -98,21 +108,25 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
     [ctx.contacts],
   );
 
-  const rows: TimelineRow[] = useMemo(() => {
-    const out: TimelineRow[] = [];
+  // v10 Bullet 5: split into two sections. Past Activity sorts DESC
+  // (newest first); Upcoming sorts ASC (soonest due first). Both
+  // computed in one useMemo so deps are shared.
+  const { futureRows, pastRows } = useMemo(() => {
+    const future: FutureRow[] = [];
+    const past: PastRow[] = [];
 
     // Past events from touchpoints. narrateTouchpoint handles the
-    // copy variants per type; we extract the email_log_id for
-    // engagement chip rendering.
+    // copy variants per type; we extract both the legacy email_log_id
+    // AND the full payload so EngagementChips can prefer the new
+    // per-touchpoint counters when present.
     for (const tp of ctx.touchpoints) {
       const n = narrateTouchpoint(tp, { adminFirstNames, contactsById });
-      const emailLogId =
-        tp.touchpoint_type === "email_sent"
-          ? ((tp.payload as Record<string, unknown> | null)?.email_log_id as
-              | string
-              | undefined) ?? null
-          : null;
-      out.push({
+      const isEmailSent = tp.touchpoint_type === "email_sent";
+      const payload = (tp.payload as Record<string, unknown> | null) ?? null;
+      const emailLogId = isEmailSent
+        ? ((payload?.email_log_id as string | undefined) ?? null)
+        : null;
+      past.push({
         kind: "past",
         key: `tp-${tp.id}`,
         whenIso: tp.created_at,
@@ -120,6 +134,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         title: n.text,
         subline: tp.notes ?? null,
         emailLogId,
+        emailSentPayload: isEmailSent ? payload : null,
         admin: n.admin ?? null,
       });
     }
@@ -135,7 +150,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
           : null;
       const title = futureTitleFor(t.task_type, day, payload, recipientName);
       const isCallTask = t.task_type === "outreach_followup_call";
-      out.push({
+      future.push({
         kind: "future",
         key: `task-${t.id}`,
         whenIso: t.due_at,
@@ -167,16 +182,24 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
       });
     }
 
-    // Sort: future ASC by due (soonest first), then past DESC by
-    // when (newest first). Single sort with kind tiebreak.
-    out.sort((a, b) => {
-      if (a.kind !== b.kind) return a.kind === "future" ? -1 : 1;
-      if (a.kind === "future") return a.whenIso.localeCompare(b.whenIso);
-      return b.whenIso.localeCompare(a.whenIso);
-    });
+    // Future ASC (soonest first), past DESC (newest first).
+    future.sort((a, b) => a.whenIso.localeCompare(b.whenIso));
+    past.sort((a, b) => b.whenIso.localeCompare(a.whenIso));
 
-    return out;
+    return { futureRows: future, pastRows: past };
   }, [ctx.touchpoints, ctx.pending_tasks, adminFirstNames, contactsById]);
+
+  // v10 Bullet 5: Past Activity collapse. If past has >5 events,
+  // default to showing last 3 + "Show all" affordance.
+  const PAST_COLLAPSE_THRESHOLD = 5;
+  const PAST_COLLAPSE_DEFAULT_SHOW = 3;
+  const [showAllPast, setShowAllPast] = useState(false);
+  const pastNeedsCollapse = pastRows.length > PAST_COLLAPSE_THRESHOLD;
+  const visiblePastRows =
+    pastNeedsCollapse && !showAllPast
+      ? pastRows.slice(0, PAST_COLLAPSE_DEFAULT_SHOW)
+      : pastRows;
+  const hiddenPastCount = pastRows.length - visiblePastRows.length;
 
   // v9 Phase 9: per-task call logging state. When admin clicks Log
   // on a call task row, we open LogCallOutcomeModal scoped to that
@@ -204,41 +227,80 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
     }
   };
 
+  const hasAnyActivity = futureRows.length > 0 || pastRows.length > 0;
+
   return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+    <section className="space-y-3">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
         Timeline
       </h3>
-      <div className="rounded-lg border border-gray-200 bg-white">
-        {rows.length === 0 ? (
+
+      {!hasAnyActivity && (
+        <div className="rounded-lg border border-gray-200 bg-white">
           <p className="px-4 py-6 text-center text-sm text-gray-400">
             No outreach activity yet.
           </p>
-        ) : (
+          <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
+        </div>
+      )}
+
+      {/* Upcoming section */}
+      {futureRows.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white">
+          <div className="border-b border-gray-100 bg-gray-50 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            Upcoming
+          </div>
           <ul className="divide-y divide-gray-100">
-            {rows.map((r, i) => (
-              <TimelineRow
+            {futureRows.map((r) => (
+              <TimelineRowView
                 key={r.key}
                 row={r}
-                showNowDivider={
-                  i > 0 && rows[i - 1].kind === "future" && r.kind === "past"
-                }
-                engagement={
-                  r.kind === "past" && r.emailLogId
-                    ? ctx.email_engagement?.[r.emailLogId] ?? null
-                    : null
-                }
+                engagement={null}
                 onLogCall={
-                  r.kind === "future" && r.callTask
-                    ? () => setCallLogTask(r.callTask)
-                    : undefined
+                  r.callTask ? () => setCallLogTask(r.callTask) : undefined
                 }
               />
             ))}
           </ul>
-        )}
-        <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
-      </div>
+        </div>
+      )}
+
+      {/* Past Activity section */}
+      {pastRows.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white">
+          <div className="border-b border-gray-100 bg-gray-50 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+            Past Activity
+          </div>
+          <ul className="divide-y divide-gray-100">
+            {visiblePastRows.map((r) => (
+              <TimelineRowView
+                key={r.key}
+                row={r}
+                engagement={
+                  r.emailLogId
+                    ? ctx.email_engagement?.[r.emailLogId] ?? null
+                    : null
+                }
+                onLogCall={undefined}
+              />
+            ))}
+          </ul>
+          {pastNeedsCollapse && !showAllPast && (
+            <button
+              onClick={() => setShowAllPast(true)}
+              className="w-full border-t border-gray-100 px-4 py-2 text-left text-xs font-medium text-primary-700 hover:bg-gray-50"
+            >
+              + Show all past activity ({hiddenPastCount} earlier {hiddenPastCount === 1 ? "event" : "events"})
+            </button>
+          )}
+        </div>
+      )}
+
+      {hasAnyActivity && (
+        <div className="rounded-lg border border-gray-200 bg-white">
+          <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
+        </div>
+      )}
 
       {callLogTask && (
         <LogCallOutcomeModal
@@ -256,101 +318,142 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
 
 // ── Row renderer ─────────────────────────────────────────────────────────
 
-function TimelineRow({
+/** v10 Bullet 5: renamed from TimelineRow (which conflicted with the
+ *  type alias) and simplified — sections now provide structure, so the
+ *  row renderer no longer needs a "── now ──" divider. */
+function TimelineRowView({
   row,
-  showNowDivider,
   engagement,
   onLogCall,
 }: {
   row: TimelineRow;
-  showNowDivider: boolean;
   engagement: NonNullable<DrawerContext["email_engagement"]>[string] | null;
-  /** v9 Phase 9: inline Log button for per-task call rows. Optional —
-   *  only attached when the row is a future call task. */
+  /** Inline Log button for per-task call rows. Optional — only
+   *  attached when the row is a future call task. */
   onLogCall?: () => void;
 }) {
   const whenLabel =
     row.kind === "future"
       ? formatFuture(row.whenIso)
       : formatPast(row.whenIso);
-  // v9 final: only surface the Log CTA when the task is actually due
-  // (due_at <= now). Future-scheduled tasks render as queued items
-  // without the button — admin shouldn't act early. The Calls tab
-  // queue still surfaces due tasks the moment they tip into active.
+  // Only surface the Log CTA when the task is actually due (due_at <=
+  // now). Future-scheduled tasks render as queued items without the
+  // button — admin shouldn't act early.
   const isDueNow =
     row.kind === "future" && new Date(row.whenIso).getTime() <= Date.now();
   const isCallTask = row.kind === "future" && row.callTask != null;
   return (
-    <>
-      {showNowDivider && (
-        <li className="border-y border-gray-100 bg-gray-50 px-4 py-1 text-[10px] uppercase tracking-wide text-gray-400">
-          ── now ──
-        </li>
-      )}
-      <li className="px-4 py-2.5 text-sm">
-        <div className="flex items-start gap-3">
-          <span
-            className={`shrink-0 text-base leading-5 ${
-              row.kind === "future" ? "text-gray-400" : "text-gray-600"
+    <li className="px-4 py-2.5 text-sm">
+      <div className="flex items-start gap-3">
+        <span
+          className={`shrink-0 text-base leading-5 ${
+            row.kind === "future" ? "text-gray-400" : "text-gray-600"
+          }`}
+          aria-hidden
+        >
+          {row.icon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p
+            className={`truncate ${
+              row.kind === "future" ? "text-gray-600" : "text-gray-800"
             }`}
-            aria-hidden
           >
-            {row.icon}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p
-              className={`truncate ${
-                row.kind === "future" ? "text-gray-600" : "text-gray-800"
-              }`}
-            >
-              {row.title}
+            {row.title}
+          </p>
+          {row.subline && (
+            <p className="mt-0.5 truncate text-xs italic text-gray-500">
+              {row.subline}
             </p>
-            {row.subline && (
-              <p className="mt-0.5 truncate text-xs italic text-gray-500">
-                {row.subline}
-              </p>
-            )}
-            {engagement && <EngagementChips e={engagement} />}
-          </div>
-          <div className="shrink-0 whitespace-nowrap text-xs text-gray-400">
-            {row.kind === "past" && row.admin && (
-              <span className="mr-2 text-gray-500">{row.admin}</span>
-            )}
-            <span>{whenLabel}</span>
-            {isCallTask && isDueNow && onLogCall && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onLogCall();
-                }}
-                title="Log the outcome of this specific call."
-                className="ml-3 rounded-md bg-primary-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
-              >
-                Log
-              </button>
-            )}
-          </div>
+          )}
+          {row.kind === "past" && (
+            <EngagementChips
+              payload={row.emailSentPayload}
+              legacy={engagement}
+            />
+          )}
         </div>
-      </li>
-    </>
+        <div className="shrink-0 whitespace-nowrap text-xs text-gray-400">
+          {row.kind === "past" && row.admin && (
+            <span className="mr-2 text-gray-500">{row.admin}</span>
+          )}
+          <span>{whenLabel}</span>
+          {isCallTask && isDueNow && onLogCall && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onLogCall();
+              }}
+              title="Log the outcome of this specific call."
+              className="ml-3 rounded-md bg-primary-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
+            >
+              Log
+            </button>
+          )}
+        </div>
+      </div>
+    </li>
   );
 }
 
 // ── Engagement chips ─────────────────────────────────────────────────────
+// v10 Bullet 5: prefers the Smartlead-webhook-written payload counters
+// (open_count, click_count, clicked_ctas) — Bullet 3 wires these on every
+// email_sent touchpoint. Falls back to the legacy email_engagement[] map
+// (delivered_at, first_opened_at, etc.) for older rows that never went
+// through the new webhook path.
 
 function EngagementChips({
-  e,
+  payload,
+  legacy,
 }: {
-  e: NonNullable<DrawerContext["email_engagement"]>[string];
+  /** Primary source: email_sent touchpoint payload (Bullet 3 wires the
+   *  fields). Carries counts + last_*_at timestamps + clicked_ctas. */
+  payload: Record<string, unknown> | null;
+  /** Legacy source: kept for backward compat with email_engagement[]
+   *  rows that haven't been touched by the new webhook path. */
+  legacy: NonNullable<DrawerContext["email_engagement"]>[string] | null;
 }) {
-  const chips: Array<{ label: string; tone: string }> = [];
-  if (e.delivered_at) chips.push({ label: "✓ delivered", tone: "emerald" });
-  if (e.first_opened_at) chips.push({ label: "👁 opened", tone: "blue" });
-  if (e.first_clicked_at) chips.push({ label: "🔗 clicked", tone: "blue" });
-  if (e.bounced_at)
-    chips.push({ label: "⚠ bounced", tone: "red" });
-  if (e.complained_at)
-    chips.push({ label: "⚠ complained", tone: "red" });
+  // Pass C3 spec: derive counts from payload, fall through to legacy bools.
+  const openCount = Number(payload?.open_count ?? 0);
+  const clickCount = Number(payload?.click_count ?? 0);
+  const clickedCtas = (payload?.clicked_ctas as string[] | undefined) ?? [];
+  const lastOpenedAt = payload?.last_opened_at as string | undefined;
+
+  const chips: Array<{ label: string; tone: ChipTone }> = [];
+
+  if (openCount > 0) {
+    const labelBase = openCount === 1 ? "1 open" : `${openCount} opens`;
+    const suffix =
+      openCount > 1 && lastOpenedAt ? ` · last ${formatPast(lastOpenedAt)}` : "";
+    chips.push({ label: `👁 ${labelBase}${suffix}`, tone: "blue" });
+  } else if (legacy?.first_opened_at) {
+    chips.push({ label: "👁 opened", tone: "blue" });
+  }
+
+  if (clickCount > 0) {
+    const labelBase = clickCount === 1 ? "1 click" : `${clickCount} clicks`;
+    // Show the first CTA label inline; "+ N others" if multiple distinct CTAs.
+    const distinct = Array.from(new Set(clickedCtas)).filter(Boolean);
+    let suffix = "";
+    if (distinct.length > 0) {
+      const first = formatCtaLabel(distinct[0]);
+      suffix =
+        distinct.length === 1
+          ? ` · ${first}`
+          : ` · ${first} (+ ${distinct.length - 1} other${distinct.length - 1 === 1 ? "" : "s"})`;
+    }
+    chips.push({ label: `🖱 ${labelBase}${suffix}`, tone: "blue" });
+  } else if (legacy?.first_clicked_at) {
+    chips.push({ label: "🖱 clicked", tone: "blue" });
+  }
+
+  if (legacy?.delivered_at && openCount === 0 && clickCount === 0 && !legacy.first_opened_at && !legacy.first_clicked_at) {
+    chips.push({ label: "✓ delivered", tone: "emerald" });
+  }
+  if (legacy?.bounced_at) chips.push({ label: "⚠ bounced", tone: "red" });
+  if (legacy?.complained_at) chips.push({ label: "⚠ complained", tone: "red" });
+
   if (chips.length === 0) return null;
   return (
     <div className="mt-1 flex flex-wrap gap-1">
@@ -366,11 +469,37 @@ function EngagementChips({
   );
 }
 
-const TONE_CLASSES: Record<string, string> = {
+type ChipTone = "emerald" | "blue" | "red";
+
+const TONE_CLASSES: Record<ChipTone, string> = {
   emerald: "bg-primary-50 text-primary-700",
   blue: "bg-blue-50 text-blue-700",
   red: "bg-red-50 text-red-700",
 };
+
+/** Render a clicked CTA URL as a short human label. Smartlead tracker
+ *  URLs (sl.smartlead.ai/...) get collapsed to "the link"; otherwise we
+ *  show the human-recognizable last path segment or the host. */
+function formatCtaLabel(url: string): string {
+  try {
+    const u = new URL(url);
+    // Smartlead's click-tracking wraps the real destination — without
+    // unwinding it we can't tell what was clicked, so just say "the link".
+    if (u.hostname.includes("smartlead.ai") || u.hostname.includes("sl.")) {
+      return "the link";
+    }
+    // For olera.care destinations, prefer a path-derived label.
+    if (u.hostname.endsWith("olera.care")) {
+      if (u.pathname.startsWith("/medjobs/m/")) return "welcome page";
+      if (u.pathname.startsWith("/medjobs/candidates")) return "candidate board";
+      if (u.pathname.startsWith("/api/medjobs/program-pdf")) return "program PDF";
+      return u.pathname.replace(/^\/+/, "").replace(/\/+$/, "") || u.hostname;
+    }
+    return u.hostname;
+  } catch {
+    return "the link";
+  }
+}
 
 // ── Custom event footer ──────────────────────────────────────────────────
 

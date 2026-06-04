@@ -42,7 +42,17 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
       if (p.reopen) {
         text = `Row reopened from ${fromLabel} back to ${toLabel}.`;
       } else if (to === "active_partner") {
-        text = `Row converted — now an active partner.`;
+        // v10 Phase 4+5 (2026-06-04): differentiate the two activation
+        // paths so the timeline tells the story of HOW conversion
+        // happened (admin made the call vs provider self-served).
+        const via = typeof p.via === "string" ? p.via : null;
+        if (via === "self_serve_activation") {
+          text = `🎉 Pilot Active — provider accepted the agreement on the candidate board.`;
+        } else if (via === "admin_make_client") {
+          text = `🎉 Pilot Active — admin activated on the provider's behalf.`;
+        } else {
+          text = `🎉 Pilot Active — row converted, now an active partner.`;
+        }
       } else if (to === "not_interested") {
         text = `Row closed as Not interested.`;
       } else if (to === "do_not_contact") {
@@ -180,8 +190,25 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
       text = `Redirected to a new stakeholder.`;
       break;
     case "note_added": {
+      // v10 Phases 2-5 (2026-06-04): the magic-link landing + Calendly
+      // webhook + activation API all use note_added with structured
+      // `reason` payloads. Surface the operational meaning instead of
+      // a generic "Note added" so the timeline tells the actual story.
+      const reasonRaw = typeof p.reason === "string" ? p.reason : null;
       const fields = Array.isArray(p.fields_updated) ? p.fields_updated.join(", ") : "";
-      text = fields ? `Notes / research updated (${fields}).` : `Note added.`;
+      switch (reasonRaw) {
+        case "platform_visited":
+          text = `🔗 Provider clicked the magic link and visited the candidate board.`;
+          break;
+        case "claim_conflict":
+          text = `⚠️ Magic-link click on an organization already linked to another account. Read-only co-tenancy until reconciled.`;
+          break;
+        case "calendly_reschedule_pending":
+          text = `📅 Calendly reschedule in progress (old slot canceled — waiting for the new one).`;
+          break;
+        default:
+          text = fields ? `Notes / research updated (${fields}).` : `Note added.`;
+      }
       break;
     }
     case "snoozed": {

@@ -23,6 +23,7 @@ export interface ThreadMessage {
   text?: string;
   created_at?: string;
   is_auto_reply?: boolean;
+  type?: string; // "system" messages should be excluded from human response checks
 }
 
 /**
@@ -86,24 +87,31 @@ export function getThread(conn: ThreadCarrier): ThreadMessage[] {
   return (meta.thread as ThreadMessage[]) || [];
 }
 
-/** Did the provider (to_profile_id) post a non-auto message? */
+/** Did the provider (to_profile_id) post a real message (non-auto, non-system, with text)? */
 export function providerResponded(
   conn: ThreadCarrier & { to_profile_id?: string | null }
 ): boolean {
   return getThread(conn).some(
-    (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
+    (m) =>
+      m.from_profile_id === conn.to_profile_id &&
+      m.is_auto_reply !== true &&
+      m.type !== "system" &&
+      m.from_profile_id !== "system" &&
+      !!m.text?.trim()
   );
 }
 
-/** Did the family (from_profile_id) post a non-auto message with text? */
+/** Did the family (from_profile_id) post a real message (non-auto, non-system, with text)? */
 export function familyResponded(
   conn: ThreadCarrier & { from_profile_id?: string | null }
 ): boolean {
   return getThread(conn).some(
     (m) =>
       m.from_profile_id === conn.from_profile_id &&
-      !!m.text &&
-      m.is_auto_reply !== true
+      m.is_auto_reply !== true &&
+      m.type !== "system" &&
+      m.from_profile_id !== "system" &&
+      !!m.text?.trim()
   );
 }
 
@@ -123,10 +131,15 @@ function isClosedConnection(conn: ConnectionLike): boolean {
   return !!meta.ended || !!meta.withdrawn || !!meta.archived;
 }
 
-/** Last non-auto message (any author), used to find who acted last + when. */
+/** Last real human message (non-auto, non-system, with text), used to find who acted last + when. */
 function lastHumanMessage(conn: ConnectionLike): ThreadMessage | null {
   const human = getThread(conn).filter(
-    (m) => m.is_auto_reply !== true && !!m.from_profile_id
+    (m) =>
+      m.is_auto_reply !== true &&
+      m.type !== "system" &&
+      m.from_profile_id !== "system" &&
+      !!m.from_profile_id &&
+      !!m.text?.trim()
   );
   if (human.length === 0) return null;
   // Thread is append-ordered, but sort defensively on created_at when present.

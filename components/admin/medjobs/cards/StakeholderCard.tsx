@@ -671,29 +671,53 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v9 final: the Calls tab now emits one TabRow per pending call
-  // task — the General Contact and each Specific Contact each get
-  // their own ops card. primary_contact_name/phone/role are
-  // overridden by the server to the recipient on this row's
-  // pending task; due_call_task points to that specific task.
-  // No more multi-recipient branching — every card represents
-  // exactly one due call.
-  return {
-    footnote: row.due_call_task ? (
-      <p className="mt-0.5 text-[11px] text-gray-400">
+  // v9 final: the Calls tab emits one TabRow per pending call task.
+  // v10 Bullet 7 (2026-06-04): per-row purpose hint (varies by cadence
+  // day) + "Clicked" pill when engagement sub-state is
+  // clicked_not_activated (they're warm — close the loop). The hint
+  // primes the admin on what to say without opening the drawer.
+  const cadenceDay = row.due_call_task?.cadence_day ?? null;
+  const purposeHint = purposeHintForCadenceDay(cadenceDay);
+  const isClicked = row.engagement_substate === "clicked_not_activated";
+  const footnoteLines: ReactNode[] = [];
+  if (purposeHint) {
+    footnoteLines.push(
+      <p key="purpose" className="mt-0.5 text-[11px] italic text-gray-500">
+        {purposeHint}
+      </p>,
+    );
+  }
+  if (row.due_call_task) {
+    footnoteLines.push(
+      <p key="due" className="text-[11px] text-gray-400">
         {formatDueDate(row.due_call_task.due_at)}
-      </p>
-    ) : null,
-    headlineAccessory: row.primary_contact_phone ? (
-      <a
-        href={`tel:${row.primary_contact_phone}`}
-        onClick={(e) => e.stopPropagation()}
-        title="Tap to dial (mobile) — opens the default phone app."
-        className="shrink-0 text-xs text-primary-700 underline hover:no-underline"
-      >
-        📞 {row.primary_contact_phone}
-      </a>
-    ) : null,
+      </p>,
+    );
+  }
+  return {
+    footnote: footnoteLines.length > 0 ? <>{footnoteLines}</> : null,
+    headlineAccessory: (
+      <span className="flex shrink-0 items-center gap-2">
+        {isClicked && (
+          <span
+            title="Recently clicked an email link — they're warm. Close the loop."
+            className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700"
+          >
+            🖱 Clicked
+          </span>
+        )}
+        {row.primary_contact_phone && (
+          <a
+            href={`tel:${row.primary_contact_phone}`}
+            onClick={(e) => e.stopPropagation()}
+            title="Tap to dial (mobile) — opens the default phone app."
+            className="text-xs text-primary-700 underline hover:no-underline"
+          >
+            📞 {row.primary_contact_phone}
+          </a>
+        )}
+      </span>
+    ),
     cta: (
       <PrimaryAction
         onClick={cb.onLogCallOutcome}
@@ -704,6 +728,22 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ),
     overflowMenu: buildUniversalOverflow(cb, { row }),
   };
+}
+
+/** v10 Bullet 7: purpose hint by cadence day. The hint primes the admin
+ *  on the call's intent without opening the drawer. Locked in the Pass A
+ *  strategy depth output. */
+function purposeHintForCadenceDay(day: number | null): string | null {
+  switch (day) {
+    case 3:
+      return "\"Did you get our email Monday?\"";
+    case 5:
+      return "\"Anything I can help with? Want me to set up a quick call with Dr. DuBose?\"";
+    case 7:
+      return "\"Last touch — better person at your org to reach about caregiver hiring?\"";
+    default:
+      return null;
+  }
 }
 
 function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
@@ -725,6 +765,13 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       <p className="mt-0.5 text-[11px] text-gray-500">{line}</p>
     ) : null;
   };
+  // v10 Bullet 9 (2026-06-04): Smartlead inbox deep-link as headline
+  // accessory. Opens the master inbox at this row's thread context so
+  // admin doesn't have to find the thread manually. Only shown when
+  // the row has Smartlead linkage (post-bridge enrollment). Reused
+  // across replies states (engaged / needs_followup / wants_meeting)
+  // where admin would want to read the actual thread before logging.
+  const inboxLink = renderSmartleadInboxLink(row.smartlead_linkage);
   switch (state) {
     case "mid_cadence":
       // v9 final: drop the "Awaiting reply" prefix — the Replies tab
@@ -746,6 +793,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "engaged":
       return {
         footnote: buildFootnote("Reply received — review and log outcome"),
+        headlineAccessory: inboxLink,
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -759,6 +807,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "wants_meeting":
       return {
         footnote: buildFootnote("Wants to meet — book or coordinate time"),
+        headlineAccessory: inboxLink,
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -783,6 +832,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         footnote: row.followup_notes ? (
           <ExpandableNote text={row.followup_notes} />
         ) : buildFootnote("Meeting completed — follow-up needed"),
+        headlineAccessory: inboxLink,
         cta: (
           <PrimaryAction
             onClick={() => cb.onClassifyReply("email_reply")}
@@ -912,4 +962,53 @@ function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : null,
     overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: isAlreadyPartner }),
   };
+}
+
+// ── v10 Bullet 9 (2026-06-04): Smartlead inbox deep-link ──────────────────
+
+/**
+ * "Reply via Smartlead inbox →" deep-link button. Reads the row's
+ * smartlead_linkage (written by the queue endpoint from research_data.
+ * smartlead.{lead_id, campaign_id}) and constructs an `app.smartlead.ai`
+ * master-inbox URL scoped to the thread.
+ *
+ * Fallback: when lead_id is missing (legacy row pre-bridge), the link
+ * points at the master inbox root and the admin finds the thread
+ * manually. Better than no affordance at all.
+ *
+ * Verify the URL convention live during Bullet 9 build (logged in
+ * plans/medjobs-known-issues.md).
+ */
+function renderSmartleadInboxLink(
+  linkage: TabRow["smartlead_linkage"],
+): ReactNode {
+  const url = smartleadInboxUrl(linkage);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      title="Open this thread in the Smartlead master inbox to read or reply."
+      className="shrink-0 rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
+    >
+      ↗ Smartlead inbox
+    </a>
+  );
+}
+
+function smartleadInboxUrl(
+  linkage: TabRow["smartlead_linkage"],
+): string | null {
+  const base = "https://app.smartlead.ai/app/master-inbox";
+  // We always want to surface the link when Smartlead is wired,
+  // even if one of lead_id/campaign_id is missing — root inbox is
+  // a graceful fallback.
+  if (!linkage) return null;
+  const params = new URLSearchParams();
+  if (linkage.lead_id) params.set("lead_id", linkage.lead_id);
+  if (linkage.campaign_id) params.set("campaign_id", linkage.campaign_id);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
 }

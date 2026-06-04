@@ -204,14 +204,20 @@ export async function GET(request: NextRequest) {
             .from("provider_activity")
             .select("provider_id, event_type")
             .in("provider_id", providerSlugs)
-            .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
+            .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked"]);
 
           for (const slug of providerSlugs) {
             const providerEvents = (events ?? []).filter((e) => e.provider_id === slug);
+            // contact_revealed includes phone_clicked and email_link_clicked for backwards compatibility
+            const contacted = providerEvents.some((e) =>
+              e.event_type === "contact_revealed" ||
+              e.event_type === "phone_clicked" ||
+              e.event_type === "email_link_clicked"
+            );
             engagement[slug] = {
               email_clicked: providerEvents.some((e) => e.event_type === "email_click"),
               lead_opened: providerEvents.some((e) => e.event_type === "lead_opened"),
-              contact_revealed: providerEvents.some((e) => e.event_type === "contact_revealed"),
+              contact_revealed: contacted,
             };
           }
         }
@@ -285,14 +291,20 @@ export async function GET(request: NextRequest) {
           .from("provider_activity")
           .select("provider_id, event_type")
           .in("provider_id", providerSlugs)
-          .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
+          .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked"]);
 
         for (const slug of providerSlugs) {
           const providerEvents = (events ?? []).filter((e) => e.provider_id === slug);
+          // contact_revealed includes phone_clicked and email_link_clicked for backwards compatibility
+          const contacted = providerEvents.some((e) =>
+            e.event_type === "contact_revealed" ||
+            e.event_type === "phone_clicked" ||
+            e.event_type === "email_link_clicked"
+          );
           engagement[slug] = {
             email_clicked: providerEvents.some((e) => e.event_type === "email_click"),
             lead_opened: providerEvents.some((e) => e.event_type === "lead_opened"),
-            contact_revealed: providerEvents.some((e) => e.event_type === "contact_revealed"),
+            contact_revealed: contacted,
           };
         }
       }

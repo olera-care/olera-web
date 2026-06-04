@@ -104,6 +104,9 @@ function LeadDetailDrawer({
   onRestore,
   onDelete,
   onContactReveal,
+  onPhoneClick,
+  onEmailClick,
+  onContinueInInbox,
   onMarkAsReplied,
   isVerified = true,
   onVerifyClick,
@@ -115,6 +118,9 @@ function LeadDetailDrawer({
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
   onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
+  onPhoneClick?: (leadId: string) => void;
+  onEmailClick?: (leadId: string) => void;
+  onContinueInInbox?: (leadId: string) => void;
   onMarkAsReplied?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
@@ -192,6 +198,7 @@ function LeadDetailDrawer({
   // Navigate to inbox to continue conversation
   const handleContinueInInbox = () => {
     if (!lead) return;
+    onContinueInInbox?.(lead.id);
     router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`);
     onClose();
   };
@@ -310,6 +317,7 @@ function LeadDetailDrawer({
               <div className="flex items-center gap-1.5 shrink-0">
                 <a
                   href={`tel:${lead.phone}`}
+                  onClick={() => onPhoneClick?.(lead.id)}
                   className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                   aria-label="Call"
                 >
@@ -349,6 +357,7 @@ function LeadDetailDrawer({
               <div className="flex items-center gap-1.5 shrink-0">
                 <a
                   href={`mailto:${lead.email}`}
+                  onClick={() => onEmailClick?.(lead.id)}
                   className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                   aria-label="Send email"
                 >
@@ -1268,6 +1277,21 @@ export default function ProviderLeadsPage() {
       // Persist to database via API (also updates localStorage for fallback)
       markLeadAsRead(lead.id, providerProfile.id);
     }
+    // Track lead_opened event for engagement funnel
+    // Use consistent provider key: slug || source_provider_id || id
+    // This must match how the funnel query looks up providers
+    const providerKey = providerProfile?.slug || providerProfile?.source_provider_id || providerProfile?.id;
+    if (providerKey) {
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerKey,
+          event_type: "lead_opened",
+          metadata: { lead_id: lead.id, connection_id: lead.connectionId },
+        }),
+      }).catch(() => {});
+    }
   }, [providerProfile]);
 
   const closeDrawer = useCallback(() => {
@@ -1853,13 +1877,53 @@ export default function ProviderLeadsPage() {
         onMarkAsReplied={handleMarkAsReplied}
         onContactReveal={(leadId, contactType) => {
           if (!providerProfile) return;
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              provider_id: providerProfile.slug || providerProfile.id,
+              provider_id: providerKey,
               event_type: "contact_revealed",
               metadata: { lead_id: leadId, contact_type: contactType },
+            }),
+          }).catch(() => {});
+        }}
+        onPhoneClick={(leadId) => {
+          if (!providerProfile) return;
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: providerKey,
+              event_type: "phone_clicked",
+              metadata: { lead_id: leadId },
+            }),
+          }).catch(() => {});
+        }}
+        onEmailClick={(leadId) => {
+          if (!providerProfile) return;
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: providerKey,
+              event_type: "email_link_clicked",
+              metadata: { lead_id: leadId },
+            }),
+          }).catch(() => {});
+        }}
+        onContinueInInbox={(leadId) => {
+          if (!providerProfile) return;
+          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: providerKey,
+              event_type: "continue_in_inbox",
+              metadata: { lead_id: leadId },
             }),
           }).catch(() => {});
         }}

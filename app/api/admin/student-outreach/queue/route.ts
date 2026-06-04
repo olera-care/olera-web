@@ -113,7 +113,19 @@ export interface TabRow extends OutreachRow {
   followup_at: string | null;
   last_activity_at: string | null;
   /** Calls tab only: the due call task. */
-  due_call_task: { id: string; due_at: string } | null;
+  due_call_task: { id: string; due_at: string; cadence_day: number | null } | null;
+  /** v10 Bullet 7: engagement sub-state (read by Calls tab priority). */
+  engagement_substate?:
+    | "no_engagement"
+    | "opened_not_clicked"
+    | "clicked_not_activated"
+    | null;
+  /** v10 Bullet 9: Smartlead linkage for the "Reply via Smartlead inbox"
+   *  deep-link button on the Emails tab. */
+  smartlead_linkage?: {
+    lead_id: string | null;
+    campaign_id: string | null;
+  } | null;
   /**
    * v9 Phase 9: list of recipient names from pending call tasks
    * (per-recipient mode). Populated on Calls tab. Legacy rows
@@ -1038,12 +1050,21 @@ async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]
 }
 
 async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
+  // v10 Bullet 7 (2026-06-04): widen the Calls tab window from
+  // "due_at <= now" to "due_at <= end_of_next_week" so Today's Calls +
+  // Upcoming both surface in the tab. The MedJobsTabPage client-side
+  // splits the rendered list into the two sections. Past-due rows still
+  // include here (overdue calls naturally fall into Today).
+  const endOfNextWeek = new Date();
+  endOfNextWeek.setDate(endOfNextWeek.getDate() + 14);
+  endOfNextWeek.setHours(23, 59, 59, 999);
+
   let q = db
     .from("student_outreach_tasks")
     .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, organization_name)")
     .eq("status", "pending")
     .eq("task_type", "outreach_followup_call")
-    .lte("due_at", new Date().toISOString())
+    .lte("due_at", endOfNextWeek.toISOString())
     .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`)
     .order("due_at", { ascending: true })
     .order("id", { ascending: true });
@@ -1211,7 +1232,10 @@ async function hydrateRows(
   // Custom-task indicator + due-call task + pending-email-task indicator (for stale derivation)
   // + earliest pending task per row (for the Partners-tab "Next step" pill).
   const customTaskByOutreach = new Map<string, string>();
-  const dueCallTaskByOutreach = new Map<string, { id: string; due_at: string }>();
+  const dueCallTaskByOutreach = new Map<
+    string,
+    { id: string; due_at: string; cadence_day: number | null }
+  >();
   // v9 Phase 9: per-recipient call tasks expand the Calls tab card —
   // a single outreach row can have N pending call tasks (one per
   // callable recipient). v9 final: the Calls tab now emits one TabRow
@@ -1221,11 +1245,16 @@ async function hydrateRows(
   // for legacy callers but the Calls renderer uses the per-task list.
   const dueCallRecipientsByOutreach = new Map<string, string[]>();
   /** v9 final: every due call task. Calls tab fans the rows out across
-   *  this list; non-Calls tabs ignore it. */
+   *  this list; non-Calls tabs ignore it.
+   *  v10 Bullet 7 (2026-06-04): now also includes upcoming call tasks
+   *  (any pending outreach_followup_call regardless of due_at) so the
+   *  Calls tab can render both Today's Calls + Upcoming sections.
+   *  `cadence_day` from payload.day powers the per-row purpose hint. */
   interface DueCallTaskExpanded {
     task_id: string;
     outreach_id: string;
     due_at: string;
+    cadence_day: number | null;
     recipient_name: string | null;
     recipient_phone: string | null;
     recipient_role: string | null;
@@ -1250,7 +1279,7 @@ async function hydrateRows(
     ) {
       customTaskByOutreach.set(t.outreach_id, String(t.payload.notes ?? t.payload.description ?? "Custom task"));
     }
-    if (t.task_type === "outreach_followup_call" && t.due_at <= nowIso) {
+    if (t.task_type === "outreach_followup_call") {
       const name =
         typeof t.payload?.recipient_name === "string"
           ? (t.payload.recipient_name as string)
@@ -1269,25 +1298,41 @@ async function hydrateRows(
           : null;
       const kind: "general" | "specific" | null =
         kindRaw === "general" || kindRaw === "specific" ? kindRaw : null;
+      const cadenceDay =
+        typeof t.payload?.day === "number"
+          ? (t.payload.day as number)
+          : null;
+      // v10 Bullet 7: include both past-due AND upcoming so the Calls
+      // tab can render Today's Calls + Upcoming sections client-side.
       dueCallTasks.push({
         task_id: t.id,
         outreach_id: t.outreach_id,
         due_at: t.due_at,
+        cadence_day: cadenceDay,
         recipient_name: name,
         recipient_phone: phone,
         recipient_role: role,
         recipient_kind: kind,
       });
       // Legacy by-outreach maps still populated so non-Calls tabs that
-      // peek at due_call_task continue to work.
-      if (!dueCallTaskByOutreach.has(t.outreach_id)) {
-        dueCallTaskByOutreach.set(t.outreach_id, { id: t.id, due_at: t.due_at });
+      // peek at due_call_task continue to work. Only the SOONEST (or
+      // soonest past-due) wins — preserves the legacy "one task per row"
+      // surface for non-Calls reads.
+      const existing = dueCallTaskByOutreach.get(t.outreach_id);
+      if (!existing || t.due_at < existing.due_at) {
+        dueCallTaskByOutreach.set(t.outreach_id, {
+          id: t.id,
+          due_at: t.due_at,
+          cadence_day: cadenceDay,
+        });
       }
-      const list = dueCallRecipientsByOutreach.get(t.outreach_id) ?? [];
-      if (name && !list.includes(name)) {
-        list.push(name);
+      if (t.due_at <= nowIso) {
+        const list = dueCallRecipientsByOutreach.get(t.outreach_id) ?? [];
+        if (name && !list.includes(name)) {
+          list.push(name);
+        }
+        dueCallRecipientsByOutreach.set(t.outreach_id, list);
       }
-      dueCallRecipientsByOutreach.set(t.outreach_id, list);
     }
     if (t.task_type === "outreach_email_send") {
       hasPendingEmail.add(t.outreach_id);
@@ -1418,6 +1463,22 @@ async function hydrateRows(
         ? deriveRepliesState(state, hasPendingEmail.has(row.id))
         : null;
     const earliestTask = earliestTaskByOutreach.get(row.id) ?? null;
+
+    // v10 Bullet 7 (2026-06-04): engagement sub-state derived from the
+    // touchpoints we already loaded. Read by the Calls tab for priority
+    // sort + per-row "clicked" pill, and by the Emails tab.
+    const engagementSubState = computeEngagementSubState(
+      row.status,
+      tpsByOutreach.get(row.id) ?? [],
+    );
+
+    // v10 Bullet 9: surface Smartlead linkage so the Emails tab can
+    // deep-link replies into Smartlead's master inbox at the right
+    // thread context.
+    const smartleadLinkage = computeSmartleadLinkage(
+      (row.research_data as Record<string, unknown> | null) ?? null,
+    );
+
     const baseRow = {
       ...row,
       campus_name: camp?.name ?? "(unknown campus)",
@@ -1440,6 +1501,8 @@ async function hydrateRows(
       awaiting_callback_kind: state.awaiting_callback_kind,
       next_step_label: deriveNextStepLabel(row.status, earliestTask),
       has_pending_job_board_task: hasPendingJobBoard.has(row.id),
+      engagement_substate: engagementSubState,
+      smartlead_linkage: smartleadLinkage,
     };
 
     if (tab === "calls") {
@@ -1482,7 +1545,11 @@ async function hydrateRows(
             t.recipient_kind === "general"
               ? "General Contact"
               : t.recipient_role ?? primary?.role ?? null,
-          due_call_task: { id: t.task_id, due_at: t.due_at },
+          due_call_task: {
+            id: t.task_id,
+            due_at: t.due_at,
+            cadence_day: t.cadence_day,
+          },
           // One recipient per emitted row — list is redundant but
           // populated for compatibility with any caller that still
           // peeks at it.
@@ -1614,5 +1681,59 @@ function formatRelativeFuture(iso: string): string {
   const d = Math.round(hr / 24);
   if (d < 60) return `in ${d}d`;
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+// ── v10 Bullet 7 + 9 helpers ───────────────────────────────────────────
+
+/**
+ * Engagement sub-state from the most recent email_sent touchpoint's
+ * payload. Mirrors `lib/student-outreach/engagement-state.ts` but inlined
+ * here because the queue endpoint computes for many rows from a different
+ * touchpoint row shape (TouchpointRow vs Touchpoint).
+ */
+function computeEngagementSubState(
+  status: string,
+  touchpoints: TouchpointRow[],
+):
+  | "no_engagement"
+  | "opened_not_clicked"
+  | "clicked_not_activated"
+  | null {
+  if (status === "active_partner") return null;
+  if (status !== "outreach_sent" && status !== "engaged") return null;
+
+  // touchpoints arrive DESC, so the first email_sent we find is the latest.
+  const latestEmailSent = touchpoints.find(
+    (t) => t.touchpoint_type === "email_sent",
+  );
+  if (!latestEmailSent) return "no_engagement";
+
+  const payload = (latestEmailSent.payload ?? {}) as Record<string, unknown>;
+  const clickCount = Number(payload.click_count ?? 0);
+  const openCount = Number(payload.open_count ?? 0);
+
+  if (clickCount > 0) return "clicked_not_activated";
+  if (openCount > 0) return "opened_not_clicked";
+  return "no_engagement";
+}
+
+/**
+ * Pull the Smartlead lead_id + campaign_id from research_data.smartlead.
+ * Used by the Emails tab to render "Reply via Smartlead inbox →" deep-links
+ * to the master inbox at the right thread context.
+ */
+function computeSmartleadLinkage(
+  researchData: Record<string, unknown> | null,
+): { lead_id: string | null; campaign_id: string | null } {
+  const smartlead = (researchData?.smartlead ?? {}) as Record<string, unknown>;
+  const leadId =
+    smartlead.lead_id != null && typeof smartlead.lead_id !== "object"
+      ? String(smartlead.lead_id)
+      : null;
+  const campaignId =
+    smartlead.campaign_id != null && typeof smartlead.campaign_id !== "object"
+      ? String(smartlead.campaign_id)
+      : null;
+  return { lead_id: leadId, campaign_id: campaignId };
 }
 

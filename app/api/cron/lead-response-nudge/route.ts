@@ -29,6 +29,7 @@ type ThreadMessage = {
   text?: string;
   created_at: string;
   is_auto_reply?: boolean;
+  type?: string;
 };
 
 interface EligibleLead {
@@ -131,9 +132,14 @@ export async function GET(request: NextRequest) {
       const meta = (conn.metadata as Record<string, unknown>) ?? {};
       const thread = (meta.thread as ThreadMessage[]) || [];
 
-      // Check if provider has responded
+      // Check if provider has REALLY responded (non-auto, non-system, with actual text)
       const providerResponded = thread.some(
-        (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
+        (m) =>
+          m.from_profile_id === conn.to_profile_id &&
+          m.is_auto_reply !== true &&
+          m.type !== "system" &&
+          m.from_profile_id !== "system" &&
+          !!m.text?.trim()
       );
       if (providerResponded) {
         counts.skipped++;

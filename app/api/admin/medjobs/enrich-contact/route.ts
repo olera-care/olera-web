@@ -3,29 +3,55 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   findEmail,
   findContactFormUrl,
+  findPhone,
+  findFax,
+  findAddress,
   type ProviderContext,
 } from "@/lib/medjobs/outreach-enrichment";
 
 /**
  * POST /api/admin/medjobs/enrich-contact
  *
- * Body: { outreachId: string, mode: "email" | "contact_form" }
+ * Body: {
+ *   outreachId: string,
+ *   mode: "email" | "contact_form" | "phone" | "fax" | "address"
+ *       | "both" | "all"
+ * }
  *
- * Per-row escape hatch for the batch enrichers — the "Find email" / "Find
- * contact form" buttons in the SnapshotCard General Contact section. Resolves
- * the provider's website (general_contact override → linked olera-providers
- * directory), runs the SAME finder the batch scripts use, and RETURNS the value.
+ * Per-row escape hatch for the batch enrichers — the "Find X" buttons and
+ * the "✦ Fill from Website" header pill in the SnapshotCard. Resolves the
+ * provider's website (general_contact override → linked olera-providers
+ * directory), runs the matching finder(s), and RETURNS the value(s).
  *
- * It does NOT write. The caller pre-fills the editable field and persists
- * through the existing `update_general_contact` action — so this adds no CRM
- * state-machine action, enum, touchpoint, or write path (G1–G4). It is a
- * read-only lookup.
+ * It does NOT write. The caller pre-fills the editable field(s) and
+ * persists through the existing `update_general_contact` action — so this
+ * adds no CRM state-machine action, enum, touchpoint, or write path
+ * (G1–G4). It is a read-only lookup.
  *
- * Runs on the Node runtime (the finder does outbound page scraping); allow up
- * to a minute since a cold provider site + Perplexity fallback can be slow.
+ * Modes:
+ *   - "email" / "contact_form" / "phone" / "fax" / "address" — single field
+ *   - "both" — email + contact_form (legacy, preserved for TJ's existing
+ *     header pill behavior)
+ *   - "all" — every finder in parallel; one shared website resolution so
+ *     scrapes happen once
+ *
+ * Runs on the Node runtime (the finder does outbound page scraping); allow
+ * up to a minute since a cold provider site + Perplexity fallback can be
+ * slow. The "all" mode can take longer when multiple finders touch
+ * Perplexity, but Promise.all keeps total latency at the slowest finder.
  */
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+const VALID_MODES = new Set([
+  "email",
+  "contact_form",
+  "phone",
+  "fax",
+  "address",
+  "both",
+  "all",
+]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,9 +64,12 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as { outreachId?: string; mode?: string };
     const outreachId = body.outreachId?.trim();
     const mode = body.mode;
-    if (!outreachId || (mode !== "email" && mode !== "contact_form" && mode !== "both")) {
+    if (!outreachId || !mode || !VALID_MODES.has(mode)) {
       return NextResponse.json(
-        { error: "outreachId and mode ('email' | 'contact_form' | 'both') are required" },
+        {
+          error:
+            "outreachId and mode ('email' | 'contact_form' | 'phone' | 'fax' | 'address' | 'both' | 'all') are required",
+        },
         { status: 400 },
       );
     }
@@ -91,9 +120,34 @@ export async function POST(request: NextRequest) {
       state,
     };
 
+    if (mode === "all") {
+      // Every finder in parallel. Shared ctx means each finder still has to
+      // resolve the website internally, but the page-fetch cache + scrape
+      // pattern keeps work reasonable. Returns a shape the UI can unpack
+      // per-field.
+      const [e, f, p, fx, a] = await Promise.all([
+        findEmail(ctx),
+        findContactFormUrl(ctx),
+        findPhone(ctx),
+        findFax(ctx),
+        findAddress(ctx),
+      ]);
+      return NextResponse.json({
+        email: { value: e.email, source: e.source },
+        contactForm: { value: f.url, source: f.source },
+        phone: { value: p.phone, source: p.source },
+        fax: { value: fx.fax, source: fx.source },
+        address: {
+          street: a.street,
+          city: a.city,
+          state: a.state,
+          zip: a.zip,
+          source: a.source,
+        },
+      });
+    }
     if (mode === "both") {
-      // Anticipate-needs: one click fills both gaps. Both finders share the
-      // same resolved website, so run them together.
+      // Legacy: email + contact_form together (TJ's original header pill).
       const [e, f] = await Promise.all([findEmail(ctx), findContactFormUrl(ctx)]);
       return NextResponse.json({
         email: { value: e.email, source: e.source },
@@ -103,10 +157,31 @@ export async function POST(request: NextRequest) {
     if (mode === "email") {
       const r = await findEmail(ctx);
       return NextResponse.json({ value: r.email, source: r.source });
-    } else {
+    }
+    if (mode === "contact_form") {
       const r = await findContactFormUrl(ctx);
       return NextResponse.json({ value: r.url, source: r.source });
     }
+    if (mode === "phone") {
+      const r = await findPhone(ctx);
+      return NextResponse.json({ value: r.phone, source: r.source });
+    }
+    if (mode === "fax") {
+      const r = await findFax(ctx);
+      return NextResponse.json({ value: r.fax, source: r.source });
+    }
+    if (mode === "address") {
+      const r = await findAddress(ctx);
+      return NextResponse.json({
+        street: r.street,
+        city: r.city,
+        state: r.state,
+        zip: r.zip,
+        source: r.source,
+      });
+    }
+    // VALID_MODES gates above; unreachable.
+    return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Lookup failed" },

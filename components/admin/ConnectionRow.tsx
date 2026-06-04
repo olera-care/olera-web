@@ -52,6 +52,7 @@ export interface ConnectionRowData {
   temperature: ConnectionTemperature;
 }
 
+// Per-provider engagement data from list API (does NOT include "messaged")
 interface Engagement {
   email_clicked: boolean;
   lead_opened: boolean;
@@ -60,6 +61,11 @@ interface Engagement {
   email_copied: boolean;
   phone_clicked: boolean;
   email_link_clicked: boolean;
+  // Note: "messaged" is passed separately since it's per-connection, not per-provider
+}
+
+// Detail API includes messaged since it's for a single connection
+interface DetailEngagement extends Engagement {
   messaged: boolean;
 }
 
@@ -107,7 +113,7 @@ interface Detail {
   };
   thread: ThreadEntry[];
   emails: EmailTrailEntry[];
-  engagement: Engagement;
+  engagement: DetailEngagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
 }
@@ -151,8 +157,21 @@ function fmtDate(iso: string | null): string {
 }
 
 // Engagement badges component
-function EngagementBadges({ engagement, compact = false }: { engagement?: Engagement; compact?: boolean }) {
+// Note: `messaged` is passed separately because it's per-connection (from c.responded),
+// not per-provider like the other engagement fields.
+function EngagementBadges({
+  engagement,
+  messaged = false,
+  compact = false
+}: {
+  engagement?: Engagement | DetailEngagement;
+  messaged?: boolean;
+  compact?: boolean;
+}) {
   if (!engagement) return null;
+
+  // Check if messaged is in the engagement object (DetailEngagement) or passed separately
+  const isMessaged = messaged || ('messaged' in engagement && engagement.messaged);
 
   // Build badges with specific labels for what the provider did
   const badges: { icon: string; label: string; active: boolean }[] = [
@@ -161,7 +180,7 @@ function EngagementBadges({ engagement, compact = false }: { engagement?: Engage
     { icon: "📋", label: "Copied Email", active: engagement.email_copied },
     { icon: "📞", label: "Called", active: engagement.phone_clicked },
     { icon: "📧", label: "Emailed", active: engagement.email_link_clicked },
-    { icon: "💬", label: "Messaged", active: engagement.messaged },
+    { icon: "💬", label: "Messaged", active: isMessaged },
   ];
 
   const activeBadges = badges.filter(b => b.active);
@@ -330,7 +349,7 @@ export default function ConnectionRow({
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
             <span className="font-medium text-gray-900 truncate">{provider}</span>
-            <EngagementBadges engagement={engagement} compact />
+            <EngagementBadges engagement={engagement} messaged={c.responded} compact />
           </div>
           {/* Secondary line: care type + timeline | waiting status | nudge info */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">

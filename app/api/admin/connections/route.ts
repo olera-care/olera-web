@@ -662,7 +662,9 @@ export async function GET(request: NextRequest) {
     }));
 
     // Per-provider engagement data for UI badges (keyed by provider activityKey)
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; messaged: boolean }> = {};
+    // Note: "messaged" is NOT included here because it's per-connection, not per-provider.
+    // The frontend should use c.responded directly for the "Messaged" badge.
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean }> = {};
     for (const c of pageRaw) {
       const key = c.provider.activityKey;
       if (key && !engagement[key]) {
@@ -675,8 +677,6 @@ export async function GET(request: NextRequest) {
           email_copied: eng?.email_copied ?? false,
           phone_clicked: eng?.phone_clicked ?? false,
           email_link_clicked: eng?.email_link_clicked ?? false,
-          // "Messaged" = provider sent a message (more meaningful than "continue_in_inbox")
-          messaged: c.responded,
         };
       }
     }

@@ -195,30 +195,38 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       steps: [{ id: "phone", channel: "phone", required: true }],
     },
   ],
-  // v9 provider cadence. Targets non-medical home care agencies — owners
-  // / hiring managers, not university stakeholders. Shorter than the
-  // student-side cadence (3 emails + 3 calls over 7 days) since
-  // providers churn faster on cold outreach and don't need the
-  // social-proof / final-followup runway. Phone steps still gated on
-  // has_phone at queue time (planSequence skips them when absent).
+  // v10 provider cadence (Phase 1 Bullet 2, 2026-06-04). Targets non-
+  // medical home care agencies — owners / hiring managers, not
+  // university stakeholders. 3 emails + 2 calls over 7 days.
+  //
+  // What changed from v9:
+  //   - Day 0 paired call REMOVED. The "verify contacts / confirm
+  //     decision maker" call moved into Pre-Flight under v9.x. Cold
+  //     Day 0 calls were redundant + too aggressive given the email
+  //     just went out.
+  //   - Day 1 follow-up call REMOVED entirely. Too soon to follow up
+  //     on Day 0 email; created friction without proportional signal.
+  //   - Day 3 gains a phone step alongside the email (was email only).
+  //     The Day 3 call is the "did you get our email?" check + offer
+  //     a Dr. DuBose meeting if helpful.
+  //
+  // Phone steps still gated on has_phone at queue time (planSequence
+  // skips them when absent).
   provider: [
     {
       day: 0,
-      title: "Day 0 · intro email + paired call",
+      title: "Day 0 · intro email",
       steps: [
         { id: "email", channel: "email", required: true, template: "provider_intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
       ],
     },
     {
-      day: 1,
-      title: "Day 1 · follow-up call",
-      steps: [{ id: "phone", channel: "phone", required: true }],
-    },
-    {
       day: 3,
-      title: "Day 3 · light follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "provider_followup" }],
+      title: "Day 3 · light follow-up + check-in call",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "provider_followup" },
+        { id: "phone", channel: "phone", required: true, label: "\"Did you get our email Monday?\"" },
+      ],
     },
     {
       day: 5,

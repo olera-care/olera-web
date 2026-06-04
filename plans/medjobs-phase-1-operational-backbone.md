@@ -826,6 +826,18 @@ All 12 bullets meet their per-bullet acceptance criteria PLUS:
 
 **Tomorrow (Day 2):** Begin Bullet 2 — cadence change in `cadence.ts`. Smallest atomic ticket; good warmup before the multi-day surface work.
 
+### Day 1 (continued) — Bullet 2 COMPLETE
+
+**Done:**
+- **Bullet 2 — New post-launch cadence: COMPLETE.** Changed `lib/student-outreach/cadence.ts` provider cadence from v9 (Day 0 email+call, Day 1 call, Day 3 email, Day 5 call, Day 7 email = 3+3) to v10 (Day 0 email, Day 3 email+call, Day 5 call, Day 7 email = 3+2). Day 0 paired call deleted (moved to Pre-Flight). Day 1 deleted entirely.
+- Updated stale comment in `lib/medjobs/smartlead-bridge.ts` referencing the old phone days (0, 1, 5) → now (3, 5). Smartlead bridge logic was already cadence-driven (no behavior change; only doc fix).
+- Acceptance verification: all 7 criteria pass via `npx tsx` script — 3 emails, 2 calls, no Day 1, no Day 0 phone, Day 3 has both email + phone, Day 5 phone only, Day 7 email only.
+- Typecheck clean.
+
+**Surfaced (none).** Cadence change was clean and isolated.
+
+**Next:** Bullet 3 — Smartlead webhook expansion (email_open + email_link_click → update existing `email_sent` touchpoint payload).
+
 **Pending Logan signoffs** (per master plan §12 "Phase 0 stabilization" checklist; not blocking branch creation or strategy work):
 - Sender identity (`logan@findmedjobs.co` + `partnerships@findmedjobs.co` proposed)
 - Footer/unsubscribe copy

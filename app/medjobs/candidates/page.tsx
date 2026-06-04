@@ -8,6 +8,7 @@ import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters, { DEFAULT_CANDIDATE_FILTERS } from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
+import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 
 const PAGE_SIZE = 20;
 
@@ -15,15 +16,15 @@ export default function CandidateBrowsePage() {
   const { openAuth, activeProfile, profiles } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
 
-  // Re-fetch candidates when paid status flips — the API returns full
-  // names + contact info only for paid tiers, so the list must refresh
-  // after activation. Not a workaround — just correctly reactive UI.
+  // v10 Phase 2+3 Bullet 2 (2026-06-04): paid access AND active-pilot
+  // access both unlock the full board. Uses medjobsAccessActive which OR's
+  // the two paths (Stripe subscription OR pilot_active_through > now()).
   const providerProfile = profiles?.find(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  const isPaid =
-    ((providerProfile?.metadata ?? {}) as Record<string, unknown>)
-      .medjobs_subscription_active === true;
+  const isPaid = medjobsAccessActive(
+    (providerProfile?.metadata ?? null) as Record<string, unknown> | null,
+  );
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);

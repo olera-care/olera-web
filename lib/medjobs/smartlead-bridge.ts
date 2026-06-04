@@ -31,6 +31,7 @@ import {
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
+import { buildWelcomeUrl } from "@/lib/medjobs/welcome-token";
 import type { Status } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
@@ -213,6 +214,28 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
   // use "Hi <First>," for named recipients and "Hello," for general.
   const isFormal = row.kind === "dept_head" || row.kind === "professor";
 
+  // v10 Phase 2+3 Bullet 6 (2026-06-04): per-lead magic-link URL set as
+  // a Smartlead custom field. Each recipient (General + Named) gets a
+  // unique signed token (jti differs) pointing at the SAME outreach row.
+  // When the magic-link secret isn't configured (dev / preview), fall
+  // back to PROGRAM_URL — the email still has a working link.
+  const magicLinkSecret = process.env.MEDJOBS_MAGIC_LINK_SECRET ?? "";
+  const buildWelcomeFor = (email: string): string => {
+    if (!magicLinkSecret) return PROGRAM_URL;
+    try {
+      return buildWelcomeUrl(
+        { outreach_id: row.outreach_id, email },
+        magicLinkSecret,
+      );
+    } catch (e) {
+      console.error(
+        "[smartlead-bridge] buildWelcomeUrl failed:",
+        e instanceof Error ? e.message : e,
+      );
+      return PROGRAM_URL;
+    }
+  };
+
   const generalEmail = row.email?.trim();
   if (generalEmail && !row.suppressed && row.email_verdict !== "invalid") {
     leads.push({
@@ -233,6 +256,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           // General Contact is the org-level email (no person), so even for
           // formal cadences the greeting stays neutral.
           salutation: "Hello",
+          welcome_url: buildWelcomeFor(generalEmail),
         },
       },
     });
@@ -270,6 +294,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           contact_id: c.contact_id,
           role: c.role ?? "",
           salutation,
+          welcome_url: buildWelcomeFor(email),
         },
       },
     });
@@ -429,6 +454,10 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/\{admin_first_name\}/g, adminFirstName)
     .replace(/\{calendly_url\}/g, CALENDLY_URL)
     .replace(/\{program_url\}/g, PROGRAM_URL)
+    // v10 Phase 2+3 Bullet 6 (2026-06-04): per-lead welcome URL set in
+    // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
+    // the {{welcome_url}} merge tag at send time.
+    .replace(/\{welcome_url\}/g, "{{welcome_url}}")
     .replace(/\{first_name\}/g, "{{first_name}}")
     .replace(/(^|\n)(Hi|Dear) \{salutation\}/g, `$1{salutation}`)
     .replace(/\{salutation\}/g, MERGE_SALUTATION)

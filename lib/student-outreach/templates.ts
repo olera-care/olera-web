@@ -80,6 +80,11 @@ const PLACEHOLDER = {
   adminName: "{admin_first_name}",
   calendlyUrl: "{calendly_url}",
   programUrl: "{program_url}",
+  /** v10 Phase 2+3 Bullet 6 (2026-06-04): per-recipient magic-link URL
+   *  pointing at the candidate board. Substituted at email-render time
+   *  via buildWelcomeUrl() in welcome-token.ts. Falls back to the
+   *  PROGRAM_URL when the welcome URL isn't available (preview / legacy). */
+  welcomeUrl: "{welcome_url}",
 };
 
 /**
@@ -197,6 +202,8 @@ export function substituteVars(
     admin_first_name?: string;
     calendly_url?: string;
     program_url?: string;
+    /** v10 Phase 2+3 Bullet 6: per-recipient magic-link URL. */
+    welcome_url?: string;
   },
 ): string {
   return text
@@ -206,7 +213,11 @@ export function substituteVars(
     .replace(/\{campus_name\}/g, vars.campus_name ?? "{campus_name}")
     .replace(/\{admin_first_name\}/g, vars.admin_first_name ?? "{admin_first_name}")
     .replace(/\{calendly_url\}/g, vars.calendly_url ?? CALENDLY_URL)
-    .replace(/\{program_url\}/g, vars.program_url ?? PROGRAM_URL);
+    .replace(/\{program_url\}/g, vars.program_url ?? PROGRAM_URL)
+    // Welcome URL falls back to PROGRAM_URL when the magic-link secret
+    // isn't configured (preview rendering, dev environments) so the email
+    // still has a working link.
+    .replace(/\{welcome_url\}/g, vars.welcome_url ?? PROGRAM_URL);
 }
 
 export function firstNameOf(fullName: string | null | undefined): string {
@@ -457,29 +468,35 @@ export const followupEmail = followupLightEmail;
  * Bold sentence rendered via the **...** markdown marker (see
  * email-send.ts → bodyToHtml).
  */
+/**
+ * Provider Day 0 intro (v10 Phase 2+3 Bullet 6, 2026-06-04).
+ *
+ * What changed from v9:
+ *   - Single primary CTA: "Review {campus} student caregivers →" pointing
+ *     at the magic-link welcome URL (per-recipient, signed). Reply +
+ *     Calendly stay as smaller secondary CTAs.
+ *   - No "trial" language anywhere. "Pilot" appears once as honest
+ *     framing for why we're inviting them — not as a sales pitch.
+ *   - Brand-consistency one-liner so the brand jump from findmedjobs.co
+ *     (sender) to olera.care (landing) isn't a surprise (master plan § 6.7).
+ *   - Reply or Calendly stay available; CTA priority is platform first.
+ */
 export function providerIntroEmail(
   ctx: TemplateContext,
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
+  const subject = `${PLACEHOLDER.campus} student caregivers · Olera`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   const leadershipPhrase =
     variant === "general"
       ? providerLeadershipInvitationPhrase(contacts)
       : null;
-  // v9.1 Graize 05.13 audit (Item 5): grounding + invitation tightened.
-  // Old version repeated "Olera's {campus} Student Caregiver Program"
-  // and tacked on "begin receiving student referrals to help support
-  // caregiver staffing needs and vacant shifts" which restates the
-  // value of the very next paragraph. New version stops cleanly at
-  // the invitation; the program explanation that follows carries the
-  // operational detail.
   const groundingAndInvitation =
     leadershipPhrase
-      ? `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. ${leadershipPhrase}, to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`
-      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. I'd like to invite ${PLACEHOLDER.orgName} to join Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`;
+      ? `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. ${leadershipPhrase}, to invite ${PLACEHOLDER.orgName} into our ${PLACEHOLDER.campus} student caregiver pilot.`
+      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. I'd like to invite ${PLACEHOLDER.orgName} into our ${PLACEHOLDER.campus} student caregiver pilot.`;
   return {
     subject,
     body: [
@@ -489,33 +506,29 @@ export function providerIntroEmail(
       ``,
       groundingAndInvitation,
       ``,
-      // v9.1 Graize 05.13 audit (Item 4B): bold program explanation
-      // + student-quality sentence merged into a single paragraph.
-      // Prior version had two consecutive paragraphs ("future nurses
-      // and physicians..." + "These students are vetted...") that
-      // restated each other. New version states what the program
-      // does, then characterizes the students in one continuation
-      // sentence — no separate accountability paragraph.
-      `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with home care agencies to fill caregiver roles, PRN shifts, and support staffing needs.** These students are vetted for caregiver qualities and are motivated by hands-on experience working with clients, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`,
+      `We've been recruiting and vetting ${PLACEHOLDER.campus} pre-nursing and pre-medical students who are looking for caregiver shifts — and ${PLACEHOLDER.orgName} stood out as a great fit. The pilot is free for three months and you can review students before contacting anyone.`,
       ``,
-      ...INTRO_CTA_LINES,
+      `Take a look at the students near you:`,
+      ``,
+      `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `The link will land you on olera.care, our main platform. A short background on the pilot is attached. If you'd rather chat first, you can ${SCHEDULE_LINK_FULL} — no pressure either way.`,
     ].join("\n"),
   };
 }
 
 /**
- * Provider follow-up (Day 3). Lighter than the intro — assumes the
- * recipient saw the Day-0 note. Opens with a friendly "just in case
- * it got buried" line, restates the value crisply, lowers friction
- * by offering reply-or-call. No re-litigation of credentials; the
- * Logan signature carries them on every send.
+ * Provider Day 3 follow-up (v10 Phase 2+3 Bullet 6, 2026-06-04).
+ *
+ * Lighter than the intro — "just in case it got buried" framing.
+ * Re-surfaces the same magic-link CTA. Short and conversational.
  */
 export function providerFollowupEmail(
   ctx: TemplateContext,
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
+  const subject = `${PLACEHOLDER.campus} student caregivers · Olera`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -523,33 +536,30 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `Just following up on my note from earlier this week, in case it got buried.`,
+      `Just following up on my note from Monday, in case it got buried.`,
       ``,
-      // v9.1 Graize 05.13 audit (Item 9): consistency pass — Day 3
-      // now uses the same "vetted ${campus} pre-nursing and pre-
-      // medical students" / "caregiver roles, PRN shifts, staffing
-      // needs" language as Day 0 + Day 7. Kept short and light per
-      // the cadence role (this is the nudge, not the pitch).
-      // v9.1 Graize 05.13 audit (Item 4D): Day 3 CTA mirrors the Day 0
-      // "next step is to..." framing so the cadence stays consistent.
-      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and support staffing needs, we'd be excited to share more. The next step is to reply directly to this email expressing interest, or ${SCHEDULE_LINK_FULL}. The attached information packet covers the basics.`,
+      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and support staffing needs, here's the candidate board:`,
+      ``,
+      `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `Lands on olera.care. The first three months are free; reply or ${SCHEDULE_LINK_SHORT} if it'd help to walk through it.`,
     ].join("\n"),
   };
 }
 
 /**
- * Provider final (Day 7). Warmer + low-pressure close. Offers a
- * graceful out ("if now isn't the right time"), invites a redirect
- * to the right caregiver-hiring contact, and thanks them by name
- * where possible. The signature block carries the program URL so
- * the recipient still has a path to learn more on their own time.
+ * Provider Day 7 final (v10 Phase 2+3 Bullet 6, 2026-06-04).
+ *
+ * Warmer + low-pressure close. Graceful out + redirect-the-contact ask.
+ * Magic-link CTA stays present but the framing is "in case you missed it"
+ * rather than a fresh push.
  */
 export function providerFinalEmail(
   ctx: TemplateContext,
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Program`;
+  const subject = `${PLACEHOLDER.campus} student caregivers · Olera`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   const thanksLine =
@@ -561,16 +571,15 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Wanted to circle back one more time on Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
+      `Wanted to circle back one more time on the ${PLACEHOLDER.campus} student caregiver pilot.`,
       ``,
-      // v9.1 Graize 05.13 audit (Items 4D + 10): Day 7 aligned with
-      // canonical Day 0 terminology ("vetted ${campus} pre-nursing
-      // and pre-medical students" / "caregiver roles, PRN shifts,
-      // support staffing needs") and the "next step is to..." CTA
-      // pattern so the whole cadence reads as one coherent ask.
-      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and support staffing needs, the next step is to reply directly to this email or ${SCHEDULE_LINK_FULL}.`,
+      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students for caregiver roles, PRN shifts, and staffing needs, the candidate board is at:`,
       ``,
-      `If now isn't the right time, no worries; we'll check back next term. And if there's a better person at ${PLACEHOLDER.orgName} for us to reach about caregiver hiring, we'd appreciate a quick redirect.`,
+      `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `Lands on olera.care. Reply or ${SCHEDULE_LINK_SHORT} if it'd help.`,
+      ``,
+      `If now isn't the right time, no worries — we'll check back next term. And if there's a better person at ${PLACEHOLDER.orgName} for us to reach about caregiver hiring, we'd appreciate a quick redirect.`,
       ``,
       thanksLine,
     ].join("\n"),

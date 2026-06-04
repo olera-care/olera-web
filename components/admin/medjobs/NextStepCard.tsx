@@ -23,8 +23,10 @@
  *
  * Stage-driven content rules (see §5 of the architecture doc):
  *
- *   prospect       → "Launch outreach" CTA, disabled until row is
- *                    launch-ready (caller decides via launchEnabled)
+ *   prospect       → thin "Pre-Flight in progress" indicator. The
+ *                    operational surface (checklist + Visit Website +
+ *                    Call to Confirm + Launch Outreach) lives in the
+ *                    Research Card below (Phase 2e).
  *   in_outreach    → "Awaiting reply · Day X email next" with Log
  *                    reply / Log call secondary actions
  *   call_due       → phone line + Log call outcome primary CTA
@@ -46,16 +48,11 @@ import {
   formatLongDate,
   formatRelative,
 } from "@/lib/student-outreach/formatters";
-import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
-import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
-import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
-import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
-import { ContactFormBanner } from "@/components/admin/medjobs/SnapshotCard";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 
@@ -68,25 +65,12 @@ export interface NextStepCardProps {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
-  /** Pre-launch only — caller decides whether the launch CTA is
-   *  enabled. Provider drawer requires an email; stakeholder drawer
-   *  requires research completeness. Defaults to false. */
-  launchEnabled?: boolean;
-  /** Tooltip / hover text when launch is disabled. */
-  launchDisabledReason?: string;
-  /** Invoked just before the PreFlight modal opens, so the drawer
-   *  body can persist any pending edits (notes, email corrections)
-   *  before scheduling the cadence. */
-  beforeLaunch?: () => Promise<void>;
 }
 
 export function NextStepCard({
   ctx,
   action: rawAction,
   setError,
-  launchEnabled = false,
-  launchDisabledReason,
-  beforeLaunch,
 }: NextStepCardProps) {
   // E1 + E2: wrap the action dispatcher so successful Log operations
   // (a) surface a toast naming the consequence and (b) mark the row
@@ -148,9 +132,6 @@ export function NextStepCard({
             ctx={ctx}
             action={action}
             setError={setError}
-            launchEnabled={launchEnabled}
-            launchDisabledReason={launchDisabledReason}
-            beforeLaunch={beforeLaunch}
             stageLabel={display.label}
           />
         </div>
@@ -166,32 +147,17 @@ function StageBody({
   ctx,
   action,
   setError,
-  launchEnabled,
-  launchDisabledReason,
-  beforeLaunch,
   stageLabel,
 }: {
   stage: Stage;
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
-  launchEnabled: boolean;
-  launchDisabledReason?: string;
-  beforeLaunch?: () => Promise<void>;
   stageLabel: string;
 }) {
   switch (stage) {
     case "prospect":
-      return (
-        <ProspectBody
-          ctx={ctx}
-          action={action}
-          setError={setError}
-          launchEnabled={launchEnabled}
-          launchDisabledReason={launchDisabledReason}
-          beforeLaunch={beforeLaunch}
-        />
-      );
+      return <ProspectBody ctx={ctx} />;
     case "in_outreach":
       return <InOutreachBody ctx={ctx} action={action} setError={setError} />;
     case "call_due":
@@ -211,370 +177,29 @@ function StageBody({
 
 // ── prospect ─────────────────────────────────────────────────────────────
 
-function ProspectBody({
-  ctx,
-  action,
-  setError,
-  launchEnabled,
-  launchDisabledReason,
-  beforeLaunch,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (m: string | null) => void;
-  launchEnabled: boolean;
-  launchDisabledReason?: string;
-  beforeLaunch?: () => Promise<void>;
-}) {
-  const [showPreFlight, setShowPreFlight] = useState(false);
-  const [showCallForEmail, setShowCallForEmail] = useState(false);
-  const cadenceKey: CadenceKey =
-    ctx.outreach.kind === "provider"
-      ? "provider"
-      : (ctx.outreach.stakeholder_type ?? "student_org");
-
-  // v9 Phase 4: surface research action buttons whenever pre-flight
-  // is incomplete. Two shortcuts:
-  //   - "Visit website" opens the provider's website in a new tab
-  //     (research entry point — admin scans for missing email,
-  //     phone, address, contact form, etc.)
-  //   - "Call to obtain information" launches the call-and-log
-  //     workflow when admin needs to phone the provider for any
-  //     missing piece (not just email — the modal logs the call
-  //     outcome and admin captures whatever they learned).
-  // Both surface on prospect/researched rows whenever the
-  // corresponding data is on file. The earlier !launchEnabled gate
-  // hid the buttons once the checklist passed, which removed a
-  // useful research aid for admins double-checking info right
-  // before they hit Launch.
-  const isProviderProspect = ctx.outreach.kind === "provider";
-  const generalContactSlot =
-    ctx.outreach.research_data?.general_contact ?? {};
-  // v9 final: effective General Contact phone (override OR bp
-  // fallback) — earlier read bp.phone only, so an admin-added
-  // phone override never lit up the call button.
-  const generalContactPhone =
-    generalContactSlot.phone ?? ctx.provider_business_profile?.phone ?? null;
-  const generalContactWebsite =
-    generalContactSlot.website ??
-    ctx.provider_business_profile?.website ??
-    null;
-  const callAttempts = ctx.touchpoints.filter((t) =>
-    [
-      "call_no_answer",
-      "call_voicemail",
-      "call_connected",
-      "call_wrong_number",
-    ].includes(t.touchpoint_type),
-  ).length;
-  const showCallForEmailCta =
-    isProviderProspect && Boolean(generalContactPhone);
-  const showVisitWebsiteCta =
-    isProviderProspect && Boolean(generalContactWebsite);
-
-  // v9 final: pre-flight checklist. Three tones:
-  //   required    → blocks launch (red ✗ when missing)
-  //   recommended → encouraged but non-blocking (amber ⚠ when missing)
-  //   optional    → admin's call (gray ○ when missing)
-  // Items reference fields in the Provider Profile section below;
-  // edits auto-save on blur.
-  const gc = ctx.outreach.research_data?.general_contact ?? {};
-  // v9.1 Graize 05.13 audit (Item 1): checklist must respect explicit
-  // deletion. Previously `gc.field ?? bp.field` used `??` which treats
-  // both undefined (never set) AND null (admin explicitly cleared) as
-  // "fall through to bp.field". When the directory carried a value,
-  // clearing the General Contact field still showed ✓ on the checklist
-  // because of the silent fallback. Now: undefined → fall back to bp;
-  // null → honor the deletion and treat as missing.
-  const generalEmail =
-    gc.email !== undefined ? gc.email : ctx.provider_business_profile?.email ?? null;
-  const generalPhone =
-    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
-  // Same undefined-vs-null distinction for the rest of the General
-  // Contact fields. Address parts and website also honor explicit
-  // deletion so the checklist tracks reality, not a stale directory
-  // shadow.
-  const generalWebsite =
-    gc.website !== undefined
-      ? gc.website
-      : ctx.provider_business_profile?.website ?? null;
-  const street =
-    gc.street !== undefined
-      ? gc.street ?? ""
-      : ctx.provider_business_profile?.address ?? "";
-  const cityVal =
-    gc.city !== undefined
-      ? gc.city ?? ""
-      : ctx.provider_business_profile?.city ?? "";
-  const stateVal =
-    gc.state !== undefined
-      ? gc.state ?? ""
-      : ctx.provider_business_profile?.state ?? "";
-  // v9 final: zip falls back to bp.zip (the directory has a ZIP
-  // column the checklist was ignoring) so the row passes the
-  // address check when the directory already carries the ZIP.
-  const zipVal = gc.zip ?? ctx.provider_business_profile?.zip ?? "";
-  const addressComplete = Boolean(
-    street.trim() &&
-      cityVal.trim() &&
-      stateVal.trim() &&
-      /^\d{5}(?:-\d{4})?$/.test(zipVal.trim()),
-  );
-  // v9 final: pre-flight gates on the General Contact ONLY. Provider
-  // outreach begins at the organization-level layer; named individuals
-  // (Specific Contacts) are supporting context, not the launch
-  // requirement. A Specific Contact email or phone alone does NOT
-  // unblock launch.
-  const hasEmail = Boolean(generalEmail?.includes("@"));
-  const hasPhone = Boolean(generalPhone);
-  const hasWebsite = Boolean(generalWebsite?.trim());
-  const hasFax = Boolean(gc.fax?.trim());
-  const hasContactFormUrl = Boolean(gc.contact_form_url?.trim());
-  const contactFormResolved = ctx.touchpoints.some(
-    (t) => t.touchpoint_type === "contact_form_submitted",
-  );
-  const hasNotes = Boolean(ctx.outreach.notes?.trim());
-
+/**
+ * v9.x Phase 2e: Pre-Flight surface moved into the Research Card.
+ * The NextStepCard's prospect body collapses to a minimal stage
+ * indicator — directs admin downward, where the Research Card now
+ * carries the Business Name, General Contact, Decision Maker,
+ * Verification status, and the Visit Website / Call to Confirm /
+ * Launch Outreach action footer.
+ *
+ * Nothing actionable lives here anymore; the previous
+ * checklist + ContactFormBanner + Visit Website / Call to Confirm /
+ * Launch Outreach buttons + their three modals all moved to the
+ * Research Card (SnapshotCard.tsx, Phases 2b–2d).
+ */
+function ProspectBody({ ctx: _ctx }: { ctx: DrawerContext }) {
   return (
     <>
       <p className="text-sm font-medium text-gray-900">
-        Pre-flight checklist
+        Pre-Flight in progress
       </p>
       <p className="mt-0.5 text-xs text-gray-500">
-        Add missing info, then launch outreach.
+        Complete the Research Card below — Visit Website, collect any missing
+        info, Call to Confirm, then Launch Outreach.
       </p>
-      {showCallForEmailCta && (
-        <p className="mt-1 text-[11px] text-gray-500">
-          Or call them now — if they engage, log it directly (Interested / Became a Client / Not interested) and we&apos;ll close this out without launching the campaign.
-        </p>
-      )}
-      <ul className="mt-2 space-y-1 text-xs">
-        <ChecklistRow
-          done={hasEmail}
-          tone="required"
-          label="General Contact email"
-          hint={
-            hasEmail
-              ? "General email on file — outreach can launch."
-              : "Required. Provider outreach begins at the org-level email."
-          }
-        />
-        <ChecklistRow
-          done={hasPhone}
-          tone="required"
-          label="General Contact phone"
-          hint={
-            hasPhone
-              ? "General phone on file — call tasks queue with email."
-              : "Required at the org level. Call cadence runs alongside email."
-          }
-        />
-        <ChecklistRow
-          done={addressComplete}
-          tone="recommended"
-          label="Address"
-          hint={
-            addressComplete
-              ? "Street, city, state, ZIP set — ready for snail mail."
-              : "Recommended for future snail mail. Need street, city, state, and ZIP."
-          }
-        />
-        {/* v9.1 admin feedback (Graize 05.13): Website is now
-            recommended, not required. Some agencies have no public
-            website or only a social profile, and we don't want that to
-            block outreach. Launch gate dropped the website check; this
-            row reflects the same tone. */}
-        <ChecklistRow
-          done={hasWebsite}
-          tone="recommended"
-          label="Website"
-          hint={
-            hasWebsite
-              ? "Website on file."
-              : "Recommended. Helpful for research, but not required to launch."
-          }
-        />
-        {/* v9.1 Graize 05.13 audit fix (Items 1+2): contact form URL
-            no longer reads as "done" when nothing is on file. Prior
-            logic was `done={!hasContactFormUrl || contactFormResolved}`
-            which marked the row checked the moment the URL was empty
-            (vacuously satisfied). Admins saw an unchecked profile +
-            checked checklist for the same field. New semantics:
-              no URL on file       → not done, tone "recommended" (like Fax)
-              URL on file, unresolved → not done, tone "required"
-              URL on file, resolved   → done, tone "recommended" */}
-        <ChecklistRow
-          done={hasContactFormUrl && contactFormResolved}
-          tone={hasContactFormUrl && !contactFormResolved ? "required" : "recommended"}
-          label="Contact form URL"
-          hint={
-            !hasContactFormUrl
-              ? "Recommended. Paste the link to the agency's contact form page if they have one — the system generates a copy-ready message you can submit there."
-              : contactFormResolved
-                ? "Outcome logged."
-                : "URL on file. Copy the generated message from the banner above, submit it through their form, then mark Submitted below. Required when URL is present."
-          }
-        />
-        <ChecklistRow
-          done={hasFax}
-          tone="recommended"
-          label="Fax"
-          hint={
-            hasFax
-              ? "Fax on file."
-              : "Add the fax line if the agency has one (future fax cadence)."
-          }
-        />
-        <ChecklistRow
-          done={hasNotes}
-          tone="optional"
-          label="Research notes"
-          hint="Capture agency character + any context worth remembering."
-        />
-      </ul>
-      {/* v9 final: contact-form pre-flight banner. Mounted here so the
-          decision lives next to the checklist + launch button — admin
-          can't miss it. Hides the moment a contact_form_submitted
-          touchpoint lands. Gates Launch when URL is on file. */}
-      {hasContactFormUrl && !contactFormResolved && (
-        <div className="mt-3">
-          <ContactFormBanner
-            url={ctx.outreach.research_data?.general_contact?.contact_form_url ?? ""}
-            action={action}
-            setError={setError}
-            campusName={ctx.campus?.name ?? null}
-            specificContactName={(() => {
-              const first = ctx.contacts.find(
-                (c) =>
-                  c.status === "active" &&
-                  (c.first_name?.trim() || c.last_name?.trim() || c.name?.trim()),
-              );
-              if (!first) return null;
-              const named = [first.first_name, first.last_name]
-                .filter(Boolean)
-                .join(" ")
-                .trim();
-              return named || first.name || null;
-            })()}
-          />
-        </div>
-      )}
-      {showCallForEmailCta && callAttempts > 0 && (
-        <p className="mt-2 text-xs text-gray-500">
-          {callAttempts} call attempt{callAttempts === 1 ? "" : "s"} logged.
-        </p>
-      )}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {showVisitWebsiteCta && generalContactWebsite && (
-          <a
-            href={
-              generalContactWebsite.startsWith("http")
-                ? generalContactWebsite
-                : `https://${generalContactWebsite}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            title="Open the provider website in a new tab for pre-flight research."
-          >
-            🌐 Visit website to obtain information
-          </a>
-        )}
-        {showCallForEmailCta && (
-          <button
-            onClick={() => setShowCallForEmail(true)}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            title="Phone the provider to obtain missing info — email, address details, hours, anything."
-          >
-            📞 Call to obtain information
-          </button>
-        )}
-        <button
-          onClick={async () => {
-            if (!launchEnabled) {
-              setError(launchDisabledReason ?? "Complete the checklist before launching.");
-              return;
-            }
-            try {
-              if (beforeLaunch) await beforeLaunch();
-              setShowPreFlight(true);
-            } catch (e) {
-              setError(
-                e instanceof Error ? e.message : "Failed to prepare launch",
-              );
-            }
-          }}
-          disabled={!launchEnabled}
-          title={
-            launchEnabled
-              ? "Open the cadence pre-flight review."
-              : launchDisabledReason
-          }
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Launch outreach →
-        </button>
-      </div>
-
-      {showPreFlight && cadenceKey === "provider" && (
-        <ProviderPreFlightModal
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          campusSlug={ctx.campus.slug}
-          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
-          contacts={ctx.contacts}
-          generalContact={{
-            email:
-              ctx.outreach.research_data?.general_contact?.email ??
-              ctx.provider_business_profile?.email ??
-              null,
-            phone:
-              ctx.outreach.research_data?.general_contact?.phone ??
-              ctx.provider_business_profile?.phone ??
-              null,
-          }}
-          engine={ctx.outreach_engine}
-          smartleadPreview={ctx.smartlead_preview}
-          onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (payload) => {
-            try {
-              await action("schedule_sequence", payload);
-              setShowPreFlight(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showPreFlight && cadenceKey !== "provider" && (
-        <PreFlightReviewModal
-          stakeholderType={cadenceKey}
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          contacts={ctx.contacts}
-          onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (snapshots) => {
-            try {
-              await action("schedule_sequence", { email_snapshots: snapshots });
-              setShowPreFlight(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showCallForEmail && (
-        <CallForEmailModal
-          organizationName={ctx.outreach.organization_name}
-          phone={generalContactPhone}
-          action={action}
-          onCancel={() => setShowCallForEmail(false)}
-          onDone={() => setShowCallForEmail(false)}
-          setError={setError}
-        />
-      )}
     </>
   );
 }
@@ -1117,52 +742,3 @@ function closedReasonLabel(status: string): string | null {
   }
 }
 
-/**
- * v9 final: one row in the pre-flight checklist. Four states:
- *   done                 → green ✓
- *   missing + required   → red ✗ (blocks launch)
- *   missing + recommended → amber ⚠ (encouraged, doesn't block)
- *   missing + optional   → gray ○ (admin's call)
- */
-type ChecklistTone = "required" | "recommended" | "optional";
-
-function ChecklistRow({
-  done,
-  tone,
-  label,
-  hint,
-}: {
-  done: boolean;
-  tone: ChecklistTone;
-  label: string;
-  hint: string;
-}) {
-  const icon = done ? "✓" : tone === "required" ? "✗" : tone === "recommended" ? "⚠" : "○";
-  const iconClass = done
-    ? "text-primary-600"
-    : tone === "required"
-      ? "text-red-600"
-      : tone === "recommended"
-        ? "text-amber-600"
-        : "text-gray-400";
-  const badge =
-    done || tone === "required"
-      ? null
-      : tone === "recommended"
-        ? "recommended"
-        : "optional";
-  return (
-    <li className="flex items-start gap-2">
-      <span className={`shrink-0 font-semibold ${iconClass}`}>{icon}</span>
-      <div className="min-w-0 flex-1">
-        <span className="font-medium text-gray-800">{label}</span>
-        {badge && (
-          <span className="ml-1 text-[10px] uppercase tracking-wide text-gray-400">
-            {badge}
-          </span>
-        )}
-        <span className="ml-2 text-gray-500">{hint}</span>
-      </div>
-    </li>
-  );
-}

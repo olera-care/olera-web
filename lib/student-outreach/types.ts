@@ -157,7 +157,44 @@ export interface ResearchData {
     city?: string | null;
     state?: string | null;
     zip?: string | null;
+    /** v9.x research-card "Mark not available" overrides. Each flag, when
+     *  true, satisfies the matching research-card row without an actual
+     *  value (rural agency with no fax line, agency with no public
+     *  contact form). Pre-Flight Checklist rows render as resolved;
+     *  the Launch gate doesn't look at these directly (it gates on
+     *  verified-or-overridden call AND email on file). */
+    fax_unavailable?: boolean;
+    contact_form_unavailable?: boolean;
+    website_unavailable?: boolean;
+    phone_unavailable?: boolean;
+    email_unavailable?: boolean;
+    address_unavailable?: boolean;
   };
+  /** v9.x single Decision Maker slot — the named person on the team admin
+   *  identified as the right recipient (owner, hiring manager, etc.). Stored
+   *  here (not in `student_outreach_contacts`) so the Pre-Flight UI surfaces
+   *  ONE prominent slot instead of a multi-contact hierarchy. Existing rows
+   *  with `student_outreach_contacts` entries remain readable as a legacy
+   *  section in the Research Card; new edits write here. The Smartlead fan-out
+   *  emails General Contact + Decision Maker (max 2 leads per row). */
+  decision_maker?: {
+    name?: string | null;
+    role?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    /** Admin marked the Decision Maker as not findable after reasonable
+     *  effort. Counts as resolved on the Research Card; the row launches
+     *  with the General Contact lead only. */
+    unavailable?: boolean;
+  };
+  /** v9.x admin bypass of the Pre-Flight verification gate. Set by the
+   *  "Override Pre-Flight" outcome in the call log modal — for cases
+   *  where the prospect was already verified elsewhere, came from a
+   *  trusted source, or a leadership exception. Launch Outreach unlocks
+   *  when (pre_flight_overridden OR verified-by-call) AND email-on-file.
+   *  Audit trail: each override emits a note_added touchpoint with
+   *  payload.reason = "pre_flight_override". */
+  pre_flight_overridden?: boolean;
   /** v9.x Smartlead bridge linkage (cold-email engine). Set when the row's
    *  General Contact (and any Named Contacts) are enrolled into its campus
    *  Smartlead campaign. JSONB on research_data — no schema migration. The
@@ -564,21 +601,13 @@ export interface DrawerContext {
   >;
 
   /**
-   * v9.x cold-email engine — drives the Smartlead-native preview in
-   * ProviderPreFlightModal. Resolved server-side from
-   * MEDJOBS_OUTREACH_ENGINE (same source of truth as the route.ts
-   * schedule_sequence engine branch), so the UI matches what the server
-   * will actually do at launch. Defaults to "resend".
-   */
-  outreach_engine: "resend" | "smartlead";
-
-  /**
-   * v9.x Smartlead preview — present only when outreach_engine ===
-   * "smartlead" and the row is a provider with at least one usable
-   * recipient. Precomputed server-side so the modal renders WHAT WILL BE
-   * SENT (per-recipient salutations, Smartlead-rendered HTML bodies with
-   * sample substitutions, Day 0/3/7 schedule, sender pool) without
-   * bundling lib/smartlead into the client.
+   * Smartlead-native preview — what the server will actually send when
+   * admin clicks Launch. Precomputed server-side so the modal renders
+   * recipient roster + rendered body + schedule + sender pool without
+   * bundling `lib/smartlead.ts` into the client. Null only when the row
+   * has no usable recipient (no General Contact email and no Named
+   * Contacts with emails) — the pre-flight checklist gates this before
+   * Launch is reachable.
    */
   smartlead_preview: SmartleadPreviewSnapshot | null;
 }

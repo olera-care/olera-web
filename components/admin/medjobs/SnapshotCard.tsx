@@ -44,9 +44,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
+import type { VerificationState } from "@/lib/student-outreach/verification-state";
+import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
+import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
 type ActionFn = (
   actionName: string,
@@ -57,9 +62,28 @@ interface Props {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
+  /** v9.x Phase 2b: when mounted prominently pre-launch the drawer
+   *  body passes the derived verification state so the Research Card
+   *  can carry the Pre-Flight status indicator. Omitted post-launch
+   *  (Snapshot lives inside More Details there). */
+  verificationState?: VerificationState;
+  /** v9.x Phase 2c: Pre-Flight launch gating + persistence hook so the
+   *  Research Card footer can host Visit Website / Call to Confirm /
+   *  Launch Outreach. Omitted post-launch — the footer hides. */
+  launchEnabled?: boolean;
+  launchDisabledReason?: string;
+  beforeLaunch?: () => Promise<void>;
 }
 
-export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
+export function ProviderSnapshotCard({
+  ctx,
+  action,
+  setError,
+  verificationState,
+  launchEnabled,
+  launchDisabledReason,
+  beforeLaunch,
+}: Props) {
   const { outreach, provider_business_profile: bp } = ctx;
   const orgName = bp?.display_name || outreach.organization_name;
   const address = bp?.address || null;
@@ -114,6 +138,44 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
   );
   const showContactFormBanner = hasContactFormUrl && !lastContactFormTp;
 
+  // v9.x Research progress — passive indicator. 7 fields counted: each
+  // is resolved if filled OR marked unavailable OR (for Decision Maker)
+  // has name/email/phone OR unavailable. Same predicate set Phase 0a
+  // landed in NextStepCard; surfaced here too so the Research Card
+  // can stand alone as the Pre-Flight surface once Phase 2e removes
+  // the NextStepCard checklist.
+  const gc = outreach.research_data?.general_contact ?? {};
+  const bpRow = bp;
+  const _effWebsite = gc.website !== undefined ? gc.website : bpRow?.website ?? null;
+  const _effPhone = gc.phone !== undefined ? gc.phone : bpRow?.phone ?? null;
+  const _effEmail = gc.email !== undefined ? gc.email : bpRow?.email ?? null;
+  const _effStreet =
+    gc.street !== undefined ? gc.street ?? "" : bpRow?.address ?? "";
+  const _effCity = gc.city !== undefined ? gc.city ?? "" : bpRow?.city ?? "";
+  const _effState = gc.state !== undefined ? gc.state ?? "" : bpRow?.state ?? "";
+  const _effZip = gc.zip ?? bpRow?.zip ?? "";
+  const _addressComplete = Boolean(
+    _effStreet?.trim() &&
+      _effCity?.trim() &&
+      _effState?.trim() &&
+      /^\d{5}(?:-\d{4})?$/.test(_effZip?.trim() ?? ""),
+  );
+  const dm = outreach.research_data?.decision_maker ?? {};
+  const _hasDecisionMaker =
+    Boolean(dm.email?.trim() || dm.phone?.trim() || dm.name?.trim()) ||
+    dm.unavailable === true;
+  const _researchFields = [
+    Boolean(_effWebsite?.trim()) || gc.website_unavailable === true,
+    Boolean(_effPhone?.trim()) || gc.phone_unavailable === true,
+    Boolean(_effEmail?.trim()) || gc.email_unavailable === true,
+    _addressComplete || gc.address_unavailable === true,
+    Boolean(gc.fax?.trim()) || gc.fax_unavailable === true,
+    Boolean(gc.contact_form_url?.trim()) || gc.contact_form_unavailable === true,
+    _hasDecisionMaker,
+  ];
+  const researchFilled = _researchFields.filter(Boolean).length;
+  const researchTotal = _researchFields.length;
+
   return (
     <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">
       <header className="flex items-start justify-between gap-3">
@@ -125,17 +187,36 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
             {orgName}
           </h3>
         </div>
-        {livePagePath && (
-          <a
-            href={livePagePath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-xs font-medium text-primary-700 hover:underline"
-          >
-            🔗 Open live page →
-          </a>
-        )}
+        <div className="flex shrink-0 items-center gap-3 text-xs">
+          {isPreLaunch && (
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-700">
+              Research: <strong className="tabular-nums">{researchFilled} of {researchTotal}</strong>
+            </span>
+          )}
+          {livePagePath && (
+            <a
+              href={livePagePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary-700 hover:underline"
+            >
+              🔗 Open live page →
+            </a>
+          )}
+        </div>
       </header>
+
+      {/* ── 0. Business Name ───────────────────────────────────────
+          Editable canonical name. Materialized from business_profiles
+          but the directory data can be stale; admin needs to fix it
+          during pre-flight so outreach + Smartlead campaign carry
+          the right brand. */}
+      <BusinessNameSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        editable={isPreLaunch}
+      />
 
       {/* ── 1. General Contact ─────────────────────────────────────
           Organization-level fallback contact info (front desk /
@@ -153,12 +234,14 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         }
       />
 
-      {/* Contact-form banner is mounted by NextStepCard pre-launch
-          where it gates the Launch button. Post-launch (after the
-          cadence is in motion), if a URL is added later or never
-          resolved, the banner appears here under the General Contact
-          section so admin still has the prompt. */}
-      {showContactFormBanner && !isPreLaunch && (
+      {/* v9.x Phase 2d: contact-form banner lives directly under
+          the General Contact section (whose final row is the
+          Contact Form URL field) so the decision sits next to the
+          field that triggered it. Renders pre-launch AND post-
+          launch — whenever a URL is on file and no
+          contact_form_submitted touchpoint exists yet. Hides the
+          moment any outcome lands. */}
+      {showContactFormBanner && (
         <ContactFormBanner
           url={
             outreach.research_data?.general_contact?.contact_form_url ?? ""
@@ -178,20 +261,30 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
         />
       )}
 
-      {/* ── 2. Specific Contacts ────────────────────────────────────
-          Named individuals only (owner / hiring manager / etc.).
-          No "General Office" tag — that lives at the General
-          Contact section above. */}
-      <div>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Specific Contacts
-        </p>
+      {/* ── 2. Decision Maker ───────────────────────────────────────
+          v9.x single-slot named recipient. Replaces the multi-contact
+          UI for new rows. Stored in research_data.decision_maker;
+          surfaces in the Smartlead fan-out as the named recipient
+          alongside the General Contact. */}
+      <DecisionMakerSection
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        editable={isPreLaunch}
+      />
 
-        {ctx.contacts.length === 0 ? (
-          <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
-            No named contacts yet. Add specific people here if you find them.
+      {/* ── 3. Legacy Specific Contacts ─────────────────────────────
+          Pre-v9.x multi-contact data. Read-only display so existing
+          rows don't lose data; new edits write to the Decision Maker
+          slot above. Hidden when no legacy contacts exist on the row. */}
+      {ctx.contacts.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            Legacy contacts
+            <span className="ml-2 text-[10px] font-normal normal-case text-gray-400">
+              read-only · pre-Decision Maker data
+            </span>
           </p>
-        ) : (
           <ul className="space-y-2">
             {[...activeContacts, ...inactiveContacts].map((c) => (
               <li key={c.id}>
@@ -199,25 +292,28 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
                   contact={c}
                   action={action}
                   setError={setError}
-                  editable={isPreLaunch}
+                  editable={false}
                   hasCadenceWork={contactHasCadenceWork(c.id, ctx)}
                   isPostLaunch={!isPreLaunch}
                 />
               </li>
             ))}
           </ul>
-        )}
+        </div>
+      )}
 
-        {isPreLaunch && (
-          <AddContactInline
-            orgName={orgName}
-            action={action}
-            setError={setError}
-          />
-        )}
-      </div>
+      {/* ── 4. Verification ───────────────────────────────────────
+          v9.x Phase 2b: passive Pre-Flight status indicator. The
+          call modal still drives the actual unlock — this section
+          mirrors the resulting state so admin sees whether Launch
+          will fire without scrolling back to the Next Step card.
+          Pre-launch only; post-launch the status no longer matters
+          (outreach is in flight). */}
+      {verificationState && (
+        <VerificationSection state={verificationState} />
+      )}
 
-      {/* ── 3. Research notes ─────────────────────────────────────── */}
+      {/* ── 5. Research notes ─────────────────────────────────────── */}
       <div>
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           Research notes
@@ -235,6 +331,26 @@ export function ProviderSnapshotCard({ ctx, action, setError }: Props) {
           {savingNotes ? "Saving…" : "Saved on blur"}
         </p>
       </div>
+
+      {/* ── 6. Pre-Flight action footer ────────────────────────────
+          v9.x Phase 2c: action affordances live inside the Research
+          Card so admin can finish Pre-Flight without leaving the
+          card. Visit Website opens the provider site for research;
+          Call to Confirm opens the Pre-Flight outcome modal;
+          Launch Outreach kicks off the cadence. Pre-launch only —
+          the footer collapses post-launch when the Snapshot moves
+          into More Details. */}
+      {isPreLaunch && verificationState && (
+        <ResearchActionFooter
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          verificationState={verificationState}
+          launchEnabled={launchEnabled ?? false}
+          launchDisabledReason={launchDisabledReason}
+          beforeLaunch={beforeLaunch}
+        />
+      )}
     </section>
   );
 }
@@ -329,16 +445,27 @@ function GeneralContactSection({
   // admin sees "Saving…" → "Saved" feedback after every blur. The
   // earlier autosave was silent except for tiny per-field text.
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  // Per-row "Find X" lookup state (auto-fetch email / contact-form URL).
-  // Feedback is INLINE (under the field) — never the drawer-level setError,
-  // which blanks the whole panel. `finding` = which lookup is in flight;
-  // `findNote` = per-field calm result; `pulse*` = brief success flash.
-  const [finding, setFinding] = useState<null | "email" | "contact_form" | "both">(null);
+
+  // v9.x Find-from-website enrichment (TJ). Per-row "Find email" /
+  // "Find contact form" buttons + a header "✦ Auto-fill from website"
+  // pill that hit /api/admin/medjobs/enrich-contact (read-only website
+  // scrape + Perplexity fallback). Feedback stays INLINE under each
+  // field — never the drawer-level setError, which blanks the panel.
+  // v9.x Fill-from-Website state. `finding` tracks the in-flight mode;
+  // `findNote` carries per-field miss/error feedback; the `pulse*` flags
+  // briefly flash a primary ring on the input that just got auto-filled.
+  // Mode "all" runs every finder in parallel via the route's "all" mode.
+  type FindField = "email" | "contact_form" | "phone" | "fax" | "address";
+  type FindMode = FindField | "both" | "all";
+  const [finding, setFinding] = useState<null | FindMode>(null);
   const [findNote, setFindNote] = useState<
-    Partial<Record<"email" | "contact_form", { kind: "miss" | "error"; text: string }>>
+    Partial<Record<FindField, { kind: "miss" | "error"; text: string }>>
   >({});
   const [pulseEmail, setPulseEmail] = useState(false);
   const [pulseForm, setPulseForm] = useState(false);
+  const [pulsePhone, setPulsePhone] = useState(false);
+  const [pulseFax, setPulseFax] = useState(false);
+  const [pulseAddress, setPulseAddress] = useState(false);
 
   useEffect(() => {
     setEmail(effective.email);
@@ -371,6 +498,36 @@ function GeneralContactSection({
     [street, [city, stateField].filter(Boolean).join(", "), zip]
       .filter((s) => s && s.trim())
       .join(" · ");
+
+  const gcOverrides = ctx.outreach.research_data?.general_contact ?? {};
+  const faxUnavailable = gcOverrides.fax_unavailable === true;
+  const contactFormUnavailable = gcOverrides.contact_form_unavailable === true;
+  const websiteUnavailable = gcOverrides.website_unavailable === true;
+  const phoneUnavailable = gcOverrides.phone_unavailable === true;
+  const emailUnavailable = gcOverrides.email_unavailable === true;
+  const addressUnavailable = gcOverrides.address_unavailable === true;
+
+  const toggleUnavailable = async (
+    field:
+      | "fax_unavailable"
+      | "contact_form_unavailable"
+      | "website_unavailable"
+      | "phone_unavailable"
+      | "email_unavailable"
+      | "address_unavailable",
+    next: boolean,
+  ) => {
+    setSaving(field);
+    setError(null);
+    try {
+      await action("update_general_contact", { [field]: next });
+      setSavedAt(Date.now());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update field");
+    } finally {
+      setSaving(null);
+    }
+  };
 
   const saveField = async (
     field:
@@ -419,43 +576,111 @@ function GeneralContactSection({
     }
   };
 
-  const note = (field: "email" | "contact_form", n: { kind: "miss" | "error"; text: string } | null) =>
-    setFindNote((prev) => ({ ...prev, [field]: n ?? undefined }));
-  const flash = (field: "email" | "contact_form") => {
-    const set = field === "email" ? setPulseEmail : setPulseForm;
+  // v9.x Find-from-website enrichment helpers. The route's "all" mode
+  // returns every finder's result in parallel; the apply* helpers
+  // each handle one field's success/miss path (fill + save + flash on
+  // hit, calm note on miss).
+  const setNoteFor = (
+    field: FindField,
+    n: { kind: "miss" | "error"; text: string } | null,
+  ) => setFindNote((prev) => ({ ...prev, [field]: n ?? undefined }));
+  const flash = (field: FindField) => {
+    const set =
+      field === "email"
+        ? setPulseEmail
+        : field === "contact_form"
+          ? setPulseForm
+          : field === "phone"
+            ? setPulsePhone
+            : field === "fax"
+              ? setPulseFax
+              : setPulseAddress;
     set(true);
     setTimeout(() => set(false), 1200);
   };
-
-  // Apply one finder result: fill + save + flash on a hit; calm note on a miss.
   const applyEmail = async (value: string | null) => {
     if (value) {
       setEmail(value);
-      note("email", null);
+      setNoteFor("email", null);
       flash("email");
       await saveField("email", value);
     } else {
-      note("email", { kind: "miss", text: "No email on the site." });
+      setNoteFor("email", { kind: "miss", text: "No email on the site." });
     }
   };
   const applyForm = async (value: string | null) => {
     if (value) {
       setContactFormUrl(value);
-      note("contact_form", null);
+      setNoteFor("contact_form", null);
       flash("contact_form");
       await saveField("contact_form_url", value);
     } else {
-      note("contact_form", { kind: "miss", text: "No contact form on the site." });
+      setNoteFor("contact_form", { kind: "miss", text: "No contact form on the site." });
     }
   };
-
-  // Auto-fetch a missing email / contact-form URL (or both), then persist
-  // through the same saveField path the inline edits use. Read-only server
-  // lookup — no CRM action. Feedback stays inline (never blanks the drawer).
-  const findContact = async (mode: "email" | "contact_form" | "both") => {
+  const applyPhone = async (value: string | null) => {
+    if (value) {
+      setPhone(value);
+      setNoteFor("phone", null);
+      flash("phone");
+      await saveField("phone", value);
+    } else {
+      setNoteFor("phone", { kind: "miss", text: "No phone on the site." });
+    }
+  };
+  const applyFax = async (value: string | null) => {
+    if (value) {
+      setFax(value);
+      setNoteFor("fax", null);
+      flash("fax");
+      await saveField("fax", value);
+    } else {
+      setNoteFor("fax", { kind: "miss", text: "No fax on the site." });
+    }
+  };
+  // Address is multi-part: each component saves independently so admin can
+  // edit any incorrect part without re-typing the rest. A hit means at
+  // least one part came back; we apply whatever we have.
+  const applyAddress = async (parts: {
+    street: string | null;
+    city: string | null;
+    state: string | null;
+    zip: string | null;
+  }) => {
+    const { street: s, city: c, state: st, zip: z } = parts;
+    if (s || c || st || z) {
+      setNoteFor("address", null);
+      flash("address");
+      if (s) {
+        setStreet(s);
+        await saveField("street", s);
+      }
+      if (c) {
+        setCity(c);
+        await saveField("city", c);
+      }
+      if (st) {
+        setStateField(st);
+        await saveField("state", st);
+      }
+      if (z) {
+        setZip(z);
+        await saveField("zip", z);
+      }
+    } else {
+      setNoteFor("address", { kind: "miss", text: "No address on the site." });
+    }
+  };
+  const findContact = async (mode: FindMode) => {
     setFinding(mode);
-    if (mode !== "contact_form") note("email", null);
-    if (mode !== "email") note("contact_form", null);
+    // Clear stale notes for any field this lookup will touch.
+    const touched: FindField[] =
+      mode === "all"
+        ? ["email", "contact_form", "phone", "fax", "address"]
+        : mode === "both"
+          ? ["email", "contact_form"]
+          : [mode];
+    for (const f of touched) setNoteFor(f, null);
     try {
       const res = await fetch("/api/admin/medjobs/enrich-contact", {
         method: "POST",
@@ -466,32 +691,79 @@ function GeneralContactSection({
         value?: string | null;
         email?: { value: string | null };
         contactForm?: { value: string | null };
+        phone?: { value: string | null };
+        fax?: { value: string | null };
+        address?: {
+          street: string | null;
+          city: string | null;
+          state: string | null;
+          zip: string | null;
+        };
+        // Single-field address responses come back flat.
+        street?: string | null;
+        city?: string | null;
+        state?: string | null;
+        zip?: string | null;
         error?: string;
       };
       if (!res.ok) throw new Error(data.error || "Lookup failed");
-      if (mode === "both") {
+      if (mode === "all") {
+        await applyEmail(data.email?.value ?? null);
+        await applyForm(data.contactForm?.value ?? null);
+        await applyPhone(data.phone?.value ?? null);
+        await applyFax(data.fax?.value ?? null);
+        await applyAddress({
+          street: data.address?.street ?? null,
+          city: data.address?.city ?? null,
+          state: data.address?.state ?? null,
+          zip: data.address?.zip ?? null,
+        });
+      } else if (mode === "both") {
         await applyEmail(data.email?.value ?? null);
         await applyForm(data.contactForm?.value ?? null);
       } else if (mode === "email") {
         await applyEmail(data.value ?? null);
-      } else {
+      } else if (mode === "contact_form") {
         await applyForm(data.value ?? null);
+      } else if (mode === "phone") {
+        await applyPhone(data.value ?? null);
+      } else if (mode === "fax") {
+        await applyFax(data.value ?? null);
+      } else if (mode === "address") {
+        await applyAddress({
+          street: data.street ?? null,
+          city: data.city ?? null,
+          state: data.state ?? null,
+          zip: data.zip ?? null,
+        });
       }
     } catch (e) {
       const text = e instanceof Error ? e.message : "Lookup failed";
-      if (mode !== "contact_form") note("email", { kind: "error", text });
-      if (mode !== "email") note("contact_form", { kind: "error", text });
+      for (const f of touched) setNoteFor(f, { kind: "error", text });
     } finally {
       setFinding(null);
     }
   };
-
   const websiteHref = website
     ? website.startsWith("http")
       ? website
       : `https://${website}`
     : null;
-  const showAutofill = editable && Boolean(website) && (!email || !contactFormUrl);
+  // Show the header "Auto-fill from website" pill when there's a website
+  // AND at least one fillable field is missing (and not explicitly marked
+  // unavailable — admin already made a decision there). Now covers every
+  // field the route's "all" mode can fill: email, contact_form, phone,
+  // fax, address.
+  const showAutofill =
+    editable &&
+    Boolean(website) &&
+    (
+      (!email && !emailUnavailable) ||
+      (!contactFormUrl && !contactFormUnavailable) ||
+      (!phone && !phoneUnavailable) ||
+      (!fax && !faxUnavailable) ||
+      (!addressComplete && !addressUnavailable)
+    );
 
   return (
     <div>
@@ -503,16 +775,16 @@ function GeneralContactSection({
           {showAutofill && (
             <button
               type="button"
-              onClick={() => findContact("both")}
+              onClick={() => findContact("all")}
               disabled={finding !== null}
               className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-700 transition-colors hover:bg-primary-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {finding === "both" ? (
+              {finding === "all" ? (
                 <>
                   <Spinner /> Searching…
                 </>
               ) : (
-                <>✦ Auto-fill from website</>
+                <>✦ Fill from Website</>
               )}
             </button>
           )}
@@ -520,127 +792,35 @@ function GeneralContactSection({
         </div>
       </div>
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow checked={addressComplete} label="Address">
-          {/* v9 final: structured address — separate slots so admin
-              fixes one field without re-typing the whole line.
-              Effective values fall back to bp.address / bp.city /
-              bp.state; ZIP has no bp fallback. Single-line render
-              when read-only. */}
+        <CoverageRow
+          checked={Boolean(website) || websiteUnavailable}
+          label="Website"
+        >
           {editable ? (
             <div className="space-y-1">
               <Input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                onBlur={() => saveField("street", street)}
-                placeholder="Street + suite"
+                type="url"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                onBlur={() => saveField("website", website)}
+                placeholder="https://agency.com"
+                disabled={websiteUnavailable}
                 size="sm"
               />
-              <div className="grid grid-cols-[1fr_56px_88px] gap-1">
-                <Input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  onBlur={() => saveField("city", city)}
-                  placeholder="City"
-                  size="sm"
-                />
-                <Input
-                  type="text"
-                  value={stateField}
-                  onChange={(e) => setStateField(e.target.value.toUpperCase())}
-                  onBlur={() => saveField("state", stateField)}
-                  placeholder="ST"
-                  maxLength={2}
-                  size="sm"
-                  className="uppercase"
-                />
-                <Input
-                  type="text"
-                  value={zip}
-                  onChange={(e) => setZip(e.target.value)}
-                  onBlur={() => saveField("zip", zip)}
-                  placeholder="ZIP"
-                  size="sm"
-                />
-              </div>
-              {!addressComplete && (
-                <p className="text-[10px] text-gray-500">
-                  {!hasZip
-                    ? "Add ZIP — required for snail mail."
-                    : "Fill all four fields for snail mail."}
-                </p>
-              )}
-            </div>
-          ) : composedAddress ? (
-            <span className="block truncate text-gray-700">
-              {composedAddress}
-            </span>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(phone)} label="Phone">
-          {editable ? (
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onBlur={() => saveField("phone", phone)}
-              placeholder="(555) 123-4567"
-              size="sm"
-            />
-          ) : phone ? (
-            <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
-              {phone}
-            </a>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(email)} label="Email">
-          {editable ? (
-            <div className="space-y-1.5">
-              <div
-                className={`rounded-lg transition-shadow duration-700 ${
-                  pulseEmail ? "ring-2 ring-primary-400" : "ring-0"
-                }`}
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable("website_unavailable", !websiteUnavailable)
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
               >
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onBlur={() => saveField("email", email)}
-                  placeholder="info@agency.com"
-                  size="sm"
-                />
-              </div>
-              <FindRow
-                showButton={!email}
-                label="Find email"
-                busy={finding === "email" || finding === "both"}
-                disabled={finding !== null}
-                onClick={() => findContact("email")}
-                note={findNote.email}
-                websiteHref={websiteHref}
-              />
+                {websiteUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
             </div>
-          ) : (
-            <span className="block truncate text-gray-700">
-              {email || <span className="text-gray-400">Not on file</span>}
-            </span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(website)} label="Website">
-          {editable ? (
-            <Input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              onBlur={() => saveField("website", website)}
-              placeholder="https://agency.com"
-              size="sm"
-            />
+          ) : websiteUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : website ? (
             <a
               href={website.startsWith("http") ? website : `https://${website}`}
@@ -654,7 +834,230 @@ function GeneralContactSection({
             <span className="text-gray-400">Not on file</span>
           )}
         </CoverageRow>
-        <CoverageRow checked={Boolean(contactFormUrl)} label="Contact form">
+        <CoverageRow
+          checked={Boolean(phone) || phoneUnavailable}
+          label="Phone"
+        >
+          {editable ? (
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulsePhone ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onBlur={() => saveField("phone", phone)}
+                  placeholder="(555) 123-4567"
+                  disabled={phoneUnavailable}
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!phone && !phoneUnavailable}
+                label="Find phone"
+                busy={finding === "phone" || finding === "all"}
+                disabled={finding !== null}
+                onClick={() => findContact("phone")}
+                note={findNote.phone}
+                websiteHref={websiteHref}
+              />
+              <button
+                type="button"
+                onClick={() => toggleUnavailable("phone_unavailable", !phoneUnavailable)}
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {phoneUnavailable ? "Revert (mark available)" : "Mark not available"}
+              </button>
+            </div>
+          ) : phoneUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
+          ) : phone ? (
+            <a href={`tel:${phone}`} className="block truncate text-primary-700 hover:underline">
+              {phone}
+            </a>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow
+          checked={Boolean(email) || emailUnavailable}
+          label="Email"
+        >
+          {editable ? (
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseEmail ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => saveField("email", email)}
+                  placeholder="info@agency.com"
+                  disabled={emailUnavailable}
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!email && !emailUnavailable}
+                label="Find email"
+                busy={finding === "email" || finding === "both"}
+                disabled={finding !== null}
+                onClick={() => findContact("email")}
+                note={findNote.email}
+                websiteHref={websiteHref}
+              />
+              <button
+                type="button"
+                onClick={() => toggleUnavailable("email_unavailable", !emailUnavailable)}
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {emailUnavailable ? "Revert (mark available)" : "Mark not available"}
+              </button>
+            </div>
+          ) : emailUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
+          ) : (
+            <span className="block truncate text-gray-700">
+              {email || <span className="text-gray-400">Not on file</span>}
+            </span>
+          )}
+        </CoverageRow>
+        <CoverageRow
+          checked={addressComplete || addressUnavailable}
+          label="Address"
+        >
+          {editable ? (
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseAddress ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="text"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  onBlur={() => saveField("street", street)}
+                  placeholder="Street + suite"
+                  disabled={addressUnavailable}
+                  size="sm"
+                />
+                <div className="mt-1 grid grid-cols-[1fr_56px_88px] gap-1">
+                  <Input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    onBlur={() => saveField("city", city)}
+                    placeholder="City"
+                    disabled={addressUnavailable}
+                    size="sm"
+                  />
+                  <Input
+                    type="text"
+                    value={stateField}
+                    onChange={(e) => setStateField(e.target.value.toUpperCase())}
+                    onBlur={() => saveField("state", stateField)}
+                    placeholder="ST"
+                    maxLength={2}
+                    disabled={addressUnavailable}
+                    size="sm"
+                    className="uppercase"
+                  />
+                  <Input
+                    type="text"
+                    value={zip}
+                    onChange={(e) => setZip(e.target.value)}
+                    onBlur={() => saveField("zip", zip)}
+                    placeholder="ZIP"
+                    disabled={addressUnavailable}
+                    size="sm"
+                  />
+                </div>
+              </div>
+              <FindRow
+                showButton={!addressComplete && !addressUnavailable}
+                label="Find address"
+                busy={finding === "address" || finding === "all"}
+                disabled={finding !== null}
+                onClick={() => findContact("address")}
+                note={findNote.address}
+                websiteHref={websiteHref}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable("address_unavailable", !addressUnavailable)
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {addressUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
+            </div>
+          ) : addressUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
+          ) : composedAddress ? (
+            <span className="block truncate text-gray-700">
+              {composedAddress}
+            </span>
+          ) : (
+            <span className="text-gray-400">Not on file</span>
+          )}
+        </CoverageRow>
+        <CoverageRow checked={Boolean(fax) || faxUnavailable} label="Fax">
+          {editable ? (
+            <div className="space-y-1.5">
+              <div
+                className={`rounded-lg transition-shadow duration-700 ${
+                  pulseFax ? "ring-2 ring-primary-400" : "ring-0"
+                }`}
+              >
+                <Input
+                  type="tel"
+                  value={fax}
+                  onChange={(e) => setFax(e.target.value)}
+                  onBlur={() => saveField("fax", fax)}
+                  placeholder="(555) 123-9999"
+                  disabled={faxUnavailable}
+                  size="sm"
+                />
+              </div>
+              <FindRow
+                showButton={!fax && !faxUnavailable}
+                label="Find fax"
+                busy={finding === "fax" || finding === "all"}
+                disabled={finding !== null}
+                onClick={() => findContact("fax")}
+                note={findNote.fax}
+                websiteHref={websiteHref}
+              />
+              <button
+                type="button"
+                onClick={() => toggleUnavailable("fax_unavailable", !faxUnavailable)}
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {faxUnavailable ? "Revert (mark available)" : "Mark not available"}
+              </button>
+            </div>
+          ) : faxUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
+          ) : (
+            <span className="block truncate text-gray-700">
+              {fax || <span className="text-gray-400">Not on file · coming soon</span>}
+            </span>
+          )}
+        </CoverageRow>
+        <CoverageRow
+          checked={Boolean(contactFormUrl) || contactFormUnavailable}
+          label="Contact form"
+        >
           {editable ? (
             <div className="space-y-1.5">
               <div
@@ -668,11 +1071,12 @@ function GeneralContactSection({
                   onChange={(e) => setContactFormUrl(e.target.value)}
                   onBlur={() => saveField("contact_form_url", contactFormUrl)}
                   placeholder="https://agency.com/contact"
+                  disabled={contactFormUnavailable}
                   size="sm"
                 />
               </div>
               <FindRow
-                showButton={!contactFormUrl}
+                showButton={!contactFormUrl && !contactFormUnavailable}
                 label="Find contact form"
                 busy={finding === "contact_form" || finding === "both"}
                 disabled={finding !== null}
@@ -680,7 +1084,23 @@ function GeneralContactSection({
                 note={findNote.contact_form}
                 websiteHref={websiteHref}
               />
+              <button
+                type="button"
+                onClick={() =>
+                  toggleUnavailable(
+                    "contact_form_unavailable",
+                    !contactFormUnavailable,
+                  )
+                }
+                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
+              >
+                {contactFormUnavailable
+                  ? "Revert (mark available)"
+                  : "Mark not available"}
+              </button>
             </div>
+          ) : contactFormUnavailable ? (
+            <span className="text-gray-500">Marked not available</span>
           ) : contactFormUrl ? (
             <div className="flex flex-wrap items-center gap-2">
               <a
@@ -708,22 +1128,6 @@ function GeneralContactSection({
             </div>
           ) : (
             <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
-        <CoverageRow checked={Boolean(fax)} label="Fax">
-          {editable ? (
-            <Input
-              type="tel"
-              value={fax}
-              onChange={(e) => setFax(e.target.value)}
-              onBlur={() => saveField("fax", fax)}
-              placeholder="(555) 123-9999"
-              size="sm"
-            />
-          ) : (
-            <span className="block truncate text-gray-700">
-              {fax || <span className="text-gray-400">Not on file · coming soon</span>}
-            </span>
           )}
         </CoverageRow>
       </dl>
@@ -767,85 +1171,509 @@ function SaveStatusBadge({
   return null;
 }
 
-/** Calm inline spinner for the in-flight "searching the site" state. */
-function Spinner() {
+// ── Business Name section ──────────────────────────────────────────────
+
+/**
+ * v9.x editable canonical Business Name. Sits at the top of the Research
+ * Card. Directory data (business_profiles.display_name) can be stale or
+ * wrong; admin needs to correct it during pre-flight so outreach,
+ * snapshots, and the Smartlead campaign carry the right brand.
+ */
+function BusinessNameSection({
+  ctx,
+  action,
+  setError,
+  editable,
+}: {
+  ctx: DrawerContext;
+  action: (
+    actionName: string,
+    payload?: Record<string, unknown>,
+  ) => Promise<DrawerContext>;
+  setError: (msg: string | null) => void;
+  editable: boolean;
+}) {
+  const [name, setName] = useState(ctx.outreach.organization_name);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(ctx.outreach.organization_name);
+  }, [ctx.outreach.organization_name]);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === ctx.outreach.organization_name) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await action("update_organization_name", { organization_name: trimmed });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save business name");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <svg
-      className="h-3 w-3 animate-spin text-primary-600"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Business Name
+        </p>
+        {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
+      </div>
+      {editable ? (
+        <Input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={save}
+          placeholder="Provider business name"
+          size="sm"
+        />
+      ) : (
+        <p className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900">
+          {ctx.outreach.organization_name}
+        </p>
+      )}
+    </div>
   );
 }
 
+// ── Decision Maker section ─────────────────────────────────────────────
+
 /**
- * Inline find affordance under an empty General Contact field. Shows one of:
- * an in-flight "searching" state, a soft "✦ Find X" pill, or a calm result
- * note (a miss offers "Open website ↗" so the operator can look manually).
- * Feedback never leaves this row — the drawer body stays put.
+ * v9.x single-slot Decision Maker. Replaces multi-contact UX for new rows.
+ * Stored in `research_data.decision_maker`. The Smartlead bridge emails
+ * General Contact + Decision Maker (max 2 leads per row).
+ *
+ * "Mark not available" satisfies the Research Card row when the admin
+ * couldn't identify a decision maker after research + the call to confirm
+ * gate. The row launches with the General Contact lead only.
  */
-function FindRow({
-  showButton,
-  label,
-  busy,
-  disabled,
-  onClick,
-  note,
-  websiteHref,
+function DecisionMakerSection({
+  ctx,
+  action,
+  setError,
+  editable,
 }: {
-  showButton: boolean;
-  label: string;
-  busy: boolean;
-  disabled: boolean;
-  onClick: () => void;
-  note?: { kind: "miss" | "error"; text: string };
-  websiteHref: string | null;
+  ctx: DrawerContext;
+  action: (
+    actionName: string,
+    payload?: Record<string, unknown>,
+  ) => Promise<DrawerContext>;
+  setError: (msg: string | null) => void;
+  editable: boolean;
 }) {
-  if (busy) {
-    return (
-      <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-        <Spinner /> Searching the site…
-      </div>
-    );
-  }
-  if (!showButton && !note) return null;
+  const dm = ctx.outreach.research_data?.decision_maker ?? {};
+  const [name, setName] = useState(dm.name ?? "");
+  const [role, setRole] = useState(dm.role ?? "");
+  const [phone, setPhone] = useState(dm.phone ?? "");
+  const [email, setEmail] = useState(dm.email ?? "");
+  const [saving, setSaving] = useState<string | null>(null);
+  const unavailable = dm.unavailable === true;
+
+  useEffect(() => {
+    setName(dm.name ?? "");
+    setRole(dm.role ?? "");
+    setPhone(dm.phone ?? "");
+    setEmail(dm.email ?? "");
+  }, [dm.name, dm.role, dm.phone, dm.email]);
+
+  const save = async (
+    field: "name" | "role" | "phone" | "email",
+    value: string,
+  ) => {
+    if ((dm[field] ?? "") === value.trim()) return;
+    setSaving(field);
+    setError(null);
+    try {
+      await action("update_decision_maker", {
+        [field]: value.trim() === "" ? null : value.trim(),
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save Decision Maker");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const toggleUnavailable = async () => {
+    setSaving("unavailable");
+    setError(null);
+    try {
+      await action("update_decision_maker", { unavailable: !unavailable });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update Decision Maker");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const hasAny =
+    Boolean(name.trim() || role.trim() || phone.trim() || email.trim()) ||
+    unavailable;
+
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      {showButton && (
-        <button
-          type="button"
-          onClick={onClick}
-          disabled={disabled}
-          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Decision Maker
+        </p>
+        {saving && (
+          <p className="text-[10px] text-gray-400">Saving {saving}…</p>
+        )}
+      </div>
+      {!editable && unavailable ? (
+        <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-xs text-gray-500">
+          Decision Maker marked not available.
+        </p>
+      ) : !editable && !hasAny ? (
+        <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-xs text-gray-500">
+          No Decision Maker on file.
+        </p>
+      ) : (
+        <div
+          className={`rounded-md border ${unavailable ? "border-gray-200 bg-gray-50" : "border-gray-200 bg-white"} px-3 py-2.5`}
         >
-          <span className="text-primary-600" aria-hidden>
-            ✦
-          </span>
-          {label}
-        </button>
-      )}
-      {note && (
-        <span className={`text-[11px] ${note.kind === "error" ? "text-red-600" : "text-gray-500"}`}>
-          {note.text}
-          {note.kind === "miss" && websiteHref && (
-            <a
-              href={websiteHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1.5 font-medium text-primary-700 hover:underline"
+          <dl className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 text-sm">
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Name
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => save("name", name)}
+                  placeholder="First Last"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : (
+                <span className="block truncate text-gray-700">
+                  {name || <span className="text-gray-400">—</span>}
+                </span>
+              )}
+            </dd>
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Role
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="text"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  onBlur={() => save("role", role)}
+                  placeholder="Owner / Hiring Manager / Administrator"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : (
+                <span className="block truncate text-gray-700">
+                  {role || <span className="text-gray-400">—</span>}
+                </span>
+              )}
+            </dd>
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Phone
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  onBlur={() => save("phone", phone)}
+                  placeholder="(555) 123-4567"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : phone ? (
+                <a
+                  href={`tel:${phone}`}
+                  className="block truncate text-primary-700 hover:underline"
+                >
+                  {phone}
+                </a>
+              ) : (
+                <span className="text-gray-400">—</span>
+              )}
+            </dd>
+            <dt className="text-[11px] uppercase tracking-wide text-gray-500">
+              Email
+            </dt>
+            <dd>
+              {editable ? (
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => save("email", email)}
+                  placeholder="name@agency.com"
+                  disabled={unavailable}
+                  size="sm"
+                />
+              ) : (
+                <span className="block truncate text-gray-700">
+                  {email || <span className="text-gray-400">—</span>}
+                </span>
+              )}
+            </dd>
+          </dl>
+          {editable && (
+            <button
+              type="button"
+              onClick={toggleUnavailable}
+              className="mt-2 text-[11px] font-medium text-gray-600 hover:text-gray-900"
             >
-              Open website ↗
-            </a>
+              {unavailable
+                ? "Revert (mark Decision Maker available)"
+                : "Mark Decision Maker not available"}
+            </button>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Verification section ───────────────────────────────────────────────
+
+/**
+ * v9.x Phase 2b: Pre-Flight status indicator inside the Research Card.
+ * Read-only — the actual unlock happens in the Pre-Flight call modal
+ * (CallForEmailModal) via log_research_call(verified) or
+ * override_pre_flight. This section just mirrors the derived state
+ * so admin can see at a glance whether Launch will fire.
+ */
+function VerificationSection({ state }: { state: VerificationState }) {
+  const tone =
+    state.status === "verified"
+      ? {
+          icon: "✓",
+          ring: "border-primary-200 bg-primary-50",
+          dot: "text-primary-700",
+          label: "text-primary-900",
+          sub: "text-primary-700",
+          heading: "Verified",
+        }
+      : state.status === "overridden"
+        ? {
+            icon: "⚠",
+            ring: "border-amber-200 bg-amber-50",
+            dot: "text-amber-700",
+            label: "text-amber-900",
+            sub: "text-amber-700",
+            heading: "Overridden",
+          }
+        : {
+            icon: "•",
+            ring: "border-gray-200 bg-gray-50",
+            dot: "text-gray-500",
+            label: "text-gray-700",
+            sub: "text-gray-500",
+            heading: "Not yet confirmed",
+          };
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        Verification
+      </p>
+      <div
+        className={`flex items-start gap-2.5 rounded-md border px-3 py-2.5 ${tone.ring}`}
+      >
+        <span aria-hidden className={`text-sm leading-5 ${tone.dot}`}>
+          {tone.icon}
         </span>
+        <div className="min-w-0">
+          <p className={`text-sm font-medium ${tone.label}`}>{tone.heading}</p>
+          <p className={`mt-0.5 text-[11px] ${tone.sub}`}>{state.label}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Pre-Flight action footer ───────────────────────────────────────────
+
+/**
+ * v9.x Phase 2c: Pre-Flight action footer rendered inside the Research
+ * Card. Owns the three operational affordances:
+ *
+ *   - Visit Website        → opens provider site (research entry point)
+ *   - Call to Confirm      → opens CallForEmailModal (pre-flight outcome)
+ *   - Launch Outreach      → opens ProviderPreFlightModal (cadence)
+ *
+ * Modals live inside this component so the Research Card is self-
+ * contained for Pre-Flight actions. Once Phase 2e removes the
+ * NextStepCard checklist, this footer is the sole entry point for
+ * these three actions.
+ */
+function ResearchActionFooter({
+  ctx,
+  action,
+  setError,
+  verificationState,
+  launchEnabled,
+  launchDisabledReason,
+  beforeLaunch,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (msg: string | null) => void;
+  verificationState: VerificationState;
+  launchEnabled: boolean;
+  launchDisabledReason?: string;
+  beforeLaunch?: () => Promise<void>;
+}) {
+  const [showPreFlight, setShowPreFlight] = useState(false);
+  const [showCallForEmail, setShowCallForEmail] = useState(false);
+
+  const generalContactSlot = ctx.outreach.research_data?.general_contact ?? {};
+  // Effective values: per-outreach override OR directory fallback. Mirrors
+  // the same precedence used in GeneralContactSection so the footer
+  // reflects whatever the admin sees in the General Contact rows above.
+  const generalContactPhone =
+    generalContactSlot.phone ?? ctx.provider_business_profile?.phone ?? null;
+  const generalContactWebsite =
+    generalContactSlot.website ??
+    ctx.provider_business_profile?.website ??
+    null;
+
+  const cadenceKey: CadenceKey =
+    ctx.outreach.kind === "provider"
+      ? "provider"
+      : (ctx.outreach.stakeholder_type ?? "student_org");
+
+  const showVisitWebsite = Boolean(generalContactWebsite);
+  const showCallToConfirm =
+    ctx.outreach.kind === "provider" && Boolean(generalContactPhone);
+
+  const launchLabel =
+    verificationState.status === "overridden"
+      ? "Launch outreach (override) →"
+      : "Launch outreach →";
+
+  return (
+    <div className="border-t border-gray-200 pt-4">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        Pre-Flight actions
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        {showVisitWebsite && generalContactWebsite && (
+          <a
+            href={
+              generalContactWebsite.startsWith("http")
+                ? generalContactWebsite
+                : `https://${generalContactWebsite}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            🌐 Visit Website
+          </a>
+        )}
+        {showCallToConfirm && (
+          <button
+            onClick={() => setShowCallForEmail(true)}
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            title="Phone the provider to verify email, phone, address, and decision maker."
+          >
+            📞 Call to Confirm
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            if (!launchEnabled) {
+              setError(
+                launchDisabledReason ??
+                  "Complete the checklist before launching.",
+              );
+              return;
+            }
+            try {
+              if (beforeLaunch) await beforeLaunch();
+              setShowPreFlight(true);
+            } catch (e) {
+              setError(
+                e instanceof Error ? e.message : "Failed to prepare launch",
+              );
+            }
+          }}
+          disabled={!launchEnabled}
+          title={
+            launchEnabled
+              ? "Open the cadence pre-flight review."
+              : launchDisabledReason
+          }
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {launchLabel}
+        </button>
+      </div>
+
+      {showPreFlight && cadenceKey === "provider" && (
+        <ProviderPreFlightModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
+          contacts={ctx.contacts}
+          generalContact={{
+            email:
+              ctx.outreach.research_data?.general_contact?.email ??
+              ctx.provider_business_profile?.email ??
+              null,
+            phone:
+              ctx.outreach.research_data?.general_contact?.phone ??
+              ctx.provider_business_profile?.phone ??
+              null,
+          }}
+          smartleadPreview={ctx.smartlead_preview}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("schedule_sequence", payload);
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showPreFlight && cadenceKey !== "provider" && (
+        <PreFlightReviewModal
+          stakeholderType={cadenceKey}
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          contacts={ctx.contacts}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (snapshots) => {
+            try {
+              await action("schedule_sequence", { email_snapshots: snapshots });
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showCallForEmail && (
+        <CallForEmailModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus?.name ?? null}
+          phone={generalContactPhone}
+          action={action}
+          onCancel={() => setShowCallForEmail(false)}
+          onDone={() => setShowCallForEmail(false)}
+          setError={setError}
+        />
       )}
     </div>
   );
@@ -1582,6 +2410,91 @@ function LabeledInput({
         onChange={(e) => onChange(e.target.value)}
         size="sm"
       />
+    </div>
+  );
+}
+
+// ── Find-from-website affordances (TJ) ─────────────────────────────────
+
+function Spinner() {
+  return (
+    <svg
+      className="h-3 w-3 animate-spin text-primary-600"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Inline find affordance under an empty General Contact field. Shows one of:
+ * an in-flight "searching" state, a soft "✦ Find X" pill, or a calm result
+ * note (a miss offers "Open website ↗" so the operator can look manually).
+ * Feedback never leaves this row — the drawer body stays put.
+ */
+function FindRow({
+  showButton,
+  label,
+  busy,
+  disabled,
+  onClick,
+  note,
+  websiteHref,
+}: {
+  showButton: boolean;
+  label: string;
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  note?: { kind: "miss" | "error"; text: string };
+  websiteHref: string | null;
+}) {
+  if (busy) {
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+        <Spinner /> Searching the site…
+      </div>
+    );
+  }
+  if (!showButton && !note) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {showButton && (
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span className="text-primary-600" aria-hidden>
+            ✦
+          </span>
+          {label}
+        </button>
+      )}
+      {note && (
+        <span className={`text-[11px] ${note.kind === "error" ? "text-red-600" : "text-gray-500"}`}>
+          {note.text}
+          {note.kind === "miss" && websiteHref && (
+            <a
+              href={websiteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1.5 font-medium text-primary-700 hover:underline"
+            >
+              Open website ↗
+            </a>
+          )}
+        </span>
+      )}
     </div>
   );
 }

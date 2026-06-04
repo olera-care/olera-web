@@ -7,6 +7,122 @@
 
 ## Current Focus
 
+### 2026-06-04 (Wed) — MedJobs MASTER PLAN drafted
+
+**Context:** Logan asked for one master plan capturing everything we've discussed across all sessions — completeness before phasing. Goal: source of truth so nothing important is lost as planning has evolved.
+
+**Drafted:** [`plans/medjobs-master-plan.md`](plans/medjobs-master-plan.md) (686 lines, 14 sections). Structured as a CATALOG that points to canonical detailed plans, NOT a re-specification. Each item carries a status tag (SHIPPED / STAGING / LOCKED / SKETCHED / GAP / DEFERRED / OUT-OF-SCOPE) so the depth disparity from v3.1 reconciliation stays visible.
+
+Sections:
+1. North star + funnel architecture
+2. Architecture summary (state model, G1-G10 discipline, outcomes map)
+3. What's already SHIPPED (Pre-Flight v9.x Research Card consolidation, Pre-Flight call modal, Decision Maker single-slot, "Mark not available" flags, Smartlead bridge PR #900, catchment correction PR #919, Find Email/Form enrichment PR #925, Connections tracker, pre-existing CRM scaffold)
+4. What's LOCKED but not built (17 sub-items from v3 plan — cadence, terminal state, magic-link journey, four-axis state, welcome page, empty-state ladder, T&C triggers + UX, pilot activation API, co-tenancy, deletion policy, pilot tier, engagement tracking, token security, Smartlead webhook expansion)
+5. CRM operational surfaces SKETCHED (in-basket tabs locked but P2.A-F at light depth — Calls 6 lines, Emails 39, Meetings 49 vs P1.E magic-link 311; plus gaps for engagement→call priority, returning-provider experience)
+6. Items requiring deeper specification (truly missing: Smartlead-inbox deep-link, Calendly cancel/reschedule, post-meeting sub-state machine, pilot-metrics dashboard, feedback collection, dormancy re-engagement, brand-consistency one-liner)
+7. Adjacent/parallel systems (student-side flow OUT, stakeholder funnel SHIPPED, multi-team-member DEFERRED, pilot continuation DEFERRED, etc.)
+8. Canonical references table
+9. Decisions log consolidated (Pre-Flight redesign + v3 13 questions + infrastructure constraints)
+10. Open items / unresolved
+11. Risks consolidated
+12. Provisional phase structure (Phase 0 Pre-Flight DONE / Phase 1 Conversion MVP LOCKED / Phase 2 Operational surfaces with strategy-depth-pass-first / Phase 3 Polish DEFERRED)
+13. Glossary
+14. Master plan status
+
+**Updated 2026-06-04 (Wed) — Phasing breakdown added to master plan** ([§12](plans/medjobs-master-plan.md#12-development-phases), 1000 total lines). Six phases plus out-of-scope, with full traceability matrix mapping every master-plan §§3-7+10.4 item to exactly one phase (or explicit OUT-OF-SCOPE).
+
+**Phase summary:**
+- **Phase 0 — Stabilize what's shipped** (~2 days, mostly waiting). QA merge/medjobs-staging-2026-06-02 → staging; Logan Smartlead signoffs; Smartlead env vars + webhook URL registration.
+- **Phase 1 — Conversion path MVP** (~23 days / ~4.5 weeks). v3 plan's 11 tickets + brand-consistency one-liner amendment. Cadence + email rewrite + pilot-tier predicate + magic-link infra + preview-mode board + T&C modal + empty-state ladder + co-tenancy + Smartlead open/click webhook + CRM stage signals + deletion guard.
+- **Phase 2 — Strategy depth pass** (~3 days, NO CODE). Three parallel passes A/B/C to deepen Calls/Emails/Meetings/Next Step/Timeline specs from concept to ticket-cuttable. Resolves §6.1/6.2/6.3 gaps. Can run parallel to Phase 1 dev.
+- **Phase 3 — Operational surface implementation** (~3-4 weeks). 7 tickets: in-basket tab rename + timeline split + Next Step branches + Emails tab + Calls tab + Meetings tab base + Calendly webhook.
+- **Phase 4 — Engagement-driven workflows** (~2 weeks). Engagement → call priority bumping + dormancy re-engagement + pilot-metrics dashboard + returning-provider experience.
+- **Phase 5 — Pilot lifecycle** (~2 weeks). Pilot expiry behavior + self-serve End-Pilot + provider feedback collection + pilot continuation (needs TJ product decision on post-pilot pricing).
+- **Phase 6 — Long-tail polish** (open-ended). Inline Smartlead reply UI / magic-token verification / provider self-serve admin / Calendly migration / multi-team-member support.
+
+**Out-of-scope (tracked separately):** student-side flow (critical: confirm minimum notification path before Phase 1 ships invites at volume); adjacent workstreams (market diagnostic, family-side, benefits, general platform).
+
+**Total to Phase 5 complete: ~10 weeks** at 1 dev. Phase 6 ongoing as demand surfaces.
+
+**Resume next session here →** Logan reviews phasing breakdown in §12 of master plan. If approved, start Phase 0 (QA the staging branch). Phase 1 ticket cutting begins after Phase 0 closes.
+
+**2026-06-04 update — going phase by phase.** Logan flagged the phasing in §12 was at "schedule depth" not "executable depth." Approach now: one detailed plan per phase, stored as `plans/medjobs-phase-N-<name>.md`, reviewed + approved sequentially. Master plan §12 stays as the index.
+
+**Updated 2026-06-04 second pass — Logan reframed into 5 build phases by feature coherence.** He pushed back on the Phase 0 detail expanding into Pre-Flight QA (already done; TJ just needs to merge the branch). New framing:
+- **Phase I (~6 wks):** Admin operational backbone (tab redesign, Calls/Emails/Meetings, new cadence, open/click tracking, Calendly webhook)
+- **Phase II+III (~3 wks):** Magic link + provider landing experience (ships to prod together)
+- **Phase IV+V (~2 wks):** Conversion gate + activation (ships to prod together)
+- **Phase VI:** Post-launch ops (deferred, after real pilot providers exist)
+- **Phase VII:** Polish + extensions (demand-driven)
+
+Phase 0 obsolete plan deleted. New phase plan files created:
+- [`plans/medjobs-phase-1-operational-backbone.md`](plans/medjobs-phase-1-operational-backbone.md) — **DETAILED** plan, 12 bullets, ~1000 lines, ready for Logan scope approval
+- [`plans/medjobs-phase-2-3-magic-link-and-landing.md`](plans/medjobs-phase-2-3-magic-link-and-landing.md) — skeleton, detail-pass before build
+- [`plans/medjobs-phase-4-5-conversion.md`](plans/medjobs-phase-4-5-conversion.md) — skeleton
+- [`plans/medjobs-phase-6-postlaunch-ops.md`](plans/medjobs-phase-6-postlaunch-ops.md) — skeleton, deferred
+- [`plans/medjobs-phase-7-polish.md`](plans/medjobs-phase-7-polish.md) — skeleton, demand-driven
+- [`plans/medjobs-known-issues.md`](plans/medjobs-known-issues.md) — empty drain log for mid-build findings
+
+**Workflow protocols locked:**
+- Plans live in the filesystem, not the conversation. Ideas captured to disk IMMEDIATELY.
+- One feature branch per phase pair. Phase 1 alone; then II+III; then IV+V; then VI; then VII.
+- Phase complete = acceptance criteria met on Vercel preview → Logan QAs → TJ merges to staging.
+- Inter-phase bug fixes: small ones patch staging directly; bigger ones roll into next phase's first commit.
+- Logan approves at scope/bullet level. No per-commit gating during build.
+- Build log section + Open Issues section maintained per phase plan as build progresses.
+- End-of-session: update SCRATCHPAD "Resume here" pointer (reanchors next session in ~5 seconds).
+- New sessions start with reading active phase plan + master plan §12.
+
+Master plan §12 rewritten as clean INDEX (phase table + workflow + traceability matrix). Old per-phase detail removed from §12 since it's now in per-phase files. New traceability matrix maps every § 3-7 item to Logan's I-V framing — no decisions lost across the four prior planning passes.
+
+**Resume next session here →** Logan reviews Phase 1 detailed plan ([`plans/medjobs-phase-1-operational-backbone.md`](plans/medjobs-phase-1-operational-backbone.md)) at scope/bullet level. If approved, Phase 0 closes (TJ merges current branch + Smartlead env vars + Logan signoffs on sender/footer/copy) THEN Phase 1 branch is cut and build starts.
+
+---
+
+### 2026-06-03 (Tue) — Post-launch outreach plan **v3 FINAL** (ready for ticket cutting)
+
+**Context:** Four feedback passes from Logan over one session (v1 → v2 → v2.1 → v2.2 → v3). v3 is the decision-locked final. All 13 questions resolved. Ready to cut MVP Implementation Phase 1 tickets 1–11 next session.
+
+**Locked decisions:** pilot framing (not trial); single terminal state `interview_terms_accepted_at` + new `pilot_active_through` field (3-month timer); magic-link click advances only auth + 2a (account-linkage), terms acceptance advances 2b (claim-status) + 3 (pilot); three actions trigger T&C (Invite + See contact + Save); T&C modal = 4 plain-language reassurance bullets + unchecked checkbox + verb-matched continue; public listing required while pilot active (backend guard blocks deletion); no welcome banner; Logan as the labeled demo candidate; read-only co-tenancy on org-already-claimed edge case; 30-day token TTL; Dr. DuBose's personal Calendly for Phase 2 webhook.
+
+**Plan v3:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md). Decisions log at top of doc lists every Q with locked answer. 16 strategic shifts (S1–S16). MVP scope: 11 tickets, ~23 days (~4.5 weeks at 1 dev). Phase 2 surfaces (tabs, timeline, Calendly webhook, End-Pilot self-serve) deferred until MVP data flows.
+
+**One assumption flagged for Logan to override if wrong:** Q1 (admin `make_client` ALSO sets `pilot_active_through = now + 90d`) — Logan didn't explicitly address in pass 4; I locked with my recommendation so admin and self-serve paths produce identical state. Override if not.
+
+**Resume next session here →** Cut MVP Implementation Phase 1 tickets 1–11 in the order defined in P1.J. Journey heart (tickets 4 + 5 + 6 + 8) ships as a coupled PR sequence. Branch from staging; no merge until end-to-end works on a Vercel preview.
+
+**Pass 6 (Logan, reconciliation):** Logan flagged that Phase 2 surfaces (Calls/Emails/Meetings tabs, Next Step, Timeline) are at lighter depth than the magic-link journey (P1.E = 311 lines; P2.D = 6 lines). I added a "Reconciliation pass (v3.1)" section to the plan answering Logan's 6 questions honestly. Verdict: phasing is right (ship MVP conversion path first, deepen surfaces second) but doc depth for Phase 2 is genuinely lighter than the discussion warrants. Recommendation: don't promote anything to MVP; add brand-consistency one-liner to ticket 2; deepen P2.A/D/E/F in three parallel passes (A/B/C) during MVP development so Phase 2 tickets are ready when MVP ships. Truly missing items identified (Smartlead-inbox deep-link, Calendly cancel/reschedule webhooks, post-meeting sub-state machine, engagement-driven call priority, returning-provider experience, brand-consistency in email body, admin pilot-metrics dashboard, provider feedback collection surface, student-side flow). Awaiting Logan's call: ship MVP first (recommended) or pause to deepen Phase 2 strategy now (~2 days).
+
+---
+
+### 2026-06-03 (Tue) — Post-launch outreach STRATEGY PLAN v2.1 (no code yet)
+
+**Context:** Logan pushed back on v2's hand-wavy treatment of Δ5 (magic-link as MVP) and Δ6 (just-in-time account creation), demanding rigorous step-by-step modeling of how the cold provider's identity / claim / pilot / verification states interact across the email → click → browse → activate journey. Read the pilot agreement PDF + ran another infra survey (`claim_state` semantics, `account_id` cardinality, conflict handling) before revising.
+
+**Material v2 → v2.1 revisions:**
+- Split axis 2 (profile ownership) into **2a (account-linkage, set by magic-link click)** and **2b (claim-status, set by terms acceptance)**. v2.0 had click setting both, which would have spuriously triggered existing crons that gate on `claim_state="claimed"` (medjobs-digest, google-reviews refresh, etc.). v2.1's split keeps cron triggers aligned to real provider commitment.
+- Defined four orthogonal state axes (auth identity / 2a account-link / 2b claim / 3 pilot / 4 public verification) — provider can be in any combination; magic-link advances 1+2a only, terms accept advances 2b+3, formal verification advances 4 separately.
+- Explicit answers to Logan's 10 step-by-step questions (T0–T10 journey table) — token signing, account resolution, profile resolution, browse mode, T&C trigger placement, activation, CRM reflection.
+- Co-tenancy edge case (org already claimed by different account): read-only co-tenancy + admin `claim_conflict` task, not auto-merge.
+- Email CTA finalized: **"Review {campus} student caregivers →"** (campus-personalized), not generic "Review the candidate board." Strongest of the four options Logan offered.
+- T&C placement: appears at the **first axis-3 action attempt** ("Invite to interview" / "Save student" / "See contact info"), NOT on landing. Browse is free; modal CTA carries the verb of the action they were trying to take.
+
+**Plan v2.1:** [`plans/post-launch-outreach-redesign-plan.md`](plans/post-launch-outreach-redesign-plan.md) (771 lines). Strategic shifts now S1–S14 (added S13/S14 for axis orthogonality + T&C placement). MVP scope grew from ~17 to ~22 days because the journey is the load-bearing piece (items 4–6 + 8 are tightly coupled and ship as a coherent PR sequence). 10 open questions for Logan; 4 new ones in v2.1.
+
+**Resume next session here →** Logan reviews v2.1 — especially the four-axis state model in P1.E, the T0–T10 journey, the co-tenancy edge case, and Open Questions 7–10 (T&C trigger action, co-tenancy default, axis 2 split, welcome banner copy). Critical: does the axis 2a/2b split feel right? If so, MVP Implementation Phase 1 tickets 1–10 in order.
+
+---
+
+### 2026-06-03 (Tue) — Pre-Flight v9.x: Research Card consolidation merged (Phases 2b–2e, branch `merge/medjobs-staging-2026-06-02`)
+
+**Context:** Continuing the v9.x Pre-Flight rethink. Phase 2b–2e collapsed the duplicate Pre-Flight surface — the Research Card is now self-contained (Verification status + Pre-Flight action footer with Visit Website / Call to Confirm / Launch Outreach + inline Contact Form banner). NextStepCard prospect body collapsed from ~480 lines to a thin "Pre-Flight in progress" indicator that points admin downward. Net: single source of truth for Pre-Flight; no more two-card divergence.
+
+**Commits pushed to `merge/medjobs-staging-2026-06-02`:** `f57d0d0` (2b verification), `04352ff` (2c action footer), `1da0764` (2d inline contact form banner), `73df792` (2e NextStepCard collapse). All four commits typecheck clean (one pre-existing unrelated `@vercel/functions` error).
+
+**Resume next session here →** Phase 3 manual QA on Vercel preview: walk through prospect / call_due / meeting_set / in_outreach / converted / closed stages to confirm NextStepCard still renders correctly (only the prospect branch was touched). Launch flow test: from Research Card footer, confirm cadence schedules + row transitions to in_outreach. Override path test: pick Override Pre-Flight in call modal; verify Verification subsection shows "Overridden" (amber) and Launch label reads "(override)". After QA passes, merge to staging.
+
+---
+
 ### 2026-06-02/03 — Market Diagnostic: "SEMrush for senior-care client acquisition" (PR #916, DEMO-READY)
 
 **Context:** Shower revelation off the Comfort Keepers / College Station thread → the real product. Olera has a two-sided "mall" (recurring care-seeker demand + engaged providers) but no goods to sell. The good = **client-acquisition intelligence** a single provider can't assemble: their local demand, competition, and referral map. Wedge = Olera sees demand (the funnel) no provider can. Framing locked: **intelligence is the hook, the qualified-lead outcome is the revenue — *because* the outcome is scarce (75k providers, ~100 live leads) and the intelligence is abundant.**

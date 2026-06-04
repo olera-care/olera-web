@@ -307,6 +307,29 @@ export async function POST(
         await handleUpdateGeneralContact(db, row, body, user.id);
         break;
 
+      // v9.x editable Business Name on the row itself. The
+      // organization_name is materialized from business_profiles at row
+      // creation but the directory data can be stale or wrong — admin
+      // needs to be able to fix it during pre-flight research.
+      case "update_organization_name":
+        await handleUpdateOrganizationName(db, row, body, user.id);
+        break;
+
+      // v9.x single Decision Maker slot on `research_data.decision_maker`.
+      // Replaces the multi-contact UI for new rows; legacy
+      // student_outreach_contacts data remains readable.
+      case "update_decision_maker":
+        await handleUpdateDecisionMaker(db, row, body, user.id);
+        break;
+
+      // v9.x admin bypass of the Pre-Flight verification gate. Sets
+      // research_data.pre_flight_overridden=true and emits a note_added
+      // touchpoint for audit. Used when verification isn't possible
+      // (already verified elsewhere, trusted source, leadership exception).
+      case "override_pre_flight":
+        await handleOverridePreFlight(db, row, body, user.id);
+        break;
+
       // v9 final: log a contact-form Day 0 outcome. Admin picks
       // Submitted / Skipped / Not available from PreFlight or from
       // the post-launch banner. Writes a contact_form_submitted
@@ -648,57 +671,76 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     }
   }
 
-  // v9.x Smartlead-native preview. Built only when the engine flag is on
-  // AND the row is a provider with at least one usable recipient — the
-  // pre-flight Smartlead panel is provider-only (stakeholder cadences use
-  // a different modal). Same lead-construction path as enrollRowIntoSmartlead
-  // so the preview matches what the server will enroll at launch.
-  const outreachEngine =
-    process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend";
-  let smartleadPreviewSnapshot: DrawerContext["smartlead_preview"] = null;
-  if (outreachEngine === "smartlead" && row.kind === "provider") {
-    const gc = row.research_data?.general_contact;
-    const previewContacts: NamedContact[] = ((contacts ?? []) as Contact[])
-      .filter(
-        (c) =>
-          c.status === "active" &&
-          c.email != null &&
-          c.email.trim().length > 0 &&
-          c.role !== "General Office" &&
-          c.role !== "General Inbox",
-      )
-      .map((c) => ({
+  // Smartlead-native preview — what will actually ship at launch. Built
+  // for every MedJobs cadence (provider + stakeholder) when the row has
+  // at least one usable recipient. Same lead-construction path as
+  // enrollRowIntoSmartlead so the preview matches what the server will
+  // enroll. Provider rows: General Contact + Decision Maker (max 2 leads).
+  // Stakeholder rows: no general-contact concept; the Decision Maker slot
+  // (or legacy student_outreach_contacts data, if no Decision Maker is set
+  // yet) carries the named recipients.
+  const previewDm = row.research_data?.decision_maker;
+  const previewContacts: NamedContact[] = [];
+  if (
+    previewDm &&
+    !previewDm.unavailable &&
+    previewDm.email &&
+    previewDm.email.trim()
+  ) {
+    const [first, ...rest] = (previewDm.name ?? "").trim().split(/\s+/);
+    previewContacts.push({
+      contact_id: `dm:${row.id}`,
+      email: previewDm.email.trim(),
+      first_name: first || null,
+      last_name: rest.length > 0 ? rest.join(" ") : null,
+      title: null,
+      role: previewDm.role ?? null,
+    });
+  } else if (!previewDm) {
+    // Backward-compat for rows enrolled BEFORE the Decision Maker
+    // migration — surface existing student_outreach_contacts entries
+    // (active, email present, not General Office/Inbox) as preview
+    // recipients so the modal doesn't suddenly hide leads the cron is
+    // still managing.
+    for (const c of (contacts ?? []) as Contact[]) {
+      if (c.status !== "active") continue;
+      if (!c.email || !c.email.trim()) continue;
+      if (c.role === "General Office" || c.role === "General Inbox") continue;
+      previewContacts.push({
         contact_id: c.id,
-        email: c.email ?? "",
+        email: c.email,
         first_name: c.first_name,
         last_name: c.last_name,
+        title: c.title,
         role: c.role,
-      }));
-    const previewRow: BridgeRow = {
-      outreach_id: row.id,
-      kind: row.kind,
-      status: row.status,
-      organization_name: row.organization_name,
-      city: gc?.city ?? (campus?.city ?? null),
-      email: gc?.email ?? null,
-      first_name: null,
-      already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
-      contacts: previewContacts,
-    };
-    const yyyymm = new Date().toISOString().slice(0, 7);
-    const campusName = campus?.name ?? "Unknown Campus";
-    const campusCity = campus?.city ?? null;
-    // Only render a preview if the row actually has at least one usable
-    // recipient — otherwise the modal still falls back to its Resend-style
-    // editors (admin sees the no-email banner from the existing pre-flight
-    // gate; we don't render an empty Smartlead panel).
-    if (previewRow.email || previewContacts.length > 0) {
-      smartleadPreviewSnapshot = buildSmartleadPreview({
-        row: previewRow,
-        campus: { name: campusName, city: campusCity },
-        campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
       });
     }
+  }
+  const gc = row.research_data?.general_contact;
+  const previewRow: BridgeRow = {
+    outreach_id: row.id,
+    kind: row.kind,
+    status: row.status,
+    organization_name: row.organization_name,
+    city: gc?.city ?? (campus?.city ?? null),
+    email: gc?.email ?? null,
+    first_name: null,
+    already_enrolled: typeof row.research_data?.smartlead?.campaign_id === "number",
+    contacts: previewContacts,
+  };
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  const campusName = campus?.name ?? "Unknown Campus";
+  const campusCity = campus?.city ?? null;
+  const cadenceKey: CadenceKey =
+    row.kind === "provider" ? "provider" : row.stakeholder_type;
+  let smartleadPreviewSnapshot: DrawerContext["smartlead_preview"] = null;
+  if (previewRow.email || previewContacts.length > 0) {
+    smartleadPreviewSnapshot = buildSmartleadPreview({
+      row: previewRow,
+      campus: { name: campusName, city: campusCity, slug: (campus as { slug?: string | null } | null)?.slug ?? null },
+      campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
+      cadenceKey,
+    });
   }
 
   return {
@@ -720,11 +762,6 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     awaiting_callback_kind: derived.awaiting_callback_kind,
     provider_business_profile: providerBusinessProfile,
     email_engagement: emailEngagement,
-    // v9.x cold-email engine — same source of truth the schedule_sequence
-    // engine branch reads, so the Smartlead-native preview in
-    // ProviderPreFlightModal matches what the server will actually do.
-    outreach_engine:
-      process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend",
     smartlead_preview: smartleadPreviewSnapshot,
   };
 }
@@ -939,6 +976,14 @@ async function handleUpdateGeneralContact(
     city?: string | null;
     state?: string | null;
     zip?: string | null;
+    /** v9.x "Mark not available" overrides. Each flag, when set true,
+     *  satisfies the matching research-card row without an actual value. */
+    fax_unavailable?: boolean;
+    contact_form_unavailable?: boolean;
+    website_unavailable?: boolean;
+    phone_unavailable?: boolean;
+    email_unavailable?: boolean;
+    address_unavailable?: boolean;
   },
   userId: string,
 ) {
@@ -964,6 +1009,18 @@ async function handleUpdateGeneralContact(
       nextGc[k] = value.trim();
     }
   }
+  for (const flag of [
+    "fax_unavailable",
+    "contact_form_unavailable",
+    "website_unavailable",
+    "phone_unavailable",
+    "email_unavailable",
+    "address_unavailable",
+  ] as const) {
+    if (typeof body[flag] === "boolean") {
+      nextGc[flag] = body[flag];
+    }
+  }
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
     throw new Error("Invalid email");
   }
@@ -971,6 +1028,93 @@ async function handleUpdateGeneralContact(
     throw new Error("ZIP must be 5 digits (or 5+4)");
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
+  await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+}
+
+/**
+ * v9.x update the row's organization_name directly. Directory data can be
+ * stale or wrong; admin needs to correct it during pre-flight research so
+ * outreach emails, snapshots, and the Smartlead campaign carry the right
+ * brand. Writes to the row's column (not research_data) — this is the
+ * canonical org name everything else reads from.
+ */
+async function handleUpdateOrganizationName(
+  db: DB,
+  row: OutreachRow,
+  body: { organization_name?: string | null },
+  userId: string,
+) {
+  const next = (body.organization_name ?? "").trim();
+  if (!next) throw new Error("Business name cannot be empty");
+  if (next === row.organization_name) return;
+  await touchOutreach(db, row.id, userId, { organization_name: next });
+}
+
+/**
+ * v9.x admin bypass of the Pre-Flight verification gate. Stamps
+ * `research_data.pre_flight_overridden=true` and emits a note_added
+ * touchpoint with `payload.reason="pre_flight_override"` so the audit
+ * trail is clear. The Launch gate AND's verification with email-on-file
+ * regardless, so an override without an email still can't ship outreach.
+ */
+async function handleOverridePreFlight(
+  db: DB,
+  row: OutreachRow,
+  body: { notes?: string | null },
+  userId: string,
+) {
+  const current = (row.research_data ?? {}) as ResearchData;
+  if (current.pre_flight_overridden === true) {
+    // Idempotent — already overridden, no-op.
+    return;
+  }
+  const nextResearch: ResearchData = { ...current, pre_flight_overridden: true };
+  await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    notes: body.notes?.trim() || "Pre-Flight overridden by admin",
+    payload: { reason: "pre_flight_override" },
+  });
+}
+
+/**
+ * v9.x update the single Decision Maker slot on `research_data.decision_maker`.
+ * Replaces the multi-contact UX for new rows. Existing
+ * `student_outreach_contacts` rows remain readable as a legacy section in
+ * the SnapshotCard. The Smartlead bridge fan-out emails General Contact +
+ * Decision Maker (max 2 leads per row) instead of N+1.
+ */
+async function handleUpdateDecisionMaker(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    name?: string | null;
+    role?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    unavailable?: boolean;
+  },
+  userId: string,
+) {
+  const current = (row.research_data ?? {}) as ResearchData;
+  const currentDm = current.decision_maker ?? {};
+  const nextDm: NonNullable<ResearchData["decision_maker"]> = { ...currentDm };
+  for (const k of ["name", "role", "phone", "email"] as const) {
+    if (body[k] === undefined) continue;
+    const value = body[k];
+    if (value === null || (typeof value === "string" && value.trim() === "")) {
+      nextDm[k] = null;
+    } else if (typeof value === "string") {
+      nextDm[k] = value.trim();
+    }
+  }
+  if (typeof body.unavailable === "boolean") {
+    nextDm.unavailable = body.unavailable;
+  }
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
+    throw new Error("Invalid Decision Maker email");
+  }
+  const nextResearch: ResearchData = { ...current, decision_maker: nextDm };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
 }
 
@@ -1757,40 +1901,15 @@ async function handleScheduleSequence(
     // launch so it lands in the timeline alongside Day 0 emails.
     contact_form_outcome?: "submitted" | "skipped" | "not_available";
     contact_form_url?: string | null;
-    /** v9.x cold-email engine. Optional override; defaults to the
-     *  MEDJOBS_OUTREACH_ENGINE config (not an operator toggle). "smartlead"
-     *  routes the email drip through Smartlead instead of Resend. */
-    engine?: "resend" | "smartlead";
   },
   userId: string,
 ) {
-  const usingPerRecipient =
-    Array.isArray(body.recipients) && body.recipients.length > 0;
-
-  if (usingPerRecipient) {
-    // Validate at least one variant has at least one day's snapshot.
-    const variants = body.email_snapshots_by_variant ?? {};
-    const totalSnaps =
-      (variants.general?.length ?? 0) + (variants.named?.length ?? 0);
-    if (totalSnaps === 0) {
-      throw new Error("email_snapshots_by_variant required for per-recipient mode");
-    }
-    for (const snaps of [variants.general ?? [], variants.named ?? []]) {
-      for (const s of snaps) {
-        if (!s.subject?.trim() || !s.body?.trim()) {
-          throw new Error(`Day ${s.day} subject and body required`);
-        }
-      }
-    }
-  } else {
-    const snapshots = body.email_snapshots ?? [];
-    if (snapshots.length === 0) throw new Error("email_snapshots required");
-    for (const s of snapshots) {
-      if (!s.subject?.trim() || !s.body?.trim()) {
-        throw new Error(`Day ${s.day} subject and body required`);
-      }
-    }
-  }
+  // Snapshot validation (subject/body presence) is no longer enforced —
+  // Smartlead ships canonical templates from `lib/student-outreach/templates.ts`
+  // via `buildEmailSequence`, so the client doesn't send editable subject/body
+  // copy. The bridge's `selectEligibleRows` handles the "at least one usable
+  // recipient" check below; route-side snapshot validation would block
+  // launches that Smartlead would actually accept.
 
   // Reject if a sequence is already in flight (avoid duplicate scheduling).
   const { data: existing } = await db
@@ -1827,27 +1946,15 @@ async function handleScheduleSequence(
     user_id: userId,
     has_phone: hasPhone,
   });
-  // v9.x cold-email engine. Default is the MEDJOBS_OUTREACH_ENGINE config
-  // (not an operator toggle); body.engine is an optional override for tests /
-  // gradual rollout. "resend" is byte-for-byte the prior behavior.
-  const engine: "resend" | "smartlead" =
-    body.engine ??
-    (process.env.MEDJOBS_OUTREACH_ENGINE === "smartlead" ? "smartlead" : "resend");
+  // Smartlead is the delivery engine for all MedJobs cold outreach. Enroll
+  // the lead into its campus campaign FIRST so any skip (no email / already
+  // enrolled) or API failure aborts BEFORE any CRM mutation — no orphaned
+  // tasks, no half-transitioned row. enrollRowIntoSmartlead throws on skip
+  // or failure and writes the linkage + touchpoint on success.
+  await enrollRowIntoSmartlead(db, row, userId);
 
-  // Smartlead mode: enroll the lead into its campus campaign FIRST, so a skip
-  // (no email / already enrolled) or API failure aborts BEFORE any CRM
-  // mutation — no orphaned tasks, no half-transitioned row. enrollRowIntoSmartlead
-  // throws on skip/failure and writes the linkage + touchpoint on success.
-  if (engine === "smartlead") {
-    await enrollRowIntoSmartlead(db, row, userId);
-  }
-
-  // Task queue: smartlead mode queues ONLY the call tasks (Smartlead owns the
-  // email drip); resend mode queues all tasks as before.
-  const tasksToInsert =
-    engine === "smartlead"
-      ? plan.filter((p) => p.task_type === "outreach_followup_call")
-      : plan;
+  // Smartlead owns the email drip — we only queue CRM-side call tasks.
+  const tasksToInsert = plan.filter((p) => p.task_type === "outreach_followup_call");
   let insertedTasks: Array<{
     id: string;
     task_type: string;
@@ -1886,26 +1993,10 @@ async function handleScheduleSequence(
     .update({ viewed_at: null })
     .eq("id", row.id);
 
-  // v9 Phase 9: inline-fire ALL Day-0 email tasks in parallel (RESEND only —
-  // in smartlead mode Smartlead owns sending, so there are no email tasks).
-  // Sends happen in parallel via Promise.allSettled so one failure doesn't
-  // block siblings. Cron picks up anything that didn't fire.
-  if (engine === "resend") {
-    const day0Tasks = (insertedTasks ?? []).filter((t) => {
-      const tt = t as { task_type: string; payload: Record<string, unknown> };
-      return tt.task_type === "outreach_email_send" && tt.payload?.day === 0;
-    }) as Array<{ id: string }>;
-    if (day0Tasks.length > 0) {
-      const fireResults = await Promise.allSettled(
-        day0Tasks.map((t) => executeEmailTask(t.id)),
-      );
-      for (const r of fireResults) {
-        if (r.status === "rejected") {
-          console.error("Inline Day 0 send failed:", r.reason);
-        }
-      }
-    }
-  }
+  // Smartlead owns the email drip — there are no inline Day-0 email tasks
+  // to fire here. The campaign starts PAUSED in Smartlead and a human
+  // clicks Start in the Smartlead UI when ready (existing safety: no
+  // START literal in the bridge code).
 
   // v9 final: contact-form Day 0 step. When PreFlight passed an
   // outcome, emit the touchpoint as part of the launch so the
@@ -1948,12 +2039,13 @@ async function handleScheduleSequence(
 async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) {
   const { data: campusRow } = await db
     .from("student_outreach_campuses")
-    .select("name, city")
+    .select("name, city, slug")
     .eq("id", row.campus_id)
     .maybeSingle();
-  const campus = campusRow as { name?: string; city?: string | null } | null;
+  const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
   const campusName = campus?.name ?? "Unknown Campus";
   const campusCity = campus?.city ?? null;
+  const campusSlug = campus?.slug ?? null;
 
   // Approach (b): reuse the campus's existing campaign id from a sibling row's
   // stored linkage (one indexed read; no new engine surface).
@@ -1971,33 +2063,27 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     }
   }
 
-  // v9.x Named Contact fan-out: fetch active Specific Contacts on the row
-  // with a usable email. Each becomes its own Smartlead lead alongside the
-  // General Contact. "General Office" / "General Inbox" roles overlap with
-  // the org-level General Contact email path and are intentionally excluded
-  // to avoid double-sending to the same inbox.
-  const { data: contactRows } = await db
-    .from("student_outreach_contacts")
-    .select("id, first_name, last_name, role, email")
-    .eq("outreach_id", row.id)
-    .eq("status", "active")
-    .not("email", "is", null)
-    .neq("email", "");
-  const namedContacts: NamedContact[] = ((contactRows ?? []) as Array<{
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    role: string | null;
-    email: string | null;
-  }>)
-    .filter((c) => c.role !== "General Office" && c.role !== "General Inbox")
-    .map((c) => ({
-      contact_id: c.id,
-      email: c.email ?? "",
-      first_name: c.first_name,
-      last_name: c.last_name,
-      role: c.role,
-    }));
+  // v9.x Decision Maker fan-out: General Contact + ONE Decision Maker (max
+  // 2 leads per row). Replaces the prior multi-contact fan-out — admins
+  // identify a single decision maker during pre-flight and store them in
+  // `research_data.decision_maker`. When absent or marked unavailable, the
+  // row enrolls with the General Contact lead only.
+  const dm = row.research_data?.decision_maker;
+  const namedContacts: NamedContact[] = [];
+  if (dm && !dm.unavailable && dm.email && dm.email.trim()) {
+    const [first, ...rest] = (dm.name ?? "").trim().split(/\s+/);
+    const lastName = rest.length > 0 ? rest.join(" ") : null;
+    namedContacts.push({
+      // Synthetic contact_id so the D2 webhook can attribute back to the
+      // Decision Maker slot without a contacts-table row.
+      contact_id: `dm:${row.id}`,
+      email: dm.email.trim(),
+      first_name: first || null,
+      last_name: lastName,
+      title: null,
+      role: dm.role ?? null,
+    });
+  }
 
   const gc = row.research_data?.general_contact;
   const bridgeRow: BridgeRow = {
@@ -2021,7 +2107,7 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
 
   const enroll = await enrollRowIntoCampusCampaign({
     row: bridgeRow,
-    campus: { name: campusName, city: campusCity },
+    campus: { name: campusName, city: campusCity, slug: campusSlug },
     campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
     existingCampaignId,
     cadenceKey,
@@ -2955,7 +3041,7 @@ async function handleEnrollContactInCadence(
 async function handleLogResearchCall(
   db: DB,
   row: OutreachRow,
-  body: { outcome?: string; notes?: string },
+  body: { outcome?: string; notes?: string; verified?: boolean },
   userId: string,
 ) {
   const outcomeMap: Record<string, TouchpointType> = {
@@ -2966,11 +3052,18 @@ async function handleLogResearchCall(
   };
   const tpType = outcomeMap[body.outcome ?? ""];
   if (!tpType) throw new Error("Invalid research-call outcome");
+  // Pre-Flight 3-call verification gate: when admin reaches someone AND
+  // confirms contacts on the call, mark the touchpoint with `verified: true`.
+  // The Launch Outreach gate (derived state, see verification-state.ts) treats
+  // any `call_connected` touchpoint with `verified: true` as immediate
+  // verification; otherwise it counts toward the 3-attempts-across-3-days
+  // fallback unblock.
+  const verified = body.verified === true && body.outcome === "connected";
   await insertTouchpoint(db, row.id, tpType, userId, {
     channel: "phone",
     outcome: body.outcome,
     notes: body.notes ?? null,
-    payload: { reason: "research_call" },
+    payload: { reason: "research_call", verified },
   });
   await touchOutreach(db, row.id, userId);
 }

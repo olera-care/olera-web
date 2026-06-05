@@ -300,6 +300,20 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "Family downloads the guide or returns to their inbox.",
     relatedAdminPath: "/admin/leads",
   },
+  {
+    id: "provider-still-silent",
+    name: "Provider STILL silent — trust recovery",
+    description: "Daily: sends Email #6 when provider STILL hasn't responded after 7+ days. Trust recovery email — acknowledges failure, actively intervenes with responsive alternatives + personal support fallback. Family-level intelligence.",
+    recipientCohort: "Families with 7-day-old connections where family engaged but provider STILL hasn't responded, and family has no active conversations elsewhere.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 17 * * *",
+    humanSchedule: "Daily, 17:00 UTC (~12 PM ET)",
+    path: "/api/cron/provider-still-silent",
+    emailTypes: ["provider_still_silent"],
+    successSignal: "Family reaches out to recommended responsive provider or contacts support.",
+    relatedAdminPath: "/admin/leads",
+  },
 
   // ── MedJobs (student talent marketplace) ───────────────────────────
   {

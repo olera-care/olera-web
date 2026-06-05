@@ -596,6 +596,51 @@ export function providerSilentEmail(opts: {
   `, `You're never limited to one — here are others ready to help.`);
 }
 
+/** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
+export function providerStillSilentEmail(opts: {
+  familyName: string;
+  providerName: string;
+  recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
+  browseUrl: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+
+  // Render recommended providers prominently (high up, visible on mobile)
+  // Each provider gets a magic link for one-click viewing
+  const providersSection = opts.recommendedProviders.map((p) => `
+    <div style="margin:0 0 12px;">
+      <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
+      ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
+    </div>
+  `).join("");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      It's been over a week, and <strong>${escapeHtml(opts.providerName)}</strong> still hasn't gotten back to you. That's on them, not you — and you deserve better than waiting. Here are providers near you who are ready to help right now:
+    </p>
+    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
+      ${providersSection}
+    </div>
+    <div style="margin:0 0 24px;">${button("See providers ready to help", opts.browseUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Or, if you'd rather not do this alone, a real person on our team will personally help you find care that fits — just reach us at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">support@olera.care</a>, and we'll take it from here.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      You came here looking for care, and that shouldn't end in silence. We're not going to let it.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `You shouldn't have to wait this long — here are providers who'll respond.`);
+}
+
 /** Email to family who never engaged after sending lead - gentle re-engagement with guide */
 export function familyNeverEngagedEmail(opts: {
   familyName: string;

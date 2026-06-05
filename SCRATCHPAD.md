@@ -19,6 +19,11 @@
 
 **Next:** none — self-contained. Future: could auto-set Status from git state, or call `/save` first automatically.
 
+**Post-merge session work (Notion + PR triage, no repo changes):**
+- **#940 merged** to staging (the command itself), report filed to PR Merge Reports.
+- **PR cleanup** of stale open PRs: closed **#872** (email-deliverability scratchpad) + **#897** (2026-05-30 session log) as superseded — both pure stale/already-shipped, branches handled (delete vs keep-if-live-worktree); reports filed. Archived **#864** (provider-page custom work, 226 behind) by closing it but **keeping the branch** as a GitHub back-pocket reference (not merging to staging). Left open: **#878** (Medicaid look-back article — real unpublished content, needs reconcile/abandon decision), **#935** + **#936** (active Market Diagnostic work).
+- **Notion consolidation:** created the **Branch Handoff Reports** DB (Product Development), then gathered 5 scattered handoff/resume pages into it (2× Market Diagnostic resume, Email Deliverability resume note, Slack MCP OAuth note, Weekly provider digest runbook) + backfilled props. Removed 4 stray columns (Owner/Priority/Product Category/Timeline) dragged in by the move to restore the clean 6-prop schema. DB: `eb2362fd189041f6813af6d4dee9b92c`.
+
 ### 2026-06-04 — Market Diagnostic PHASE 2: compute-on-visit for any city (PR #924 → staging, OPEN)
 
 **Goal:** the diagnostic works for **any provider's city**, computed on first visit + cached — not College-Station-by-hand. Then flip `lib/market-gate.ts` for rollout.

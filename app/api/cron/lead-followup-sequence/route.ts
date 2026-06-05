@@ -10,7 +10,7 @@ import {
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateLeadClaimUrl } from "@/lib/claim-tokens";
+import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/lead-followup-sequence
@@ -556,12 +556,28 @@ export async function GET(request: NextRequest) {
         careRecipient: l.careRecipient,
       }));
 
+      // Generate magic link URLs for footer
+      const manageListingUrl = generateProviderPortalUrl(
+        group.providerSlug,
+        group.providerEmail,
+        "manage",
+        siteUrl
+      );
+      const settingsUrl = generateProviderPortalUrl(
+        group.providerSlug,
+        group.providerEmail,
+        "settings",
+        siteUrl
+      );
+
       let html: string;
       const templateOpts = {
         providerName: group.providerName,
         leads: leadsForTemplate,
         viewUrl,
         providerSlug: group.providerSlug,
+        manageListingUrl,
+        settingsUrl,
       };
 
       switch (templateStage) {

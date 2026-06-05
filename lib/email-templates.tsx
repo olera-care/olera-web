@@ -508,14 +508,18 @@ export function unreadReminderEmail(opts: {
   const recipientFirstName = firstName(opts.recipientName, "there");
   // Use full provider name (not shortened)
   const providerFullName = opts.senderName || "A provider";
+  const safePreview = escapeHtml(opts.messagePreview);
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(recipientFirstName)},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${escapeHtml(providerFullName)}</strong> got back to you a few days ago, and their message is still waiting whenever you'd like to read it:
+      <strong>${escapeHtml(providerFullName)}</strong> got back to you recently, and their message is still waiting whenever you'd like to read it:
     </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
     <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">

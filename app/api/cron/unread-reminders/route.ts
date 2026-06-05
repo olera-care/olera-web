@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       const [{ data: recipient }, { data: sender }] = await Promise.all([
         db
           .from("business_profiles")
-          .select("display_name, email, type")
+          .select("display_name, email, type, account_id")
           .eq("id", recipientProfileId)
           .single(),
         db
@@ -89,7 +89,31 @@ export async function GET(request: NextRequest) {
           .single(),
       ]);
 
-      if (!recipient?.email) continue;
+      if (!recipient) continue;
+
+      // Resolve recipient email: profile email for sending, auth email for magic links
+      let recipientEmail = recipient.email;
+      let authEmail = recipientEmail; // For magic link generation
+
+      // Look up auth email if account exists (critical for magic link generation)
+      if (recipient?.account_id) {
+        const { data: acct } = await db
+          .from("accounts")
+          .select("user_id")
+          .eq("id", recipient.account_id)
+          .single();
+        if (acct?.user_id) {
+          const { data: { user: authUser } } = await db.auth.admin.getUserById(acct.user_id);
+          if (authUser?.email) {
+            authEmail = authUser.email; // Use auth email for magic links
+            if (!recipientEmail) {
+              recipientEmail = authEmail; // Fallback for sending if no profile email
+            }
+          }
+        }
+      }
+
+      if (!recipientEmail) continue;
 
       const preview =
         lastMsg.text.length > 200 ? lastMsg.text.slice(0, 200) + "..." : lastMsg.text;
@@ -105,7 +129,7 @@ export async function GET(request: NextRequest) {
         : `${senderFirstName} sent you a message`;
 
       const urLogId = await reserveEmailLogId({
-        to: recipient.email,
+        to: recipientEmail,
         subject: urSubject,
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
@@ -123,11 +147,11 @@ export async function GET(request: NextRequest) {
         );
         viewUrl = `${siteUrl}${redirectPath}`;
 
-        // Generate magic link for one-click access
+        // Generate magic link for one-click access (use auth email, not profile email)
         try {
           const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
             type: "magiclink",
-            email: recipient.email,
+            email: authEmail, // Use auth email (critical fix)
             options: {
               redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
             },
@@ -160,7 +184,7 @@ export async function GET(request: NextRequest) {
           });
 
       await sendEmail({
-        to: recipient.email,
+        to: recipientEmail,
         subject: urSubject,
         html: emailHtml,
         emailType: "unread_reminder",

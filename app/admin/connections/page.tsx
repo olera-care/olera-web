@@ -140,6 +140,33 @@ export default function ConnectionsTrackerPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Re-engagement blast state
+  const [blastLoading, setBlastLoading] = useState(false);
+  const [blastResult, setBlastResult] = useState<{ type: "preview" | "sent"; data: Record<string, unknown> } | null>(null);
+  const [blastError, setBlastError] = useState<string | null>(null);
+
+  const runReengagementBlast = useCallback(async (dryRun: boolean) => {
+    setBlastLoading(true);
+    setBlastError(null);
+    setBlastResult(null);
+    try {
+      const res = await fetch(`/api/cron/lead-followup-sequence?force_stuck_reengagement=true${dryRun ? "&dry_run=true" : ""}`, {
+        method: "GET",
+        headers: { "x-admin-trigger": "true" },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBlastError(data.error || "Failed to run re-engagement blast");
+      } else {
+        setBlastResult({ type: dryRun ? "preview" : "sent", data });
+      }
+    } catch (err) {
+      setBlastError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setBlastLoading(false);
+    }
+  }, []);
+
   // Debounce search input by 300ms
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
@@ -446,6 +473,66 @@ export default function ConnectionsTrackerPage() {
           );
         })}
       </div>
+
+      {/* Re-engagement Blast Controls - show on Stuck tab */}
+      {activeFilter === "stuck" && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-amber-900">Re-engagement Blast (Day 17 Email)</h3>
+              <p className="text-xs text-amber-700 mt-1">
+                Send the &quot;One more try&quot; email to all stuck providers who haven&apos;t received it yet.
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => runReengagementBlast(true)}
+                disabled={blastLoading}
+                className="px-3 py-1.5 text-xs font-medium text-amber-700 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 disabled:opacity-50"
+              >
+                {blastLoading ? "Running..." : "Preview"}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm("Send re-engagement emails to all stuck providers? This cannot be undone.")) {
+                    runReengagementBlast(false);
+                  }
+                }}
+                disabled={blastLoading}
+                className="px-3 py-1.5 text-xs font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 disabled:opacity-50"
+              >
+                Send Emails
+              </button>
+            </div>
+          </div>
+          {blastError && (
+            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+              Error: {blastError}
+            </div>
+          )}
+          {blastResult && (
+            <div className={`mt-3 p-3 rounded text-xs ${blastResult.type === "preview" ? "bg-white border border-amber-200" : "bg-emerald-50 border border-emerald-200"}`}>
+              <div className="font-medium mb-1">
+                {blastResult.type === "preview" ? "📋 Preview Results" : "✅ Emails Sent"}
+              </div>
+              <div className="text-gray-600 space-y-0.5">
+                {blastResult.data.providers_emailed !== undefined && (
+                  <div>Providers: <span className="font-medium text-gray-900">{String(blastResult.data.providers_emailed)}</span></div>
+                )}
+                {blastResult.data.leads_included !== undefined && (
+                  <div>Leads included: <span className="font-medium text-gray-900">{String(blastResult.data.leads_included)}</span></div>
+                )}
+                {blastResult.data.skipped !== undefined && Number(blastResult.data.skipped) > 0 && (
+                  <div>Skipped: <span className="text-gray-500">{String(blastResult.data.skipped)}</span></div>
+                )}
+                {typeof blastResult.data.message === "string" && (
+                  <div className="text-gray-500 mt-1">{blastResult.data.message}</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

@@ -274,7 +274,7 @@ export async function GET(request: NextRequest) {
         .eq("is_active", true)
         .eq("city", providerCity)
         .eq("state", providerState)
-        .neq("id", conn.to_profile_id)
+        .neq("id", primaryConn.to_profile_id)
         .limit(50);
 
       if (!candidateProviders || candidateProviders.length === 0) {

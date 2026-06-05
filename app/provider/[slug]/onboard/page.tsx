@@ -530,6 +530,12 @@ export default function ProviderOnboardPage() {
                       },
                     }),
                   }).catch(() => {});
+
+                  // Auto-redirect for manage/settings actions (no notification card)
+                  // These footer links should take the user directly to their destination
+                  if (actionParam === "manage" || actionParam === "settings") {
+                    router.replace(getActionRedirectUrl(actionParam, null));
+                  }
                 } catch (err) {
                   console.warn("[OneClick] Background sign-in error:", err);
                 }

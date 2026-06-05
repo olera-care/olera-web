@@ -2750,6 +2750,20 @@ interface FollowupEmailOpts {
   }>;
   viewUrl: string;
   providerSlug?: string;
+  /** Magic link URL to provider dashboard (enables one-click access) */
+  manageListingUrl?: string;
+  /** Magic link URL to provider settings/lead preferences */
+  settingsUrl?: string;
+}
+
+/**
+ * Helper to build the appropriate footer for follow-up emails.
+ * Uses magic link footer if URLs provided, otherwise legacy footer.
+ */
+function followupFooterBlock(opts: FollowupEmailOpts): string {
+  return opts.manageListingUrl && opts.settingsUrl
+    ? providerOffRampBlock(opts.manageListingUrl, opts.settingsUrl)
+    : offRampBlock(opts.providerSlug);
 }
 
 /**
@@ -2859,8 +2873,8 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
     // Multiple leads
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const careInfo = l.careType ? l.careType.toLowerCase() : "care";
-      const cityInfo = l.city ? ` in ${l.city}` : "";
+      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
+      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
       return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
     }).join("");
 
@@ -2877,9 +2891,9 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
   } else {
     // Single lead
     const familyRef = hasName ? safeFamilyName : "A family";
-    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
-    const recipientRef = lead.careRecipient ? ` for ${lead.careRecipient}` : "";
-    const cityRef = hasCity ? ` in ${lead.city}` : "";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -2900,7 +2914,7 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
     ${bodyHtml}
     <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
     ${loganLightSignature()}
-    ${offRampBlock(opts.providerSlug)}
+    ${followupFooterBlock(opts)}
   `, preheader);
 }
 
@@ -2946,9 +2960,9 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
       </p>`;
   } else {
     const familyRef = hasName ? safeFamilyName : "A family";
-    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
-    const recipientRef = lead.careRecipient ? ` for ${lead.careRecipient}` : "";
-    const cityRef = hasCity ? ` in ${lead.city}` : "";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -2968,7 +2982,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     ${bodyHtml}
     <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
     ${loganLightSignature()}
-    ${offRampBlock(opts.providerSlug)}
+    ${followupFooterBlock(opts)}
   `, preheader);
 }
 
@@ -3000,8 +3014,8 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
   if (isMultiple) {
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const careInfo = l.careType ? l.careType.toLowerCase() : "care";
-      const cityInfo = l.city ? ` in ${l.city}` : "";
+      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
+      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
       return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
     }).join("");
 
@@ -3020,9 +3034,9 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
       </p>`;
   } else {
     const familyRef = hasName ? safeFamilyName : "A family";
-    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
-    const recipientRef = lead.careRecipient ? ` for ${lead.careRecipient}` : "";
-    const cityRef = hasCity ? ` in ${lead.city}` : "";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -3048,7 +3062,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
     ${loganHeavySignature()}
     ${realIntroNote}
-    ${offRampBlock(opts.providerSlug)}
+    ${followupFooterBlock(opts)}
   `, preheader);
 }
 
@@ -3100,7 +3114,7 @@ export function providerFollowupDay10Email(opts: FollowupEmailOpts): string {
 
     const closingParagraph = `
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        If the timing wasn't right, no problem at all. Families${cityForClosing ? ` in ${cityForClosing}` : ""} search for ${careTypeForClosing} all the time, and when they choose your team, we'll bring them straight to you — free, and directly. We're glad you're listed with us.
+        If the timing wasn't right, no problem at all. Families${cityForClosing ? ` in ${escapeHtml(cityForClosing)}` : ""} search for ${escapeHtml(careTypeForClosing)} all the time, and when they choose your team, we'll bring them straight to you — free, and directly. We're glad you're listed with us.
       </p>`;
 
     const buttonText = "See all requests →";
@@ -3111,12 +3125,12 @@ export function providerFollowupDay10Email(opts: FollowupEmailOpts): string {
       <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
       ${closingParagraph}
       ${loganLightSignature()}
-      ${offRampBlock(opts.providerSlug)}
+      ${followupFooterBlock(opts)}
     `, preheader);
   } else {
     const familyRef = hasName ? safeFamilyName : "this family";
-    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
-    const cityRef = hasCity ? ` in ${lead.city}` : "";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -3131,7 +3145,7 @@ export function providerFollowupDay10Email(opts: FollowupEmailOpts): string {
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
       ${bodyHtml}
       ${loganLightSignature()}
-      ${offRampBlock(opts.providerSlug)}
+      ${followupFooterBlock(opts)}
     `, preheader);
   }
 }
@@ -3161,7 +3175,7 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
   if (isMultiple) {
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const careInfo = l.careType ? l.careType.toLowerCase() : "care";
+      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
       return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}</li>`;
     }).join("");
 
@@ -3187,7 +3201,7 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
 
     const closingParagraph = `
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Either way, thank you for the work you do — families come to you at some of the hardest moments of their lives. Whenever one${cityForClosing ? ` near ${cityForClosing}` : ""} is looking for ${careTypeForClosing}, we'll keep bringing them to you.
+        Either way, thank you for the work you do — families come to you at some of the hardest moments of their lives. Whenever one${cityForClosing ? ` near ${escapeHtml(cityForClosing)}` : ""} is looking for ${escapeHtml(careTypeForClosing)}, we'll keep bringing them to you.
       </p>`;
 
     return layout(`
@@ -3196,12 +3210,12 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
       <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
       ${closingParagraph}
       ${loganLightSignature()}
-      ${offRampBlock(opts.providerSlug)}
+      ${followupFooterBlock(opts)}
     `, preheader);
   } else {
     const familyRef = hasName ? safeFamilyName : "A family";
-    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
-    const cityRef = hasCity ? ` near ${lead.city}` : "";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const cityRef = hasCity ? ` near ${escapeHtml(lead.city!)}` : "";
 
     // Body paragraph with fallbacks
     // Full: "Margaret reached out a little while ago about assisted living, and that request is still open on your end."
@@ -3228,7 +3242,7 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
     // Closing paragraph with fallbacks
     // Full: "Whenever one near Bryan is looking for assisted living, we'll keep bringing them to you."
     // No city: "Whenever one is looking for assisted living, we'll keep bringing them to you."
-    const closingCityRef = hasCity ? ` near ${lead.city}` : "";
+    const closingCityRef = hasCity ? ` near ${escapeHtml(lead.city!)}` : "";
     const closingParagraph = `
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
         Either way, thank you for the work you do — families come to you at some of the hardest moments of their lives. Whenever one${closingCityRef} is looking for ${careTypeRef}, we'll keep bringing them to you.
@@ -3240,7 +3254,7 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
       <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
       ${closingParagraph}
       ${loganLightSignature()}
-      ${offRampBlock(opts.providerSlug)}
+      ${followupFooterBlock(opts)}
     `, preheader);
   }
 }

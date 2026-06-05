@@ -690,15 +690,8 @@ async function handleGuestConnection({
   if (entryPoint) connectionMetadata.entry_point = entryPoint;
   if (sessionId) connectionMetadata.session_id = sessionId;
 
-  // Auto-reply from provider (marked as auto to exclude from unread reminders)
-  connectionMetadata.thread = [
-    {
-      from_profile_id: toProfileId,
-      text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-      created_at: new Date().toISOString(),
-      is_auto_reply: true,
-    },
-  ];
+  // Thread starts empty - provider must send the first real message
+  connectionMetadata.thread = [];
 
   // Check if this is the provider's first lead (before insert)
   const { count: existingLeadCount } = await db
@@ -1711,7 +1704,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 8. Build connection metadata with auto-intro and provider auto-reply
+    // 8. Build connection metadata with auto-intro
     const connectionMetadata: Record<string, unknown> = {};
     connectionMetadata.auto_intro = autoIntro;
     if (!providerEmail) connectionMetadata.needs_provider_email = true;
@@ -1719,17 +1712,8 @@ export async function POST(request: Request) {
     if (entryPoint) connectionMetadata.entry_point = entryPoint;
     if (sessionId) connectionMetadata.session_id = sessionId;
 
-    // Seed an automatic reply from the provider so the seeker has an
-    // unread message in their inbox immediately after connecting.
-    // Marked as auto_reply to exclude from unread reminders cron.
-    connectionMetadata.thread = [
-      {
-        from_profile_id: toProfileId,
-        text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-        created_at: new Date().toISOString(),
-        is_auto_reply: true,
-      },
-    ];
+    // Thread starts empty - provider must send the first real message
+    connectionMetadata.thread = [];
 
     // Check if this is the provider's first lead (before insert)
     const { count: existingLeadCountAuth } = await db

@@ -574,19 +574,12 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // Build connection metadata with auto-reply
+      // Build connection metadata - thread starts empty
       const connectionMetadata = {
         auto_intro: `Interested in comparing care options.`,
         source: "compare_save",
         cta_variant: "compare",
-        thread: [
-          {
-            from_profile_id: toProfileId,
-            text: `Hello, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-            created_at: createdAt,
-            is_auto_reply: true,
-          },
-        ],
+        thread: [],
       };
 
       // Build message payload

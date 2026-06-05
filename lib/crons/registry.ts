@@ -272,6 +272,20 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "Recipient replies in the thread.",
     relatedAdminPath: "/admin/leads",
   },
+  {
+    id: "family-provider-silent",
+    name: "Provider silent — alternative providers",
+    description: "Daily: sends Email #4 when provider has been silent for ~4 days. Recommends responsive alternative providers nearby. Stops if family connects elsewhere.",
+    recipientCohort: "Families with 4-day-old connections where provider hasn't responded and family hasn't connected elsewhere.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 15 * * *",
+    humanSchedule: "Daily, 15:00 UTC (~10 AM ET)",
+    path: "/api/cron/family-provider-silent",
+    emailTypes: ["family_provider_silent"],
+    successSignal: "Family reaches out to one of the recommended providers.",
+    relatedAdminPath: "/admin/leads",
+  },
 
   // ── MedJobs (student talent marketplace) ───────────────────────────
   {

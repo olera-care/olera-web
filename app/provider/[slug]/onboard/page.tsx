@@ -445,6 +445,10 @@ export default function ProviderOnboardPage() {
                     if (ownedProfile) {
                       switchProfile(ownedProfile.id);
                       console.log("[OneClick] Already signed in as owner");
+                      // Auto-redirect for manage/settings (already signed in)
+                      if (actionParam === "manage" || actionParam === "settings") {
+                        router.replace(getActionRedirectUrl(actionParam, null));
+                      }
                       return;
                     }
                   }

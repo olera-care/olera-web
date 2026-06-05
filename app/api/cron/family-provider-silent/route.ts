@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
       skipReasons: {
         provider_responded: 0,
         family_connected_elsewhere: 0,
+        family_never_engaged: 0,
         already_sent: 0,
         no_email: 0,
         no_responsive_providers: 0,
@@ -199,8 +200,29 @@ export async function GET(request: NextRequest) {
       // days would never get Email #4 because there were always "other connections"
       // outside the 24-hour window.
 
-      // Pick the FIRST connection (oldest) as primary for email context
-      const primaryConn = familyConnections[0];
+      // Email #4 is ONLY for families who ENGAGED (sent a message)
+      // This makes it mutually exclusive with Email #5 (never engaged)
+      // IMPORTANT: Filter to engaged connections FIRST, then pick primary
+      // Otherwise we might pick a connection the family never messaged
+      const engagedConnections = familyConnections.filter((conn) => {
+        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
+        const thread = (connMeta.thread as ThreadMessage[]) || [];
+        return thread.some(
+          (m) =>
+            m.from_profile_id === conn.from_profile_id &&
+            !m.is_auto_reply &&
+            m.text?.trim()
+        );
+      });
+
+      if (engagedConnections.length === 0) {
+        counts.skipped++;
+        counts.skipReasons.family_never_engaged = (counts.skipReasons.family_never_engaged || 0) + 1;
+        continue;
+      }
+
+      // Pick the FIRST engaged connection (oldest) as primary for email context
+      const primaryConn = engagedConnections[0];
 
       // Normalize joined relations
       const fromProfile = Array.isArray(primaryConn.from_profile)
@@ -211,22 +233,6 @@ export async function GET(request: NextRequest) {
         : primaryConn.to_profile;
 
       const meta = (primaryConn.metadata || {}) as Record<string, unknown>;
-
-      // Email #4 is ONLY for families who ENGAGED (sent a message)
-      // This makes it mutually exclusive with Email #5 (never engaged)
-      const primaryThread = (meta.thread as ThreadMessage[]) || [];
-      const familyEngagedWithPrimary = primaryThread.some(
-        (m) =>
-          m.from_profile_id === primaryConn.from_profile_id &&
-          !m.is_auto_reply &&
-          m.text?.trim()
-      );
-
-      if (!familyEngagedWithPrimary) {
-        counts.skipped++;
-        // No skip reason for this - it's intentional (Email #5 handles never-engaged)
-        continue;
-      }
 
       // Get family email (need to resolve auth email for magic link)
       let familyEmail = fromProfile?.email;
@@ -377,23 +383,6 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Mark ALL connections for this family BEFORE sending (transaction safety)
-      const sentAt = new Date().toISOString();
-      for (const conn of familyConnections) {
-        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
-        await db
-          .from("connections")
-          .update({
-            metadata: {
-              ...connMeta,
-              family_alternatives_sent_at: sentAt,
-              family_alternatives_sent_by: "cron:family-provider-silent",
-              family_alternatives_count: recommendedProviders.length,
-            },
-          })
-          .eq("id", conn.id);
-      }
-
       // Build browse URL with query params (guaranteed to work, no slug issues)
       const familyCareTypes = (fromProfile?.care_types as string[]) || providerCareTypes;
       const primaryCareType = familyCareTypes[0] || "senior-care";
@@ -504,7 +493,23 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Metadata already updated before sending (for transaction safety)
+      // Mark ALL connections for this family AFTER successful send (prevents lockout on failure)
+      const sentAt = new Date().toISOString();
+      for (const conn of familyConnections) {
+        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
+        await db
+          .from("connections")
+          .update({
+            metadata: {
+              ...connMeta,
+              family_alternatives_sent_at: sentAt,
+              family_alternatives_sent_by: "cron:family-provider-silent",
+              family_alternatives_count: recommendedProviders.length,
+            },
+          })
+          .eq("id", conn.id);
+      }
+
       counts.sent++;
     }
 

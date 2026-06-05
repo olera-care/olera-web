@@ -200,27 +200,30 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Pick the FIRST connection (oldest) as primary for email context
-      const primaryConn = familyConnections[0];
+      // Email #6 is for families who ENGAGED but were ghosted
+      // IMPORTANT: Filter to engaged connections FIRST, then pick primary
+      // Otherwise we might pick a connection the family never messaged
+      const engagedConnections = familyConnections.filter((conn) => {
+        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
+        const thread = (connMeta.thread as ThreadMessage[]) || [];
+        return thread.some(
+          (m) =>
+            m.from_profile_id === conn.from_profile_id &&
+            !m.is_auto_reply &&
+            m.text?.trim()
+        );
+      });
 
-      // BUG FIX: Check if family engaged with the PRIMARY connection specifically
-      // Email #6 is for families who tried to reach THIS provider and were ignored
-      // If family never messaged this provider, we shouldn't accuse them of being silent
-      const primaryMeta = (primaryConn.metadata || {}) as Record<string, unknown>;
-      const primaryThread = (primaryMeta.thread as ThreadMessage[]) || [];
-      const familyEngagedWithPrimary = primaryThread.some(
-        (m) =>
-          m.from_profile_id === primaryConn.from_profile_id &&
-          !m.is_auto_reply &&
-          m.text?.trim()
-      );
-
-      // Skip if family never engaged with this specific provider
-      if (!familyEngagedWithPrimary) {
+      // Skip if family never engaged with any of the 7-8 day old connections
+      if (engagedConnections.length === 0) {
         counts.skipped++;
         counts.skipReasons.family_never_engaged++;
         continue;
       }
+
+      // Pick the FIRST engaged connection (oldest) as primary for email context
+      const primaryConn = engagedConnections[0];
+      const primaryMeta = (primaryConn.metadata || {}) as Record<string, unknown>;
 
       // Normalize joined relations
       const fromProfile = Array.isArray(primaryConn.from_profile)
@@ -372,23 +375,6 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Mark ALL 7-day-old connections for this family BEFORE sending (transaction safety)
-      const sentAt = new Date().toISOString();
-      for (const conn of familyConnections) {
-        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
-        await db
-          .from("connections")
-          .update({
-            metadata: {
-              ...connMeta,
-              provider_still_silent_sent_at: sentAt,
-              provider_still_silent_sent_by: "cron:provider-still-silent",
-              provider_still_silent_count: recommendedProviders.length,
-            },
-          })
-          .eq("id", conn.id);
-      }
-
       // Build browse URL with query params (guaranteed to work, no slug issues)
       const familyCareTypes = (fromProfile?.care_types as string[]) || providerCareTypes;
       const primaryCareType = familyCareTypes[0] || "senior-care";
@@ -493,7 +479,23 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Metadata already updated before sending (for transaction safety)
+      // Mark ALL 7-day-old connections for this family AFTER successful send (prevents lockout on failure)
+      const sentAt = new Date().toISOString();
+      for (const conn of familyConnections) {
+        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
+        await db
+          .from("connections")
+          .update({
+            metadata: {
+              ...connMeta,
+              provider_still_silent_sent_at: sentAt,
+              provider_still_silent_sent_by: "cron:provider-still-silent",
+              provider_still_silent_count: recommendedProviders.length,
+            },
+          })
+          .eq("id", conn.id);
+      }
+
       counts.sent++;
     }
 

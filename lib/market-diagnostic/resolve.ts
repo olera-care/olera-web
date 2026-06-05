@@ -41,18 +41,58 @@ export function normCareType(input: string | null | undefined): CareType {
   return "homecare"; // default — home care is the primary case and the gated dogfood
 }
 
-/** Look up a city's geo. Returns null if the city isn't in the dataset (→ can't diagnose). */
+// Full state names → 2-letter, so a provider whose state is stored as "Georgia" (not "GA")
+// still resolves. The index keys on 2-letter codes.
+const STATE_ABBR: Record<string, string> = {
+  alabama: "al", alaska: "ak", arizona: "az", arkansas: "ar", california: "ca", colorado: "co",
+  connecticut: "ct", delaware: "de", "district of columbia": "dc", florida: "fl", georgia: "ga",
+  hawaii: "hi", idaho: "id", illinois: "il", indiana: "in", iowa: "ia", kansas: "ks", kentucky: "ky",
+  louisiana: "la", maine: "me", maryland: "md", massachusetts: "ma", michigan: "mi", minnesota: "mn",
+  mississippi: "ms", missouri: "mo", montana: "mt", nebraska: "ne", nevada: "nv", "new hampshire": "nh",
+  "new jersey": "nj", "new mexico": "nm", "new york": "ny", "north carolina": "nc", "north dakota": "nd",
+  ohio: "oh", oklahoma: "ok", oregon: "or", pennsylvania: "pa", "rhode island": "ri",
+  "south carolina": "sc", "south dakota": "sd", tennessee: "tn", texas: "tx", utah: "ut", vermont: "vt",
+  virginia: "va", washington: "wa", "west virginia": "wv", wisconsin: "wi", wyoming: "wy",
+};
+
+function stateKey(state: string): string {
+  const t = state.trim().toLowerCase();
+  return STATE_ABBR[t] || t; // already a 2-letter code → use as-is
+}
+
+// Candidate city spellings to try against the index. The dataset mixes full and abbreviated
+// forms ("Fort Worth" + "Mount Vernon" full, "St. Paul" abbreviated), and providers send
+// either — so for each input we generate both the fully-expanded and the abbreviated form,
+// per word. Token-based so a stray period can't be left behind.
+function cityKeys(city: string): string[] {
+  const toks = city.trim().toLowerCase().replace(/\s+/g, " ").split(" ");
+  const FULL: Record<string, string> = { st: "saint", "st.": "saint", ft: "fort", "ft.": "fort", mt: "mount", "mt.": "mount" };
+  const ABBR: Record<string, string> = { saint: "st.", st: "st.", fort: "ft.", ft: "ft.", mount: "mt.", mt: "mt." };
+  return [...new Set([
+    toks.join(" "),
+    toks.map((t) => FULL[t] || t).join(" "),
+    toks.map((t) => ABBR[t] || t).join(" "),
+  ])];
+}
+
+/** Look up a city's geo. Returns null if the city isn't in the dataset (→ can't diagnose).
+ *  Tolerates full state names and Saint/Fort/Mount abbreviation variants. */
 export function resolveCity(city: string, state: string): ResolvedCity | null {
+  if (!city || !state) return null;
   const index = loadIndex();
-  const key = `${city.trim()}|${state.trim()}`.toLowerCase();
-  const rec = index[key];
-  if (!rec || rec.la == null || rec.ln == null) return null;
-  return {
-    city: city.trim(),
-    state: state.trim().toUpperCase(),
-    lat: rec.la,
-    lng: rec.ln,
-    zctas: rec.z || [],
-    county: rec.cn,
-  };
+  const sk = stateKey(state);
+  for (const ck of cityKeys(city)) {
+    const rec = index[`${ck}|${sk}`];
+    if (rec && rec.la != null && rec.ln != null) {
+      return {
+        city: city.trim(),
+        state: state.trim().toUpperCase(),
+        lat: rec.la,
+        lng: rec.ln,
+        zctas: rec.z || [],
+        county: rec.cn,
+      };
+    }
+  }
+  return null;
 }

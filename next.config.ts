@@ -92,6 +92,9 @@ const nextConfig: NextConfig = {
       { source: "/company/contact-us", destination: "/contact", permanent: true },
       { source: "/company/investors", destination: "/about", permanent: true },
 
+      // Support page redirect → contact page
+      { source: "/support", destination: "/contact", permanent: true },
+
       // Tier 3: v1.0 pages with no v2 equivalent → homepage
       { source: "/caregiver-relief-network", destination: "/", permanent: true },
       { source: "/caregiver-relief-network/:path*", destination: "/", permanent: true },

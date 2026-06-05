@@ -28,6 +28,7 @@ function getActionRedirectUrl(
   action: string | null,
   actionId: string | null
 ): string {
+  // Actions that require an actionId
   if (action && actionId) {
     switch (action) {
       case "lead":
@@ -38,11 +39,19 @@ function getActionRedirectUrl(
         return `/provider/qna?id=${actionId}`;
       case "review":
         return `/provider/reviews?id=${actionId}`;
+    }
+  }
+  // Actions that don't require an actionId
+  if (action) {
+    switch (action) {
       case "interview":
         return "/provider/caregivers";
+      case "manage":
       case "claim":
       case "signup":
         return "/provider";
+      case "settings":
+        return "/account/settings";
     }
   }
   return "/provider";
@@ -54,7 +63,7 @@ export default function ProviderOnboardPage() {
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   // Action params for email notifications (lead/message/review/question) or campaign
-  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | null;
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | "manage" | "settings" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
@@ -436,6 +445,10 @@ export default function ProviderOnboardPage() {
                     if (ownedProfile) {
                       switchProfile(ownedProfile.id);
                       console.log("[OneClick] Already signed in as owner");
+                      // Auto-redirect for manage/settings (already signed in)
+                      if (actionParam === "manage" || actionParam === "settings") {
+                        router.replace(getActionRedirectUrl(actionParam, null));
+                      }
                       return;
                     }
                   }
@@ -521,6 +534,12 @@ export default function ProviderOnboardPage() {
                       },
                     }),
                   }).catch(() => {});
+
+                  // Auto-redirect for manage/settings actions (no notification card)
+                  // These footer links should take the user directly to their destination
+                  if (actionParam === "manage" || actionParam === "settings") {
+                    router.replace(getActionRedirectUrl(actionParam, null));
+                  }
                 } catch (err) {
                   console.warn("[OneClick] Background sign-in error:", err);
                 }

@@ -9,16 +9,26 @@ import { getSiteUrl } from "@/lib/site-url";
  * GET /api/cron/lead-response-nudge
  *
  * Runs weekly on Thursday 2 PM UTC (~9 AM ET). Nudges providers who haven't
- * responded to leads. Sends ONE consolidated email per provider listing all
+ * engaged with leads. Sends ONE consolidated email per provider listing all
  * their waiting leads.
  *
  * Criteria:
- * - Connection type is 'inquiry' or 'request'
+ * - Connection type is 'inquiry' (family→provider lead)
  * - Lead is at least 3 days old
- * - Provider has NOT responded (no message from provider in thread)
+ * - Provider has NOT engaged (no lead_opened, contact_revealed, phone_clicked,
+ *   email_link_clicked, continue_in_inbox, or message response)
  * - Provider HAS an email address
  * - Provider was NOT nudged in the last 7 days (checked per connection)
  */
+
+// Engagement events that indicate the provider has seen/acted on the lead
+const ENGAGEMENT_EVENTS = [
+  "lead_opened",
+  "contact_revealed",
+  "phone_clicked",
+  "email_link_clicked",
+  "continue_in_inbox",
+] as const;
 export const maxDuration = 120;
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
@@ -52,7 +62,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const querySecret = searchParams.get("secret");
   const dryRun = searchParams.get("dry_run") === "true";
-  const limit = Math.min(500, parseInt(searchParams.get("limit") || "500", 10));
+  const parsedLimit = parseInt(searchParams.get("limit") || "500", 10);
+  const limit = Math.min(500, Number.isNaN(parsedLimit) ? 500 : parsedLimit);
   const isAuthed =
     authHeader === `Bearer ${process.env.CRON_SECRET}` ||
     querySecret === process.env.CRON_SECRET;
@@ -73,7 +84,8 @@ export async function GET(request: NextRequest) {
       leads_included: 0,
       skipped: 0,
       skipReasons: {
-        responded: 0,
+        engaged: 0,        // Provider viewed lead, revealed contact, clicked phone/email, etc.
+        responded: 0,      // Provider sent a message in the thread
         no_email: 0,
         recently_nudged: 0,
         send_failed: 0,
@@ -115,6 +127,47 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // Collect all connection IDs to check for engagement events
+    const allConnectionIds = connections.map((c) => c.id);
+
+    // Query provider_activity for any engagement events on these connections
+    // Note: lead_opened stores connection_id, other events store lead_id (both are conn.id)
+    //
+    // Scalability note: This fetches engagement events and filters in JS since we can't
+    // easily filter by JSONB metadata values. Limit of 100k is a safety valve.
+    // At very high scale, consider a DB index on metadata->>lead_id or junction table.
+    const ENGAGEMENT_QUERY_LIMIT = 100000;
+    const { data: engagementEvents, error: engagementError } = await db
+      .from("provider_activity")
+      .select("metadata")
+      .in("event_type", ENGAGEMENT_EVENTS)
+      .limit(ENGAGEMENT_QUERY_LIMIT);
+
+    if (engagementEvents && engagementEvents.length >= ENGAGEMENT_QUERY_LIMIT) {
+      console.warn(
+        `[cron/lead-response-nudge] Hit engagement query limit (${ENGAGEMENT_QUERY_LIMIT}). ` +
+        "Some engagement events may be missed. Consider optimizing the query."
+      );
+    }
+
+    // Fail-closed: if we can't check engagement, don't send nudges (Rule #1 protection)
+    if (engagementError) {
+      console.error("[cron/lead-response-nudge] Engagement query failed:", engagementError);
+      throw new Error(`Failed to check engagement events: ${engagementError.message}`);
+    }
+
+    // Build a Set of connection IDs that have been engaged with
+    // Check both connection_id and lead_id since different events use different keys
+    const engagedConnectionIds = new Set<string>();
+    const connectionIdSet = new Set(allConnectionIds); // O(1) lookup instead of O(n)
+    for (const event of engagementEvents || []) {
+      const meta = event.metadata as Record<string, unknown>;
+      const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+      if (connId && connectionIdSet.has(connId)) {
+        engagedConnectionIds.add(connId);
+      }
+    }
+
     // Group eligible leads by provider
     const providerGroups = new Map<string, ProviderGroup>();
 
@@ -129,11 +182,19 @@ export async function GET(request: NextRequest) {
         ? conn.to_profile[0]
         : conn.to_profile;
 
+      // Check if provider has engaged with this lead (viewed, revealed contact, etc.)
+      if (engagedConnectionIds.has(conn.id)) {
+        counts.skipped++;
+        counts.skipReasons.engaged++;
+        continue;
+      }
+
       const meta = (conn.metadata as Record<string, unknown>) ?? {};
       const thread = (meta.thread as ThreadMessage[]) || [];
 
       // Check if provider has REALLY responded (non-auto, non-system, with actual text)
-      const providerResponded = thread.some(
+      // OR explicitly marked the lead as replied / already connected
+      const hasThreadResponse = thread.some(
         (m) =>
           m.from_profile_id === conn.to_profile_id &&
           m.is_auto_reply !== true &&
@@ -141,6 +202,9 @@ export async function GET(request: NextRequest) {
           m.from_profile_id !== "system" &&
           !!m.text?.trim()
       );
+      const markedReplied = meta.marked_replied === true;
+      const alreadyConnected = meta.archive_reason === "already_connected";
+      const providerResponded = hasThreadResponse || markedReplied || alreadyConnected;
       if (providerResponded) {
         counts.skipped++;
         counts.skipReasons.responded++;

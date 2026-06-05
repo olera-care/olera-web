@@ -1,7 +1,7 @@
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
-import { generateNotificationUrl } from "@/lib/claim-tokens";
+import { generateNotificationUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 
 interface NotificationResult {
   leadEmailsSent: number;
@@ -123,19 +123,60 @@ export async function sendDeferredNotificationsForProvider(
 
         // Parse message data
         let careType: string | null = null;
-        let additionalNotes: string | null = null;
+        let city: string | null = null;
+        let careRecipient: string | null = null;
         let familyName = "A family";
+        let safeFamilyFirstName: string | null = null;
+
+        // Care recipient display map
+        const careRecipientDisplayMap: Record<string, string> = {
+          parent: "their parent",
+          spouse: "their spouse",
+          self: "",
+          other: "a family member",
+          "My parent": "their parent",
+          "My spouse": "their spouse",
+          "Myself": "",
+          "Someone else": "a family member",
+        };
+
         try {
           const msg = JSON.parse(conn.message || "{}");
           careType = msg.care_type ? (careTypeMap[msg.care_type] || msg.care_type) : null;
-          additionalNotes = msg.additional_notes || null;
+          city = msg.looking_in_city || null;
+          const rawRecipient = msg.care_recipient || null;
+          careRecipient = rawRecipient ? (careRecipientDisplayMap[rawRecipient] || null) : null;
+
           // Normalize from_profile (Supabase joins return arrays)
           const rawFromProfile = (conn as { from_profile?: { display_name: string }[] | { display_name: string } | null }).from_profile;
           const fromProfile = Array.isArray(rawFromProfile) ? rawFromProfile[0] ?? null : rawFromProfile;
           familyName = fromProfile?.display_name || `${msg.seeker_first_name || ""} ${msg.seeker_last_name || ""}`.trim() || "A family";
+
+          // Extract first name for subject line
+          const firstNameRaw = (familyName || "").trim().split(/\s+/)[0] || "";
+          const placeholders = ["anonymous", "careseeker", "care", "a", "family", "guest", "user"];
+          safeFamilyFirstName = firstNameRaw && !placeholders.includes(firstNameRaw.toLowerCase()) && firstNameRaw.length > 1
+            ? firstNameRaw : null;
         } catch { /* use defaults */ }
 
-        const emailSubject = `A family is looking for care from ${providerName || "your organization"}`;
+        // Build dynamic subject line
+        let emailSubject: string;
+        if (safeFamilyFirstName && city && careType) {
+          emailSubject = `${safeFamilyFirstName} in ${city} is looking for ${careType.toLowerCase()}`;
+        } else if (!safeFamilyFirstName && city && careType) {
+          emailSubject = `A family in ${city} is looking for ${careType.toLowerCase()}`;
+        } else if (safeFamilyFirstName && careType) {
+          emailSubject = `${safeFamilyFirstName} is looking for ${careType.toLowerCase()}`;
+        } else if (safeFamilyFirstName && city) {
+          emailSubject = `${safeFamilyFirstName} in ${city} is looking for care`;
+        } else if (safeFamilyFirstName) {
+          emailSubject = `${safeFamilyFirstName} is looking for care`;
+        } else if (city) {
+          emailSubject = `A family in ${city} is looking for care`;
+        } else {
+          emailSubject = "A family is looking for care";
+        }
+
         const emailLogId = await reserveEmailLogId({
           to: email,
           subject: emailSubject,
@@ -144,13 +185,20 @@ export async function sendDeferredNotificationsForProvider(
           providerId: profileId,
         });
 
-        // Generate one-click URL with signed token
+        // Generate one-click URLs with signed tokens
         let viewUrl: string;
+        let manageListingUrl: string;
+        let settingsUrl: string;
+
         try {
           viewUrl = generateNotificationUrl(providerSlug, email, "lead", conn.id, siteUrl);
+          manageListingUrl = generateProviderPortalUrl(providerSlug, email, "manage", siteUrl);
+          settingsUrl = generateProviderPortalUrl(providerSlug, email, "settings", siteUrl);
           viewUrl = appendTrackingParams(viewUrl, emailLogId);
         } catch {
           viewUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${conn.id}`, emailLogId);
+          manageListingUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=manage`;
+          settingsUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=settings`;
         }
 
         await sendEmail({
@@ -160,9 +208,11 @@ export async function sendDeferredNotificationsForProvider(
             providerName: providerName || "Provider",
             familyName,
             careType,
-            message: additionalNotes,
+            city,
+            careRecipient,
             viewUrl,
-            providerSlug,
+            manageListingUrl,
+            settingsUrl,
           }),
           emailType: "add_email_notification",
           recipientType: "provider",

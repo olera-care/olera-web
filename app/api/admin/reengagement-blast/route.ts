@@ -11,6 +11,12 @@ import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tok
  * Admin-only endpoint to trigger the Day 17 re-engagement email blast
  * for stuck providers. Requires admin authentication.
  *
+ * Eligibility criteria:
+ *   - Connection is 14+ days old
+ *   - Provider has NOT engaged (no lead_opened, contact_revealed, etc.)
+ *   - NOT already sent re-engagement email (stage 6)
+ *   - Provider has a valid email address
+ *
  * Query params:
  *   - dry_run=true: Preview mode, shows what would be sent without sending
  */
@@ -39,10 +45,15 @@ export async function POST(request: NextRequest) {
     skipped: 0,
     dry_run: dryRun,
     triggered_by: adminUser.email,
+    // Debug counts for visibility
+    total_inquiries_checked: 0,
+    filtered_too_recent: 0,
+    filtered_already_emailed: 0,
+    filtered_engaged: 0,
   };
 
   try {
-    // Find all connections at stage 5 (stuck) that haven't received stage 6 yet
+    // Fetch all inquiry connections - filtering happens after engagement check
     const { data: connections, error: fetchError } = await db
       .from("connections")
       .select(`
@@ -56,7 +67,7 @@ export async function POST(request: NextRequest) {
       `)
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
-      .limit(500);
+      .limit(2000); // Higher limit for blast operation
 
     if (fetchError) {
       console.error("[admin/reengagement-blast] Fetch error:", fetchError);
@@ -68,10 +79,19 @@ export async function POST(request: NextRequest) {
 
     // Query provider_activity for engagement events (lead_opened, contact_revealed, etc.)
     // This ensures we ONLY send to providers who have NOT engaged
-    const ENGAGEMENT_EVENTS = ["lead_opened", "contact_revealed", "click_phone", "click_email", "continue_to_inbox"];
+    // Note: one_click_access may have null connection_id for multi-lead emails,
+    // so we also track engaged PROVIDERS separately from engaged CONNECTIONS.
+    const ENGAGEMENT_EVENTS = [
+      "one_click_access",    // Clicked email link (may have null connection_id)
+      "lead_opened",         // Viewed lead details
+      "contact_revealed",    // Revealed contact info
+      "phone_clicked",       // Clicked phone button
+      "email_link_clicked",  // Clicked email button
+      "continue_in_inbox",   // Clicked "Continue in Inbox"
+    ];
     const { data: engagementEvents, error: engagementError } = await db
       .from("provider_activity")
-      .select("metadata")
+      .select("provider_id, metadata, event_type")
       .in("event_type", ENGAGEMENT_EVENTS)
       .limit(100000);
 
@@ -82,38 +102,85 @@ export async function POST(request: NextRequest) {
 
     // Build set of connection IDs that have been engaged with
     const engagedConnectionIds = new Set<string>();
+    // Also track providers who clicked email links (one_click_access) - catches multi-lead emails
+    const engagedProviderIds = new Set<string>();
     const connectionIdSet = new Set(allConnectionIds);
+
     for (const event of engagementEvents || []) {
       const meta = event.metadata as Record<string, unknown>;
       const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+
+      // Match by connection_id if available
       if (connId && connectionIdSet.has(connId)) {
         engagedConnectionIds.add(connId);
       }
+
+      // For one_click_access, also track the provider as engaged
+      // This catches multi-lead emails where connection_id is null
+      if (event.event_type === "one_click_access" && event.provider_id) {
+        engagedProviderIds.add(event.provider_id);
+      }
     }
 
-    // Filter to stuck (stage 5) OR needs_call (stage 7) connections
-    // that have NOT been engaged with
+    // Filter to eligible connections:
+    // - 14+ days old with no engagement
+    // - NOT already sent re-engagement email (stage 6)
+    // - NOT already engaged (lead viewed, contact revealed, etc.)
+    counts.total_inquiries_checked = (connections || []).length;
+
     const eligibleConnections = (connections || []).filter((conn) => {
       const meta = (conn.metadata as Record<string, unknown>) || {};
       const stage = meta.followup_stage as number | undefined;
 
-      // Must be stuck (5) or needs_call (7)
-      if (stage !== 5 && stage !== 7) return false;
-
-      // Must NOT have been engaged with
-      if (engagedConnectionIds.has(conn.id)) return false;
-
-      // Must be old enough (14+ days for stuck, 24+ days for needs_call)
+      // Calculate age
       const daysSince = Math.floor((now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24));
-      if (daysSince < 14) return false;
 
+      // Must be old enough (14+ days)
+      if (daysSince < 14) {
+        counts.filtered_too_recent++;
+        return false;
+      }
+
+      // Exclude if already sent re-engagement email (stage 6)
+      if (stage === 6) {
+        counts.filtered_already_emailed++;
+        return false;
+      }
+
+      // Must NOT have been engaged with (this is the real engagement check)
+      if (engagedConnectionIds.has(conn.id)) {
+        counts.filtered_engaged++;
+        return false;
+      }
+
+      // Also check provider-level engagement (catches multi-lead email clicks)
+      // Provider could be identified by slug, source_provider_id, or id
+      const toProfile = (Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile) as Record<string, unknown> | null;
+      const providerSlug = (toProfile?.slug as string) || "";
+      const sourceProviderId = (toProfile?.source_provider_id as string) || "";
+      const profileId = (toProfile?.id as string) || "";
+
+      if (
+        (providerSlug && engagedProviderIds.has(providerSlug)) ||
+        (sourceProviderId && engagedProviderIds.has(sourceProviderId)) ||
+        (profileId && engagedProviderIds.has(profileId))
+      ) {
+        counts.filtered_engaged++;
+        return false;
+      }
+
+      // Include if:
+      // - Explicitly marked as stuck (5) or needs_call (7)
+      // - OR no stage at all (old connections that predate the cron)
+      // - OR any stage 0-5 that's old enough (cron might have missed them)
+      // Basically: include everything old that hasn't been engaged or already emailed
       return true;
     });
 
     if (eligibleConnections.length === 0) {
       return NextResponse.json({
         ...counts,
-        message: "No eligible connections found (all have been engaged or are too recent)",
+        message: `No eligible connections found. Breakdown: ${counts.total_inquiries_checked} checked, ${counts.filtered_too_recent} too recent, ${counts.filtered_already_emailed} already emailed, ${counts.filtered_engaged} engaged.`,
         engagement_verified: true,
       });
     }

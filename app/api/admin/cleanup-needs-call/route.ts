@@ -1,0 +1,136 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+
+/**
+ * POST /api/admin/cleanup-needs-call
+ *
+ * Cleans up corrupted connection metadata where needs_call=true
+ * was incorrectly set on connections less than 24 days old.
+ *
+ * Query params:
+ *   - dry_run=true: Preview mode, shows what would be cleaned without changing data
+ */
+export async function POST(request: NextRequest) {
+  // Verify admin authentication
+  const authUser = await getAuthUser();
+  if (!authUser) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const adminUser = await getAdminUser(authUser.id);
+  if (!adminUser) {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const dryRun = searchParams.get("dry_run") === "true";
+
+  const db = getServiceClient();
+  const now = Date.now();
+  const NEEDS_CALL_THRESHOLD_DAYS = 24;
+
+  const counts = {
+    total_checked: 0,
+    incorrectly_flagged: 0,
+    cleaned: 0,
+    dry_run: dryRun,
+    triggered_by: adminUser.email,
+  };
+
+  try {
+    // Find all connections with needs_call in metadata
+    const { data: connections, error: fetchError } = await db
+      .from("connections")
+      .select("id, created_at, metadata")
+      .eq("type", "inquiry")
+      .limit(5000);
+
+    if (fetchError) {
+      console.error("[admin/cleanup-needs-call] Fetch error:", fetchError);
+      return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    }
+
+    const toClean: Array<{ id: string; daysSince: number }> = [];
+
+    for (const conn of connections || []) {
+      const meta = (conn.metadata as Record<string, unknown>) || {};
+
+      // Check if needs_call flag is set
+      if (meta.needs_call === true || meta.followup_stopped_reason === "needs_call") {
+        counts.total_checked++;
+
+        // Calculate days since creation
+        const daysSince = Math.floor(
+          (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        // If less than 24 days, this is incorrect
+        if (daysSince < NEEDS_CALL_THRESHOLD_DAYS) {
+          counts.incorrectly_flagged++;
+          toClean.push({ id: conn.id, daysSince });
+        }
+      }
+    }
+
+    if (toClean.length === 0) {
+      return NextResponse.json({
+        ...counts,
+        message: "No incorrectly flagged connections found.",
+      });
+    }
+
+    // Clean up the incorrect flags
+    if (!dryRun) {
+      for (const item of toClean) {
+        const { data: conn } = await db
+          .from("connections")
+          .select("metadata")
+          .eq("id", item.id)
+          .single();
+
+        if (conn) {
+          const meta = (conn.metadata as Record<string, unknown>) || {};
+          const cleanedMeta = {
+            ...meta,
+            needs_call: undefined, // Remove the flag
+            followup_stopped_reason: meta.followup_stopped_reason === "needs_call"
+              ? undefined
+              : meta.followup_stopped_reason,
+            // Reset to appropriate stage based on age
+            followup_stage: item.daysSince >= 14 ? 5 : (meta.followup_stage ?? 0),
+          };
+
+          // Remove undefined keys
+          Object.keys(cleanedMeta).forEach(key => {
+            if (cleanedMeta[key] === undefined) {
+              delete cleanedMeta[key];
+            }
+          });
+
+          await db
+            .from("connections")
+            .update({ metadata: cleanedMeta })
+            .eq("id", item.id);
+
+          counts.cleaned++;
+        }
+      }
+    } else {
+      counts.cleaned = toClean.length; // Would clean this many
+    }
+
+    return NextResponse.json({
+      ...counts,
+      message: dryRun
+        ? `Would clean ${counts.incorrectly_flagged} connections with incorrect needs_call flag`
+        : `Cleaned ${counts.cleaned} connections with incorrect needs_call flag`,
+      details: dryRun ? toClean.slice(0, 20) : undefined, // Show first 20 in dry run
+    });
+  } catch (err) {
+    console.error("[admin/cleanup-needs-call] Error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}

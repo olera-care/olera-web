@@ -158,7 +158,6 @@ function getSubjectForStage(stage: FollowupStage, familyName: string | null, lea
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  const adminTrigger = request.headers.get("x-admin-trigger") === "true";
   const { searchParams } = new URL(request.url);
   const querySecret = searchParams.get("secret");
   const dryRun = searchParams.get("dry_run") === "true";
@@ -166,18 +165,11 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(500, Number.isNaN(parsedLimit) ? 500 : parsedLimit);
   // One-time blast: send Day 17 email to all stuck providers regardless of stage
   const forceStuckReengagement = searchParams.get("force_stuck_reengagement") === "true";
-
-  // Auth: cron secret OR admin panel (session-based)
-  const isCronAuthed =
+  const isAuthed =
     authHeader === `Bearer ${process.env.CRON_SECRET}` ||
     querySecret === process.env.CRON_SECRET;
 
-  // For admin panel triggers, check if request has valid session cookie
-  // (The admin panel is protected by middleware, so if this header is present
-  // and the request made it here, the user is authenticated as admin)
-  const isAdminAuthed = adminTrigger;
-
-  if (!isCronAuthed && !isAdminAuthed) {
+  if (!isAuthed) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

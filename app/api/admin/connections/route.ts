@@ -118,6 +118,7 @@ interface EngagementCounts {
   engaged: number;
   connected: number;
   stuck: number;
+  needs_call: number;
 }
 
 // Funnel stats for the stats row
@@ -395,6 +396,8 @@ export async function GET(request: NextRequest) {
         waitingOn,
         lastMessageAt,
         temperature,
+        // For engagement-based "Needs Call" tab
+        needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
       };
     });
 
@@ -540,6 +543,7 @@ export async function GET(request: NextRequest) {
       engaged: 0,
       connected: 0,
       stuck: 0,
+      needs_call: 0,
     };
 
     // Funnel stats
@@ -576,6 +580,7 @@ export async function GET(request: NextRequest) {
         emailLinkClicked: eng?.email_link_clicked ?? false,
         providerMessaged: c.responded,
         lastActivityAt: combinedLastActivity,
+        needsCall: c.needsCall,
       };
 
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
@@ -633,7 +638,7 @@ export async function GET(request: NextRequest) {
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
     // Check if filter is an engagement level
-    const engagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck"];
+    const engagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
     const isEngagementFilter = engagementLevels.includes(responseFilter as EngagementLevel);
 
     if (responseFilter !== "all") {

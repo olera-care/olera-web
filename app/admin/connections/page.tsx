@@ -24,6 +24,7 @@ interface EngagementCounts {
   engaged: number;
   connected: number;
   stuck: number;
+  needs_call: number;
 }
 
 interface FunnelStats {
@@ -64,7 +65,7 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck";
+type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
 
 // Engagement-based tabs
 type FilterKey = "all" | EngagementLevel;
@@ -77,6 +78,7 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
+  { key: "needs_call", label: "Needs Call", description: "Re-engagement failed, requires manual call", emptyMessage: "No providers need calling." },
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead", emptyMessage: "No leads have been viewed yet." },
   { key: "engaged", label: "Engaged", description: "Provider revealed contact info", emptyMessage: "No engaged leads yet." },

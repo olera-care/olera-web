@@ -19,6 +19,7 @@ import {
 import ContactSection from "./ContactSection";
 import BackLink from "./BackLink";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
+import { LOGAN_DEMO_CANDIDATE } from "@/lib/medjobs/demo-candidate";
 
 function getSupabase() {
   return createClient(
@@ -154,6 +155,41 @@ function formatLastUpdated(dateStr: string): string {
 
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
+
+  // Demo sample profile (shown when a campus has no real students yet). Opens
+  // like a normal candidate, clearly labeled as a demo. No scheduling — it's
+  // not a real student.
+  if (slug === LOGAN_DEMO_CANDIDATE.id) {
+    const d = LOGAN_DEMO_CANDIDATE;
+    return (
+      <main className="min-h-screen bg-[#FAFAF8]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+          <BackLink studentSlug={slug} />
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-white overflow-hidden">
+            <div className="bg-amber-50 px-6 py-2 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+              Demo · This is not a real student
+            </div>
+            <div className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0">
+                  <Image src={d.photo_url} alt={d.first_name} fill className="object-cover" sizes="64px" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 font-display">
+                    {d.first_name} {d.last_name}
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    {d.program_track} · {d.city}, {d.state}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-5 text-sm leading-relaxed text-gray-700">{d.bio}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // Check if current user is a provider with full access (paid + verified)
   const providerHasFullAccess = await checkHasFullAccess();

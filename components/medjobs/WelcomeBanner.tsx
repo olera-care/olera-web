@@ -3,6 +3,9 @@
 import { useState } from "react";
 import PilotTermsModal from "@/components/medjobs/PilotTermsModal";
 
+// The banner has no dismiss affordance — it persists until the provider
+// activates the pilot (the page hides it once pilot-active).
+
 /**
  * WelcomeBanner — first-arrival banner for cold-provider magic-link clicks.
  * Phase 2+3 Bullet 12 (2026-06-04). Phase 4+5 Bullet 4 (2026-06-04): wires
@@ -29,30 +32,12 @@ export default function WelcomeBanner({
    *  org deterministically (decision: org-owned). */
   outreachId?: string;
 }) {
-  const [dismissed, setDismissed] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-  if (dismissed) return null;
 
   return (
     <div className="mb-6 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4 sm:px-6 sm:py-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          {claimConflict ? (
-            <ClaimConflictCopy />
-          ) : (
-            <DefaultCopy isProvider={isProvider} />
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => setDismissed(true)}
-          aria-label="Dismiss welcome banner"
-          className="shrink-0 rounded-md p-1 text-gray-400 hover:bg-white hover:text-gray-600"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      <div className="min-w-0">
+        {claimConflict ? <ClaimConflictCopy /> : <DefaultCopy isProvider={isProvider} />}
       </div>
 
       {!claimConflict && (

@@ -652,7 +652,7 @@ function NearYouEmptyState({
       iconColor: "text-sky-500",
       title: "Hire Caregivers",
       description: "Find qualified care professionals",
-      href: "/provider/medjobs/candidates",
+      href: "/medjobs/candidates",
       cta: "Browse",
     },
     {

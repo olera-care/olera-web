@@ -435,7 +435,7 @@ export default function InterviewCalendar({
               : "When you request or receive interview invitations, they'll appear here on your calendar."}
           </p>
           <Link
-            href={perspective === "provider" ? "/provider/medjobs/candidates" : "/portal/medjobs/jobs"}
+            href={perspective === "provider" ? "/medjobs/candidates" : "/portal/medjobs/jobs"}
             className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             {perspective === "provider" ? "Browse caregivers" : "Browse open jobs"}
@@ -564,7 +564,7 @@ function InterviewDetailModal({
 
   // Link to the other person's profile
   const profileHref = perspective === "provider" && interview.student?.slug
-    ? `/provider/medjobs/candidates/${interview.student.slug}`
+    ? `/medjobs/candidates/${interview.student.slug}`
     : null;
 
   // Provider contact info for caregivers to reschedule

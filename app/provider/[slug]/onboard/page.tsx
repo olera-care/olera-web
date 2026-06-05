@@ -865,7 +865,7 @@ export default function ProviderOnboardPage() {
     if (storedRedirect === "/provider/reviews") {
       return "Go to Reviews";
     }
-    if (storedRedirect === "/provider/medjobs/candidates") {
+    if (storedRedirect === "/medjobs/candidates") {
       return "Browse Caregivers";
     }
     if (actionParam === "lead" || actionParam === "message") {

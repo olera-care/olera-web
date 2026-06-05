@@ -276,7 +276,9 @@ export async function GET(request: NextRequest) {
       const meta = (conn.metadata as FollowupMetadata & Record<string, unknown>) ?? {};
 
       // Check if sequence was already stopped
-      if (meta.followup_stopped_at) {
+      // Only skip if stopped for engagement/response (success cases) or needs_call (terminal)
+      // Don't skip if stopped_reason is "stuck" — allow progression to stages 6/7
+      if (meta.followup_stopped_at && meta.followup_stopped_reason !== "stuck") {
         counts.skipped++;
         counts.skipReasons.sequence_stopped++;
         continue;
@@ -346,8 +348,9 @@ export async function GET(request: NextRequest) {
       const expectedStage = calculateExpectedStage(daysSinceInquiry);
       const currentStage = meta.followup_stage ?? 0;
 
-      // Cap at stage 5 — no resurrection of very old leads
-      if (daysSinceInquiry > 30 && currentStage >= 5) {
+      // Cap at stage 7 (terminal) — no resurrection of very old leads
+      // Stage 7 is needs_call, which is the final state
+      if (daysSinceInquiry > 30 && currentStage >= 7) {
         counts.skipped++;
         counts.skipReasons.already_at_stage++;
         continue;
@@ -460,6 +463,9 @@ export async function GET(request: NextRequest) {
               ...lead.metadata,
               followup_stage: 6 as FollowupStage,
               followup_sent_at: null, // No email sent yet
+              // Clear stopped fields from stage 5 — sequence is resuming
+              followup_stopped_at: null,
+              followup_stopped_reason: null,
             };
             await db
               .from("connections")

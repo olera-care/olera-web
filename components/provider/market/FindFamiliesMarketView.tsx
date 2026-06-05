@@ -57,7 +57,7 @@ export default function FindFamiliesMarketView({
   }, [city, state, category]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {/* Rare cherry: a real published care-seeker within the catchment, pinned on top. */}
         {pinned}

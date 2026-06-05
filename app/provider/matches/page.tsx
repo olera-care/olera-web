@@ -510,7 +510,7 @@ function PeopleIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 function MatchesSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="animate-pulse">
         <div className="mb-8">
@@ -1904,7 +1904,7 @@ export default function ProviderMatchesPage() {
   // Error state — show after loading completes with no data
   if (fetchError && families.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col items-center justify-center text-center min-h-[50vh]">
           <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-5">
@@ -1935,7 +1935,7 @@ export default function ProviderMatchesPage() {
   const firstName = providerProfile?.display_name?.split(" ")[0] || "there";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
 

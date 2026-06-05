@@ -481,7 +481,7 @@ export default function FamilyMatchCard({
 
   return (
     <div
-      className={`group rounded-[14px] border overflow-hidden cursor-pointer ${
+      className={`group rounded-[14px] border overflow-hidden cursor-pointer transition active:scale-[0.99] ${
         isInactive
           ? "bg-gray-50/50 opacity-80 border-gray-200 hover:border-gray-300 card-hover-shadow"
           : contacted

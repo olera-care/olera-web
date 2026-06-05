@@ -31,8 +31,7 @@ interface FamilyEngagementCounts {
   all: number;
   new: number;
   awaiting: number;
-  replied: number;
-  connected: number;
+  engaged: number;
   stuck: number;
   needs_call: number;
 }
@@ -78,7 +77,7 @@ interface ListResponse {
 
 // Engagement level type
 type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
-type FamilyEngagementLevel = "new" | "awaiting" | "replied" | "connected" | "stuck" | "needs_call";
+type FamilyEngagementLevel = "new" | "awaiting" | "engaged" | "stuck" | "needs_call";
 
 // Perspective type
 type Perspective = "provider" | "family";
@@ -110,8 +109,7 @@ const PROVIDER_TABS: TabConfig[] = [
 const FAMILY_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Provider hasn't responded yet", emptyMessage: "No connections awaiting provider response." },
   { key: "awaiting", label: "Awaiting", description: "Provider responded, awaiting family reply", emptyMessage: "No families awaiting response." },
-  { key: "replied", label: "Replied", description: "Family replied to provider", emptyMessage: "No families have replied yet." },
-  { key: "connected", label: "Connected", description: "Active conversation", emptyMessage: "No active conversations yet." },
+  { key: "engaged", label: "Engaged", description: "Family replied to provider", emptyMessage: "No families have replied yet." },
   { key: "stuck", label: "Stuck", description: "No family activity for 14+ days", emptyMessage: "No stuck family connections." },
   { key: "needs_call", label: "Needs Call", description: "No family activity for 24+ days", emptyMessage: "No families need calling." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },

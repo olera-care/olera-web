@@ -129,8 +129,7 @@ interface FamilyEngagementCounts {
   all: number;
   new: number;
   awaiting: number;
-  replied: number;
-  connected: number;
+  engaged: number;
   stuck: number;
   needs_call: number;
 }
@@ -597,8 +596,7 @@ export async function GET(request: NextRequest) {
       all: 0,
       new: 0,
       awaiting: 0,
-      replied: 0,
-      connected: 0,
+      engaged: 0,
       stuck: 0,
       needs_call: 0,
     };
@@ -718,7 +716,7 @@ export async function GET(request: NextRequest) {
 
     // Check if filter is an engagement level (provider or family)
     const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
-    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "replied", "connected", "stuck", "needs_call"];
+    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "engaged", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
       if (perspective === "family") {

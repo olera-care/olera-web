@@ -15,7 +15,7 @@ interface ProfileCompleteness {
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
 export type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
-export type FamilyEngagementLevel = "new" | "awaiting" | "replied" | "connected" | "stuck" | "needs_call";
+export type FamilyEngagementLevel = "new" | "awaiting" | "engaged" | "stuck" | "needs_call";
 export type Perspective = "provider" | "family";
 
 export interface ConnectionRowData {
@@ -293,10 +293,8 @@ export default function ConnectionRow({
       const famLevel = c.familyEngagementLevel || "new";
 
       switch (famLevel) {
-        case "connected":
-          return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
-        case "replied":
-          return { status: "Replied", color: "text-orange-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
+        case "engaged":
+          return { status: "Engaged", color: "text-emerald-600", nudgeInfo: null };
         case "awaiting":
           return { status: "Awaiting Reply", color: "text-amber-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
         case "stuck":
@@ -542,7 +540,7 @@ export default function ConnectionRow({
                 {perspective === "family" ? (
                   // Family perspective: primary action is nudging family
                   <>
-                    {c.familyEngagementLevel !== "connected" && c.familyEngagementLevel !== "new" && (
+                    {c.familyEngagementLevel !== "engaged" && c.familyEngagementLevel !== "new" && (
                       <>
                         {/* Family nudge - primary action in family perspective */}
                         {detail.family.email && (
@@ -567,8 +565,8 @@ export default function ConnectionRow({
                     {c.familyEngagementLevel === "new" && (
                       <span className="text-sm text-gray-500">Waiting for provider to respond</span>
                     )}
-                    {c.familyEngagementLevel === "connected" && (
-                      <span className="text-sm text-emerald-600 font-medium">Active conversation</span>
+                    {c.familyEngagementLevel === "engaged" && (
+                      <span className="text-sm text-emerald-600 font-medium">Family replied</span>
                     )}
                   </>
                 ) : (

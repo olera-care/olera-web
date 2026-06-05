@@ -150,9 +150,8 @@ export default function ConnectionsTrackerPage() {
     setBlastError(null);
     setBlastResult(null);
     try {
-      const res = await fetch(`/api/cron/lead-followup-sequence?force_stuck_reengagement=true${dryRun ? "&dry_run=true" : ""}`, {
-        method: "GET",
-        headers: { "x-admin-trigger": "true" },
+      const res = await fetch(`/api/admin/reengagement-blast${dryRun ? "?dry_run=true" : ""}`, {
+        method: "POST",
       });
       const data = await res.json();
       if (!res.ok) {

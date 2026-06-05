@@ -470,26 +470,29 @@ export function newMessageEmail(opts: {
 }): string {
   const safeSenderName = firstName(opts.senderName, "Someone");
   const safePreview = escapeHtml(opts.messagePreview);
-  // Preheader uses raw text (preheaderHtml handles its own escaping)
-  const preheaderSnippet = opts.messagePreview.length > 60
-    ? opts.messagePreview.slice(0, 60) + "..."
-    : opts.messagePreview;
 
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(firstName(opts.recipientName, "there"))},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${escapeHtml(safeSenderName)}</strong> sent you a message:
+      Good news — <strong>${escapeHtml(safeSenderName)}</strong> just got back to you. You can read their message and reply right here:
     </p>
-    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
-    </div>
-    <div style="margin:0 0 24px;">${button("Reply", opts.viewUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      That's a real person on the other end, ready to help. Reply whenever you're ready — there's no rush, and the conversation stays right in your inbox, just between the two of you.
     </p>
-  `, `"${preheaderSnippet}"`);
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Not sure what to say? Even a quick note about who needs care and when is a great start.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions, or want help knowing what to ask? A real person is here at <a href="mailto:support@olera.care" style="color:#6b7280;text-decoration:underline;">support@olera.care</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "Read their message and reply whenever you're ready.");
 }
 
 /** Reminder email to family when provider responded but family hasn't engaged */

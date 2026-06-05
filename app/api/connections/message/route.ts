@@ -237,7 +237,10 @@ export async function POST(request: Request) {
               : text.trim();
 
           const isFamily = recipientProfile?.type === "family";
-          const msgSubject = `${firstName(senderProfile?.display_name || "", "Someone")} sent you a message`;
+          const senderFirstName = firstName(senderProfile?.display_name || "", "Someone");
+          const msgSubject = isFamily
+            ? `You have a reply from ${senderFirstName}`
+            : `${senderFirstName} sent you a message`;
 
           const msgEmailLogId = await reserveEmailLogId({
             to: recipientEmail,
@@ -247,15 +250,38 @@ export async function POST(request: Request) {
             providerId: !isFamily ? recipientProfileId : undefined,
           });
 
-          // Route to inbox with auto-select:
-          // - Families → /portal/inbox?id=...
-          // - Claimed providers (have account) → /portal/inbox?role=provider&id=...
-          // - Unclaimed providers → /provider/[slug]/onboard (to claim first)
+          // Route to inbox with auto-select and magic link:
+          // - Families → /portal/inbox?id=... with magic link
+          // - Claimed providers (have account) → /portal/inbox?role=provider&id=... with magic link
+          // - Unclaimed providers → /provider/[slug]/onboard with magic link (to claim first)
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           let viewUrl: string;
 
           if (isFamily) {
-            viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox?id=${connectionId}`, msgEmailLogId);
+            const redirectPath = appendTrackingParams(
+              `/portal/inbox?id=${connectionId}`,
+              msgEmailLogId
+            );
+            viewUrl = `${siteUrl}${redirectPath}`;
+
+            // Generate magic link for family (auto-sign in)
+            try {
+              const { data: familyLinkData, error: familyLinkError } = await admin.auth.admin.generateLink({
+                type: "magiclink",
+                email: recipientEmail,
+                options: {
+                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+                },
+              });
+              if (!familyLinkError && familyLinkData?.properties?.action_link) {
+                viewUrl = familyLinkData.properties.action_link;
+              } else {
+                console.warn("Failed to generate family magic link for message:", familyLinkError?.message);
+              }
+            } catch (linkErr) {
+              console.error("Failed to generate family magic link for message:", linkErr);
+              // Continue with fallback URL (inbox without magic link)
+            }
           } else if (isClaimed) {
             // Claimed provider → direct to inbox with magic link
             const redirectPath = appendTrackingParams(

@@ -1930,6 +1930,20 @@ export function reviewRequestEmail(opts: {
 }
 
 /** Care report email — sent to families after connection request (the anti-APFM differentiator) */
+/**
+ * Consolidated care report email sent to families after they send a lead.
+ * This email includes:
+ * - Confirmation that request was sent
+ * - Magic link button to message provider (with auto-sign in)
+ * - Olera value proposition
+ * - Dynamic pricing info for the provider's care type and location
+ * - Funding options with savings amounts
+ * - Similar providers in the area
+ *
+ * IMPORTANT: magicLinkUrl is a REQUIRED parameter. If this function is called
+ * from other places in the codebase, those calls will need to be updated to
+ * include a magic link or fallback URL.
+ */
 export function careReportEmail(opts: {
   seekerFirstName: string;
   providerName: string;
@@ -1941,6 +1955,7 @@ export function careReportEmail(opts: {
   state: string | null;
   fundingOptions: { label: string; savings: string | null }[];
   similarProviders: { name: string; slug: string; priceRange: string | null }[];
+  magicLinkUrl: string;
 }): string {
   const greeting = `Hi ${firstName(opts.seekerFirstName || "", "there")}`;
 
@@ -1957,8 +1972,26 @@ export function careReportEmail(opts: {
     </div>`
     : "";
 
-  const fundingSection = opts.fundingOptions.length > 0
+  // Pricing section with intro text (only show if pricing exists)
+  const pricingWithIntro = opts.pricingRange
     ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.5;">
+      When it helps, here's what to expect on cost — most families don't pay the full amount:
+    </p>
+    <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:20px 0;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;">Typical range for ${careLabel}${locationStr ? ` in ${locationStr}` : ""}</p>
+      <p style="font-size:22px;font-weight:700;color:#111827;margin:0 0 4px;">${opts.pricingRange}</p>
+      ${opts.pricingDescription ? `<p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">${opts.pricingDescription}</p>` : ""}
+      <p style="font-size:11px;color:#9ca3af;margin:8px 0 0;">Actual costs vary based on care level and services needed.</p>
+    </div>`
+    : "";
+
+  // Funding section with intro text (only show if funding options exist)
+  const fundingWithIntro = opts.fundingOptions.length > 0
+    ? `
+    <p style="font-size:14px;color:#374151;margin:16px 0 8px;line-height:1.5;">
+      Depending on your situation, these can bring it down a lot:
+    </p>
     <div style="margin:20px 0;">
       <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 8px;">Ways to pay for care</p>
       ${opts.fundingOptions.map((f) => `
@@ -1984,18 +2017,30 @@ export function careReportEmail(opts: {
     : "";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Here's what we found</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      ${greeting}, we've sent your request to <strong>${escapeHtml(opts.providerName)}</strong>. In the meantime, here's some information to help you get started.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      ${greeting},
     </p>
-    ${pricingSection}
-    ${fundingSection}
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Your request reached <strong>${escapeHtml(opts.providerName)}</strong>. You can reach them directly, right here:
+    </p>
+    <div style="margin:0 0 24px;">${button("Message provider", opts.magicLinkUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      That's the whole idea behind Olera: you're in control. You chose them, you reach out when you're ready, and no one else will be flooding your phone. We never sell your information — it's just you and the people you choose. (A free service, backed by the National Institutes of Health.)
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Looking into senior care is a big, often emotional step. There's no rush — we'll let you know the moment they reply.
+    </p>
+    ${pricingWithIntro}
+    ${fundingWithIntro}
     ${similarSection}
-    <div style="margin:24px 0 0;">${button("View your inbox", `${BASE_URL}/portal/inbox`)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — a real person will get back to you.
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions, or just want to talk it through? A real person is here at <a href="mailto:support@olera.care" style="color:#6b7280;text-decoration:underline;">support@olera.care</a>.
     </p>
-  `, "We found pricing and funding options to help you.");
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "No forms, no flood of calls — just you and the provider you chose.");
 }
 
 // ── MedJobs Interview Emails ──────────────────────────────────────

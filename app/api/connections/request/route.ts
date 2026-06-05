@@ -761,56 +761,56 @@ async function handleGuestConnection({
     },
   });
 
-  // Send welcome/connection email for new users with magic link to sign in
-  // This serves as both confirmation AND a way to sign in from other devices
-  if (isNewUser) {
-    try {
-      const careTypeLabels: Record<string, string> = {
-        home_care: "Home Care",
-        home_health: "Home Health Care",
-        assisted_living: "Assisted Living",
-        memory_care: "Memory Care",
-      };
-
-      const welcomeEmailLogId = await reserveEmailLogId({
-        to: normalizedEmail,
-        subject: `Your inquiry to ${providerName} was sent`,
-        emailType: "guest_connection",
-        recipientType: "family",
-        metadata: { connection_id: newConnection.id, provider_id: toProfileId },
-      });
-
-      const inboxDest = appendTrackingParams("/portal/inbox", welcomeEmailLogId);
-
-      // Generate magic link for email sign-in
-      const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: {
-          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
-        },
-      });
-
-      if (!magicLinkError && magicLinkData?.properties?.action_link) {
-        await sendEmail({
-          to: normalizedEmail,
-          subject: `Your inquiry to ${providerName} was sent`,
-          html: guestConnectionEmail({
-            familyName: firstName || "there",
-            providerName,
-            careType: intentData?.careType ? (careTypeLabels[intentData.careType] || intentData.careType) : null,
-            magicLinkUrl: magicLinkData.properties.action_link,
-          }),
-          emailType: 'guest_connection',
-          recipientType: 'family',
-          emailLogId: welcomeEmailLogId ?? undefined,
-        });
-      }
-    } catch (emailErr) {
-      console.error("Failed to send welcome email:", emailErr);
-      // Non-blocking — user has instant session, email is for multi-device access
-    }
-  }
+  // DISABLED: guestConnectionEmail has been consolidated into careReportEmail
+  // The care report email now includes the magic link and confirmation message
+  // if (isNewUser) {
+  //   try {
+  //     const careTypeLabels: Record<string, string> = {
+  //       home_care: "Home Care",
+  //       home_health: "Home Health Care",
+  //       assisted_living: "Assisted Living",
+  //       memory_care: "Memory Care",
+  //     };
+  //
+  //     const welcomeEmailLogId = await reserveEmailLogId({
+  //       to: normalizedEmail,
+  //       subject: `Your inquiry to ${providerName} was sent`,
+  //       emailType: "guest_connection",
+  //       recipientType: "family",
+  //       metadata: { connection_id: newConnection.id, provider_id: toProfileId },
+  //     });
+  //
+  //     const inboxDest = appendTrackingParams("/portal/inbox", welcomeEmailLogId);
+  //
+  //     // Generate magic link for email sign-in
+  //     const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
+  //       type: "magiclink",
+  //       email: normalizedEmail,
+  //       options: {
+  //         redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
+  //       },
+  //     });
+  //
+  //     if (!magicLinkError && magicLinkData?.properties?.action_link) {
+  //       await sendEmail({
+  //         to: normalizedEmail,
+  //         subject: `Your inquiry to ${providerName} was sent`,
+  //         html: guestConnectionEmail({
+  //           familyName: firstName || "there",
+  //           providerName,
+  //           careType: intentData?.careType ? (careTypeLabels[intentData.careType] || intentData.careType) : null,
+  //           magicLinkUrl: magicLinkData.properties.action_link,
+  //         }),
+  //         emailType: 'guest_connection',
+  //         recipientType: 'family',
+  //         emailLogId: welcomeEmailLogId ?? undefined,
+  //       });
+  //     }
+  //   } catch (emailErr) {
+  //     console.error("Failed to send welcome email:", emailErr);
+  //     // Non-blocking — user has instant session, email is for multi-device access
+  //   }
+  // }
 
   // Provider notifications (fire-and-forget)
   try {
@@ -1136,7 +1136,8 @@ async function handleGuestConnection({
     }
   }
 
-  // Care report email — the value delivery that differentiates Olera from APFM/Caring.com
+  // Care report email — now consolidated with confirmation + magic link
+  // This is the ONLY email sent to families when they send a lead
   try {
     const providerCareTypes = (await db
       .from("business_profiles")
@@ -1172,10 +1173,43 @@ async function handleGuestConnection({
       priceRange: (p.metadata?.price_range as string) || null,
     }));
 
-    const careLabel = pricing.careTypeLabel || "senior care";
+    // Generate magic link for inbox access with fallback to static link
+    const careReportEmailLogId = await reserveEmailLogId({
+      to: normalizedEmail,
+      subject: `You can now message ${providerName}`,
+      emailType: "care_report",
+      recipientType: "family",
+      metadata: { connection_id: newConnection.id, provider_id: toProfileId },
+    });
+
+    const inboxDest = appendTrackingParams("/portal/inbox", careReportEmailLogId);
+
+    // Default to static link as fallback
+    let magicLinkUrl = `${siteUrl}/portal/inbox`;
+
+    // Try to generate magic link, but don't block email if it fails
+    try {
+      const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: {
+          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
+        },
+      });
+
+      if (!magicLinkError && magicLinkData?.properties?.action_link) {
+        magicLinkUrl = magicLinkData.properties.action_link;
+      } else {
+        console.warn("[care-report] Magic link generation failed, using static link:", magicLinkError?.message);
+      }
+    } catch (magicLinkErr) {
+      console.error("[care-report] Magic link generation error, using static link:", magicLinkErr);
+    }
+
+    // Always send email, regardless of magic link success
     await sendEmail({
       to: normalizedEmail,
-      subject: `What ${careLabel.toLowerCase()} costs in ${locationStr || "your area"}`,
+      subject: `You can now message ${providerName}`,
       html: careReportEmail({
         seekerFirstName: firstName || "",
         providerName,
@@ -1187,10 +1221,12 @@ async function handleGuestConnection({
         state: providerState,
         fundingOptions: fundingOpts,
         similarProviders,
+        magicLinkUrl,
       }),
       emailType: "care_report",
       recipientType: "family",
       metadata: { connection_id: newConnection.id, provider_id: toProfileId },
+      emailLogId: careReportEmailLogId ?? undefined,
     });
   } catch (err) {
     console.error("[care-report-email] error:", err);

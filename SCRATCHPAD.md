@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-06-05 (Thu) — New `/notion-report` slash command (branch `radiant-snyder`)
+
+**What:** Built `/notion-report` — a mid-project **branch handoff** command that publishes a resume-ready page to Notion. Distinct from `/save` (SCRATCHPAD session log) and `/pr-merge` (post-merge record): this is the "I'm pausing this branch" artifact, optimized for picking work back up cold after compacting.
+
+**Report shape** (modeled on the proven "Market Diagnostic — Phase-2 Resume" handoff page): Where it stands → Worktree (find-branch `cd` line) → Resume command (paste-after-compacting prompt) → What's next → **⚠️ Blind spots & open risks (required, non-skippable)** → Key pointers. Runs autonomously; prints the `cd` line back to terminal.
+
+**Decisions:** (1) publishes to a NEW dedicated Notion DB **Product Development › Branch Handoff Reports** (data source `e3014bc0-3a03-40ed-9c09-a66994fb9e78`) with Branch/Worktree/Status/PR/Date props — hardcoded ID like `/pr-merge` does. (2) Blind-spots section is load-bearing (TJ's explicit ask). (3) Lives in `.claude/commands/notion-report.md` alongside the other olera-web commands (NOT TJ-hq — that's for personal cross-project skills).
+
+**Files:** `.claude/commands/notion-report.md` (new).
+
+**Next:** none — self-contained. Future: could auto-set Status from git state, or call `/save` first automatically.
+
 ### 2026-06-04 — Market Diagnostic PHASE 2: compute-on-visit for any city (PR #924 → staging, OPEN)
 
 **Goal:** the diagnostic works for **any provider's city**, computed on first visit + cached — not College-Station-by-hand. Then flip `lib/market-gate.ts` for rollout.

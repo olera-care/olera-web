@@ -1815,12 +1815,9 @@ export default function ProviderMatchesPage() {
     const pinnedSeekers = nearbySeekers.slice(0, 3);
     const pinned = pinnedSeekers.length > 0 ? (
       <div className="mb-9">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#199087] opacity-70" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#199087]" />
-          </span>
-          <span className="text-[13px] font-semibold text-[#199087]">
+        <div className="flex items-center gap-2.5 mb-3.5">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-[#199087] animate-pulse" />
+          <span className="text-[13.5px] font-medium text-stone-700">
             {pinnedSeekers.length === 1
               ? "A family near you is looking for care"
               : `${pinnedSeekers.length} families near you are looking for care`}
@@ -1860,10 +1857,7 @@ export default function ProviderMatchesPage() {
           ))}
         </div>
         {pinnedSeekers.some((s) => !contactedIds.has(s.family.id)) && (
-          <p className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[#199087]">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
-            </svg>
+          <p className="mt-3.5 text-[12px] text-stone-400">
             First to reach out is 3× more likely to connect.
           </p>
         )}

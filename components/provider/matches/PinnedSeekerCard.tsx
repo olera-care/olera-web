@@ -3,7 +3,6 @@
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import {
   getInitials,
-  avatarGradient,
   TIMELINE_CONFIG,
   buildTimelineLabel,
   formatWhoNeedsCare,
@@ -71,26 +70,23 @@ export default function PinnedSeekerCard({
       tabIndex={0}
       onClick={() => onReachOut(family)}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onReachOut(family); } }}
-      className="group cursor-pointer rounded-[20px] border border-[#e3f0ed] bg-gradient-to-b from-[#f6fbfa] to-white p-5 shadow-[0_2px_18px_rgba(25,144,135,0.07)] transition hover:shadow-[0_5px_26px_rgba(25,144,135,0.13)] active:scale-[0.99]"
+      className="group cursor-pointer rounded-[18px] border border-stone-200/70 bg-[#fdfcf9] p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_12px_30px_-14px_rgba(28,25,23,0.16)] transition hover:border-stone-300/70 hover:shadow-[0_2px_4px_rgba(28,25,23,0.05),0_16px_34px_-14px_rgba(28,25,23,0.2)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#199087]/30"
     >
       {/* Identity */}
       <div className="flex items-center gap-3.5">
-        <div
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white"
-          style={{ background: avatarGradient(fullName) }}
-        >
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#e7e0d3] text-[14px] font-semibold tracking-wide text-[#6b6253]">
           {getInitials(fullName)}
         </div>
         <div className="min-w-0">
           <div className="truncate text-[17px] font-semibold leading-tight text-stone-900">{name}</div>
           <div className="mt-0.5 text-[13px] text-stone-500">
             {location}
-            {distLabel && <span className="font-medium text-[#199087]"> · {distLabel}</span>}
+            {distLabel && <span> · {distLabel}</span>}
           </div>
         </div>
       </div>
 
-      {/* The one urgency accent */}
+      {/* The one accent — the human heartbeat */}
       {timelineLabel && (
         <div className="mt-4 flex items-center gap-2 text-[14px] font-medium text-amber-700">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
@@ -100,7 +96,7 @@ export default function PinnedSeekerCard({
 
       {/* Calm context */}
       {description && (
-        <p className="mt-2.5 line-clamp-2 text-[14px] leading-relaxed text-stone-600">{description}</p>
+        <p className="mt-2 line-clamp-2 text-[14px] leading-relaxed text-stone-600">{description}</p>
       )}
 
       {/* Quiet footer + the one action */}
@@ -110,9 +106,9 @@ export default function PinnedSeekerCard({
             <>Pays via <span className="font-medium text-stone-700">{paymentMethods[0]}</span></>
           )}
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#199087] px-4 py-2 text-[13.5px] font-semibold text-white shadow-[0_1px_4px_rgba(25,144,135,0.3)] transition group-hover:bg-[#147a72] group-active:scale-95">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#199087] px-[18px] py-2.5 text-[13.5px] font-semibold text-white shadow-[0_1px_2px_rgba(28,25,23,0.10)] transition group-hover:bg-[#15776f] group-active:scale-95">
           {contacted ? "View" : "Reach out"}
-          <span aria-hidden>→</span>
+          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </span>
       </div>
     </div>

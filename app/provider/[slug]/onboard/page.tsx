@@ -63,7 +63,7 @@ export default function ProviderOnboardPage() {
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   // Action params for email notifications (lead/message/review/question) or campaign
-  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | null;
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | "manage" | "settings" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's

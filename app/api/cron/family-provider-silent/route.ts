@@ -191,17 +191,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Check if family has connected with other providers beyond this batch
-      // Skip if family has OTHER connections (they're exploring alternatives)
-      const otherConnections = allFamilyConnections?.filter(
-        (c) => !familyConnections.some((fc) => fc.id === c.id)
-      );
-
-      if (otherConnections && otherConnections.length > 0) {
-        counts.skipped++;
-        counts.skipReasons.family_connected_elsewhere++;
-        continue;
-      }
+      // BUG FIX: Removed broken "connected elsewhere" check
+      // The anyProviderResponded check above is sufficient - if family has active
+      // conversations anywhere, we skip. No need to also check connection count.
+      // Previous logic caused false positives: families with connections on different
+      // days would never get Email #4 because there were always "other connections"
+      // outside the 24-hour window.
 
       // Pick the FIRST connection (oldest) as primary for email context
       const primaryConn = familyConnections[0];

@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const { searchParams } = new URL(request.url);
   const querySecret = searchParams.get("secret");
+  const dryRun = searchParams.get("dry_run") === "true"; // BUG FIX: Add dry_run support
   const isAuthed =
     authHeader === `Bearer ${process.env.CRON_SECRET}` ||
     querySecret === process.env.CRON_SECRET;
@@ -114,11 +115,24 @@ export async function GET(request: NextRequest) {
 
     // Second pass: process each RECIPIENT (not each connection)
     for (const [recipientProfileId, unreadConns] of unreadByRecipient) {
-      // Check if ANY unread connection for this recipient was reminded in last 6 hours
-      const recentlyReminded = unreadConns.some((uc) => {
-        const lastRemindedAt = uc.metadata.last_reminder_sent_at as string | undefined;
-        return lastRemindedAt && new Date(lastRemindedAt).getTime() > new Date(sixHoursAgo).getTime();
-      });
+      // BUG FIX: Check if ANY connection for this recipient was reminded in last 6 hours
+      // Must check ALL connections (not just currently unread) because if a previously
+      // unread connection got a reply, it's no longer in unreadConns but still has
+      // the reminder timestamp
+      const { data: allRecipientConnections } = await db
+        .from("connections")
+        .select("metadata")
+        .or(`from_profile_id.eq.${recipientProfileId},to_profile_id.eq.${recipientProfileId}`)
+        .limit(50);
+
+      let recentlyReminded = false;
+      if (allRecipientConnections) {
+        recentlyReminded = allRecipientConnections.some((conn) => {
+          const meta = (conn.metadata || {}) as Record<string, unknown>;
+          const lastRemindedAt = meta.last_reminder_sent_at as string | undefined;
+          return lastRemindedAt && new Date(lastRemindedAt).getTime() > new Date(sixHoursAgo).getTime();
+        });
+      }
 
       if (recentlyReminded) continue; // Skip this recipient entirely
 
@@ -229,20 +243,82 @@ export async function GET(request: NextRequest) {
         viewUrl = appendTrackingParams(`${siteUrl}/provider/connections`, urLogId);
       }
 
-      // Use dedicated template for families, generic for providers
-      const emailHtml = isFamily
-        ? unreadReminderEmail({
-            recipientName: recipient.display_name || "",
-            senderName: sender?.display_name || "",
-            messagePreview: preview,
-            viewUrl,
-          })
-        : newMessageEmail({
-            recipientName: recipient.display_name || "",
-            senderName: sender?.display_name || "",
-            messagePreview: preview,
-            viewUrl,
-          });
+      // BUG FIX: Use different template for multiple unread vs single unread
+      // When multiple unread, don't show specific sender/message (confusing UX)
+      let emailHtml: string;
+      if (isFamily && unreadCount > 1) {
+        // Multiple unread: generic template without specific sender/message
+        const recipientFirstName = firstName(recipient.display_name || "", "there");
+        emailHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:480px;width:100%;">
+        <tr><td style="padding:24px 32px 16px;">
+          <span style="font-size:18px;font-weight:700;color:#198087;letter-spacing:-0.3px;">Olera</span>
+        </td></tr>
+        <tr><td style="padding:0 32px 32px;">
+          <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+            Hi ${recipientFirstName},
+          </p>
+          <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+            You have <strong>${unreadCount} unread messages</strong> waiting in your inbox. The providers you reached out to are ready to help whenever you're ready to continue the conversation.
+          </p>
+          <div style="margin:0 0 24px;"><a href="${viewUrl}" style="display:inline-block;padding:12px 24px;background:#198087;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">View your messages</a></div>
+          <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+          <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+            There's no rush — reply whenever feels right. Each conversation stays private between you and the provider.
+          </p>
+          <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+            If you need help or have questions, a real person is here at <a href="mailto:support@olera.care" style="color:#198087;text-decoration:none;">support@olera.care</a>.
+          </p>
+          <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+            Warmly,
+          </p>
+          <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+            The Olera team
+          </p>
+        </td></tr>
+        <tr><td style="padding:16px 32px;border-top:1px solid #f3f4f6;">
+          <p style="font-size:12px;color:#9ca3af;margin:0;">
+            &copy; ${new Date().getFullYear()} Olera &middot;
+            <a href="${siteUrl}" style="color:#9ca3af;">olera.care</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+      } else if (isFamily) {
+        // Single unread: use existing template with sender/message
+        emailHtml = unreadReminderEmail({
+          recipientName: recipient.display_name || "",
+          senderName: sender?.display_name || "",
+          messagePreview: preview,
+          viewUrl,
+        });
+      } else {
+        // Provider: use generic template
+        emailHtml = newMessageEmail({
+          recipientName: recipient.display_name || "",
+          senderName: sender?.display_name || "",
+          messagePreview: preview,
+          viewUrl,
+        });
+      }
+
+      // BUG FIX: Check dry run BEFORE mutating database
+      if (dryRun) {
+        console.log(
+          `[cron/unread-reminders] [DRY RUN] Would send to ${recipientEmail} (${unreadCount} unread)`
+        );
+        remindersSent++;
+        continue;
+      }
 
       await sendEmail({
         to: recipientEmail,
@@ -267,7 +343,7 @@ export async function GET(request: NextRequest) {
       remindersSent++;
     }
 
-    return NextResponse.json({ status: "ok", remindersSent });
+    return NextResponse.json({ status: "ok", remindersSent, dry_run: dryRun });
   } catch (err) {
     console.error("[cron/unread-reminders] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

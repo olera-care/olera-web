@@ -302,6 +302,9 @@ export async function POST(request: Request) {
           city: provider.city,
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
+          // Exact coords from the Google import — powers the "families near you" catchment.
+          lat: provider.lat ?? null,
+          lng: provider.lon ?? null,
           claim_state: claimState,
           verification_state: verificationStateForNew,
           claim_trust_level: trustResult.level,

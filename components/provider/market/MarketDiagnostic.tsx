@@ -140,10 +140,14 @@ export default function MarketDiagnostic({
         <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
       </a>
 
-      <p className="text-[13px] text-stone-400 mt-5">
-        {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
-        Olera sees {a.demand.olera.familiesInCity} families actively searching here today — a foothold we grow into qualified leads for you.
-      </p>
+      {(dem.medianIncomeRange || a.demand.olera.familiesInCity > 0) && (
+        <p className="text-[13px] text-stone-400 mt-5">
+          {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
+          {a.demand.olera.familiesInCity > 0 && (
+            <>Olera sees {a.demand.olera.familiesInCity} {a.demand.olera.familiesInCity === 1 ? "family" : "families"} actively searching here today — a foothold we grow into qualified leads for you.</>
+          )}
+        </p>
+      )}
       </div>{/* /competition */}
 
       {/* ── The unlock — referral map (the differentiated payoff) ── */}

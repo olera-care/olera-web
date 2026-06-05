@@ -210,6 +210,7 @@ export async function POST(request: Request) {
         // Resolve recipient email: business_profiles.email for sending, auth email for magic links
         let recipientEmail = recipientProfile?.email;
         let authEmail = recipientEmail; // For magic link generation
+        let emailSource: "profile" | "auth" | "none" = recipientEmail ? "profile" : "none";
 
         // Always look up auth email if account exists (for magic link generation)
         if (recipientProfile?.account_id) {
@@ -224,6 +225,7 @@ export async function POST(request: Request) {
               authEmail = authUser.email; // Use auth email for magic links
               if (!recipientEmail) {
                 recipientEmail = authEmail; // Fallback for sending if no profile email
+                emailSource = "auth";
               }
             }
           }

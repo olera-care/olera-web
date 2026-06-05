@@ -468,15 +468,18 @@ export function newMessageEmail(opts: {
   messagePreview: string;
   viewUrl: string;
 }): string {
-  const safeSenderName = firstName(opts.senderName, "Someone");
-  const safePreview = escapeHtml(opts.messagePreview);
+  // Use full sender name (not shortened) in first line, as specified
+  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
+  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
+    ? escapeHtml(firstName(opts.recipientName, "there"))
+    : "there";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))},
+      Hi ${recipientGreeting},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Good news — <strong>${escapeHtml(safeSenderName)}</strong> just got back to you. You can read their message and reply right here:
+      Good news — <strong>${safeSenderFullName}</strong> just got back to you. You can read their message and reply right here:
     </p>
     <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
     <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>

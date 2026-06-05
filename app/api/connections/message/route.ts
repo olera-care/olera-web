@@ -187,6 +187,12 @@ export async function POST(request: Request) {
       });
 
       if (!recentRecipientMsg) {
+        // Check if family has already replied (for email template selection)
+        const familyMessagesBeforeThis = existingThread.filter(
+          (m) => m.from_profile_id === familyProfileId && !m.is_auto_reply
+        );
+        const isFamilyEngaged = familyMessagesBeforeThis.length > 0;
+
         const [{ data: senderProfile }, { data: recipientProfile }] =
           await Promise.all([
             admin
@@ -201,11 +207,12 @@ export async function POST(request: Request) {
               .single(),
           ]);
 
-        // Resolve recipient email: business_profiles.email → accounts → auth.users
+        // Resolve recipient email: business_profiles.email for sending, auth email for magic links
         let recipientEmail = recipientProfile?.email;
-        const emailSource = recipientEmail ? "profile" : "none";
+        let authEmail = recipientEmail; // For magic link generation
 
-        if (!recipientEmail && recipientProfile?.account_id) {
+        // Always look up auth email if account exists (for magic link generation)
+        if (recipientProfile?.account_id) {
           const { data: acct } = await admin
             .from("accounts")
             .select("user_id")
@@ -213,7 +220,12 @@ export async function POST(request: Request) {
             .single();
           if (acct?.user_id) {
             const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
-            recipientEmail = authUser?.email;
+            if (authUser?.email) {
+              authEmail = authUser.email; // Use auth email for magic links
+              if (!recipientEmail) {
+                recipientEmail = authEmail; // Fallback for sending if no profile email
+              }
+            }
           }
         }
 
@@ -237,9 +249,29 @@ export async function POST(request: Request) {
               : text.trim();
 
           const isFamily = recipientProfile?.type === "family";
-          const senderFirstName = firstName(senderProfile?.display_name || "", "Someone");
+
+          // Only send the "first response" email to families when:
+          // 1. This is the first provider response (provider just replied to lead)
+          // 2. Family hasn't engaged yet (no conversation started)
+          // For ongoing conversations, skip this specific notification (handled by unread reminders)
+          const shouldSendFirstResponseEmail = isFamily && isFirstProviderResponse && !isFamilyEngaged;
+
+          if (isFamily && !shouldSendFirstResponseEmail) {
+            // Skip email for ongoing family conversations - unread reminder cron will handle it
+            console.log("[message] Skipping first-response email for ongoing conversation:", {
+              isFirstProviderResponse,
+              isFamilyEngaged,
+              connectionId,
+            });
+            // Continue to WhatsApp notification below, then return
+          } else {
+
+          // For families: use full provider name (not shortened) in subject
+          // For providers: use first name
+          const senderFullName = senderProfile?.display_name || "Someone";
+          const senderFirstName = firstName(senderFullName, "Someone");
           const msgSubject = isFamily
-            ? `You have a reply from ${senderFirstName}`
+            ? `You have a reply from ${senderFullName}`
             : `${senderFirstName} sent you a message`;
 
           const msgEmailLogId = await reserveEmailLogId({
@@ -264,11 +296,11 @@ export async function POST(request: Request) {
             );
             viewUrl = `${siteUrl}${redirectPath}`;
 
-            // Generate magic link for family (auto-sign in)
+            // Generate magic link for family (auto-sign in) using auth email
             try {
-              const { data: familyLinkData, error: familyLinkError } = await admin.auth.admin.generateLink({
+              const { data: familyLinkData, error: familyLinkError} = await admin.auth.admin.generateLink({
                 type: "magiclink",
-                email: recipientEmail,
+                email: authEmail, // Use auth email for magic link
                 options: {
                   redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
                 },
@@ -293,7 +325,7 @@ export async function POST(request: Request) {
             try {
               const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
                 type: "magiclink",
-                email: recipientEmail,
+                email: authEmail, // Use auth email for magic link
                 options: {
                   redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
                 },
@@ -317,7 +349,7 @@ export async function POST(request: Request) {
             try {
               const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
                 type: "magiclink",
-                email: recipientEmail,
+                email: authEmail, // Use auth email for magic link
                 options: {
                   redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
                 },
@@ -356,6 +388,7 @@ export async function POST(request: Request) {
           });
 
           console.log("[message] email sent successfully to:", recipientEmail);
+          } // End of email sending else block
         } else {
           console.warn("[message] no email found for recipient:", {
             recipientProfileId,

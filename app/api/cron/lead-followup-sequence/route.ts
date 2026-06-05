@@ -1,0 +1,565 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServiceClient } from "@/lib/admin";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import {
+  providerFollowupDay1Email,
+  providerFollowupDay3Email,
+  providerFollowupDay6Email,
+  providerFollowupDay10Email,
+} from "@/lib/email-templates";
+import { withCronRun } from "@/lib/crons/run";
+import { getSiteUrl } from "@/lib/site-url";
+
+/**
+ * GET /api/cron/lead-followup-sequence
+ *
+ * Runs daily at 14:00 UTC (~9 AM ET). Multi-stage follow-up sequence for
+ * provider leads that haven't been viewed.
+ *
+ * Sequence:
+ * - Day 0: Initial email (connectionRequestEmail — sent elsewhere)
+ * - Day 1: Follow-up #1 — "In case it got buried" (stage 1)
+ * - Day 3: Follow-up #2 — "Still waiting, replying is effortless" (stage 2)
+ * - Day 6: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
+ * - Day 10: Final message — "Graceful last call" (stage 4)
+ * - Day 14: Mark as "Stuck" — no email, human intervention (stage 5)
+ *
+ * STOP CONDITION: Sequence stops the moment provider VIEWS the lead (lead_opened event)
+ * or takes any engagement action.
+ */
+
+// Engagement events that indicate the provider has seen/acted on the lead
+const ENGAGEMENT_EVENTS = [
+  "lead_opened",
+  "contact_revealed",
+  "phone_clicked",
+  "email_link_clicked",
+  "continue_in_inbox",
+] as const;
+
+export const maxDuration = 120;
+
+// Stage thresholds in days since inquiry
+const STAGE_THRESHOLDS = {
+  1: 1,   // Day 1-2 → Stage 1
+  2: 3,   // Day 3-5 → Stage 2
+  3: 6,   // Day 6-9 → Stage 3
+  4: 10,  // Day 10-13 → Stage 4
+  5: 14,  // Day 14+ → Stage 5 (stuck)
+} as const;
+
+type FollowupStage = 0 | 1 | 2 | 3 | 4 | 5;
+
+interface FollowupMetadata {
+  followup_stage?: FollowupStage;
+  followup_sent_at?: string | null;
+  followup_sent_by?: string;
+  followup_stopped_at?: string | null;
+  followup_stopped_reason?: "engaged" | "responded" | "stuck" | null;
+  thread?: ThreadMessage[];
+}
+
+type ThreadMessage = {
+  from_profile_id: string;
+  text?: string;
+  created_at: string;
+  is_auto_reply?: boolean;
+  type?: string;
+};
+
+interface EligibleLead {
+  connectionId: string;
+  familyName: string;
+  careType: string | null;
+  city: string | null;
+  careRecipient: string | null;
+  daysSinceInquiry: number;
+  expectedStage: FollowupStage;
+  metadata: FollowupMetadata & Record<string, unknown>;
+}
+
+interface ProviderGroup {
+  providerId: string;
+  providerEmail: string;
+  providerName: string;
+  providerSlug: string;
+  leads: EligibleLead[];
+}
+
+/**
+ * Calculate expected stage based on days since inquiry.
+ */
+function calculateExpectedStage(days: number): FollowupStage {
+  if (days >= STAGE_THRESHOLDS[5]) return 5;
+  if (days >= STAGE_THRESHOLDS[4]) return 4;
+  if (days >= STAGE_THRESHOLDS[3]) return 3;
+  if (days >= STAGE_THRESHOLDS[2]) return 2;
+  if (days >= STAGE_THRESHOLDS[1]) return 1;
+  return 0;
+}
+
+/**
+ * Get email type for logging based on stage.
+ */
+function getEmailTypeForStage(stage: FollowupStage): string {
+  switch (stage) {
+    case 1: return "provider_followup_day1";
+    case 2: return "provider_followup_day3";
+    case 3: return "provider_followup_day6";
+    case 4: return "provider_followup_day10";
+    default: return "provider_followup";
+  }
+}
+
+/**
+ * Get subject line for stage with fallback for missing family name.
+ */
+function getSubjectForStage(stage: FollowupStage, familyName: string | null, leadCount: number): string {
+  const hasName = familyName && familyName.length > 0 && familyName.toLowerCase() !== "a family";
+
+  if (leadCount > 1) {
+    // Multiple leads — use generic subjects
+    switch (stage) {
+      case 1: return `Did you see these ${leadCount} care requests?`;
+      case 2: return `${leadCount} families are still hoping to hear from you`;
+      case 3: return `These families may be choosing a provider soon`;
+      case 4: return "We'll close these introductions soon";
+      default: return "Families are waiting for your response";
+    }
+  }
+
+  // Single lead
+  switch (stage) {
+    case 1:
+      return hasName ? `Did you see ${familyName}'s request?` : "Did you see this care request?";
+    case 2:
+      return hasName ? `${familyName} is still hoping to hear from you` : "A family is still hoping to hear from you";
+    case 3:
+      return hasName ? `${familyName} may be choosing a provider soon` : "A family may be choosing a provider soon";
+    case 4:
+      return "We'll close this introduction soon";
+    default:
+      return hasName ? `${familyName} is waiting for a response` : "A family is waiting for a response";
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  const { searchParams } = new URL(request.url);
+  const querySecret = searchParams.get("secret");
+  const dryRun = searchParams.get("dry_run") === "true";
+  const parsedLimit = parseInt(searchParams.get("limit") || "500", 10);
+  const limit = Math.min(500, Number.isNaN(parsedLimit) ? 500 : parsedLimit);
+  const isAuthed =
+    authHeader === `Bearer ${process.env.CRON_SECRET}` ||
+    querySecret === process.env.CRON_SECRET;
+
+  if (!isAuthed) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return withCronRun("lead-followup-sequence", async () => {
+    const db = getServiceClient();
+    const siteUrl = getSiteUrl();
+    const now = Date.now();
+    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+    const counts = {
+      connections_processed: 0,
+      providers_emailed: 0,
+      leads_included: 0,
+      leads_marked_stuck: 0,
+      skipped: 0,
+      skipReasons: {
+        engaged: 0,
+        responded: 0,
+        no_email: 0,
+        already_at_stage: 0,
+        sequence_stopped: 0,
+        send_failed: 0,
+      },
+      dry_run: dryRun,
+    };
+
+    // Fetch leads that are at least 1 day old and haven't completed the sequence
+    // Only process "inquiry" connections (family→provider)
+    // Note: care_recipient is in family's metadata.relationship_to_recipient, city comes from provider
+    const { data: connections, error: fetchError } = await db
+      .from("connections")
+      .select(
+        `
+        id,
+        from_profile_id,
+        to_profile_id,
+        metadata,
+        created_at,
+        from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city)
+      `
+      )
+      .eq("type", "inquiry")
+      .lte("created_at", oneDayAgo)
+      .order("created_at", { ascending: true })
+      .limit(limit);
+
+    if (fetchError) {
+      console.error("[cron/lead-followup-sequence] Fetch error:", fetchError);
+      throw new Error(`Database error: ${fetchError.message}`);
+    }
+
+    if (!connections?.length) {
+      return {
+        ok: true,
+        message: "No leads to process",
+        ...counts,
+      };
+    }
+
+    // Collect all connection IDs to check for engagement events
+    const allConnectionIds = connections.map((c) => c.id);
+
+    // Query provider_activity for any engagement events on these connections
+    // FAIL-CLOSED: if we can't check engagement, don't send (Rule #1 protection)
+    const ENGAGEMENT_QUERY_LIMIT = 100000;
+    const { data: engagementEvents, error: engagementError } = await db
+      .from("provider_activity")
+      .select("metadata")
+      .in("event_type", ENGAGEMENT_EVENTS)
+      .limit(ENGAGEMENT_QUERY_LIMIT);
+
+    if (engagementEvents && engagementEvents.length >= ENGAGEMENT_QUERY_LIMIT) {
+      console.warn(
+        `[cron/lead-followup-sequence] Hit engagement query limit (${ENGAGEMENT_QUERY_LIMIT}). ` +
+        "Some engagement events may be missed. Consider optimizing the query."
+      );
+    }
+
+    if (engagementError) {
+      console.error("[cron/lead-followup-sequence] Engagement query failed:", engagementError);
+      throw new Error(`Failed to check engagement events: ${engagementError.message}`);
+    }
+
+    // Build a Set of connection IDs that have been engaged with
+    const engagedConnectionIds = new Set<string>();
+    const connectionIdSet = new Set(allConnectionIds);
+    for (const event of engagementEvents || []) {
+      const meta = event.metadata as Record<string, unknown>;
+      const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+      if (connId && connectionIdSet.has(connId)) {
+        engagedConnectionIds.add(connId);
+      }
+    }
+
+    // Group eligible leads by provider
+    const providerGroups = new Map<string, ProviderGroup>();
+
+    for (const conn of connections) {
+      counts.connections_processed++;
+
+      // Normalize joined relations
+      const fromProfile = Array.isArray(conn.from_profile)
+        ? conn.from_profile[0]
+        : conn.from_profile;
+      const toProfile = Array.isArray(conn.to_profile)
+        ? conn.to_profile[0]
+        : conn.to_profile;
+
+      const meta = (conn.metadata as FollowupMetadata & Record<string, unknown>) ?? {};
+
+      // Check if sequence was already stopped
+      if (meta.followup_stopped_at) {
+        counts.skipped++;
+        counts.skipReasons.sequence_stopped++;
+        continue;
+      }
+
+      // Check if provider has engaged with this lead
+      if (engagedConnectionIds.has(conn.id)) {
+        // Mark as engaged and stop sequence
+        if (!dryRun) {
+          const updatedMeta = {
+            ...meta,
+            followup_stopped_at: new Date().toISOString(),
+            followup_stopped_reason: "engaged" as const,
+          };
+          await db
+            .from("connections")
+            .update({ metadata: updatedMeta })
+            .eq("id", conn.id);
+        }
+        counts.skipped++;
+        counts.skipReasons.engaged++;
+        continue;
+      }
+
+      const thread = meta.thread || [];
+
+      // Check if provider has REALLY responded (non-auto, non-system, with actual text)
+      const providerResponded = thread.some(
+        (m) =>
+          m.from_profile_id === conn.to_profile_id &&
+          m.is_auto_reply !== true &&
+          m.type !== "system" &&
+          m.from_profile_id !== "system" &&
+          !!m.text?.trim()
+      );
+
+      if (providerResponded) {
+        // Mark as responded and stop sequence
+        if (!dryRun) {
+          const updatedMeta = {
+            ...meta,
+            followup_stopped_at: new Date().toISOString(),
+            followup_stopped_reason: "responded" as const,
+          };
+          await db
+            .from("connections")
+            .update({ metadata: updatedMeta })
+            .eq("id", conn.id);
+        }
+        counts.skipped++;
+        counts.skipReasons.responded++;
+        continue;
+      }
+
+      // Check if provider has email
+      const providerEmail = toProfile?.email?.trim();
+      if (!providerEmail) {
+        counts.skipped++;
+        counts.skipReasons.no_email++;
+        continue;
+      }
+
+      // Calculate days since inquiry and expected stage
+      const daysSinceInquiry = Math.floor(
+        (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const expectedStage = calculateExpectedStage(daysSinceInquiry);
+      const currentStage = meta.followup_stage ?? 0;
+
+      // Cap at stage 5 — no resurrection of very old leads
+      if (daysSinceInquiry > 30 && currentStage >= 5) {
+        counts.skipped++;
+        counts.skipReasons.already_at_stage++;
+        continue;
+      }
+
+      // Skip if already at or past expected stage
+      if (currentStage >= expectedStage) {
+        counts.skipped++;
+        counts.skipReasons.already_at_stage++;
+        continue;
+      }
+
+      const providerId = conn.to_profile_id;
+      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || "";
+      const providerName = toProfile?.display_name || "Your Organization";
+
+      // Extract family info with fallbacks
+      const familyName = fromProfile?.display_name || "A family";
+      const careTypes = fromProfile?.care_types as string[] | null;
+      const careType = careTypes?.[0] || null;
+
+      // City comes from the provider's profile (same as connectionRequestEmail)
+      const city = (toProfile?.city as string) || null;
+
+      // Care recipient is stored in family's metadata.relationship_to_recipient
+      // Map internal values to display format (matching connectionRequestEmail pattern)
+      const familyMeta = (fromProfile?.metadata as Record<string, unknown>) || {};
+      const relationshipRaw = familyMeta.relationship_to_recipient as string | undefined;
+      const careRecipientMap: Record<string, string | null> = {
+        parent: "their parent",
+        spouse: "their spouse",
+        grandparent: "their grandparent",
+        myself: "themselves",
+        other: null, // Don't display generic "other"
+      };
+      const careRecipient = relationshipRaw
+        ? (careRecipientMap[relationshipRaw] !== undefined ? careRecipientMap[relationshipRaw] : null)
+        : null;
+
+      // Add to provider group
+      if (!providerGroups.has(providerId)) {
+        providerGroups.set(providerId, {
+          providerId,
+          providerEmail,
+          providerName,
+          providerSlug,
+          leads: [],
+        });
+      }
+
+      providerGroups.get(providerId)!.leads.push({
+        connectionId: conn.id,
+        familyName,
+        careType,
+        city,
+        careRecipient,
+        daysSinceInquiry,
+        expectedStage,
+        metadata: meta,
+      });
+    }
+
+    // Process each provider group
+    for (const [providerId, group] of providerGroups) {
+      // Find the oldest lead's expected stage — determines template
+      const oldestLead = group.leads.reduce((oldest, lead) =>
+        lead.expectedStage > oldest.expectedStage ? lead : oldest
+      , group.leads[0]);
+
+      const templateStage = oldestLead.expectedStage;
+      const leadCount = group.leads.length;
+
+      // Stage 5 = Stuck — no email, just mark
+      if (templateStage === 5) {
+        if (dryRun) {
+          console.log(
+            `[cron/lead-followup-sequence] [DRY RUN] Would mark ${leadCount} lead(s) as stuck for provider ${group.providerEmail}`
+          );
+        } else {
+          for (const lead of group.leads) {
+            const updatedMeta = {
+              ...lead.metadata,
+              followup_stage: 5 as FollowupStage,
+              followup_sent_at: null,
+              followup_stopped_at: new Date().toISOString(),
+              followup_stopped_reason: "stuck" as const,
+            };
+            await db
+              .from("connections")
+              .update({ metadata: updatedMeta })
+              .eq("id", lead.connectionId);
+          }
+        }
+        counts.leads_marked_stuck += leadCount;
+        continue;
+      }
+
+      if (dryRun) {
+        console.log(
+          `[cron/lead-followup-sequence] [DRY RUN] Would send stage ${templateStage} email to ${group.providerEmail} for ${leadCount} lead(s)`
+        );
+        counts.providers_emailed++;
+        counts.leads_included += leadCount;
+        continue;
+      }
+
+      // Build subject line
+      const primaryFamilyName = oldestLead.familyName;
+      const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount);
+      const emailType = getEmailTypeForStage(templateStage);
+
+      // Reserve email log ID
+      const emailLogId = await reserveEmailLogId({
+        to: group.providerEmail,
+        subject,
+        emailType,
+        recipientType: "provider",
+        providerId: group.providerSlug,
+        metadata: {
+          connection_ids: group.leads.map((l) => l.connectionId),
+          followup_stage: templateStage,
+          sent_by: "cron:lead-followup-sequence",
+          lead_count: leadCount,
+        },
+      });
+
+      // Build view URL
+      const viewUrl = appendTrackingParams(`${siteUrl}/provider/connections`, emailLogId);
+
+      // Build email HTML based on stage
+      const leadsForTemplate = group.leads.map((l) => ({
+        familyName: l.familyName,
+        daysSinceInquiry: l.daysSinceInquiry,
+        careType: l.careType,
+        city: l.city,
+        careRecipient: l.careRecipient,
+      }));
+
+      let html: string;
+      const templateOpts = {
+        providerName: group.providerName,
+        leads: leadsForTemplate,
+        viewUrl,
+        providerSlug: group.providerSlug,
+      };
+
+      switch (templateStage) {
+        case 1:
+          html = providerFollowupDay1Email(templateOpts);
+          break;
+        case 2:
+          html = providerFollowupDay3Email(templateOpts);
+          break;
+        case 3:
+          html = providerFollowupDay6Email(templateOpts);
+          break;
+        case 4:
+          html = providerFollowupDay10Email(templateOpts);
+          break;
+        default:
+          console.error(`[cron/lead-followup-sequence] Unexpected stage ${templateStage}`);
+          continue;
+      }
+
+      // Send email
+      const { success, error: sendError } = await sendEmail({
+        to: group.providerEmail,
+        subject,
+        html,
+        emailType,
+        recipientType: "provider",
+        providerId: group.providerSlug,
+        metadata: {
+          connection_ids: group.leads.map((l) => l.connectionId),
+          followup_stage: templateStage,
+          sent_by: "cron:lead-followup-sequence",
+          lead_count: leadCount,
+        },
+        emailLogId: emailLogId ?? undefined,
+      });
+
+      if (!success) {
+        console.error(
+          `[cron/lead-followup-sequence] Send failed for provider ${providerId}:`,
+          sendError
+        );
+        counts.skipped += leadCount;
+        counts.skipReasons.send_failed += leadCount;
+        continue;
+      }
+
+      // Update metadata for all connections in this batch
+      const sentAt = new Date().toISOString();
+      for (const lead of group.leads) {
+        const updatedMeta = {
+          ...lead.metadata,
+          followup_stage: templateStage as FollowupStage,
+          followup_sent_at: sentAt,
+          followup_sent_by: "cron:lead-followup-sequence",
+        };
+
+        const { error: updateError } = await db
+          .from("connections")
+          .update({ metadata: updatedMeta })
+          .eq("id", lead.connectionId);
+
+        if (updateError) {
+          console.error(
+            `[cron/lead-followup-sequence] Failed to update metadata for ${lead.connectionId}:`,
+            updateError
+          );
+        }
+      }
+
+      counts.providers_emailed++;
+      counts.leads_included += leadCount;
+    }
+
+    return {
+      ok: true,
+      ...counts,
+    };
+  });
+}

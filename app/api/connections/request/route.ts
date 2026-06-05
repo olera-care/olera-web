@@ -878,14 +878,15 @@ async function handleGuestConnection({
       let settingsUrl: string;
 
       try {
-        const { generateNotificationUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
-        viewUrl = generateNotificationUrl(slugForUrls, providerEmail, "lead", newConnection.id, siteUrl);
+        const { generateLeadClaimUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
+        // Use direct claim-lead route for faster one-click access (skips onboard page)
+        viewUrl = generateLeadClaimUrl(slugForUrls, providerEmail, newConnection.id, siteUrl);
         manageListingUrl = generateProviderPortalUrl(slugForUrls, providerEmail, "manage", siteUrl);
         settingsUrl = generateProviderPortalUrl(slugForUrls, providerEmail, "settings", siteUrl);
         // Append email tracking params to main CTA
         viewUrl = appendTrackingParams(viewUrl, emailLogId);
       } catch {
-        // Fallback: direct URLs without tokens
+        // Fallback: direct URLs without tokens (goes to onboard page)
         viewUrl = appendTrackingParams(
           `${siteUrl}/provider/${slugForUrls}/onboard?action=lead&actionId=${newConnection.id}`,
           emailLogId
@@ -1907,12 +1908,14 @@ export async function POST(request: Request) {
         let settingsUrlAuth: string;
 
         try {
-          const { generateNotificationUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
-          viewUrl = generateNotificationUrl(slugForUrlsAuth, providerEmail, "lead", newConnection.id, siteUrl);
+          const { generateLeadClaimUrl, generateProviderPortalUrl } = await import("@/lib/claim-tokens");
+          // Use direct claim-lead route for faster one-click access (skips onboard page)
+          viewUrl = generateLeadClaimUrl(slugForUrlsAuth, providerEmail, newConnection.id, siteUrl);
           manageListingUrlAuth = generateProviderPortalUrl(slugForUrlsAuth, providerEmail, "manage", siteUrl);
           settingsUrlAuth = generateProviderPortalUrl(slugForUrlsAuth, providerEmail, "settings", siteUrl);
           viewUrl = appendTrackingParams(viewUrl, emailLogId);
         } catch {
+          // Fallback: direct URLs without tokens (goes to onboard page)
           viewUrl = appendTrackingParams(
             `${siteUrl}/provider/${slugForUrlsAuth}/onboard?action=lead&actionId=${newConnection.id}`,
             emailLogId

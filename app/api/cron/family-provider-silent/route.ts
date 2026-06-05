@@ -156,13 +156,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Check if family has connected with other providers
+      // Check if family has connected with other providers (ANY type)
       // Stop the moment family connects with anyone else
       const { data: familyConnections, error: familyConnError } = await db
         .from("connections")
         .select("id")
         .eq("from_profile_id", conn.from_profile_id)
-        .eq("type", "inquiry")
         .neq("id", conn.id)
         .limit(1);
 
@@ -206,8 +205,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Determine if provider actively passed (has archive_reason)
-      const providerPassed = !!meta.archive_reason;
+      // Determine if provider actively passed (specific archive reasons only)
+      // Only "not_accepting" and "not_a_fit" indicate active pass
+      // Other reasons (unable_to_reach, already_connected, other) don't count
+      const providerPassed = ["not_accepting", "not_a_fit"].includes(
+        meta.archive_reason as string
+      );
 
       // Get provider info
       const providerName = toProfile?.display_name || "the provider";
@@ -216,84 +219,99 @@ export async function GET(request: NextRequest) {
       const providerCareTypes = (toProfile?.care_types as string[]) || [];
 
       // Find responsive providers in same area with same care type
-      // "Responsive" = active providers who have sent messages before
-      // First, get candidate providers (same city, state, care type, active)
-      let responsiveProvidersQuery = db
+      // "Responsive" = active providers who have sent messages in last 60 days
+
+      // Skip if no city/state (can't recommend "near you" without location)
+      if (!providerCity || !providerState) {
+        counts.skipped++;
+        counts.skipReasons.no_responsive_providers++;
+        continue;
+      }
+
+      // Skip if original provider has no care types (can't match)
+      if (!providerCareTypes || providerCareTypes.length === 0) {
+        counts.skipped++;
+        counts.skipReasons.no_responsive_providers++;
+        continue;
+      }
+
+      // Get candidate providers (same city, state, active)
+      const { data: candidateProviders } = await db
         .from("business_profiles")
         .select("id, display_name, slug, city, state, care_types, metadata")
         .eq("type", "organization")
         .eq("is_active", true)
-        .neq("id", conn.to_profile_id);
+        .eq("city", providerCity)
+        .eq("state", providerState)
+        .neq("id", conn.to_profile_id)
+        .limit(50);
 
-      // Filter by city if available
-      if (providerCity) responsiveProvidersQuery = responsiveProvidersQuery.eq("city", providerCity);
-      if (providerState) responsiveProvidersQuery = responsiveProvidersQuery.eq("state", providerState);
+      if (!candidateProviders || candidateProviders.length === 0) {
+        counts.skipped++;
+        counts.skipReasons.no_responsive_providers++;
+        continue;
+      }
 
-      const { data: candidateProviders } = await responsiveProvidersQuery.limit(50);
+      // Filter to providers with matching care types (in memory)
+      const matchingProviders = candidateProviders.filter((provider) => {
+        const provCareTypes = (provider.care_types as string[]) || [];
+        // Must have at least one matching care type
+        return provCareTypes.some((ct) => providerCareTypes.includes(ct));
+      });
 
-      // Filter to providers with matching care types and who have responded to leads
-      const responsiveProviderIds: string[] = [];
-      if (candidateProviders) {
-        for (const provider of candidateProviders) {
-          const provCareTypes = (provider.care_types as string[]) || [];
-          // Check if any care type matches
-          const hasMatchingCareType =
-            providerCareTypes.length === 0 ||
-            provCareTypes.some((ct) => providerCareTypes.includes(ct));
+      if (matchingProviders.length === 0) {
+        counts.skipped++;
+        counts.skipReasons.no_responsive_providers++;
+        continue;
+      }
 
-          if (!hasMatchingCareType) continue;
+      // Fetch ALL connections for ALL matching providers in ONE query (performance optimization)
+      const providerIds = matchingProviders.map((p) => p.id);
+      const sixtyDaysAgo = new Date(now - 60 * 24 * 60 * 60 * 1000).toISOString();
 
-          // Check if provider has sent messages (responsive indicator)
-          // Look for connections where this provider is to_profile and has messages in thread
-          const { data: providerConns } = await db
-            .from("connections")
-            .select("metadata")
-            .eq("to_profile_id", provider.id)
-            .limit(5);
+      const { data: allConnections } = await db
+        .from("connections")
+        .select("to_profile_id, metadata, created_at")
+        .in("to_profile_id", providerIds)
+        .gte("created_at", sixtyDaysAgo);
 
-          if (providerConns) {
-            const hasResponded = providerConns.some((c) => {
-              const cMeta = (c.metadata || {}) as Record<string, unknown>;
-              const cThread = (cMeta.thread as ThreadMessage[]) || [];
-              return cThread.some(
-                (m) =>
-                  m.from_profile_id === provider.id &&
-                  !m.is_auto_reply &&
-                  m.text?.trim()
-              );
-            });
+      // Build map of provider_id -> has_responded (in memory filtering)
+      const responsiveProviderIds = new Set<string>();
 
-            if (hasResponded) {
-              responsiveProviderIds.push(provider.id);
-            }
+      if (allConnections) {
+        for (const conn of allConnections) {
+          if (responsiveProviderIds.has(conn.to_profile_id)) continue; // Already marked responsive
+
+          const cMeta = (conn.metadata || {}) as Record<string, unknown>;
+          const cThread = (cMeta.thread as ThreadMessage[]) || [];
+          const hasResponded = cThread.some(
+            (m) =>
+              m.from_profile_id === conn.to_profile_id &&
+              !m.is_auto_reply &&
+              m.text?.trim()
+          );
+
+          if (hasResponded) {
+            responsiveProviderIds.add(conn.to_profile_id);
           }
         }
       }
 
-      // Get final list of responsive providers (limit to 3)
+      // Filter to responsive providers and limit to 3
       const recommendedProviders: {
         name: string;
         slug: string;
         priceRange: string | null;
-      }[] = [];
-
-      if (responsiveProviderIds.length > 0) {
-        const { data: finalProviders } = await db
-          .from("business_profiles")
-          .select("display_name, slug, metadata")
-          .in("id", responsiveProviderIds)
-          .limit(3);
-
-        if (finalProviders) {
-          recommendedProviders.push(
-            ...finalProviders.map((p) => ({
-              name: p.display_name,
-              slug: p.slug,
-              priceRange: (p.metadata as Record<string, unknown> | null)?.price_range as string | null || null,
-            }))
-          );
-        }
-      }
+        viewUrl: string; // Will be filled with magic link
+      }[] = matchingProviders
+        .filter((p) => responsiveProviderIds.has(p.id))
+        .slice(0, 3)
+        .map((p) => ({
+          name: p.display_name,
+          slug: p.slug,
+          priceRange: (p.metadata as Record<string, unknown> | null)?.price_range as string | null || null,
+          viewUrl: "", // Placeholder, will be filled with magic link
+        }));
 
       // Skip if no responsive providers found
       if (recommendedProviders.length === 0) {
@@ -301,6 +319,20 @@ export async function GET(request: NextRequest) {
         counts.skipReasons.no_responsive_providers++;
         continue;
       }
+
+      // Mark as will-send before sending (transaction safety - prevents duplicate sends)
+      const sentAt = new Date().toISOString();
+      await db
+        .from("connections")
+        .update({
+          metadata: {
+            ...meta,
+            family_alternatives_sent_at: sentAt,
+            family_alternatives_sent_by: "cron:family-provider-silent",
+            family_alternatives_count: recommendedProviders.length,
+          },
+        })
+        .eq("id", conn.id);
 
       if (dryRun) {
         console.log(
@@ -310,19 +342,16 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Build browse URL (filter by city and care type)
+      // Build browse URL with query params (guaranteed to work, no slug issues)
       const familyCareTypes = (fromProfile?.care_types as string[]) || providerCareTypes;
-      const careTypeSlug = familyCareTypes[0]?.toLowerCase().replace(/\s+/g, "-") || "senior-care";
-      const citySlug = providerCity?.toLowerCase().replace(/\s+/g, "-") || "";
-      const stateSlug = providerState?.toLowerCase() || "";
+      const primaryCareType = familyCareTypes[0] || "senior-care";
 
-      // Build browse URL with filters
-      let browseUrl = `${siteUrl}/browse`;
-      if (citySlug && stateSlug) {
-        browseUrl = `${siteUrl}/${careTypeSlug}/${stateSlug}/${citySlug}`;
-      } else if (stateSlug) {
-        browseUrl = `${siteUrl}/${careTypeSlug}/${stateSlug}`;
-      }
+      const browseParams = new URLSearchParams({
+        care_type: primaryCareType,
+        city: providerCity,
+        state: providerState,
+      });
+      const browseDestination = `/browse?${browseParams.toString()}`;
 
       // Subject line changes based on variant
       const subject = providerPassed
@@ -343,16 +372,56 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      const browseUrlTracked = appendTrackingParams(browseUrl, emailLogId);
+      const browseUrlTracked = appendTrackingParams(browseDestination, emailLogId);
+
+      // Generate magic link for browse URL (use auth email)
+      let browseMagicLink = `${siteUrl}${browseUrlTracked}`; // Fallback
+      try {
+        const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
+          type: "magiclink",
+          email: authEmail,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(browseUrlTracked)}`,
+          },
+        });
+        if (!magicLinkError && magicLinkData?.properties?.action_link) {
+          browseMagicLink = magicLinkData.properties.action_link;
+        }
+      } catch (linkErr) {
+        console.error("[family-provider-silent] browse magic link failed:", linkErr);
+      }
+
+      // Generate magic links for each recommended provider
+      for (const provider of recommendedProviders) {
+        const providerDest = appendTrackingParams(`/provider/${provider.slug}`, emailLogId);
+        let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback
+
+        try {
+          const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email: authEmail,
+            options: {
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(providerDest)}`,
+            },
+          });
+          if (!magicLinkError && magicLinkData?.properties?.action_link) {
+            providerMagicLink = magicLinkData.properties.action_link;
+          }
+        } catch (linkErr) {
+          console.error(`[family-provider-silent] provider magic link failed for ${provider.slug}:`, linkErr);
+        }
+
+        provider.viewUrl = providerMagicLink;
+      }
 
       // Generate email HTML
       const emailHtml = providerSilentEmail({
         familyName: fromProfile?.display_name || "",
         providerName,
         providerPassed,
-        recommendedProviders,
-        browseUrl: browseUrlTracked,
-        city: providerCity || null,
+        recommendedProviders, // Now includes viewUrl with magic links
+        browseUrl: browseMagicLink, // Magic link, not just tracked URL
+        city: providerCity,
       });
 
       // Send email
@@ -381,19 +450,7 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Mark as sent so we don't send again
-      await db
-        .from("connections")
-        .update({
-          metadata: {
-            ...meta,
-            family_alternatives_sent_at: new Date().toISOString(),
-            family_alternatives_sent_by: "cron:family-provider-silent",
-            family_alternatives_count: recommendedProviders.length,
-          },
-        })
-        .eq("id", conn.id);
-
+      // Metadata already updated before sending (for transaction safety)
       counts.sent++;
     }
 

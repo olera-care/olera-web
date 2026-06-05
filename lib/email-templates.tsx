@@ -545,12 +545,11 @@ export function providerSilentEmail(opts: {
   familyName: string;
   providerName: string;
   providerPassed: boolean; // true if provider actively declined, false if just silent
-  recommendedProviders: { name: string; slug: string; priceRange: string | null }[];
+  recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
   browseUrl: string;
   city: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
-  const locationStr = opts.city || "your area";
 
   // Different copy for explicit pass vs silence
   const openingLine = opts.providerPassed
@@ -562,14 +561,13 @@ export function providerSilentEmail(opts: {
     : `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`;
 
   // Render recommended providers prominently (high up, visible on mobile)
-  const providersSection = opts.recommendedProviders.length > 0
-    ? opts.recommendedProviders.map((p) => `
-        <div style="margin:0 0 12px;">
-          <a href="${BASE_URL}/provider/${p.slug}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
-          ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
-        </div>
-      `).join("")
-    : `<p style="font-size:14px;color:#6b7280;margin:0;">No providers found in ${escapeHtml(locationStr)} at this time.</p>`;
+  // Each provider gets a magic link for one-click viewing
+  const providersSection = opts.recommendedProviders.map((p) => `
+    <div style="margin:0 0 12px;">
+      <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
+      ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
+    </div>
+  `).join("");
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">

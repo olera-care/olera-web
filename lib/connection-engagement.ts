@@ -124,9 +124,14 @@ export function getEngagementLevel(
   now: number = Date.now()
 ): EngagementResult {
   // Calculate staleness
-  const lastActivity = engagement.lastActivityAt
+  // Use the MORE RECENT of: provider's last activity OR connection creation
+  // A connection can't be "stale" before it was created!
+  const connectionCreatedTime = new Date(connectionCreatedAt).getTime();
+  const providerLastActivity = engagement.lastActivityAt
     ? new Date(engagement.lastActivityAt).getTime()
-    : new Date(connectionCreatedAt).getTime();
+    : connectionCreatedTime;
+  // If provider's activity is older than this connection, use connection creation time
+  const lastActivity = Math.max(providerLastActivity, connectionCreatedTime);
   const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
   const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
   const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;

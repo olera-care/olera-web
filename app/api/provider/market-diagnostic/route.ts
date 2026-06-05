@@ -24,6 +24,20 @@ import {
  */
 
 export const maxDuration = 300; // gives the background after() compute room (Pro plan)
+// This is a POLLING endpoint: the client hits it every ~3s while a city computes. The
+// response status flips building→ready over the poll, so it must NEVER be cached — a
+// cached "building" response would be served forever, the poll would never see "ready",
+// and the client would fall into the "check back shortly" give-up state with the data
+// actually ready in the cache. force-dynamic + no-store on every response prevents that.
+export const dynamic = "force-dynamic";
+
+/** JSON response that is never cached by the browser or the CDN (see note above). */
+function reply(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: { "Cache-Control": "no-store, max-age=0", ...(init?.headers || {}) },
+  });
+}
 
 const DIR = path.join(process.cwd(), "data/market-diagnostic");
 
@@ -78,7 +92,7 @@ export async function GET(req: Request) {
   const cityRaw = (url.searchParams.get("city") || "").trim();
   const stateRaw = (url.searchParams.get("state") || "").trim();
   const careTypeRaw = url.searchParams.get("careType");
-  if (!cityRaw) return NextResponse.json({ status: "unavailable", available: false, error: "city required" }, { status: 400 });
+  if (!cityRaw) return reply({ status: "unavailable", available: false, error: "city required" }, { status: 400 });
 
   const cityLc = cityRaw.toLowerCase();
   const stateLc = stateRaw.toLowerCase();
@@ -88,13 +102,13 @@ export async function GET(req: Request) {
   // 1. Cache table — the fast path for any previously-computed city.
   const row = await getRow(key, db);
   if (row && row.status === "ready" && isFresh(row)) {
-    return NextResponse.json({ status: "ready", available: true, data: row.data });
+    return reply({ status: "ready", available: true, data: row.data });
   }
 
   // 2. Committed-file fallback (College Station etc.) — serve immediately, no compute.
   const fileData = loadFileSnapshot(cityLc, stateLc, normCareTypeFile(careTypeRaw));
   if (fileData && (!row || row.status !== "ready")) {
-    return NextResponse.json({ status: "ready", available: true, data: fileData });
+    return reply({ status: "ready", available: true, data: fileData });
   }
 
   // 3. Stale-but-ready — serve stale now, refresh in the background (stale-while-revalidate).
@@ -102,22 +116,22 @@ export async function GET(req: Request) {
     if (resolveCity(cityRaw, stateRaw) && await claimForCompute(key, db)) {
       scheduleCompute(key, cityRaw, stateRaw, careTypeRaw);
     }
-    return NextResponse.json({ status: "ready", available: true, data: row.data });
+    return reply({ status: "ready", available: true, data: row.data });
   }
 
   // 4. Can we even diagnose this city? (Unknown city → truly unavailable, don't spin forever.)
   if (!resolveCity(cityRaw, stateRaw)) {
-    return NextResponse.json({ status: "unavailable", available: false });
+    return reply({ status: "unavailable", available: false });
   }
 
   // 5. Terminal failure (out of retries / budget-paused) → unavailable, don't poll forever.
   if (row && row.status === "failed" && row.attempts >= MAX_ATTEMPTS) {
-    return NextResponse.json({ status: "unavailable", available: false });
+    return reply({ status: "unavailable", available: false });
   }
 
   // 6. Cache miss / stale-pending / retryable-failure → claim + compute in background, tell client to poll.
   if (await claimForCompute(key, db)) {
     scheduleCompute(key, cityRaw, stateRaw, careTypeRaw);
   }
-  return NextResponse.json({ status: "building", available: false });
+  return reply({ status: "building", available: false });
 }

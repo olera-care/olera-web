@@ -23,7 +23,9 @@ import { generateLeadClaimUrl } from "@/lib/claim-tokens";
  * - Day 3: Follow-up #2 — "Still waiting, replying is effortless" (stage 2)
  * - Day 6: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
  * - Day 10: Final message — "Graceful last call" (stage 4)
- * - Day 14: Mark as "Stuck" — no email, human intervention (stage 5)
+ * - Day 14: Mark as "Stuck" — no email, awaiting re-engagement (stage 5)
+ * - Day 17: Re-engagement email — "One more try" (stage 6, template pending)
+ * - Day 24: Mark as "Needs Call" — no email, requires manual call (stage 7)
  *
  * STOP CONDITION: Sequence stops the moment provider VIEWS the lead (lead_opened event)
  * or takes any engagement action.
@@ -46,17 +48,20 @@ const STAGE_THRESHOLDS = {
   2: 3,   // Day 3-5 → Stage 2
   3: 6,   // Day 6-9 → Stage 3
   4: 10,  // Day 10-13 → Stage 4
-  5: 14,  // Day 14+ → Stage 5 (stuck)
+  5: 14,  // Day 14-16 → Stage 5 (stuck)
+  6: 17,  // Day 17-23 → Stage 6 (re-engagement email, template pending)
+  7: 24,  // Day 24+ → Stage 7 (needs_call — manual intervention)
 } as const;
 
-type FollowupStage = 0 | 1 | 2 | 3 | 4 | 5;
+type FollowupStage = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 interface FollowupMetadata {
   followup_stage?: FollowupStage;
   followup_sent_at?: string | null;
   followup_sent_by?: string;
   followup_stopped_at?: string | null;
-  followup_stopped_reason?: "engaged" | "responded" | "stuck" | null;
+  followup_stopped_reason?: "engaged" | "responded" | "stuck" | "needs_call" | null;
+  needs_call?: boolean;
   thread?: ThreadMessage[];
 }
 
@@ -91,6 +96,8 @@ interface ProviderGroup {
  * Calculate expected stage based on days since inquiry.
  */
 function calculateExpectedStage(days: number): FollowupStage {
+  if (days >= STAGE_THRESHOLDS[7]) return 7;
+  if (days >= STAGE_THRESHOLDS[6]) return 6;
   if (days >= STAGE_THRESHOLDS[5]) return 5;
   if (days >= STAGE_THRESHOLDS[4]) return 4;
   if (days >= STAGE_THRESHOLDS[3]) return 3;
@@ -170,6 +177,7 @@ export async function GET(request: NextRequest) {
       providers_emailed: 0,
       leads_included: 0,
       leads_marked_stuck: 0,
+      leads_marked_needs_call: 0,
       skipped: 0,
       skipReasons: {
         engaged: 0,
@@ -413,11 +421,11 @@ export async function GET(request: NextRequest) {
       const templateStage = oldestLead.expectedStage;
       const leadCount = group.leads.length;
 
-      // Stage 5 = Stuck — no email, just mark
+      // Stage 5 = Stuck — no email, just mark stage (sequence continues)
       if (templateStage === 5) {
         if (dryRun) {
           console.log(
-            `[cron/lead-followup-sequence] [DRY RUN] Would mark ${leadCount} lead(s) as stuck for provider ${group.providerEmail}`
+            `[cron/lead-followup-sequence] [DRY RUN] Would mark ${leadCount} lead(s) as stuck (stage 5) for provider ${group.providerEmail}`
           );
         } else {
           for (const lead of group.leads) {
@@ -425,8 +433,7 @@ export async function GET(request: NextRequest) {
               ...lead.metadata,
               followup_stage: 5 as FollowupStage,
               followup_sent_at: null,
-              followup_stopped_at: new Date().toISOString(),
-              followup_stopped_reason: "stuck" as const,
+              // Don't stop sequence — allow progression to stage 6/7
             };
             await db
               .from("connections")
@@ -435,6 +442,57 @@ export async function GET(request: NextRequest) {
           }
         }
         counts.leads_marked_stuck += leadCount;
+        continue;
+      }
+
+      // Stage 6 = Re-engagement email (template pending — skip for now)
+      if (templateStage === 6) {
+        if (dryRun) {
+          console.log(
+            `[cron/lead-followup-sequence] [DRY RUN] Would send re-engagement email (stage 6) to ${group.providerEmail} for ${leadCount} lead(s) — TEMPLATE PENDING`
+          );
+        }
+        // TODO: Add providerFollowupDay17Email template when provided
+        // For now, just mark the stage so it progresses to stage 7 on next run
+        if (!dryRun) {
+          for (const lead of group.leads) {
+            const updatedMeta = {
+              ...lead.metadata,
+              followup_stage: 6 as FollowupStage,
+              followup_sent_at: null, // No email sent yet
+            };
+            await db
+              .from("connections")
+              .update({ metadata: updatedMeta })
+              .eq("id", lead.connectionId);
+          }
+        }
+        continue;
+      }
+
+      // Stage 7 = Needs Call — no email, mark for manual intervention
+      if (templateStage === 7) {
+        if (dryRun) {
+          console.log(
+            `[cron/lead-followup-sequence] [DRY RUN] Would mark ${leadCount} lead(s) as needs_call (stage 7) for provider ${group.providerEmail}`
+          );
+        } else {
+          for (const lead of group.leads) {
+            const updatedMeta = {
+              ...lead.metadata,
+              followup_stage: 7 as FollowupStage,
+              followup_sent_at: null,
+              followup_stopped_at: new Date().toISOString(),
+              followup_stopped_reason: "needs_call" as const,
+              needs_call: true,
+            };
+            await db
+              .from("connections")
+              .update({ metadata: updatedMeta })
+              .eq("id", lead.connectionId);
+          }
+        }
+        counts.leads_marked_needs_call += leadCount;
         continue;
       }
 

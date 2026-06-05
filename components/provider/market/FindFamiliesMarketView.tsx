@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
 import MarketDiagnostic, { type MarketDiagnosticData } from "./MarketDiagnostic";
 import MarketLoading from "./MarketLoading";
 
@@ -25,9 +26,12 @@ export default function FindFamiliesMarketView({
   const [data, setData] = useState<MarketDiagnosticData | null>(null);
   const [status, setStatus] = useState<"loading" | "building" | "ready" | "unavailable">("loading");
   const [longRunning, setLongRunning] = useState(false);
+  // "uncovered" = this area isn't in our city dataset, so the report is NOT coming — show honest
+  // copy instead of the "check back shortly" we use for a transient/computing state.
+  const [uncovered, setUncovered] = useState(false);
 
   useEffect(() => {
-    if (!city) { setStatus("unavailable"); return; }
+    if (!city) { setUncovered(true); setStatus("unavailable"); return; }
     let cancelled = false;
     const startedAt = Date.now();
     const POLL_MS = 3000;
@@ -42,7 +46,7 @@ export default function FindFamiliesMarketView({
         const j = await r.json();
         if (cancelled) return;
         if (j?.status === "ready" && j?.data) { setData(j.data); setStatus("ready"); return; }
-        if (j?.status === "unavailable") { setStatus("unavailable"); return; }
+        if (j?.status === "unavailable") { setUncovered(j?.reason === "uncovered"); setStatus("unavailable"); return; }
         setStatus("building"); // building — keep polling, soften copy after ~20s
         if (Date.now() - startedAt > 20000) setLongRunning(true);
         if (Date.now() - startedAt < MAX_POLL_MS) timer = setTimeout(poll, POLL_MS);
@@ -68,11 +72,24 @@ export default function FindFamiliesMarketView({
 
         {status === "unavailable" && (
           <div className="max-w-xl rounded-2xl border border-stone-200/70 bg-white/50 px-6 py-10 text-center">
-            <p className="font-display text-xl text-stone-900">Building your market report</p>
-            <p className="mt-2 text-[14px] text-stone-500">
-              We&apos;re putting together a read on {city || "your area"} — the local demand, your competition, and
-              your best referral sources. Check back shortly.
-            </p>
+            {uncovered ? (
+              <>
+                <p className="font-display text-xl text-stone-900">We&apos;re not in {city || "your area"} yet</p>
+                <p className="mt-2 text-[14px] text-stone-500">
+                  Your market isn&apos;t in our coverage yet — we&apos;re expanding fast. In the meantime,{" "}
+                  <Link href="/provider" className="font-medium text-[#199087] underline-offset-2 hover:underline">polish your profile</Link>{" "}
+                  so families see your best.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-display text-xl text-stone-900">Building your market report</p>
+                <p className="mt-2 text-[14px] text-stone-500">
+                  We&apos;re putting together a read on {city || "your area"} — the local demand, your competition, and
+                  your best referral sources. Check back shortly.
+                </p>
+              </>
+            )}
           </div>
         )}
 

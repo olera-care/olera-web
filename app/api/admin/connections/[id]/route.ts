@@ -175,7 +175,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       metadata?: Record<string, unknown> | null;
     };
     // Email types for fallback queries (when connection_id is not in metadata)
-    // Provider emails: lead notifications, nudges, messages
+    // Provider emails: lead notifications, nudges, messages, follow-up sequence
     const PROVIDER_FALLBACK_EMAIL_TYPES = [
       "connection_request",
       "add_email_notification",
@@ -188,6 +188,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       "first_response_confirmation",
       "stale_conversation",        // Cron: conversation gone cold
       "unread_reminder",           // Cron: unread messages 24h+
+      // Lead follow-up sequence emails
+      "provider_followup_day1",
+      "provider_followup_day3",
+      "provider_followup_day6",
+      "provider_followup_day10",
+      "provider_followup_day17",   // Re-engagement blast
     ];
     // Family emails: confirmations, reports, nudges (these often lack connection_id in metadata)
     const FAMILY_EMAIL_TYPES = [

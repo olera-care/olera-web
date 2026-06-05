@@ -144,6 +144,7 @@ export default function ConnectionsTrackerPage() {
   const [blastLoading, setBlastLoading] = useState(false);
   const [blastResult, setBlastResult] = useState<{ type: "preview" | "sent"; data: Record<string, unknown> } | null>(null);
   const [blastError, setBlastError] = useState<string | null>(null);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
 
   const runReengagementBlast = useCallback(async (dryRun: boolean) => {
     setBlastLoading(true);
@@ -529,6 +530,58 @@ export default function ConnectionsTrackerPage() {
                 {typeof blastResult.data.message === "string" && (
                   <div className="text-gray-500 mt-1">{blastResult.data.message}</div>
                 )}
+              </div>
+
+              {/* Preview details - show provider list and email preview button */}
+              {blastResult.type === "preview" && blastResult.data.preview && (
+                <div className="mt-3 pt-3 border-t border-amber-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-700">Recipients (first 10):</span>
+                    {(blastResult.data.preview as { sampleEmailHtml?: string }).sampleEmailHtml && (
+                      <button
+                        onClick={() => setShowEmailPreview(true)}
+                        className="text-amber-700 hover:text-amber-900 underline"
+                      >
+                        View Sample Email
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {((blastResult.data.preview as { providers?: Array<{ email: string; name: string; leadCount: number; subject: string }> }).providers || []).map((p, i) => (
+                      <div key={i} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded">
+                        <div>
+                          <span className="font-medium text-gray-900">{p.name}</span>
+                          <span className="text-gray-500 ml-2">{p.email}</span>
+                        </div>
+                        <span className="text-gray-500">{p.leadCount} lead{p.leadCount > 1 ? "s" : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Email Preview Modal */}
+          {showEmailPreview && blastResult?.data.preview && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowEmailPreview(false)}>
+              <div className="bg-white rounded-xl shadow-xl max-w-2xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+                  <h3 className="font-semibold text-gray-900">Sample Email Preview</h3>
+                  <button onClick={() => setShowEmailPreview(false)} className="text-gray-500 hover:text-gray-700">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-4 overflow-y-auto max-h-[calc(80vh-60px)]">
+                  <div
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: (blastResult.data.preview as { sampleEmailHtml?: string }).sampleEmailHtml || "<p>No preview available</p>",
+                    }}
+                  />
+                </div>
               </div>
             </div>
           )}

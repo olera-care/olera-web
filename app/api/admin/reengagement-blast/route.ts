@@ -52,6 +52,15 @@ export async function POST(request: NextRequest) {
     filtered_engaged: 0,
   };
 
+  // For preview mode, collect provider details and sample email
+  const previewProviders: Array<{
+    email: string;
+    name: string;
+    leadCount: number;
+    subject: string;
+  }> = [];
+  let sampleEmailHtml: string | null = null;
+
   try {
     // Fetch all inquiry connections - filtering happens after engagement check
     const { data: connections, error: fetchError } = await db
@@ -274,6 +283,35 @@ export async function POST(request: NextRequest) {
       if (dryRun) {
         counts.providers_emailed++;
         counts.leads_included += leadCount;
+
+        // Collect provider preview data
+        previewProviders.push({
+          email: group.providerEmail,
+          name: group.providerName,
+          leadCount,
+          subject,
+        });
+
+        // Generate sample email for the first provider only
+        if (sampleEmailHtml === null) {
+          const leadsForTemplate = group.leads.map((l) => ({
+            familyName: l.familyName,
+            daysSinceInquiry: l.daysSinceInquiry,
+            careType: l.careType,
+            city: l.city,
+            careRecipient: l.careRecipient,
+          }));
+
+          sampleEmailHtml = providerFollowupDay17Email({
+            providerName: group.providerName,
+            leads: leadsForTemplate,
+            viewUrl: "[Preview - URL will be generated on send]",
+            providerSlug: group.providerSlug,
+            manageListingUrl: "[Preview - URL will be generated on send]",
+            settingsUrl: "[Preview - URL will be generated on send]",
+          });
+        }
+
         continue;
       }
 
@@ -378,6 +416,14 @@ export async function POST(request: NextRequest) {
       message: dryRun
         ? `Would send to ${counts.providers_emailed} providers (${counts.leads_included} leads)`
         : `Sent to ${counts.providers_emailed} providers (${counts.leads_included} leads)`,
+      // Include preview data in dry run mode
+      ...(dryRun && {
+        preview: {
+          providers: previewProviders.slice(0, 10), // First 10 providers
+          sampleEmailHtml,
+          totalProviders: previewProviders.length,
+        },
+      }),
     });
   } catch (err) {
     console.error("[admin/reengagement-blast] Error:", err);

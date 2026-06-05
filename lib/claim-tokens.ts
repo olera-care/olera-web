@@ -52,10 +52,15 @@ export function generateClaimToken(providerId: string, email: string): string {
 
 /**
  * Validate and decode a claim token
+ *
+ * Returns partial data (providerId, email) even when validation fails,
+ * allowing callers to redirect to appropriate fallback pages.
  */
 export function validateClaimToken(
   token: string
-): { valid: true; providerId: string; email: string } | { valid: false; error: string } {
+):
+  | { valid: true; providerId: string; email: string }
+  | { valid: false; error: string; providerId?: string; email?: string } {
   try {
     // Base64url decode
     const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
@@ -66,18 +71,18 @@ export function validateClaimToken(
 
     // Check required fields
     if (!providerId || !email || !expiresAt || !signature) {
-      return { valid: false, error: "Invalid token format" };
+      return { valid: false, error: "Invalid token format", providerId, email };
     }
 
-    // Check expiry
+    // Check expiry - still return providerId/email for fallback redirects
     if (Date.now() > expiresAt) {
-      return { valid: false, error: "Token has expired" };
+      return { valid: false, error: "Token has expired", providerId, email };
     }
 
-    // Verify signature
+    // Verify signature - still return providerId/email for fallback redirects
     const expectedSignature = generateSignature({ providerId, email, expiresAt });
     if (signature !== expectedSignature) {
-      return { valid: false, error: "Invalid token signature" };
+      return { valid: false, error: "Invalid token signature", providerId, email };
     }
 
     return { valid: true, providerId, email };
@@ -175,5 +180,37 @@ export function generateMedJobsNotificationUrl(
   const url = new URL(`${baseUrl}/api/medjobs/claim-${action}`);
   url.searchParams.set("interviewId", actionId);
   url.searchParams.set("otk", token);
+  return url.toString();
+}
+
+/**
+ * Generate a lead claim URL with embedded claim token.
+ * Routes to /api/claim-lead which handles server-side authentication
+ * and redirects directly to /provider/connections.
+ *
+ * This is the preferred method for lead notification emails as it:
+ * - Skips the onboard page entirely
+ * - Authenticates server-side (no client-side auth race)
+ * - Redirects directly to the leads page
+ * - Reduces friction → higher view rates
+ *
+ * @param providerSlug - Provider's slug or ID (used for token + profile lookup)
+ * @param email - Provider's email for token generation
+ * @param connectionId - Optional. If provided, redirects to that specific lead.
+ *                       If omitted, redirects to the connections list view.
+ * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
+ */
+export function generateLeadClaimUrl(
+  providerSlug: string,
+  email: string,
+  connectionId?: string | null,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken(providerSlug, email);
+  const url = new URL(`${baseUrl}/api/claim-lead`);
+  url.searchParams.set("otk", token);
+  if (connectionId) {
+    url.searchParams.set("connectionId", connectionId);
+  }
   return url.toString();
 }

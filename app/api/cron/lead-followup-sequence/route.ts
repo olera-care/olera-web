@@ -9,6 +9,7 @@ import {
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
+import { generateLeadClaimUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/lead-followup-sequence
@@ -352,7 +353,8 @@ export async function GET(request: NextRequest) {
       }
 
       const providerId = conn.to_profile_id;
-      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || "";
+      // Use slug, then source_provider_id, then id as fallback for token generation
+      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || "";
       const providerName = toProfile?.display_name || "Your Organization";
 
       // Extract family info with fallbacks
@@ -465,8 +467,18 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      // Build view URL
-      const viewUrl = appendTrackingParams(`${siteUrl}/provider/connections`, emailLogId);
+      // Build view URL with signed token for one-click access
+      // Uses /api/claim-lead which handles server-side auth and redirects to connections
+      // For single lead: include connectionId to highlight that specific lead
+      // For multiple leads: no connectionId, lands on list view
+      const primaryConnectionId = leadCount === 1 ? group.leads[0].connectionId : null;
+      const claimUrl = generateLeadClaimUrl(
+        group.providerSlug,
+        group.providerEmail,
+        primaryConnectionId,
+        siteUrl
+      );
+      const viewUrl = appendTrackingParams(claimUrl, emailLogId);
 
       // Build email HTML based on stage
       const leadsForTemplate = group.leads.map((l) => ({

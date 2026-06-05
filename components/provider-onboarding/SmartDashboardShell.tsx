@@ -242,9 +242,9 @@ export default function SmartDashboardShell({
             }}
             onHireStaffClick={() => {
               if (isSignedIn) {
-                window.location.href = "/provider/medjobs/candidates";
+                window.location.href = "/medjobs/candidates";
               } else {
-                sessionStorage.setItem("olera_post_claim_redirect", "/provider/medjobs/candidates");
+                sessionStorage.setItem("olera_post_claim_redirect", "/medjobs/candidates");
                 onClaimClick();
               }
             }}

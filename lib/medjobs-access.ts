@@ -1,135 +1,111 @@
 /**
- * MedJobs Access Tier System
+ * MedJobs Access — pilot-only model.
  *
- * Four tiers control what providers see and can do:
+ * G3 consolidation (2026-06-05): the credit / $49-subscription paywall was
+ * removed. The pilot (free, 90 days, granted on Terms acceptance) is the only
+ * access path. This module now answers two questions off a provider's
+ * business_profiles.metadata:
  *
- * 1. anonymous       — not logged in, limited preview
- * 2. free_active     — logged in, under credit limit
- * 3. free_exhausted  — logged in, credits exhausted, not paid
- * 4. paid            — active $49/mo subscription
+ *   1. Does this provider have MedJobs access?  → `isPaid` (active pilot)
+ *   2. Can they see candidate CONTACT info?     → access AND verified
+ *      (the de-platforming gate — unchanged)
  *
- * Providers get 3 free credits. Each credit is consumed by:
- * - Sending an outbound interview request (provider → candidate)
- * - Confirming an inbound interview request (candidate → provider)
- *
- * When a candidate confirms a provider's outbound request, no credit
- * is consumed (the credit was already spent at request time).
- *
- * Contact info, LinkedIn, resume, and full names are paid-only to prevent
- * de-platforming (providers bypassing Olera by contacting candidates directly).
+ * The `AccessTier` union and `AccessInfo` shape are retained for backwards
+ * compatibility with existing consumers; the credit fields are deprecated
+ * (always 0 / Infinity) and `"free_exhausted"` is no longer produced.
  */
+
+import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 
 export type AccessTier = "anonymous" | "free_active" | "free_exhausted" | "paid";
 
 export interface AccessInfo {
   tier: AccessTier;
+  /** @deprecated credits removed (pilot-only). Always 0. */
   creditsUsed: number;
+  /** @deprecated credits removed (pilot-only). Always Infinity. */
   creditsRemaining: number;
+  /** True when the provider has active MedJobs access (pilot). */
   isPaid: boolean;
-  /** Whether the provider is verified (verification_state === "verified" or "not_required") */
+  /** verification_state === "verified" || "not_required". */
   isVerified: boolean;
 }
 
-const FREE_CREDIT_LIMIT = 3;
-
 /**
- * Determine the provider's access tier.
+ * Determine the provider's access.
  *
- * @param isAuthenticated - Whether the user has an active session
- * @param providerMeta - The provider's business_profiles.metadata (if they have a provider profile)
- * @param verificationState - The provider's verification_state (optional, defaults to unverified)
+ * @param isAuthenticated - whether the user has an active session
+ * @param providerMeta - the provider's business_profiles.metadata
+ * @param verificationState - the provider's verification_state
  */
 export function getAccessTier(
   isAuthenticated: boolean,
   providerMeta?: Record<string, unknown> | null,
   verificationState?: string | null,
 ): AccessInfo {
-  // Verified means explicitly verified OR verification not required for this provider
   const isVerified = verificationState === "verified" || verificationState === "not_required";
 
   if (!isAuthenticated || !providerMeta) {
     return { tier: "anonymous", creditsUsed: 0, creditsRemaining: 0, isPaid: false, isVerified: false };
   }
 
-  const isPaid = !!(providerMeta.medjobs_subscription_active as boolean);
-  const creditsUsed = (providerMeta.medjobs_credits_used as number) || 0;
-
-  if (isPaid) {
-    return { tier: "paid", creditsUsed, creditsRemaining: Infinity, isPaid: true, isVerified };
-  }
-
-  if (creditsUsed >= FREE_CREDIT_LIMIT) {
-    return { tier: "free_exhausted", creditsUsed, creditsRemaining: 0, isPaid: false, isVerified };
-  }
-
+  // Pilot (active MedJobs access) = full access. No credit tiers anymore.
+  const isPaid = medjobsAccessActive(providerMeta);
   return {
-    tier: "free_active",
-    creditsUsed,
-    creditsRemaining: FREE_CREDIT_LIMIT - creditsUsed,
-    isPaid: false,
+    tier: isPaid ? "paid" : "free_active",
+    creditsUsed: 0,
+    creditsRemaining: Infinity,
+    isPaid,
     isVerified,
   };
 }
 
 /**
- * Check if a provider can schedule a new interview.
+ * Whether the provider can request an interview.
+ * Any signed-in provider may request through Olera; the pilot unlocks
+ * contact/full data. No credit limit.
  */
 export function canScheduleInterview(access: AccessInfo): boolean {
-  return access.tier === "paid" || access.tier === "free_active";
+  return access.tier !== "anonymous";
 }
 
 /**
- * Check if a provider has full access to candidate details.
- * Requires BOTH paid subscription AND verified status.
- * This prevents bad actors who are flagged for re-verification from
- * accessing candidate contact info even if they have an active subscription.
+ * Full access to candidate details (contact, résumé, LinkedIn).
+ * Requires MedJobs access AND verified status — the de-platforming gate.
  */
 export function hasFullAccess(access: AccessInfo): boolean {
   return access.isPaid && access.isVerified;
 }
 
-/**
- * Check if contact info (email, phone) should be visible.
- * Requires both paid AND verified to prevent de-platforming.
- */
+/** Contact info (email, phone) visible only with full access. */
 export function canSeeContactInfo(access: AccessInfo): boolean {
   return hasFullAccess(access);
 }
 
-/**
- * Check if LinkedIn URL should be visible.
- * Requires both paid AND verified to prevent de-platforming.
- */
+/** LinkedIn URL visible only with full access. */
 export function canSeeLinkedIn(access: AccessInfo): boolean {
   return hasFullAccess(access);
 }
 
-/**
- * Check if resume link should be clickable.
- * Requires both paid AND verified to prevent de-platforming.
- */
+/** Résumé link clickable only with full access. */
 export function canSeeResume(access: AccessInfo): boolean {
   return hasFullAccess(access);
 }
 
 /**
- * Format candidate display name based on access tier.
- * Only providers with full access (paid + verified) see full names.
- * Others see "First L." to prevent de-platforming via name lookup.
+ * Format candidate display name based on access.
+ * Full access sees full names; others see "First L." (anti de-platforming).
  */
 export function formatCandidateName(fullName: string, access: AccessInfo): string {
   if (hasFullAccess(access)) return fullName;
-  // All non-full-access providers: First + last initial
   const parts = fullName.trim().split(/\s+/);
   if (parts.length <= 1) return parts[0];
   return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
 }
 
 /**
- * Filter candidate data for a given access tier.
- * Call this server-side BEFORE passing data to client components
- * so restricted fields never reach the browser.
- * Requires BOTH paid AND verified for full access.
+ * Filter candidate data for the given access tier. Call server-side BEFORE
+ * passing data to client components so restricted fields never reach the browser.
  */
 export function filterCandidateForTier(
   candidate: {
@@ -139,7 +115,7 @@ export function filterCandidateForTier(
     linkedinUrl?: string | null;
     resumeUrl?: string | null;
   },
-  access: AccessInfo
+  access: AccessInfo,
 ): {
   displayName: string;
   email: string | null;

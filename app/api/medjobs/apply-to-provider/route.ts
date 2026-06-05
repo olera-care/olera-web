@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         await sendSMS({
           to: providerProfile.phone,
-          body: `New MedJobs application from ${studentProfile.display_name} (${studentMeta.university || "student"}). View: ${siteUrl}/provider/medjobs/candidates/${studentProfile.slug}`,
+          body: `New MedJobs application from ${studentProfile.display_name} (${studentMeta.university || "student"}). View: ${siteUrl}/medjobs/candidates/${studentProfile.slug}`,
         });
       } catch (err) {
         console.error("[medjobs/apply-to-provider] sms error:", err);

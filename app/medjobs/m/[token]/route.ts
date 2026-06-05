@@ -38,6 +38,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
+import { generateUniqueSlug } from "@/lib/slug";
 
 export async function GET(
   request: Request,
@@ -170,21 +171,21 @@ export async function GET(
     }
   }
 
-  // ── 7. Co-tenancy DETECTION only (no mutation) ──────────────────────
-  // The magic-link click authenticates but does NOT claim. All profile
-  // mutation (account link + claim_state + pilot) happens atomically at
-  // terms acceptance via resolveOrClaimProviderProfile. Here we only DETECT
-  // whether the org is already owned by a DIFFERENT account, so the welcome
-  // board can render the read-only co-tenancy banner (decision 3). The
-  // canonical key is source_provider_id; provider_business_profile_id is a
+  // ── 7. Establish the provider identity (authed-but-UNCLAIMED) ────────
+  // The magic-link recipient must land as a PROVIDER, not a generic/family
+  // user. We resolve (or create) their provider org profile from the directory
+  // listing, link it to their account, and make it ACTIVE — but we do NOT
+  // claim it (claim_state stays "unclaimed"; the combined Terms acceptance is
+  // what claims it + starts the pilot). If the org is already owned by a
+  // DIFFERENT account → read-only co-tenancy (decision 3): no link, no create.
+  // Canonical key is source_provider_id; provider_business_profile_id is a
   // legacy fallback for non-directory rows.
   let businessProfileId: string | null = null;
   let claimConflict = false;
-  {
+  if (accountId) {
     let bp: { id: string; account_id: string | null } | null = null;
     if (oleraProviderId) {
-      // Fetch-then-filter so a legacy NULL claim_state row is still detected
-      // (matches the resolve-or-claim primitive's dedup logic).
+      // Fetch-then-filter so a legacy NULL claim_state row is still found.
       const { data } = await supabase
         .from("business_profiles")
         .select("id, account_id, claim_state")
@@ -205,14 +206,78 @@ export async function GET(
         .maybeSingle();
       bp = (data as { id: string; account_id: string | null } | null) ?? null;
     }
+
     if (bp) {
-      businessProfileId = bp.id;
       const bpAccountId = bp.account_id ?? null;
-      // Owned by another account → co-tenancy. Unowned (admin-created) or
-      // owned by this account → no conflict; terms acceptance adopts it.
-      if (bpAccountId && accountId && bpAccountId !== accountId) {
+      if (bpAccountId && bpAccountId !== accountId) {
+        // Owned by another account → co-tenancy. Don't link or activate.
         claimConflict = true;
+      } else {
+        businessProfileId = bp.id;
+        // Adopt an unowned profile; never touch claim_state here (a previously
+        // claimed profile stays claimed; an unclaimed one stays unclaimed).
+        if (!bpAccountId) {
+          await supabase
+            .from("business_profiles")
+            .update({ account_id: accountId })
+            .eq("id", bp.id);
+        }
       }
+    } else if (oleraProviderId) {
+      // No profile yet → create one UNCLAIMED from the directory listing so
+      // the recipient is a real (if unclaimed) provider account.
+      const { data: op } = await supabase
+        .from("olera-providers")
+        .select("provider_id, provider_name, city, state, email, phone, website, address, zipcode")
+        .eq("provider_id", oleraProviderId)
+        .maybeSingle();
+      if (op) {
+        const o = op as {
+          provider_name: string | null;
+          city: string | null;
+          state: string | null;
+          email: string | null;
+          phone: string | null;
+          website: string | null;
+          address: string | null;
+          zipcode: string | number | null;
+        };
+        const displayName = o.provider_name || outreachRow.organization_name || "Provider";
+        const slug = await generateUniqueSlug(supabase, displayName, o.city || "", o.state || "");
+        const { data: newBp } = await supabase
+          .from("business_profiles")
+          .insert({
+            account_id: accountId,
+            type: "organization",
+            display_name: displayName,
+            slug,
+            city: o.city,
+            state: o.state,
+            email: o.email,
+            phone: o.phone,
+            website: o.website,
+            address: o.address,
+            zip: o.zipcode != null ? String(o.zipcode) : null,
+            source_provider_id: oleraProviderId,
+            source: "claimed_from_directory",
+            claim_state: "unclaimed",
+            verification_state: "unverified",
+            is_active: true,
+            metadata: {},
+          })
+          .select("id")
+          .single();
+        if (newBp) businessProfileId = (newBp as { id: string }).id;
+      }
+    }
+
+    // Make the provider profile active so the app renders provider (not
+    // family) chrome. Only when we resolved/created one without co-tenancy.
+    if (businessProfileId && !claimConflict) {
+      await supabase
+        .from("accounts")
+        .update({ active_profile_id: businessProfileId })
+        .eq("id", accountId);
     }
   }
 

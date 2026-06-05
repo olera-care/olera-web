@@ -294,45 +294,46 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // 9. Track events (fire-and-forget, non-blocking)
+  // 9. Track events BEFORE returning (must complete before serverless terminates)
   const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
 
-  // Track one_click_access event for observability
-  (async () => {
-    try {
-      await admin.from("provider_activity").insert({
-        provider_id: providerKey,
-        event_type: "one_click_access",
-        metadata: {
-          source: "claim-lead",
-          connection_id: validConnectionId || null,
-          email: normalizedEmail,
-          email_log_id: emailTrackingId || null,
-        },
-      });
-    } catch (err) {
-      console.error("[claim-lead] activity tracking failed:", err);
-    }
-  })();
+  // Track both events - use Promise.allSettled so one failure doesn't block the other
+  const trackingPromises: Promise<unknown>[] = [];
 
-  // Track lead_opened if we have a specific connection
-  if (validConnectionId) {
-    (async () => {
-      try {
-        await admin.from("provider_activity").insert({
-          provider_id: providerKey,
-          event_type: "lead_opened",
-          metadata: {
-            lead_id: validConnectionId,
-            connection_id: validConnectionId,
-            source: "claim-lead",
-          },
-        });
-      } catch (err) {
-        console.error("[claim-lead] lead_opened tracking failed:", err);
-      }
-    })();
-  }
+  // Track one_click_access event for observability
+  trackingPromises.push(
+    admin.from("provider_activity").insert({
+      provider_id: providerKey,
+      event_type: "one_click_access",
+      metadata: {
+        source: "claim-lead",
+        connection_id: validConnectionId || null,
+        email: normalizedEmail,
+        email_log_id: emailTrackingId || null,
+      },
+    }).then(({ error }) => {
+      if (error) console.error("[claim-lead] one_click_access tracking failed:", error.message);
+    })
+  );
+
+  // ALWAYS track lead_opened - this marks the provider as "Viewed" in admin panel
+  // Include connection_id when available (enables per-lead sequence stopping)
+  trackingPromises.push(
+    admin.from("provider_activity").insert({
+      provider_id: providerKey,
+      event_type: "lead_opened",
+      metadata: {
+        lead_id: validConnectionId || null,
+        connection_id: validConnectionId || null,
+        source: "claim-lead",
+      },
+    }).then(({ error }) => {
+      if (error) console.error("[claim-lead] lead_opened tracking failed:", error.message);
+    })
+  );
+
+  // Wait for tracking to complete before returning
+  await Promise.allSettled(trackingPromises);
 
   console.log("[claim-lead] success, redirecting to:", redirectTarget.toString());
 

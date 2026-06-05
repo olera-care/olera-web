@@ -131,8 +131,9 @@ export function getEngagementLevel(
   const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
   const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;
 
-  // If explicitly marked as needs_call by cron, return that
-  if (engagement.needsCall) {
+  // If explicitly marked as needs_call by cron AND actually old enough, return that
+  // This double-check prevents data corruption from showing new leads as needs_call
+  if (engagement.needsCall && daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS) {
     return {
       level: "needs_call",
       label: ENGAGEMENT_LABELS.needs_call,

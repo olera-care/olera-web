@@ -78,12 +78,12 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { key: "needs_call", label: "Needs Call", description: "Re-engagement failed, requires manual call", emptyMessage: "No providers need calling." },
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead", emptyMessage: "No leads have been viewed yet." },
   { key: "engaged", label: "Engaged", description: "Provider revealed contact info", emptyMessage: "No engaged leads yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "stuck", label: "Stuck", description: "No activity for 14+ days", emptyMessage: "No stuck connections." },
+  { key: "needs_call", label: "Needs Call", description: "24+ days, requires manual intervention", emptyMessage: "No providers need calling." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
@@ -473,14 +473,16 @@ export default function ConnectionsTrackerPage() {
         })}
       </div>
 
-      {/* Re-engagement Blast Controls - show on Stuck tab */}
-      {activeFilter === "stuck" && (
+      {/* Re-engagement Blast Controls - show on Stuck or Needs Call tab */}
+      {(activeFilter === "stuck" || activeFilter === "needs_call") && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-sm font-semibold text-amber-900">Re-engagement Blast (Day 17 Email)</h3>
+              <h3 className="text-sm font-semibold text-amber-900">Re-engagement Blast (Final Email)</h3>
               <p className="text-xs text-amber-700 mt-1">
-                Send the &quot;One more try&quot; email to all stuck providers who haven&apos;t received it yet.
+                Send the &quot;One more try&quot; email to all stuck/needs-call providers who haven&apos;t engaged.
+                <br />
+                <span className="text-amber-600 font-medium">✓ Only sends to providers who have NOT viewed the lead.</span>
               </p>
             </div>
             <div className="flex gap-2 shrink-0">

@@ -463,12 +463,16 @@ export default function ConnectionRow({
               {/* Stuck connection alert - show call options prominently */}
               {/* Show for stuck/needs_call based on current perspective */}
               {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call")) ||
-                (perspective === "provider" && c.engagementLevel === "stuck")) && (
+                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call"))) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
                     {perspective === "family"
-                      ? "Family needs manual follow-up. No activity for 14+ days."
-                      : "This connection needs manual follow-up. No activity for 14+ days."}
+                      ? c.familyEngagementLevel === "needs_call"
+                        ? "Family requires manual call. No activity for 24+ days."
+                        : "Family needs follow-up. No activity for 14+ days."
+                      : c.engagementLevel === "needs_call"
+                        ? "This connection requires manual call. No activity for 24+ days."
+                        : "This connection needs follow-up. No activity for 14+ days."}
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (
@@ -540,7 +544,7 @@ export default function ConnectionRow({
                 {perspective === "family" ? (
                   // Family perspective: primary action is nudging family
                   <>
-                    {c.familyEngagementLevel !== "engaged" && c.familyEngagementLevel !== "new" && (
+                    {c.familyEngagementLevel !== "engaged" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_call" && (
                       <>
                         {/* Family nudge - primary action in family perspective */}
                         {detail.family.email && (

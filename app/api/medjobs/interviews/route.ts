@@ -4,7 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
-import { getAccessTier, canScheduleInterview } from "@/lib/medjobs-access";
+import { getAccessTier } from "@/lib/medjobs-access";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
 import type { InterviewStatus } from "@/lib/types";
@@ -135,7 +135,9 @@ export async function POST(request: NextRequest) {
       const callerProvider = callerProfiles.find((p) => p.type === "organization" || p.type === "caregiver");
       if (!callerProvider) return NextResponse.json({ error: "Provider profile required" }, { status: 403 });
 
-      // Paywall gate: check provider's access tier before allowing outbound request
+      // Pilot gate (G3): a provider must have an active pilot to invite a
+      // student to interview. The UI prompts pilot activation before reaching
+      // here; this is server-side enforcement.
       const { data: providerFull } = await admin
         .from("business_profiles")
         .select("metadata, verification_state")
@@ -143,8 +145,8 @@ export async function POST(request: NextRequest) {
         .single();
       const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
       const access = getAccessTier(true, providerMeta);
-      if (!canScheduleInterview(access)) {
-        return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+      if (!access.isPaid) {
+        return NextResponse.json({ error: "pilot_required", tier: access.tier }, { status: 402 });
       }
 
       // Check verification state - if not verified, hold the interview
@@ -208,16 +210,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
     }
 
-    // Increment credits used for the provider (only for provider-initiated outbound requests)
     if (studentProfileId) {
-      const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
-        p_profile_id: resolvedProviderId,
-        p_key: "medjobs_credits_used",
-      });
-      if (creditError) {
-        console.error("[medjobs/interviews] credit increment error:", creditError);
-      }
-
       // Store T&C acceptance timestamp in provider's profile metadata (if provided and not already set)
       if (termsAcceptedAt) {
         const { data: providerMeta } = await admin
@@ -431,8 +424,8 @@ export async function PATCH(request: NextRequest) {
         if (providerProfile2) {
           const providerMeta = ((providerProfile2 as { metadata?: unknown }).metadata ?? {}) as Record<string, unknown>;
           const access = getAccessTier(true, providerMeta);
-          if (!canScheduleInterview(access)) {
-            return NextResponse.json({ error: "upgrade_required", tier: access.tier }, { status: 402 });
+          if (!access.isPaid) {
+            return NextResponse.json({ error: "pilot_required", tier: access.tier }, { status: 402 });
           }
         }
       }
@@ -449,24 +442,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     await admin.from("interviews").update(update).eq("id", interviewId);
-
-    // Increment credits used when PROVIDER confirms an inbound request
-    // (Outbound credits are consumed at POST time, not at confirmation)
-    if (status === "confirmed") {
-      const providerConfirmedInbound =
-        userProfileIds.includes(interview.provider_profile_id) &&
-        interview.proposed_by !== interview.provider_profile_id;
-
-      if (providerConfirmedInbound) {
-        const { error: creditError } = await admin.rpc("increment_profile_metadata_counter", {
-          p_profile_id: interview.provider_profile_id,
-          p_key: "medjobs_credits_used",
-        });
-        if (creditError) {
-          console.error("[medjobs/interviews] credit increment error:", creditError);
-        }
-      }
-    }
 
     // Send emails based on status change
     const provider = interview.provider as { display_name: string; email: string; slug: string };

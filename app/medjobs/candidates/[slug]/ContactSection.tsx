@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
 import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
+import PilotTermsModal from "@/components/medjobs/PilotTermsModal";
+import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
@@ -38,6 +40,7 @@ export default function ContactSection({
   const [showModal, setShowModal] = useState(false);
   const [showQuickScheduleModal, setShowQuickScheduleModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
+  const [showPilotModal, setShowPilotModal] = useState(false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
   // Load scheduled state from localStorage on mount
@@ -57,6 +60,11 @@ export default function ContactSection({
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
+  // G3 pilot gate: inviting a student to interview requires an active pilot.
+  const providerProfile = profiles.find((p) => p.type === "organization");
+  const hasPilot = medjobsAccessActive(
+    (providerProfile?.metadata ?? null) as Record<string, unknown> | null,
+  );
 
   // Check if caregiver is viewing their own profile
   const ownCaregiverProfile = profiles.find(
@@ -116,10 +124,13 @@ export default function ContactSection({
     if (requiresAuth) {
       // Show quick schedule modal for unauthenticated users
       setShowQuickScheduleModal(true);
+    } else if (!hasPilot) {
+      // Signed-in provider without an active pilot — activate it first
+      setShowPilotModal(true);
     } else {
       setShowModal(true);
     }
-  }, [requiresAuth]);
+  }, [requiresAuth, hasPilot]);
 
   // Handle modal close
   const handleModalClose = useCallback(() => {
@@ -272,6 +283,17 @@ export default function ContactSection({
           onScheduled={handleQuickScheduled}
           candidate={candidate}
         />
+        {showPilotModal && (
+          <PilotTermsModal
+            orgName={providerProfile?.display_name ?? undefined}
+            actionVerb="invite this caregiver to interview"
+            onCancel={() => setShowPilotModal(false)}
+            onSuccess={() => {
+              setShowPilotModal(false);
+              setShowModal(true);
+            }}
+          />
+        )}
       </>
     );
   }
@@ -336,6 +358,17 @@ export default function ContactSection({
         onScheduled={handleQuickScheduled}
         candidate={candidate}
       />
+      {showPilotModal && (
+        <PilotTermsModal
+          orgName={providerProfile?.display_name ?? undefined}
+          actionVerb="invite this caregiver to interview"
+          onCancel={() => setShowPilotModal(false)}
+          onSuccess={() => {
+            setShowPilotModal(false);
+            setShowModal(true);
+          }}
+        />
+      )}
     </>
   );
 }

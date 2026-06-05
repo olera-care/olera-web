@@ -2864,8 +2864,8 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
     preheader = `${pronouns.pronoun}'s looking for care in your area.`;
   }
 
-  // Build greeting
-  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+  // Build greeting - use full provider name (not firstName) since most are businesses
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   // Build body for single lead
   let bodyHtml: string;
@@ -2937,8 +2937,8 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
   // Build preheader
   const preheader = "A quick reply is all it takes.";
 
-  // Build greeting
-  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+  // Build greeting - use full provider name (not firstName) since most are businesses
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   let bodyHtml: string;
   if (isMultiple) {
@@ -3007,8 +3007,8 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     ? "These families reached out almost a week ago."
     : `${pronouns.pronoun} reached out to you almost a week ago.`;
 
-  // Build greeting
-  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+  // Build greeting - use full provider name (not firstName) since most are businesses
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   let bodyHtml: string;
   if (isMultiple) {
@@ -3085,8 +3085,8 @@ export function providerFollowupDay10Email(opts: FollowupEmailOpts): string {
   // Build preheader
   const preheader = "And we'll keep bringing you families looking for your care.";
 
-  // Build greeting
-  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+  // Build greeting - use full provider name (not firstName) since most are businesses
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   let bodyHtml: string;
   if (isMultiple) {
@@ -3168,8 +3168,8 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
   // Build preheader
   const preheader = "If the timing's not right, no problem at all.";
 
-  // Build greeting
-  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+  // Build greeting - use full provider name (not firstName) since most are businesses
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   let bodyHtml: string;
   if (isMultiple) {
@@ -3606,7 +3606,7 @@ export function providerReachOutConfirmationEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your message was sent!</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      ${escapeHtml(firstName(opts.providerName, "Hi"))}, your reach-out to <strong>${escapeHtml(safeFamilyName)}</strong> in ${escapeHtml(opts.city)} was delivered.
+      Hi ${escapeHtml(opts.providerName || "there")}, your reach-out to <strong>${escapeHtml(safeFamilyName)}</strong> in ${escapeHtml(opts.city)} was delivered.
     </p>
     ${competitionBlock}
     <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">What happens next:</p>

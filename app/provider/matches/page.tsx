@@ -878,7 +878,6 @@ export default function ProviderMatchesPage() {
   // ── "Your Market" gate ──
   // Find Families defaults to the market diagnostic (the 99.9%-of-providers experience).
   // Gated to the Aggie test provider / TJ while we dogfood; ?market=1 forces it on for previews.
-  const [forceLeads, setForceLeads] = useState(false);
   const marketGateOn = useMemo(
     () => marketGateEnabled({ displayName: providerProfile?.display_name, email: user?.email }),
     [providerProfile?.display_name, user?.email],
@@ -1366,28 +1365,40 @@ export default function ProviderMatchesPage() {
     }
   }, [providerProfile?.slug, activeTab]);
 
-  // Track when a provider with NO local leads lands on "Your Market" (the
-  // market-diagnostic default of Find Families). Waits for the families fetch
-  // to resolve so we don't fire on the pre-load empty state, then fires once
-  // per visit. Powers a Slack alert + the Activity Center feed. Providers WITH
-  // local leads see the leads strip and are intentionally not signalled here.
+  // Published care-seekers within ~50 mi of the provider (the catchment) — the rare
+  // "concrete leads." These pin above the market diagnostic when they exist. Reuses the
+  // already-loaded families + the same haversine the browse view uses, so no extra fetch.
+  // Replaces the old exact-city match (which hid, e.g., an Austin family from a Round
+  // Rock provider). Only active profiles; sorted nearest-first.
+  const nearbySeekers = useMemo(() => {
+    const lat = providerProfile?.lat;
+    const lng = providerProfile?.lng;
+    if (lat == null || lng == null) return [] as Profile[];
+    return families
+      .filter((f) => f.lat != null && f.lng != null && getProfileStatus(f) === "active")
+      .map((f) => ({ f, d: haversineDistance(lat, lng, f.lat as number, f.lng as number) }))
+      .filter((x) => x.d <= 50)
+      .sort((a, b) => a.d - b.d)
+      .map((x) => x.f);
+  }, [families, providerProfile?.lat, providerProfile?.lng]);
+
+  // Track when a provider with NO family within the catchment lands on "Your Market"
+  // (the market-diagnostic default of Find Families). Waits for the families fetch to
+  // resolve so we don't fire on the pre-load empty state, then fires once per visit.
+  // Powers a Slack alert + the Activity Center feed. Providers WITH a nearby family see
+  // the pinned lead and are intentionally not signalled here.
   const hasTrackedMarketNoLeads = useRef(false);
   useEffect(() => {
     if (
       !providerProfile?.slug ||
       !marketGateOn ||
-      forceLeads ||
       loading ||
       !hasFetchedOnceRef.current ||
       hasTrackedMarketNoLeads.current
     ) {
       return;
     }
-    const pcity = providerProfile.city?.toLowerCase();
-    const localLeadCount = pcity
-      ? families.filter((f) => f.city?.toLowerCase() === pcity).length
-      : 0;
-    if (localLeadCount > 0) return; // has local leads → not the no-leads signal
+    if (nearbySeekers.length > 0) return; // a real nearby family → not the no-leads signal
     hasTrackedMarketNoLeads.current = true;
     trackMatchesEvent(providerProfile.slug, "market_diagnostic_viewed_no_leads", {
       provider_name: providerProfile.display_name,
@@ -1395,7 +1406,7 @@ export default function ProviderMatchesPage() {
       state: providerProfile.state,
       email: user?.email,
     });
-  }, [providerProfile, marketGateOn, forceLeads, loading, families, user?.email]);
+  }, [providerProfile, marketGateOn, loading, nearbySeekers, user?.email]);
 
   // Poll for updates every 45 seconds (family profile changes, new listings)
   // Pass isBackgroundRefresh=true to avoid showing loading skeleton during refresh
@@ -1754,23 +1765,123 @@ export default function ProviderMatchesPage() {
     }).length;
   }, [families]);
 
-  // "Your Market" default — render as soon as the profile is ready; the diagnostic
-  // fetches its own data and shows the purposeful MarketLoading state, so we don't
-  // wait on the families fetch (the market view doesn't need it beyond the optional
-  // leads strip, which pins in once families resolve).
-  if (providerProfile && marketGateOn && !forceLeads) {
-    const pcity = providerProfile.city?.toLowerCase();
-    const localLeadCount = pcity ? families.filter((f) => f.city?.toLowerCase() === pcity).length : 0;
-    const careType = providerProfile.category || providerProfile.care_types?.[0] || "";
+  // The reach-out drawer is shared by the market view (pinned lead) and the full browse
+  // view below. Built once so the pinned card opens the exact same flow ("connect the
+  // pipes" — reuse Esther's drawer verbatim, just surface it from the pin).
+  const reachOutDrawerNode = (() => {
+    const conn = drawerFamily ? connectionData.get(drawerFamily.id) : undefined;
+    const isViewMode = drawerFamily && contactedIds.has(drawerFamily.id) && !!conn;
+    const viewOutreachStatus = conn
+      ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
+      : undefined;
+    const drawerProfileStatus = drawerFamily ? getProfileStatus(drawerFamily) : "active";
     return (
-      <FindFamiliesMarketView
-        city={providerProfile.city || ""}
-        state={providerProfile.state || ""}
-        category={careType}
-        providerName={providerProfile.display_name || ""}
-        localLeadCount={localLeadCount}
-        onViewLeads={() => setForceLeads(true)}
+      <ReachOutDrawer
+        family={drawerFamily}
+        isOpen={!!drawerFamily}
+        onClose={handleCloseDrawer}
+        onSend={handleSendFromDrawer}
+        defaultMessage={reachOutNote}
+        providerProfile={providerProfile}
+        providerCareTypes={providerCareTypes}
+        providerPaymentMethods={providerPaymentMethods}
+        sending={sending}
+        sendError={sendError}
+        isVerified={isVerified}
+        onVerifyClick={handleVerifyFromDrawer}
+        mode={isViewMode ? "view" : "compose"}
+        sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
+        sentAt={isViewMode ? conn?.created_at : undefined}
+        outreachStatus={viewOutreachStatus}
+        profileStatus={drawerProfileStatus}
+        onAIGenerate={(familyId, tone) => {
+          if (providerProfile?.slug) {
+            trackMatchesEvent(providerProfile.slug, "matches_message_generated", {
+              family_id: familyId,
+              tone,
+            });
+          }
+        }}
       />
+    );
+  })();
+
+  // "Your Market" default — render as soon as the profile is ready; the diagnostic
+  // fetches its own data and shows the purposeful MarketLoading state. A real published
+  // care-seeker within ~50 mi pins on top via the existing FamilyMatchCard + reach-out
+  // drawer; otherwise the diagnostic is the whole page.
+  if (providerProfile && marketGateOn) {
+    const careType = providerProfile.category || providerProfile.care_types?.[0] || "";
+    const pinnedSeekers = nearbySeekers.slice(0, 3);
+    const pinned = pinnedSeekers.length > 0 ? (
+      <div className="mb-9">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#199087] opacity-70" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#199087]" />
+          </span>
+          <span className="text-[13px] font-semibold text-[#199087]">
+            {pinnedSeekers.length === 1
+              ? "A family near you is looking for care"
+              : `${pinnedSeekers.length} families near you are looking for care`}
+          </span>
+        </div>
+        {profileGapWarning && (
+          <div ref={gapWarningRef} className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3.5">
+            <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-800">Complete your profile to reach out</p>
+              <p className="text-sm text-amber-700 mt-0.5">
+                Missing: {profileGapWarning.join(", ")}.{" "}
+                <Link href="/provider" className="font-semibold underline underline-offset-2 hover:text-amber-900">
+                  Update profile →
+                </Link>
+              </p>
+            </div>
+            <button type="button" onClick={() => setProfileGapWarning(null)} className="text-amber-400 hover:text-amber-600 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+        <div className="flex flex-col gap-2.5">
+          {pinnedSeekers.map((family, index) => (
+            <FamilyMatchCard
+              key={family.id}
+              family={family}
+              hasFullAccess={hasFullAccess}
+              providerCareTypes={providerCareTypes}
+              contacted={contactedIds.has(family.id)}
+              outreachStatus={getOutreachStatus(family.id) || undefined}
+              reachOutCount={reachOutCounts.get(family.id) || 0}
+              onReachOut={handleReachOut}
+              animationDelay={index * 40}
+              profileStatus={getProfileStatus(family)}
+            />
+          ))}
+        </div>
+        <p className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[#199087]">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
+          </svg>
+          First to reach out is 3× more likely to connect.
+        </p>
+      </div>
+    ) : null;
+    return (
+      <>
+        <FindFamiliesMarketView
+          city={providerProfile.city || ""}
+          state={providerProfile.state || ""}
+          category={careType}
+          providerName={providerProfile.display_name || ""}
+          pinned={pinned}
+        />
+        {reachOutDrawerNode}
+      </>
     );
   }
 
@@ -1993,47 +2104,8 @@ export default function ProviderMatchesPage() {
         </div>
       </div>
 
-      {/* ── Reach Out Drawer ── */}
-      {(() => {
-        // Determine if viewing existing outreach
-        // Only use view mode if we have BOTH contactedIds entry AND connection data
-        const conn = drawerFamily ? connectionData.get(drawerFamily.id) : undefined;
-        const isViewMode = drawerFamily && contactedIds.has(drawerFamily.id) && !!conn;
-        const viewOutreachStatus = conn
-          ? conn.status === "accepted" ? "connected" : conn.status as "pending" | "declined"
-          : undefined;
-        const drawerProfileStatus = drawerFamily ? getProfileStatus(drawerFamily) : "active";
-
-        return (
-          <ReachOutDrawer
-            family={drawerFamily}
-            isOpen={!!drawerFamily}
-            onClose={handleCloseDrawer}
-            onSend={handleSendFromDrawer}
-            defaultMessage={reachOutNote}
-            providerProfile={providerProfile}
-            providerCareTypes={providerCareTypes}
-            providerPaymentMethods={providerPaymentMethods}
-            sending={sending}
-            sendError={sendError}
-            isVerified={isVerified}
-            onVerifyClick={handleVerifyFromDrawer}
-            mode={isViewMode ? "view" : "compose"}
-            sentMessage={isViewMode ? (conn?.message || undefined) : undefined}
-            sentAt={isViewMode ? conn?.created_at : undefined}
-            outreachStatus={viewOutreachStatus}
-            profileStatus={drawerProfileStatus}
-            onAIGenerate={(familyId, tone) => {
-              if (providerProfile?.slug) {
-                trackMatchesEvent(providerProfile.slug, "matches_message_generated", {
-                  family_id: familyId,
-                  tone,
-                });
-              }
-            }}
-          />
-        );
-      })()}
+      {/* ── Reach Out Drawer (shared with the market view's pinned lead) ── */}
+      {reachOutDrawerNode}
 
       {/* ── Verification Modal ── */}
       <VerificationMethodModal

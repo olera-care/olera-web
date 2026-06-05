@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import MarketDiagnostic, { type MarketDiagnosticData } from "./MarketDiagnostic";
 import MarketLoading from "./MarketLoading";
 
@@ -8,18 +8,19 @@ import MarketLoading from "./MarketLoading";
  * Find Families — "Your Market" default experience.
  *
  * For ~99.9% of providers (75k providers, ~100 live leads) there are no local families
- * actively searching, so the market diagnostic IS the page. When local leads DO exist
- * (the edge case), a compact urgency strip pins on top and links to the full leads view.
+ * actively searching, so the market diagnostic IS the page. When a real published
+ * care-seeker exists within the provider's catchment (the rare cherry), the caller
+ * passes it in via `pinned` and it renders on top of the diagnostic.
  */
 export default function FindFamiliesMarketView({
-  city, state, category, providerName, localLeadCount = 0, onViewLeads,
+  city, state, category, providerName, pinned,
 }: {
   city: string;
   state: string;
   category: string;
   providerName?: string;
-  localLeadCount?: number;
-  onViewLeads?: () => void;
+  /** Optional "family near you" section, rendered above the market diagnostic. */
+  pinned?: ReactNode;
 }) {
   const [data, setData] = useState<MarketDiagnosticData | null>(null);
   const [status, setStatus] = useState<"loading" | "building" | "ready" | "unavailable">("loading");
@@ -58,26 +59,8 @@ export default function FindFamiliesMarketView({
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Edge case: live local leads — pin on top with urgency */}
-        {localLeadCount > 0 && (
-          <button
-            type="button"
-            onClick={onViewLeads}
-            className="w-full mb-7 flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50/60 px-5 py-4 text-left transition-colors hover:bg-amber-50"
-          >
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
-            </span>
-            <span className="flex-1">
-              <span className="block text-[15px] font-medium text-stone-900">
-                {localLeadCount} {localLeadCount === 1 ? "family is" : "families are"} looking near you right now
-              </span>
-              <span className="block text-[13px] text-stone-500">First to reach out is 3× more likely to connect.</span>
-            </span>
-            <span className="text-[13px] font-semibold text-amber-700">See them →</span>
-          </button>
-        )}
+        {/* Rare cherry: a real published care-seeker within the catchment, pinned on top. */}
+        {pinned}
 
         {(status === "loading" || status === "building") && (
           <MarketLoading city={city} longRunning={longRunning} />

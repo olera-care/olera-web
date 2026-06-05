@@ -63,16 +63,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
-    // Filter to only stage 5 (stuck) connections
-    const stuckConnections = (connections || []).filter((conn) => {
+    // Get all connection IDs to check engagement
+    const allConnectionIds = (connections || []).map((c) => c.id);
+
+    // Query provider_activity for engagement events (lead_opened, contact_revealed, etc.)
+    // This ensures we ONLY send to providers who have NOT engaged
+    const ENGAGEMENT_EVENTS = ["lead_opened", "contact_revealed", "click_phone", "click_email", "continue_to_inbox"];
+    const { data: engagementEvents, error: engagementError } = await db
+      .from("provider_activity")
+      .select("metadata")
+      .in("event_type", ENGAGEMENT_EVENTS)
+      .limit(100000);
+
+    if (engagementError) {
+      console.error("[admin/reengagement-blast] Engagement query failed:", engagementError);
+      return NextResponse.json({ error: "Failed to check engagement" }, { status: 500 });
+    }
+
+    // Build set of connection IDs that have been engaged with
+    const engagedConnectionIds = new Set<string>();
+    const connectionIdSet = new Set(allConnectionIds);
+    for (const event of engagementEvents || []) {
+      const meta = event.metadata as Record<string, unknown>;
+      const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+      if (connId && connectionIdSet.has(connId)) {
+        engagedConnectionIds.add(connId);
+      }
+    }
+
+    // Filter to stuck (stage 5) OR needs_call (stage 7) connections
+    // that have NOT been engaged with
+    const eligibleConnections = (connections || []).filter((conn) => {
       const meta = (conn.metadata as Record<string, unknown>) || {};
-      return meta.followup_stage === 5;
+      const stage = meta.followup_stage as number | undefined;
+
+      // Must be stuck (5) or needs_call (7)
+      if (stage !== 5 && stage !== 7) return false;
+
+      // Must NOT have been engaged with
+      if (engagedConnectionIds.has(conn.id)) return false;
+
+      // Must be old enough (14+ days for stuck, 24+ days for needs_call)
+      const daysSince = Math.floor((now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSince < 14) return false;
+
+      return true;
     });
 
-    if (stuckConnections.length === 0) {
+    if (eligibleConnections.length === 0) {
       return NextResponse.json({
         ...counts,
-        message: "No stuck connections found at stage 5",
+        message: "No eligible connections found (all have been engaged or are too recent)",
+        engagement_verified: true,
       });
     }
 
@@ -95,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     const providerGroups = new Map<string, ProviderGroup>();
 
-    for (const conn of stuckConnections) {
+    for (const conn of eligibleConnections) {
       // Handle array vs single object from Supabase join
       const toProfile = (Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile) as Record<string, unknown> | null;
       const fromProfile = (Array.isArray(conn.from_profile) ? conn.from_profile[0] : conn.from_profile) as Record<string, unknown> | null;

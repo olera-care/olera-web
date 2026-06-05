@@ -1173,7 +1173,7 @@ async function handleGuestConnection({
       priceRange: (p.metadata?.price_range as string) || null,
     }));
 
-    // Generate magic link for inbox access with fallback to static link
+    // Generate magic link for inbox access with fallback to family landing page
     const careReportEmailLogId = await reserveEmailLogId({
       to: normalizedEmail,
       subject: `You can now message ${providerName}`,
@@ -1184,10 +1184,11 @@ async function handleGuestConnection({
 
     const inboxDest = appendTrackingParams("/portal/inbox", careReportEmailLogId);
 
-    // Default to static link as fallback
-    let magicLinkUrl = `${siteUrl}/portal/inbox`;
+    // Default to family landing page as fallback (better UX than auth modal on empty inbox)
+    // They can sign in from there and access their inbox naturally
+    let magicLinkUrl = `${siteUrl}/browse`;
 
-    // Try to generate magic link, but don't block email if it fails
+    // Try to generate magic link (expires in 1 hour), but don't block email if it fails
     try {
       const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
         type: "magiclink",
@@ -1200,10 +1201,10 @@ async function handleGuestConnection({
       if (!magicLinkError && magicLinkData?.properties?.action_link) {
         magicLinkUrl = magicLinkData.properties.action_link;
       } else {
-        console.warn("[care-report] Magic link generation failed, using static link:", magicLinkError?.message);
+        console.warn("[care-report] Magic link generation failed, using browse page fallback:", magicLinkError?.message);
       }
     } catch (magicLinkErr) {
-      console.error("[care-report] Magic link generation error, using static link:", magicLinkErr);
+      console.error("[care-report] Magic link generation error, using browse page fallback:", magicLinkErr);
     }
 
     // Always send email, regardless of magic link success

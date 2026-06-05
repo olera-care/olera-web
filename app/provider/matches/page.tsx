@@ -1863,12 +1863,14 @@ export default function ProviderMatchesPage() {
             />
           ))}
         </div>
-        <p className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[#199087]">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
-          </svg>
-          First to reach out is 3× more likely to connect.
-        </p>
+        {pinnedSeekers.some((f) => !contactedIds.has(f.id)) && (
+          <p className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[#199087]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
+            </svg>
+            First to reach out is 3× more likely to connect.
+          </p>
+        )}
       </div>
     ) : null;
     return (
@@ -1881,6 +1883,16 @@ export default function ProviderMatchesPage() {
           pinned={pinned}
         />
         {reachOutDrawerNode}
+        {/* Verification modal — the reach-out drawer's "verify" opens this, so it must
+            be mounted in the market view too (not just the browse view below). */}
+        <VerificationMethodModal
+          isOpen={isVerificationModalOpen}
+          onClose={closeVerificationModal}
+          onSubmit={handleVerificationSubmit}
+          onDismiss={handleVerificationDismiss}
+          businessName={providerProfile?.display_name || "Your Business"}
+          profileId={providerProfile?.id}
+        />
       </>
     );
   }

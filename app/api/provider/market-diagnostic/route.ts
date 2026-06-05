@@ -119,9 +119,10 @@ export async function GET(req: Request) {
     return reply({ status: "ready", available: true, data: row.data });
   }
 
-  // 4. Can we even diagnose this city? (Unknown city → truly unavailable, don't spin forever.)
+  // 4. Can we even diagnose this city? Unknown city → we don't cover this area; say so honestly
+  //    (reason: "uncovered") rather than implying a report is on the way.
   if (!resolveCity(cityRaw, stateRaw)) {
-    return reply({ status: "unavailable", available: false });
+    return reply({ status: "unavailable", available: false, reason: "uncovered" });
   }
 
   // 5. Terminal failure (out of retries / budget-paused) → unavailable, don't poll forever.

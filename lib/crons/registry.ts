@@ -286,6 +286,20 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "Family reaches out to one of the recommended providers.",
     relatedAdminPath: "/admin/leads",
   },
+  {
+    id: "family-never-engaged",
+    name: "Family never engaged — gentle re-engagement",
+    description: "Daily: sends Email #5 when family never sent a message after 5+ days. Guide-first value offer with zero pressure. Family-level intelligence — ONE email per family even with multiple connections.",
+    recipientCohort: "Families with 5-day-old connections who have NEVER sent a message in ANY connection.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 16 * * *",
+    humanSchedule: "Daily, 16:00 UTC (~11 AM ET)",
+    path: "/api/cron/family-never-engaged",
+    emailTypes: ["family_never_engaged"],
+    successSignal: "Family downloads the guide or returns to their inbox.",
+    relatedAdminPath: "/admin/leads",
+  },
 
   // ── MedJobs (student talent marketplace) ───────────────────────────
   {

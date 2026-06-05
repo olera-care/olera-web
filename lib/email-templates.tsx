@@ -596,6 +596,42 @@ export function providerSilentEmail(opts: {
   `, `You're never limited to one — here are others ready to help.`);
 }
 
+/** Email to family who never engaged after sending lead - gentle re-engagement with guide */
+export function familyNeverEngagedEmail(opts: {
+  familyName: string;
+  providerName: string;
+  guideUrl: string;
+  inboxUrl: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      It's completely okay if you're still thinking things over — finding the right care isn't a small decision. While you do, here's a free guide that walks through what to look for, what to ask, and how families pay for care:
+    </p>
+    <div style="margin:0 0 24px;">${button("Get the free guide", opts.guideUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      And whenever you're ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. You can message them anytime, right from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a> — no forms, no phone calls you didn't ask for. Just reach out when it feels right.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      We're not going anywhere. Take all the time you need.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      If anything would help, or you just want to talk it through, a real person is here at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `We're not going anywhere, and your provider is still one message away.`);
+}
+
 /** Email to admin when a provider claims their page */
 export function claimNotificationEmail(opts: {
   providerName: string;

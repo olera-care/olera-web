@@ -505,29 +505,35 @@ export function unreadReminderEmail(opts: {
   messagePreview: string;
   viewUrl: string;
 }): string {
-  const safeSenderName = firstName(opts.senderName, "A provider");
-  const safePreview = escapeHtml(opts.messagePreview);
-  // Preheader uses raw text (preheaderHtml handles its own escaping)
-  const preheaderSnippet = opts.messagePreview.length > 50
-    ? opts.messagePreview.slice(0, 50) + "..."
-    : opts.messagePreview;
+  const recipientFirstName = firstName(opts.recipientName, "there");
+  // Use full provider name (not shortened)
+  const providerFullName = opts.senderName || "A provider";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an unread response</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, <strong>${escapeHtml(safeSenderName)}</strong> responded to your care inquiry, but we haven't heard back from you yet.
+      Hi ${escapeHtml(recipientFirstName)},
     </p>
-    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
-    </div>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Providers are more likely to help families who respond promptly.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${escapeHtml(providerFullName)}</strong> got back to you a few days ago, and their message is still waiting whenever you'd like to read it:
     </p>
-    <div style="margin:0 0 24px;">${button("View their response", opts.viewUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Reaching out about care can feel like a big step, and it's okay to take your time. When you're ready, even a short note is enough to get things going — you don't have to have it all figured out.
     </p>
-  `, `They responded to your inquiry — "${preheaderSnippet}"`);
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      It stays private — just you and them, no one else.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      Here whenever you need us — a real person is at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `There's no rush — they're still there whenever you're ready.`);
 }
 
 /** Email to admin when a provider claims their page */

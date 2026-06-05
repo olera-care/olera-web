@@ -99,8 +99,9 @@ export async function GET(request: NextRequest) {
 
       // Different subject and template for families vs providers
       const senderFirstName = firstName(sender?.display_name || "", isFamily ? "A provider" : "Someone");
+      const senderFullName = sender?.display_name || "A provider";
       const urSubject = isFamily
-        ? `${senderFirstName} is waiting to hear from you`
+        ? `You still have a message waiting from ${senderFullName}`
         : `${senderFirstName} sent you a message`;
 
       const urLogId = await reserveEmailLogId({

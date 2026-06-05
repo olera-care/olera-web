@@ -27,6 +27,16 @@ interface EngagementCounts {
   needs_call: number;
 }
 
+interface FamilyEngagementCounts {
+  all: number;
+  new: number;
+  awaiting: number;
+  replied: number;
+  connected: number;
+  stuck: number;
+  needs_call: number;
+}
+
 interface FunnelStats {
   total: number;
   providerViewed: number;
@@ -54,10 +64,12 @@ interface ProviderActions {
 }
 
 interface ListResponse {
-  connections: (ConnectionRowData & { provider: { activityKey: string | null }; engagementLevel: EngagementLevel; lastMessageAt: string | null })[];
+  connections: (ConnectionRowData & { provider: { activityKey: string | null }; engagementLevel: EngagementLevel; familyEngagementLevel: FamilyEngagementLevel; lastMessageAt: string | null })[];
   total: number;
+  perspective: Perspective;
   workflowCounts: WorkflowCounts;
   engagementCounts: EngagementCounts;
+  familyEngagementCounts: FamilyEngagementCounts;
   funnelStats: FunnelStats;
   providerActions: ProviderActions;
   engagement: Record<string, Engagement>;
@@ -66,9 +78,15 @@ interface ListResponse {
 
 // Engagement level type
 type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
+type FamilyEngagementLevel = "new" | "awaiting" | "replied" | "connected" | "stuck" | "needs_call";
+
+// Perspective type
+type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type FilterKey = "all" | EngagementLevel;
+type ProviderFilterKey = "all" | EngagementLevel;
+type FamilyFilterKey = "all" | FamilyEngagementLevel;
+type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
 interface TabConfig {
   key: FilterKey;
@@ -77,13 +95,25 @@ interface TabConfig {
   emptyMessage: string;
 }
 
-const TABS: TabConfig[] = [
+// Provider perspective tabs
+const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead", emptyMessage: "No leads have been viewed yet." },
   { key: "engaged", label: "Engaged", description: "Provider revealed contact info", emptyMessage: "No engaged leads yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "stuck", label: "Stuck", description: "No activity for 14+ days", emptyMessage: "No stuck connections." },
   { key: "needs_call", label: "Needs Call", description: "24+ days, requires manual intervention", emptyMessage: "No providers need calling." },
+  { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
+];
+
+// Family perspective tabs
+const FAMILY_TABS: TabConfig[] = [
+  { key: "new", label: "New", description: "Provider hasn't responded yet", emptyMessage: "No connections awaiting provider response." },
+  { key: "awaiting", label: "Awaiting", description: "Provider responded, awaiting family reply", emptyMessage: "No families awaiting response." },
+  { key: "replied", label: "Replied", description: "Family replied to provider", emptyMessage: "No families have replied yet." },
+  { key: "connected", label: "Connected", description: "Active conversation", emptyMessage: "No active conversations yet." },
+  { key: "stuck", label: "Stuck", description: "No family activity for 14+ days", emptyMessage: "No stuck family connections." },
+  { key: "needs_call", label: "Needs Call", description: "No family activity for 24+ days", emptyMessage: "No families need calling." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
@@ -128,6 +158,7 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [perspective, setPerspective] = useState<Perspective>("provider");
   const [activeFilter, setActiveFilter] = useState<FilterKey>("new"); // Default to New leads
   const [page, setPage] = useState(0);
 
@@ -213,6 +244,12 @@ export default function ConnectionsTrackerPage() {
     setPage(0);
   }, [activeFilter, range]);
 
+  // Reset filter to "new" when perspective changes (since filter keys differ between perspectives)
+  useEffect(() => {
+    setActiveFilter("new");
+    setPage(0);
+  }, [perspective]);
+
   const [list, setList] = useState<ListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -231,6 +268,7 @@ export default function ConnectionsTrackerPage() {
     const params = buildDateParams();
     if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
     params.set("filter", activeFilter);
+    params.set("perspective", perspective);
     params.set("limit", String(PAGE_SIZE));
     params.set("offset", String(page * PAGE_SIZE));
 
@@ -247,19 +285,34 @@ export default function ConnectionsTrackerPage() {
         setList(null);
       })
       .finally(() => setLoading(false));
-  }, [buildDateParams, debouncedSearch, activeFilter, page]);
+  }, [buildDateParams, debouncedSearch, activeFilter, perspective, page]);
 
   // Fetch connections when dependencies change
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
 
+  // Use perspective-aware tabs
+  const TABS = perspective === "family" ? FAMILY_TABS : PROVIDER_TABS;
   const activeTabConfig = TABS.find((t) => t.key === activeFilter);
 
-  // Get count for tab (using engagement counts)
+  // Get count for tab (using perspective-aware engagement counts)
   const getTabCount = (key: FilterKey): number => {
-    if (!list?.engagementCounts) return 0;
-    return list.engagementCounts[key] ?? 0;
+    if (perspective === "family") {
+      if (!list?.familyEngagementCounts) return 0;
+      const counts = list.familyEngagementCounts;
+      if (key in counts) {
+        return counts[key as keyof FamilyEngagementCounts] ?? 0;
+      }
+      return 0;
+    } else {
+      if (!list?.engagementCounts) return 0;
+      const counts = list.engagementCounts;
+      if (key in counts) {
+        return counts[key as keyof EngagementCounts] ?? 0;
+      }
+      return 0;
+    }
   };
 
   // Delete handlers
@@ -334,107 +387,140 @@ export default function ConnectionsTrackerPage() {
         onRangeChange={setRange}
       />
 
-      {/* Collapsible Funnel Stats */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setStatsExpanded(!statsExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-3 h-3 transition-transform ${statsExpanded ? "rotate-90" : ""}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
+      {/* Collapsible Funnel Stats - Provider perspective only */}
+      {perspective === "provider" && (
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => setStatsExpanded(!statsExpanded)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
-          </svg>
-          Connection Funnel
-          <span className="text-xs text-gray-400 font-normal">
-            {range.preset === "all" ? "all time" : range.preset === "30d" ? "last 30 days" : range.preset === "7d" ? "last 7 days" : "custom range"}
-          </span>
-        </button>
+            <svg
+              className={`w-3 h-3 transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+            </svg>
+            Connection Funnel
+            <span className="text-xs text-gray-400 font-normal">
+              {range.preset === "all" ? "all time" : range.preset === "30d" ? "last 30 days" : range.preset === "7d" ? "last 7 days" : "custom range"}
+            </span>
+          </button>
 
-        {statsExpanded && list?.funnelStats && (
-          <div className="mt-4 grid grid-cols-5 gap-3">
-            <FunnelStat label="Total Leads" value={list.funnelStats.total} />
-            <FunnelStat
-              label="Provider Viewed"
-              value={list.funnelStats.providerViewedRate}
-              format="percent"
-              subtitle={`${list.funnelStats.providerViewed} ${list.funnelStats.providerViewed === 1 ? "lead" : "leads"}`}
-            />
-            <FunnelStat
-              label="Provider Engaged"
-              value={list.funnelStats.providerEngagedRate}
-              format="percent"
-              subtitle={`${list.funnelStats.providerEngaged} ${list.funnelStats.providerEngaged === 1 ? "lead" : "leads"}`}
-            />
-            <FunnelStat
-              label="Responded"
-              value={list.funnelStats.respondedRate}
-              format="percent"
-              subtitle={`${list.funnelStats.responded} ${list.funnelStats.responded === 1 ? "lead" : "leads"}`}
-            />
-            <FunnelStat label="Connected" value={list.funnelStats.connected} highlight />
-          </div>
-        )}
-      </div>
+          {statsExpanded && list?.funnelStats && (
+            <div className="mt-4 grid grid-cols-5 gap-3">
+              <FunnelStat label="Total Leads" value={list.funnelStats.total} />
+              <FunnelStat
+                label="Provider Viewed"
+                value={list.funnelStats.providerViewedRate}
+                format="percent"
+                subtitle={`${list.funnelStats.providerViewed} ${list.funnelStats.providerViewed === 1 ? "lead" : "leads"}`}
+              />
+              <FunnelStat
+                label="Provider Engaged"
+                value={list.funnelStats.providerEngagedRate}
+                format="percent"
+                subtitle={`${list.funnelStats.providerEngaged} ${list.funnelStats.providerEngaged === 1 ? "lead" : "leads"}`}
+              />
+              <FunnelStat
+                label="Responded"
+                value={list.funnelStats.respondedRate}
+                format="percent"
+                subtitle={`${list.funnelStats.responded} ${list.funnelStats.responded === 1 ? "lead" : "leads"}`}
+              />
+              <FunnelStat label="Connected" value={list.funnelStats.connected} highlight />
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Collapsible Provider Actions */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setActionsExpanded(!actionsExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-3 h-3 transition-transform ${actionsExpanded ? "rotate-90" : ""}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
+      {/* Collapsible Provider Actions - Provider perspective only */}
+      {perspective === "provider" && (
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => setActionsExpanded(!actionsExpanded)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
-          </svg>
-          Provider Actions
-          <span className="text-xs text-gray-400 font-normal">
-            {range.preset === "all" ? "all time" : range.preset === "30d" ? "last 30 days" : range.preset === "7d" ? "last 7 days" : "custom range"}
-          </span>
-        </button>
+            <svg
+              className={`w-3 h-3 transition-transform ${actionsExpanded ? "rotate-90" : ""}`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+            </svg>
+            Provider Actions
+            <span className="text-xs text-gray-400 font-normal">
+              {range.preset === "all" ? "all time" : range.preset === "30d" ? "last 30 days" : range.preset === "7d" ? "last 7 days" : "custom range"}
+            </span>
+          </button>
 
-        {actionsExpanded && list?.providerActions && (
-          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
-            <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
-            <FunnelStat
-              label="Copied Phone"
-              value={list.providerActions.copiedPhoneRate}
-              format="percent"
-              subtitle={`${list.providerActions.copiedPhone} copied`}
-            />
-            <FunnelStat
-              label="Copied Email"
-              value={list.providerActions.copiedEmailRate}
-              format="percent"
-              subtitle={`${list.providerActions.copiedEmail} copied`}
-            />
-            <FunnelStat
-              label="Clicked to Call"
-              value={list.providerActions.clickedPhoneRate}
-              format="percent"
-              subtitle={`${list.providerActions.clickedPhone} called`}
-            />
-            <FunnelStat
-              label="Clicked to Email"
-              value={list.providerActions.clickedEmailRate}
-              format="percent"
-              subtitle={`${list.providerActions.clickedEmail} emailed`}
-            />
-            <FunnelStat
-              label="Continued to Inbox"
-              value={list.providerActions.continuedToInboxRate}
-              format="percent"
-              subtitle={`${list.providerActions.continuedToInbox} clicked`}
-            />
-          </div>
-        )}
+          {actionsExpanded && list?.providerActions && (
+            <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
+              <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
+              <FunnelStat
+                label="Copied Phone"
+                value={list.providerActions.copiedPhoneRate}
+                format="percent"
+                subtitle={`${list.providerActions.copiedPhone} copied`}
+              />
+              <FunnelStat
+                label="Copied Email"
+                value={list.providerActions.copiedEmailRate}
+                format="percent"
+                subtitle={`${list.providerActions.copiedEmail} copied`}
+              />
+              <FunnelStat
+                label="Clicked to Call"
+                value={list.providerActions.clickedPhoneRate}
+                format="percent"
+                subtitle={`${list.providerActions.clickedPhone} called`}
+              />
+              <FunnelStat
+                label="Clicked to Email"
+                value={list.providerActions.clickedEmailRate}
+                format="percent"
+                subtitle={`${list.providerActions.clickedEmail} emailed`}
+              />
+              <FunnelStat
+                label="Continued to Inbox"
+                value={list.providerActions.continuedToInboxRate}
+                format="percent"
+                subtitle={`${list.providerActions.continuedToInbox} clicked`}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Perspective Toggle */}
+      <div className="mb-6 flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-600">Perspective:</span>
+        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+          <button
+            type="button"
+            onClick={() => setPerspective("provider")}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              perspective === "provider"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Provider
+          </button>
+          <button
+            type="button"
+            onClick={() => setPerspective("family")}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              perspective === "family"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Family
+          </button>
+        </div>
       </div>
 
       {/* Search bar */}
@@ -498,8 +584,8 @@ export default function ConnectionsTrackerPage() {
         })}
       </div>
 
-      {/* Re-engagement Blast Controls - show on Stuck or Needs Call tab, hide after successful send */}
-      {(activeFilter === "stuck" || activeFilter === "needs_call") && !blastDismissed && (
+      {/* Re-engagement Blast Controls - show on Stuck or Needs Call tab in provider perspective only */}
+      {perspective === "provider" && (activeFilter === "stuck" || activeFilter === "needs_call") && !blastDismissed && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -646,6 +732,7 @@ export default function ConnectionsTrackerPage() {
               <ConnectionRow
                 key={c.id}
                 c={c}
+                perspective={perspective}
                 engagement={
                   c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
                 }

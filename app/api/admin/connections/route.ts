@@ -11,8 +11,11 @@ import {
 } from "@/lib/admin/profile-completeness";
 import {
   getEngagementLevel,
+  getFamilyEngagementLevel,
   type EngagementLevel,
+  type FamilyEngagementLevel,
   type EngagementData,
+  type FamilyEngagementData,
 } from "@/lib/connection-engagement";
 
 /**
@@ -96,7 +99,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel;
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel;
 
 // Stuck threshold: 3+ nudges with no response
 const STUCK_NUDGE_THRESHOLD = 3;
@@ -120,6 +123,20 @@ interface EngagementCounts {
   stuck: number;
   needs_call: number;
 }
+
+// Family engagement-based tab counts (family perspective)
+interface FamilyEngagementCounts {
+  all: number;
+  new: number;
+  awaiting: number;
+  replied: number;
+  connected: number;
+  stuck: number;
+  needs_call: number;
+}
+
+// Perspective type
+type Perspective = "provider" | "family";
 
 // Funnel stats for the stats row
 interface FunnelStats {
@@ -159,6 +176,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const responseFilter = (searchParams.get("filter") || "all") as TabFilter;
+    const perspective = (searchParams.get("perspective") || "provider") as Perspective;
     const stateFilter = searchParams.get("state") as ConnectionTemperatureState | null;
     const includeClosed = searchParams.get("include_closed") === "true";
     const search = (searchParams.get("search") || "").trim().toLowerCase();
@@ -255,9 +273,15 @@ export async function GET(request: NextRequest) {
       // This determines if we need to nudge the family
       // Only counts REAL replies (non-auto, non-system, with actual text)
       let familyRepliedAfterProvider = false;
+      let familyMessageCountAfterProvider = 0;
+      let lastFamilyMessageAt: string | null = null;
+      const providerRespondedAt = providerMsg?.created_at || null;
+
       if (responded && providerMsg?.created_at) {
         const providerResponseTime = new Date(providerMsg.created_at).getTime();
-        familyRepliedAfterProvider = thread.some(
+
+        // Find all family messages after provider responded
+        const familyMessagesAfterProvider = thread.filter(
           (m) =>
             m.from_profile_id === r.from_profile_id &&
             m.is_auto_reply !== true &&
@@ -266,6 +290,17 @@ export async function GET(request: NextRequest) {
             m.created_at &&
             new Date(m.created_at).getTime() > providerResponseTime
         );
+
+        familyRepliedAfterProvider = familyMessagesAfterProvider.length > 0;
+        familyMessageCountAfterProvider = familyMessagesAfterProvider.length;
+
+        // Find the most recent family message (for staleness calculation)
+        if (familyMessagesAfterProvider.length > 0) {
+          lastFamilyMessageAt = familyMessagesAfterProvider.reduce((latest, m) => {
+            if (!latest) return m.created_at!;
+            return new Date(m.created_at!).getTime() > new Date(latest).getTime() ? m.created_at! : latest;
+          }, null as string | null);
+        }
       }
 
       // Find the last message timestamp (for staleness calculation)
@@ -392,7 +427,10 @@ export async function GET(request: NextRequest) {
         },
         messagePreview,
         responded,
+        providerRespondedAt,
         familyRepliedAfterProvider,
+        familyMessageCountAfterProvider,
+        lastFamilyMessageAt,
         providerNudgeCount,
         familyNudgeCount,
         providerNudgedAt,
@@ -554,6 +592,17 @@ export async function GET(request: NextRequest) {
       needs_call: 0,
     };
 
+    // Family engagement-based counts (family perspective)
+    const familyEngagementCounts: FamilyEngagementCounts = {
+      all: 0,
+      new: 0,
+      awaiting: 0,
+      replied: 0,
+      connected: 0,
+      stuck: 0,
+      needs_call: 0,
+    };
+
     // Funnel stats
     let providerViewedCount = 0;
     let providerEngagedCount = 0;
@@ -562,6 +611,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate engagement level for each connection and store it
     const connectionEngagementLevels = new Map<string, EngagementLevel>();
+    const connectionFamilyEngagementLevels = new Map<string, FamilyEngagementLevel>();
 
     for (const c of searched) {
       // Get engagement data for this provider
@@ -597,6 +647,19 @@ export async function GET(request: NextRequest) {
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
 
+      // Calculate family engagement level for this connection
+      const familyEngagementData: FamilyEngagementData = {
+        providerResponded: c.responded || c.markedReplied || c.alreadyConnected,
+        providerRespondedAt: c.providerRespondedAt,
+        familyReplied: c.familyRepliedAfterProvider,
+        familyMessageCount: c.familyMessageCountAfterProvider,
+        lastFamilyActivityAt: c.lastFamilyMessageAt,
+        familyNudgeCount: c.familyNudgeCount,
+      };
+
+      const familyEngResult = getFamilyEngagementLevel(familyEngagementData, c.created_at, now);
+      connectionFamilyEngagementLevels.set(c.id, familyEngResult.level);
+
       // Only count active connections (those with workflowState)
       // This ensures tab counts match the displayed connections
       if (c.workflowState) {
@@ -604,9 +667,13 @@ export async function GET(request: NextRequest) {
         workflowCounts.all++;
         workflowCounts[c.workflowState]++;
 
-        // Count engagement levels
+        // Count engagement levels (provider perspective)
         engagementCounts.all++;
         engagementCounts[engResult.level]++;
+
+        // Count family engagement levels
+        familyEngagementCounts.all++;
+        familyEngagementCounts[familyEngResult.level]++;
 
         // Funnel stats (based on provider engagement)
         if (eng?.lead_opened) providerViewedCount++;
@@ -649,17 +716,29 @@ export async function GET(request: NextRequest) {
     // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
-    // Check if filter is an engagement level
-    const engagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
-    const isEngagementFilter = engagementLevels.includes(responseFilter as EngagementLevel);
+    // Check if filter is an engagement level (provider or family)
+    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
+    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "replied", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
-      if (isEngagementFilter) {
-        // Filter by engagement level
-        list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+      if (perspective === "family") {
+        // Family perspective - filter by family engagement level
+        const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
+        if (isFamilyEngagementFilter) {
+          list = list.filter((c) => connectionFamilyEngagementLevels.get(c.id) === responseFilter);
+        } else {
+          // Filter by workflow state (legacy)
+          list = list.filter((c) => c.workflowState === responseFilter);
+        }
       } else {
-        // Filter by workflow state (legacy)
-        list = list.filter((c) => c.workflowState === responseFilter);
+        // Provider perspective - filter by provider engagement level
+        const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
+        if (isEngagementFilter) {
+          list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+        } else {
+          // Filter by workflow state (legacy)
+          list = list.filter((c) => c.workflowState === responseFilter);
+        }
       }
     }
 
@@ -673,9 +752,11 @@ export async function GET(request: NextRequest) {
     const pageRaw = list.slice(offset, offset + limit);
 
     // Add engagement level to each connection in the page
+    // Include both provider and family engagement levels so UI can display appropriately
     const page = pageRaw.map((c) => ({
       ...c,
       engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
+      familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
     }));
 
     // Per-provider engagement data for UI badges (keyed by provider activityKey)
@@ -708,8 +789,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       connections: page,
       total: list.length,
+      perspective,
       workflowCounts,
       engagementCounts,
+      familyEngagementCounts,
       funnelStats,
       providerActions,
       engagement,

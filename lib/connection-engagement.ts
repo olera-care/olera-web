@@ -23,6 +23,24 @@ export type EngagementLevel =
   | "stuck"
   | "needs_call";
 
+/**
+ * Family engagement levels - parallel to provider engagement but from family's perspective.
+ *
+ *   New       → Provider hasn't responded yet (same as provider "new")
+ *   Awaiting  → Provider responded, family hasn't replied
+ *   Replied   → Family sent a message after provider response
+ *   Connected → Active conversation (multiple back-and-forth)
+ *   Stuck     → No family activity for 14+ days
+ *   Needs Call → No family activity for 24+ days
+ */
+export type FamilyEngagementLevel =
+  | "new"
+  | "awaiting"
+  | "replied"
+  | "connected"
+  | "stuck"
+  | "needs_call";
+
 export interface EngagementData {
   emailClicked: boolean;
   leadOpened: boolean;
@@ -40,12 +58,39 @@ export interface EngagementData {
   needsCall?: boolean;
 }
 
+/**
+ * Family engagement data - tracks family's actions after provider responds.
+ */
+export interface FamilyEngagementData {
+  /** Provider sent a real message (non-auto-reply) */
+  providerResponded: boolean;
+  /** Timestamp when provider first responded */
+  providerRespondedAt: string | null;
+  /** Family sent a message AFTER provider responded */
+  familyReplied: boolean;
+  /** Number of family messages after provider responded */
+  familyMessageCount: number;
+  /** Family's last activity timestamp (their last message, not thread's last message) */
+  lastFamilyActivityAt: string | null;
+  /** Number of times family has been nudged */
+  familyNudgeCount: number;
+}
+
 export interface EngagementResult {
   level: EngagementLevel;
   label: string;
   /** Days since last activity (any engagement event or connection creation) */
   daysSinceActivity: number;
   /** Whether this connection is going stale */
+  isStale: boolean;
+}
+
+export interface FamilyEngagementResult {
+  level: FamilyEngagementLevel;
+  label: string;
+  /** Days since last family activity */
+  daysSinceActivity: number;
+  /** Whether the family engagement is going stale */
   isStale: boolean;
 }
 
@@ -65,6 +110,15 @@ export const ENGAGEMENT_LABELS: Record<EngagementLevel, string> = {
   new: "New",
   viewed: "Viewed",
   engaged: "Engaged",
+  connected: "Connected",
+  stuck: "Stuck",
+  needs_call: "Needs Call",
+};
+
+export const FAMILY_ENGAGEMENT_LABELS: Record<FamilyEngagementLevel, string> = {
+  new: "New",
+  awaiting: "Awaiting",
+  replied: "Replied",
   connected: "Connected",
   stuck: "Stuck",
   needs_call: "Needs Call",
@@ -109,6 +163,48 @@ export const ENGAGEMENT_CONFIG: Record<
     dot: "bg-red-400",
     text: "text-red-600",
     description: "Re-engagement failed, requires manual call",
+  },
+};
+
+export const FAMILY_ENGAGEMENT_CONFIG: Record<
+  FamilyEngagementLevel,
+  { label: string; dot: string; text: string; description: string }
+> = {
+  new: {
+    label: "New",
+    dot: "bg-blue-400",
+    text: "text-blue-700",
+    description: "Provider hasn't responded yet",
+  },
+  awaiting: {
+    label: "Awaiting",
+    dot: "bg-amber-400",
+    text: "text-amber-700",
+    description: "Provider responded, awaiting family reply",
+  },
+  replied: {
+    label: "Replied",
+    dot: "bg-orange-400",
+    text: "text-orange-700",
+    description: "Family replied to provider",
+  },
+  connected: {
+    label: "Connected",
+    dot: "bg-emerald-400",
+    text: "text-emerald-700",
+    description: "Active conversation",
+  },
+  stuck: {
+    label: "Stuck",
+    dot: "bg-gray-400",
+    text: "text-gray-500",
+    description: "No family activity for 14+ days",
+  },
+  needs_call: {
+    label: "Needs Call",
+    dot: "bg-red-400",
+    text: "text-red-600",
+    description: "No family activity for 24+ days",
   },
 };
 
@@ -231,3 +327,98 @@ export const ENGAGEMENT_PRIORITY: Record<EngagementLevel, number> = {
   stuck: 4,      // Stale - awaiting re-engagement
   connected: 5,  // Success - lowest priority (good problem to have)
 };
+
+/**
+ * Sort priority for family engagement (family perspective).
+ * Lower = more urgent / needs attention.
+ */
+export const FAMILY_ENGAGEMENT_PRIORITY: Record<FamilyEngagementLevel, number> = {
+  needs_call: 0, // Urgent - family unresponsive 24+ days
+  awaiting: 1,   // Hot - provider responded, family hasn't
+  replied: 2,    // Warm - family engaged
+  new: 3,        // Cold - waiting on provider
+  stuck: 4,      // Stale - family went silent
+  connected: 5,  // Success
+};
+
+/**
+ * Calculate family engagement level based on family's activity after provider responds.
+ *
+ * Key difference from provider engagement:
+ * - Family engagement tracking starts AFTER provider responds
+ * - Until provider responds, connection shows as "new" (same as provider side)
+ *
+ * Hierarchy:
+ *   1. Provider hasn't responded yet → "new"
+ *   2. Provider responded, family hasn't replied → "awaiting"
+ *   3. Family replied once → "replied"
+ *   4. Family replied multiple times (2+) → "connected"
+ *   5. No family activity for 14+ days (not connected) → "stuck"
+ *   6. No family activity for 24+ days → "needs_call"
+ */
+export function getFamilyEngagementLevel(
+  data: FamilyEngagementData,
+  connectionCreatedAt: string,
+  now: number = Date.now()
+): FamilyEngagementResult {
+  // If provider hasn't responded yet, family engagement tracking hasn't started
+  if (!data.providerResponded) {
+    const connectionCreatedTime = new Date(connectionCreatedAt).getTime();
+    const daysSinceCreation = Math.floor((now - connectionCreatedTime) / DAY_MS);
+    return {
+      level: "new",
+      label: FAMILY_ENGAGEMENT_LABELS.new,
+      daysSinceActivity: daysSinceCreation,
+      isStale: false,
+    };
+  }
+
+  // Calculate staleness from family's last activity
+  // Use provider response time as baseline (not connection creation) since family
+  // engagement only starts after provider responds
+  const providerRespondedTime = data.providerRespondedAt
+    ? new Date(data.providerRespondedAt).getTime()
+    : new Date(connectionCreatedAt).getTime();
+  const familyLastActivity = data.lastFamilyActivityAt
+    ? new Date(data.lastFamilyActivityAt).getTime()
+    : providerRespondedTime;
+  // Use the more recent of: family's last activity OR when provider responded
+  // (family can't be stale before provider even responded)
+  const lastActivity = Math.max(familyLastActivity, providerRespondedTime);
+  const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
+  const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
+  const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;
+
+  // Determine base level
+  let baseLevel: FamilyEngagementLevel;
+
+  if (data.familyMessageCount >= 2) {
+    // Family replied multiple times - active conversation
+    baseLevel = "connected";
+  } else if (data.familyReplied) {
+    // Family replied once
+    baseLevel = "replied";
+  } else {
+    // Provider responded but family hasn't replied
+    baseLevel = "awaiting";
+  }
+
+  // Connected doesn't become stuck (success state)
+  let level: FamilyEngagementLevel;
+  if (baseLevel === "connected") {
+    level = "connected";
+  } else if (needsCallByTime) {
+    level = "needs_call";
+  } else if (isStale) {
+    level = "stuck";
+  } else {
+    level = baseLevel;
+  }
+
+  return {
+    level,
+    label: FAMILY_ENGAGEMENT_LABELS[level],
+    daysSinceActivity,
+    isStale,
+  };
+}

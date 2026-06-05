@@ -121,49 +121,26 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // FAMILY-LEVEL INTELLIGENCE: Group connections by family to prevent duplicate emails
+    // Key: from_profile_id, Value: connection[]
+    const connectionsByFamily = new Map<string, typeof connections>();
     for (const conn of connections) {
+      const familyId = conn.from_profile_id;
+      if (!connectionsByFamily.has(familyId)) {
+        connectionsByFamily.set(familyId, []);
+      }
+      connectionsByFamily.get(familyId)!.push(conn);
+    }
+
+    // Process each FAMILY (not each connection)
+    for (const [familyId, familyConnections] of connectionsByFamily) {
       counts.processed++;
 
-      // Normalize joined relations
-      const fromProfile = Array.isArray(conn.from_profile)
-        ? conn.from_profile[0]
-        : conn.from_profile;
-      const toProfile = Array.isArray(conn.to_profile)
-        ? conn.to_profile[0]
-        : conn.to_profile;
-
-      const meta = (conn.metadata || {}) as Record<string, unknown>;
-
-      // Skip if already sent this email
-      if (meta.family_alternatives_sent_at) {
-        counts.skipped++;
-        counts.skipReasons.already_sent++;
-        continue;
-      }
-
-      // Check if provider has responded (any message from provider in thread)
-      const thread = (meta.thread as ThreadMessage[]) || [];
-      const providerResponded = thread.some(
-        (m) =>
-          m.from_profile_id === conn.to_profile_id &&
-          !m.is_auto_reply &&
-          m.text?.trim()
-      );
-
-      if (providerResponded) {
-        counts.skipped++;
-        counts.skipReasons.provider_responded++;
-        continue;
-      }
-
-      // Check if family has connected with other providers (ANY type)
-      // Stop the moment family connects with anyone else
-      const { data: familyConnections, error: familyConnError } = await db
+      // Check ALL connections for this family (not just the 4-5 day batch)
+      const { data: allFamilyConnections, error: familyConnError } = await db
         .from("connections")
-        .select("id")
-        .eq("from_profile_id", conn.from_profile_id)
-        .neq("id", conn.id)
-        .limit(1);
+        .select("id, from_profile_id, to_profile_id, metadata")
+        .eq("from_profile_id", familyId);
 
       if (familyConnError) {
         console.error(
@@ -174,11 +151,70 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      if (familyConnections && familyConnections.length > 0) {
+      // Check if Email #4 was already sent to this family (check ALL connections)
+      let alreadySent = false;
+      if (allFamilyConnections) {
+        alreadySent = allFamilyConnections.some((conn) => {
+          const meta = (conn.metadata || {}) as Record<string, unknown>;
+          return meta.family_alternatives_sent_at;
+        });
+      }
+
+      if (alreadySent) {
+        counts.skipped++;
+        counts.skipReasons.already_sent++;
+        continue;
+      }
+
+      // Check if ANY provider responded in ANY connection for this family
+      let anyProviderResponded = false;
+      if (allFamilyConnections) {
+        for (const conn of allFamilyConnections) {
+          const meta = (conn.metadata || {}) as Record<string, unknown>;
+          const thread = (meta.thread as ThreadMessage[]) || [];
+          const providerResponded = thread.some(
+            (m) =>
+              m.from_profile_id === conn.to_profile_id &&
+              !m.is_auto_reply &&
+              m.text?.trim()
+          );
+          if (providerResponded) {
+            anyProviderResponded = true;
+            break;
+          }
+        }
+      }
+
+      if (anyProviderResponded) {
+        counts.skipped++;
+        counts.skipReasons.provider_responded++;
+        continue;
+      }
+
+      // Check if family has connected with other providers beyond this batch
+      // Skip if family has OTHER connections (they're exploring alternatives)
+      const otherConnections = allFamilyConnections?.filter(
+        (c) => !familyConnections.some((fc) => fc.id === c.id)
+      );
+
+      if (otherConnections && otherConnections.length > 0) {
         counts.skipped++;
         counts.skipReasons.family_connected_elsewhere++;
         continue;
       }
+
+      // Pick the FIRST connection (oldest) as primary for email context
+      const primaryConn = familyConnections[0];
+
+      // Normalize joined relations
+      const fromProfile = Array.isArray(primaryConn.from_profile)
+        ? primaryConn.from_profile[0]
+        : primaryConn.from_profile;
+      const toProfile = Array.isArray(primaryConn.to_profile)
+        ? primaryConn.to_profile[0]
+        : primaryConn.to_profile;
+
+      const meta = (primaryConn.metadata || {}) as Record<string, unknown>;
 
       // Get family email (need to resolve auth email for magic link)
       let familyEmail = fromProfile?.email;
@@ -320,26 +356,30 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Mark as will-send before sending (transaction safety - prevents duplicate sends)
-      const sentAt = new Date().toISOString();
-      await db
-        .from("connections")
-        .update({
-          metadata: {
-            ...meta,
-            family_alternatives_sent_at: sentAt,
-            family_alternatives_sent_by: "cron:family-provider-silent",
-            family_alternatives_count: recommendedProviders.length,
-          },
-        })
-        .eq("id", conn.id);
-
+      // Check dry run BEFORE mutating database
       if (dryRun) {
         console.log(
-          `[cron/family-provider-silent] [DRY RUN] Would send to ${familyEmail} for connection ${conn.id} with ${recommendedProviders.length} providers`
+          `[cron/family-provider-silent] [DRY RUN] Would send to ${familyEmail} for family ${familyId} with ${familyConnections.length} connections`
         );
         counts.sent++;
         continue;
+      }
+
+      // Mark ALL connections for this family BEFORE sending (transaction safety)
+      const sentAt = new Date().toISOString();
+      for (const conn of familyConnections) {
+        const connMeta = (conn.metadata || {}) as Record<string, unknown>;
+        await db
+          .from("connections")
+          .update({
+            metadata: {
+              ...connMeta,
+              family_alternatives_sent_at: sentAt,
+              family_alternatives_sent_by: "cron:family-provider-silent",
+              family_alternatives_count: recommendedProviders.length,
+            },
+          })
+          .eq("id", conn.id);
       }
 
       // Build browse URL with query params (guaranteed to work, no slug issues)
@@ -365,10 +405,11 @@ export async function GET(request: NextRequest) {
         emailType: "family_provider_silent",
         recipientType: "family",
         metadata: {
-          connection_id: conn.id,
-          provider_id: conn.to_profile_id,
+          connection_id: primaryConn.id,
+          provider_id: primaryConn.to_profile_id,
           provider_passed: providerPassed,
           recommended_count: recommendedProviders.length,
+          family_connection_count: familyConnections.length,
         },
       });
 
@@ -432,17 +473,18 @@ export async function GET(request: NextRequest) {
         emailType: "family_provider_silent",
         recipientType: "family",
         metadata: {
-          connection_id: conn.id,
-          provider_id: conn.to_profile_id,
+          connection_id: primaryConn.id,
+          provider_id: primaryConn.to_profile_id,
           provider_passed: providerPassed,
           recommended_count: recommendedProviders.length,
+          family_connection_count: familyConnections.length,
         },
         emailLogId: emailLogId ?? undefined,
       });
 
       if (!success) {
         console.error(
-          `[cron/family-provider-silent] Send failed for ${conn.id}:`,
+          `[cron/family-provider-silent] Send failed for family ${familyId}:`,
           sendError
         );
         counts.skipped++;

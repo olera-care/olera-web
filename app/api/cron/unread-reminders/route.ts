@@ -11,19 +11,41 @@ interface ThreadMessage {
   is_auto_reply?: boolean;
 }
 
+interface UnreadConnection {
+  connectionId: string;
+  fromProfileId: string;
+  toProfileId: string;
+  metadata: Record<string, unknown>;
+  lastMessage: ThreadMessage;
+  lastMessageTime: number;
+  senderProfileId: string;
+}
+
 /**
  * GET /api/cron/unread-reminders
  *
  * Runs every 6 hours. Finds connections with unread messages older than 24h
  * and sends a reminder email to the recipient.
  *
+ * RECIPIENT-LEVEL INTELLIGENCE (as of 2025):
+ * - Groups by recipient to prevent spam
+ * - If recipient has multiple unread messages, sends ONE consolidated reminder
+ * - Mentions the most recent unread message
+ * - Marks ALL unread connections for that recipient
+ * - Skips if ANY reminder was sent to this recipient in the last 6 hours
+ *
  * "Unread" heuristic: the last message in the thread was NOT sent by the
- * connection's to_profile (provider) or from_profile (family), and no
- * message from the recipient exists after it.
+ * recipient, and no message from the recipient exists after it.
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const { searchParams } = new URL(request.url);
+  const querySecret = searchParams.get("secret");
+  const isAuthed =
+    authHeader === `Bearer ${process.env.CRON_SECRET}` ||
+    querySecret === process.env.CRON_SECRET;
+
+  if (!isAuthed) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -32,6 +54,7 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
 
     // Get active connections with recent thread activity
     // We look at connections updated in the last 48h but with last message > 24h old
@@ -48,7 +71,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Query failed" }, { status: 500 });
     }
 
-    let remindersSent = 0;
+    // First pass: identify unread connections and their recipients
+    const unreadByRecipient = new Map<string, UnreadConnection[]>();
 
     for (const conn of connections || []) {
       const meta = (conn.metadata || {}) as Record<string, unknown>;
@@ -65,15 +89,42 @@ export async function GET(request: NextRequest) {
       // Skip if last message is less than 24h old
       if (lastMsgTime > new Date(oneDayAgo).getTime()) continue;
 
-      // Skip if already reminded (check metadata flag)
-      const lastRemindedAt = meta.last_reminder_sent_at as string | undefined;
-      if (lastRemindedAt && new Date(lastRemindedAt).getTime() > lastMsgTime) continue;
-
       // Determine recipient (the person who did NOT send the last message)
       const recipientProfileId =
         lastMsg.from_profile_id === conn.from_profile_id
           ? conn.to_profile_id
           : conn.from_profile_id;
+
+      // Add to recipient's unread list
+      if (!unreadByRecipient.has(recipientProfileId)) {
+        unreadByRecipient.set(recipientProfileId, []);
+      }
+      unreadByRecipient.get(recipientProfileId)!.push({
+        connectionId: conn.id,
+        fromProfileId: conn.from_profile_id,
+        toProfileId: conn.to_profile_id,
+        metadata: meta,
+        lastMessage: lastMsg,
+        lastMessageTime: lastMsgTime,
+        senderProfileId: lastMsg.from_profile_id,
+      });
+    }
+
+    let remindersSent = 0;
+
+    // Second pass: process each RECIPIENT (not each connection)
+    for (const [recipientProfileId, unreadConns] of unreadByRecipient) {
+      // Check if ANY unread connection for this recipient was reminded in last 6 hours
+      const recentlyReminded = unreadConns.some((uc) => {
+        const lastRemindedAt = uc.metadata.last_reminder_sent_at as string | undefined;
+        return lastRemindedAt && new Date(lastRemindedAt).getTime() > new Date(sixHoursAgo).getTime();
+      });
+
+      if (recentlyReminded) continue; // Skip this recipient entirely
+
+      // Sort by most recent unread message first
+      unreadConns.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+      const mostRecentUnread = unreadConns[0];
 
       // Get recipient email + names + type for routing
       const [{ data: recipient }, { data: sender }] = await Promise.all([
@@ -85,7 +136,7 @@ export async function GET(request: NextRequest) {
         db
           .from("business_profiles")
           .select("display_name")
-          .eq("id", lastMsg.from_profile_id)
+          .eq("id", mostRecentUnread.senderProfileId)
           .single(),
       ]);
 
@@ -116,7 +167,9 @@ export async function GET(request: NextRequest) {
       if (!recipientEmail) continue;
 
       const preview =
-        lastMsg.text.length > 200 ? lastMsg.text.slice(0, 200) + "..." : lastMsg.text;
+        mostRecentUnread.lastMessage.text.length > 200
+          ? mostRecentUnread.lastMessage.text.slice(0, 200) + "..."
+          : mostRecentUnread.lastMessage.text;
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       const isFamily = recipient.type === "family";
@@ -124,8 +177,13 @@ export async function GET(request: NextRequest) {
       // Different subject and template for families vs providers
       const senderFirstName = firstName(sender?.display_name || "", isFamily ? "A provider" : "Someone");
       const senderFullName = sender?.display_name || "A provider";
+
+      // If multiple unread messages, update subject
+      const unreadCount = unreadConns.length;
       const urSubject = isFamily
-        ? `You still have a message waiting from ${senderFullName}`
+        ? unreadCount > 1
+          ? `You have ${unreadCount} unread messages`
+          : `You still have a message waiting from ${senderFullName}`
         : `${senderFirstName} sent you a message`;
 
       const urLogId = await reserveEmailLogId({
@@ -134,17 +192,20 @@ export async function GET(request: NextRequest) {
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
         providerId: isFamily ? undefined : recipientProfileId,
-        metadata: { connection_id: conn.id },
+        metadata: {
+          connection_id: mostRecentUnread.connectionId,
+          unread_count: unreadCount,
+        },
       });
 
       // Build view URL with deep link to specific conversation
       let viewUrl: string;
       if (isFamily) {
         // Family: deep link to specific conversation + magic link
-        const redirectPath = appendTrackingParams(
-          `/portal/inbox?id=${conn.id}`,
-          urLogId
-        );
+        // If multiple unread, link to inbox; if single, link to specific conversation
+        const redirectPath = unreadCount > 1
+          ? appendTrackingParams("/portal/inbox", urLogId)
+          : appendTrackingParams(`/portal/inbox?id=${mostRecentUnread.connectionId}`, urLogId);
         viewUrl = `${siteUrl}${redirectPath}`;
 
         // Generate magic link for one-click access (use auth email, not profile email)
@@ -192,13 +253,16 @@ export async function GET(request: NextRequest) {
         emailLogId: urLogId ?? undefined,
       });
 
-      // Mark as reminded so we don't send again for the same message
-      await db
-        .from("connections")
-        .update({
-          metadata: { ...meta, last_reminder_sent_at: new Date().toISOString() },
-        })
-        .eq("id", conn.id);
+      // Mark ALL unread connections for this recipient as reminded
+      const now = new Date().toISOString();
+      for (const uc of unreadConns) {
+        await db
+          .from("connections")
+          .update({
+            metadata: { ...uc.metadata, last_reminder_sent_at: now },
+          })
+          .eq("id", uc.connectionId);
+      }
 
       remindersSent++;
     }

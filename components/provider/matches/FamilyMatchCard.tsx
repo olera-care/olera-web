@@ -25,13 +25,13 @@ interface FamilyMatchCardProps {
 
 // ── Helpers ──
 
-function getInitials(name: string): string {
+export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
 }
 
-function avatarGradient(name: string): string {
+export function avatarGradient(name: string): string {
   const gradients = [
     "linear-gradient(135deg, #7fbfb5, #5a9e94)", // teal/mint
     "linear-gradient(135deg, #9683b5, #7c6a9a)", // purple/violet
@@ -187,7 +187,7 @@ function calculateCompleteness(family: Profile, meta: FamilyMetadata | null): nu
 }
 
 // Timeline configuration - amber for active needs, gray for exploring
-const TIMELINE_CONFIG: Record<string, { urgency: string; textColor: string; dotColor: string }> = {
+export const TIMELINE_CONFIG: Record<string, { urgency: string; textColor: string; dotColor: string }> = {
   // New values - amber for all active needs
   as_soon_as_possible: { urgency: "ASAP", textColor: "text-amber-600", dotColor: "bg-amber-500" },
   within_a_month: { urgency: "in ~1 month", textColor: "text-amber-600", dotColor: "bg-amber-500" },
@@ -202,7 +202,7 @@ const TIMELINE_CONFIG: Record<string, { urgency: string; textColor: string; dotC
 
 // Build timeline label with optional care type
 // "Needs Home Care ASAP" or "Needs care in ~1 month" (fallback)
-function buildTimelineLabel(careType: string | undefined, urgency: string): string {
+export function buildTimelineLabel(careType: string | undefined, urgency: string): string {
   if (urgency === "exploring") {
     return careType ? `Exploring ${careType}` : "Just exploring";
   }
@@ -210,7 +210,7 @@ function buildTimelineLabel(careType: string | undefined, urgency: string): stri
 }
 
 // Who needs care - returns relationship label for conversational format
-function formatWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
+export function formatWhoNeedsCare(value: string | undefined): { relationship: string; isSelf: boolean } | null {
   if (!value) return null;
   const mapping: Record<string, { relationship: string; isSelf: boolean }> = {
     // Enrichment flow values (keys)
@@ -233,7 +233,7 @@ function formatWhoNeedsCare(value: string | undefined): { relationship: string; 
 }
 
 // Build conversational care seeking phrase
-function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, age: number | undefined): string | null {
+export function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, age: number | undefined): string | null {
   if (!who && !age) return null;
 
   if (who?.isSelf) {
@@ -250,7 +250,7 @@ function buildCarePhrase(who: { relationship: string; isSelf: boolean } | null, 
 }
 
 // Generate a rich, personalized description when user hasn't written one
-function generateDescription(params: {
+export function generateDescription(params: {
   name: string;
   who: { relationship: string; isSelf: boolean } | null;
   age: number | undefined;

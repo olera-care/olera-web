@@ -16,6 +16,7 @@ import {
   DEFAULT_FILTERS,
 } from "@/components/provider/matches/MatchesFilterBar";
 import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
+import PinnedSeekerCard from "@/components/provider/matches/PinnedSeekerCard";
 import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters, type SortOption } from "@/components/provider/matches/FiltersModal";
 import MyOutreach from "@/components/provider/matches/MyOutreach";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
@@ -1373,13 +1374,12 @@ export default function ProviderMatchesPage() {
   const nearbySeekers = useMemo(() => {
     const lat = providerProfile?.lat;
     const lng = providerProfile?.lng;
-    if (lat == null || lng == null) return [] as Profile[];
+    if (lat == null || lng == null) return [] as { family: Profile; distanceMi: number }[];
     return families
       .filter((f) => f.lat != null && f.lng != null && getProfileStatus(f) === "active")
-      .map((f) => ({ f, d: haversineDistance(lat, lng, f.lat as number, f.lng as number) }))
-      .filter((x) => x.d <= 50)
-      .sort((a, b) => a.d - b.d)
-      .map((x) => x.f);
+      .map((f) => ({ family: f, distanceMi: haversineDistance(lat, lng, f.lat as number, f.lng as number) }))
+      .filter((x) => x.distanceMi <= 50)
+      .sort((a, b) => a.distanceMi - b.distanceMi);
   }, [families, providerProfile?.lat, providerProfile?.lng]);
 
   // Track when a provider with NO family within the catchment lands on "Your Market"
@@ -1847,23 +1847,19 @@ export default function ProviderMatchesPage() {
             </button>
           </div>
         )}
-        <div className="flex flex-col gap-2.5">
-          {pinnedSeekers.map((family, index) => (
-            <FamilyMatchCard
+        <div className="flex flex-col gap-3">
+          {pinnedSeekers.map(({ family, distanceMi }) => (
+            <PinnedSeekerCard
               key={family.id}
               family={family}
+              distanceMi={distanceMi}
               hasFullAccess={hasFullAccess}
-              providerCareTypes={providerCareTypes}
               contacted={contactedIds.has(family.id)}
-              outreachStatus={getOutreachStatus(family.id) || undefined}
-              reachOutCount={reachOutCounts.get(family.id) || 0}
               onReachOut={handleReachOut}
-              animationDelay={index * 40}
-              profileStatus={getProfileStatus(family)}
             />
           ))}
         </div>
-        {pinnedSeekers.some((f) => !contactedIds.has(f.id)) && (
+        {pinnedSeekers.some((s) => !contactedIds.has(s.family.id)) && (
           <p className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[#199087]">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />

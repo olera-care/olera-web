@@ -77,8 +77,8 @@
       "schedule": "*/15 * * * *"
     },
     {
-      "path": "/api/cron/lead-response-nudge",
-      "schedule": "0 14 * * 2,4,6"
+      "path": "/api/cron/lead-followup-sequence",
+      "schedule": "0 14 * * *"
     },
     {
       "path": "/api/cron/lead-family-nudge",

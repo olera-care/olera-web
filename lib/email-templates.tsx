@@ -2733,6 +2733,409 @@ export function providerMultiLeadNudgeEmail(opts: {
   );
 }
 
+// ── Provider Lead Follow-up Sequence Emails ──────────────────────────────
+
+/**
+ * Shared interface for follow-up email options.
+ * Supports consolidated emails for multiple leads per provider.
+ */
+interface FollowupEmailOpts {
+  providerName: string;
+  leads: Array<{
+    familyName: string;
+    daysSinceInquiry: number;
+    careType?: string | null;
+    city?: string | null;
+    careRecipient?: string | null;
+  }>;
+  viewUrl: string;
+  providerSlug?: string;
+}
+
+/**
+ * Helper to determine pronouns from care recipient.
+ * "her mother" → { pronoun: "she", possessive: "her", object: "her" }
+ * "his father" → { pronoun: "he", possessive: "his", object: "him" }
+ * Default: they/their/them
+ */
+function getPronounsFromCareRecipient(careRecipient?: string | null): {
+  pronoun: string;       // Subject: "She/He/They"
+  pronounLower: string;  // Subject lowercase: "she/he/they"
+  possessive: string;    // Possessive: "her/his/their"
+  object: string;        // Object: "her/him/them"
+} {
+  if (!careRecipient) {
+    return { pronoun: "They", pronounLower: "they", possessive: "their", object: "them" };
+  }
+
+  const lower = careRecipient.toLowerCase();
+  const femaleKeywords = ["mother", "mom", "grandmother", "wife", "sister", "aunt", "daughter"];
+  const maleKeywords = ["father", "dad", "grandfather", "husband", "brother", "uncle", "son"];
+
+  if (femaleKeywords.some(kw => lower.includes(kw))) {
+    return { pronoun: "She", pronounLower: "she", possessive: "her", object: "her" };
+  }
+  if (maleKeywords.some(kw => lower.includes(kw))) {
+    return { pronoun: "He", pronounLower: "he", possessive: "his", object: "him" };
+  }
+
+  return { pronoun: "They", pronounLower: "they", possessive: "their", object: "them" };
+}
+
+/**
+ * Light signature block for follow-up emails (Days 1, 3, 10).
+ * Simple sign-off without photo or detailed credentials.
+ */
+function loganLightSignature(): string {
+  return `
+    <div style="margin:24px 0 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        — Dr. Logan DuBose<br/>
+        <span style="color:#6b7280;">COO, Olera</span>
+      </p>
+    </div>`;
+}
+
+/**
+ * Heavy signature block for Day 6 follow-up email.
+ * Full intro, photo, and credentials (NIH-backed, Texas A&M).
+ */
+function loganHeavySignature(): string {
+  const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
+  return `
+    <div style="margin:24px 0 0;">
+      <p style="font-size:14px;color:#374151;margin:0 0 16px;line-height:1.6;">
+        I'm Dr. Logan DuBose, Olera's COO. We're an NIH-backed platform built by a team with backgrounds in medicine and research — we don't charge you or sell your information, we just make the introduction.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
+            <p style="margin:0;font-weight:600;color:#111827;">— Dr. Logan DuBose</p>
+            <p style="margin:2px 0 0;color:#6b7280;">COO, Olera · Affiliate Faculty, Texas A&amp;M College of Nursing</p>
+          </td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+/**
+ * Day 1 Follow-up: "In case it got buried"
+ * Light signature. Sent 1 day after initial email.
+ */
+export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+
+  // Extract first name, fallback for placeholder names
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build preheader
+  let preheader: string;
+  if (isMultiple) {
+    preheader = `${leadCount} families are looking for care.`;
+  } else if (hasCareType && hasCity) {
+    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
+  } else if (hasCareType) {
+    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()}.`;
+  } else {
+    preheader = `${pronouns.pronoun}'s looking for care in your area.`;
+  }
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+
+  // Build body for single lead
+  let bodyHtml: string;
+  if (isMultiple) {
+    // Multiple leads
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const careInfo = l.careType ? l.careType.toLowerCase() : "care";
+      const cityInfo = l.city ? ` in ${l.city}` : "";
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+    }).join("");
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        Just making sure these didn't get buried — ${leadCount} families reached out yesterday looking for care, and chose your team.
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Their requests are still open. You can see their details and message them directly:
+      </p>`;
+  } else {
+    // Single lead
+    const familyRef = hasName ? safeFamilyName : "A family";
+    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
+    const recipientRef = lead.careRecipient ? ` for ${lead.careRecipient}` : "";
+    const cityRef = hasCity ? ` in ${lead.city}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        Just making sure this didn't get buried — ${escapeHtml(familyRef)} reached out yesterday looking for ${careTypeRef}${recipientRef}${cityRef}, and chose your team.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is still open. You can see ${pronouns.possessive} details and message ${pronouns.object} directly:
+      </p>`;
+  }
+
+  // Build button text
+  const buttonText = isMultiple
+    ? "See all requests →"
+    : (hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the request →");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+    ${bodyHtml}
+    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganLightSignature()}
+    ${offRampBlock(opts.providerSlug)}
+  `, preheader);
+}
+
+/**
+ * Day 3 Follow-up: "Still waiting, replying is effortless"
+ * Light signature. Sent 3 days after initial email.
+ */
+export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build preheader
+  const preheader = "A quick reply is all it takes.";
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+
+  let bodyHtml: string;
+  if (isMultiple) {
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const daysText = l.daysSinceInquiry === 1 ? "1 day ago" : `${l.daysSinceInquiry} days ago`;
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> <span style="color:#9ca3af;">· reached out ${daysText}</span></li>`;
+    }).join("");
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        A few days ago, these families reached out looking for care. They haven't heard back yet:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Getting in touch is quick — open their requests and you can message them directly from your dashboard in under a minute. No forms, no fees. They're real families hoping someone gets back to them.
+      </p>`;
+  } else {
+    const familyRef = hasName ? safeFamilyName : "A family";
+    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
+    const recipientRef = lead.careRecipient ? ` for ${lead.careRecipient}` : "";
+    const cityRef = hasCity ? ` in ${lead.city}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        A few days ago, ${escapeHtml(familyRef)} reached out looking for ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun} hasn't heard back yet.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Getting in touch is quick — open ${pronouns.possessive} request and you can message ${pronouns.object} directly from your dashboard in under a minute. No forms, no fees. ${pronouns.pronoun}'s a real family hoping someone gets back to ${pronouns.object}.
+      </p>`;
+  }
+
+  const buttonText = isMultiple
+    ? "Reply to families →"
+    : (hasName ? `Reply to ${escapeHtml(safeFamilyName)} →` : "Reply to the family →");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+    ${bodyHtml}
+    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganLightSignature()}
+    ${offRampBlock(opts.providerSlug)}
+  `, preheader);
+}
+
+/**
+ * Day 6 Follow-up: "She's deciding, may go elsewhere"
+ * HEAVY signature with photo + credentials. The make-or-break email.
+ */
+export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build preheader
+  const preheader = isMultiple
+    ? "These families reached out almost a week ago."
+    : `${pronouns.pronoun} reached out to you almost a week ago.`;
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+
+  let bodyHtml: string;
+  if (isMultiple) {
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const careInfo = l.careType ? l.careType.toLowerCase() : "care";
+      const cityInfo = l.city ? ` in ${l.city}` : "";
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+    }).join("");
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        It's been about a week since these families reached out looking for care:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        Families usually settle on a provider within a week or two, and they're likely speaking with a few others by now.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        If these are families you'd like to help, a short reply could be the reason they choose you. And if it's not the right fit, that's completely okay — there's nothing you need to do.
+      </p>`;
+  } else {
+    const familyRef = hasName ? safeFamilyName : "A family";
+    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
+    const recipientRef = lead.careRecipient ? ` for ${lead.careRecipient}` : "";
+    const cityRef = hasCity ? ` in ${lead.city}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        It's been about a week since ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}. Families usually settle on a provider within a week or two, and ${pronouns.pronounLower}'s likely speaking with a few others by now.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        If this is still something you're taking, a short reply could be the reason ${pronouns.pronounLower} chooses you. And if it's not the right fit, that's completely okay — there's nothing you need to do.
+      </p>`;
+  }
+
+  const buttonText = isMultiple
+    ? "See all requests →"
+    : (hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the request →");
+
+  // Add note about real introductions after the signature
+  const realIntroNote = isMultiple
+    ? `<p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">These are real introductions, and they're still open.</p>`
+    : `<p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">${hasName ? escapeHtml(safeFamilyName) + "'s is" : "This is"} a real introduction, and it's still open.</p>`;
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+    ${bodyHtml}
+    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganHeavySignature()}
+    ${realIntroNote}
+    ${offRampBlock(opts.providerSlug)}
+  `, preheader);
+}
+
+/**
+ * Day 10 Follow-up: "Graceful last call, relationship not threat"
+ * Light signature. Final outreach before marking as stuck.
+ */
+export function providerFollowupDay10Email(opts: FollowupEmailOpts): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build preheader
+  const preheader = "And we'll keep bringing you families looking for your care.";
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+
+  let bodyHtml: string;
+  if (isMultiple) {
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong></li>`;
+    }).join("");
+
+    // Pick city/careType from first lead that has them for the closing line
+    const cityForClosing = opts.leads.find(l => l.city)?.city;
+    const careTypeForClosing = opts.leads.find(l => l.careType)?.careType?.toLowerCase() || "care";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        We'll be closing out these introductions soon, since it's been a couple of weeks:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        If you'd still like to reach them, here's one last link:
+      </p>`;
+    // Note: button is added after bodyHtml in the return statement below
+    // The "timing wasn't right" paragraph comes after the button
+
+    const closingParagraph = `
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        If the timing wasn't right, no problem at all. Families${cityForClosing ? ` in ${cityForClosing}` : ""} search for ${careTypeForClosing} all the time, and when they choose your team, we'll bring them straight to you — free, and directly. We're glad you're listed with us.
+      </p>`;
+
+    const buttonText = "See all requests →";
+
+    return layout(`
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+      ${bodyHtml}
+      <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+      ${closingParagraph}
+      ${loganLightSignature()}
+      ${offRampBlock(opts.providerSlug)}
+    `, preheader);
+  } else {
+    const familyRef = hasName ? safeFamilyName : "this family";
+    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
+    const cityRef = hasCity ? ` in ${lead.city}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        We'll be closing out ${hasName ? escapeHtml(safeFamilyName) + "'s" : "this"} introduction soon, since it's been a couple of weeks. If you'd still like to reach ${pronouns.object}, here's one last link:
+      </p>
+      <div style="margin:0 0 24px;">${button(hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the request →", opts.viewUrl)}</div>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        If the timing wasn't right, no problem at all. Families${cityRef} search for ${careTypeRef} all the time, and when they choose your team, we'll bring them straight to you — free, and directly. We're glad you're listed with us.
+      </p>`;
+
+    return layout(`
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+      ${bodyHtml}
+      ${loganLightSignature()}
+      ${offRampBlock(opts.providerSlug)}
+    `, preheader);
+  }
+}
+
 /**
  * Nudge email sent by admin to encourage a family to complete their profile.
  * Explains that a complete profile helps providers respond better.

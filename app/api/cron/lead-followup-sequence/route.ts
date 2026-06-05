@@ -6,6 +6,7 @@ import {
   providerFollowupDay3Email,
   providerFollowupDay6Email,
   providerFollowupDay10Email,
+  providerFollowupDay17Email,
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
@@ -115,6 +116,7 @@ function getEmailTypeForStage(stage: FollowupStage): string {
     case 2: return "provider_followup_day3";
     case 3: return "provider_followup_day6";
     case 4: return "provider_followup_day10";
+    case 6: return "provider_followup_day17";
     default: return "provider_followup";
   }
 }
@@ -132,6 +134,7 @@ function getSubjectForStage(stage: FollowupStage, familyName: string | null, lea
       case 2: return `${leadCount} families are still hoping to hear from you`;
       case 3: return `These families may be choosing a provider soon`;
       case 4: return "We'll close these introductions soon";
+      case 6: return "One last note about these requests";
       default: return "Families are waiting for your response";
     }
   }
@@ -146,6 +149,8 @@ function getSubjectForStage(stage: FollowupStage, familyName: string | null, lea
       return hasName ? `${familyName} may be choosing a provider soon` : "A family may be choosing a provider soon";
     case 4:
       return "We'll close this introduction soon";
+    case 6:
+      return hasName ? `One last note about ${familyName}'s request` : "One last note about this family's request";
     default:
       return hasName ? `${familyName} is waiting for a response` : "A family is waiting for a response";
   }
@@ -448,34 +453,6 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Stage 6 = Re-engagement email (template pending — skip for now)
-      if (templateStage === 6) {
-        if (dryRun) {
-          console.log(
-            `[cron/lead-followup-sequence] [DRY RUN] Would send re-engagement email (stage 6) to ${group.providerEmail} for ${leadCount} lead(s) — TEMPLATE PENDING`
-          );
-        }
-        // TODO: Add providerFollowupDay17Email template when provided
-        // For now, just mark the stage so it progresses to stage 7 on next run
-        if (!dryRun) {
-          for (const lead of group.leads) {
-            const updatedMeta = {
-              ...lead.metadata,
-              followup_stage: 6 as FollowupStage,
-              followup_sent_at: null, // No email sent yet
-              // Clear stopped fields from stage 5 — sequence is resuming
-              followup_stopped_at: null,
-              followup_stopped_reason: null,
-            };
-            await db
-              .from("connections")
-              .update({ metadata: updatedMeta })
-              .eq("id", lead.connectionId);
-          }
-        }
-        continue;
-      }
-
       // Stage 7 = Needs Call — no email, mark for manual intervention
       if (templateStage === 7) {
         if (dryRun) {
@@ -574,6 +551,9 @@ export async function GET(request: NextRequest) {
         case 4:
           html = providerFollowupDay10Email(templateOpts);
           break;
+        case 6:
+          html = providerFollowupDay17Email(templateOpts);
+          break;
         default:
           console.error(`[cron/lead-followup-sequence] Unexpected stage ${templateStage}`);
           continue;
@@ -609,12 +589,19 @@ export async function GET(request: NextRequest) {
       // Update metadata for all connections in this batch
       const sentAt = new Date().toISOString();
       for (const lead of group.leads) {
-        const updatedMeta = {
+        const updatedMeta: Record<string, unknown> = {
           ...lead.metadata,
           followup_stage: templateStage as FollowupStage,
           followup_sent_at: sentAt,
           followup_sent_by: "cron:lead-followup-sequence",
         };
+
+        // Stage 6 re-engagement: clear stopped fields from stage 5 (stuck)
+        // This indicates the sequence has resumed with a final outreach
+        if (templateStage === 6) {
+          updatedMeta.followup_stopped_at = null;
+          updatedMeta.followup_stopped_reason = null;
+        }
 
         const { error: updateError } = await db
           .from("connections")

@@ -90,22 +90,20 @@ export async function POST(request: NextRequest) {
 
         if (conn) {
           const meta = (conn.metadata as Record<string, unknown>) || {};
-          const cleanedMeta = {
-            ...meta,
-            needs_call: undefined, // Remove the flag
-            followup_stopped_reason: meta.followup_stopped_reason === "needs_call"
-              ? undefined
-              : meta.followup_stopped_reason,
-            // Reset to appropriate stage based on age
-            followup_stage: item.daysSince >= 14 ? 5 : (meta.followup_stage ?? 0),
-          };
 
-          // Remove undefined keys
-          Object.keys(cleanedMeta).forEach(key => {
-            if (cleanedMeta[key] === undefined) {
-              delete cleanedMeta[key];
-            }
-          });
+          // Build cleaned metadata without the incorrect flags
+          const cleanedMeta: Record<string, unknown> = { ...meta };
+
+          // Remove needs_call flag
+          delete cleanedMeta.needs_call;
+
+          // Remove followup_stopped_reason if it was "needs_call"
+          if (cleanedMeta.followup_stopped_reason === "needs_call") {
+            delete cleanedMeta.followup_stopped_reason;
+          }
+
+          // Reset to appropriate stage based on age
+          cleanedMeta.followup_stage = item.daysSince >= 14 ? 5 : (meta.followup_stage ?? 0);
 
           await db
             .from("connections")

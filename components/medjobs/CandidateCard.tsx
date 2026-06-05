@@ -70,12 +70,16 @@ interface CandidateCardProps {
   basePath: string;
   /** Whether the provider has already contacted this candidate */
   isContacted?: boolean;
+  /** Renders a DEMO badge — used for the sample profile shown when a
+   *  campus has no real students yet. */
+  isDemo?: boolean;
 }
 
 export default function CandidateCard({
   candidate,
   basePath,
   isContacted = false,
+  isDemo = false,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
@@ -214,6 +218,14 @@ export default function CandidateCard({
               <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
             </svg>
             Contacted
+          </span>
+        </div>
+      )}
+      {/* Demo badge — sample profile (no real students at this campus yet) */}
+      {isDemo && (
+        <div className="absolute top-3 right-3 z-10">
+          <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-amber-100 text-amber-700 rounded-full">
+            Demo
           </span>
         </div>
       )}

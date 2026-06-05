@@ -4,19 +4,48 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { createClient } from "@/lib/supabase/client";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-import CandidateFilters, { DEFAULT_CANDIDATE_FILTERS } from "@/components/medjobs/CandidateFilters";
-import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 import WelcomeBanner from "@/components/medjobs/WelcomeBanner";
-import EmptyCandidatesLadder from "@/components/medjobs/EmptyCandidatesLadder";
+import { LOGAN_DEMO_CANDIDATE } from "@/lib/medjobs/demo-candidate";
+import type { StudentMetadata } from "@/lib/types";
 
 const PAGE_SIZE = 20;
+// Session key so the university filter persists across navigation (the
+// provider lands filtered to their campus and stays there until they change
+// it, even after exploring other parts of the portal and coming back).
+const UNIVERSITY_FILTER_KEY = "medjobs_university_filter";
 
-// v10 Phase 2+3 Bullets 9 + 12 (2026-06-04): a Suspense boundary
-// is required for useSearchParams in App Router client components.
+interface University {
+  id: string;
+  name: string;
+}
+
+// The sample profile rendered (as a normal card, badged DEMO) when a campus
+// has no real students yet. Same Logan DuBose content as before, just in the
+// standard CandidateCard so the UI stays consistent.
+const DEMO_CARD: CandidateData = {
+  id: LOGAN_DEMO_CANDIDATE.id,
+  slug: LOGAN_DEMO_CANDIDATE.id,
+  display_name: "Logan DuBose",
+  city: LOGAN_DEMO_CANDIDATE.city,
+  state: LOGAN_DEMO_CANDIDATE.state,
+  description: null,
+  care_types: [],
+  image_url: LOGAN_DEMO_CANDIDATE.photo_url,
+  created_at: new Date(0).toISOString(),
+  metadata: {
+    university: "Texas A&M University",
+    intended_professional_school: "medicine",
+    certifications: LOGAN_DEMO_CANDIDATE.certifications,
+    languages: LOGAN_DEMO_CANDIDATE.languages,
+    hours_per_week_range: LOGAN_DEMO_CANDIDATE.hours_per_week,
+  } as unknown as StudentMetadata,
+};
+
 export default function CandidateBrowsePage() {
   return (
     <Suspense fallback={<div />}>
@@ -28,82 +57,99 @@ export default function CandidateBrowsePage() {
 function CandidateBrowseInner() {
   const searchParams = useSearchParams();
   const { openAuth, activeProfile, profiles } = useAuth();
-  const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  const isProvider =
+    activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
 
-  // v10 Phase 2+3 Bullets 9 + 12 (2026-06-04): cold-provider context
-  // signals from the magic-link landing route.
-  //   ?welcome=1         — first arrival from the email click; show banner
-  //   ?campus=<slug>     — provider's catchment campus; default the filter
-  //   ?claim_conflict=1  — org already claimed by another account; banner
-  //                        variant explains read-only co-tenancy
-  const showWelcome = searchParams?.get("welcome") === "1";
   const claimConflict = searchParams?.get("claim_conflict") === "1";
-  const campusFromUrl = searchParams?.get("campus");
+  const outreachIdFromUrl = searchParams?.get("outreach_id") ?? undefined;
+  // The magic-link landing resolves the provider's campus → university id.
+  const universityFromUrl = searchParams?.get("university") ?? null;
 
-  // v10 Phase 2+3 Bullet 2 (2026-06-04): paid access AND active-pilot
-  // access both unlock the full board. Uses medjobsAccessActive which OR's
-  // the two paths (Stripe subscription OR pilot_active_through > now()).
+  // Pilot/subscription unlocks the full board; otherwise preview. Used both for
+  // data redaction (server-side) and to decide whether to show the welcome
+  // banner, which persists until the provider activates the pilot.
   const providerProfile = profiles?.find(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
   const isPaid = medjobsAccessActive(
-    (providerProfile?.metadata ?? null) as Record<string, unknown> | null,
+    (providerProfile?.metadata ?? null) as Record<string, unknown> | null
   );
+
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  // Bullet 9 (catchment defaults from ?campus=<slug>) deferred to
-  // Phase 2+3b — needs a campus→state/city mapping that the current
-  // CandidateFilterValues (city + state) doesn't natively support.
-  // Provider still sees all students; filter UI is unchanged.
-  void campusFromUrl;
-  const [filters, setFilters] = useState<CandidateFilterValues>(DEFAULT_CANDIDATE_FILTERS);
 
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [universityId, setUniversityId] = useState<string>("");
+  const [sort, setSort] = useState<"newest" | "oldest">("newest");
+  const initedRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Universities for the dropdown.
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("medjobs_universities")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("name")
+      .then(({ data }: { data: University[] | null }) => {
+        if (data) setUniversities(data);
+      });
+  }, []);
+
+  // Initialize the university filter once: session > magic-link url > none.
+  useEffect(() => {
+    if (initedRef.current) return;
+    initedRef.current = true;
+    let initial = "";
+    try {
+      const stored = sessionStorage.getItem(UNIVERSITY_FILTER_KEY);
+      if (stored) initial = stored;
+    } catch {
+      // sessionStorage unavailable — fall through
+    }
+    if (!initial && universityFromUrl) initial = universityFromUrl;
+    if (initial) {
+      setUniversityId(initial);
+      try {
+        sessionStorage.setItem(UNIVERSITY_FILTER_KEY, initial);
+      } catch {
+        // ignore
+      }
+    }
+  }, [universityFromUrl]);
+
+  const onUniversityChange = useCallback((id: string) => {
+    setUniversityId(id);
+    try {
+      if (id) sessionStorage.setItem(UNIVERSITY_FILTER_KEY, id);
+      else sessionStorage.removeItem(UNIVERSITY_FILTER_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const fetchCandidates = useCallback(
     async (pageNum: number, append: boolean) => {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
-
+      if (append) setLoadingMore(true);
+      else setLoading(true);
       try {
         const params = new URLSearchParams({
           page: String(pageNum),
           pageSize: String(PAGE_SIZE),
-          sort: filters.sort,
+          sort,
         });
-        if (filters.city) params.set("city", filters.city);
-        if (filters.state) params.set("state", filters.state);
-        if (filters.track) params.set("programTrack", filters.track);
-        if (filters.certifications.length > 0) {
-          params.set("certifications", filters.certifications.join(","));
-        }
-        if (filters.availability.length > 0) {
-          params.set("availability", filters.availability.join(","));
-        }
-        if (filters.hoursPerWeek) params.set("hoursPerWeek", filters.hoursPerWeek);
-        if (filters.languages.length > 0) {
-          params.set("languages", filters.languages.join(","));
-        }
-        if (filters.hasVideo) params.set("hasVideo", "true");
+        if (universityId) params.set("universityId", universityId);
 
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
-
         const newCandidates = data.candidates || [];
-
-        if (append) {
-          setCandidates((prev) => [...prev, ...newCandidates]);
-        } else {
-          setCandidates(newCandidates);
-        }
-
+        if (append) setCandidates((prev) => [...prev, ...newCandidates]);
+        else setCandidates(newCandidates);
         setTotal(data.total || 0);
         setHasMore(newCandidates.length === PAGE_SIZE);
       } catch (err) {
@@ -113,20 +159,17 @@ function CandidateBrowseInner() {
         setLoadingMore(false);
       }
     },
-    [filters]
+    [universityId, sort]
   );
 
-  // Initial load, filter changes, and paid-status flips all trigger
-  // a fresh fetch so the API returns data appropriate for the tier.
   useEffect(() => {
     setPage(0);
     fetchCandidates(0, false);
   }, [fetchCandidates, isPaid]);
 
-  // Infinite scroll — intersection observer
+  // Infinite scroll
   useEffect(() => {
     if (!sentinelRef.current || !hasMore || loadingMore) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore) {
@@ -137,34 +180,31 @@ function CandidateBrowseInner() {
       },
       { rootMargin: "200px" }
     );
-
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, [hasMore, loadingMore, page, fetchCandidates]);
 
-  const handleFilterChange = useCallback(
-    (newFilters: CandidateFilterValues) => {
-      setFilters(newFilters);
-    },
-    []
-  );
+  const selectedUniversityName =
+    universities.find((u) => u.id === universityId)?.name ?? null;
+  // Welcome banner persists for a signed-in provider until they activate the
+  // pilot (no manual dismiss). Suppressed once pilot-active and for non-providers.
+  const showWelcome = isProvider && !isPaid;
+
+  const selectClass =
+    "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";
+  const chevronBg =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")";
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
-      {/* Refreshes auth state after returning from Stripe checkout.
-          Webhook has already set the subscription flag server-side. */}
       <RefreshAfterCheckout />
 
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
-          {/* Breadcrumb — hide for logged-in providers */}
           {!isProvider && (
             <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
-              <Link
-                href="/medjobs/providers"
-                className="hover:text-primary-600 transition-colors"
-              >
+              <Link href="/medjobs/providers" className="hover:text-primary-600 transition-colors">
                 MedJobs
               </Link>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +222,6 @@ function CandidateBrowseInner() {
             provide quality care in your area.
           </p>
 
-          {/* Stats bar */}
           {total > 0 && (
             <div className="mt-4 flex items-center gap-4">
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
@@ -195,35 +234,47 @@ function CandidateBrowseInner() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* v10 Phase 2+3 Bullet 12 (2026-06-04): welcome banner for
-            first-arrival from the magic-link click. Suppressed on
-            paid/pilot-active accounts + returning visits.
-            v10 Phase 4+5 Bullet 4 (2026-06-04): "Activate the pilot →"
-            CTA wires to PilotTermsModal internally — no parent handler
-            needed. */}
-        {showWelcome && !isPaid && (
+        {showWelcome && (
           <WelcomeBanner
             claimConflict={claimConflict}
             isProvider={!!isProvider}
+            outreachId={outreachIdFromUrl}
           />
         )}
 
-        {/* Filters */}
-        <CandidateFilters
-          filters={filters}
-          onChange={handleFilterChange}
-          showSort
-          totalResults={total}
-        />
+        {/* Filters — university + sort only */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <select
+            value={universityId}
+            onChange={(e) => onUniversityChange(e.target.value)}
+            className={selectClass}
+            style={{ backgroundImage: chevronBg }}
+            aria-label="Filter by university"
+          >
+            <option value="">All universities</option>
+            {universities.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "newest" | "oldest")}
+            className={selectClass}
+            style={{ backgroundImage: chevronBg }}
+            aria-label="Sort order"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+        </div>
 
         {/* Results */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 9 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse"
-              >
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
                 <div className="h-1 bg-gray-100" />
                 <div className="p-5 pt-4">
                   <div className="flex items-center gap-3.5 mb-3">
@@ -246,12 +297,24 @@ function CandidateBrowseInner() {
             ))}
           </div>
         ) : candidates.length === 0 ? (
-          // v10 Phase 2+3 Bullet 10 (2026-06-04): empty-state ladder for
-          // cold-provider context (signed-in but not pilot-active +
-          // arriving from magic-link click). For other viewers, fall
-          // back to the existing minimal "no results" copy.
-          showWelcome && !isPaid ? (
-            <EmptyCandidatesLadder />
+          universityId ? (
+            // No real students at the selected campus yet → recruiting message
+            // + a single DEMO card (normal card design) so the UI stays
+            // consistent and the provider sees what a candidate looks like.
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5">
+                <h2 className="font-display text-xl text-gray-900">
+                  We&apos;re actively recruiting at {selectedUniversityName || "your campus"}.
+                </h2>
+                <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                  You&apos;ll be notified when new candidates are posted. In the
+                  meantime, here&apos;s a sample of what a candidate profile looks like.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CandidateCard candidate={DEMO_CARD} basePath="/medjobs/candidates" isDemo />
+              </div>
+            </div>
           ) : (
             <div className="text-center py-20">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
@@ -259,12 +322,8 @@ function CandidateBrowseInner() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
               </div>
-              <p className="text-gray-500 text-sm font-medium">
-                No caregivers found matching your filters.
-              </p>
-              <p className="text-gray-400 text-sm mt-1">
-                Try broadening your search or removing some filters.
-              </p>
+              <p className="text-gray-500 text-sm font-medium">No caregivers found.</p>
+              <p className="text-gray-400 text-sm mt-1">Try a different university filter.</p>
             </div>
           )
         ) : (
@@ -279,18 +338,15 @@ function CandidateBrowseInner() {
               ))}
             </div>
 
-            {/* Loading more indicator */}
             {loadingMore && (
               <div className="flex justify-center py-8">
                 <div className="w-6 h-6 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
               </div>
             )}
 
-            {/* Infinite scroll sentinel */}
             {hasMore && !loadingMore && <div ref={sentinelRef} className="h-1" />}
 
-            {/* End of list */}
-            {!hasMore && candidates.length > 0 && (
+            {!hasMore && candidates.length > 0 && !isProvider && (
               <div className="mt-8 text-center">
                 <div className="inline-flex flex-col items-center gap-3 px-8 py-6 bg-white rounded-2xl border border-gray-100">
                   <p className="text-base font-medium text-gray-900">
@@ -298,10 +354,7 @@ function CandidateBrowseInner() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => openAuth({
-                      intent: "provider",
-                      defaultMode: "sign-in",
-                    })}
+                    onClick={() => openAuth({ intent: "provider", defaultMode: "sign-in" })}
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
                   >
                     Sign in as a Provider
@@ -309,15 +362,6 @@ function CandidateBrowseInner() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </button>
-                  <p className="text-sm text-gray-500">
-                    New to Olera?{" "}
-                    <Link
-                      href="/provider/onboarding"
-                      className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                    >
-                      Get started →
-                    </Link>
-                  </p>
                 </div>
               </div>
             )}

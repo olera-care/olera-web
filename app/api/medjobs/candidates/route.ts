@@ -89,10 +89,14 @@ export async function GET(req: NextRequest) {
       .eq("is_active", true)
       .contains("metadata", { application_completed: true });
 
-    // Campus catchment filter (Chunk 5): map the magic-link ?campus=<slug> to
-    // the university students attend, then filter to that university's students.
-    // Bridge resolves the registry slug-drift by name. Server-side + exact.
-    if (campus) {
+    // University filter. The board's University dropdown sends universityId
+    // directly (the medjobs_universities id students store). The magic-link
+    // landing also resolves the provider's campus → universityId. Legacy
+    // ?campus=<slug> is still resolved (bridge handles registry slug-drift).
+    const universityId = searchParams.get("universityId");
+    if (universityId) {
+      query = query.filter("metadata->>university_id", "eq", universityId);
+    } else if (campus) {
       const { university_id } = await resolveCampusUniversity(supabaseAdmin, campus);
       if (university_id) {
         query = query.filter("metadata->>university_id", "eq", university_id);

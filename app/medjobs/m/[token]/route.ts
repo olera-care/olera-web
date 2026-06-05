@@ -39,6 +39,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
 import { generateUniqueSlug } from "@/lib/slug";
+import { resolveCampusUniversity } from "@/lib/medjobs/campus-university-bridge";
 
 export async function GET(
   request: Request,
@@ -325,9 +326,22 @@ export async function GET(
   // that same board URL: the global AuthProvider honors `?next=` and would
   // otherwise hard-redirect every magic-link sign-in to /portal/inbox
   // (D-ROUTE). `next` keeps the provider on Hire Caregivers.
+  // Resolve the campus → university id so the board lands filtered to the
+  // provider's university (the dropdown default; persisted in their session).
+  let universityId: string | null = null;
+  if (campusSlug) {
+    try {
+      const resolved = await resolveCampusUniversity(supabase, campusSlug);
+      universityId = resolved.university_id;
+    } catch (e) {
+      console.error("[medjobs/m] campus→university resolve failed:", e);
+    }
+  }
+
   const boardParams = new URLSearchParams();
   boardParams.set("welcome", "1");
   if (campusSlug) boardParams.set("campus", campusSlug);
+  if (universityId) boardParams.set("university", universityId);
   boardParams.set("outreach_id", outreach_id);
   if (claimConflict) boardParams.set("claim_conflict", "1");
   const boardPath = `/medjobs/candidates?${boardParams.toString()}`;

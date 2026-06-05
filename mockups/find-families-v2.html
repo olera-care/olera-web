@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Find Families — redesign mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c1917; --ink2:#57534e; --ink3:#8a847d;
+    --line:#ece7df; --line2:#e4edea;
+    --vanilla:#faf7f2; --warm50:#f7f2ea; --warm100:#efe6d8; --warm200:#e4d4bd;
+    --warm950:#2a1810;
+    --teal:#0f766e; --teal2:#0d9488; --tealbg:#effbf8;
+    --amber:#d97706; --amberbg:#fffbeb; --amberline:#fde9c8;
+    --red:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(#f3efe7,#fff 380px);color:var(--ink);
+    font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.45}
+  .serif{font-family:'DM Serif Display',Georgia,serif;font-weight:400}
+  .wrap{max-width:1180px;margin:0 auto;padding:36px 24px 80px}
+  .doc-h{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin:0 0 6px}
+  .doc-t{font-size:30px;margin:0 0 6px}
+  .doc-s{color:var(--ink2);font-size:15px;max-width:760px;margin:0 0 26px}
+  .grid{display:grid;grid-template-columns:1fr;gap:34px}
+  @media(min-width:1000px){.grid{grid-template-columns:1fr 1fr;gap:30px;align-items:start}}
+
+  /* phone/app column */
+  .col-label{display:flex;gap:10px;align-items:flex-start;margin:0 4px 12px}
+  .num{flex:none;width:26px;height:26px;border-radius:999px;background:var(--warm950);color:#fff;
+    font-weight:700;font-size:13px;display:grid;place-items:center;margin-top:1px}
+  .col-label h3{font-size:16px;margin:0 0 2px}
+  .col-label p{margin:0;color:var(--ink2);font-size:13px}
+  .app{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;
+    box-shadow:0 10px 30px rgba(42,24,16,.06)}
+  .app-top{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .brand{font-family:'DM Serif Display',serif;font-size:18px;color:var(--teal)}
+  .navmini{display:flex;gap:16px;color:var(--ink3);font-size:13px}
+  .navmini b{color:var(--ink);border-bottom:2px solid var(--teal);padding-bottom:14px}
+  .body{padding:20px 18px 24px}
+  .page-h{font-size:24px;margin:0 0 3px}
+  .page-s{color:var(--ink2);font-size:13.5px;margin:0 0 18px}
+
+  /* honest empty line (view1) */
+  .honest{display:flex;gap:10px;align-items:center;background:var(--warm50);border:1px solid var(--line);
+    border-radius:14px;padding:12px 14px;margin:0 0 20px;font-size:13.5px;color:var(--ink2)}
+  .honest .dot{width:8px;height:8px;border-radius:999px;background:var(--ink3);flex:none}
+  .honest b{color:var(--ink)}
+
+  /* pinned seeker (view2) */
+  .pin-h{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+  .pin-h .live{position:relative;width:9px;height:9px}
+  .pin-h .live i{position:absolute;inset:0;border-radius:999px;background:var(--teal2)}
+  .pin-h .live i:first-child{animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite;opacity:.7}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .pin-h span{font-size:13px;font-weight:600;color:var(--teal);letter-spacing:.01em}
+  .lead{border:1px solid var(--line2);border-radius:16px;padding:16px;background:#fff;
+    box-shadow:0 6px 18px rgba(15,118,110,.07);position:relative;overflow:hidden}
+  .lead:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal2)}
+  .lead-top{display:flex;gap:12px;align-items:flex-start}
+  .av{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+    color:#fff;font-weight:700;font-size:15px;background:linear-gradient(135deg,#0d9488,#0f766e)}
+  .av.b{background:linear-gradient(135deg,#b45309,#92400e)}
+  .lead .nm{font-weight:600;font-size:15px}
+  .lead .loc{color:var(--ink3);font-size:12.5px;margin-top:1px}
+  .lead .loc b{color:var(--teal);font-weight:600}
+  .seek{color:var(--ink2);font-size:13px;margin:10px 0 6px}
+  .desc{font-size:13px;color:var(--ink);line-height:1.5}
+  .needbadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--amber);margin:10px 0 0}
+  .needbadge .d{width:7px;height:7px;border-radius:999px;background:var(--red)}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+  .tag{font-size:11.5px;color:var(--ink2);background:#f4f1ec;border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  .lead-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;
+    padding-top:13px;border-top:1px solid var(--line)}
+  .pay{font-size:12px;color:var(--ink3)}
+  .pay b{color:var(--ink2);font-weight:600}
+  .cta{appearance:none;border:0;cursor:pointer;background:var(--teal);color:#fff;font-weight:600;
+    font-size:13.5px;border-radius:11px;padding:9px 18px;font-family:inherit}
+  .firstmover{display:flex;align-items:center;gap:7px;margin:12px 0 0;font-size:12px;color:var(--teal)}
+  .firstmover svg{flex:none}
+
+  /* market intelligence */
+  .mkt-head{display:flex;align-items:baseline;justify-content:space-between;margin:8px 0 4px}
+  .mkt-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:600}
+  .mkt-title{font-size:20px;margin:2px 0 2px}
+  .stakes{color:var(--ink2);font-size:13px;margin:0 0 18px}
+  .stakes b{color:var(--ink)}
+  .sec{margin:0 0 22px}
+  .sec-h{display:flex;align-items:baseline;gap:8px;margin:0 0 10px}
+  .sec-h h4{font-size:15px;margin:0}
+  .sec-h .meta{color:var(--ink3);font-size:12px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:14px 15px;background:#fff}
+
+  /* SoV bars */
+  .sov-row{display:flex;align-items:center;gap:10px;margin:7px 0}
+  .sov-name{width:148px;font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sov-track{flex:1;height:18px;background:#f2efe9;border-radius:6px;overflow:hidden}
+  .sov-fill{height:100%;background:linear-gradient(90deg,#5eead4,#0d9488);border-radius:6px}
+  .sov-pct{width:42px;text-align:right;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+  .sov-row.you .sov-name{color:var(--teal);font-weight:700}
+  .sov-row.you .sov-track{background:repeating-linear-gradient(45deg,#effbf8,#effbf8 6px,#e3f6f1 6px,#e3f6f1 12px);
+    border:1px dashed #5eead4}
+  .sov-row.you .sov-pct{color:var(--teal);font-weight:700}
+  .statline{display:flex;gap:18px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+  .stat .v{font-family:'DM Serif Display',serif;font-size:19px}
+  .stat .k{font-size:11px;color:var(--ink3)}
+
+  /* referral grid */
+  .ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ref-chip{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);
+    border-radius:10px;padding:8px 11px;background:var(--warm50)}
+  .ref-chip .l{font-size:12.5px;color:var(--ink2)}
+  .ref-chip .n{font-family:'DM Serif Display',serif;font-size:16px}
+  .calls{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+  .calls .ttl{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .call{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f4f1ec}
+  .call:last-child{border-bottom:0}
+  .call .cn{font-size:12.5px}
+  .call .cn small{display:block;color:var(--ink3);font-size:11px}
+  .call .cd{font-size:11.5px;color:var(--ink3);white-space:nowrap}
+  .pillrole{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);font-weight:600}
+
+  /* playbook */
+  .play{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid #f4f1ec}
+  .play:last-child{border-bottom:0}
+  .play .pn{flex:none;width:22px;height:22px;border-radius:999px;background:var(--tealbg);color:var(--teal);
+    font-weight:700;font-size:12px;display:grid;place-items:center;margin-top:1px}
+  .play .pt{font-size:13.5px;font-weight:600}
+  .play .pr{font-size:12px;color:var(--ink2);margin-top:2px;line-height:1.45}
+  .play .tool{font-size:11.5px;color:var(--teal);margin-top:4px;font-weight:600}
+  .note{font-size:11.5px;color:var(--ink3);margin-top:10px;text-align:center}
+  .caption{font-size:12.5px;color:var(--ink2);background:#fff;border:1px dashed var(--line);border-radius:12px;
+    padding:11px 13px;margin:12px 4px 0}
+  .caption b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="doc-h">Olera · Provider experience</p>
+  <h1 class="doc-t serif">Find Families — redesign</h1>
+  <p class="doc-s">Two real states, grounded in live data. The list of national families is gone. <b>“Your Market” is the product;</b> a real published care‑seeker within 50&nbsp;miles is the scarce cherry that pins on top. Both coexist — a provider with a lead still scrolls into their full market intel.</p>
+
+  <div class="grid">
+
+    <!-- ================= VIEW 1 ================= -->
+    <div>
+      <div class="col-label">
+        <div class="num">1</div>
+        <div><h3>No family within 50 mi → pure market intelligence</h3>
+        <p>Aggie Assisted Living · College Station, TX</p></div>
+      </div>
+
+      <div class="app">
+        <div class="app-top"><div class="brand">Olera</div>
+          <div class="navmini"><span>Profile</span><b>Find Families</b><span>Hire</span></div></div>
+        <div class="body">
+          <h2 class="page-h serif">Find Families</h2>
+          <p class="page-s">Your local market for client acquisition.</p>
+
+          <div class="honest"><span class="dot"></span>
+            <div>No families are searching within 50&nbsp;miles right now. <b>That’s normal — here’s how to win your market while demand builds.</b></div>
+          </div>
+
+          <div class="mkt-head"><div>
+            <div class="mkt-kicker">Your Market</div>
+            <h3 class="mkt-title serif">College Station, TX · Home Care</h3>
+          </div></div>
+          <p class="stakes"><b>8,532 seniors 65+</b> live in your core ZIP alone — the demand is real even when no one’s raised their hand yet.</p>
+
+          <!-- competition -->
+          <div class="sec">
+            <div class="sec-h"><h4 class="serif">Who you’re up against</h4><span class="meta">21 agencies</span></div>
+            <div class="card">
+              <div class="sov-row"><div class="sov-name">Comfort Keepers</div><div class="sov-track"><div class="sov-fill" style="width:100%"></div></div><div class="sov-pct">14.6%</div></div>
+              <div class="sov-row"><div class="sov-name">CareCo (Caregiving Co.)</div><div class="sov-track"><div class="sov-fill" style="width:85%"></div></div><div class="sov-pct">12.4%</div></div>
+              <div class="sov-row"><div class="sov-name">Right at Home</div><div class="sov-track"><div class="sov-fill" style="width:66%"></div></div><div class="sov-pct">9.6%</div></div>
+              <div class="sov-row"><div class="sov-name">Homewatch CareGivers</div><div class="sov-track"><div class="sov-fill" style="width:66%"></div></div><div class="sov-pct">9.6%</div></div>
+              <div class="sov-row"><div class="sov-name">BrightStar Care</div><div class="sov-track"><div class="sov-fill" style="width:58%"></div></div><div class="sov-pct">8.5%</div></div>
+              <div class="sov-row you"><div class="sov-name">You — Aggie</div><div class="sov-track"></div><div class="sov-pct">—</div></div>
+              <div class="statline">
+                <div class="stat"><div class="v">4.9★</div><div class="k">market median</div></div>
+                <div class="stat"><div class="v">22</div><div class="k">median reviews</div></div>
+                <div class="stat"><div class="v">81%</div><div class="k">have a website</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- referral graph -->
+          <div class="sec">
+            <div class="sec-h"><h4 class="serif">Where the clients come from</h4><span class="meta">147 referral sources</span></div>
+            <div class="card">
+              <div class="ref-grid">
+                <div class="ref-chip"><span class="l">Financial / estate</span><span class="n">30</span></div>
+                <div class="ref-chip"><span class="l">Assisted living</span><span class="n">28</span></div>
+                <div class="ref-chip"><span class="l">Faith communities</span><span class="n">24</span></div>
+                <div class="ref-chip"><span class="l">Home health</span><span class="n">18</span></div>
+                <div class="ref-chip"><span class="l">Senior resources</span><span class="n">14</span></div>
+                <div class="ref-chip"><span class="l">Hospitals</span><span class="n">11</span></div>
+              </div>
+              <div class="calls">
+                <div class="ttl">📞 Your first calls</div>
+                <div class="call"><div class="cn">St. Joseph Health Regional Hospital<small><span class="pillrole">Hospital</span> · discharge planning</small></div><div class="cd">2.0 mi</div></div>
+                <div class="call"><div class="cn">Luminos Hospice<small><span class="pillrole">Hospice</span> · care coordination</small></div><div class="cd">0.1 mi</div></div>
+                <div class="call"><div class="cn">Lampstand Nursing &amp; Rehabilitation<small><span class="pillrole">SNF</span> · rehab‑to‑home</small></div><div class="cd">2.4 mi</div></div>
+                <div class="call"><div class="cn">Watercrest at Bryan<small><span class="pillrole">Assisted living</span> · step‑up referrals</small></div><div class="cd">3.2 mi</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- playbook -->
+          <div class="sec">
+            <div class="sec-h"><h4 class="serif">Your playbook</h4><span class="meta">ranked for this market</span></div>
+            <div class="card">
+              <div class="play"><div class="pn">1</div><div><div class="pt">Climb the reviews engine</div><div class="pr">The fastest win you control. Market median is 22 reviews — more reviews means higher Google rank and trust, starting now.</div><div class="tool">→ Request reviews from your clients</div></div></div>
+              <div class="play"><div class="pn">2</div><div><div class="pt">Referral relationship development</div><div class="pr">The biggest lever: half your clients can come from here, and it’s the one channel a single agency can’t map alone. Your call sheet is above.</div><div class="tool">→ Your prioritized call sheet</div></div></div>
+              <div class="play"><div class="pn">3</div><div><div class="pt">Local community + Facebook groups</div><div class="pr">Families ask for recommendations here before they Google. Show up where the conversation starts.</div><div class="tool">→ Get the community playbook</div></div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="caption"><b>What to notice:</b> no “52 families are looking” banner, no national list. An honest one‑liner, then a rich, market‑specific read a provider can act on today — even with zero local leads.</div>
+    </div>
+
+    <!-- ================= VIEW 2 ================= -->
+    <div>
+      <div class="col-label">
+        <div class="num">2</div>
+        <div><h3>A family within 50 mi → pinned lead + market intelligence</h3>
+        <p>A Naperville, IL home‑care provider</p></div>
+      </div>
+
+      <div class="app">
+        <div class="app-top"><div class="brand">Olera</div>
+          <div class="navmini"><span>Profile</span><b>Find Families</b><span>Hire</span></div></div>
+        <div class="body">
+          <h2 class="page-h serif">Find Families</h2>
+          <p class="page-s">Your local market for client acquisition.</p>
+
+          <!-- PINNED SEEKER -->
+          <div class="pin-h"><span class="live"><i></i><i></i></span><span>A family near you is looking for care</span></div>
+          <div class="lead">
+            <div class="lead-top">
+              <div class="av b">RS</div>
+              <div style="flex:1">
+                <div class="nm">Robert Smith</div>
+                <div class="loc">Hanover Park, IL · <b>17 miles away</b></div>
+              </div>
+            </div>
+            <div class="seek">Seeking care for themselves</div>
+            <div class="desc">Robert is looking for Home Care for themselves in Hanover Park, IL. They’re looking for help with mobility, ideally starting as soon as possible. Can pay via Veterans benefits.</div>
+            <div class="needbadge"><span class="d"></span>Needs Home Care ASAP</div>
+            <div class="tags"><span class="tag">Mobility help</span><span class="tag">Veterans benefits</span></div>
+            <div class="firstmover">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2.2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+              First to reach out is 3× more likely to connect.
+            </div>
+            <div class="lead-foot">
+              <div class="pay">Profile <b>88% complete</b></div>
+              <button class="cta">Reach out →</button>
+            </div>
+          </div>
+
+          <!-- market below -->
+          <div class="mkt-head" style="margin-top:24px"><div>
+            <div class="mkt-kicker">Your Market</div>
+            <h3 class="mkt-title serif">Naperville, IL · Home Care</h3>
+          </div></div>
+          <p class="stakes"><b>7,303 seniors 65+</b> in your core ZIP alone. Here’s how the market stacks up beyond today’s lead.</p>
+
+          <div class="sec">
+            <div class="sec-h"><h4 class="serif">Who you’re up against</h4><span class="meta">65 agencies</span></div>
+            <div class="card">
+              <div class="sov-row"><div class="sov-name">BrightStar Care</div><div class="sov-track"><div class="sov-fill" style="width:100%"></div></div><div class="sov-pct">5.9%</div></div>
+              <div class="sov-row"><div class="sov-name">Home Instead (Itasca)</div><div class="sov-track"><div class="sov-fill" style="width:92%"></div></div><div class="sov-pct">5.4%</div></div>
+              <div class="sov-row"><div class="sov-name">Sahara Homecare</div><div class="sov-track"><div class="sov-fill" style="width:90%"></div></div><div class="sov-pct">5.3%</div></div>
+              <div class="sov-row"><div class="sov-name">Home &amp; Hearth Caregivers</div><div class="sov-track"><div class="sov-fill" style="width:81%"></div></div><div class="sov-pct">4.8%</div></div>
+              <div class="sov-row you"><div class="sov-name">You</div><div class="sov-track"></div><div class="sov-pct">—</div></div>
+              <div class="statline">
+                <div class="stat"><div class="v">4.9★</div><div class="k">market median</div></div>
+                <div class="stat"><div class="v">29.5</div><div class="k">median reviews</div></div>
+                <div class="stat"><div class="v">98%</div><div class="k">have a website</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-h"><h4 class="serif">Where the clients come from</h4><span class="meta">170 referral sources</span></div>
+            <div class="card">
+              <div class="ref-grid">
+                <div class="ref-chip"><span class="l">Assisted living</span><span class="n">38</span></div>
+                <div class="ref-chip"><span class="l">Senior resources</span><span class="n">28</span></div>
+                <div class="ref-chip"><span class="l">Home health</span><span class="n">28</span></div>
+                <div class="ref-chip"><span class="l">Skilled nursing</span><span class="n">21</span></div>
+                <div class="ref-chip"><span class="l">Hospice</span><span class="n">21</span></div>
+                <div class="ref-chip"><span class="l">Hospitals</span><span class="n">18</span></div>
+              </div>
+              <div class="calls">
+                <div class="ttl">📞 Your first calls</div>
+                <div class="call"><div class="cn">Endeavor Health Linden Oaks Hospital<small><span class="pillrole">Hospital</span> · discharge planning</small></div><div class="cd">0.9 mi</div></div>
+                <div class="call"><div class="cn">The Pearl of Naperville<small><span class="pillrole">Assisted living</span> · step‑up referrals</small></div><div class="cd">1.3 mi</div></div>
+                <div class="call"><div class="cn">Thrive of Fox Valley (Ignite Medical Resort)<small><span class="pillrole">SNF</span> · rehab‑to‑home</small></div><div class="cd">2.8 mi</div></div>
+                <div class="call"><div class="cn">Residential Home Health &amp; Hospice — Lisle<small><span class="pillrole">Home health</span> · co‑referrals</small></div><div class="cd">5.3 mi</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-h"><h4 class="serif">Your playbook</h4><span class="meta">ranked for this market</span></div>
+            <div class="card">
+              <div class="play"><div class="pn">1</div><div><div class="pt">Climb the reviews engine</div><div class="pr">Market median is 29.5 reviews and 98% have a website — table stakes here. Closing the review gap is your fastest rank lever.</div><div class="tool">→ Request reviews from your clients</div></div></div>
+              <div class="play"><div class="pn">2</div><div><div class="pt">Referral relationship development</div><div class="pr">170 sources, led by assisted living and senior resources. The one channel a single agency can’t map alone — your call sheet is above.</div><div class="tool">→ Your prioritized call sheet</div></div></div>
+              <div class="play"><div class="pn">3</div><div><div class="pt">Local community + Facebook groups</div><div class="pr">Naperville families ask for recommendations here before they Google.</div><div class="tool">→ Get the community playbook</div></div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="caption"><b>What to notice:</b> the rare real family leads — concrete, local, one tap into the existing reach‑out flow — and the full market sits right below it, never hidden. “First to reach out 3×” now lives on the card, where it’s true.</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

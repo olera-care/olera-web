@@ -8,6 +8,7 @@
  */
 
 import { calculateProfileCompletenessPercentage } from "@/components/portal/profile/completeness";
+import { resolveCoordsFromCity } from "@/lib/profile-coords";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseClient = any;
@@ -232,6 +233,20 @@ export async function syncIntentToProfile(
   }
   if (intent.providerState && !currentProfile.state && !updates.state) {
     updates.state = intent.providerState;
+  }
+
+  // Keep coordinates in sync with the city we just settled on. The block above already
+  // encodes precedence — the seeker's own city (enrichment step 6) overrides; the
+  // provider's city fills only if empty — so whenever we write a city, derive matching
+  // city-center coords for the "families near you" catchment. (City-center precision is
+  // fine for a ~50mi radius; see lib/profile-coords.) Only when the city is set this call,
+  // so we never clobber more-precise coords on an unrelated update.
+  if (updates.city !== undefined) {
+    const coords = resolveCoordsFromCity(
+      updates.city as string,
+      (updates.state as string | undefined) ?? currentProfile.state,
+    );
+    if (coords) { updates.lat = coords.lat; updates.lng = coords.lng; }
   }
 
   // Recalculate profile completeness with merged data

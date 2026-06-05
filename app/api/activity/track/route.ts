@@ -31,6 +31,7 @@ const PROVIDER_EVENT_TYPES = [
   "matches_card_clicked",     // Provider clicks a family card
   "matches_message_generated", // Provider clicks AI generate button
   "matches_outreach_sent",    // Provider sends outreach message
+  "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw "Your Market"
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -456,6 +457,28 @@ export async function POST(request: NextRequest) {
         const alert = slackProfileEdited({
           providerSlug: provider_id,
           section: (meta.section as string) || "unknown",
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 🏙️ Provider with NO local leads landed on "Your Market" (the market
+    // diagnostic that defaults the Find Families tab when a city has no
+    // families yet). Real-time signal of who's seeing the market product
+    // with an empty local funnel — the population we want to convert. Fires
+    // on every such visit (TJ's call); senior-care provider traffic is low.
+    if (event_type === "market_diagnostic_viewed_no_leads") {
+      try {
+        const { sendSlackAlert, slackMarketDiagnosticNoLeads } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMarketDiagnosticNoLeads({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          email: (meta.email as string) || null,
         });
         await sendSlackAlert(alert.text, alert.blocks);
       } catch {

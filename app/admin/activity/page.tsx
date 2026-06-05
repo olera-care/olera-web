@@ -116,6 +116,7 @@ function providerEmailTypeLabel(type: string | null): string {
     suspicious_claim: "Suspicious Claim",
     lead_opened: "Lead Opened",
     page_view: "Page View",
+    market_diagnostic_viewed_no_leads: "Market View (No Leads)",
   };
   return map[type] || type;
 }
@@ -153,6 +154,7 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     suspicious_claim: "bg-red-50 text-red-700",
     lead_opened: "bg-sky-50 text-sky-700",
     page_view: "bg-gray-50 text-gray-500",
+    market_diagnostic_viewed_no_leads: "bg-indigo-50 text-indigo-700",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -708,6 +710,7 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "email_link_clicked", label: "Emailed family" },
   { value: "one_click_access", label: "Auto sign-ins" },
   { value: "analytics_teaser_cta_clicked", label: "Analytics CTA clicks" },
+  { value: "market_diagnostic_viewed_no_leads", label: "Market views (no leads)" },
 ];
 
 const FAMILY_EVENT_FILTER_OPTIONS = [

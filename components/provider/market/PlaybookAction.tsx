@@ -13,7 +13,7 @@ export default function PlaybookAction({
   const [state2, setState2] = useState<"idle" | "sending" | "done" | "error">("idle");
 
   const linkCls =
-    "inline-flex items-center gap-1 text-[12.5px] font-medium text-[#199087] mt-2 hover:text-[#147a72] hover:gap-1.5 transition-all";
+    "inline-flex items-center gap-1 text-[13px] font-medium text-[#199087] mt-2 py-1 hover:text-[#147a72] hover:gap-1.5 active:opacity-70 transition-all";
 
   if (href) {
     return (

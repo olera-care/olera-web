@@ -7,6 +7,19 @@
 
 ## Current Focus
 
+### 2026-06-05 — Find Families v2: pinned nearby seekers + calm-premium card (PR #936 → staging, OPEN)
+
+**What:** The provider Find Families page now leads with **"Your Market"** (the diagnostic) and pins a **real published care-seeker within 50 mi** on top when one exists — replacing the national-families browse list that showed a TX provider families in Maine. Branch `market-noleads-alert`, worktree `market-phase2`. PR #936 bundles: the no-leads Slack/Activity alert, the pin + reach-out wiring, a mobile pass, the coordinate foundation, and a dedicated calm-premium card.
+
+**Key decisions:**
+- **Catchment = 50 mi haversine**, not exact-city (which hid Austin families from a Round Rock provider). Pinned seekers above the diagnostic; diagnostic = the product, seeker = the scarce cherry.
+- **Coordinates** (the real unlock): `business_profiles.lat/lng` was universally null. Providers' real coords live in **`olera-providers.lat/lon`** (TJ caught my wrong-table diagnosis); seekers have none but carry a **city** (inherited from the provider they connect to, via `syncIntentToProfile`). Fix = provider coords from olera-providers (exact, at claim-finalize) + seeker coords city-resolved (`lib/profile-coords.ts`) at the ~3 city-setting write points. **No cron** (TJ: tech-debt) — write-time + a re-runnable backfill (`scripts/backfill-profile-coords.ts`, **APPLIED: 1,341 rows; live data change that also un-broke Esther's Near You tab**).
+- **Dedicated `PinnedSeekerCard`** (not Esther's browse card) — reuses her data derivations (now exported), but calm-premium: warm paper, one amber accent (the need), teal for the action only, flat button, slow-breathe header. Taste pass killed the emoji / color-soup / box-in-box.
+
+**Verified live:** Aggie Assisted Living (College Station) pins **Test McTest (0 mi)** + **George Cox (Caldwell, 24 mi)** — proving nearby-cities catchment. Coverage: providers 917/924, pin-eligible seekers 53/53.
+
+**Open / next:** ⚠️ apply **migration 100** in Supabase at merge (no-leads event CHECK). Merge **#936 before #935** (the gate flip) so rollout ships the pin, not the exact-city blind spot. Deferred (both marginal, noted): ZIP-level seeker precision; the diagnostic's "Olera sees N families" footnote. **Resume:** TJ QAs #936 preview → merge #936 (+migration 100) → merge #935 → flip gate live.
+
 ### 2026-06-05 (Thu) — New `/notion-report` slash command (branch `radiant-snyder`)
 
 **What:** Built `/notion-report` — a mid-project **branch handoff** command that publishes a resume-ready page to Notion. Distinct from `/save` (SCRATCHPAD session log) and `/pr-merge` (post-merge record): this is the "I'm pausing this branch" artifact, optimized for picking work back up cold after compacting.

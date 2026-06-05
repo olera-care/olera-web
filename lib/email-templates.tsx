@@ -3137,6 +3137,115 @@ export function providerFollowupDay10Email(opts: FollowupEmailOpts): string {
 }
 
 /**
+ * Day 17 Follow-up: "One last note" — Re-engagement email for stuck providers.
+ * Light signature. Final automated outreach before marking as needs_call.
+ * Tone: Graceful, no pressure, "we'll close this out quietly."
+ */
+export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  // Build preheader
+  const preheader = "If the timing's not right, no problem at all.";
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(firstName(opts.providerName, "there"))},`;
+
+  let bodyHtml: string;
+  if (isMultiple) {
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const careInfo = l.careType ? l.careType.toLowerCase() : "care";
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}</li>`;
+    }).join("");
+
+    // Pick city/careType from first lead that has them for the closing line
+    const cityForClosing = opts.leads.find(l => l.city)?.city;
+    const careTypeForClosing = opts.leads.find(l => l.careType)?.careType?.toLowerCase() || "care";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        These families reached out a little while ago, and their requests are still open on your end:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        If you're not taking new families right now, no worries at all — we'll quietly close out these requests.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        But if there's any chance they're a fit, this is the last time we'll nudge you about them:
+      </p>`;
+
+    const buttonText = "See all requests →";
+
+    const closingParagraph = `
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Either way, thank you for the work you do — families come to you at some of the hardest moments of their lives. Whenever one${cityForClosing ? ` near ${cityForClosing}` : ""} is looking for ${careTypeForClosing}, we'll keep bringing them to you.
+      </p>`;
+
+    return layout(`
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+      ${bodyHtml}
+      <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+      ${closingParagraph}
+      ${loganLightSignature()}
+      ${offRampBlock(opts.providerSlug)}
+    `, preheader);
+  } else {
+    const familyRef = hasName ? safeFamilyName : "A family";
+    const careTypeRef = hasCareType ? lead.careType!.toLowerCase() : "care";
+    const cityRef = hasCity ? ` near ${lead.city}` : "";
+
+    // Body paragraph with fallbacks
+    // Full: "Margaret reached out a little while ago about assisted living, and that request is still open on your end."
+    // No name: "A family near Bryan reached out a little while ago about assisted living, and that request is still open on your end."
+    let openingLine: string;
+    if (hasName) {
+      openingLine = `${escapeHtml(safeFamilyName)} reached out a little while ago about ${careTypeRef}, and that request is still open on your end.`;
+    } else if (hasCity) {
+      openingLine = `A family${cityRef} reached out a little while ago about ${careTypeRef}, and that request is still open on your end.`;
+    } else {
+      openingLine = `A family reached out a little while ago about ${careTypeRef}, and that request is still open on your end.`;
+    }
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        ${openingLine} If you're not taking new families right now, no worries at all — we'll quietly close out this request.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        But if there's any chance it's a fit, this is the last time we'll nudge you about this one:
+      </p>`;
+
+    const buttonText = hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the request →";
+
+    // Closing paragraph with fallbacks
+    // Full: "Whenever one near Bryan is looking for assisted living, we'll keep bringing them to you."
+    // No city: "Whenever one is looking for assisted living, we'll keep bringing them to you."
+    const closingCityRef = hasCity ? ` near ${lead.city}` : "";
+    const closingParagraph = `
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Either way, thank you for the work you do — families come to you at some of the hardest moments of their lives. Whenever one${closingCityRef} is looking for ${careTypeRef}, we'll keep bringing them to you.
+      </p>`;
+
+    return layout(`
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+      ${bodyHtml}
+      <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+      ${closingParagraph}
+      ${loganLightSignature()}
+      ${offRampBlock(opts.providerSlug)}
+    `, preheader);
+  }
+}
+
+/**
  * Nudge email sent by admin to encourage a family to complete their profile.
  * Explains that a complete profile helps providers respond better.
  */

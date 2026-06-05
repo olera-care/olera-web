@@ -163,6 +163,8 @@ export async function GET(request: NextRequest) {
   const dryRun = searchParams.get("dry_run") === "true";
   const parsedLimit = parseInt(searchParams.get("limit") || "500", 10);
   const limit = Math.min(500, Number.isNaN(parsedLimit) ? 500 : parsedLimit);
+  // One-time blast: send Day 17 email to all stuck providers regardless of stage
+  const forceStuckReengagement = searchParams.get("force_stuck_reengagement") === "true";
   const isAuthed =
     authHeader === `Bearer ${process.env.CRON_SECRET}` ||
     querySecret === process.env.CRON_SECRET;
@@ -191,9 +193,15 @@ export async function GET(request: NextRequest) {
         already_at_stage: 0,
         sequence_stopped: 0,
         send_failed: 0,
+        not_stuck: 0, // For force_stuck_reengagement mode
       },
       dry_run: dryRun,
+      force_stuck_reengagement: forceStuckReengagement,
     };
+
+    if (forceStuckReengagement) {
+      console.log("[cron/lead-followup-sequence] Running in FORCE STUCK REENGAGEMENT mode");
+    }
 
     // Fetch leads that are at least 1 day old and haven't completed the sequence
     // Only process "inquiry" connections (family→provider)
@@ -280,13 +288,25 @@ export async function GET(request: NextRequest) {
 
       const meta = (conn.metadata as FollowupMetadata & Record<string, unknown>) ?? {};
 
-      // Check if sequence was already stopped
-      // Only skip if stopped for engagement/response (success cases) or needs_call (terminal)
-      // Don't skip if stopped_reason is "stuck" — allow progression to stages 6/7
-      if (meta.followup_stopped_at && meta.followup_stopped_reason !== "stuck") {
-        counts.skipped++;
-        counts.skipReasons.sequence_stopped++;
-        continue;
+      // FORCE STUCK REENGAGEMENT MODE: Only process connections that are currently stuck
+      // This is used for one-time blast to all stuck providers
+      if (forceStuckReengagement) {
+        if (meta.followup_stopped_reason !== "stuck") {
+          counts.skipped++;
+          counts.skipReasons.not_stuck++;
+          continue;
+        }
+        // In force mode, we don't skip based on followup_stopped_at
+        // because we explicitly want to re-engage stuck connections
+      } else {
+        // NORMAL MODE: Check if sequence was already stopped
+        // Only skip if stopped for engagement/response (success cases) or needs_call (terminal)
+        // Don't skip if stopped_reason is "stuck" — allow progression to stages 6/7
+        if (meta.followup_stopped_at && meta.followup_stopped_reason !== "stuck") {
+          counts.skipped++;
+          counts.skipReasons.sequence_stopped++;
+          continue;
+        }
       }
 
       // Check if provider has engaged with this lead
@@ -350,22 +370,28 @@ export async function GET(request: NextRequest) {
       const daysSinceInquiry = Math.floor(
         (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
       );
-      const expectedStage = calculateExpectedStage(daysSinceInquiry);
       const currentStage = meta.followup_stage ?? 0;
 
-      // Cap at stage 7 (terminal) — no resurrection of very old leads
-      // Stage 7 is needs_call, which is the final state
-      if (daysSinceInquiry > 30 && currentStage >= 7) {
-        counts.skipped++;
-        counts.skipReasons.already_at_stage++;
-        continue;
-      }
+      // In force mode: always use stage 6 (re-engagement email)
+      // In normal mode: calculate based on days
+      const expectedStage = forceStuckReengagement ? 6 : calculateExpectedStage(daysSinceInquiry);
 
-      // Skip if already at or past expected stage
-      if (currentStage >= expectedStage) {
-        counts.skipped++;
-        counts.skipReasons.already_at_stage++;
-        continue;
+      // Skip stage progression checks in force mode
+      if (!forceStuckReengagement) {
+        // Cap at stage 7 (terminal) — no resurrection of very old leads
+        // Stage 7 is needs_call, which is the final state
+        if (daysSinceInquiry > 30 && currentStage >= 7) {
+          counts.skipped++;
+          counts.skipReasons.already_at_stage++;
+          continue;
+        }
+
+        // Skip if already at or past expected stage
+        if (currentStage >= expectedStage) {
+          counts.skipped++;
+          counts.skipReasons.already_at_stage++;
+          continue;
+        }
       }
 
       const providerId = conn.to_profile_id;

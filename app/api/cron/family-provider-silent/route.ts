@@ -14,6 +14,7 @@ import { getSiteUrl } from "@/lib/site-url";
  * Trigger conditions:
  * - Connection is 4-5 days old (96-120 hours)
  * - Provider has NOT responded (no messages from provider in thread)
+ * - Family HAS engaged (sent at least one message to primary connection)
  * - Family has NOT connected with other providers yet
  * - Email not already sent (family_alternatives_sent_at not set)
  * - Send ONCE per connection
@@ -210,6 +211,22 @@ export async function GET(request: NextRequest) {
         : primaryConn.to_profile;
 
       const meta = (primaryConn.metadata || {}) as Record<string, unknown>;
+
+      // Email #4 is ONLY for families who ENGAGED (sent a message)
+      // This makes it mutually exclusive with Email #5 (never engaged)
+      const primaryThread = (meta.thread as ThreadMessage[]) || [];
+      const familyEngagedWithPrimary = primaryThread.some(
+        (m) =>
+          m.from_profile_id === primaryConn.from_profile_id &&
+          !m.is_auto_reply &&
+          m.text?.trim()
+      );
+
+      if (!familyEngagedWithPrimary) {
+        counts.skipped++;
+        // No skip reason for this - it's intentional (Email #5 handles never-engaged)
+        continue;
+      }
 
       // Get family email (need to resolve auth email for magic link)
       let familyEmail = fromProfile?.email;

@@ -172,9 +172,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if ANY provider responded in ANY connection for this family
-      // Also check if family engaged (sent at least one message)
       let anyProviderResponded = false;
-      let familyEngaged = false;
 
       if (allFamilyConnections) {
         for (const conn of allFamilyConnections) {
@@ -190,17 +188,7 @@ export async function GET(request: NextRequest) {
           );
           if (providerResponded) {
             anyProviderResponded = true;
-          }
-
-          // Check if family engaged (sent at least one message in ANY connection)
-          const familySentMessage = thread.some(
-            (m) =>
-              m.from_profile_id === conn.from_profile_id &&
-              !m.is_auto_reply &&
-              m.text?.trim()
-          );
-          if (familySentMessage) {
-            familyEngaged = true;
+            break; // Found active conversation, can stop checking
           }
         }
       }
@@ -212,16 +200,27 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Skip if family never engaged (they're not being ghosted, they just didn't try)
-      // Email #6 is for families who tried and were ignored
-      if (!familyEngaged) {
+      // Pick the FIRST connection (oldest) as primary for email context
+      const primaryConn = familyConnections[0];
+
+      // BUG FIX: Check if family engaged with the PRIMARY connection specifically
+      // Email #6 is for families who tried to reach THIS provider and were ignored
+      // If family never messaged this provider, we shouldn't accuse them of being silent
+      const primaryMeta = (primaryConn.metadata || {}) as Record<string, unknown>;
+      const primaryThread = (primaryMeta.thread as ThreadMessage[]) || [];
+      const familyEngagedWithPrimary = primaryThread.some(
+        (m) =>
+          m.from_profile_id === primaryConn.from_profile_id &&
+          !m.is_auto_reply &&
+          m.text?.trim()
+      );
+
+      // Skip if family never engaged with this specific provider
+      if (!familyEngagedWithPrimary) {
         counts.skipped++;
         counts.skipReasons.family_never_engaged++;
         continue;
       }
-
-      // Pick the FIRST connection (oldest) as primary for email context
-      const primaryConn = familyConnections[0];
 
       // Normalize joined relations
       const fromProfile = Array.isArray(primaryConn.from_profile)

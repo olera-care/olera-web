@@ -331,7 +331,19 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               console.log("[olera] Session set from hash tokens");
 
               // Get redirect destination: URL params (cross-device) > localStorage (same device)
-              let redirectTo = "/portal/inbox";
+              // Default post-sign-in destination. For MedJobs magic-link
+              // landings, STAY on the page we arrived at (the Hire Caregivers
+              // board) rather than bouncing to the family inbox. The inbox
+              // default was written for careseeker claim flows; the
+              // cold-provider flow has no family context, and bouncing yanks
+              // the provider off the board. This is a robust safety net even
+              // if the explicit ?next= param is lost in the redirect chain.
+              const onMedjobs =
+                typeof window !== "undefined" &&
+                window.location.pathname.startsWith("/medjobs");
+              let redirectTo = onMedjobs
+                ? window.location.pathname + window.location.search
+                : "/portal/inbox";
               let claimToken: string | null = null;
               try {
                 // First check URL search params (works cross-device via magic link)
@@ -341,8 +353,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 if (urlNext) {
                   redirectTo = urlNext;
                   claimToken = urlToken;
-                } else {
-                  // Fall back to localStorage (same device/browser)
+                } else if (!onMedjobs) {
+                  // Fall back to localStorage (same device/browser). Skipped on
+                  // MedJobs landings — we already default to staying put.
                   const stored = localStorage.getItem(GUEST_REDIRECT_KEY);
                   if (stored) {
                     const parsed = JSON.parse(stored);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const STEPS = [
   "Scanning local competitors",
@@ -11,37 +12,40 @@ const STEPS = [
 
 /**
  * Purposeful loading state for "Your Market" — narrates the work being assembled
- * instead of showing blank skeleton blocks. Reframes the wait as intelligence being
- * generated. Doubles as the Phase-2 cache-miss ("building your report") experience.
+ * instead of showing blank skeleton blocks. Doubles as the Phase-2 cache-miss
+ * ("building your report") experience for a cold city (~1–2 min compute).
  *
- * `longRunning` softens the copy once a first-visit compute crosses ~20s, so the one
- * unlucky visitor who triggers a cold-city build isn't left staring at a stalled loader.
+ * Sets the time expectation up front and hands the provider something useful to do
+ * while they wait, so they're never stranded staring at a stalled loader. The last
+ * step stays *working* (never auto-checks) because the real compute outlasts the
+ * animation — we don't falsely signal "done".
  */
 export default function MarketLoading({ city, longRunning = false }: { city?: string; longRunning?: boolean }) {
   const [done, setDone] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setDone((d) => (d < STEPS.length ? d + 1 : d)), 700);
+    // Check off the first three; leave the last one in progress until the parent
+    // swaps in the real result. Never reach STEPS.length → no false "all done".
+    const id = setInterval(() => setDone((d) => (d < STEPS.length - 1 ? d + 1 : d)), 900);
     return () => clearInterval(id);
   }, []);
 
   return (
-    <div className="flex flex-col items-center text-center py-20 sm:py-28 px-6">
-      {/* Scanning pulse */}
-      <span className="relative flex h-12 w-12 items-center justify-center">
-        <span className="absolute inline-flex h-full w-full rounded-full bg-[#199087]/20 animate-ping" />
+    <div className="flex min-h-[60dvh] flex-col items-center justify-center px-6 py-10 text-center">
+      {/* Calm scanning pulse */}
+      <span className="relative flex h-10 w-10 items-center justify-center">
+        <span className="absolute inline-flex h-full w-full rounded-full bg-[#199087]/15 animate-ping [animation-duration:2s]" />
         <span className="relative inline-flex h-3 w-3 rounded-full bg-[#199087]" />
       </span>
 
-      <h2 className="font-display text-[1.6rem] leading-tight text-stone-900 mt-6">
+      <h2 className="mt-6 font-display text-[1.5rem] sm:text-[1.7rem] leading-tight text-stone-900">
         Building your {city || "local"} market…
       </h2>
-      <p className="text-[13px] text-stone-500 mt-2 max-w-xs">
-        {longRunning
-          ? "Almost there — we’re pulling this one fresh, which takes about a minute. Hang tight, or check back shortly."
-          : "Live data from Google, the U.S. Census, and Olera’s demand funnel."}
+      <p className="mt-2.5 max-w-sm text-[14px] leading-relaxed text-stone-500">
+        We&apos;re pulling this one fresh from Google, the U.S. Census, and Olera&apos;s demand
+        funnel — it takes a minute or two.
       </p>
 
-      <div className="mt-8 space-y-2.5 text-left">
+      <div className="mt-7 space-y-2.5 text-left">
         {STEPS.map((s, i) => {
           const isDone = i < done;
           const isCurrent = i === done;
@@ -70,6 +74,15 @@ export default function MarketLoading({ city, longRunning = false }: { city?: st
           );
         })}
       </div>
+
+      {/* Don't make them wait — hand them a productive next step. */}
+      <p className="mt-9 max-w-sm text-[13.5px] leading-relaxed text-stone-500">
+        {longRunning ? "Still assembling — no need to wait here. " : "No need to wait here — "}
+        <Link href="/provider" className="font-medium text-[#199087] underline-offset-2 hover:underline">
+          polish your profile
+        </Link>{" "}
+        so families see your best, and your market will be ready when you come back.
+      </p>
     </div>
   );
 }

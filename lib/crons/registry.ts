@@ -151,20 +151,22 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/staffing-outreach",
   },
+  // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
+  // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {
-    id: "lead-response-nudge",
-    name: "Lead response nudge",
+    id: "lead-followup-sequence",
+    name: "Lead follow-up sequence",
     description:
-      "Nudge to providers who haven't responded to leads. Targets connections 3+ days old where provider has not replied and was not nudged in the last 7 days. Sends one consolidated email per provider.",
-    recipientCohort: "Providers with unanswered leads (3+ days old, not nudged in 7 days).",
+      "Multi-stage follow-up for unanswered leads. Day 1/3/6/10 emails; Day 14 marks as Stuck. Stops on engagement (lead_opened event). Replaces lead-response-nudge with staged cadence.",
+    recipientCohort: "Providers with unviewed leads 1+ days old, not yet at final stage.",
     audience: "Providers",
     fn: "nudge",
-    schedule: "0 14 * * 2,4,6",
-    humanSchedule: "Tue/Thu/Sat, 14:00 UTC (~9 AM ET)",
-    path: "/api/cron/lead-response-nudge",
-    emailTypes: ["provider_nudge"],
-    successSignal: "Provider responds to the lead.",
-    relatedAdminPath: "/admin/analytics",
+    schedule: "0 14 * * *",
+    humanSchedule: "Daily, 14:00 UTC (~9 AM ET)",
+    path: "/api/cron/lead-followup-sequence",
+    emailTypes: ["provider_followup_day1", "provider_followup_day3", "provider_followup_day6", "provider_followup_day10"],
+    successSignal: "Provider opens the lead or responds.",
+    relatedAdminPath: "/admin/connections",
   },
   {
     id: "lead-family-nudge",

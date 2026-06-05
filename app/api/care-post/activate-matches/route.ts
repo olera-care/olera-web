@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { resolveCoordsFromCity } from "@/lib/profile-coords";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { matchesLiveEmail } from "@/lib/email-templates";
 import { PRIMARY_NEEDS, type PrimaryNeed } from "@/lib/types/benefits";
@@ -125,6 +126,7 @@ export async function POST(request: Request) {
       const careTypes = mapNeedsToCareTypes(primaryNeeds);
       const slug = await generateUniqueSlug(db, displayName, city || "", state || "");
 
+      const seekerCoords = resolveCoordsFromCity(city, state);
       const { data: newProfile, error: insertErr } = await db
         .from("business_profiles")
         .insert({
@@ -135,6 +137,7 @@ export async function POST(request: Request) {
           email: user.email || null, // Store email for admin visibility
           city: city || null,
           state: state || null,
+          ...(seekerCoords ? { lat: seekerCoords.lat, lng: seekerCoords.lng } : {}),
           care_types: careTypes,
           claim_state: "claimed",
           verification_state: "unverified",

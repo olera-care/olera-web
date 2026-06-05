@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { resolveCoordsFromCity } from "@/lib/profile-coords";
 import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types";
 import { sendLoopsEvent } from "@/lib/loops";
 import { generateUniqueSlug } from "@/lib/slug";
@@ -480,6 +481,7 @@ export async function POST(request: Request) {
         );
         mergedMeta.profile_completeness = completeness;
 
+        const existingCoords = resolveCoordsFromCity(city, state);
         const { error: updateErr } = await db
           .from("business_profiles")
           .update({
@@ -487,6 +489,7 @@ export async function POST(request: Request) {
             city: city || null,
             state: state || null,
             zip: zip || null,
+            ...(existingCoords ? { lat: existingCoords.lat, lng: existingCoords.lng } : {}),
             care_types: updatedCareTypes,
             metadata: mergedMeta,
           })
@@ -535,6 +538,7 @@ export async function POST(request: Request) {
         );
         newFamilyMeta.profile_completeness = completeness;
 
+        const newSeekerCoords = resolveCoordsFromCity(city, state);
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
           .insert({
@@ -546,6 +550,7 @@ export async function POST(request: Request) {
             city: city || null,
             state: state || null,
             zip: zip || null,
+            ...(newSeekerCoords ? { lat: newSeekerCoords.lat, lng: newSeekerCoords.lng } : {}),
             care_types: newCareTypes,
             claim_state: "claimed",
             verification_state: "unverified",

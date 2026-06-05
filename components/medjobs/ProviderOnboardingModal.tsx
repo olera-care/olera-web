@@ -476,7 +476,7 @@ export default function ProviderOnboardingModal({
 
       // Claimed successfully — refresh and redirect
       await refreshAccountData();
-      router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+      router.push(`/medjobs/candidates/${candidateSlug}?schedule=true`);
     } catch {
       setVerifyError("Verification failed");
       setVerifyChecking(false);
@@ -573,7 +573,7 @@ export default function ProviderOnboardingModal({
           }
 
           await refreshAccountData();
-          router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+          router.push(`/medjobs/candidates/${candidateSlug}?schedule=true`);
           break;
         }
 
@@ -591,7 +591,7 @@ export default function ProviderOnboardingModal({
 
             if (claimRes.ok) {
               await refreshAccountData();
-              router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+              router.push(`/medjobs/candidates/${candidateSlug}?schedule=true`);
             } else {
               // If deferred claim fails, go to verify step (send code to business email)
               setClaimingProvider(result);
@@ -611,7 +611,7 @@ export default function ProviderOnboardingModal({
 
         case "sign-in": {
           await refreshAccountData();
-          router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+          router.push(`/medjobs/candidates/${candidateSlug}?schedule=true`);
           break;
         }
       }

@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { getAccessTier, formatCandidateName } from "@/lib/medjobs-access";
+import { getAccessTier, hasFullAccess } from "@/lib/medjobs-access";
+import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
+import { resolveCampusUniversity } from "@/lib/medjobs/campus-university-bridge";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
 function getSupabaseAdmin() {
@@ -57,6 +59,7 @@ export async function GET(req: NextRequest) {
       : Math.min(50, Math.max(1, parseInt(searchParams.get("pageSize") || "12")));
     const state = searchParams.get("state");
     const city = searchParams.get("city");
+    const campus = searchParams.get("campus");
     const programTrack = searchParams.get("programTrack");
     const search = searchParams.get("search");
     const sort = searchParams.get("sort") || "newest";
@@ -85,6 +88,20 @@ export async function GET(req: NextRequest) {
       .eq("type", "student")
       .eq("is_active", true)
       .contains("metadata", { application_completed: true });
+
+    // University filter. The board's University dropdown sends universityId
+    // directly (the medjobs_universities id students store). The magic-link
+    // landing also resolves the provider's campus → universityId. Legacy
+    // ?campus=<slug> is still resolved (bridge handles registry slug-drift).
+    const universityId = searchParams.get("universityId");
+    if (universityId) {
+      query = query.filter("metadata->>university_id", "eq", universityId);
+    } else if (campus) {
+      const { university_id } = await resolveCampusUniversity(supabaseAdmin, campus);
+      if (university_id) {
+        query = query.filter("metadata->>university_id", "eq", university_id);
+      }
+    }
 
     // Filters
     if (state) {
@@ -201,25 +218,44 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Compute access tier for redaction (requires both paid AND verified for full access)
     const providerMeta = auth?.providerProfile?.metadata as Record<string, unknown> | undefined;
     const verificationState = auth?.providerProfile?.verification_state as string | null | undefined;
     const accessInfo = getAccessTier(isProvider, providerMeta ?? null, verificationState ?? null);
 
-    // Redact de-platforming data for providers without full access (must be paid AND verified)
-    if (!accessInfo.isPaid || !accessInfo.isVerified) {
+    // Two independent gates (decision 4 / Chunk 4):
+    //  - Full PROFILE view (full name + bio) unlocks with MedJobs access —
+    //    active pilot OR paid subscription. ONE predicate (medjobsAccessActive),
+    //    shared with the candidate board page so UI and server agree (kills the
+    //    old "UI says full / server redacts" contradiction).
+    //  - CONTACT details (email/phone/résumé/LinkedIn) stay behind an actual
+    //    connection — here, paid AND verified — regardless of trial. This is
+    //    the de-platforming moat and is intentionally NOT loosened by the pilot.
+    const canViewFullProfiles = medjobsAccessActive(providerMeta ?? null);
+    const canSeeContact = hasFullAccess(accessInfo);
+
+    if (!canViewFullProfiles || !canSeeContact) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      candidates = candidates.map((c: any) => ({
-        ...c,
-        display_name: formatCandidateName(c.display_name || "", accessInfo),
-        email: undefined,
-        phone: undefined,
-        metadata: {
-          ...c.metadata,
-          resume_url: undefined,
-          linkedin_url: undefined,
-        },
-      }));
+      candidates = candidates.map((c: any) => {
+        const next = { ...c };
+        if (!canViewFullProfiles) {
+          // Preview: truncate to "First L." to prevent name-lookup bypass.
+          const parts = String(c.display_name || "").trim().split(/\s+/);
+          next.display_name =
+            parts.length <= 1
+              ? parts[0] || ""
+              : `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
+        }
+        if (!canSeeContact) {
+          next.email = undefined;
+          next.phone = undefined;
+          next.metadata = {
+            ...c.metadata,
+            resume_url: undefined,
+            linkedin_url: undefined,
+          };
+        }
+        return next;
+      });
     }
 
     // When metadata filters are applied, the total must reflect filtered count

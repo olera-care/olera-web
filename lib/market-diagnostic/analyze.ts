@@ -84,20 +84,30 @@ export async function analyzeSnapshot(snap: RawSnapshot): Promise<{ analysis: Ma
   for (const p of [...snap.competitors, ...snap.referralGraph]) if (p.id && !byId.has(p.id)) byId.set(p.id, p);
   const universe = [...byId.values()];
 
+  // Classify in batches of 50, all batches CONCURRENTLY — they're independent, and Haiku's
+  // concurrency limits are generous. A dense market's ~5 batches now take one batch's latency
+  // (~15s) instead of ~75s serial. Each batch retries; a fully-failed batch degrades to "other".
   const cache: Record<string, { cat: string; referralValue: string }> = {};
-  for (let i = 0; i < universe.length; i += 50) {
-    const batch = universe.slice(i, i + 50);
-    let labels: Label[] | undefined;
+  const batches: NormPlace[][] = [];
+  for (let i = 0; i < universe.length; i += 50) batches.push(universe.slice(i, i + 50));
+
+  const classifyOne = async (batch: NormPlace[]): Promise<Label[]> => {
     for (let a = 0; a < 3; a++) {
-      try { labels = await classifyBatch(batch); break; }
+      try { return await classifyBatch(batch); }
       catch (e) {
-        console.error(`[market] classify batch ${i} attempt ${a}: ${(e as Error).message}`);
-        if (a === 2) labels = batch.map((_, j) => ({ i: j, cat: "other", referralValue: "none" }));
-        else await new Promise((r) => setTimeout(r, 2000));
+        console.error(`[market] classify attempt ${a}: ${(e as Error).message}`);
+        if (a === 2) break;
+        await new Promise((r) => setTimeout(r, 2000));
       }
     }
-    for (const l of labels || []) { const p = batch[l.i]; if (p) cache[p.id] = { cat: l.cat, referralValue: l.referralValue }; }
-  }
+    return batch.map((_, j) => ({ i: j, cat: "other", referralValue: "none" }));
+  };
+
+  const batchLabels = await Promise.all(batches.map(classifyOne));
+  batchLabels.forEach((labels, bi) => {
+    const batch = batches[bi];
+    for (const l of labels) { const p = batch[l.i]; if (p) cache[p.id] = { cat: l.cat, referralValue: l.referralValue }; }
+  });
 
   const classified: Classified[] = universe.map((p) => ({ ...p, ...(cache[p.id] || { cat: "other", referralValue: "none" }) }));
   // Deterministic name-guards for common LLM confusions (high precision, override the model)

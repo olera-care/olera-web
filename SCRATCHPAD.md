@@ -7,6 +7,36 @@
 
 ## Current Focus
 
+### 2026-06-05 — Find Families v2: pinned nearby seekers + calm-premium card (PR #936 → staging, OPEN)
+
+**What:** The provider Find Families page now leads with **"Your Market"** (the diagnostic) and pins a **real published care-seeker within 50 mi** on top when one exists — replacing the national-families browse list that showed a TX provider families in Maine. Branch `market-noleads-alert`, worktree `market-phase2`. PR #936 bundles: the no-leads Slack/Activity alert, the pin + reach-out wiring, a mobile pass, the coordinate foundation, and a dedicated calm-premium card.
+
+**Key decisions:**
+- **Catchment = 50 mi haversine**, not exact-city (which hid Austin families from a Round Rock provider). Pinned seekers above the diagnostic; diagnostic = the product, seeker = the scarce cherry.
+- **Coordinates** (the real unlock): `business_profiles.lat/lng` was universally null. Providers' real coords live in **`olera-providers.lat/lon`** (TJ caught my wrong-table diagnosis); seekers have none but carry a **city** (inherited from the provider they connect to, via `syncIntentToProfile`). Fix = provider coords from olera-providers (exact, at claim-finalize) + seeker coords city-resolved (`lib/profile-coords.ts`) at the ~3 city-setting write points. **No cron** (TJ: tech-debt) — write-time + a re-runnable backfill (`scripts/backfill-profile-coords.ts`, **APPLIED: 1,341 rows; live data change that also un-broke Esther's Near You tab**).
+- **Dedicated `PinnedSeekerCard`** (not Esther's browse card) — reuses her data derivations (now exported), but calm-premium: warm paper, one amber accent (the need), teal for the action only, flat button, slow-breathe header. Taste pass killed the emoji / color-soup / box-in-box.
+
+**Verified live:** Aggie Assisted Living (College Station) pins **Test McTest (0 mi)** + **George Cox (Caldwell, 24 mi)** — proving nearby-cities catchment. Coverage: providers 917/924, pin-eligible seekers 53/53.
+
+**Open / next:** ⚠️ apply **migration 100** in Supabase at merge (no-leads event CHECK). Merge **#936 before #935** (the gate flip) so rollout ships the pin, not the exact-city blind spot. Deferred (both marginal, noted): ZIP-level seeker precision; the diagnostic's "Olera sees N families" footnote. **Resume:** TJ QAs #936 preview → merge #936 (+migration 100) → merge #935 → flip gate live.
+
+### 2026-06-05 (Thu) — New `/notion-report` slash command (branch `radiant-snyder`)
+
+**What:** Built `/notion-report` — a mid-project **branch handoff** command that publishes a resume-ready page to Notion. Distinct from `/save` (SCRATCHPAD session log) and `/pr-merge` (post-merge record): this is the "I'm pausing this branch" artifact, optimized for picking work back up cold after compacting.
+
+**Report shape** (modeled on the proven "Market Diagnostic — Phase-2 Resume" handoff page): Where it stands → Worktree (find-branch `cd` line) → Resume command (paste-after-compacting prompt) → What's next → **⚠️ Blind spots & open risks (required, non-skippable)** → Key pointers. Runs autonomously; prints the `cd` line back to terminal.
+
+**Decisions:** (1) publishes to a NEW dedicated Notion DB **Product Development › Branch Handoff Reports** (data source `e3014bc0-3a03-40ed-9c09-a66994fb9e78`) with Branch/Worktree/Status/PR/Date props — hardcoded ID like `/pr-merge` does. (2) Blind-spots section is load-bearing (TJ's explicit ask). (3) Lives in `.claude/commands/notion-report.md` alongside the other olera-web commands (NOT TJ-hq — that's for personal cross-project skills).
+
+**Files:** `.claude/commands/notion-report.md` (new).
+
+**Next:** none — self-contained. Future: could auto-set Status from git state, or call `/save` first automatically.
+
+**Post-merge session work (Notion + PR triage, no repo changes):**
+- **#940 merged** to staging (the command itself), report filed to PR Merge Reports.
+- **PR cleanup** of stale open PRs: closed **#872** (email-deliverability scratchpad) + **#897** (2026-05-30 session log) as superseded — both pure stale/already-shipped, branches handled (delete vs keep-if-live-worktree); reports filed. Archived **#864** (provider-page custom work, 226 behind) by closing it but **keeping the branch** as a GitHub back-pocket reference (not merging to staging). Left open: **#878** (Medicaid look-back article — real unpublished content, needs reconcile/abandon decision), **#935** + **#936** (active Market Diagnostic work).
+- **Notion consolidation:** created the **Branch Handoff Reports** DB (Product Development), then gathered 5 scattered handoff/resume pages into it (2× Market Diagnostic resume, Email Deliverability resume note, Slack MCP OAuth note, Weekly provider digest runbook) + backfilled props. Removed 4 stray columns (Owner/Priority/Product Category/Timeline) dragged in by the move to restore the clean 6-prop schema. DB: `eb2362fd189041f6813af6d4dee9b92c`.
+
 ### 2026-06-04 — Market Diagnostic PHASE 2: compute-on-visit for any city (PR #924 → staging, OPEN)
 
 **Goal:** the diagnostic works for **any provider's city**, computed on first visit + cached — not College-Station-by-hand. Then flip `lib/market-gate.ts` for rollout.

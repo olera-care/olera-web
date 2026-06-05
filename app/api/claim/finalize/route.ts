@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { warmCity } from "@/lib/market-diagnostic/warm";
 import { createClient } from "@supabase/supabase-js";
 import { isBlockedEmailDomain } from "@/lib/email-validation";
 import { generateProviderSlug } from "@/lib/slugify";
@@ -14,7 +15,7 @@ import {
 } from "@/lib/claim-trust";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
-export const maxDuration = 30;
+export const maxDuration = 60; // room for the background warm-on-claim compute (~16s)
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -302,6 +303,9 @@ export async function POST(request: Request) {
           city: provider.city,
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
+          // Exact coords from the Google import — powers the "families near you" catchment.
+          lat: provider.lat ?? null,
+          lng: provider.lon ?? null,
           claim_state: claimState,
           verification_state: verificationStateForNew,
           claim_trust_level: trustResult.level,
@@ -320,6 +324,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Failed to create listing." }, { status: 500 });
       }
       profileId = newProfile.id;
+
+      // Warm this market's diagnostic in the background so Find Families is instant when the
+      // provider gets there — moves the ~16s compute off the critical path. No-ops if the city
+      // is already warm or we're over budget; shared by city × care-type.
+      after(() =>
+        warmCity(provider.city, provider.state, provider.category || provider.provider_category).catch(() => {}),
+      );
     }
 
     // 4. Mark account onboarding as completed and set active profile

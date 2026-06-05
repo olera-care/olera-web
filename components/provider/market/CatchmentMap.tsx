@@ -49,6 +49,10 @@ export default function CatchmentMap({ center, targets }: { center: { lat: numbe
       center: [center.lng, center.lat],
       zoom: 10,
       attributionControl: false,
+      // One-finger drag scrolls the page (not the map); two fingers pan. Prevents the
+      // map from trapping vertical scroll on mobile. Also requires ctrl/⌘ to zoom on
+      // desktop, so scrolling the page over the map no longer zooms it.
+      cooperativeGestures: true,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.addControl(new maplibregl.AttributionControl({ compact: true }));

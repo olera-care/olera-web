@@ -22,7 +22,7 @@ export default function SimpleFooter() {
             Terms
           </Link>
           <Link
-            href="/support"
+            href="/contact"
             className="text-gray-500 hover:text-gray-700 text-[15px] transition-colors"
           >
             Support

@@ -29,6 +29,13 @@ const nextConfig: NextConfig = {
   // ── 301 Redirects (v1.0 → v2.0 migration) ──
   async redirects() {
     return [
+      // MedJobs board consolidation (G3): the public, ungated /medjobs/candidates
+      // board is canonical (it's the only board that renders for an authed-but-
+      // unclaimed provider — the cold magic-link state). The gated /provider
+      // portal board redirects into it. Edge-level so it runs before the
+      // /provider layout's profile gate (which would otherwise eject to /portal).
+      { source: "/provider/medjobs/candidates/:path*", destination: "/medjobs/candidates/:path*", permanent: true },
+      { source: "/provider/medjobs", destination: "/medjobs/candidates", permanent: true },
       // Tier 1: Provider portal renames
       { source: "/provider-portal", destination: "/portal", permanent: true },
       { source: "/provider-portal/dashboard", destination: "/portal", permanent: true },
@@ -84,6 +91,9 @@ const nextConfig: NextConfig = {
       { source: "/company/leadership", destination: "/team", permanent: true },
       { source: "/company/contact-us", destination: "/contact", permanent: true },
       { source: "/company/investors", destination: "/about", permanent: true },
+
+      // Support page redirect → contact page
+      { source: "/support", destination: "/contact", permanent: true },
 
       // Tier 3: v1.0 pages with no v2 equivalent → homepage
       { source: "/caregiver-relief-network", destination: "/", permanent: true },

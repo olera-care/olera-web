@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { resolveOrClaimProviderProfile } from "@/lib/medjobs/claim-provider-profile";
 import {
   onStageEnter,
   tasksToCancelOnExit,
@@ -3135,86 +3136,53 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
     d.setDate(d.getDate() + 90);
     return d.toISOString();
   })();
+  // Admin-on-behalf conversion. Uses the SAME owned-claim primitive as the
+  // self-serve path (parity / Q1 lock), passing accountId=null: the provider
+  // hasn't authenticated yet, so the claimed row is created unowned and
+  // adopted when they later sign in via the magic link. Dedup-by
+  // source_provider_id + unique slug + claim_state="claimed" are enforced by
+  // the primitive (no duplicate vs the directory claim).
+  const pilotMetadata = {
+    interview_terms_accepted_at: nowIso,
+    pilot_active_through: pilotActiveThroughIso,
+    terms_accepted_via: "admin",
+  };
+  const oleraProviderId = (row.research_data as { olera_provider_id?: string })?.olera_provider_id;
   let businessProfileId = row.provider_business_profile_id;
 
-  // For olera-providers based rows, we need to create a business_profiles
-  // row first since they don't have one yet.
-  if (!businessProfileId) {
-    const oleraProviderId = (row.research_data as { olera_provider_id?: string })?.olera_provider_id;
-    if (!oleraProviderId) {
-      throw new Error("Provider row missing both provider_business_profile_id and olera_provider_id");
-    }
-
-    // Fetch provider data from olera-providers
-    const { data: oleraProvider } = await db
-      .from("olera-providers")
-      .select("provider_id, provider_name, city, state, email, phone, website, slug, address, zipcode")
-      .eq("provider_id", oleraProviderId)
-      .maybeSingle();
-
-    if (!oleraProvider) {
-      throw new Error(`olera-providers entry not found: ${oleraProviderId}`);
-    }
-
-    // Create a business_profiles row for this provider
-    const { data: newBp, error: createErr } = await db
-      .from("business_profiles")
-      .insert({
-        type: "organization",
-        display_name: oleraProvider.provider_name || row.organization_name,
-        city: oleraProvider.city,
-        state: oleraProvider.state,
-        email: oleraProvider.email,
-        phone: oleraProvider.phone,
-        website: oleraProvider.website,
-        slug: oleraProvider.slug,
-        address: oleraProvider.address,
-        zip: oleraProvider.zipcode?.toString() || null,
-        metadata: {
-          interview_terms_accepted_at: nowIso,
-          pilot_active_through: pilotActiveThroughIso,
-          terms_accepted_via: "admin",
-        },
-        source_provider_id: oleraProviderId,
-        created_at: nowIso,
-        updated_at: nowIso,
-      })
-      .select("id")
-      .single();
-
-    if (createErr || !newBp) {
-      throw new Error(`Failed to create business_profiles: ${createErr?.message ?? "unknown error"}`);
-    }
-
-    businessProfileId = newBp.id;
-
-    // Update student_outreach to link to the new business_profiles row
+  if (oleraProviderId) {
+    const result = await resolveOrClaimProviderProfile(db, {
+      oleraProviderId,
+      accountId: null,
+      pilotMetadata,
+      fallbackName: row.organization_name,
+    });
+    // conflict can't arise with accountId=null (no ownership comparison).
+    businessProfileId = result.business_profile_id;
     await db
       .from("student_outreach")
       .update({ provider_business_profile_id: businessProfileId })
       .eq("id", row.id);
-  } else {
-    // Existing business_profiles row - update its metadata
+  } else if (businessProfileId) {
+    // Non-directory provider: patch metadata + claim directly.
     const { data: bp } = await db
       .from("business_profiles")
       .select("metadata")
       .eq("id", businessProfileId)
       .maybeSingle();
     if (!bp) throw new Error("Business profile not found");
-
     const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
-    const newMeta = {
-      ...existingMeta,
-      interview_terms_accepted_at: nowIso,
-      pilot_active_through: pilotActiveThroughIso,
-      terms_accepted_via: "admin",
-    };
-
     const { error: bpErr } = await db
       .from("business_profiles")
-      .update({ metadata: newMeta, updated_at: nowIso })
+      .update({
+        metadata: { ...existingMeta, ...pilotMetadata },
+        claim_state: "claimed",
+        updated_at: nowIso,
+      })
       .eq("id", businessProfileId);
     if (bpErr) throw new Error(bpErr.message);
+  } else {
+    throw new Error("Provider row missing both provider_business_profile_id and olera_provider_id");
   }
 
   await insertTouchpoint(db, row.id, "stage_change", userId, {

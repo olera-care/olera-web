@@ -54,8 +54,8 @@ function Section({ id, kicker, title, children }: { id?: string; kicker: string;
 /** Perena-style stat card — soft, solid, gently shadowed. Numbers count up on reveal. */
 function StatCard({ value, label }: { value: number | string; label: string }) {
   return (
-    <div className="rounded-2xl border border-stone-200/80 bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
-      <div className="font-display text-[2rem] leading-none text-stone-900">
+    <div className="rounded-2xl border border-stone-200/80 bg-white px-3.5 py-3.5 sm:px-5 sm:py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
+      <div className="font-display text-[1.5rem] sm:text-[2rem] leading-none text-stone-900">
         {typeof value === "number" ? <CountUp value={value} /> : value}
       </div>
       <div className="text-[12.5px] text-stone-500 mt-2">{label}</div>
@@ -98,7 +98,7 @@ export default function MarketDiagnostic({
       {showHeader && (
         <Eyebrow>Your market · {a.meta.city}, {a.meta.state} · {a.meta.careType === "homecare" ? "Home care" : "Assisted living"}</Eyebrow>
       )}
-      <h1 className="font-display text-[2.5rem] leading-[1.12] text-stone-900 mt-2 max-w-2xl">
+      <h1 className="font-display text-[1.9rem] sm:text-[2.5rem] leading-[1.12] text-stone-900 mt-2 max-w-2xl">
         {cl.count} agencies are competing for {totalSeniors.toLocaleString()} seniors in {a.meta.city}.
       </h1>
       <p className="text-stone-500 mt-3 text-[15px] leading-relaxed max-w-xl">
@@ -116,15 +116,17 @@ export default function MarketDiagnostic({
         {cl.leaders.slice(0, 8).map((l, i) => {
           const isYou = i === youIdx;
           return (
-            <div key={l.name} className="flex items-center gap-3">
-              <div className={`w-44 truncate text-[13px] flex items-center gap-1.5 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
+            <div key={l.name} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+              <div className={`flex items-center gap-1.5 text-[13px] sm:w-44 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
                 <span className="truncate">{l.name}</span>
                 {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">You</span>}
               </div>
-              <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
+              <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
+                <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
+                </div>
+                <div className="w-24 shrink-0 text-right text-[12px] text-stone-500 tabular-nums">{l.reviews} rev · {l.rating ?? "—"}★</div>
               </div>
-              <div className="w-24 text-right text-[12px] text-stone-500 tabular-nums">{l.reviews} rev · {l.rating ?? "—"}★</div>
             </div>
           );
         })}
@@ -132,16 +134,20 @@ export default function MarketDiagnostic({
 
       <a
         href="/provider/reviews"
-        className="group inline-flex items-center gap-2 rounded-full bg-[#199087] px-4 py-2 mt-6 text-[13px] font-semibold text-white shadow-[0_1px_4px_rgba(25,144,135,0.3)] transition-all hover:bg-[#147a72] hover:shadow-[0_3px_10px_rgba(25,144,135,0.35)] hover:-translate-y-px active:translate-y-0"
+        className="group inline-flex items-center gap-2 rounded-full bg-[#199087] px-5 py-2.5 sm:px-4 sm:py-2 mt-6 text-[14px] sm:text-[13px] font-semibold text-white shadow-[0_1px_4px_rgba(25,144,135,0.3)] transition-all hover:bg-[#147a72] hover:shadow-[0_3px_10px_rgba(25,144,135,0.35)] hover:-translate-y-px active:translate-y-0 active:scale-[0.98]"
       >
         Request reviews to climb the ranking
         <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
       </a>
 
-      <p className="text-[13px] text-stone-400 mt-5">
-        {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
-        Olera sees {a.demand.olera.familiesInCity} families actively searching here today — a foothold we grow into qualified leads for you.
-      </p>
+      {(dem.medianIncomeRange || a.demand.olera.familiesInCity > 0) && (
+        <p className="text-[13px] text-stone-400 mt-5">
+          {dem.medianIncomeRange && <>Household income runs {usdK(dem.medianIncomeRange.min)}–{usdK(dem.medianIncomeRange.max)} across the area. </>}
+          {a.demand.olera.familiesInCity > 0 && (
+            <>Olera sees {a.demand.olera.familiesInCity} {a.demand.olera.familiesInCity === 1 ? "family" : "families"} actively searching here today — a foothold we grow into qualified leads for you.</>
+          )}
+        </p>
+      )}
       </div>{/* /competition */}
 
       {/* ── The unlock — referral map (the differentiated payoff) ── */}

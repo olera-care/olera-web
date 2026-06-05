@@ -129,12 +129,17 @@ export default function PilotTermsModal({
             </ReassuranceBullet>
             <ReassuranceBullet>
               <span className="font-semibold">
-                Your public Olera profile stays visible
+                You&apos;re claiming your Olera listing
               </span>{" "}
-              while you&apos;re in the pilot — students and families need to
-              find you.
+              — the public profile families see — under your account, so you
+              can manage it. It stays visible throughout the pilot.
             </ReassuranceBullet>
           </ul>
+          <p className="text-xs leading-relaxed text-gray-500">
+            By continuing you accept Olera&apos;s caregiver-hiring pilot terms
+            and claim your provider listing in the Olera family directory. Claiming
+            doesn&apos;t verify your listing — you can complete verification later.
+          </p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             <Link
               href="/medjobs/pilot-agreement.pdf"

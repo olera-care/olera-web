@@ -74,7 +74,7 @@ export default function PinnedSeekerCard({
     >
       {/* Identity */}
       <div className="flex items-center gap-3.5">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#e7e0d3] text-[14px] font-semibold tracking-wide text-[#6b6253]">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#e7e0d3] text-[14px] font-semibold tracking-wide text-[#5b5247]">
           {getInitials(fullName)}
         </div>
         <div className="min-w-0">
@@ -99,14 +99,16 @@ export default function PinnedSeekerCard({
         <p className="mt-2 line-clamp-2 text-[14px] leading-relaxed text-stone-600">{description}</p>
       )}
 
-      {/* Quiet footer + the one action */}
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <div className="min-w-0 truncate text-[13px] text-stone-500">
-          {paymentMethods.length > 0 && (
-            <>Pays via <span className="font-medium text-stone-700">{paymentMethods[0]}</span></>
-          )}
-        </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#199087] px-[18px] py-2.5 text-[13.5px] font-semibold text-white shadow-[0_1px_2px_rgba(28,25,23,0.10)] transition group-hover:bg-[#15776f] group-active:scale-95">
+      {/* Quiet payment line — its own row so it never collides with the button on mobile */}
+      {paymentMethods.length > 0 && (
+        <p className="mt-3.5 text-[12.5px] text-stone-400">
+          Pays via <span className="font-medium text-stone-500">{paymentMethods[0]}</span>
+        </p>
+      )}
+
+      {/* The one action */}
+      <div className="mt-4 flex justify-end">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#199087] px-[18px] py-2.5 text-[13.5px] font-semibold text-white shadow-[0_1px_2px_rgba(28,25,23,0.10)] transition group-hover:bg-[#15776f] group-active:scale-95">
           {contacted ? "View" : "Reach out"}
           <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </span>

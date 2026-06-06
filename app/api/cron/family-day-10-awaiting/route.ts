@@ -13,6 +13,12 @@ import { getSiteUrl } from "@/lib/site-url";
  *
  * This fills the gap between Email #3 (Day 3 gentle nudge) and STUCK mark (Day 14).
  *
+ * RECIPIENT-LEVEL INTELLIGENCE:
+ * - Groups by family to prevent spam
+ * - If family has multiple connections in Day 10 window, sends ONE email
+ * - Mentions the most recent provider
+ * - Marks ALL eligible connections as sent
+ *
  * Trigger conditions:
  * - Provider has responded (at least one non-auto-reply message from provider)
  * - Family has NOT replied (no messages from family after provider's first message)
@@ -35,6 +41,16 @@ interface ThreadMessage {
   is_auto_reply?: boolean;
 }
 
+interface EligibleConnection {
+  connectionId: string;
+  fromProfileId: string;
+  toProfileId: string;
+  metadata: Record<string, unknown>;
+  providerFirstMessageTime: number;
+  familyProfile: any;
+  providerProfile: any;
+}
+
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const { searchParams } = new URL(request.url);
@@ -53,8 +69,6 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const siteUrl = getSiteUrl();
     const now = Date.now();
-    const nineDaysAgo = new Date(now - NINE_DAYS_MS).toISOString();
-    const elevenDaysAgo = new Date(now - ELEVEN_DAYS_MS).toISOString();
 
     const counts = {
       processed: 0,
@@ -73,7 +87,6 @@ export async function GET(request: NextRequest) {
     };
 
     // Fetch inquiry connections (family → provider)
-    // We'll filter by provider response timing in the loop
     const { data: connections, error: fetchError } = await db
       .from("connections")
       .select(
@@ -116,6 +129,9 @@ export async function GET(request: NextRequest) {
         ...counts,
       };
     }
+
+    // First pass: identify eligible connections and group by family
+    const eligibleByFamily = new Map<string, EligibleConnection[]>();
 
     for (const conn of connections) {
       counts.processed++;
@@ -187,6 +203,31 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Connection is eligible - add to family's list
+      if (!eligibleByFamily.has(conn.from_profile_id)) {
+        eligibleByFamily.set(conn.from_profile_id, []);
+      }
+
+      eligibleByFamily.get(conn.from_profile_id)!.push({
+        connectionId: conn.id,
+        fromProfileId: conn.from_profile_id,
+        toProfileId: conn.to_profile_id,
+        metadata: meta,
+        providerFirstMessageTime,
+        familyProfile,
+        providerProfile,
+      });
+    }
+
+    // Second pass: process each FAMILY (not each connection)
+    for (const [familyProfileId, eligibleConns] of eligibleByFamily) {
+      // Sort by most recent provider response (send email about the freshest conversation)
+      eligibleConns.sort((a, b) => b.providerFirstMessageTime - a.providerFirstMessageTime);
+      const mostRecentConn = eligibleConns[0];
+
+      const familyProfile = mostRecentConn.familyProfile;
+      const providerProfile = mostRecentConn.providerProfile;
+
       // Get family email
       let familyEmail = familyProfile?.email?.trim();
       let authEmail = familyEmail;
@@ -225,13 +266,13 @@ export async function GET(request: NextRequest) {
         emailType: "day_10_awaiting",
         recipientType: "family",
         metadata: {
-          connection_id: conn.id,
-          days_since_provider_response: Math.floor(daysSinceProviderResponse),
+          connection_id: mostRecentConn.connectionId,
+          eligible_connections_count: eligibleConns.length,
         },
       });
 
-      // Build inbox URL (deep link to this conversation)
-      const inboxPath = `/portal/inbox?id=${conn.id}`;
+      // Build inbox URL (deep link to most recent conversation)
+      const inboxPath = `/portal/inbox?id=${mostRecentConn.connectionId}`;
       const trackedInboxPath = appendTrackingParams(inboxPath, emailLogId);
       let inboxUrl = `${siteUrl}${trackedInboxPath}`;
 
@@ -284,13 +325,13 @@ export async function GET(request: NextRequest) {
       // DRY RUN: Log but don't send
       if (dryRun) {
         console.log(
-          `[cron/family-day-10-awaiting] [DRY RUN] Would send to ${familyEmail} (connection ${conn.id}, ${Math.floor(daysSinceProviderResponse)} days since provider response)`
+          `[cron/family-day-10-awaiting] [DRY RUN] Would send to ${familyEmail} (${eligibleConns.length} eligible connections, showing most recent: ${mostRecentConn.connectionId})`
         );
         counts.sent++;
         continue;
       }
 
-      // Send email
+      // Send email (ONE email per family, mentioning most recent provider)
       const { success } = await sendEmail({
         to: familyEmail,
         subject: "Need a hand with the next step?",
@@ -313,23 +354,25 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Mark as sent
+      // Mark ALL eligible connections for this family as sent (prevent duplicate emails)
       const sentAt = new Date().toISOString();
-      const { error: updateError } = await db
-        .from("connections")
-        .update({
-          metadata: {
-            ...meta,
-            day_10_awaiting_sent_at: sentAt,
-          },
-        })
-        .eq("id", conn.id);
+      for (const eligibleConn of eligibleConns) {
+        const { error: updateError } = await db
+          .from("connections")
+          .update({
+            metadata: {
+              ...eligibleConn.metadata,
+              day_10_awaiting_sent_at: sentAt,
+            },
+          })
+          .eq("id", eligibleConn.connectionId);
 
-      if (updateError) {
-        console.error(
-          `[cron/family-day-10-awaiting] Failed to update metadata for ${conn.id}:`,
-          updateError
-        );
+        if (updateError) {
+          console.error(
+            `[cron/family-day-10-awaiting] Failed to update metadata for ${eligibleConn.connectionId}:`,
+            updateError
+          );
+        }
       }
 
       counts.sent++;

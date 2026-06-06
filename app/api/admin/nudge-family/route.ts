@@ -30,6 +30,10 @@ export async function POST(req: NextRequest) {
 
   const db = getServiceClient();
 
+  // Check if this is a preview request
+  const { searchParams } = new URL(req.url);
+  const isPreview = searchParams.get("preview") === "true";
+
   // Parse body
   let body: { connection_id?: string; family_profile_id?: string };
   try {
@@ -159,7 +163,7 @@ export async function POST(req: NextRequest) {
     emailLogId
   );
 
-  // Build and send email
+  // Build email HTML
   const html = familyNudgeEmail({
     familyName,
     providerName,
@@ -168,9 +172,24 @@ export async function POST(req: NextRequest) {
     profileUrl,
   });
 
+  const subject = `Complete your profile to help ${providerName} respond`;
+  const fromAddress = "Olera <noreply@olera.care>";
+
+  // If preview mode, return email details without sending
+  if (isPreview) {
+    return NextResponse.json({
+      preview: true,
+      from: fromAddress,
+      to: familyProfile.email,
+      subject,
+      html,
+    });
+  }
+
+  // Send email
   const { success, error: sendError } = await sendEmail({
     to: familyProfile.email,
-    subject: `Complete your profile to help ${providerName} respond`,
+    subject,
     html,
     emailType: "family_nudge",
     recipientType: "family",

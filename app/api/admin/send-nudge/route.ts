@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
 
   const db = getServiceClient();
 
+  // Check if this is a preview request
+  const { searchParams } = new URL(req.url);
+  const isPreview = searchParams.get("preview") === "true";
+
   // Parse body
   let body: { connection_id?: string };
   try {
@@ -234,7 +238,7 @@ export async function POST(req: NextRequest) {
     emailLogId
   );
 
-  // Build and send email
+  // Build email HTML
   const html = providerNudgeEmail({
     providerName,
     familyName,
@@ -244,9 +248,24 @@ export async function POST(req: NextRequest) {
     providerSlug,
   });
 
+  const subject = `${familyName} is waiting for a response`;
+  const fromAddress = "Olera <noreply@olera.care>";
+
+  // If preview mode, return email details without sending
+  if (isPreview) {
+    return NextResponse.json({
+      preview: true,
+      from: fromAddress,
+      to: providerProfile.email,
+      subject,
+      html,
+    });
+  }
+
+  // Send email
   const { success, error: sendError } = await sendEmail({
     to: providerProfile.email,
-    subject: `${familyName} is waiting for a response`,
+    subject,
     html,
     emailType: "provider_nudge",
     recipientType: "provider",

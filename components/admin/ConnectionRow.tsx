@@ -7,6 +7,7 @@ import {
   type NextStep,
 } from "@/lib/connection-temperature";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
+import EmailPreviewModal from "@/components/admin/EmailPreviewModal";
 
 interface ProfileCompleteness {
   percentage: number;
@@ -245,6 +246,17 @@ export default function ConnectionRow({
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Email preview modal state
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [emailPreview, setEmailPreview] = useState<{
+    from: string;
+    to: string;
+    subject: string;
+    html: string;
+    endpoint: string;
+    successText: string;
+  } | null>(null);
+
   // Add email state
   const [addingEmail, setAddingEmail] = useState(false);
   const [emailInput, setEmailInput] = useState("");
@@ -355,25 +367,79 @@ export default function ConnectionRow({
     }
   }
 
-  async function sendNudge(endpoint: string, successText: string) {
+  // Fetch email preview and show modal
+  async function showNudgePreview(endpoint: string, successText: string) {
     setNudging(true);
     setNudgeMsg(null);
     try {
-      const res = await fetch(endpoint, {
+      const body: { connection_id: string; family_profile_id?: string } = {
+        connection_id: c.id,
+      };
+      // If nudging family, include family_profile_id
+      if (endpoint.includes("nudge-family") && c.family.id) {
+        body.family_profile_id = c.family.id;
+      }
+
+      const res = await fetch(`${endpoint}?preview=true`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connection_id: c.id }),
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (res.ok && data.preview) {
+        setEmailPreview({
+          from: data.from,
+          to: data.to,
+          subject: data.subject,
+          html: data.html,
+          endpoint,
+          successText,
+        });
+        setShowPreviewModal(true);
+      } else {
+        setNudgeMsg({ ok: false, text: data.error || "Failed to load preview" });
+      }
+    } catch {
+      setNudgeMsg({ ok: false, text: "Network error" });
+    } finally {
+      setNudging(false);
+    }
+  }
+
+  // Actually send the nudge (called from modal confirm)
+  async function confirmSendNudge() {
+    if (!emailPreview) return;
+
+    setNudging(true);
+    setNudgeMsg(null);
+    try {
+      const body: { connection_id: string; family_profile_id?: string } = {
+        connection_id: c.id,
+      };
+      // If nudging family, include family_profile_id
+      if (emailPreview.endpoint.includes("nudge-family") && c.family.id) {
+        body.family_profile_id = c.family.id;
+      }
+
+      const res = await fetch(emailPreview.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setNudgeMsg({ ok: true, text: successText });
+        setNudgeMsg({ ok: true, text: emailPreview.successText });
+        setShowPreviewModal(false);
+        setEmailPreview(null);
         // Notify parent to refresh list - connection should move to "Awaiting" tab
         onNudgeSuccess?.();
       } else {
         setNudgeMsg({ ok: false, text: data.error || "Couldn't send." });
+        setShowPreviewModal(false);
       }
     } catch {
       setNudgeMsg({ ok: false, text: "Network error — not sent." });
+      setShowPreviewModal(false);
     } finally {
       setNudging(false);
     }
@@ -612,7 +678,7 @@ export default function ConnectionRow({
                         {/* Family nudge - primary action in family perspective */}
                         {detail.family.email && (
                           <button
-                            onClick={() => sendNudge("/api/admin/nudge-family", "Follow-up sent to family.")}
+                            onClick={() => showNudgePreview("/api/admin/nudge-family", "Follow-up sent to family.")}
                             disabled={nudging}
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
@@ -644,7 +710,7 @@ export default function ConnectionRow({
                         {/* Provider nudge - when waiting on provider */}
                         {c.waitingOn === "provider" && detail.provider.hasEmail && (
                           <button
-                            onClick={() => sendNudge("/api/admin/send-nudge", "Nudge sent to provider.")}
+                            onClick={() => showNudgePreview("/api/admin/send-nudge", "Nudge sent to provider.")}
                             disabled={nudging}
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
@@ -662,7 +728,7 @@ export default function ConnectionRow({
                         {/* Family nudge - when provider responded but family hasn't */}
                         {c.waitingOn === "family" && detail.family.email && (
                           <button
-                            onClick={() => sendNudge("/api/admin/nudge-family", "Follow-up sent to family.")}
+                            onClick={() => showNudgePreview("/api/admin/nudge-family", "Follow-up sent to family.")}
                             disabled={nudging}
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
@@ -905,6 +971,23 @@ export default function ConnectionRow({
             </div>
           ) : null}
         </div>
+      )}
+
+      {/* Email Preview Modal */}
+      {emailPreview && (
+        <EmailPreviewModal
+          isOpen={showPreviewModal}
+          onClose={() => {
+            setShowPreviewModal(false);
+            setEmailPreview(null);
+          }}
+          onConfirm={confirmSendNudge}
+          from={emailPreview.from}
+          to={emailPreview.to}
+          subject={emailPreview.subject}
+          html={emailPreview.html}
+          sending={nudging}
+        />
       )}
     </div>
   );

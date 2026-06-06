@@ -83,7 +83,7 @@ type FamilyEngagementLevel = "new" | "awaiting" | "engaged" | "stuck" | "needs_c
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel;
+type ProviderFilterKey = "all" | EngagementLevel | "no_email";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -102,6 +102,7 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "stuck", label: "Stuck", description: "No activity for 14+ days", emptyMessage: "No stuck connections." },
   { key: "needs_call", label: "Needs Call", description: "24+ days, requires manual intervention", emptyMessage: "No providers need calling." },
+  { key: "no_email", label: "No Email", description: "Providers without email addresses", emptyMessage: "All providers have emails." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 

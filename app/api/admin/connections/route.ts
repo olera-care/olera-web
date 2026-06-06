@@ -122,6 +122,7 @@ interface EngagementCounts {
   connected: number;
   stuck: number;
   needs_call: number;
+  no_email: number; // Cross-cutting filter: providers without email
 }
 
 // Family engagement-based tab counts (family perspective)
@@ -638,6 +639,7 @@ export async function GET(request: NextRequest) {
       connected: 0,
       stuck: 0,
       needs_call: 0,
+      no_email: 0,
     };
 
     // Family engagement-based counts (family perspective)
@@ -718,6 +720,11 @@ export async function GET(request: NextRequest) {
         engagementCounts.all++;
         engagementCounts[engResult.level]++;
 
+        // Count providers without email (cross-cutting filter)
+        if (!c.provider.email?.trim()) {
+          engagementCounts.no_email++;
+        }
+
         // Count family engagement levels
         familyEngagementCounts.all++;
         familyEngagementCounts[familyEngResult.level]++;
@@ -768,7 +775,10 @@ export async function GET(request: NextRequest) {
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "engaged", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
-      if (perspective === "family") {
+      // Special filter: no_email (provider perspective only - cross-cutting filter)
+      if (responseFilter === "no_email" && perspective === "provider") {
+        list = list.filter((c) => !c.provider.email?.trim());
+      } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
         if (isFamilyEngagementFilter) {

@@ -161,6 +161,7 @@ export async function POST(req: NextRequest) {
 
   // Build and send email
   const html = familyNudgeEmail({
+    unsubscribeId: family_profile_id,
     familyName,
     providerName,
     missingFields: completeness.missingFields.slice(0, 5), // Max 5 fields

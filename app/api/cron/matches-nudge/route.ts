@@ -121,6 +121,7 @@ export async function GET(request: NextRequest) {
             to: fp.email,
             subject: mnSubject,
             html: matchesNudgeEmail({
+              unsubscribeId: fp.id,
               familyName: fp.display_name || "there",
               unansweredCount: stats?.total || 2,
               matchesUrl,

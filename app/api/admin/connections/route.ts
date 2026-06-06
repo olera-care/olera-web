@@ -543,34 +543,61 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(10000);
 
+      // Build a map of provider_id -> connection_ids for multi-lead email handling
+      const providerToConnections = new Map<string, string[]>();
+      for (const c of searched) {
+        const providerKey = c.provider.activityKey;
+        if (!providerKey) continue;
+        if (!providerToConnections.has(providerKey)) {
+          providerToConnections.set(providerKey, []);
+        }
+        providerToConnections.get(providerKey)!.push(c.id);
+      }
+
       for (const ev of actEvents ?? []) {
         const meta = ev.metadata as Record<string, unknown> | null;
-        const connectionId = meta?.connection_id as string | undefined;
+        // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
+        const connectionId = (meta?.connection_id || meta?.lead_id) as string | undefined;
 
-        // Only process events that have a connection_id AND match one of our connections
-        // This filters out: legacy events (no connection_id), events for other connections
-        if (!connectionId) continue;
-        const eng = connectionEngagement.get(connectionId);
-        if (!eng) continue;
+        // Handle connection-specific events (most common case)
+        if (connectionId) {
+          const eng = connectionEngagement.get(connectionId);
+          if (!eng) continue; // Event for a different connection not in our list
 
-        if (ev.event_type === "email_click") eng.email_clicked = true;
-        else if (ev.event_type === "lead_opened") eng.lead_opened = true;
-        else if (ev.event_type === "contact_revealed") {
-          eng.contact_revealed = true;
-          // Track what was copied (phone vs email)
-          if (meta?.contact_type === "phone") {
-            eng.phone_copied = true;
-          } else {
-            eng.email_copied = true; // Default to email if not specified
+          if (ev.event_type === "email_click") eng.email_clicked = true;
+          else if (ev.event_type === "lead_opened") eng.lead_opened = true;
+          else if (ev.event_type === "contact_revealed") {
+            eng.contact_revealed = true;
+            // Track what was copied (phone vs email)
+            if (meta?.contact_type === "phone") {
+              eng.phone_copied = true;
+            } else {
+              eng.email_copied = true; // Default to email if not specified
+            }
+          }
+          else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
+          else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
+          else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
+
+          // Track most recent activity FOR THIS CONNECTION
+          if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
+            eng.lastActivityAt = ev.created_at;
           }
         }
-        else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
-        else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
-        else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
-
-        // Track most recent activity FOR THIS CONNECTION
-        if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
-          eng.lastActivityAt = ev.created_at;
+        // Handle provider-wide events (multi-lead emails with no specific connection_id)
+        // When provider clicks a multi-lead email and lands on inbox, mark ALL their connections as viewed
+        else if (ev.event_type === "lead_opened" && ev.provider_id) {
+          const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
+          for (const connId of connectionIds) {
+            const eng = connectionEngagement.get(connId);
+            if (eng) {
+              eng.lead_opened = true;
+              // Track activity time for all connections
+              if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
+                eng.lastActivityAt = ev.created_at;
+              }
+            }
+          }
         }
       }
     }

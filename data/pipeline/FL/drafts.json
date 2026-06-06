@@ -278,7 +278,7 @@
       "icon": "House",
       "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/statewide-medicaid-managed-care-long-term-care-program/",
-      "contentStatus": "under-review",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
@@ -292,11 +292,11 @@
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "South Florida (Miami-Dade)",
+            "name": "South Florida (Miami-Dade, Broward)",
             "type": "service-area"
           },
           {
@@ -511,7 +511,7 @@
       "icon": "Hospital",
       "phone": "786-933-7223",
       "sourceUrl": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -937,7 +937,7 @@
       "icon": "BowlFood",
       "phone": "(850) 300-4323",
       "sourceUrl": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap/snap-eligibility",
-      "contentStatus": "under-review",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
@@ -972,7 +972,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$1,350 directly to their utility company. Crisis assistance can go up to $2,000 if they're facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. LIHEAP is active in all 67 Florida counties; you apply through the agency designated for your loved one's specific county. Heating assistance generally runs through March 31, and cooling assistance opens April 1.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
+      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$2,000 directly to their utility company. The maximum benefit reaches $2,000 for those in a crisis, such as facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. LIHEAP is active in all 67 Florida counties; you apply through the agency designated for your loved one's specific county. Heating assistance generally runs through March 31, and cooling assistance opens April 1.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
       "savingsRange": "$400 – $2,000/year in 2026",
       "savingsSource": "Payment ranges from Florida LIHEAP providers",
       "savingsVerified": true,
@@ -1132,7 +1132,7 @@
         },
         {
           "question": "How much will my loved one actually receive?",
-          "answer": "Regular assistance ranges from $400 minimum to $1,350 maximum, while crisis assistance can go up to $2,000. The exact amount depends on household income, size, fuel type, and whether it's for heating or cooling. The payment goes directly to the utility company, not to your loved one."
+          "answer": "Assistance ranges from a $400 minimum up to a $2,000 maximum, with the highest amounts reserved for crisis situations such as a disconnection notice. The exact amount depends on household income, size, fuel type, and whether it's for heating or cooling. The payment goes directly to the utility company, not to your loved one."
         },
         {
           "question": "Can my loved one get LIHEAP if they're already receiving SNAP or SSI?",
@@ -1166,7 +1166,7 @@
       "icon": "Lightning",
       "phone": "2-1-1",
       "sourceUrl": "https://floridaliheap.com",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1430,7 +1430,7 @@
       "icon": "Lightning",
       "phone": "(850) 717-8523",
       "sourceUrl": "https://www.floridajobs.org/business-growth-and-partnerships/business-development/weatherization-assistance-program",
-      "contentStatus": "under-review",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
@@ -1453,7 +1453,7 @@
           }
         ]
       },
-      "intro": "If your loved one is overwhelmed by Medicare choices, prescription costs, or insurance appeals, SHINE provides free one-on-one counseling to sort through their options. Because this is an unbiased service run by trained volunteers, your loved one won't get sales pitches, just clear explanations of Medicare plans, Medigap policies, prescription assistance programs, and help with appeals.\n\nSHINE counselors can also help your loved one apply for Extra Help (Low Income Subsidy) to reduce prescription costs and Medicare Savings Programs that cover premiums. The service is available to any Medicare beneficiary or their family in Florida, no income limits or fees. Counseling happens by phone, in-person at local Area Agency on Aging sites, or through community events.",
+      "intro": "Medicare can feel like a maze, and it's hard to know if you're making the right choice for your parent. SHINE brings in local, trained volunteers who don't sell insurance and don't work for commissions. They sit down with you one-on-one to compare plans and find ways to lower prescription costs, especially with the new $2,100 out-of-pocket cap for 2026. It's unbiased expert help when you need it most.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1557,7 +1557,7 @@
       "icon": "Compass",
       "phone": "1-800-963-5337",
       "sourceUrl": "https://www.floridashine.org",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1585,7 +1585,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to shop for groceries or prepare meals safely, they may qualify for home-delivered meals through local Meals on Wheels programs or their Medicaid plan. Your loved one age 60+ who is assessed as homebound or has significant difficulty preparing meals can receive hot, frozen, or special diet meals delivered directly to their door.\n\nMany programs are free or request a small voluntary donation for qualifying low-income seniors; others charge a private-pay fee, typically $7.00 to $9.49 per meal. For enrollees in Medicaid Long-Term Care (LTC) plans, meals are provided at no cost based on the specific authorization of their plan and their documented nutritional and functional needs. Because government-funded programs are not entitlements and rely on limited funding, significant waitlists are common, so applying early is essential.",
+      "intro": "If your loved one struggles to shop for groceries or prepare meals safely, they may qualify for home-delivered meals through local Meals on Wheels programs or their Medicaid plan. Your loved one age 60+ who is assessed as homebound or has significant difficulty preparing meals can receive hot, frozen, or special diet meals delivered directly to their door.\n\nMany programs are free or request a small voluntary donation for qualifying low-income seniors; others charge a private-pay fee, typically $7.00 to $9.49 per meal. For enrollees in Medicaid Long-Term Care (LTC) plans, meals are provided at no cost. There is no fixed limit on the number of meals — the amount is determined by the specific health plan's medical authorization based on documented nutritional needs. Because government-funded programs are not entitlements and rely on limited funding, significant waitlists are common, so applying early is essential.",
       "savingsRange": "",
       "savingsSource": "Free service for qualifying participants",
       "savingsVerified": false,
@@ -1717,6 +1717,10 @@
         {
           "question": "How quickly can meal delivery start in an emergency situation?",
           "answer": "Emergency placements may be possible for seniors being discharged from the hospital or facing immediate nutritional crisis. Contact the local ADRC immediately and mention the urgent nature, some programs reserve emergency slots for these situations."
+        },
+        {
+          "question": "Is there a limit on how many Medicaid meals my loved one can receive?",
+          "answer": "No. Under a Medicaid Long-Term Care plan there is no fixed cap on the number of home-delivered meals. The quantity is authorized by your loved one's specific health plan based on their documented medical and nutritional needs, so it varies from person to person."
         }
       ],
       "layoutIntent": {
@@ -1730,7 +1734,7 @@
       "icon": "BowlFood",
       "phone": "1-800-96-ELDER",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/food-assistance/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -1754,7 +1758,7 @@
           }
         ]
       },
-      "intro": "Caring for a loved one with memory loss is a journey of incredible love, but it can also be exhausting. Florida's Alzheimer's Disease Initiative (ADI) is here to provide the \"backup\" you need to recharge while ensuring your loved one stays safe at home. Whether you need a few hours of help from an in-home worker, a secure day program, or even temporary overnight care during a crisis, this program offers a compassionate safety net. Beyond basic care, the ADI provides specialized caregiver training, case management, and medical supplies specifically designed to help you manage the unique challenges of dementia.\n\nWe know that worrying about costs can add to your stress, so the ADI program is designed to be accessible. There are no asset limits to qualify, meaning savings or home equity won't get in the way of getting help. Instead, a simple sliding scale based only on your loved one's monthly income determines a modest co-payment. While primarily for those 60 and older, the program also supports adults as young as 18 with a verified dementia diagnosis. Because this support is a lifeline for so many families, services are prioritized based on need, so reaching out to the Florida Elder Helpline is the best way to start your journey toward relief.",
+      "intro": "If you're caring for a loved one with memory loss, you know it's a 24/7 commitment that can leave you exhausted. Florida's ADI program is designed to give you the \"backup\" you need. Whether it's a trained worker coming to your home so you can run errands or secure care at a day center while you rest, this program focuses on keeping you healthy so you can keep your loved one safe at home. Best of all, there are no asset limits to qualify — only monthly income is used to determine a small co-pay.",
       "savingsRange": "",
       "savingsSource": "Service program with sliding-scale co-payments",
       "savingsVerified": false,
@@ -2263,14 +2267,14 @@
       "icon": "Scales",
       "phone": "(888) 895-7873",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/legal-services/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
       "id": "home-care-elderly-hce",
       "name": "Home Care for the Elderly (HCE) Program",
       "shortName": "HCE Program",
-      "tagline": "In-home care services to help your loved one avoid nursing home placement when they have a live-in family caregiver.",
+      "tagline": "A monthly financial subsidy paid to a live-in family caregiver to help keep your loved one out of a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2283,14 +2287,14 @@
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and at risk of nursing home placement, Florida's HCE Program provides financial assistance to support them living at home with a dedicated adult caregiver. Rather than providing direct staff or services, this program primarily offers a monthly subsidy to help caregivers manage the costs of keeping a senior in a private home setting. All participants receive a basic monthly subsidy of $160, and additional special subsidies may be authorized for medical supplies, home health aide services, or nutritional supplements like Ensure (officially authorized as of July 2026).\n\nTo qualify in 2026, the senior must meet specific clinical and financial criteria. Clinically, they must be certified as needing a Nursing Home Level of Care, and they must live in a private home with a caregiver who is willing and able to provide or coordinate their care. Financially, the senior's gross monthly income must be under $2,982, and their countable assets must be under $2,000 for an individual or $3,000 for a couple.\n\nBecause HCE is a state-funded program and not an entitlement, most areas use a Statewide Pre-Enrollment List. Unlike standard waitlists, placement on this list is determined by the senior's frailty and risk score rather than the date of their application. To begin the process and determine if your loved one qualifies for a full assessment, call the statewide Elder Helpline at 1-800-963-5337 for a preliminary phone screening.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
+      "intro": "Florida's HCE Program recognizes that family members are often the best caregivers, but that the costs of caring for a senior can add up quickly. Rather than sending a stranger into your home, this program provides you — the live-in caregiver — with a monthly check (starting at $160) to help cover the costs of food, medical supplies, and basic needs. It's a way for the state to support the incredible work you're already doing to keep your loved one out of a nursing home.\n\nTo qualify in 2026, the senior must meet specific clinical and financial criteria. Clinically, they must be certified as needing a Nursing Home Level of Care, and they must live in a private home with a caregiver who is willing and able to provide or coordinate their care. Financially, the senior's gross monthly income must be under $2,829, and their countable assets must be under $2,000 for an individual or $3,000 for a couple. All participants receive a basic monthly subsidy of $160, and additional special subsidies may be authorized for medical supplies, home health aide services, or nutritional supplements.\n\nBecause HCE is a state-funded program and not an entitlement, most areas use a Statewide Pre-Enrollment List (Apply early!). Unlike standard waitlists, placement on this list is determined by the senior's frailty and risk score rather than the date of their application. To begin the process and determine if your loved one qualifies for a full assessment, call the statewide Elder Helpline at 1-800-963-5337 for a preliminary phone screening.",
+      "savingsRange": "$160/month",
+      "savingsSource": "Basic monthly caregiver subsidy (special subsidies may add more)",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
-          "Income below ~$2,982/month",
+          "Income below ~$2,829/month",
           "Assets under ~$2,000",
           "Live-in adult caregiver required",
           "At nursing home level of care need"
@@ -2299,7 +2303,7 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2982
+            "monthlyLimit": 2829
           }
         ],
         "assetLimits": {
@@ -2324,7 +2328,7 @@
           "Florida resident with intent to remain",
           "Lives with an approved adult caregiver (age 18+) in a private, family-type home",
           "Caregiver must pass a Level 2 background check (fingerprinting) and be determined willing and able to provide or coordinate care",
-          "If income exceeds $2,982/month, a Qualified Income Trust (QIT) must be established to maintain eligibility"
+          "If income exceeds $2,829/month, a Qualified Income Trust (QIT) must be established to maintain eligibility"
         ],
         "povertyLevelReference": null
       },
@@ -2456,7 +2460,7 @@
       "icon": "House",
       "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-services/home-care-for-the-elderly/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -2621,7 +2625,7 @@
       "icon": "House",
       "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/community-care-for-the-elderly-cce-program/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     },
     {
@@ -2820,7 +2824,7 @@
       "icon": "House",
       "phone": "1-800-96-ELDER",
       "sourceUrl": "https://agingresources.org/",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13"
     }
   ],

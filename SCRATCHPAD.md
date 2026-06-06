@@ -7,6 +7,40 @@
 
 ## Current Focus
 
+### 2026-06-06 — Benefits pipeline: PUBLISHED NY (Ces QA) + FL (State Page QA) → PR to staging (awaiting TJ merge)
+
+**Outcome:** Applied all QA corrections, set programs `approved`, regenerated `drafts.ts`, opened PR → staging. **TJ merges to publish** (he asked to "come in at the end"; per CLAUDE.md only TJ can merge anyway). Branch `publish-benefits-ny-fl`.
+
+**What shipped:**
+- **NY (17/17 approved):** Pulled Ces's per-program corrections from her Notion QA queue (`035ff597…`) via 17 parallel subagents — each applied her Numbers/Phone/LINKS/COPY/STRUCTURE/FAQ scripts to the program in `data/pipeline/NY/drafts.json` AND web-verified every changed number against .gov sources (TJ's second-review ask). Highlights: MSP → no asset test (nulled assetLimits, QMB/QI tiers $1,856/$2,494), HEAP phone → 1-800-342-3009, SCSEP income $1,663 (125% FPL). Kept SNAP age **60** (the factcheck's "65" flag is wrong — senior SNAP/ESAP = 60). Fixed 3 agent-flagged internal contradictions (Enhanced STAR applicationNotes, SCHE FAQ#5, WRAP 15-yr alignment).
+- **FL (14/14 approved):** Applied the "FL — State Page" QA corrections (HCE income $2,829 + reframed as $160/mo caregiver subsidy, LIHEAP crisis max $2,000, PACE → statewide, Meals on Wheels no fixed limit, ADI/SHINE human-touch intros). Agent caught 2026 Part D cap = **$2,100** (QA doc said $2,000 = 2025). Flipped remaining 11 FL programs to approved.
+- **TX = already done** (verified `star-plus-medicaid-hcbs` has correct 2026 values $2,982/$752k; `cba-waiver` is a stale legacy **duplicate** left unapproved — duplicate cleanup is out of publish scope per CA precedent).
+- **CA = already done** (#854; 14/17 approved; 3 deliberately-deferred drafts left as-is: CBAS, SSP, Property Tax Postponement).
+
+**Key mechanics learned:** state pages render ALL pipeline programs **regardless of contentStatus** (status only drives the admin dashboard badge), so corrected content goes live only after `drafts.ts` regen. Regenerated ONLY NY+FL `drafts.ts` (replicated `cleanStateEntry`+`writePerStateDraftFile`, not `--regen-index`) — matches prior publish convention (TX #857 touched only `{ST}/drafts.json`+`drafts.ts`). `cleanStateEntry` filters incomeTable rows lacking numeric householdSize.
+
+**Skipped this session:** author-bio action item (Logan→Ces) — TJ deselected it.
+**Open / follow-ups (flagged, non-blocking):** TX `cba-waiver` duplicate cleanup; FL legal-services/CCE/elder-options were marked approved on prior review (no fresh pass this session); minor SNAP intro-vs-table threshold-basis nuance noted in NY reports (`/tmp/ny-reports/`).
+
+**Original context:** `/benefits-pipeline` invoked with a Slack "Senior Benefits Update" screenshot. TJ picked **publish FL, CA, TX, NY** (state pages). Skipped the author-bio action item (Logan→Ces) for now.
+
+**What I found (reconciled Slack note vs. actual `data/pipeline/{ST}/drafts.json` + git history):**
+- **CA** — programs 14/17 `approved` ✅ (PR #854 merged). State overview = no status. Gap = publish the **state overview** only. (drafts.json has 0/17 `lastVerifiedDate`.)
+- **TX** — programs 11/12 `approved` ✅ (PR #857 merged). State overview = no status. Gap = **state overview** only.
+- **FL** — programs **3/14 approved** (8 still `pipeline-draft`, 3 `under-review`). Gap = overview + decide on the 11 unapproved.
+- **NY** — programs **0/17 approved**, all `pipeline-draft`. "Ces completed NY" = her QA corrections are in the **Notion QA queue** (`035ff597-d5ff-4813-b744-6f717e77dbe0`), NOT yet applied to drafts.json. Gap = apply Ces's Notion corrections FIRST, then publish + state page.
+- **All 4 `stateOverview`s have no contentStatus** — the state *pages* were never published. Matches Slack "State pages QAd but not updated."
+
+**Factcheck high-severity flags to triage before publish:** FL SNAP age 60→65 + income_1 $1,255→$2,610; TX CBA Waiver age 21→65; NY MSP assets_individual $9,950→$33,308, NY SNAP age 60→65, NY HEAP assets $2,500→$3,750. Some are likely the known age-parser false-positives (SNAP-60 is intentional per MI learnings), some may be real.
+
+**BLOCKED — two questions posed to TJ, awaiting answer:**
+1. **NY** — pull Ces's corrections from her Notion QA queue and apply, or publish NY's current drafts as-is? (I started the Notion query; TJ interrupted.)
+2. **Factcheck flags** — fix before publishing, or publish + flag for follow-up?
+
+**Publish mechanism reference:** memory `project_benefits_publish_mechanism` — corrections land in `drafts.json` (set `contentStatus: approved`), regen ONLY that state's `drafts.ts` (not `--regen-index`, avoids churning all 50 states' timestamps), legacy-shadow check in `data/waiver-library.ts`. Worktrees have no node_modules → can't `next build` locally; staging CI compiles.
+
+**No repo changes this session** — investigation/triage only. Resume = answer the 2 questions, then execute publish for all four.
+
 ### 2026-06-05 — Find Families v2: pinned nearby seekers + calm-premium card (PR #936 → staging, OPEN)
 
 **What:** The provider Find Families page now leads with **"Your Market"** (the diagnostic) and pins a **real published care-seeker within 50 mi** on top when one exists — replacing the national-families browse list that showed a TX provider families in Maine. Branch `market-noleads-alert`, worktree `market-phase2`. PR #936 bundles: the no-leads Slack/Activity alert, the pin + reach-out wiring, a mobile pass, the coordinate foundation, and a dedicated calm-premium card.

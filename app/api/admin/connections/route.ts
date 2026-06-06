@@ -218,6 +218,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
     }
 
+    // CRITICAL FIX: Fetch missing provider emails from olera-providers table
+    // This ensures email display matches email sending logic (which checks both tables)
+    const providerEmailFallback = new Map<string, string>();
+
+    // Collect provider IDs that need email lookup from iOS table
+    const providersNeedingEmail = (rows ?? []).map(r => {
+      const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
+      return {
+        id: provider?.id,
+        sourceId: provider?.source_provider_id,
+        hasEmail: !!provider?.email,
+      };
+    }).filter(p => p.id && p.sourceId && !p.hasEmail);
+
+    // Batch fetch emails from olera-providers for providers missing email
+    if (providersNeedingEmail.length > 0) {
+      const sourceIds = providersNeedingEmail.map(p => p.sourceId).filter(Boolean) as string[];
+      const { data: iosProviders } = await db
+        .from("olera-providers")
+        .select("provider_id, email")
+        .in("provider_id", sourceIds);
+
+      // Build map of source_provider_id -> email for quick lookup
+      for (const ios of iosProviders ?? []) {
+        if (ios.email) {
+          providerEmailFallback.set(ios.provider_id, ios.email);
+        }
+      }
+    }
+
     const now = Date.now();
     const all = (rows ?? []).map((r) => {
       const family = one(r.from_profile as ProfileJoin<FamilyProfile>);
@@ -417,7 +447,9 @@ export async function GET(request: NextRequest) {
           display_name: provider?.display_name ?? null,
           slug: provider?.slug ?? null,
           source_provider_id: provider?.source_provider_id ?? null,
-          email: provider?.email ?? null,
+          // CRITICAL FIX: Fall back to olera-providers email if business_profiles.email is null
+          // This matches the email sending logic in connections/request/route.ts
+          email: provider?.email ?? (provider?.source_provider_id ? providerEmailFallback.get(provider.source_provider_id) : null) ?? null,
           phone: provider?.phone ?? null,
           image_url: provider?.image_url ?? null,
           is_active: providerIsActive,

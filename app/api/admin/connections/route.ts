@@ -454,9 +454,9 @@ export async function GET(request: NextRequest) {
           display_name: provider?.display_name ?? null,
           slug: provider?.slug ?? null,
           source_provider_id: provider?.source_provider_id ?? null,
-          // CRITICAL FIX: Fall back to olera-providers email if business_profiles.email is null
-          // This matches the email sending logic in connections/request/route.ts
-          email: provider?.email ?? (provider?.source_provider_id ? providerEmailFallback.get(provider.source_provider_id) : null) ?? null,
+          // CRITICAL FIX: Fall back to olera-providers email if business_profiles.email is null/empty
+          // Use || instead of ?? to catch empty strings, matching email sending logic
+          email: provider?.email?.trim() || (provider?.source_provider_id ? providerEmailFallback.get(provider.source_provider_id) : null) || null,
           phone: provider?.phone ?? null,
           image_url: provider?.image_url ?? null,
           is_active: providerIsActive,

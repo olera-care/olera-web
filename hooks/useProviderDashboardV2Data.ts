@@ -62,6 +62,10 @@ export interface ProviderDashboardV2Data {
     demand: number;
     radiusMiles?: number;
   };
+  /** Count of published care-seekers with an active care_post within ~50mi of
+   *  the provider — the rare "concrete leads" that drive the hero's
+   *  high-priority "family near you" tier. */
+  nearbyFamilies: { count: number };
 }
 
 /**

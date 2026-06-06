@@ -1201,11 +1201,10 @@ async function handleGuestConnection({
       console.error("[care-report] Magic link generation error, using browse page fallback:", magicLinkErr);
     }
 
-    // Generate magic links for each similar provider (consistent with Email #4/#6 pattern)
-    const similarProvidersWithMagicLinks: { name: string; slug: string; priceRange: string | null; viewUrl: string }[] = [];
-
-    for (const p of similarRaw || []) {
-      const providerDest = appendTrackingParams(`/provider/${p.slug}`, careReportEmailLogId);
+    // Generate magic links for each similar provider in PARALLEL (performance optimization)
+    const similarProviderPromises = (similarRaw || []).map(async (p: { display_name: string; slug: string; metadata: Record<string, unknown> | null }) => {
+      // Add provider slug to tracking for click attribution (Issue #2 fix)
+      const providerDest = appendTrackingParams(`/provider/${p.slug}?sp=${p.slug}`, careReportEmailLogId);
       let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback to public URL
 
       try {
@@ -1222,16 +1221,19 @@ async function handleGuestConnection({
         }
       } catch (linkErr) {
         console.error(`[care-report] Similar provider magic link failed for ${p.slug}:`, linkErr);
-        // Continue with fallback public URL
+        // Continue with fallback public URL (graceful degradation)
       }
 
-      similarProvidersWithMagicLinks.push({
+      return {
         name: p.display_name,
         slug: p.slug,
         priceRange: (p.metadata?.price_range as string) || null,
         viewUrl: providerMagicLink,
-      });
-    }
+      };
+    });
+
+    // Wait for all magic links to generate in parallel (much faster than sequential)
+    const similarProvidersWithMagicLinks = await Promise.all(similarProviderPromises);
 
     // Always send email, regardless of magic link success
     await sendEmail({

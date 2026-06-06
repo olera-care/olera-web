@@ -433,28 +433,32 @@ export async function GET(request: NextRequest) {
         console.error("[family-provider-silent] browse magic link failed:", linkErr);
       }
 
-      // Generate magic links for each recommended provider
-      for (const provider of recommendedProviders) {
-        const providerDest = appendTrackingParams(`/provider/${provider.slug}`, emailLogId);
-        let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback
+      // Generate magic links for each recommended provider in PARALLEL (performance fix)
+      await Promise.all(
+        recommendedProviders.map(async (provider) => {
+          // Add provider slug to tracking for click attribution
+          const providerDest = appendTrackingParams(`/provider/${provider.slug}?rp=${provider.slug}`, emailLogId);
+          let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback to public URL
 
-        try {
-          const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
-            type: "magiclink",
-            email: authEmail,
-            options: {
-              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(providerDest)}`,
-            },
-          });
-          if (!magicLinkError && magicLinkData?.properties?.action_link) {
-            providerMagicLink = magicLinkData.properties.action_link;
+          try {
+            const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
+              type: "magiclink",
+              email: authEmail,
+              options: {
+                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(providerDest)}`,
+              },
+            });
+            if (!magicLinkError && magicLinkData?.properties?.action_link) {
+              providerMagicLink = magicLinkData.properties.action_link;
+            }
+          } catch (linkErr) {
+            console.error(`[family-provider-silent] provider magic link failed for ${provider.slug}:`, linkErr);
+            // Continue with fallback public URL (graceful degradation)
           }
-        } catch (linkErr) {
-          console.error(`[family-provider-silent] provider magic link failed for ${provider.slug}:`, linkErr);
-        }
 
-        provider.viewUrl = providerMagicLink;
-      }
+          provider.viewUrl = providerMagicLink;
+        })
+      );
 
       // Generate email HTML
       const emailHtml = providerSilentEmail({

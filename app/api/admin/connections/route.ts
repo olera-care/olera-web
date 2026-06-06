@@ -595,24 +595,36 @@ export async function GET(request: NextRequest) {
         if (connectionId) {
           const eng = connectionEngagement.get(connectionId);
           if (!eng) {
-            debugEventProcessing.skippedNotInMap++;
-            if (debugEventProcessing.sampleSkippedEvents.length < 5) {
-              debugEventProcessing.sampleSkippedEvents.push({
-                event_type: ev.event_type,
-                provider_id: ev.provider_id,
-                connection_id: connectionId,
-                created_at: ev.created_at,
-                metadata: meta,
-              });
+            // Connection not in our current view (likely filtered out by date range or limit)
+            // If this is a lead_opened event, treat it as a provider-wide signal
+            // (fallback to multi-lead behavior for old connections)
+            if (ev.event_type === "lead_opened" && ev.provider_id) {
+              const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
+              for (const connId of connectionIds) {
+                const e = connectionEngagement.get(connId);
+                if (e) {
+                  e.lead_opened = true;
+                  if (!e.lastActivityAt || (ev.created_at && ev.created_at > e.lastActivityAt)) {
+                    e.lastActivityAt = ev.created_at;
+                  }
+                }
+              }
+              debugEventProcessing.multiLeadHandled++;
+              debugEventProcessing.multiLeadAffectedConnections += connectionIds.length;
+            } else {
+              // Non-lead_opened event for connection not in view - skip it
+              debugEventProcessing.skippedNotInMap++;
+              if (debugEventProcessing.sampleSkippedEvents.length < 5) {
+                debugEventProcessing.sampleSkippedEvents.push({
+                  event_type: ev.event_type,
+                  provider_id: ev.provider_id,
+                  connection_id: connectionId,
+                  created_at: ev.created_at,
+                  metadata: meta,
+                });
+              }
             }
-            console.log('[connections] Skipping event - connection not in map:', {
-              connectionId,
-              eventType: ev.event_type,
-              providerId: ev.provider_id,
-              mapSize: connectionEngagement.size,
-              mapHasConnection: connectionEngagement.has(connectionId)
-            });
-            continue; // Event for a different connection not in our list
+            continue;
           }
 
           debugEventProcessing.matchedWithConnectionId++;

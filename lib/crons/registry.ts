@@ -211,7 +211,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/conversation-stale",
     emailTypes: ["stale_conversation"],
     successSignal: "One or both parties resume the conversation.",
-    relatedAdminPath: "/admin/leads",
+    relatedAdminPath: "/admin/connections",
   },
 
   // ── Care seekers ───────────────────────────────────────────────────
@@ -270,7 +270,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/unread-reminders",
     emailTypes: ["unread_reminder"],
     successSignal: "Recipient replies in the thread.",
-    relatedAdminPath: "/admin/leads",
+    relatedAdminPath: "/admin/connections",
   },
   {
     id: "family-provider-silent",
@@ -284,7 +284,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/family-provider-silent",
     emailTypes: ["family_provider_silent"],
     successSignal: "Family reaches out to one of the recommended providers.",
-    relatedAdminPath: "/admin/leads",
+    relatedAdminPath: "/admin/connections",
   },
   {
     id: "family-never-engaged",
@@ -298,7 +298,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/family-never-engaged",
     emailTypes: ["family_never_engaged"],
     successSignal: "Family downloads the guide or returns to their inbox.",
-    relatedAdminPath: "/admin/leads",
+    relatedAdminPath: "/admin/connections",
   },
   {
     id: "provider-still-silent",
@@ -312,7 +312,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/provider-still-silent",
     emailTypes: ["provider_still_silent"],
     successSignal: "Family reaches out to recommended responsive provider or contacts support.",
-    relatedAdminPath: "/admin/leads",
+    relatedAdminPath: "/admin/connections",
   },
 
   // ── MedJobs (student talent marketplace) ───────────────────────────

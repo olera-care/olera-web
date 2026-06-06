@@ -349,21 +349,21 @@ export async function POST(request: Request) {
 
           console.log("[message] email sent successfully to:", recipientEmail);
 
-          // Record notification time for rate limiting
-          const notificationTimestamp = new Date().toISOString();
-          metadataToUpdate[lastNotificationKey] = notificationTimestamp;
+          // Record notification time for rate limiting (update metadata with timestamp)
+          const updatedMetaWithTimestamp = {
+            ...metadataToUpdate,
+            [lastNotificationKey]: new Date().toISOString(),
+          };
 
-          // Update metadata with notification timestamp (second update, but safe because thread already saved)
-          await admin
+          const { error: timestampError } = await admin
             .from("connections")
-            .update({ metadata: metadataToUpdate })
-            .eq("id", connectionId)
-            .then(({ error }) => {
-              if (error) {
-                console.error("[message] failed to update notification timestamp:", error);
-                // Non-fatal - email was sent, this is just for rate limiting
-              }
-            });
+            .update({ metadata: updatedMetaWithTimestamp })
+            .eq("id", connectionId);
+
+          if (timestampError) {
+            console.error("[message] failed to update notification timestamp:", timestampError);
+            // Non-fatal - email was sent, this is just for rate limiting
+          }
 
           } // End of rate limiting else block
         } else {

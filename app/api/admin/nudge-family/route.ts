@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams, isSuppressedRecipient } from "@/lib/email";
+import { isUndeliverable } from "@/lib/email-verification";
 import { familyNudgeEmail } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
@@ -142,26 +143,13 @@ export async function POST(req: NextRequest) {
   const siteUrl = getSiteUrl();
   const familyName = familyProfile.display_name || "Care Seeker";
   const providerName = providerProfile?.display_name || "the provider";
+  const subject = `Complete your profile to help ${providerName} respond`;
+  const fromAddress = "Olera <noreply@olera.care>";
 
-  // Reserve email log ID for tracking
-  const emailLogId = await reserveEmailLogId({
-    to: familyProfile.email,
-    subject: `Complete your profile to help ${providerName} respond`,
-    emailType: "family_nudge",
-    recipientType: "family",
-    metadata: {
-      connection_id,
-      family_profile_id,
-      nudged_by: user.email,
-      completion_percent: completeness.percentage,
-    },
-  });
-
-  // Build profile URL with tracking
-  const profileUrl = appendTrackingParams(
-    `${siteUrl}/portal/profile`,
-    emailLogId
-  );
+  // Build profile URL (without tracking for preview, with tracking for actual send)
+  const profileUrl = isPreview
+    ? `${siteUrl}/portal/profile`
+    : appendTrackingParams(`${siteUrl}/portal/profile`, null);
 
   // Build email HTML
   const html = familyNudgeEmail({
@@ -172,25 +160,63 @@ export async function POST(req: NextRequest) {
     profileUrl,
   });
 
-  const subject = `Complete your profile to help ${providerName} respond`;
-  const fromAddress = "Olera <noreply@olera.care>";
-
   // If preview mode, return email details without sending
   if (isPreview) {
+    // Check if email would be suppressed
+    let warning: string | null = null;
+    const suppressed = await isSuppressedRecipient(familyProfile.email);
+    const undeliverable = await isUndeliverable(familyProfile.email);
+
+    if (suppressed) {
+      warning = "This email may be suppressed due to prior bounces or spam complaints on record.";
+    } else if (undeliverable) {
+      warning = "This email may be suppressed because the address was verified as invalid/undeliverable.";
+    }
+
     return NextResponse.json({
       preview: true,
       from: fromAddress,
       to: familyProfile.email,
       subject,
       html,
+      warning,
     });
   }
 
-  // Send email
+  // Reserve email log ID for tracking (only when actually sending)
+  const emailLogId = await reserveEmailLogId({
+    to: familyProfile.email,
+    subject,
+    emailType: "family_nudge",
+    recipientType: "family",
+    metadata: {
+      connection_id,
+      family_profile_id,
+      nudged_by: user.email,
+      completion_percent: completeness.percentage,
+    },
+  });
+
+  // Update profileUrl with tracking params for actual send
+  const trackedProfileUrl = appendTrackingParams(
+    `${siteUrl}/portal/profile`,
+    emailLogId
+  );
+
+  // Rebuild email HTML with tracked URL for actual send
+  const trackedHtml = familyNudgeEmail({
+    familyName,
+    providerName,
+    missingFields: completeness.missingFields.slice(0, 5),
+    completionPercent: completeness.percentage,
+    profileUrl: trackedProfileUrl,
+  });
+
+  // Send email with tracked HTML
   const { success, error: sendError } = await sendEmail({
     to: familyProfile.email,
     subject,
-    html,
+    html: trackedHtml,
     emailType: "family_nudge",
     recipientType: "family",
     metadata: {

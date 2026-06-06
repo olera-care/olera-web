@@ -245,6 +245,7 @@ export default function ConnectionRow({
   // Nudge action state
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   // Email preview modal state
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -255,6 +256,7 @@ export default function ConnectionRow({
     html: string;
     endpoint: string;
     successText: string;
+    warning?: string | null;
   } | null>(null);
 
   // Add email state
@@ -369,14 +371,20 @@ export default function ConnectionRow({
 
   // Fetch email preview and show modal
   async function showNudgePreview(endpoint: string, successText: string) {
-    setNudging(true);
+    setLoadingPreview(true);
     setNudgeMsg(null);
     try {
       const body: { connection_id: string; family_profile_id?: string } = {
         connection_id: c.id,
       };
-      // If nudging family, include family_profile_id
-      if (endpoint.includes("nudge-family") && c.family.id) {
+
+      // Validate family_profile_id for family nudge endpoint
+      if (endpoint.includes("nudge-family")) {
+        if (!c.family.id) {
+          setNudgeMsg({ ok: false, text: "Family profile ID missing - cannot send nudge" });
+          setLoadingPreview(false);
+          return;
+        }
         body.family_profile_id = c.family.id;
       }
 
@@ -394,6 +402,7 @@ export default function ConnectionRow({
           html: data.html,
           endpoint,
           successText,
+          warning: data.warning || null,
         });
         setShowPreviewModal(true);
       } else {
@@ -402,7 +411,7 @@ export default function ConnectionRow({
     } catch {
       setNudgeMsg({ ok: false, text: "Network error" });
     } finally {
-      setNudging(false);
+      setLoadingPreview(false);
     }
   }
 
@@ -679,10 +688,10 @@ export default function ConnectionRow({
                         {detail.family.email && (
                           <button
                             onClick={() => showNudgePreview("/api/admin/nudge-family", "Follow-up sent to family.")}
-                            disabled={nudging}
+                            disabled={nudging || loadingPreview}
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
-                            {nudging ? "Sending..." : "Nudge Family"}
+                            {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Family"}
                           </button>
                         )}
                         {!detail.family.email && detail.family.phone && (
@@ -711,10 +720,10 @@ export default function ConnectionRow({
                         {c.waitingOn === "provider" && detail.provider.hasEmail && (
                           <button
                             onClick={() => showNudgePreview("/api/admin/send-nudge", "Nudge sent to provider.")}
-                            disabled={nudging}
+                            disabled={nudging || loadingPreview}
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
-                            {nudging ? "Sending..." : "Nudge Provider"}
+                            {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Provider"}
                           </button>
                         )}
                         {c.waitingOn === "provider" && !detail.provider.hasEmail && detail.provider.phone && (
@@ -729,10 +738,10 @@ export default function ConnectionRow({
                         {c.waitingOn === "family" && detail.family.email && (
                           <button
                             onClick={() => showNudgePreview("/api/admin/nudge-family", "Follow-up sent to family.")}
-                            disabled={nudging}
+                            disabled={nudging || loadingPreview}
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
-                            {nudging ? "Sending..." : "Nudge Family"}
+                            {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Family"}
                           </button>
                         )}
                         {c.waitingOn === "family" && !detail.family.email && detail.family.phone && (
@@ -987,6 +996,7 @@ export default function ConnectionRow({
           subject={emailPreview.subject}
           html={emailPreview.html}
           sending={nudging}
+          warning={emailPreview.warning}
         />
       )}
     </div>

@@ -139,11 +139,15 @@ export async function POST(request: Request) {
     const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
     const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
 
+    // Prepare metadata update - will be written once at the end after email sending
+    // Store this for later to avoid duplicate database updates
+    let metadataToUpdate = { ...existingMeta, thread: updatedThread };
+
     // Use admin client to bypass RLS (needed for guest flow)
     const { error: updateError } = await admin
       .from("connections")
       .update({
-        metadata: { ...existingMeta, thread: updatedThread },
+        metadata: metadataToUpdate,
       })
       .eq("id", connectionId);
 
@@ -345,17 +349,21 @@ export async function POST(request: Request) {
 
           console.log("[message] email sent successfully to:", recipientEmail);
 
-          // Update metadata to record notification time for rate limiting
-          const updatedMeta = {
-            ...existingMeta,
-            thread: updatedThread,
-            [lastNotificationKey]: new Date().toISOString(),
-          };
+          // Record notification time for rate limiting
+          const notificationTimestamp = new Date().toISOString();
+          metadataToUpdate[lastNotificationKey] = notificationTimestamp;
 
+          // Update metadata with notification timestamp (second update, but safe because thread already saved)
           await admin
             .from("connections")
-            .update({ metadata: updatedMeta })
-            .eq("id", connectionId);
+            .update({ metadata: metadataToUpdate })
+            .eq("id", connectionId)
+            .then(({ error }) => {
+              if (error) {
+                console.error("[message] failed to update notification timestamp:", error);
+                // Non-fatal - email was sent, this is just for rate limiting
+              }
+            });
 
           } // End of rate limiting else block
         } else {

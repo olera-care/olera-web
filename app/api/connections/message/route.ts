@@ -261,12 +261,24 @@ export async function POST(request: Request) {
 
           // Send instant email notification to both families and providers
           // Debouncing already handled upstream (skip if recipient active in last 5min)
+
+          // Detect if this is recipient's first message or a reply FIRST (before building subject)
+          // If recipient has never sent a message in this thread → first message
+          // If recipient has sent messages → reply
+          const recipientPreviousMessages = existingThread.filter(
+            (m) => m.from_profile_id === recipientProfileId && !m.is_auto_reply
+          );
+          const isFirstMessageToRecipient = recipientPreviousMessages.length === 0;
+
+          // Build subject line based on whether it's first message or reply
           // For families: put provider name FIRST so it shows on mobile before truncation
           // For providers: use first name
           const senderFullName = senderProfile?.display_name || "Someone";
           const senderFirstName = firstName(senderFullName, "Someone");
           const msgSubject = isFamily
-            ? `${senderFullName} replied to you`
+            ? (isFirstMessageToRecipient
+                ? `${senderFullName} sent you a message`
+                : `${senderFullName} replied to you`)
             : `${senderFirstName} sent you a message`;
 
           const msgEmailLogId = await reserveEmailLogId({
@@ -308,14 +320,6 @@ export async function POST(request: Request) {
             );
             viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           }
-
-          // Detect if this is recipient's first message or a reply
-          // If recipient has never sent a message in this thread → first message
-          // If recipient has sent messages → reply
-          const recipientPreviousMessages = existingThread.filter(
-            (m) => m.from_profile_id === recipientProfileId && !m.is_auto_reply
-          );
-          const isFirstMessageToRecipient = recipientPreviousMessages.length === 0;
 
           console.log("[message] sending email notification:", {
             to: recipientEmail,

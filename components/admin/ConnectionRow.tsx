@@ -245,6 +245,12 @@ export default function ConnectionRow({
   const [nudging, setNudging] = useState(false);
   const [nudgeMsg, setNudgeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Add email state
+  const [addingEmail, setAddingEmail] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState(false);
+
   // Email trail state (collapsed by default)
   const [showEmails, setShowEmails] = useState(false);
   const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
@@ -373,6 +379,52 @@ export default function ConnectionRow({
     }
   }
 
+  async function handleAddEmail(e: React.FormEvent, profileId: string) {
+    e.preventDefault();
+    if (!emailInput.trim()) return;
+
+    setAddingEmail(true);
+    setEmailError(null);
+    setEmailSuccess(false);
+
+    try {
+      const res = await fetch("/api/admin/leads/add-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId,
+          email: emailInput.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setEmailSuccess(true);
+        setEmailInput("");
+        // Update local detail state to show new email
+        if (detail) {
+          setDetail({
+            ...detail,
+            provider: {
+              ...detail.provider,
+              email: emailInput.trim(),
+              hasEmail: true,
+            },
+          });
+        }
+        // Notify parent to refresh list
+        onNudgeSuccess?.();
+      } else {
+        setEmailError(data.error || "Failed to add email");
+      }
+    } catch {
+      setEmailError("Network error");
+    } finally {
+      setAddingEmail(false);
+    }
+  }
+
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
@@ -389,7 +441,7 @@ export default function ConnectionRow({
             <span className="font-medium text-gray-900 truncate">{provider}</span>
             <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} compact />
           </div>
-          {/* Secondary line: care type + timeline | waiting status | nudge info */}
+          {/* Secondary line: care type + timeline | waiting status | nudge info | no email badge */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
             {(careType || timeline) && (
               <>
@@ -407,6 +459,15 @@ export default function ConnectionRow({
                 <span className="text-gray-300">|</span>
                 <span className="text-gray-400">
                   {engagementStatus.nudgeInfo}
+                </span>
+              </>
+            )}
+            {/* Show "No email" badge in provider perspective when provider has no email */}
+            {perspective === "provider" && !c.provider.email && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
+                  No email
                 </span>
               </>
             )}
@@ -682,9 +743,35 @@ export default function ConnectionRow({
                     )}
                   </div>
                   <p className="font-medium text-gray-900 text-sm truncate">{detail.provider.display_name || "Unknown"}</p>
-                  <div className="mt-1 space-y-0.5 text-sm">
+                  <div className="mt-1 space-y-1 text-sm">
                     {detail.provider.email ? (
                       <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate">{detail.provider.email}</a>
+                    ) : c.provider.id ? (
+                      <form onSubmit={(e) => handleAddEmail(e, c.provider.id!)} className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="email"
+                            value={emailInput}
+                            onChange={(e) => setEmailInput(e.target.value)}
+                            placeholder="Add provider email..."
+                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                            disabled={addingEmail}
+                          />
+                          <button
+                            type="submit"
+                            disabled={addingEmail || !emailInput.trim()}
+                            className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {addingEmail ? "Adding..." : "Add"}
+                          </button>
+                        </div>
+                        {emailError && (
+                          <p className="text-xs text-red-600">{emailError}</p>
+                        )}
+                        {emailSuccess && (
+                          <p className="text-xs text-emerald-600">Email added! First notification sent to provider.</p>
+                        )}
+                      </form>
                     ) : (
                       <span className="text-amber-600">No email</span>
                     )}

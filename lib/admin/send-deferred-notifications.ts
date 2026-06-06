@@ -191,12 +191,27 @@ export async function sendDeferredNotificationsForProvider(
         // 2. Tracks lead_opened event server-side
         // 3. Redirects directly to /provider/connections (skips onboard page)
         // 4. Higher conversion rates → providers see leads immediately
-        let viewUrl = generateLeadClaimUrl(providerSlug, email, conn.id, siteUrl);
-        const manageListingUrl = generateProviderPortalUrl(providerSlug, email, "manage", siteUrl);
-        const settingsUrl = generateProviderPortalUrl(providerSlug, email, "settings", siteUrl);
+        let viewUrl: string;
+        let manageListingUrl: string;
+        let settingsUrl: string;
 
-        // Append email tracking ID to view URL
-        viewUrl = appendTrackingParams(viewUrl, emailLogId);
+        try {
+          viewUrl = generateLeadClaimUrl(providerSlug, email, conn.id, siteUrl);
+          manageListingUrl = generateProviderPortalUrl(providerSlug, email, "manage", siteUrl);
+          settingsUrl = generateProviderPortalUrl(providerSlug, email, "settings", siteUrl);
+          // Append email tracking ID to view URL
+          viewUrl = appendTrackingParams(viewUrl, emailLogId);
+        } catch (urlError) {
+          // Fallback: if token generation fails, use direct URLs
+          // These go to onboard page but at least the email sends
+          console.error("[send-deferred] URL generation failed, using fallback:", urlError);
+          viewUrl = appendTrackingParams(
+            `${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${conn.id}`,
+            emailLogId
+          );
+          manageListingUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=manage`;
+          settingsUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=settings`;
+        }
 
         await sendEmail({
           to: email,

@@ -545,6 +545,19 @@ export async function GET(request: NextRequest) {
 
     // Fetch engagement events filtered by CONNECTION_ID in metadata
     // This ensures each connection shows only its own engagement, not provider-wide
+
+    // DEBUG: Track event processing
+    const debugEventProcessing = {
+      totalFetched: 0,
+      matchedWithConnectionId: 0,
+      skippedNotInMap: 0,
+      multiLeadHandled: 0,
+      multiLeadAffectedConnections: 0,
+      ignored: 0,
+      sampleSkippedEvents: [] as any[],
+      sampleMatchedEvents: [] as any[],
+    };
+
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
@@ -553,6 +566,8 @@ export async function GET(request: NextRequest) {
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
         .order("created_at", { ascending: false })
         .limit(10000);
+
+      debugEventProcessing.totalFetched = actEvents?.length ?? 0;
 
       console.log('[connections] Fetched engagement events:', {
         totalEvents: actEvents?.length ?? 0,
@@ -580,6 +595,16 @@ export async function GET(request: NextRequest) {
         if (connectionId) {
           const eng = connectionEngagement.get(connectionId);
           if (!eng) {
+            debugEventProcessing.skippedNotInMap++;
+            if (debugEventProcessing.sampleSkippedEvents.length < 5) {
+              debugEventProcessing.sampleSkippedEvents.push({
+                event_type: ev.event_type,
+                provider_id: ev.provider_id,
+                connection_id: connectionId,
+                created_at: ev.created_at,
+                metadata: meta,
+              });
+            }
             console.log('[connections] Skipping event - connection not in map:', {
               connectionId,
               eventType: ev.event_type,
@@ -588,6 +613,16 @@ export async function GET(request: NextRequest) {
               mapHasConnection: connectionEngagement.has(connectionId)
             });
             continue; // Event for a different connection not in our list
+          }
+
+          debugEventProcessing.matchedWithConnectionId++;
+          if (debugEventProcessing.sampleMatchedEvents.length < 5) {
+            debugEventProcessing.sampleMatchedEvents.push({
+              event_type: ev.event_type,
+              provider_id: ev.provider_id,
+              connection_id: connectionId,
+              created_at: ev.created_at,
+            });
           }
 
           if (ev.event_type === "email_click") eng.email_clicked = true;
@@ -613,7 +648,9 @@ export async function GET(request: NextRequest) {
         // Handle provider-wide events (multi-lead emails with no specific connection_id)
         // When provider clicks a multi-lead email and lands on inbox, mark ALL their connections as viewed
         else if (ev.event_type === "lead_opened" && ev.provider_id) {
+          debugEventProcessing.multiLeadHandled++;
           const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
+          debugEventProcessing.multiLeadAffectedConnections += connectionIds.length;
           for (const connId of connectionIds) {
             const eng = connectionEngagement.get(connId);
             if (eng) {
@@ -624,6 +661,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        } else {
+          debugEventProcessing.ignored++;
         }
       }
     }
@@ -906,6 +945,11 @@ export async function GET(request: NextRequest) {
       providerActions,
       engagement,
       truncated,
+      _debug: {
+        providerKeysCount: allProviderKeys?.length ?? 0,
+        connectionMapSize: connectionEngagement?.size ?? 0,
+        eventProcessing: debugEventProcessing,
+      },
     });
   } catch (err) {
     console.error("[connections] fatal:", err);

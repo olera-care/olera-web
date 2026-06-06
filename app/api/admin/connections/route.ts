@@ -500,7 +500,9 @@ export async function GET(request: NextRequest) {
     )].slice(0, 1000);
 
     // Per-provider engagement tracking
-    const providerEngagement = new Map<string, {
+    // CONNECTION-SPECIFIC engagement tracking (not provider-level)
+    // Each connection has its own engagement data based on events with matching connection_id
+    const connectionEngagement = new Map<string, {
       email_clicked: boolean;
       lead_opened: boolean;
       contact_revealed: boolean;
@@ -512,9 +514,9 @@ export async function GET(request: NextRequest) {
       lastActivityAt: string | null;
     }>();
 
-    // Initialize all providers as not engaged
-    for (const key of allProviderKeys) {
-      providerEngagement.set(key, {
+    // Initialize engagement data for each CONNECTION (not provider)
+    for (const r of rows ?? []) {
+      connectionEngagement.set(r.id, {
         email_clicked: false,
         lead_opened: false,
         contact_revealed: false,
@@ -527,7 +529,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch engagement events by provider (include metadata for contact_revealed type)
+    // Fetch engagement events filtered by CONNECTION_ID in metadata
+    // This ensures each connection shows only its own engagement, not provider-wide
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
@@ -538,7 +541,13 @@ export async function GET(request: NextRequest) {
         .limit(10000);
 
       for (const ev of actEvents ?? []) {
-        const eng = providerEngagement.get(ev.provider_id);
+        const meta = ev.metadata as Record<string, unknown> | null;
+        const connectionId = meta?.connection_id as string | undefined;
+
+        // Only process events that have a connection_id AND match one of our connections
+        // This filters out: legacy events (no connection_id), events for other connections
+        if (!connectionId) continue;
+        const eng = connectionEngagement.get(connectionId);
         if (!eng) continue;
 
         if (ev.event_type === "email_click") eng.email_clicked = true;
@@ -546,7 +555,6 @@ export async function GET(request: NextRequest) {
         else if (ev.event_type === "contact_revealed") {
           eng.contact_revealed = true;
           // Track what was copied (phone vs email)
-          const meta = ev.metadata as Record<string, unknown> | null;
           if (meta?.contact_type === "phone") {
             eng.phone_copied = true;
           } else {
@@ -557,7 +565,7 @@ export async function GET(request: NextRequest) {
         else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
         else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
 
-        // Track most recent activity
+        // Track most recent activity FOR THIS CONNECTION
         if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
           eng.lastActivityAt = ev.created_at;
         }
@@ -651,8 +659,8 @@ export async function GET(request: NextRequest) {
     const connectionFamilyEngagementLevels = new Map<string, FamilyEngagementLevel>();
 
     for (const c of searched) {
-      // Get engagement data for this provider
-      const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
+      // Get engagement data for THIS SPECIFIC CONNECTION (not provider-wide)
+      const eng = connectionEngagement.get(c.id) ?? null;
 
       // Calculate engagement level for this connection
       // Use the most recent of: engagement event OR message timestamp
@@ -796,24 +804,23 @@ export async function GET(request: NextRequest) {
       familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
     }));
 
-    // Per-provider engagement data for UI badges (keyed by provider activityKey)
-    // Note: "messaged", "markedReplied", "alreadyConnected" are NOT included here
-    // because they're per-connection, not per-provider. The frontend should use
-    // c.responded, c.markedReplied, c.alreadyConnected directly.
+    // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
+    // This shows engagement specific to each connection, not aggregated across all provider's connections.
+    // "messaged", "markedReplied", "alreadyConnected" are already per-connection via
+    // c.responded, c.markedReplied, c.alreadyConnected.
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
     for (const c of pageRaw) {
-      const key = c.provider.activityKey;
-      if (key && !engagement[key]) {
-        const eng = providerEngagement.get(key);
-        engagement[key] = {
-          email_clicked: eng?.email_clicked ?? false,
-          lead_opened: eng?.lead_opened ?? false,
-          contact_revealed: eng?.contact_revealed ?? false,
-          phone_copied: eng?.phone_copied ?? false,
-          email_copied: eng?.email_copied ?? false,
-          phone_clicked: eng?.phone_clicked ?? false,
-          email_link_clicked: eng?.email_link_clicked ?? false,
-          continue_in_inbox: eng?.continue_in_inbox ?? false,
+      const eng = connectionEngagement.get(c.id);
+      if (eng) {
+        engagement[c.id] = {
+          email_clicked: eng.email_clicked,
+          lead_opened: eng.lead_opened,
+          contact_revealed: eng.contact_revealed,
+          phone_copied: eng.phone_copied,
+          email_copied: eng.email_copied,
+          phone_clicked: eng.phone_clicked,
+          email_link_clicked: eng.email_link_clicked,
+          continue_in_inbox: eng.continue_in_inbox,
         };
       }
     }

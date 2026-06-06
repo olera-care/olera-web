@@ -350,15 +350,35 @@ export function getFamilyEngagementLevel(
   connectionCreatedAt: string,
   now: number = Date.now()
 ): FamilyEngagementResult {
-  // If provider hasn't responded yet, family engagement tracking hasn't started
+  // If provider hasn't responded yet, escalate to admin based on time
+  // This ensures provider-silent connections don't sit in "new" forever
   if (!data.providerResponded) {
     const connectionCreatedTime = new Date(connectionCreatedAt).getTime();
     const daysSinceCreation = Math.floor((now - connectionCreatedTime) / DAY_MS);
+
+    // Provider-silent connections should escalate:
+    // - 24+ days → needs_call (admin intervention required)
+    // - 14+ days → stuck (re-engagement failed, heading to needs_call)
+    // - <14 days → new (normal flow, emails #5 and #7 will handle)
+    let level: FamilyEngagementLevel;
+    let isStale: boolean;
+
+    if (daysSinceCreation >= NEEDS_CALL_THRESHOLD_DAYS) {
+      level = "needs_call";
+      isStale = true;
+    } else if (daysSinceCreation >= STUCK_THRESHOLD_DAYS) {
+      level = "stuck";
+      isStale = true;
+    } else {
+      level = "new";
+      isStale = false;
+    }
+
     return {
-      level: "new",
-      label: FAMILY_ENGAGEMENT_LABELS.new,
+      level,
+      label: FAMILY_ENGAGEMENT_LABELS[level],
       daysSinceActivity: daysSinceCreation,
-      isStale: false,
+      isStale,
     };
   }
 

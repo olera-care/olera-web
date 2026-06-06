@@ -222,23 +222,30 @@ export async function GET(request: NextRequest) {
     // This ensures email display matches email sending logic (which checks both tables)
     const providerEmailFallback = new Map<string, string>();
 
-    // Collect provider IDs that need email lookup from iOS table
-    const providersNeedingEmail = (rows ?? []).map(r => {
+    // Collect unique source_provider_ids that need email lookup from iOS table
+    // Use Set to deduplicate (same provider may appear in multiple connections)
+    const uniqueSourceIds = new Set<string>();
+    for (const r of rows ?? []) {
       const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
-      return {
-        id: provider?.id,
-        sourceId: provider?.source_provider_id,
-        hasEmail: !!provider?.email,
-      };
-    }).filter(p => p.id && p.sourceId && !p.hasEmail);
+      if (provider?.source_provider_id && !provider?.email) {
+        uniqueSourceIds.add(provider.source_provider_id);
+      }
+    }
 
     // Batch fetch emails from olera-providers for providers missing email
-    if (providersNeedingEmail.length > 0) {
-      const sourceIds = providersNeedingEmail.map(p => p.sourceId).filter(Boolean) as string[];
-      const { data: iosProviders } = await db
+    // Filter out deleted providers to match email sending behavior
+    if (uniqueSourceIds.size > 0) {
+      const sourceIds = Array.from(uniqueSourceIds);
+      const { data: iosProviders, error: iosError } = await db
         .from("olera-providers")
         .select("provider_id, email")
-        .in("provider_id", sourceIds);
+        .in("provider_id", sourceIds)
+        .not("deleted", "is", true);
+
+      if (iosError) {
+        console.error("[connections] olera-providers email lookup failed:", iosError);
+        // Continue with empty fallback map - fail gracefully
+      }
 
       // Build map of source_provider_id -> email for quick lookup
       for (const ios of iosProviders ?? []) {

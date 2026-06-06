@@ -139,16 +139,6 @@ export async function POST(request: Request) {
     const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
     const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
 
-    // Check if this is the provider's first response in this thread (for first response email)
-    // Only applies to inquiry connections - for Matches (request), provider already initiated
-    const isProviderSender = profileId === providerProfileId;
-    const providerMessagesBeforeThis = existingThread.filter(
-      (m) => m.from_profile_id === providerProfileId && !m.is_auto_reply
-    );
-    // Only trigger first response email for inquiry connections (not Matches)
-    // For Matches, the provider already sent the first message (the reach-out)
-    const isFirstProviderResponse = isInquiry && isProviderSender && providerMessagesBeforeThis.length === 0;
-
     // Use admin client to bypass RLS (needed for guest flow)
     const { error: updateError } = await admin
       .from("connections")
@@ -188,12 +178,6 @@ export async function POST(request: Request) {
       });
 
       if (!recentRecipientMsg) {
-        // Check if family has already replied (for email template selection)
-        const familyMessagesBeforeThis = existingThread.filter(
-          (m) => m.from_profile_id === familyProfileId && !m.is_auto_reply
-        );
-        const isFamilyEngaged = familyMessagesBeforeThis.length > 0;
-
         const [{ data: senderProfile }, { data: recipientProfile }] =
           await Promise.all([
             admin
@@ -252,6 +236,24 @@ export async function POST(request: Request) {
               : text.trim();
 
           const isFamily = recipientProfile?.type === "family";
+
+          // Rate limiting: max 1 email per connection per recipient per 30 minutes
+          // Prevents rapid-fire emails while allowing natural back-and-forth conversation
+          const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+          const lastNotificationKey = isFamily
+            ? "last_notification_to_family_at"
+            : "last_notification_to_provider_at";
+          const lastNotificationTime = existingMeta[lastNotificationKey] as string | undefined;
+
+          if (lastNotificationTime && new Date(lastNotificationTime).getTime() > thirtyMinAgo) {
+            console.log("[message] skipping email due to rate limit:", {
+              recipientProfileId,
+              recipientType: isFamily ? "family" : "provider",
+              lastNotificationTime,
+              connectionId,
+            });
+            // Skip email but continue to WhatsApp notification
+          } else {
 
           // Send instant email notification to both families and providers
           // Debouncing already handled upstream (skip if recipient active in last 5min)
@@ -342,6 +344,20 @@ export async function POST(request: Request) {
           });
 
           console.log("[message] email sent successfully to:", recipientEmail);
+
+          // Update metadata to record notification time for rate limiting
+          const updatedMeta = {
+            ...existingMeta,
+            thread: updatedThread,
+            [lastNotificationKey]: new Date().toISOString(),
+          };
+
+          await admin
+            .from("connections")
+            .update({ metadata: updatedMeta })
+            .eq("id", connectionId);
+
+          } // End of rate limiting else block
         } else {
           console.warn("[message] no email found for recipient:", {
             recipientProfileId,

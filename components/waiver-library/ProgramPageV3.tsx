@@ -18,7 +18,7 @@ import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
-import { getProgramVerifier } from "@/data/benefits-verifiers";
+import { getProgramVerifier, getProgramPublisher } from "@/data/benefits-verifiers";
 import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -919,7 +919,8 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 </p>
               ) : null}
               {(() => {
-                const { author, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
+                const { author: publisher } = getProgramPublisher(state.abbreviation, program.id);
+                const { author: verifier, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
                 const verifiedAt = reviewedAt || program.reviewedAt || program.lastVerifiedDate;
                 return (
                   <>
@@ -932,13 +933,22 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                       />
                     )}
                     <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
-                      <ReviewerAvatar author={author} />
-                      <span className="text-gray-400">Reviewed by</span>
+                      <ReviewerAvatar author={publisher} />
+                      <span className="text-gray-400">Published by</span>
                       <Link
-                        href={`/author/${author.slug}`}
+                        href={`/author/${publisher.slug}`}
                         className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
                       >
-                        {author.name}
+                        {publisher.name}
+                      </Link>
+                      <span className="text-gray-300">·</span>
+                      <ReviewerAvatar author={verifier} />
+                      <span className="text-gray-400">Verified by</span>
+                      <Link
+                        href={`/author/${verifier.slug}`}
+                        className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                      >
+                        {verifier.name}
                       </Link>
                       {verifiedAt && (
                         <>

@@ -13,6 +13,14 @@
 import { getAuthorBySlug, type Author } from "@/lib/authors";
 
 const DEFAULT_VERIFIER_SLUG = "logan-dubose";
+/**
+ * Publisher = the person who produced/QA'd the content (Cecille Chavez, Benefits
+ * QA Lead). Shown as "Published by …" alongside the MD "Verified by …" credit so
+ * each page carries both a content owner and a medical-authority signal. The
+ * verifier (default Dr. Logan DuBose, MD) is what preserves the page's clinical
+ * E-E-A-T — do not displace it.
+ */
+const DEFAULT_PUBLISHER_SLUG = "cecille-chavez";
 
 interface VerifierOverride {
   slug: string;
@@ -32,6 +40,14 @@ export const STATE_VERIFIERS: Record<string, VerifierOverride> = {
   // "fl": { slug: "tj-falohun", reviewedAt: "2026-04-20" },
 };
 
+/**
+ * Publisher overrides — same keying as the verifier maps. Default is Cecille
+ * (DEFAULT_PUBLISHER_SLUG); add an entry to credit a different content owner on
+ * a specific program/state.
+ */
+export const PROGRAM_PUBLISHERS: Record<string, VerifierOverride> = {};
+export const STATE_PUBLISHERS: Record<string, VerifierOverride> = {};
+
 export interface ResolvedVerifier {
   author: Author;
   /** Only set when the override explicitly carries a reviewed-at date. */
@@ -40,18 +56,27 @@ export interface ResolvedVerifier {
   hasExplicitReview: boolean;
 }
 
-function resolve(override: VerifierOverride | undefined): ResolvedVerifier {
+function resolve(override: VerifierOverride | undefined, defaultSlug: string): ResolvedVerifier {
   const author =
     (override?.slug ? getAuthorBySlug(override.slug) : undefined) ??
-    getAuthorBySlug(DEFAULT_VERIFIER_SLUG)!;
+    getAuthorBySlug(defaultSlug)!;
   return { author, reviewedAt: override?.reviewedAt, hasExplicitReview: !!override };
 }
 
 export function getProgramVerifier(stateAbbrev: string, programId: string): ResolvedVerifier {
   const key = `${stateAbbrev.toLowerCase()}:${programId}`;
-  return resolve(PROGRAM_VERIFIERS[key]);
+  return resolve(PROGRAM_VERIFIERS[key], DEFAULT_VERIFIER_SLUG);
 }
 
 export function getStateVerifier(stateAbbrev: string): ResolvedVerifier {
-  return resolve(STATE_VERIFIERS[stateAbbrev.toLowerCase()]);
+  return resolve(STATE_VERIFIERS[stateAbbrev.toLowerCase()], DEFAULT_VERIFIER_SLUG);
+}
+
+export function getProgramPublisher(stateAbbrev: string, programId: string): ResolvedVerifier {
+  const key = `${stateAbbrev.toLowerCase()}:${programId}`;
+  return resolve(PROGRAM_PUBLISHERS[key], DEFAULT_PUBLISHER_SLUG);
+}
+
+export function getStatePublisher(stateAbbrev: string): ResolvedVerifier {
+  return resolve(STATE_PUBLISHERS[stateAbbrev.toLowerCase()], DEFAULT_PUBLISHER_SLUG);
 }

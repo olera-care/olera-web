@@ -205,18 +205,6 @@ type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 type ReferrerBreakdown = Record<ReferrerClass, number>;
 
 // Provider response rate tracking — closes the loop on CTA effectiveness:
-// Impression → Click → Lead → Provider Response. Lets us measure whether
-// providers are actually responding to families.
-interface ProviderResponseMetrics {
-  total_leads: number;
-  responded_leads: number;
-  response_rate_percent: number;
-  median_response_time_hours: number | null;
-  awaiting_response_count: number;
-}
-
-type ProviderResponseByVariant = Record<CTAVariantKey, ProviderResponseMetrics>;
-
 // Other Lead Capture Sources — tracks lead capture entry points that are NOT
 // CTA variants or Q&A (those are tracked in their own sections).
 // Only includes: Custom Quote, Book Consultation, Message Staff.
@@ -272,8 +260,6 @@ type WindowResult = {
   cta_funnel_by_variant: CTAFunnelByVariant;
   referrer_breakdown: ReferrerBreakdown;
   entry_source_breakdown: EntrySourceBreakdown;
-  provider_response: ProviderResponseMetrics;
-  provider_response_by_variant: ProviderResponseByVariant;
   lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
 };
 
@@ -394,19 +380,6 @@ const EMPTY_ENTRY_SOURCE_BREAKDOWN = (): EntrySourceBreakdown => ({
   other_total: 0,
   top_editorial_articles: [],
 });
-
-const EMPTY_PROVIDER_RESPONSE = (): ProviderResponseMetrics => ({
-  total_leads: 0,
-  responded_leads: 0,
-  response_rate_percent: 0,
-  median_response_time_hours: null,
-  awaiting_response_count: 0,
-});
-
-const EMPTY_PROVIDER_RESPONSE_BY_VARIANT = (): ProviderResponseByVariant => ({
-  ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_PROVIDER_RESPONSE()])),
-  unassigned: EMPTY_PROVIDER_RESPONSE(),
-}) as ProviderResponseByVariant;
 
 const EMPTY_LEAD_CAPTURE_SOURCES_BREAKDOWN = (): LeadCaptureSourcesBreakdown => ({
   total: 0,
@@ -1306,25 +1279,6 @@ async function fetchWindow(
     unassigned: ctaSizesFor("unassigned"),
   } as CTAFunnelByVariant;
 
-  // Provider response rates — calculate whether providers are replying to leads.
-  // Thread messages in metadata.thread, provider responded = any message where
-  // from_profile_id === connection.to_profile_id AND is_auto_reply !== true.
-  type ThreadMessage = {
-    from_profile_id: string;
-    text?: string;
-    created_at: string;
-    is_auto_reply?: boolean;
-  };
-  // Dynamically supports all variants from CTA_VARIANTS
-  const responseTimes: number[] = [];
-  let respondedLeads = 0;
-  type ResponseVariantData = { total: number; responded: number; times: number[] };
-  const emptyResponseData = (): ResponseVariantData => ({ total: 0, responded: 0, times: [] });
-  const byVariant: Record<CTAVariantKey, ResponseVariantData> = {
-    ...Object.fromEntries(CTA_VARIANTS.map(v => [v, emptyResponseData()])),
-    unassigned: emptyResponseData(),
-  } as Record<CTAVariantKey, ResponseVariantData>;
-
   const connectionsRaw = (connectionsRes.data ?? []) as Array<{
     id: string;
     from_profile_id: string | null;
@@ -1341,65 +1295,6 @@ async function fetchWindow(
     from_profile: Array.isArray(c.from_profile) ? c.from_profile[0] ?? null : c.from_profile,
     to_profile: Array.isArray(c.to_profile) ? c.to_profile[0] ?? null : c.to_profile,
   }));
-
-  for (const conn of connections) {
-    const meta = conn.metadata ?? {};
-    const thread = (meta.thread as ThreadMessage[]) || [];
-    const variant = (meta.cta_variant as string) || "unassigned";
-    const variantKey: CTAVariantKey =
-      typeof variant === "string" && CTA_VARIANT_BUCKETS.has(variant)
-        ? (variant as CTAVariant)
-        : "unassigned";
-
-    byVariant[variantKey].total++;
-
-    // Find first provider message (non-auto-reply)
-    const providerMsg = thread.find(
-      (m) => m.from_profile_id === conn.to_profile_id && m.is_auto_reply !== true
-    );
-
-    if (providerMsg) {
-      respondedLeads++;
-      byVariant[variantKey].responded++;
-
-      const responseTimeHours =
-        (new Date(providerMsg.created_at).getTime() - new Date(conn.created_at).getTime()) /
-        (1000 * 60 * 60);
-      responseTimes.push(responseTimeHours);
-      byVariant[variantKey].times.push(responseTimeHours);
-    }
-  }
-
-  // Calculate median
-  const medianFn = (arr: number[]): number | null => {
-    if (arr.length === 0) return null;
-    const sorted = [...arr].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  };
-
-  const buildResponseMetrics = (
-    total: number,
-    responded: number,
-    times: number[]
-  ): ProviderResponseMetrics => ({
-    total_leads: total,
-    responded_leads: responded,
-    response_rate_percent: total > 0 ? Math.round((responded / total) * 100) : 0,
-    median_response_time_hours: medianFn(times),
-    awaiting_response_count: total - responded,
-  });
-
-  const providerResponse = buildResponseMetrics(connections.length, respondedLeads, responseTimes);
-  const providerResponseByVariant: ProviderResponseByVariant = {
-    ...Object.fromEntries(
-      CTA_VARIANTS.map(v => [
-        v,
-        buildResponseMetrics(byVariant[v].total, byVariant[v].responded, byVariant[v].times),
-      ])
-    ),
-    unassigned: buildResponseMetrics(byVariant.unassigned.total, byVariant.unassigned.responded, byVariant.unassigned.times),
-  } as ProviderResponseByVariant;
 
   // ── Other Lead Capture Sources ──────────────────────────────────────────
   // Tracks lead capture entry points that are NOT CTA variants or Q&A
@@ -1513,8 +1408,6 @@ async function fetchWindow(
     cta_funnel_by_variant: ctaFunnelByVariant,
     referrer_breakdown: referrerBreakdown,
     entry_source_breakdown: entrySourceBreakdown,
-    provider_response: providerResponse,
-    provider_response_by_variant: providerResponseByVariant,
     lead_capture_sources_breakdown: leadCaptureSourcesBreakdown,
   };
 }
@@ -1965,8 +1858,6 @@ export async function GET(request: NextRequest) {
         cta_funnel_by_variant: windowedRes.cta_funnel_by_variant,
         referrer_breakdown: windowedRes.referrer_breakdown,
         entry_source_breakdown: windowedRes.entry_source_breakdown,
-        provider_response: windowedRes.provider_response,
-        provider_response_by_variant: windowedRes.provider_response_by_variant,
         lead_capture_sources_breakdown: windowedRes.lead_capture_sources_breakdown,
       },
       prior: prior
@@ -1984,8 +1875,6 @@ export async function GET(request: NextRequest) {
             cta_funnel_by_variant: prior.cta_funnel_by_variant,
             referrer_breakdown: prior.referrer_breakdown,
             entry_source_breakdown: prior.entry_source_breakdown,
-            provider_response: prior.provider_response,
-            provider_response_by_variant: prior.provider_response_by_variant,
             lead_capture_sources_breakdown: prior.lead_capture_sources_breakdown,
           }
         : null,

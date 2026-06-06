@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
+import { newMessageEmail, firstMessageEmail, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { normalizeUSPhone } from "@/lib/twilio";
@@ -365,18 +365,32 @@ export async function POST(request: Request) {
             }
           }
 
+          // Detect if this is recipient's first message or a reply
+          // If recipient has never sent a message in this thread → first message
+          // If recipient has sent messages → reply
+          const recipientPreviousMessages = existingThread.filter(
+            (m) => m.from_profile_id === recipientProfileId && !m.is_auto_reply
+          );
+          const isFirstMessageToRecipient = recipientPreviousMessages.length === 0;
+
           console.log("[message] sending email notification:", {
             to: recipientEmail,
             subject: msgSubject,
             recipientType: isFamily ? "family" : "provider",
             senderName: senderProfile?.display_name,
             emailLogId: msgEmailLogId,
+            isFirstMessage: isFirstMessageToRecipient,
           });
+
+          // Use different template based on whether recipient has messaged before
+          const emailTemplate = isFirstMessageToRecipient
+            ? firstMessageEmail
+            : newMessageEmail;
 
           await sendEmail({
             to: recipientEmail,
             subject: msgSubject,
-            html: newMessageEmail({
+            html: emailTemplate({
               recipientName: recipientProfile?.display_name || "",
               senderName: senderProfile?.display_name || "",
               messagePreview: preview,

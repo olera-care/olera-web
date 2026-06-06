@@ -462,6 +462,53 @@ export function connectionResponseEmail(opts: {
 }
 
 /** Email when a new message is sent in a connection thread */
+/**
+ * Email for when someone sends their FIRST message in a thread (initiating contact).
+ * Shows the message preview and says "sent you a message" not "got back to you".
+ */
+export function firstMessageEmail(opts: {
+  recipientName: string;
+  senderName: string;
+  messagePreview: string;
+  viewUrl: string;
+}): string {
+  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
+  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
+    ? escapeHtml(firstName(opts.recipientName, "there"))
+    : "there";
+  const safePreview = escapeHtml(opts.messagePreview);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${recipientGreeting},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${safeSenderFullName}</strong> sent you a message:
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
+    <div style="margin:0 0 24px;">${button("Read their message", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      That's a real person on the other end, ready to help. Reply whenever you're ready — there's no rush, and the conversation stays right in your inbox, just between the two of you.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Not sure what to say? Even a quick note about who needs care and when is a great start.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions, or want help knowing what to ask? A real person is here at <a href="mailto:support@olera.care" style="color:#6b7280;text-decoration:underline;">support@olera.care</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "Read their message and reply whenever you're ready.");
+}
+
+/**
+ * Email for when someone REPLIES in an ongoing conversation.
+ * Says "got back to you" since recipient has messaged before.
+ */
 export function newMessageEmail(opts: {
   recipientName: string;
   senderName: string;

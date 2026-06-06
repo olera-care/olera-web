@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
+import { newMessageEmail, firstMessageEmail, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { normalizeUSPhone } from "@/lib/twilio";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -138,21 +139,15 @@ export async function POST(request: Request) {
     const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
     const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
 
-    // Check if this is the provider's first response in this thread (for first response email)
-    // Only applies to inquiry connections - for Matches (request), provider already initiated
-    const isProviderSender = profileId === providerProfileId;
-    const providerMessagesBeforeThis = existingThread.filter(
-      (m) => m.from_profile_id === providerProfileId && !m.is_auto_reply
-    );
-    // Only trigger first response email for inquiry connections (not Matches)
-    // For Matches, the provider already sent the first message (the reach-out)
-    const isFirstProviderResponse = isInquiry && isProviderSender && providerMessagesBeforeThis.length === 0;
+    // Prepare metadata update - will be written once at the end after email sending
+    // Store this for later to avoid duplicate database updates
+    let metadataToUpdate = { ...existingMeta, thread: updatedThread };
 
     // Use admin client to bypass RLS (needed for guest flow)
     const { error: updateError } = await admin
       .from("connections")
       .update({
-        metadata: { ...existingMeta, thread: updatedThread },
+        metadata: metadataToUpdate,
       })
       .eq("id", connectionId);
 
@@ -201,11 +196,13 @@ export async function POST(request: Request) {
               .single(),
           ]);
 
-        // Resolve recipient email: business_profiles.email → accounts → auth.users
+        // Resolve recipient email: business_profiles.email for sending, auth email for magic links
         let recipientEmail = recipientProfile?.email;
-        const emailSource = recipientEmail ? "profile" : "none";
+        let authEmail = recipientEmail; // For magic link generation
+        let emailSource: "profile" | "auth" | "none" = recipientEmail ? "profile" : "none";
 
-        if (!recipientEmail && recipientProfile?.account_id) {
+        // Always look up auth email if account exists (for magic link generation)
+        if (recipientProfile?.account_id) {
           const { data: acct } = await admin
             .from("accounts")
             .select("user_id")
@@ -213,7 +210,13 @@ export async function POST(request: Request) {
             .single();
           if (acct?.user_id) {
             const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
-            recipientEmail = authUser?.email;
+            if (authUser?.email) {
+              authEmail = authUser.email; // Use auth email for magic links
+              if (!recipientEmail) {
+                recipientEmail = authEmail; // Fallback for sending if no profile email
+                emailSource = "auth";
+              }
+            }
           }
         }
 
@@ -237,7 +240,46 @@ export async function POST(request: Request) {
               : text.trim();
 
           const isFamily = recipientProfile?.type === "family";
-          const msgSubject = `${firstName(senderProfile?.display_name || "", "Someone")} sent you a message`;
+
+          // Rate limiting: max 1 email per connection per recipient per 30 minutes
+          // Prevents rapid-fire emails while allowing natural back-and-forth conversation
+          const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+          const lastNotificationKey = isFamily
+            ? "last_notification_to_family_at"
+            : "last_notification_to_provider_at";
+          const lastNotificationTime = existingMeta[lastNotificationKey] as string | undefined;
+
+          if (lastNotificationTime && new Date(lastNotificationTime).getTime() > thirtyMinAgo) {
+            console.log("[message] skipping email due to rate limit:", {
+              recipientProfileId,
+              recipientType: isFamily ? "family" : "provider",
+              lastNotificationTime,
+              connectionId,
+            });
+            // Skip email but continue to WhatsApp notification
+          } else {
+
+          // Send instant email notification to both families and providers
+          // Debouncing already handled upstream (skip if recipient active in last 5min)
+
+          // Detect if this is recipient's first message or a reply FIRST (before building subject)
+          // If recipient has never sent a message in this thread → first message
+          // If recipient has sent messages → reply
+          const recipientPreviousMessages = existingThread.filter(
+            (m) => m.from_profile_id === recipientProfileId && !m.is_auto_reply
+          );
+          const isFirstMessageToRecipient = recipientPreviousMessages.length === 0;
+
+          // Build subject line based on whether it's first message or reply
+          // For families: put provider name FIRST so it shows on mobile before truncation
+          // For providers: use first name
+          const senderFullName = senderProfile?.display_name || "Someone";
+          const senderFirstName = firstName(senderFullName, "Someone");
+          const msgSubject = isFamily
+            ? (isFirstMessageToRecipient
+                ? `${senderFullName} sent you a message`
+                : `${senderFullName} replied to you`)
+            : `${senderFirstName} sent you a message`;
 
           const msgEmailLogId = await reserveEmailLogId({
             to: recipientEmail,
@@ -247,62 +289,36 @@ export async function POST(request: Request) {
             providerId: !isFamily ? recipientProfileId : undefined,
           });
 
-          // Route to inbox with auto-select:
-          // - Families → /portal/inbox?id=...
-          // - Claimed providers (have account) → /portal/inbox?role=provider&id=...
-          // - Unclaimed providers → /provider/[slug]/onboard (to claim first)
+          // Route to inbox with auto-select and magic link:
+          // - Families → /portal/inbox?id=... with magic link
+          // - Claimed providers (have account) → /portal/inbox?role=provider&id=... with magic link
+          // - Unclaimed providers → /provider/[slug]/onboard with magic link (to claim first)
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           let viewUrl: string;
 
           if (isFamily) {
-            viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox?id=${connectionId}`, msgEmailLogId);
+            // Generate HMAC-signed link with 72-hour expiry (same as providers)
+            // This gives families 3 days to click email links vs 1-hour Supabase magic link default
+            const redirectPath = appendTrackingParams(
+              `/portal/inbox?id=${connectionId}`,
+              msgEmailLogId
+            );
+            viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           } else if (isClaimed) {
-            // Claimed provider → direct to inbox with magic link
+            // Claimed provider → direct to inbox with HMAC token (72-hour expiry)
             const redirectPath = appendTrackingParams(
               `/portal/inbox?role=provider&id=${connectionId}`,
               msgEmailLogId
             );
-            viewUrl = `${siteUrl}${redirectPath}`;
-
-            try {
-              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
-                type: "magiclink",
-                email: recipientEmail,
-                options: {
-                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-                },
-              });
-              if (!providerLinkError && providerLinkData?.properties?.action_link) {
-                viewUrl = providerLinkData.properties.action_link;
-              }
-            } catch (linkErr) {
-              console.error("Failed to generate provider magic link for message:", linkErr);
-              // Continue with fallback URL (inbox without magic link)
-            }
+            viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           } else {
-            // Unclaimed provider → onboard page to claim listing first
+            // Unclaimed provider → onboard page to claim listing first with HMAC token (72-hour expiry)
             const providerSlug = recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId;
             const redirectPath = appendTrackingParams(
               `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`,
               msgEmailLogId
             );
-            viewUrl = `${siteUrl}${redirectPath}`;
-
-            try {
-              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
-                type: "magiclink",
-                email: recipientEmail,
-                options: {
-                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-                },
-              });
-              if (!providerLinkError && providerLinkData?.properties?.action_link) {
-                viewUrl = providerLinkData.properties.action_link;
-              }
-            } catch (linkErr) {
-              console.error("Failed to generate provider magic link for message:", linkErr);
-              // Continue with fallback URL (onboard page)
-            }
+            viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           }
 
           console.log("[message] sending email notification:", {
@@ -311,12 +327,18 @@ export async function POST(request: Request) {
             recipientType: isFamily ? "family" : "provider",
             senderName: senderProfile?.display_name,
             emailLogId: msgEmailLogId,
+            isFirstMessage: isFirstMessageToRecipient,
           });
+
+          // Use different template based on whether recipient has messaged before
+          const emailTemplate = isFirstMessageToRecipient
+            ? firstMessageEmail
+            : newMessageEmail;
 
           await sendEmail({
             to: recipientEmail,
             subject: msgSubject,
-            html: newMessageEmail({
+            html: emailTemplate({
               recipientName: recipientProfile?.display_name || "",
               senderName: senderProfile?.display_name || "",
               messagePreview: preview,
@@ -330,6 +352,24 @@ export async function POST(request: Request) {
           });
 
           console.log("[message] email sent successfully to:", recipientEmail);
+
+          // Record notification time for rate limiting (update metadata with timestamp)
+          const updatedMetaWithTimestamp = {
+            ...metadataToUpdate,
+            [lastNotificationKey]: new Date().toISOString(),
+          };
+
+          const { error: timestampError } = await admin
+            .from("connections")
+            .update({ metadata: updatedMetaWithTimestamp })
+            .eq("id", connectionId);
+
+          if (timestampError) {
+            console.error("[message] failed to update notification timestamp:", timestampError);
+            // Non-fatal - email was sent, this is just for rate limiting
+          }
+
+          } // End of rate limiting else block
         } else {
           console.warn("[message] no email found for recipient:", {
             recipientProfileId,
@@ -393,6 +433,11 @@ export async function POST(request: Request) {
     } catch {
       // Non-blocking
     }
+
+    // Check if this is provider's first response in an inquiry conversation
+    const isProviderSender = profileId === providerProfileId;
+    const isFirstProviderMessage = existingThread.filter(m => m.from_profile_id === providerProfileId).length === 0;
+    const isFirstProviderResponse = isInquiry && isProviderSender && isFirstProviderMessage;
 
     // First response confirmation email (provider only, inquiry connections only)
     if (isFirstProviderResponse) {

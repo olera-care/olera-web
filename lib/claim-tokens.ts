@@ -214,3 +214,33 @@ export function generateLeadClaimUrl(
   }
   return url.toString();
 }
+
+/**
+ * Generate a family inbox URL with embedded claim token.
+ * Routes to /api/claim-family which handles server-side authentication
+ * and redirects to the family's inbox.
+ *
+ * This gives families the same 72-hour link expiry as providers (vs 1-hour
+ * Supabase magic link default). Used for all family connection emails:
+ * - Message notifications
+ * - Unread reminders
+ * - Provider silent/still-silent
+ * - Family never engaged
+ * - Stale conversations
+ *
+ * @param email - Family's email for token generation
+ * @param destination - Where to redirect after auth (e.g., "/portal/inbox?id=123")
+ * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
+ */
+export function generateFamilyInboxUrl(
+  email: string,
+  destination: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  // Use "family" as the providerId for family tokens (not used for lookup, just for token structure)
+  const token = generateClaimToken("family", email);
+  const url = new URL(`${baseUrl}/api/claim-family`);
+  url.searchParams.set("otk", token);
+  url.searchParams.set("next", destination);
+  return url.toString();
+}

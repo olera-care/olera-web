@@ -600,21 +600,30 @@ export default function ProviderOnboardPage() {
           router.replace(getActionRedirectUrl(actionParam, actionIdParam));
           return;
         }
-        // If they arrived from a notification email, show the contextual card
-        // (lead/question/review preview) instead of the generic "already claimed" dispute card.
-        // This lets the actual owner verify + sign in to respond.
-        // Note: claim/signup are excluded — those notification states require a valid token.
-        // Without a token on a claimed listing, show already-claimed (handled below).
-        if (actionParam && fetchedNotificationData && actionParam !== "claim" && actionParam !== "signup") {
-          const notificationStateMap: Record<string, ActionCardState> = {
-            lead: "notification-lead",
-            message: "notification-lead",
-            question: "notification-question",
-            review: "notification-review",
-          };
-          setActionCardState(notificationStateMap[actionParam] || "already-claimed");
-          setStep("dashboard");
-          return;
+        // If they arrived from a notification email (lead/question/review),
+        // show the contextual card OR redirect if notification data failed to load.
+        // This prevents confusing "This listing is claimed" error for legitimate providers.
+        if (actionParam && actionParam !== "claim" && actionParam !== "signup") {
+          // If we successfully fetched notification data, show the preview card
+          if (fetchedNotificationData) {
+            const notificationStateMap: Record<string, ActionCardState> = {
+              lead: "notification-lead",
+              message: "notification-lead",
+              question: "notification-question",
+              review: "notification-review",
+            };
+            setActionCardState(notificationStateMap[actionParam] || "already-claimed");
+            setStep("dashboard");
+            return;
+          }
+          // If notification fetch failed but we have actionId, redirect to the destination
+          // (e.g., lead was deleted, or connection not found)
+          // This prevents showing "This listing is claimed" error when it's just a missing lead
+          if (actionIdParam) {
+            console.log("[ProviderOnboard] Notification fetch failed, redirecting to destination");
+            router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+            return;
+          }
         }
         // No notification context — show dispute form
         setActionCardState("already-claimed");

@@ -192,24 +192,6 @@ interface EntrySourceBreakdown {
   top_editorial_articles: Array<{ slug: string; count: number }>;
 }
 
-// Lead Capture Sources — tracks sources not covered by CTA Variants or Q&A:
-// Custom Quote, Book a Consultation, Message Staff.
-type LeadCaptureSourceId =
-  | "custom_quote"
-  | "book_consultation"
-  | "message_host";
-
-interface LeadCaptureSourceRow {
-  source_id: LeadCaptureSourceId;
-  label: string;
-  count: number;
-  percent: number;
-}
-
-interface LeadCaptureSourcesBreakdown {
-  total: number;
-  by_source: LeadCaptureSourceRow[];
-}
 
 // One row of the Dashboard Banners leaderboard — distinct providers shown vs.
 // clicked, per hero banner. CTR is derived client-side.
@@ -236,7 +218,6 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
-    lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -252,7 +233,6 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
     entry_source_breakdown: EntrySourceBreakdown;
-    lead_capture_sources_breakdown: LeadCaptureSourcesBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -452,15 +432,6 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <DashboardBannersCard summary={summary} />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Other Lead Capture Sources"
-        storageKey="leadCaptureSources"
-        defaultCollapsed={true}
-        loading={loading && !!summary}
-      >
-        <LeadCaptureSourcesCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -2631,106 +2602,6 @@ function CTAVariantSplit({
   );
 }
 
-// ── Other Lead Capture Sources ────────────────────────────────────────────────
-// Tracks lead capture sources not covered by CTA Variants or Q&A sections:
-// Custom Quote, Book a Consultation, Message Staff.
-function LeadCaptureSourcesCard({
-  summary,
-  loading,
-  range,
-}: {
-  summary: SummaryResponse | null;
-  loading: boolean;
-  range: DateRangeValue;
-}) {
-  if (loading && !summary) {
-    return <div className="h-40 animate-pulse bg-gray-100 rounded-lg" />;
-  }
-  if (!summary) return null;
-
-  const current = summary.windowed.lead_capture_sources_breakdown;
-  const prior = summary.prior?.lead_capture_sources_breakdown ?? null;
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-500">
-        Leads from Custom Quote, Book a Consultation, and Message Staff ({rangeLabel(range).toLowerCase()}).
-        CTA and Q&A conversions are tracked in their own dedicated sections above.
-      </p>
-
-      {/* Top-level stat */}
-      <div className="grid grid-cols-1 gap-4 mb-4">
-        <Stat
-          label="Total Conversions"
-          value={current.total}
-          prior={prior?.total ?? null}
-          tooltip="Guest accounts created via any conversion path"
-        />
-      </div>
-
-      {/* Sources breakdown table */}
-      <div className="overflow-x-auto -mx-1">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
-              <th className="px-3 py-2 font-medium">Source</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">Leads</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">% of Total</th>
-              <th className="px-3 py-2 font-medium tabular-nums text-right">vs Prior</th>
-            </tr>
-          </thead>
-          <tbody>
-            {current.by_source.map((source) => {
-              const priorSource = prior?.by_source.find((p) => p.source_id === source.source_id);
-              const priorCount = priorSource?.count ?? 0;
-              const deltaPercent =
-                priorCount > 0
-                  ? Math.round(((source.count - priorCount) / priorCount) * 100)
-                  : source.count > 0
-                    ? null // "new" case
-                    : 0;
-
-              return (
-                <tr key={source.source_id} className="border-b border-gray-50 hover:bg-gray-50/40">
-                  <td className="px-3 py-2 text-gray-700">{source.label}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium">{source.count}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-gray-500">{source.percent}%</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {deltaPercent !== null ? (
-                      <span
-                        className={
-                          deltaPercent > 0
-                            ? "text-green-600"
-                            : deltaPercent < 0
-                              ? "text-red-500"
-                              : "text-gray-400"
-                        }
-                      >
-                        {deltaPercent > 0 ? "↑" : deltaPercent < 0 ? "↓" : "→"} {Math.abs(deltaPercent)}%
-                      </span>
-                    ) : priorCount === 0 && source.count > 0 ? (
-                      <span className="text-gray-400">new</span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-gray-200 font-medium">
-              <td className="px-3 py-2 text-gray-900">Total</td>
-              <td className="px-3 py-2 text-right tabular-nums">{current.total}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-gray-500">100%</td>
-              <td className="px-3 py-2"></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  );
-}
 
 // Submissions bucketed by entry source. The benefits funnel above is
 // provider_activity-driven and editorial mounts emit zero provider_activity,

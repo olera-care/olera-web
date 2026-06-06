@@ -29,7 +29,6 @@ export interface ConnectionRowData {
     phone?: string | null;
     image_url?: string | null;
     completeness?: ProfileCompleteness;
-    is_published?: boolean;
     careType?: string | null;
     timeline?: string | null;
   };
@@ -695,16 +694,6 @@ export default function ConnectionRow({
                             {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Family"}
                           </button>
                         )}
-                        {/* Nudge to Publish - when profile is complete but not published */}
-                        {detail.family.email && c.family.completeness && c.family.completeness.percentage >= 80 && c.family.is_published === false && (
-                          <button
-                            onClick={() => showNudgePreview("/api/admin/nudge-family-publish", "Publish reminder sent to family.")}
-                            disabled={nudging || loadingPreview}
-                            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-                          >
-                            {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge to Publish"}
-                          </button>
-                        )}
                         {!detail.family.email && detail.family.phone && (
                           <a
                             href={`tel:${detail.family.phone}`}
@@ -753,16 +742,6 @@ export default function ConnectionRow({
                             className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
                             {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Family"}
-                          </button>
-                        )}
-                        {/* Nudge to Publish - when profile is complete but not published */}
-                        {detail.family.email && c.family.completeness && c.family.completeness.percentage >= 80 && c.family.is_published === false && (
-                          <button
-                            onClick={() => showNudgePreview("/api/admin/nudge-family-publish", "Publish reminder sent to family.")}
-                            disabled={nudging || loadingPreview}
-                            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-                          >
-                            {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge to Publish"}
                           </button>
                         )}
                         {c.waitingOn === "family" && !detail.family.email && detail.family.phone && (

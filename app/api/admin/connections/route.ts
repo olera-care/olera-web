@@ -283,11 +283,6 @@ export async function GET(request: NextRequest) {
         ? calculateProviderCompleteness(provider)
         : { percentage: 0, missingFields: [] };
 
-      // Check if family profile is published (has published_at in metadata.care_post)
-      const familyMeta = (family?.metadata as Record<string, unknown>) ?? {};
-      const carePost = (familyMeta.care_post as Record<string, unknown>) ?? {};
-      const familyIsPublished = !!carePost.published_at;
-
       // Extract nudge info from metadata
       const providerNudgedAt = (meta.nudged_at as string) || null;
       const familyNudgedAt = (meta.family_nudged_at as string) || null;
@@ -454,7 +449,6 @@ export async function GET(request: NextRequest) {
           phone: family?.phone ?? null,
           image_url: family?.image_url ?? null,
           completeness: familyCompleteness,
-          is_published: familyIsPublished,
           careType,
           timeline,
         },

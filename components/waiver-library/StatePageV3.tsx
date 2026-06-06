@@ -11,7 +11,7 @@ import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
-import { getStateVerifier, getStatePublisher } from "@/data/benefits-verifiers";
+import { getStateVerifier, getStatePublisher, getStateReviewedAt } from "@/data/benefits-verifiers";
 import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -416,8 +416,21 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </p>
 
           {(() => {
+            const stateReviewedAt = getStateVerifier(state.abbreviation).reviewedAt || getStateReviewedAt(state.abbreviation);
+            // Unreviewed state: show the dated status badge only — no named
+            // "Published by / Verified by" credit until a human has reviewed it.
+            if (!stateReviewedAt) {
+              return (
+                <ContentStatusBadge
+                  variant="state"
+                  contentStatus="pipeline-draft"
+                  draftedAt={draftedAt}
+                  className="mt-5"
+                />
+              );
+            }
             const { author: publisher } = getStatePublisher(state.abbreviation);
-            const { author: verifier, reviewedAt } = getStateVerifier(state.abbreviation);
+            const { author: verifier } = getStateVerifier(state.abbreviation);
             return (
               <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
                 <ReviewerAvatar author={publisher} />
@@ -437,12 +450,8 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
                 >
                   {verifier.name}
                 </Link>
-                {reviewedAt && (
-                  <>
-                    <span className="text-gray-300">·</span>
-                    <span className="text-gray-400">Last verified {formatReviewDate(reviewedAt)}</span>
-                  </>
-                )}
+                <span className="text-gray-300">·</span>
+                <span className="text-gray-400">Last verified {formatReviewDate(stateReviewedAt)}</span>
               </div>
             );
           })()}

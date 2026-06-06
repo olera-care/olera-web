@@ -18,7 +18,7 @@ import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
-import { getProgramVerifier, getProgramPublisher } from "@/data/benefits-verifiers";
+import { getProgramVerifier, getProgramPublisher, getStateReviewedAt } from "@/data/benefits-verifiers";
 import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -919,47 +919,56 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                 </p>
               ) : null}
               {(() => {
-                const { author: publisher } = getProgramPublisher(state.abbreviation, program.id);
                 const { author: verifier, reviewedAt, hasExplicitReview } = getProgramVerifier(state.abbreviation, program.id);
-                const verifiedAt = reviewedAt || program.reviewedAt || program.lastVerifiedDate;
+                const isReviewed =
+                  program.contentStatus === "approved" ||
+                  program.contentStatus === "published" ||
+                  hasExplicitReview;
+                // Unreviewed pipeline draft: show the dated status badge only —
+                // no named "Published by / Verified by" credit on content a human
+                // hasn't checked (keeps the MD verification signal honest).
+                if (!isReviewed) {
+                  return (
+                    <ContentStatusBadge
+                      contentStatus={program.contentStatus}
+                      draftedAt={program.draftedAt}
+                      reviewedAt={program.reviewedAt}
+                      className="mt-4"
+                    />
+                  );
+                }
+                const { author: publisher } = getProgramPublisher(state.abbreviation, program.id);
+                // Freshness date: explicit signoff → program metadata → state QA date.
+                const verifiedAt =
+                  reviewedAt || program.reviewedAt || program.lastVerifiedDate || getStateReviewedAt(state.abbreviation);
                 return (
-                  <>
-                    {!hasExplicitReview && (
-                      <ContentStatusBadge
-                        contentStatus={program.contentStatus}
-                        draftedAt={program.draftedAt}
-                        reviewedAt={program.reviewedAt}
-                        className="mt-3"
-                      />
+                  <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
+                    <ReviewerAvatar author={publisher} />
+                    <span className="text-gray-400">Published by</span>
+                    <Link
+                      href={`/author/${publisher.slug}`}
+                      className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      {publisher.name}
+                    </Link>
+                    <span className="text-gray-300">·</span>
+                    <ReviewerAvatar author={verifier} />
+                    <span className="text-gray-400">Verified by</span>
+                    <Link
+                      href={`/author/${verifier.slug}`}
+                      className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      {verifier.name}
+                    </Link>
+                    {verifiedAt && (
+                      <>
+                        <span className="text-gray-300">·</span>
+                        <span className="text-gray-400">
+                          Last verified {formatReviewDate(verifiedAt)}
+                        </span>
+                      </>
                     )}
-                    <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
-                      <ReviewerAvatar author={publisher} />
-                      <span className="text-gray-400">Published by</span>
-                      <Link
-                        href={`/author/${publisher.slug}`}
-                        className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
-                      >
-                        {publisher.name}
-                      </Link>
-                      <span className="text-gray-300">·</span>
-                      <ReviewerAvatar author={verifier} />
-                      <span className="text-gray-400">Verified by</span>
-                      <Link
-                        href={`/author/${verifier.slug}`}
-                        className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
-                      >
-                        {verifier.name}
-                      </Link>
-                      {verifiedAt && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span className="text-gray-400">
-                            Last verified {formatReviewDate(verifiedAt)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </>
+                  </div>
                 );
               })()}
             </div>

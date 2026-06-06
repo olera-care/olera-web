@@ -48,6 +48,25 @@ export const STATE_VERIFIERS: Record<string, VerifierOverride> = {
 export const PROGRAM_PUBLISHERS: Record<string, VerifierOverride> = {};
 export const STATE_PUBLISHERS: Record<string, VerifierOverride> = {};
 
+/**
+ * When each state's benefits content was last QA'd / published — surfaced as the
+ * "Last verified <date>" freshness signal and used to gate the named
+ * "Published by … · Verified by …" byline. A state appears here ONLY once a human
+ * has reviewed it; absence means the page is still an unreviewed pipeline draft
+ * and shows the dated ContentStatusBadge instead of named credits. Update the
+ * date whenever a state is re-QA'd so the freshness signal stays accurate.
+ */
+export const STATE_REVIEWED_AT: Record<string, string> = {
+  ny: "2026-06-06",
+  fl: "2026-06-06",
+  ca: "2026-05-20",
+  tx: "2026-05-21",
+};
+
+export function getStateReviewedAt(stateAbbrev: string): string | undefined {
+  return STATE_REVIEWED_AT[stateAbbrev.toLowerCase()];
+}
+
 export interface ResolvedVerifier {
   author: Author;
   /** Only set when the override explicitly carries a reviewed-at date. */

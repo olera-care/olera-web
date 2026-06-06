@@ -177,7 +177,7 @@ function providerOffRampBlock(manageListingUrl: string, settingsUrl: string): st
       <p style="font-size:13px;color:#9ca3af;margin:0;">
         ${secondaryLink("Manage your listing", manageListingUrl)} &middot;
         ${secondaryLink("Update lead preferences", settingsUrl)} &middot;
-        Or call us at <a href="tel:+19792439801" style="color:#9ca3af;text-decoration:underline;">(979) 243-9801</a>
+        ${secondaryLink("Contact us", `${BASE_URL}/contact`)}
       </p>
     </div>`;
 }

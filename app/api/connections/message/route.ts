@@ -253,22 +253,8 @@ export async function POST(request: Request) {
 
           const isFamily = recipientProfile?.type === "family";
 
-          // Only send the "first response" email to families when:
-          // 1. This is the first provider response (provider just replied to lead)
-          // 2. Family hasn't engaged yet (no conversation started)
-          // For ongoing conversations, skip this specific notification (handled by unread reminders)
-          const shouldSendFirstResponseEmail = isFamily && isFirstProviderResponse && !isFamilyEngaged;
-
-          if (isFamily && !shouldSendFirstResponseEmail) {
-            // Skip email for ongoing family conversations - unread reminder cron will handle it
-            console.log("[message] Skipping first-response email for ongoing conversation:", {
-              isFirstProviderResponse,
-              isFamilyEngaged,
-              connectionId,
-            });
-            // Continue to WhatsApp notification below, then return
-          } else {
-
+          // Send instant email notification to both families and providers
+          // Debouncing already handled upstream (skip if recipient active in last 5min)
           // For families: use full provider name (not shortened) in subject
           // For providers: use first name
           const senderFullName = senderProfile?.display_name || "Someone";
@@ -356,7 +342,6 @@ export async function POST(request: Request) {
           });
 
           console.log("[message] email sent successfully to:", recipientEmail);
-          } // End of email sending else block
         } else {
           console.warn("[message] no email found for recipient:", {
             recipientProfileId,

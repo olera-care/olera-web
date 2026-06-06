@@ -223,12 +223,21 @@ interface LeadCaptureSourcesBreakdown {
   by_source: LeadCaptureSourceRow[];
 }
 
+// One row of the Dashboard Banners leaderboard — distinct providers shown vs.
+// clicked, per hero banner. CTR is derived client-side.
+interface BannerLeaderboardRow {
+  banner: string;
+  impressions: number;
+  clicks: number;
+}
+
 interface SummaryResponse {
   windowed: {
     range: { from: string | null; to: string | null };
     counts: WindowedCounts;
     unique_sessions_page_view: number;
     provider_distinct_counts: ProviderDistinctCounts;
+    banner_leaderboard: BannerLeaderboardRow[];
     qa_funnel: ProviderQaFunnel;
     qa_funnel_by_variant: ProviderQaFunnelByVariant;
     qa_email_issues: QaEmailIssue[];
@@ -450,6 +459,15 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <CTAVariantsCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Dashboard Banners"
+        storageKey="dashboardBanners"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <DashboardBannersCard summary={summary} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -2128,6 +2146,86 @@ function BenefitsVariantSplit({
         <p className="text-[11px] text-gray-400 mt-3">
           {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before any A/B was wired).
         </p>
+      )}
+    </div>
+  );
+}
+
+// ── Dashboard Banners ─────────────────────────────────────────────────────
+// Leaderboard of the provider-dashboard hero banners by click-through. Unlike
+// CTA Variants (a randomized A/B test), the hero is a contextual next-best-
+// action engine: each provider sees one banner chosen by their own state. So
+// CTR here is a visibility signal (which banners get traction), NOT a
+// controlled comparison — banners are shown to different audiences. The caption
+// says so to keep the numbers from being over-read.
+
+/** Human label for a hero bannerId. Completion sections (`completion:<id>`) are
+ *  expanded; everything else maps to a fixed friendly name. */
+function bannerLabel(banner: string): string {
+  if (banner.startsWith("completion:")) {
+    const section = banner.slice("completion:".length);
+    return `Complete profile — ${section.charAt(0).toUpperCase()}${section.slice(1)}`;
+  }
+  const map: Record<string, string> = {
+    leads: "New inquiries",
+    questions: "Unanswered questions",
+    find_families_live: "Find Families — family near you",
+    view_spike: "View spike",
+    find_families_intel: "Find Families — market intel",
+  };
+  return map[banner] ?? banner;
+}
+
+function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) {
+  const rows = summary?.windowed.banner_leaderboard ?? [];
+  const totalImpressions = rows.reduce((sum, r) => sum + r.impressions, 0);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/70 p-5 sm:p-6">
+      <p className="text-[13px] text-gray-500 leading-relaxed mb-1">
+        Which dashboard hero banners providers see, and how many click through.
+        Counts are <span className="font-medium text-gray-700">distinct providers</span> per
+        banner in this window.
+      </p>
+      <p className="text-[11px] text-gray-400 mb-4">
+        Contextual nudges, not a controlled A/B test — each provider sees one banner chosen by
+        their own state, so banners reach different audiences. Read CTR as &ldquo;which banners get
+        traction,&rdquo; not &ldquo;which banner is best.&rdquo;
+      </p>
+
+      {totalImpressions === 0 ? (
+        <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2">
+          No banner impressions in this window yet. Rows populate once providers load their
+          dashboard and a provider_picker_impression fires.
+        </p>
+      ) : (
+        <div className="overflow-x-auto -mx-1">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                <th className="px-3 py-2 font-medium">Banner</th>
+                <th className="px-3 py-2 font-medium tabular-nums text-right">Shown to</th>
+                <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
+                <th className="px-3 py-2 font-medium tabular-nums text-right">CTR</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const ctr = r.impressions > 0 ? Math.round((r.clicks / r.impressions) * 100) : 0;
+                return (
+                  <tr key={r.banner} className="border-b border-gray-50 last:border-0">
+                    <td className="px-3 py-2.5 text-gray-900">{bannerLabel(r.banner)}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">{r.impressions}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">{r.clicks}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right font-medium text-gray-900">
+                      {r.impressions > 0 ? `${ctr}%` : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

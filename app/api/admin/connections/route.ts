@@ -502,6 +502,12 @@ export async function GET(request: NextRequest) {
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
+    console.log('[connections] Provider keys for engagement lookup:', {
+      count: allProviderKeys.length,
+      keys: allProviderKeys.slice(0, 5), // Show first 5
+      totalSearched: searched.length
+    });
+
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
     // Each connection has its own engagement data based on events with matching connection_id
@@ -532,6 +538,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    console.log('[connections] Initialized engagement map:', {
+      totalConnections: connectionEngagement.size,
+      sampleIds: Array.from(connectionEngagement.keys()).slice(0, 3)
+    });
+
     // Fetch engagement events filtered by CONNECTION_ID in metadata
     // This ensures each connection shows only its own engagement, not provider-wide
     if (allProviderKeys.length > 0) {
@@ -542,6 +553,12 @@ export async function GET(request: NextRequest) {
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
         .order("created_at", { ascending: false })
         .limit(10000);
+
+      console.log('[connections] Fetched engagement events:', {
+        totalEvents: actEvents?.length ?? 0,
+        leadOpenedCount: actEvents?.filter(e => e.event_type === 'lead_opened').length ?? 0,
+        sampleEvent: actEvents?.[0]
+      });
 
       // Build a map of provider_id -> connection_ids for multi-lead email handling
       const providerToConnections = new Map<string, string[]>();
@@ -562,7 +579,16 @@ export async function GET(request: NextRequest) {
         // Handle connection-specific events (most common case)
         if (connectionId) {
           const eng = connectionEngagement.get(connectionId);
-          if (!eng) continue; // Event for a different connection not in our list
+          if (!eng) {
+            console.log('[connections] Skipping event - connection not in map:', {
+              connectionId,
+              eventType: ev.event_type,
+              providerId: ev.provider_id,
+              mapSize: connectionEngagement.size,
+              mapHasConnection: connectionEngagement.has(connectionId)
+            });
+            continue; // Event for a different connection not in our list
+          }
 
           if (ev.event_type === "email_click") eng.email_clicked = true;
           else if (ev.event_type === "lead_opened") eng.lead_opened = true;

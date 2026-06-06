@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-06-06T09:47:54.118Z
+ * Last updated: 2026-06-06T10:25:13.549Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1112,18 +1112,22 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contentSections": [
         {
+          "type": "prose",
           "heading": "Subsidized Housing",
           "body": "If your loved one lives in government-subsidized housing and has heat included in their rent, they may still qualify for a specialized 'renter's benefit' rather than the full fuel-based benefit."
         },
         {
+          "type": "prose",
           "heading": "Proof of Income",
           "body": "You will need documents that show gross income, such as pay stubs, federal tax returns, or Social Security/pension award letters. While bank statements cannot be used as primary proof of wages, they may be required to show interest or investment income."
         },
         {
+          "type": "prose",
           "heading": "Utility Bills",
           "body": "It is ideal to have the utility account in the applicant's name to speed up processing. However, if the account is in someone else's name, contact your local Department of Social Services; they can often work with you to verify your residency and responsibility for the heating costs."
         },
         {
+          "type": "prose",
           "heading": "Program Limits",
           "body": "You are generally limited to one Regular HEAP benefit per program year. Because funding is limited and the program is seasonal, it is best to apply as soon as the program opens to ensure you receive the benefit before funds are exhausted."
         }

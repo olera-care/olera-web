@@ -4,6 +4,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { familyNeverEngagedEmail } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/family-never-engaged
@@ -277,22 +278,8 @@ export async function GET(request: NextRequest) {
       // Build inbox URL with tracking
       const inboxDest = appendTrackingParams("/portal/inbox", emailLogId);
 
-      // Generate magic link for inbox (use auth email)
-      let inboxMagicLink = `${siteUrl}${inboxDest}`; // Fallback
-      try {
-        const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
-          type: "magiclink",
-          email: authEmail,
-          options: {
-            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
-          },
-        });
-        if (!magicLinkError && magicLinkData?.properties?.action_link) {
-          inboxMagicLink = magicLinkData.properties.action_link;
-        }
-      } catch (linkErr) {
-        console.error("[family-never-engaged] inbox magic link failed:", linkErr);
-      }
+      // Generate HMAC token URL for inbox (72-hour expiry, more reliable than Supabase magic links)
+      const inboxMagicLink = generateFamilyInboxUrl(authEmail, inboxDest, siteUrl);
 
       // BUG FIX #3: Check dry run BEFORE mutating database
       if (dryRun) {

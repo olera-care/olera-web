@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail, unreadReminderEmail, firstName } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -254,29 +255,14 @@ export async function GET(request: NextRequest) {
       // Build view URL with deep link to specific conversation
       let viewUrl: string;
       if (isFamily) {
-        // Family: deep link to specific conversation + magic link
+        // Family: deep link to specific conversation
         // If multiple unread, link to inbox; if single, link to specific conversation
         const redirectPath = unreadCount > 1
           ? appendTrackingParams("/portal/inbox", urLogId)
           : appendTrackingParams(`/portal/inbox?id=${mostRecentUnread.connectionId}`, urLogId);
-        viewUrl = `${siteUrl}${redirectPath}`;
 
-        // Generate magic link for one-click access (use auth email, not profile email)
-        try {
-          const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
-            type: "magiclink",
-            email: authEmail, // Use auth email (critical fix)
-            options: {
-              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-            },
-          });
-          if (!magicLinkError && magicLinkData?.properties?.action_link) {
-            viewUrl = magicLinkData.properties.action_link;
-          }
-        } catch (linkErr) {
-          console.error("[unread-reminders] magic link failed:", linkErr);
-          // Continue with fallback URL
-        }
+        // Generate HMAC token URL for one-click access (72-hour expiry, more reliable than Supabase magic links)
+        viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
       } else {
         // Provider: link to provider connections page
         viewUrl = appendTrackingParams(`${siteUrl}/provider/connections`, urLogId);

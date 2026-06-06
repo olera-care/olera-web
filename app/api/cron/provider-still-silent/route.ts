@@ -4,6 +4,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { providerStillSilentEmail } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/provider-still-silent
@@ -405,49 +406,15 @@ export async function GET(request: NextRequest) {
 
       const browseUrlTracked = appendTrackingParams(browseDestination, emailLogId);
 
-      // Generate magic link for browse URL (use auth email)
-      let browseMagicLink = `${siteUrl}${browseUrlTracked}`; // Fallback
-      try {
-        const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
-          type: "magiclink",
-          email: authEmail,
-          options: {
-            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(browseUrlTracked)}`,
-          },
-        });
-        if (!magicLinkError && magicLinkData?.properties?.action_link) {
-          browseMagicLink = magicLinkData.properties.action_link;
-        }
-      } catch (linkErr) {
-        console.error("[provider-still-silent] browse magic link failed:", linkErr);
+      // Generate HMAC token URL for browse page (72-hour expiry, more reliable than Supabase magic links)
+      const browseMagicLink = generateFamilyInboxUrl(authEmail, browseUrlTracked, siteUrl);
+
+      // Generate HMAC token URLs for each recommended provider (synchronous, no API calls)
+      for (const provider of recommendedProviders) {
+        // Add provider slug to tracking for click attribution
+        const providerDest = appendTrackingParams(`/provider/${provider.slug}?rp=${provider.slug}`, emailLogId);
+        provider.viewUrl = generateFamilyInboxUrl(authEmail, providerDest, siteUrl);
       }
-
-      // Generate magic links for each recommended provider in PARALLEL (performance fix)
-      await Promise.all(
-        recommendedProviders.map(async (provider) => {
-          // Add provider slug to tracking for click attribution
-          const providerDest = appendTrackingParams(`/provider/${provider.slug}?rp=${provider.slug}`, emailLogId);
-          let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback to public URL
-
-          try {
-            const { data: magicLinkData, error: magicLinkError } = await db.auth.admin.generateLink({
-              type: "magiclink",
-              email: authEmail,
-              options: {
-                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(providerDest)}`,
-              },
-            });
-            if (!magicLinkError && magicLinkData?.properties?.action_link) {
-              providerMagicLink = magicLinkData.properties.action_link;
-            }
-          } catch (linkErr) {
-            console.error(`[provider-still-silent] provider magic link failed for ${provider.slug}:`, linkErr);
-            // Continue with fallback public URL (graceful degradation)
-          }
-
-          provider.viewUrl = providerMagicLink;
-        })
-      );
 
       // Generate email HTML
       const emailHtml = providerStillSilentEmail({

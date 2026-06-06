@@ -6,6 +6,7 @@ import { newMessageEmail, firstMessageEmail, firstName, firstResponseConfirmatio
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { normalizeUSPhone } from "@/lib/twilio";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -292,30 +293,13 @@ export async function POST(request: Request) {
           let viewUrl: string;
 
           if (isFamily) {
+            // Generate HMAC-signed link with 72-hour expiry (same as providers)
+            // This gives families 3 days to click email links vs 1-hour Supabase magic link default
             const redirectPath = appendTrackingParams(
               `/portal/inbox?id=${connectionId}`,
               msgEmailLogId
             );
-            viewUrl = `${siteUrl}${redirectPath}`;
-
-            // Generate magic link for family (auto-sign in) using auth email
-            try {
-              const { data: familyLinkData, error: familyLinkError} = await admin.auth.admin.generateLink({
-                type: "magiclink",
-                email: authEmail, // Use auth email for magic link
-                options: {
-                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-                },
-              });
-              if (!familyLinkError && familyLinkData?.properties?.action_link) {
-                viewUrl = familyLinkData.properties.action_link;
-              } else {
-                console.warn("Failed to generate family magic link for message:", familyLinkError?.message);
-              }
-            } catch (linkErr) {
-              console.error("Failed to generate family magic link for message:", linkErr);
-              // Continue with fallback URL (inbox without magic link)
-            }
+            viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           } else if (isClaimed) {
             // Claimed provider → direct to inbox with magic link
             const redirectPath = appendTrackingParams(

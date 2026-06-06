@@ -51,7 +51,7 @@ export const AUTHORS: Author[] = [
     slug: "cecille-chavez",
     name: "Cecille Chavez",
     role: "Benefits QA Lead",
-    bio: "Cecille Chavez is the Benefits QA Lead at Olera, where she produces and quality-checks the senior benefits guides — confirming program eligibility rules, income and asset limits, and application steps against official sources so families get accurate, actionable information. A senior care professional with a background in quality assurance, client outreach, and care navigation, she spent nearly four years as a Quality Evaluator at Caring.com ensuring advisor compliance and service quality before joining Olera in November 2023 as a Client Outreach Specialist. Her work spans helping seniors and families find in-home care and senior living solutions, conducting provider research, coordinating referrals, supporting data initiatives, and collaborating on product improvements that make the care-seeking experience better.",
+    bio: "Cecille Chavez is the Benefits QA Lead at Olera. She checks each senior benefits guide against official state and federal sources, confirming income limits, asset limits, and how to apply. Before Olera, she spent nearly four years as a Quality Evaluator at Caring.com, reviewing advisor compliance and service quality. She joined Olera in November 2023 and works across provider research, referrals, and care navigation, helping families find in-home care and senior living.",
     avatar: "/images/for-providers/team/cecille.jpg",
   },
 ];

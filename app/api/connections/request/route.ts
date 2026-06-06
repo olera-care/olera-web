@@ -925,11 +925,10 @@ async function handleGuestConnection({
 
         let celebrationViewUrl: string;
         try {
-          const { generateNotificationUrl } = await import("@/lib/claim-tokens");
-          celebrationViewUrl = generateNotificationUrl(
+          const { generateLeadClaimUrl } = await import("@/lib/claim-tokens");
+          celebrationViewUrl = generateLeadClaimUrl(
             providerSlug || toProfileId,
             providerEmail,
-            "lead",
             newConnection.id,
             siteUrl
           );

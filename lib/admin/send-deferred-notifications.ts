@@ -1,7 +1,7 @@
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
-import { generateNotificationUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
+import { generateLeadClaimUrl, generateNotificationUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 
 interface NotificationResult {
   leadEmailsSent: number;
@@ -186,20 +186,17 @@ export async function sendDeferredNotificationsForProvider(
         });
 
         // Generate one-click URLs with signed tokens
-        let viewUrl: string;
-        let manageListingUrl: string;
-        let settingsUrl: string;
+        // Use generateLeadClaimUrl for lead links - routes to /api/claim-lead which:
+        // 1. Authenticates server-side (no client-side auth race)
+        // 2. Tracks lead_opened event server-side
+        // 3. Redirects directly to /provider/connections (skips onboard page)
+        // 4. Higher conversion rates → providers see leads immediately
+        let viewUrl = generateLeadClaimUrl(providerSlug, email, conn.id, siteUrl);
+        const manageListingUrl = generateProviderPortalUrl(providerSlug, email, "manage", siteUrl);
+        const settingsUrl = generateProviderPortalUrl(providerSlug, email, "settings", siteUrl);
 
-        try {
-          viewUrl = generateNotificationUrl(providerSlug, email, "lead", conn.id, siteUrl);
-          manageListingUrl = generateProviderPortalUrl(providerSlug, email, "manage", siteUrl);
-          settingsUrl = generateProviderPortalUrl(providerSlug, email, "settings", siteUrl);
-          viewUrl = appendTrackingParams(viewUrl, emailLogId);
-        } catch {
-          viewUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${conn.id}`, emailLogId);
-          manageListingUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=manage`;
-          settingsUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=settings`;
-        }
+        // Append email tracking ID to view URL
+        viewUrl = appendTrackingParams(viewUrl, emailLogId);
 
         await sendEmail({
           to: email,

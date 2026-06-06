@@ -29,10 +29,15 @@ interface UnreadConnection {
  *
  * RECIPIENT-LEVEL INTELLIGENCE (as of 2025):
  * - Groups by recipient to prevent spam
- * - If recipient has multiple unread messages, sends ONE consolidated reminder
- * - Mentions the most recent unread message
- * - Marks ALL unread connections for that recipient
+ * - If recipient has multiple eligible unread messages, sends ONE consolidated reminder
+ * - Mentions the most recent eligible unread message
+ * - Only marks ELIGIBLE connections (those under the 2-reminder limit)
  * - Skips if ANY reminder was sent to this recipient in the last 6 hours
+ *
+ * CONNECTION-LEVEL LIMITS:
+ * - Maximum 2 reminders per connection (Email #2 at Day 1, Email #3 at Day 3)
+ * - 48-hour cooldown between reminders for the same connection
+ * - This ensures families get gentle nudges at Day 1 and Day 3, then no more spam
  *
  * "Unread" heuristic: the last message in the thread was NOT sent by the
  * recipient, and no message from the recipient exists after it.
@@ -56,6 +61,9 @@ export async function GET(request: NextRequest) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+
+    const MAX_REMINDERS_PER_CONNECTION = 2; // Email #2 (Day 1) and Email #3 (Day 3)
+    const REMINDER_COOLDOWN_HOURS = 48; // 48 hours between reminders
 
     // Get active connections with recent thread activity
     // We look at connections updated in the last 48h but with last message > 24h old
@@ -136,9 +144,39 @@ export async function GET(request: NextRequest) {
 
       if (recentlyReminded) continue; // Skip this recipient entirely
 
-      // Sort by most recent unread message first
-      unreadConns.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
-      const mostRecentUnread = unreadConns[0];
+      // CONNECTION-LEVEL FILTERING: Only include connections eligible for reminders
+      // A connection is eligible if:
+      // 1. It hasn't hit the reminder limit (count < 2)
+      // 2. It hasn't been reminded within the last 48 hours
+      const now = Date.now();
+      const eligibleConns = unreadConns.filter((uc) => {
+        const reminderCount = (uc.metadata.unread_reminder_count as number) || 0;
+        const lastReminderAt = uc.metadata.last_reminder_sent_at as string | undefined;
+
+        // Check reminder count limit
+        if (reminderCount >= MAX_REMINDERS_PER_CONNECTION) {
+          return false;
+        }
+
+        // Check cooldown period (48 hours)
+        if (lastReminderAt) {
+          const hoursSinceLastReminder = (now - new Date(lastReminderAt).getTime()) / (1000 * 60 * 60);
+          if (hoursSinceLastReminder < REMINDER_COOLDOWN_HOURS) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // Skip this recipient if no connections are eligible for reminders
+      if (eligibleConns.length === 0) {
+        continue;
+      }
+
+      // Sort eligible connections by most recent unread message first
+      eligibleConns.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+      const mostRecentUnread = eligibleConns[0];
 
       // Get recipient email + names + type for routing
       const [{ data: recipient }, { data: sender }] = await Promise.all([
@@ -192,8 +230,9 @@ export async function GET(request: NextRequest) {
       const senderFirstName = firstName(sender?.display_name || "", isFamily ? "A provider" : "Someone");
       const senderFullName = sender?.display_name || "A provider";
 
-      // If multiple unread messages, update subject
-      const unreadCount = unreadConns.length;
+      // Count eligible connections (those we're actually reminding about)
+      // This ensures the email accurately reflects what we're notifying them about
+      const unreadCount = eligibleConns.length;
       const urSubject = isFamily
         ? unreadCount > 1
           ? `You have ${unreadCount} unread messages`
@@ -329,13 +368,19 @@ export async function GET(request: NextRequest) {
         emailLogId: urLogId ?? undefined,
       });
 
-      // Mark ALL unread connections for this recipient as reminded
-      const now = new Date().toISOString();
-      for (const uc of unreadConns) {
+      // Mark ONLY ELIGIBLE connections as reminded (not those already at limit)
+      // This prevents connections from getting count = 3, 4, 5... due to other unread connections
+      const reminderTimestamp = new Date().toISOString();
+      for (const uc of eligibleConns) {
+        const currentCount = (uc.metadata.unread_reminder_count as number) || 0;
         await db
           .from("connections")
           .update({
-            metadata: { ...uc.metadata, last_reminder_sent_at: now },
+            metadata: {
+              ...uc.metadata,
+              last_reminder_sent_at: reminderTimestamp,
+              unread_reminder_count: currentCount + 1,
+            },
           })
           .eq("id", uc.connectionId);
       }

@@ -3952,3 +3952,44 @@ export function staleConversationFamilyEmail(opts: {
     </p>
   `, `${opts.providerName} is still here to help — continue the conversation`);
 }
+
+/**
+ * Day 10 AWAITING email - warm hand for families frozen at the finish line.
+ * Offers human support and alternatives, not another "reply" nudge.
+ * Sent ~10 days after provider responds if family still hasn't replied.
+ */
+export function day10AwaitingEmail(opts: {
+  familyName: string;
+  providerName: string;
+  inboxUrl: string;
+  supportUrl: string;
+  alternativesUrl: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const safeProviderName = escapeHtml(opts.providerName);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${safeProviderName}</strong> is still ready and waiting to hear from you. If you've been meaning to reply but haven't found the moment, that's completely normal — there's a lot to weigh, and there's no wrong pace.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      If something's making the next step feel hard, a real person on our team is glad to help — whether it's figuring out what to ask, thinking through your options, or just getting you started:
+    </p>
+    <div style="margin:0 0 24px;">${button("Get help from a real person", opts.supportUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      You can also <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">pick up right where you left off</a> with ${safeProviderName} anytime — and if they're not feeling like the right fit, <a href="${opts.alternativesUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">there are other providers nearby</a> who'd be glad to help. Just say the word.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      We're not going anywhere.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `${opts.providerName} is still ready for you — and a real person can help, no pressure.`);
+}

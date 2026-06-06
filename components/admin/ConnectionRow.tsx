@@ -464,7 +464,8 @@ export default function ConnectionRow({
             )}
             {/* Show "No email" badge in provider perspective when provider has no email */}
             {/* Hide badge immediately when email is successfully added (optimistic UI) */}
-            {perspective === "provider" && !c.provider.email && !emailSuccess && (
+            {/* Use .trim() to defensively catch empty/whitespace emails */}
+            {perspective === "provider" && !c.provider.email?.trim() && !emailSuccess && (
               <>
                 <span className="text-gray-300">|</span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">

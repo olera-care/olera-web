@@ -227,7 +227,7 @@ export async function GET(request: NextRequest) {
     const uniqueSourceIds = new Set<string>();
     for (const r of rows ?? []) {
       const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
-      if (provider?.source_provider_id && !provider?.email) {
+      if (provider?.source_provider_id && !provider?.email?.trim()) {
         uniqueSourceIds.add(provider.source_provider_id);
       }
     }
@@ -248,9 +248,11 @@ export async function GET(request: NextRequest) {
       }
 
       // Build map of source_provider_id -> email for quick lookup
+      // Trim emails to prevent whitespace-only values from being stored
       for (const ios of iosProviders ?? []) {
-        if (ios.email) {
-          providerEmailFallback.set(ios.provider_id, ios.email);
+        const trimmedEmail = ios.email?.trim();
+        if (trimmedEmail) {
+          providerEmailFallback.set(ios.provider_id, trimmedEmail);
         }
       }
     }

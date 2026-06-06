@@ -2107,7 +2107,7 @@ export function careReportEmail(opts: {
   city: string | null;
   state: string | null;
   fundingOptions: { label: string; savings: string | null }[];
-  similarProviders: { name: string; slug: string; priceRange: string | null }[];
+  similarProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
   magicLinkUrl: string;
 }): string {
   const greeting = `Hi ${firstName(opts.seekerFirstName || "", "there")}`;
@@ -2162,8 +2162,8 @@ export function careReportEmail(opts: {
       <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 12px;">Similar providers${locationStr ? ` in ${locationStr}` : ""}</p>
       ${opts.similarProviders.map((p) => `
         <div style="margin:0 0 8px;">
-          <a href="${BASE_URL}/provider/${p.slug}" style="font-size:14px;color:${BRAND_COLOR};font-weight:500;text-decoration:none;">${p.name}</a>
-          ${p.priceRange ? `<span style="font-size:12px;color:#6b7280;margin-left:8px;">${p.priceRange}</span>` : ""}
+          <a href="${p.viewUrl}" style="font-size:14px;color:${BRAND_COLOR};font-weight:500;text-decoration:none;">${escapeHtml(p.name)}</a>
+          ${p.priceRange ? `<span style="font-size:12px;color:#6b7280;margin-left:8px;">${escapeHtml(p.priceRange)}</span>` : ""}
         </div>
       `).join("")}
     </div>`

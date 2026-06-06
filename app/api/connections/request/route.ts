@@ -1167,12 +1167,6 @@ async function handleGuestConnection({
       .neq("id", toProfileId)
       .limit(3);
 
-    const similarProviders = (similarRaw || []).map((p: { display_name: string; slug: string; metadata: Record<string, unknown> | null }) => ({
-      name: p.display_name,
-      slug: p.slug,
-      priceRange: (p.metadata?.price_range as string) || null,
-    }));
-
     // Generate magic link for inbox access with fallback to family landing page
     const careReportEmailLogId = await reserveEmailLogId({
       to: normalizedEmail,
@@ -1207,6 +1201,38 @@ async function handleGuestConnection({
       console.error("[care-report] Magic link generation error, using browse page fallback:", magicLinkErr);
     }
 
+    // Generate magic links for each similar provider (consistent with Email #4/#6 pattern)
+    const similarProvidersWithMagicLinks: { name: string; slug: string; priceRange: string | null; viewUrl: string }[] = [];
+
+    for (const p of similarRaw || []) {
+      const providerDest = appendTrackingParams(`/provider/${p.slug}`, careReportEmailLogId);
+      let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback to public URL
+
+      try {
+        const { data: providerLinkData, error: providerLinkError } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(providerDest)}`,
+          },
+        });
+
+        if (!providerLinkError && providerLinkData?.properties?.action_link) {
+          providerMagicLink = providerLinkData.properties.action_link;
+        }
+      } catch (linkErr) {
+        console.error(`[care-report] Similar provider magic link failed for ${p.slug}:`, linkErr);
+        // Continue with fallback public URL
+      }
+
+      similarProvidersWithMagicLinks.push({
+        name: p.display_name,
+        slug: p.slug,
+        priceRange: (p.metadata?.price_range as string) || null,
+        viewUrl: providerMagicLink,
+      });
+    }
+
     // Always send email, regardless of magic link success
     await sendEmail({
       to: normalizedEmail,
@@ -1221,7 +1247,7 @@ async function handleGuestConnection({
         city: providerCity,
         state: providerState,
         fundingOptions: fundingOpts,
-        similarProviders,
+        similarProviders: similarProvidersWithMagicLinks,
         magicLinkUrl,
       }),
       emailType: "care_report",

@@ -124,7 +124,7 @@ function trustIntro(): string {
 function offRampBlock(providerSlug?: string): string {
   const removalUrl = providerSlug
     ? `${BASE_URL}/for-providers/removal-request/${providerSlug}`
-    : `mailto:support@olera.care?subject=Listing%20inquiry`;
+    : `${BASE_URL}/contact`;
   const unsubscribeUrl = providerSlug
     ? `${BASE_URL}/unsubscribe/${providerSlug}`
     : null;
@@ -497,7 +497,7 @@ export function firstMessageEmail(opts: {
       Not sure what to say? Even a quick note about who needs care and when is a great start.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
-      Questions, or want help knowing what to ask? A real person is here at <a href="mailto:support@olera.care" style="color:#6b7280;text-decoration:underline;">support@olera.care</a>.
+      Questions, or want help knowing what to ask? A real person is here — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
     </p>
     <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
       Warmly,<br>The Olera team
@@ -537,7 +537,7 @@ export function newMessageEmail(opts: {
       Not sure what to say? Even a quick note about who needs care and when is a great start.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
-      Questions, or want help knowing what to ask? A real person is here at <a href="mailto:support@olera.care" style="color:#6b7280;text-decoration:underline;">support@olera.care</a>.
+      Questions, or want help knowing what to ask? A real person is here — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
     </p>
     <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
       Warmly,<br>The Olera team
@@ -576,7 +576,7 @@ export function unreadReminderEmail(opts: {
       It stays private — just you and them, no one else.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      Here whenever you need us — a real person is at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a>.
+      Here whenever you need us — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
       Warmly,
@@ -632,7 +632,7 @@ export function providerSilentEmail(opts: {
       ${closingLine}
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      Questions, or want a hand choosing? A real person is here at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a>.
+      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
       Warmly,
@@ -674,7 +674,7 @@ export function providerStillSilentEmail(opts: {
     <div style="margin:0 0 24px;">${button("See providers ready to help", opts.browseUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      Or, if you'd rather not do this alone, a real person on our team will personally help you find care that fits — just reach us at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">support@olera.care</a>, and we'll take it from here.
+      Or, if you'd rather not do this alone, a real person on our team will personally help you find care that fits — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">contact us here</a>, and we'll take it from here.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       You came here looking for care, and that shouldn't end in silence. We're not going to let it.
@@ -713,7 +713,7 @@ export function familyNeverEngagedEmail(opts: {
       We're not going anywhere. Take all the time you need.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      If anything would help, or you just want to talk it through, a real person is here at <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a>.
+      If anything would help, or you just want to talk it through, a real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
       Warmly,
@@ -768,7 +768,7 @@ export function claimDecisionEmail(opts: {
       We were unable to verify the claim for <strong>${escapeHtml(opts.providerName)}</strong>.
       This is usually due to missing or mismatched information. Please reach out so we can help resolve it.
     </p>
-    <div style="margin:0 0 24px;">${button("Contact support", "mailto:support@olera.care")}</div>
+    <div style="margin:0 0 24px;">${button("Contact support", `${BASE_URL}/contact`)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -2235,7 +2235,7 @@ export function careReportEmail(opts: {
     ${fundingWithIntro}
     ${similarSection}
     <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
-      Questions, or just want to talk it through? A real person is here at <a href="mailto:support@olera.care" style="color:#6b7280;text-decoration:underline;">support@olera.care</a>.
+      Questions, or just want to talk it through? A real person is here — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
     </p>
     <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
       Warmly,<br>The Olera team

@@ -261,12 +261,12 @@ export async function POST(request: Request) {
 
           // Send instant email notification to both families and providers
           // Debouncing already handled upstream (skip if recipient active in last 5min)
-          // For families: use full provider name (not shortened) in subject
+          // For families: put provider name FIRST so it shows on mobile before truncation
           // For providers: use first name
           const senderFullName = senderProfile?.display_name || "Someone";
           const senderFirstName = firstName(senderFullName, "Someone");
           const msgSubject = isFamily
-            ? `You have a reply from ${senderFullName}`
+            ? `${senderFullName} replied to you`
             : `${senderFirstName} sent you a message`;
 
           const msgEmailLogId = await reserveEmailLogId({

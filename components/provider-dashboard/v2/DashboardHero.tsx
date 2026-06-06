@@ -182,10 +182,6 @@ export default function DashboardHero({
   const [rotationCount] = useState(bumpHeroRotation);
   const hook = resolveHook(data, completeness, category, rotationCount);
 
-  // Fire one provider_picker_impression per (provider visit, sectionId) so
-  // the admin Q&A funnel can compute click-through on the hero. Engagement
-  // tiers don't fire — they're a different funnel, tracked by their own
-  // existing event types (question_responded, etc.).
   // Preload every tier image once the hero mounts. After a provider saves
   // a section the picker re-evaluates and the hero swaps to a different
   // image; without preload, the new image's ~150-260KB fetch causes a

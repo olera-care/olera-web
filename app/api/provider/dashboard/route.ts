@@ -401,15 +401,17 @@ export async function GET(request: NextRequest) {
     // ── Nearby published care-seekers (the rare "concrete leads") ──
     // Count published families with an active care_post within ~50mi of the
     // provider. Drives the dashboard hero's high-priority "family near you"
-    // tier. Provider coords prefer the claimed business_profile (same source
-    // the matches page uses), falling back to the olera-providers row so a
-    // provider whose BP coords haven't been backfilled still resolves.
-    const seekerLat = typeof profile.lat === "number" ? profile.lat : providerLat;
-    const seekerLon = typeof profile.lng === "number" ? profile.lng : providerLon;
+    // tier. MUST use the SAME provider coords as the matches page's
+    // `nearbySeekers` (business_profiles lat/lng only — NO olera-providers
+    // fallback): the matches page reads providerProfile.lat/lng straight from
+    // the BP row, so if we fell back to olera coords here we could promise a
+    // nearby family the Find Families page then can't pin. Consistency over
+    // coverage — a null-BP-coord provider sees no hot tier AND no pin, which
+    // agree. (Fix is to backfill BP coords, not to diverge the signals.)
     const nearbyFamiliesCount = countNearbyPublishedFamilies(
       (publishedFamiliesRes as { data: Array<{ lat: number | null; lng: number | null; metadata: Record<string, unknown> | null }> | null }).data ?? [],
-      seekerLat,
-      seekerLon,
+      typeof profile.lat === "number" ? profile.lat : null,
+      typeof profile.lng === "number" ? profile.lng : null,
     );
 
     // ── Greeting signals ──

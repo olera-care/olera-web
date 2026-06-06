@@ -502,12 +502,6 @@ export async function GET(request: NextRequest) {
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
-    console.log('[connections] Provider keys for engagement lookup:', {
-      count: allProviderKeys.length,
-      keys: allProviderKeys.slice(0, 5), // Show first 5
-      totalSearched: searched.length
-    });
-
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
     // Each connection has its own engagement data based on events with matching connection_id
@@ -538,25 +532,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log('[connections] Initialized engagement map:', {
-      totalConnections: connectionEngagement.size,
-      sampleIds: Array.from(connectionEngagement.keys()).slice(0, 3)
-    });
-
     // Fetch engagement events filtered by CONNECTION_ID in metadata
     // This ensures each connection shows only its own engagement, not provider-wide
-
-    // DEBUG: Track event processing
-    const debugEventProcessing = {
-      totalFetched: 0,
-      matchedWithConnectionId: 0,
-      skippedNotInMap: 0,
-      multiLeadHandled: 0,
-      multiLeadAffectedConnections: 0,
-      ignored: 0,
-      sampleSkippedEvents: [] as any[],
-      sampleMatchedEvents: [] as any[],
-    };
 
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
@@ -566,14 +543,6 @@ export async function GET(request: NextRequest) {
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
         .order("created_at", { ascending: false })
         .limit(10000);
-
-      debugEventProcessing.totalFetched = actEvents?.length ?? 0;
-
-      console.log('[connections] Fetched engagement events:', {
-        totalEvents: actEvents?.length ?? 0,
-        leadOpenedCount: actEvents?.filter(e => e.event_type === 'lead_opened').length ?? 0,
-        sampleEvent: actEvents?.[0]
-      });
 
       // Build a map of provider_id -> connection_ids for multi-lead email handling
       const providerToConnections = new Map<string, string[]>();
@@ -609,32 +578,10 @@ export async function GET(request: NextRequest) {
                   }
                 }
               }
-              debugEventProcessing.multiLeadHandled++;
-              debugEventProcessing.multiLeadAffectedConnections += connectionIds.length;
             } else {
               // Non-lead_opened event for connection not in view - skip it
-              debugEventProcessing.skippedNotInMap++;
-              if (debugEventProcessing.sampleSkippedEvents.length < 5) {
-                debugEventProcessing.sampleSkippedEvents.push({
-                  event_type: ev.event_type,
-                  provider_id: ev.provider_id,
-                  connection_id: connectionId,
-                  created_at: ev.created_at,
-                  metadata: meta,
-                });
-              }
             }
             continue;
-          }
-
-          debugEventProcessing.matchedWithConnectionId++;
-          if (debugEventProcessing.sampleMatchedEvents.length < 5) {
-            debugEventProcessing.sampleMatchedEvents.push({
-              event_type: ev.event_type,
-              provider_id: ev.provider_id,
-              connection_id: connectionId,
-              created_at: ev.created_at,
-            });
           }
 
           if (ev.event_type === "email_click") eng.email_clicked = true;
@@ -660,9 +607,7 @@ export async function GET(request: NextRequest) {
         // Handle provider-wide events (multi-lead emails with no specific connection_id)
         // When provider clicks a multi-lead email and lands on inbox, mark ALL their connections as viewed
         else if (ev.event_type === "lead_opened" && ev.provider_id) {
-          debugEventProcessing.multiLeadHandled++;
           const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
-          debugEventProcessing.multiLeadAffectedConnections += connectionIds.length;
           for (const connId of connectionIds) {
             const eng = connectionEngagement.get(connId);
             if (eng) {
@@ -673,8 +618,6 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-        } else {
-          debugEventProcessing.ignored++;
         }
       }
     }
@@ -957,11 +900,6 @@ export async function GET(request: NextRequest) {
       providerActions,
       engagement,
       truncated,
-      _debug: {
-        providerKeysCount: allProviderKeys?.length ?? 0,
-        connectionMapSize: connectionEngagement?.size ?? 0,
-        eventProcessing: debugEventProcessing,
-      },
     });
   } catch (err) {
     console.error("[connections] fatal:", err);

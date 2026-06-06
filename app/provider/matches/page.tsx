@@ -8,7 +8,7 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable, getProfileCompletionGaps } from "@/lib/membership";
+import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { type ExtendedMetadata } from "@/lib/profile-completeness";
 import {
@@ -893,8 +893,6 @@ export default function ProviderMatchesPage() {
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [profileGapWarning, setProfileGapWarning] = useState<string[] | null>(null);
-  const gapWarningRef = useRef<HTMLDivElement>(null);
 
 
   // Pagination state
@@ -983,14 +981,11 @@ export default function ProviderMatchesPage() {
         });
       }
 
-      // Only check profile completeness for NEW outreach, not viewing existing
-      if (!isViewingExisting && !isProfileShareable(providerProfile)) {
-        const gaps = getProfileCompletionGaps(providerProfile);
-        setProfileGapWarning(gaps);
-        setTimeout(() => gapWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
-        return;
-      }
-      setProfileGapWarning(null);
+      // No profile-completeness gate here on purpose: a provider must be able to
+      // reach out to a real lead without finishing their profile first.
+      // Verification is the ONLY restriction on reaching out (handled by the
+      // drawer's isVerified / onVerifyClick path). Profile completion is nudged
+      // elsewhere (the dashboard hero), never used to block a lead.
       setSendError(null);
 
       // Only load saved message for new outreach
@@ -1823,27 +1818,6 @@ export default function ProviderMatchesPage() {
               : `${pinnedSeekers.length} families near you are looking for care`}
           </span>
         </div>
-        {profileGapWarning && (
-          <div ref={gapWarningRef} className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3.5">
-            <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-800">Complete your profile to reach out</p>
-              <p className="text-sm text-amber-700 mt-0.5">
-                Missing: {profileGapWarning.join(", ")}.{" "}
-                <Link href="/provider" className="font-semibold underline underline-offset-2 hover:text-amber-900">
-                  Update profile →
-                </Link>
-              </p>
-            </div>
-            <button type="button" onClick={() => setProfileGapWarning(null)} className="text-amber-400 hover:text-amber-600 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
         <div className="flex flex-col gap-3">
           {pinnedSeekers.map(({ family, distanceMi }) => (
             <PinnedSeekerCard
@@ -2027,27 +2001,6 @@ export default function ProviderMatchesPage() {
             )
           ) : (
                 <>
-                {profileGapWarning && (
-                  <div ref={gapWarningRef} className="mt-4 mb-2 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3.5">
-                    <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-amber-800">Complete your profile to reach out</p>
-                      <p className="text-sm text-amber-700 mt-0.5">
-                        Missing: {profileGapWarning.join(", ")}.{" "}
-                        <Link href="/provider" className="font-semibold underline underline-offset-2 hover:text-amber-900">
-                          Update profile →
-                        </Link>
-                      </p>
-                    </div>
-                    <button type="button" onClick={() => setProfileGapWarning(null)} className="text-amber-400 hover:text-amber-600 transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                )}
                 <div className="flex flex-col gap-2.5 mt-4">
                   {paginatedFamilies.map((family, index) => (
                     <FamilyMatchCard

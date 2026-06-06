@@ -6,17 +6,16 @@ import { validateClaimToken } from "@/lib/claim-tokens";
 /**
  * GET /api/claim-family?otk=<token>&next=<destination>
  *
- * One-click magic link landing for family emails. Handles authentication
- * flow server-side in a single response:
+ * One-click authentication endpoint for email links (families + providers).
+ * Handles authentication flow server-side in a single response:
  *
- *  1. Validates the HMAC-signed token (family email + 72h expiry)
+ *  1. Validates the HMAC-signed token (email + 72h expiry)
  *  2. Creates or resolves a Supabase auth user for the email
  *  3. Establishes a session by verifying a fresh magic-link OTP server-side,
  *     writing auth cookies onto the redirect response
  *  4. Redirects to the destination URL (e.g., /portal/inbox?id=123)
  *
- * This gives families the same 72-hour link expiry as providers, vs the
- * 1-hour Supabase magic link default.
+ * This provides 72-hour link expiry (vs 1-hour Supabase magic link default).
  *
  * Query params:
  *   - otk: Required. The signed claim token (HMAC-SHA256, 72h expiry)
@@ -41,6 +40,13 @@ export async function GET(request: NextRequest) {
 
   if (!nextPath) {
     console.error("[claim-family] missing next param");
+    return NextResponse.redirect(`${siteUrl}/portal/inbox`, { status: 303 });
+  }
+
+  // Validate nextPath to prevent open redirect attacks
+  // Must start with / (but not //) and cannot contain protocol schemes
+  if (!nextPath.startsWith('/') || nextPath.startsWith('//') || nextPath.includes('://')) {
+    console.error("[claim-family] invalid next path (potential open redirect):", nextPath);
     return NextResponse.redirect(`${siteUrl}/portal/inbox`, { status: 303 });
   }
 
@@ -145,7 +151,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${siteUrl}/portal/inbox`, { status: 303 });
   }
 
-  // Ensure an account row exists (families don't need profile linking)
+  // Ensure an account row exists
+  // Note: This endpoint is used by both families and providers
   if (!userId) {
     console.error("[claim-family] could not resolve userId");
     return NextResponse.redirect(redirectTarget, { status: 303 });
@@ -158,14 +165,14 @@ export async function GET(request: NextRequest) {
     .single();
 
   if (!account) {
-    const displayName = normalizedEmail.split("@")[0] || "Family";
+    const displayName = normalizedEmail.split("@")[0] || "User";
 
     const { error: accountError } = await admin
       .from("accounts")
       .insert({
         user_id: userId,
         display_name: displayName,
-        onboarding_completed: true, // Family onboarding happens implicitly via email claim
+        onboarding_completed: true, // Email claim completes onboarding for all users
       })
       .select("id")
       .single();

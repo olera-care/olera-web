@@ -301,52 +301,20 @@ export async function POST(request: Request) {
             );
             viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           } else if (isClaimed) {
-            // Claimed provider → direct to inbox with magic link
+            // Claimed provider → direct to inbox with HMAC token (72-hour expiry)
             const redirectPath = appendTrackingParams(
               `/portal/inbox?role=provider&id=${connectionId}`,
               msgEmailLogId
             );
-            viewUrl = `${siteUrl}${redirectPath}`;
-
-            try {
-              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
-                type: "magiclink",
-                email: authEmail, // Use auth email for magic link
-                options: {
-                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-                },
-              });
-              if (!providerLinkError && providerLinkData?.properties?.action_link) {
-                viewUrl = providerLinkData.properties.action_link;
-              }
-            } catch (linkErr) {
-              console.error("Failed to generate provider magic link for message:", linkErr);
-              // Continue with fallback URL (inbox without magic link)
-            }
+            viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           } else {
-            // Unclaimed provider → onboard page to claim listing first
+            // Unclaimed provider → onboard page to claim listing first with HMAC token (72-hour expiry)
             const providerSlug = recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId;
             const redirectPath = appendTrackingParams(
               `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`,
               msgEmailLogId
             );
-            viewUrl = `${siteUrl}${redirectPath}`;
-
-            try {
-              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
-                type: "magiclink",
-                email: authEmail, // Use auth email for magic link
-                options: {
-                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-                },
-              });
-              if (!providerLinkError && providerLinkData?.properties?.action_link) {
-                viewUrl = providerLinkData.properties.action_link;
-              }
-            } catch (linkErr) {
-              console.error("Failed to generate provider magic link for message:", linkErr);
-              // Continue with fallback URL (onboard page)
-            }
+            viewUrl = generateFamilyInboxUrl(authEmail, redirectPath, siteUrl);
           }
 
           // Detect if this is recipient's first message or a reply

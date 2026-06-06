@@ -613,7 +613,7 @@ export default function ConnectionRow({
                           <button
                             onClick={() => sendNudge("/api/admin/nudge-family", "Follow-up sent to family.")}
                             disabled={nudging}
-                            className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
                             {nudging ? "Sending..." : "Nudge Family"}
                           </button>
@@ -663,7 +663,7 @@ export default function ConnectionRow({
                           <button
                             onClick={() => sendNudge("/api/admin/nudge-family", "Follow-up sent to family.")}
                             disabled={nudging}
-                            className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                           >
                             {nudging ? "Sending..." : "Nudge Family"}
                           </button>

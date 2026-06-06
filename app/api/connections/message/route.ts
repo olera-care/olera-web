@@ -430,6 +430,11 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
+    // Check if this is provider's first response in an inquiry conversation
+    const isProviderSender = profileId === providerProfileId;
+    const isFirstProviderMessage = existingThread.filter(m => m.from_profile_id === providerProfileId).length === 0;
+    const isFirstProviderResponse = isInquiry && isProviderSender && isFirstProviderMessage;
+
     // First response confirmation email (provider only, inquiry connections only)
     if (isFirstProviderResponse) {
       try {

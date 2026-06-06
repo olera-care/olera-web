@@ -11,7 +11,7 @@ import { ProgramIcon } from "@/lib/program-icon";
 import { getDisplayName } from "@/lib/program-name";
 import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBadge";
 import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
-import { getStateVerifier } from "@/data/benefits-verifiers";
+import { getStateVerifier, getStatePublisher, getStateReviewedAt } from "@/data/benefits-verifiers";
 import { formatReviewDate } from "@/lib/format-review-date";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -416,23 +416,42 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           </p>
 
           {(() => {
-            const { author, reviewedAt } = getStateVerifier(state.abbreviation);
+            const stateReviewedAt = getStateVerifier(state.abbreviation).reviewedAt || getStateReviewedAt(state.abbreviation);
+            // Unreviewed state: show the dated status badge only — no named
+            // "Published by / Verified by" credit until a human has reviewed it.
+            if (!stateReviewedAt) {
+              return (
+                <ContentStatusBadge
+                  variant="state"
+                  contentStatus="pipeline-draft"
+                  draftedAt={draftedAt}
+                  className="mt-5"
+                />
+              );
+            }
+            const { author: publisher } = getStatePublisher(state.abbreviation);
+            const { author: verifier } = getStateVerifier(state.abbreviation);
             return (
               <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
-                <ReviewerAvatar author={author} />
-                <span className="text-gray-400">Reviewed by</span>
+                <ReviewerAvatar author={publisher} />
+                <span className="text-gray-400">Published by</span>
                 <Link
-                  href={`/author/${author.slug}`}
+                  href={`/author/${publisher.slug}`}
                   className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
                 >
-                  {author.name}
+                  {publisher.name}
                 </Link>
-                {reviewedAt && (
-                  <>
-                    <span className="text-gray-300">·</span>
-                    <span className="text-gray-400">Last verified {formatReviewDate(reviewedAt)}</span>
-                  </>
-                )}
+                <span className="text-gray-300">·</span>
+                <ReviewerAvatar author={verifier} />
+                <span className="text-gray-400">Verified by</span>
+                <Link
+                  href={`/author/${verifier.slug}`}
+                  className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  {verifier.name}
+                </Link>
+                <span className="text-gray-300">·</span>
+                <span className="text-gray-400">Last verified {formatReviewDate(stateReviewedAt)}</span>
               </div>
             );
           })()}

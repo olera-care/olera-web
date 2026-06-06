@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // a row in unspecified Postgres order, so the dashboard could resolve
     // to a profile other than the one the user has selected. Fall back to
     // limit(1) when active_profile_id is unset (legacy accounts).
-    const profileSelect = "id, slug, source_provider_id, display_name, email, city, state, category, metadata, created_at, updated_at";
+    const profileSelect = "id, slug, source_provider_id, display_name, email, city, state, category, lat, lng, metadata, created_at, updated_at";
     let profile: {
       id: string;
       slug: string | null;
@@ -55,6 +55,8 @@ export async function GET(request: NextRequest) {
       city: string | null;
       state: string | null;
       category: string | null;
+      lat: number | null;
+      lng: number | null;
       metadata: Record<string, unknown> | null;
       created_at: string;
       updated_at: string;
@@ -107,6 +109,7 @@ export async function GET(request: NextRequest) {
       questionsRes,
       leadsRes,
       oleraGeoRes,
+      publishedFamiliesRes,
     ] = await Promise.all([
       // All provider_activity events in the prior+current window for delta
       // + activity feed. 20k limit should be ample for a single provider.
@@ -163,6 +166,22 @@ export async function GET(request: NextRequest) {
             .eq("provider_id", profile.source_provider_id)
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
+
+      // All published care-seekers with coordinates — the platform-wide set is
+      // tiny (~dozens), so we pull them all and haversine in JS to count the
+      // ones within the provider's catchment. Mirrors the matches page's
+      // `nearbySeekers` (same 50mi radius, same active-care_post filter) so the
+      // hero's "family near you" tier agrees with what they'd see on Find
+      // Families. Cheap: a single small query, no per-provider geo index.
+      db
+        .from("business_profiles")
+        .select("lat, lng, metadata")
+        .eq("type", "family")
+        .eq("is_active", true)
+        .not("metadata->care_post", "is", null)
+        .not("lat", "is", null)
+        .not("lng", "is", null)
+        .limit(5000),
     ]);
 
     if (eventsRes.error) {
@@ -379,6 +398,22 @@ export async function GET(request: NextRequest) {
         })
       : { scope: null, demand: 0 };
 
+    // ── Nearby published care-seekers (the rare "concrete leads") ──
+    // Count published families with an active care_post within ~50mi of the
+    // provider. Drives the dashboard hero's high-priority "family near you"
+    // tier. MUST use the SAME provider coords as the matches page's
+    // `nearbySeekers` (business_profiles lat/lng only — NO olera-providers
+    // fallback): the matches page reads providerProfile.lat/lng straight from
+    // the BP row, so if we fell back to olera coords here we could promise a
+    // nearby family the Find Families page then can't pin. Consistency over
+    // coverage — a null-BP-coord provider sees no hot tier AND no pin, which
+    // agree. (Fix is to backfill BP coords, not to diverge the signals.)
+    const nearbyFamiliesCount = countNearbyPublishedFamilies(
+      (publishedFamiliesRes as { data: Array<{ lat: number | null; lng: number | null; metadata: Record<string, unknown> | null }> | null }).data ?? [],
+      typeof profile.lat === "number" ? profile.lat : null,
+      typeof profile.lng === "number" ? profile.lng : null,
+    );
+
     // ── Greeting signals ──
     // What's meaningful to show at the top? Prioritized:
     //   1. Unanswered questions (action needed — most valuable)
@@ -422,6 +457,7 @@ export async function GET(request: NextRequest) {
         lifetime: lifetimeViews,
       },
       cohort: cohortDemand,
+      nearbyFamilies: { count: nearbyFamiliesCount },
     });
   } catch (err) {
     console.error("[provider/dashboard] fatal:", err);
@@ -580,6 +616,31 @@ async function countCohortDemand(
     if (typeof sid === "string" && sid.length > 0) sessions.add(sid);
   }
   return sessions.size;
+}
+
+const NEARBY_SEEKER_RADIUS_MILES = 50;
+
+/**
+ * Count published families with an active care_post within the catchment of
+ * the provider's coordinates. Mirrors the matches page's `nearbySeekers`
+ * (50mi haversine, active-care_post only). Returns 0 when the provider has no
+ * coordinates — we can't honestly claim a nearby family without knowing where
+ * the provider is.
+ */
+function countNearbyPublishedFamilies(
+  families: Array<{ lat: number | null; lng: number | null; metadata: Record<string, unknown> | null }>,
+  lat: number | null,
+  lon: number | null,
+): number {
+  if (lat === null || lon === null) return 0;
+  let count = 0;
+  for (const f of families) {
+    if (typeof f.lat !== "number" || typeof f.lng !== "number") continue;
+    const carePost = (f.metadata as { care_post?: { status?: string } } | null)?.care_post;
+    if (carePost?.status !== "active") continue;
+    if (haversineMiles(lat, lon, f.lat, f.lng) <= NEARBY_SEEKER_RADIUS_MILES) count += 1;
+  }
+  return count;
 }
 
 function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {

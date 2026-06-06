@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { ProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import type { ProfileCompleteness } from "@/lib/profile-completeness";
@@ -21,24 +21,34 @@ import {
  * CTA on the dark surface.
  *
  * Prioritized signal stack (after the 2026-04-29 refactor that folded the
- * standalone smart-picker banner into this hero — one banner per surface):
+ * standalone smart-picker banner into this hero — one banner per surface;
+ * 2026-06-04 added the Find Families tiers):
  *
  *   1. Fresh leads this period   (highest intent — someone reaching out)
  *   2. Unanswered questions      (action needed)
- *   3. View spike vs. prior      (positive momentum, no CTA)
- *   4. Views ≥ 10                (engagement headline; if profile is
+ *   3. Family near you           (a real published care-seeker in catchment —
+ *                                 the rare concrete lead; jumps the line over
+ *                                 profile housekeeping because there's a live
+ *                                 family to reach out to → Find Families)
+ *   4. View spike vs. prior      (positive momentum, no CTA)
+ *   5. Views ≥ 10                (engagement headline; if profile is
  *                                 incomplete, CTA opens the highest-impact
- *                                 section's edit modal — otherwise no CTA)
- *   5. Views < 10 + incomplete   (section-specific completion pick — the
- *                                 hero acts as the picker until engagement
- *                                 picks up)
- *   6. Views < 10 + complete     (informational fallback, no CTA)
+ *                                 section's edit modal — otherwise Find
+ *                                 Families market intel)
+ *   6. Views < 10 + incomplete   (cold: completion pick, but every ~3rd visit
+ *                                 rotates in Find Families market intel so the
+ *                                 capability surfaces without letting profile
+ *                                 completion collapse)
+ *   7. Views < 10 + complete     (Find Families market intel — nothing left to
+ *                                 complete, so pull them toward families)
  *
  * Rule: pick ONE headline signal. Never stack multiple "you have X, Y, and Z."
- * Tiers 1-3 navigate via Link (existing engagement funnel); tier 4-5 section
- * CTAs open an edit modal in place (new completion funnel — same metadata
- * shape as the deprecated SmartNextActionCard so the admin analytics rollup
- * keeps working with a `source: "hero"` bucket).
+ * Engagement + Find Families tiers navigate via Link; completion-section CTAs
+ * open an edit modal in place. Every banner carries a stable `bannerId` and
+ * fires a `provider_picker_impression` once per visit, so the admin Dashboard
+ * Banners leaderboard can compute click-through per banner. Click events keep
+ * the legacy `source: "hero"` + section/tier keys so the existing comms-funnel
+ * rollup is unaffected.
  */
 
 const HERO_IMAGE_DEFAULT = "/images/for-providers/dashboard-hero.jpg";
@@ -79,6 +89,38 @@ const ALL_HERO_IMAGES: readonly string[] = [
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
+// Find Families lives at /provider/matches (the market diagnostic + any pinned
+// real seekers). Two banners point here: the hot "family near you" tier (a real
+// nearby published seeker) and the cold "market intel" tier (no seeker yet, so
+// the value is the demand read, not a roster). Reuse existing hero imagery —
+// the leads photo (someone reaching out) for the live-family case, the spike
+// photo (upward momentum) for the market read — so no new assets ship.
+const FIND_FAMILIES_HREF = "/provider/matches";
+const FIND_FAMILIES_LIVE_IMAGE = TIER_LEADS_IMAGE;
+const MARKET_INTEL_IMAGE = TIER_SPIKE_IMAGE;
+
+// Cold providers (sparse traffic) get the completion nudge by default, but
+// every Nth dashboard visit the hero rotates in the Find Families market-intel
+// banner instead — so the capability surfaces early and repeatedly without
+// letting profile completion collapse. Deterministic per-visit via a
+// localStorage counter (true "every 3rd visit", and easy to QA: reload thrice).
+const ROTATE_EVERY = 3;
+
+/** Increment + read the per-browser hero visit counter. Returns the new count
+ *  (1-based). Drives the cold-tier completion ⇄ market-intel rotation. SSR-safe
+ *  (returns 0 server-side) and failure-safe (returns 0 if storage is blocked). */
+function bumpHeroRotation(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const key = "olera_hero_rotation";
+    const next = (parseInt(window.localStorage.getItem(key) || "0", 10) || 0) + 1;
+    window.localStorage.setItem(key, String(next));
+    return next;
+  } catch {
+    return 0;
+  }
+}
+
 interface Props {
   firstName: string;
   data: ProviderDashboardV2Data;
@@ -112,6 +154,9 @@ interface SectionCta {
 }
 
 interface Hook {
+  /** Stable identity for the leaderboard + impression dedupe. Section banners
+   *  use `completion:<section>`; the rest use a fixed slug. */
+  bannerId: string;
   headline: string;
   subline?: string;
   cta?: NavCta | SectionCta;
@@ -131,12 +176,12 @@ export default function DashboardHero({
   onOpenSection,
   providerSlug,
 }: Props) {
-  const hook = resolveHook(data, completeness, category);
+  // Per-browser visit counter, read once per mount (lazy init runs a single
+  // time, even under StrictMode's double-invoked effects). Drives the cold-tier
+  // rotation below.
+  const [rotationCount] = useState(bumpHeroRotation);
+  const hook = resolveHook(data, completeness, category, rotationCount);
 
-  // Fire one provider_picker_impression per (provider visit, sectionId) so
-  // the admin Q&A funnel can compute click-through on the hero. Engagement
-  // tiers don't fire — they're a different funnel, tracked by their own
-  // existing event types (question_responded, etc.).
   // Preload every tier image once the hero mounts. After a provider saves
   // a section the picker re-evaluates and the hero swaps to a different
   // image; without preload, the new image's ~150-260KB fetch causes a
@@ -152,25 +197,30 @@ export default function DashboardHero({
   }, []);
 
   const firedImpression = useRef<string | null>(null);
+  const { bannerId } = hook;
   const sectionId =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;
   const sectionWeight =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.weight : null;
 
+  // One impression per (visit, bannerId) for EVERY banner — not just the
+  // completion sections — so the leaderboard's click-through denominator covers
+  // all banners. Section banners still carry section/weight for the existing
+  // rollup.
   useEffect(() => {
-    if (!sectionId || sectionWeight === null) return;
-    if (firedImpression.current === sectionId) return;
-    firedImpression.current = sectionId;
+    if (firedImpression.current === bannerId) return;
+    firedImpression.current = bannerId;
     track("provider_picker_impression", providerSlug, {
       source: "hero",
-      section: sectionId,
-      weight: sectionWeight,
+      banner: bannerId,
+      ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
-  }, [sectionId, sectionWeight, providerSlug]);
+  }, [bannerId, sectionId, sectionWeight, providerSlug]);
 
   const handleSectionClick = (cta: SectionCta) => {
     track("provider_picker_clicked", providerSlug, {
       source: "hero",
+      banner: bannerId,
       tier: "completion",
       section: cta.sectionId,
       weight: cta.weight,
@@ -178,15 +228,16 @@ export default function DashboardHero({
     onOpenSection(cta.sectionId);
   };
 
-  // Engagement-tier clicks (Tiers 1-2) fire the same provider_picker_clicked
-  // event so the admin funnel + Slack alert cover all hero engagement, not
-  // only the completion-section subset. The Link still navigates — track is
-  // fire-and-forget with keepalive so the POST survives the navigation.
+  // Nav-CTA clicks (engagement Tiers 1-2 + the Find Families tiers) fire the
+  // same provider_picker_clicked event so the admin funnel + leaderboard cover
+  // all hero clicks, not only the completion-section subset. The Link still
+  // navigates — track is fire-and-forget with keepalive so the POST survives
+  // the navigation.
   const handleNavClick = (cta: NavCta) => {
-    if (!cta.engagementTier) return;
     track("provider_picker_clicked", providerSlug, {
       source: "hero",
-      tier: cta.engagementTier,
+      banner: bannerId,
+      ...(cta.engagementTier ? { tier: cta.engagementTier } : {}),
       destination: cta.href,
     });
   };
@@ -289,10 +340,25 @@ function CtaArrow() {
   );
 }
 
+/** Find Families "market intel" banner — the cold-tier nudge when there's no
+ *  nearby seeker yet. The value is the demand read, not a roster of families,
+ *  so the copy points at the market, not at people to contact. */
+function marketIntelHook(): Hook {
+  return {
+    bannerId: "find_families_intel",
+    headline: "See who's searching in your market",
+    subline:
+      "Olera tracks the families looking for care near you — explore your local demand and where you stand against nearby providers.",
+    cta: { label: "Explore your market", href: FIND_FAMILIES_HREF },
+    imageUrl: MARKET_INTEL_IMAGE,
+  };
+}
+
 function resolveHook(
   data: ProviderDashboardV2Data,
   completeness: ProfileCompleteness,
   category: ProfileCategory | null,
+  rotationCount: number,
 ): Hook {
   const { greeting } = data;
 
@@ -301,6 +367,7 @@ function resolveHook(
   if (greeting.newLeadsThisPeriod > 0) {
     const n = greeting.newLeadsThisPeriod;
     return {
+      bannerId: "leads",
       headline: `${n} new ${n === 1 ? "inquiry" : "inquiries"} this month.`,
       subline:
         "Families expect a response within a day — quick replies read as professional.",
@@ -313,6 +380,7 @@ function resolveHook(
   if (greeting.unansweredQuestions > 0) {
     const n = greeting.unansweredQuestions;
     return {
+      bannerId: "questions",
       headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
       subline:
         "Under a minute each, and families feel like you're paying attention.",
@@ -321,10 +389,31 @@ function resolveHook(
     };
   }
 
-  // Priority 3 — meaningful view spike. Positive reinforcement, no CTA —
+  // Priority 3 — a real published care-seeker within the catchment. This is the
+  // rare concrete lead: someone Find Families would pin for them. It jumps the
+  // line over profile housekeeping and view momentum because there's a live
+  // family to reach out to RIGHT NOW. Honest by construction — only fires when
+  // the count is real (the dashboard API counts active care_posts within 50mi).
+  const nearby = data.nearbyFamilies?.count ?? 0;
+  if (nearby > 0) {
+    return {
+      bannerId: "find_families_live",
+      headline:
+        nearby === 1
+          ? "A family near you is looking for care."
+          : `${nearby} families near you are looking for care.`,
+      subline:
+        "The first provider to reach out usually wins the conversation. See who they are and say hello.",
+      cta: { label: "See families near you", href: FIND_FAMILIES_HREF },
+      imageUrl: FIND_FAMILIES_LIVE_IMAGE,
+    };
+  }
+
+  // Priority 4 — meaningful view spike. Positive reinforcement, no CTA —
   // the headline IS the value.
   if (greeting.deltaPct !== null && greeting.deltaPct >= 25 && greeting.viewsThisPeriod >= 5) {
     return {
+      bannerId: "view_spike",
       headline: `Your page views are up ${greeting.deltaPct}% this month.`,
       subline: `${greeting.viewsThisPeriod} families found you — ${Math.max(0, greeting.viewsThisPeriod - greeting.viewsPriorPeriod)} more than last month.`,
       imageUrl: TIER_SPIKE_IMAGE,
@@ -333,16 +422,17 @@ function resolveHook(
 
   const next = pickNextAction(completeness, category);
 
-  // Priority 4 — meaningful traffic (≥ 10 views) with a completion gap.
-  // Engagement headline rewards the activity; section-specific CTA fills
-  // the activation lever. If the profile is fully complete, the headline
-  // alone — no CTA — keeps the moment recognition-only, no nag. Image
-  // tracks the section the picker chose (gallery → photos image, about →
-  // conversation image, etc.) so the visual mood matches the ask.
+  // Priority 5 — meaningful traffic (≥ 10 views). With a completion gap, the
+  // engagement headline rewards the activity and the section CTA fills the
+  // activation lever (kept strong — no rotation — because traffic means they're
+  // closer to converting and the gap is the higher-leverage fix). With a
+  // complete profile, there's nothing to fix, so pull them toward Find Families
+  // market intel instead of the old no-CTA filler.
   if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
     const n = greeting.viewsThisPeriod;
     if (next) {
       return {
+        bannerId: `completion:${next.sectionId}`,
         headline: `${n} families viewed your page this month.`,
         subline: next.copy.subline,
         cta: {
@@ -353,17 +443,20 @@ function resolveHook(
         imageUrl: SECTION_IMAGES[next.sectionId],
       };
     }
-    return {
-      headline: `${n} families viewed your page this month.`,
-      subline: "Questions and inquiries land here as families decide.",
-    };
+    return marketIntelHook();
   }
 
-  // Priority 5 — sparse traffic AND a completion gap. The hero takes over
-  // the picker role: section-specific copy as the headline, opens the right
-  // edit modal in place. Image matches the section being nudged.
+  // Priority 6 — sparse traffic AND a completion gap. Cold provider: completion
+  // is the default (a blank profile won't convert a family even if one shows
+  // up), but every ROTATE_EVERY-th visit we rotate in Find Families market
+  // intel so the capability surfaces early and repeatedly without letting
+  // profile completion collapse.
   if (next) {
+    if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
+      return marketIntelHook();
+    }
     return {
+      bannerId: `completion:${next.sectionId}`,
       headline: next.copy.headline,
       subline: next.copy.subline,
       cta: {
@@ -375,16 +468,11 @@ function resolveHook(
     };
   }
 
-  // Priority 6 — sparse traffic AND fully complete. Profile is dialed in;
-  // we just don't have demand data yet. Informational, no CTA. (Better
-  // than the old "Improve your listing" generic — there's nothing left to
-  // improve and no need to manufacture a CTA.)
-  return {
-    headline: "Your page is live on Olera.",
-    subline:
-      "Families in your area are searching every day. Inquiries and questions will land here as they come in.",
-    imageUrl: TIER_FALLBACK_IMAGE,
-  };
+  // Priority 7 — sparse traffic AND fully complete. Profile is dialed in and
+  // there's no nearby seeker yet, so the most useful evergreen nudge is the
+  // market read — surface the Find Families capability rather than a static
+  // "your page is live" reassurance.
+  return marketIntelHook();
 }
 
 /**

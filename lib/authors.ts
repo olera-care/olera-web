@@ -50,9 +50,9 @@ export const AUTHORS: Author[] = [
   {
     slug: "cecille-chavez",
     name: "Cecille Chavez",
-    role: "Analyst & Customer Support Specialist",
-    bio: "Cecille Chavez is an Analyst and Customer Support Specialist at Olera, where she verifies senior benefits program eligibility and caregiver-facing guidance. She focuses on translating complex program rules into actionable next steps for families.",
-    avatar: "/images/for-providers/team/cecille.webp",
+    role: "Benefits QA Lead",
+    bio: "Cecille Chavez is the Benefits QA Lead at Olera. She checks each senior benefits guide against official state and federal sources, confirming income limits, asset limits, and how to apply. Before Olera, she spent nearly four years as a Quality Evaluator at Caring.com, reviewing advisor compliance and service quality. She joined Olera in November 2023 and works across provider research, referrals, and care navigation, helping families find in-home care and senior living.",
+    avatar: "/images/for-providers/team/cecille.jpg",
   },
 ];
 

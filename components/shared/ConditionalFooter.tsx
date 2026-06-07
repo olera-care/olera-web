@@ -13,7 +13,9 @@ import SimpleFooter from "./SimpleFooter";
 export default function ConditionalFooter() {
   const pathname = usePathname();
 
-  // Admin, inbox, onboarding, claim wizard, removal request, match detail, and MedJobs forms — no footer
+  // Admin, inbox, onboarding, claim wizard, removal request, match detail, MedJobs
+  // forms, and unsubscribe confirmations — no footer. These are terminal/utility
+  // pages; the marketing footer + SEO city grid is noise (and cramped on mobile).
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/portal/inbox") ||
@@ -23,6 +25,7 @@ export default function ConditionalFooter() {
     pathname.startsWith("/for-providers/dispute") ||
     pathname.startsWith("/medjobs/apply") ||
     pathname.startsWith("/medjobs/submit-video") ||
+    pathname.startsWith("/unsubscribe") ||
     pathname.match(/^\/portal\/matches\/[^/]+$/)
   ) {
     return null;

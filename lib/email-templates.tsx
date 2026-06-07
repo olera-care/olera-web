@@ -10,6 +10,23 @@ const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
+/**
+ * Footer unsubscribe link for care-seeker (family) lifecycle + nudge emails.
+ *
+ * Links to the public, no-login unsubscribe page keyed by the family profile id
+ * (business_profiles.id). Care-seekers arrive as guests with no session, so the
+ * old `/portal/settings` link was a dead end for them — it sat behind auth and
+ * never set the `nudges_unsubscribed` flag the nudge crons actually check.
+ *
+ * Falls back to the account settings page when the id is unknown, preserving the
+ * prior behavior for any call site that hasn't been wired to pass an id.
+ */
+export function careUnsubscribeUrl(unsubscribeId?: string): string {
+  return unsubscribeId
+    ? `${BASE_URL}/unsubscribe/care?id=${encodeURIComponent(unsubscribeId)}`
+    : `${BASE_URL}/account/settings`;
+}
+
 // ── Layout helpers ──────────────────────────────────────────────
 
 /**
@@ -1160,6 +1177,8 @@ export function providerReachOutEmail(opts: {
 
 /** Email to family when they have unanswered messages and Matches is not active (F3) */
 export function matchesNudgeEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   unansweredCount: number;
   matchesUrl: string;
@@ -1182,7 +1201,7 @@ export function matchesNudgeEmail(opts: {
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -1412,6 +1431,8 @@ function providerCardsBlock(providers: EmailProviderCard[], showSnippets = false
 
 /** Go-live reminder — shows nearby provider count + top providers */
 export function goLiveReminderEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   matchesUrl: string;
   city?: string;
@@ -1437,13 +1458,15 @@ export function goLiveReminderEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Post-connection follow-up — asks about experience, builds review system */
 export function postConnectionFollowupEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   providerName: string;
   providerSlug: string;
@@ -1463,7 +1486,7 @@ export function postConnectionFollowupEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from follow-up emails</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from follow-up emails</a>
     </p>
   `, preheader);
 }
@@ -1472,6 +1495,8 @@ export function postConnectionFollowupEmail(opts: {
 
 /** Completion Nudge #1 (Day 0, 4h after signup): Helpful onboarding */
 export function completionNudge1Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   welcomeUrl: string;
   missingFields?: string[];
@@ -1507,13 +1532,15 @@ export function completionNudge1Email(opts: {
     </p>
     <div>${button("Continue Your Profile", opts.welcomeUrl)}</div>
     <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Completion Nudge #2 (Day 2): Progress encouragement, provider count */
 export function completionNudge2Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   welcomeUrl: string;
   missingFields?: string[];
@@ -1540,13 +1567,15 @@ export function completionNudge2Email(opts: {
     </p>
     <div>${button("Add a Few Details", opts.welcomeUrl)}</div>
     <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Completion Nudge #3 (Day 5): Social proof */
 export function completionNudge3Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   welcomeUrl: string;
   missingFields?: string[];
@@ -1572,13 +1601,15 @@ export function completionNudge3Email(opts: {
     </p>
     <div>${button("Finish Up", opts.welcomeUrl)}</div>
     <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Completion Nudge #4 (Day 7): Show specific providers */
 export function completionNudge4Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   welcomeUrl: string;
   missingFields?: string[];
@@ -1609,7 +1640,7 @@ export function completionNudge4Email(opts: {
     </p>
     <div>${button("Finish Your Profile", opts.welcomeUrl)}</div>
     <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -1618,6 +1649,8 @@ export function completionNudge4Email(opts: {
 
 /** Publish Nudge #1 (Day 0 after complete): The Flip — let providers come to you */
 export function publishNudge1Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   matchesUrl: string;
   providerCount?: number;
@@ -1649,13 +1682,15 @@ export function publishNudge1Email(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Publish Nudge #2 (Day 2): Show concrete providers who could reach out */
 export function publishNudge2Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   matchesUrl: string;
   providerCount?: number;
@@ -1693,13 +1728,15 @@ export function publishNudge2Email(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Publish Nudge #3 (Day 6): Social proof + contrast with the old way */
 export function publishNudge3Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   matchesUrl: string;
   familiesThisWeek?: number;
@@ -1740,13 +1777,15 @@ export function publishNudge3Email(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Publish Nudge #4 (Day 13): Soft touch + invitation to reply */
 export function publishNudge4Email(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   matchesUrl: string;
   city?: string;
@@ -1768,7 +1807,7 @@ export function publishNudge4Email(opts: {
     </p>
     <div>${button("Publish When Ready", opts.matchesUrl)}</div>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -1777,6 +1816,8 @@ export function publishNudge4Email(opts: {
 
 /** Maintenance email for incomplete profiles — new or top providers */
 export function completionMaintenanceEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   welcomeUrl: string;
   providers?: EmailProviderCard[];
@@ -1816,13 +1857,15 @@ export function completionMaintenanceEmail(opts: {
     </p>
     <div>${button("Continue Your Profile", opts.welcomeUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;text-align:center;">
-      No longer looking for care? <a href="${BASE_URL}/portal/settings" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
+      No longer looking for care? <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
     </p>
   `, preheader);
 }
 
 /** Maintenance email for unpublished profiles — fresh providers + the value prop */
 export function publishMaintenanceEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   matchesUrl: string;
   providerCount?: number;
@@ -1864,7 +1907,7 @@ export function publishMaintenanceEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:13px;color:#9ca3af;margin:12px 0 0;line-height:1.5;text-align:center;">
-      No longer looking for care? <a href="${BASE_URL}/portal/settings" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
+      No longer looking for care? <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
     </p>
   `, preheader);
 }
@@ -1873,6 +1916,8 @@ export function publishMaintenanceEmail(opts: {
 
 /** Completion celebration — sent once when profile reaches 100% (unpublished users only) */
 export function completionCelebrationEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   profileUrl: string;
   city?: string;
@@ -1899,13 +1944,15 @@ export function completionCelebrationEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
 
 /** Inactivity re-engagement — sent to families who haven't been active for 30+ days */
 export function inactivityReengagementEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   profileUrl: string;
   inboxUrl: string;
@@ -1956,7 +2003,7 @@ export function inactivityReengagementEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:13px;color:#9ca3af;margin:12px 0 0;line-height:1.5;text-align:center;">
-      No longer looking for care? <a href="${BASE_URL}/portal/settings" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
+      No longer looking for care? <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
     </p>
   `, preheader);
 }
@@ -1972,6 +2019,8 @@ export interface SavedProviderUpdate {
 
 /** Weekly digest for families with saved providers — updates + recommendations */
 export function savedProviderDigestEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   savedUrl: string;
   updates?: SavedProviderUpdate[];
@@ -2040,13 +2089,15 @@ export function savedProviderDigestEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Manage your email preferences</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Manage your email preferences</a>
     </p>
   `, preheader);
 }
 
 /** Monthly provider recommendations — new providers + top recommendations */
 export function monthlyProviderRecommendationsEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   profileUrl: string;
   inboxUrl: string;
@@ -2098,7 +2149,7 @@ export function monthlyProviderRecommendationsEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:13px;color:#9ca3af;margin:12px 0 0;line-height:1.5;text-align:center;">
-      No longer looking for care? <a href="${BASE_URL}/portal/settings" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
+      No longer looking for care? <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from updates</a>
     </p>
   `, preheader);
 }
@@ -3509,6 +3560,8 @@ export function providerFollowupDay17Email(opts: FollowupEmailOpts): string {
  * Explains that a complete profile helps providers respond better.
  */
 export function familyNudgeEmail(opts: {
+  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
+  unsubscribeId?: string;
   familyName: string;
   providerName: string;
   missingFields: string[];
@@ -3541,7 +3594,7 @@ export function familyNudgeEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${BASE_URL}/portal/settings" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from profile reminders</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from profile reminders</a>
     </p>
   `,
     `Complete your profile to help ${escapeHtml(opts.providerName)} respond to your inquiry`

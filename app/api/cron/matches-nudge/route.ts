@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
           // Skip if Matches already active or already nudged
           if (carePost?.status === "active") continue;
           if (meta.matches_nudge_email_sent) continue;
+          if (meta.nudges_unsubscribed === true) continue;
           if (!fp.email) continue;
 
           const stats = eligibleFamilyIds.find((f) => f.id === fp.id);
@@ -121,6 +122,7 @@ export async function GET(request: NextRequest) {
             to: fp.email,
             subject: mnSubject,
             html: matchesNudgeEmail({
+              unsubscribeId: fp.id,
               familyName: fp.display_name || "there",
               unansweredCount: stats?.total || 2,
               matchesUrl,

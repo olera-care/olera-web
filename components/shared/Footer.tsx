@@ -66,11 +66,11 @@ function CityRow({ city }: { city: CityEntry }) {
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full min-h-[48px] py-3 border-b border-vanilla-200/80 text-left group"
       >
-        <span className="text-sm text-gray-800 font-medium group-hover:text-primary-700 transition-colors">
+        <span className="text-sm text-gray-800 font-medium group-hover:text-primary-700 group-active:text-primary-700 transition-colors">
           {city.label}
         </span>
         <svg
-          className={`w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-gray-400 group-hover:text-primary-600 group-active:text-primary-600 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -85,7 +85,7 @@ function CityRow({ city }: { city: CityEntry }) {
             <Link
               key={cat.slug}
               href={`/${cat.slug}/${city.state}/${city.city}`}
-              className="flex items-center min-h-[44px] text-sm text-gray-600 hover:text-primary-700 transition-colors"
+              className="flex items-center min-h-[44px] text-sm text-gray-600 hover:text-primary-700 active:text-primary-700 transition-colors"
             >
               {city.label.split(",")[0]} {cat.label}
             </Link>
@@ -114,8 +114,9 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
             Explore top-rated providers in your area
           </p>
 
-          {/* Expandable city grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-0">
+          {/* Expandable city grid — single column on mobile so long city
+              labels get full-width rows, 2/4-col from sm up */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 sm:gap-x-8 gap-y-0">
             {popularCities.map((city) => (
               <CityRow key={`${city.state}-${city.city}`} city={city} />
             ))}
@@ -133,7 +134,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center min-h-[44px] text-sm text-gray-600 hover:text-primary-700 transition-colors"
+                    className="flex items-center min-h-[44px] text-sm text-gray-600 hover:text-primary-700 active:text-primary-700 transition-colors"
                   >
                     {item.label}
                   </Link>
@@ -151,7 +152,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   <Link
                     key={item.slug}
                     href={`/${item.slug}`}
-                    className="flex items-center min-h-[44px] text-sm text-gray-600 hover:text-primary-700 transition-colors"
+                    className="flex items-center min-h-[44px] text-sm text-gray-600 hover:text-primary-700 active:text-primary-700 transition-colors"
                   >
                     {item.label}
                   </Link>

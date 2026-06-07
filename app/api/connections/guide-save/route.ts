@@ -474,19 +474,12 @@ export async function POST(request: Request) {
     // CREATE NEW CONNECTION
     // ═══════════════════════════════════════════════════════════════════════════
     if (toProfileId) {
-      // Build connection metadata with auto-reply
+      // Build connection metadata - thread starts empty
       const connectionMetadata = {
         auto_intro: `Downloaded senior care checklist.`,
         source: "guide_save",
         cta_variant: "guide",
-        thread: [
-          {
-            from_profile_id: toProfileId,
-            text: `Hello, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-            created_at: createdAt,
-            is_auto_reply: true,
-          },
-        ],
+        thread: [],
       };
 
       // Build message payload

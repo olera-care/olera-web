@@ -690,15 +690,8 @@ async function handleGuestConnection({
   if (entryPoint) connectionMetadata.entry_point = entryPoint;
   if (sessionId) connectionMetadata.session_id = sessionId;
 
-  // Auto-reply from provider (marked as auto to exclude from unread reminders)
-  connectionMetadata.thread = [
-    {
-      from_profile_id: toProfileId,
-      text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-      created_at: new Date().toISOString(),
-      is_auto_reply: true,
-    },
-  ];
+  // Thread starts empty - provider must send the first real message
+  connectionMetadata.thread = [];
 
   // Check if this is the provider's first lead (before insert)
   const { count: existingLeadCount } = await db
@@ -768,56 +761,56 @@ async function handleGuestConnection({
     },
   });
 
-  // Send welcome/connection email for new users with magic link to sign in
-  // This serves as both confirmation AND a way to sign in from other devices
-  if (isNewUser) {
-    try {
-      const careTypeLabels: Record<string, string> = {
-        home_care: "Home Care",
-        home_health: "Home Health Care",
-        assisted_living: "Assisted Living",
-        memory_care: "Memory Care",
-      };
-
-      const welcomeEmailLogId = await reserveEmailLogId({
-        to: normalizedEmail,
-        subject: `Your inquiry to ${providerName} was sent`,
-        emailType: "guest_connection",
-        recipientType: "family",
-        metadata: { connection_id: newConnection.id, provider_id: toProfileId },
-      });
-
-      const inboxDest = appendTrackingParams("/portal/inbox", welcomeEmailLogId);
-
-      // Generate magic link for email sign-in
-      const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: {
-          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
-        },
-      });
-
-      if (!magicLinkError && magicLinkData?.properties?.action_link) {
-        await sendEmail({
-          to: normalizedEmail,
-          subject: `Your inquiry to ${providerName} was sent`,
-          html: guestConnectionEmail({
-            familyName: firstName || "there",
-            providerName,
-            careType: intentData?.careType ? (careTypeLabels[intentData.careType] || intentData.careType) : null,
-            magicLinkUrl: magicLinkData.properties.action_link,
-          }),
-          emailType: 'guest_connection',
-          recipientType: 'family',
-          emailLogId: welcomeEmailLogId ?? undefined,
-        });
-      }
-    } catch (emailErr) {
-      console.error("Failed to send welcome email:", emailErr);
-      // Non-blocking — user has instant session, email is for multi-device access
-    }
-  }
+  // DISABLED: guestConnectionEmail has been consolidated into careReportEmail
+  // The care report email now includes the magic link and confirmation message
+  // if (isNewUser) {
+  //   try {
+  //     const careTypeLabels: Record<string, string> = {
+  //       home_care: "Home Care",
+  //       home_health: "Home Health Care",
+  //       assisted_living: "Assisted Living",
+  //       memory_care: "Memory Care",
+  //     };
+  //
+  //     const welcomeEmailLogId = await reserveEmailLogId({
+  //       to: normalizedEmail,
+  //       subject: `Your inquiry to ${providerName} was sent`,
+  //       emailType: "guest_connection",
+  //       recipientType: "family",
+  //       metadata: { connection_id: newConnection.id, provider_id: toProfileId },
+  //     });
+  //
+  //     const inboxDest = appendTrackingParams("/portal/inbox", welcomeEmailLogId);
+  //
+  //     // Generate magic link for email sign-in
+  //     const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
+  //       type: "magiclink",
+  //       email: normalizedEmail,
+  //       options: {
+  //         redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
+  //       },
+  //     });
+  //
+  //     if (!magicLinkError && magicLinkData?.properties?.action_link) {
+  //       await sendEmail({
+  //         to: normalizedEmail,
+  //         subject: `Your inquiry to ${providerName} was sent`,
+  //         html: guestConnectionEmail({
+  //           familyName: firstName || "there",
+  //           providerName,
+  //           careType: intentData?.careType ? (careTypeLabels[intentData.careType] || intentData.careType) : null,
+  //           magicLinkUrl: magicLinkData.properties.action_link,
+  //         }),
+  //         emailType: 'guest_connection',
+  //         recipientType: 'family',
+  //         emailLogId: welcomeEmailLogId ?? undefined,
+  //       });
+  //     }
+  //   } catch (emailErr) {
+  //     console.error("Failed to send welcome email:", emailErr);
+  //     // Non-blocking — user has instant session, email is for multi-device access
+  //   }
+  // }
 
   // Provider notifications (fire-and-forget)
   try {
@@ -932,11 +925,10 @@ async function handleGuestConnection({
 
         let celebrationViewUrl: string;
         try {
-          const { generateNotificationUrl } = await import("@/lib/claim-tokens");
-          celebrationViewUrl = generateNotificationUrl(
+          const { generateLeadClaimUrl } = await import("@/lib/claim-tokens");
+          celebrationViewUrl = generateLeadClaimUrl(
             providerSlug || toProfileId,
             providerEmail,
-            "lead",
             newConnection.id,
             siteUrl
           );
@@ -1143,7 +1135,8 @@ async function handleGuestConnection({
     }
   }
 
-  // Care report email — the value delivery that differentiates Olera from APFM/Caring.com
+  // Care report email — now consolidated with confirmation + magic link
+  // This is the ONLY email sent to families when they send a lead
   try {
     const providerCareTypes = (await db
       .from("business_profiles")
@@ -1173,16 +1166,78 @@ async function handleGuestConnection({
       .neq("id", toProfileId)
       .limit(3);
 
-    const similarProviders = (similarRaw || []).map((p: { display_name: string; slug: string; metadata: Record<string, unknown> | null }) => ({
-      name: p.display_name,
-      slug: p.slug,
-      priceRange: (p.metadata?.price_range as string) || null,
-    }));
+    // Generate magic link for inbox access with fallback to family landing page
+    const careReportEmailLogId = await reserveEmailLogId({
+      to: normalizedEmail,
+      subject: `You can now message ${providerName}`,
+      emailType: "care_report",
+      recipientType: "family",
+      metadata: { connection_id: newConnection.id, provider_id: toProfileId },
+    });
 
-    const careLabel = pricing.careTypeLabel || "senior care";
+    const inboxDest = appendTrackingParams("/portal/inbox", careReportEmailLogId);
+
+    // Default to family landing page as fallback (better UX than auth modal on empty inbox)
+    // They can sign in from there and access their inbox naturally
+    let magicLinkUrl = `${siteUrl}/browse`;
+
+    // Try to generate magic link (expires in 1 hour), but don't block email if it fails
+    try {
+      const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: {
+          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
+        },
+      });
+
+      if (!magicLinkError && magicLinkData?.properties?.action_link) {
+        magicLinkUrl = magicLinkData.properties.action_link;
+      } else {
+        console.warn("[care-report] Magic link generation failed, using browse page fallback:", magicLinkError?.message);
+      }
+    } catch (magicLinkErr) {
+      console.error("[care-report] Magic link generation error, using browse page fallback:", magicLinkErr);
+    }
+
+    // Generate magic links for each similar provider in PARALLEL (performance optimization)
+    const similarProviderPromises = (similarRaw || []).map(async (p: { display_name: string; slug: string; metadata: Record<string, unknown> | null }) => {
+      // Add provider slug to tracking for click attribution (Issue #2 fix)
+      const providerDest = appendTrackingParams(`/provider/${p.slug}?sp=${p.slug}`, careReportEmailLogId);
+      let providerMagicLink = `${siteUrl}${providerDest}`; // Fallback to public URL
+
+      try {
+        const { data: providerLinkData, error: providerLinkError } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(providerDest)}`,
+          },
+        });
+
+        if (!providerLinkError && providerLinkData?.properties?.action_link) {
+          providerMagicLink = providerLinkData.properties.action_link;
+        }
+      } catch (linkErr) {
+        console.error(`[care-report] Similar provider magic link failed for ${p.slug}:`, linkErr);
+        // Continue with fallback public URL (graceful degradation)
+      }
+
+      return {
+        name: p.display_name,
+        slug: p.slug,
+        priceRange: (p.metadata?.price_range as string) || null,
+        viewUrl: providerMagicLink,
+      };
+    });
+
+    // Wait for all magic links to generate in parallel (much faster than sequential)
+    const similarProvidersWithMagicLinks = await Promise.all(similarProviderPromises);
+
+    // Always send email, regardless of magic link success
     await sendEmail({
       to: normalizedEmail,
-      subject: `What ${careLabel.toLowerCase()} costs in ${locationStr || "your area"}`,
+      subject: `You can now message ${providerName}`,
       html: careReportEmail({
         seekerFirstName: firstName || "",
         providerName,
@@ -1193,11 +1248,13 @@ async function handleGuestConnection({
         city: providerCity,
         state: providerState,
         fundingOptions: fundingOpts,
-        similarProviders,
+        similarProviders: similarProvidersWithMagicLinks,
+        magicLinkUrl,
       }),
       emailType: "care_report",
       recipientType: "family",
       metadata: { connection_id: newConnection.id, provider_id: toProfileId },
+      emailLogId: careReportEmailLogId ?? undefined,
     });
   } catch (err) {
     console.error("[care-report-email] error:", err);
@@ -1711,7 +1768,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 8. Build connection metadata with auto-intro and provider auto-reply
+    // 8. Build connection metadata with auto-intro
     const connectionMetadata: Record<string, unknown> = {};
     connectionMetadata.auto_intro = autoIntro;
     if (!providerEmail) connectionMetadata.needs_provider_email = true;
@@ -1719,17 +1776,8 @@ export async function POST(request: Request) {
     if (entryPoint) connectionMetadata.entry_point = entryPoint;
     if (sessionId) connectionMetadata.session_id = sessionId;
 
-    // Seed an automatic reply from the provider so the seeker has an
-    // unread message in their inbox immediately after connecting.
-    // Marked as auto_reply to exclude from unread reminders cron.
-    connectionMetadata.thread = [
-      {
-        from_profile_id: toProfileId,
-        text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
-        created_at: new Date().toISOString(),
-        is_auto_reply: true,
-      },
-    ];
+    // Thread starts empty - provider must send the first real message
+    connectionMetadata.thread = [];
 
     // Check if this is the provider's first lead (before insert)
     const { count: existingLeadCountAuth } = await db

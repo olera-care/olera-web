@@ -127,7 +127,7 @@ const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
  * Fails OPEN: any error returns false (send proceeds), so a transient DB
  * issue can never silently block email.
  */
-async function isSuppressedRecipient(email: string): Promise<boolean> {
+export async function isSuppressedRecipient(email: string): Promise<boolean> {
   try {
     const db = getServiceDb();
     if (!db) return false;

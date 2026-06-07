@@ -141,7 +141,7 @@ function trustIntro(): string {
 function offRampBlock(providerSlug?: string): string {
   const removalUrl = providerSlug
     ? `${BASE_URL}/for-providers/removal-request/${providerSlug}`
-    : `mailto:support@olera.care?subject=Listing%20inquiry`;
+    : `${BASE_URL}/contact`;
   const unsubscribeUrl = providerSlug
     ? `${BASE_URL}/unsubscribe/${providerSlug}`
     : null;
@@ -194,7 +194,7 @@ function providerOffRampBlock(manageListingUrl: string, settingsUrl: string): st
       <p style="font-size:13px;color:#9ca3af;margin:0;">
         ${secondaryLink("Manage your listing", manageListingUrl)} &middot;
         ${secondaryLink("Update lead preferences", settingsUrl)} &middot;
-        Or call us at <a href="tel:+19792439801" style="color:#9ca3af;text-decoration:underline;">(979) 243-9801</a>
+        ${secondaryLink("Contact us", `${BASE_URL}/contact`)}
       </p>
     </div>`;
 }
@@ -479,34 +479,87 @@ export function connectionResponseEmail(opts: {
 }
 
 /** Email when a new message is sent in a connection thread */
+/**
+ * Email for when someone sends their FIRST message in a thread (initiating contact).
+ * Shows the message preview and says "sent you a message" not "got back to you".
+ */
+export function firstMessageEmail(opts: {
+  recipientName: string;
+  senderName: string;
+  messagePreview: string;
+  viewUrl: string;
+}): string {
+  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
+  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
+    ? escapeHtml(firstName(opts.recipientName, "there"))
+    : "there";
+  const safePreview = escapeHtml(opts.messagePreview);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${recipientGreeting},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${safeSenderFullName}</strong> sent you a message:
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
+    <div style="margin:0 0 24px;">${button("Read their message", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      That's a real person on the other end, ready to help. Reply whenever you're ready — there's no rush, and the conversation stays right in your inbox, just between the two of you.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Not sure what to say? Even a quick note about who needs care and when is a great start.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions, or want help knowing what to ask? A real person is here — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "Read their message and reply whenever you're ready.");
+}
+
+/**
+ * Email for when someone REPLIES in an ongoing conversation.
+ * Says "got back to you" since recipient has messaged before.
+ */
 export function newMessageEmail(opts: {
   recipientName: string;
   senderName: string;
   messagePreview: string;
   viewUrl: string;
 }): string {
-  const safeSenderName = firstName(opts.senderName, "Someone");
-  const safePreview = escapeHtml(opts.messagePreview);
-  // Preheader uses raw text (preheaderHtml handles its own escaping)
-  const preheaderSnippet = opts.messagePreview.length > 60
-    ? opts.messagePreview.slice(0, 60) + "..."
-    : opts.messagePreview;
+  // Use full sender name (not shortened) in first line, as specified
+  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
+  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
+    ? escapeHtml(firstName(opts.recipientName, "there"))
+    : "there";
 
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))},
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${recipientGreeting},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${escapeHtml(safeSenderName)}</strong> sent you a message:
+      Good news — <strong>${safeSenderFullName}</strong> just got back to you. You can read their message and reply right here:
     </p>
-    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
-    </div>
-    <div style="margin:0 0 24px;">${button("Reply", opts.viewUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      That's a real person on the other end, ready to help. Reply whenever you're ready — there's no rush, and the conversation stays right in your inbox, just between the two of you.
     </p>
-  `, `"${preheaderSnippet}"`);
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Not sure what to say? Even a quick note about who needs care and when is a great start.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions, or want help knowing what to ask? A real person is here — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "Read their message and reply whenever you're ready.");
 }
 
 /** Reminder email to family when provider responded but family hasn't engaged */
@@ -516,29 +569,176 @@ export function unreadReminderEmail(opts: {
   messagePreview: string;
   viewUrl: string;
 }): string {
-  const safeSenderName = firstName(opts.senderName, "A provider");
+  const recipientFirstName = firstName(opts.recipientName, "there");
+  // Use full provider name (not shortened)
+  const providerFullName = opts.senderName || "A provider";
   const safePreview = escapeHtml(opts.messagePreview);
-  // Preheader uses raw text (preheaderHtml handles its own escaping)
-  const preheaderSnippet = opts.messagePreview.length > 50
-    ? opts.messagePreview.slice(0, 50) + "..."
-    : opts.messagePreview;
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You have an unread response</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, <strong>${escapeHtml(safeSenderName)}</strong> responded to your care inquiry, but we haven't heard back from you yet.
+      Hi ${escapeHtml(recipientFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${escapeHtml(providerFullName)}</strong> got back to you recently, and their message is still waiting whenever you'd like to read it:
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
     </div>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Providers are more likely to help families who respond promptly.
+    <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Reaching out about care can feel like a big step, and it's okay to take your time. When you're ready, even a short note is enough to get things going — you don't have to have it all figured out.
     </p>
-    <div style="margin:0 0 24px;">${button("View their response", opts.viewUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      It stays private — just you and them, no one else.
     </p>
-  `, `They responded to your inquiry — "${preheaderSnippet}"`);
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      Here whenever you need us — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `There's no rush — they're still there whenever you're ready.`);
+}
+
+/** Email to family when provider is silent for ~4 days - offer alternative providers */
+export function providerSilentEmail(opts: {
+  familyName: string;
+  providerName: string;
+  providerPassed: boolean; // true if provider actively declined, false if just silent
+  recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
+  browseUrl: string;
+  city: string | null;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+
+  // Different copy for explicit pass vs silence
+  const openingLine = opts.providerPassed
+    ? `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`
+    : `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one. Here are a few other providers near you who are ready to help:`;
+
+  const closingLine = opts.providerPassed
+    ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
+    : `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`;
+
+  // Render recommended providers prominently (high up, visible on mobile)
+  // Each provider gets a magic link for one-click viewing
+  const providersSection = opts.recommendedProviders.map((p) => `
+    <div style="margin:0 0 12px;">
+      <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
+      ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
+    </div>
+  `).join("");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      ${openingLine}
+    </p>
+    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
+      ${providersSection}
+    </div>
+    <div style="margin:0 0 24px;">${button("See more providers near you", opts.browseUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      ${closingLine}
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `You're never limited to one — here are others ready to help.`);
+}
+
+/** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
+export function providerStillSilentEmail(opts: {
+  familyName: string;
+  providerName: string;
+  recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
+  browseUrl: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+
+  // Render recommended providers prominently (high up, visible on mobile)
+  // Each provider gets a magic link for one-click viewing
+  const providersSection = opts.recommendedProviders.map((p) => `
+    <div style="margin:0 0 12px;">
+      <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
+      ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
+    </div>
+  `).join("");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      It's been over a week, and <strong>${escapeHtml(opts.providerName)}</strong> still hasn't gotten back to you. That's on them, not you — and you deserve better than waiting. Here are providers near you who are ready to help right now:
+    </p>
+    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
+      ${providersSection}
+    </div>
+    <div style="margin:0 0 24px;">${button("See providers ready to help", opts.browseUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Or, if you'd rather not do this alone, a real person on our team will personally help you find care that fits — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">contact us here</a>, and we'll take it from here.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      You came here looking for care, and that shouldn't end in silence. We're not going to let it.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `You shouldn't have to wait this long — here are providers who'll respond.`);
+}
+
+/** Email to family who never engaged after sending lead - gentle re-engagement with guide */
+export function familyNeverEngagedEmail(opts: {
+  familyName: string;
+  providerName: string;
+  guideUrl: string;
+  inboxUrl: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      It's completely okay if you're still thinking things over — finding the right care isn't a small decision. While you do, here's a free guide that walks through what to look for, what to ask, and how families pay for care:
+    </p>
+    <div style="margin:0 0 24px;">${button("Get the free guide", opts.guideUrl)}</div>
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      And whenever you're ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. You can message them anytime, right from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a> — no forms, no phone calls you didn't ask for. Just reach out when it feels right.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      We're not going anywhere. Take all the time you need.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      If anything would help, or you just want to talk it through, a real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `We're not going anywhere, and your provider is still one message away.`);
 }
 
 /** Email to admin when a provider claims their page */
@@ -585,7 +785,7 @@ export function claimDecisionEmail(opts: {
       We were unable to verify the claim for <strong>${escapeHtml(opts.providerName)}</strong>.
       This is usually due to missing or mismatched information. Please reach out so we can help resolve it.
     </p>
-    <div style="margin:0 0 24px;">${button("Contact support", "mailto:support@olera.care")}</div>
+    <div style="margin:0 0 24px;">${button("Contact support", `${BASE_URL}/contact`)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -1981,6 +2181,20 @@ export function reviewRequestEmail(opts: {
 }
 
 /** Care report email — sent to families after connection request (the anti-APFM differentiator) */
+/**
+ * Consolidated care report email sent to families after they send a lead.
+ * This email includes:
+ * - Confirmation that request was sent
+ * - Magic link button to message provider (with auto-sign in)
+ * - Olera value proposition
+ * - Dynamic pricing info for the provider's care type and location
+ * - Funding options with savings amounts
+ * - Similar providers in the area
+ *
+ * IMPORTANT: magicLinkUrl is a REQUIRED parameter. If this function is called
+ * from other places in the codebase, those calls will need to be updated to
+ * include a magic link or fallback URL.
+ */
 export function careReportEmail(opts: {
   seekerFirstName: string;
   providerName: string;
@@ -1991,7 +2205,8 @@ export function careReportEmail(opts: {
   city: string | null;
   state: string | null;
   fundingOptions: { label: string; savings: string | null }[];
-  similarProviders: { name: string; slug: string; priceRange: string | null }[];
+  similarProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
+  magicLinkUrl: string;
 }): string {
   const greeting = `Hi ${firstName(opts.seekerFirstName || "", "there")}`;
 
@@ -2008,8 +2223,26 @@ export function careReportEmail(opts: {
     </div>`
     : "";
 
-  const fundingSection = opts.fundingOptions.length > 0
+  // Pricing section with intro text (only show if pricing exists)
+  const pricingWithIntro = opts.pricingRange
     ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.5;">
+      When it helps, here's what to expect on cost — most families don't pay the full amount:
+    </p>
+    <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:20px 0;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;">Typical range for ${careLabel}${locationStr ? ` in ${locationStr}` : ""}</p>
+      <p style="font-size:22px;font-weight:700;color:#111827;margin:0 0 4px;">${opts.pricingRange}</p>
+      ${opts.pricingDescription ? `<p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">${opts.pricingDescription}</p>` : ""}
+      <p style="font-size:11px;color:#9ca3af;margin:8px 0 0;">Actual costs vary based on care level and services needed.</p>
+    </div>`
+    : "";
+
+  // Funding section with intro text (only show if funding options exist)
+  const fundingWithIntro = opts.fundingOptions.length > 0
+    ? `
+    <p style="font-size:14px;color:#374151;margin:16px 0 8px;line-height:1.5;">
+      Depending on your situation, these can bring it down a lot:
+    </p>
     <div style="margin:20px 0;">
       <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 8px;">Ways to pay for care</p>
       ${opts.fundingOptions.map((f) => `
@@ -2027,26 +2260,38 @@ export function careReportEmail(opts: {
       <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 12px;">Similar providers${locationStr ? ` in ${locationStr}` : ""}</p>
       ${opts.similarProviders.map((p) => `
         <div style="margin:0 0 8px;">
-          <a href="${BASE_URL}/provider/${p.slug}" style="font-size:14px;color:${BRAND_COLOR};font-weight:500;text-decoration:none;">${p.name}</a>
-          ${p.priceRange ? `<span style="font-size:12px;color:#6b7280;margin-left:8px;">${p.priceRange}</span>` : ""}
+          <a href="${p.viewUrl}" style="font-size:14px;color:${BRAND_COLOR};font-weight:500;text-decoration:none;">${escapeHtml(p.name)}</a>
+          ${p.priceRange ? `<span style="font-size:12px;color:#6b7280;margin-left:8px;">${escapeHtml(p.priceRange)}</span>` : ""}
         </div>
       `).join("")}
     </div>`
     : "";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Here's what we found</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      ${greeting}, we've sent your request to <strong>${escapeHtml(opts.providerName)}</strong>. In the meantime, here's some information to help you get started.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      ${greeting},
     </p>
-    ${pricingSection}
-    ${fundingSection}
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Your request reached <strong>${escapeHtml(opts.providerName)}</strong>. You can reach them directly, right here:
+    </p>
+    <div style="margin:0 0 24px;">${button("Message provider", opts.magicLinkUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      That's the whole idea behind Olera: you're in control. You chose them, you reach out when you're ready, and no one else will be flooding your phone. We never sell your information — it's just you and the people you choose. (A free service, backed by the National Institutes of Health.)
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Looking into senior care is a big, often emotional step. There's no rush — we'll let you know the moment they reply.
+    </p>
+    ${pricingWithIntro}
+    ${fundingWithIntro}
     ${similarSection}
-    <div style="margin:24px 0 0;">${button("View your inbox", `${BASE_URL}/portal/inbox`)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — a real person will get back to you.
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions, or just want to talk it through? A real person is here — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
     </p>
-  `, "We found pricing and funding options to help you.");
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "No forms, no flood of calls — just you and the provider you chose.");
 }
 
 // ── MedJobs Interview Emails ──────────────────────────────────────
@@ -3806,4 +4051,45 @@ export function staleConversationFamilyEmail(opts: {
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, `${opts.providerName} is still here to help — continue the conversation`);
+}
+
+/**
+ * Day 10 AWAITING email - warm hand for families frozen at the finish line.
+ * Offers human support and alternatives, not another "reply" nudge.
+ * Sent ~10 days after provider responds if family still hasn't replied.
+ */
+export function day10AwaitingEmail(opts: {
+  familyName: string;
+  providerName: string;
+  inboxUrl: string;
+  supportUrl: string;
+  alternativesUrl: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const safeProviderName = escapeHtml(opts.providerName);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${safeProviderName}</strong> is still ready and waiting to hear from you. If you've been meaning to reply but haven't found the moment, that's completely normal — there's a lot to weigh, and there's no wrong pace.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      If something's making the next step feel hard, a real person on our team is glad to help — whether it's figuring out what to ask, thinking through your options, or just getting you started:
+    </p>
+    <div style="margin:0 0 24px;">${button("Get help from a real person", opts.supportUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      You can also <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">pick up right where you left off</a> with ${safeProviderName} anytime — and if they're not feeling like the right fit, <a href="${opts.alternativesUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">there are other providers nearby</a> who'd be glad to help. Just say the word.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      We're not going anywhere.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+  `, `${opts.providerName} is still ready for you — and a real person can help, no pressure.`);
 }

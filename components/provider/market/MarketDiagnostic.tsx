@@ -15,7 +15,9 @@ const NAV = [
 
 // ── Types (shape produced by scripts/market-diagnostic/analyze-diagnostic.mjs) ──
 export interface Zcta { zcta: string; population: number; seniors65plus: number; medianIncome: number | null }
-export interface Leader { name: string; reviews: number; rating: number | null; distanceMiles: number | null; website: boolean; shareOfVoicePct: number }
+// `id` = Google place_id. Optional: older cached diagnostics + the committed CS snapshot
+// predate it and match by name instead (see youIdx fallback). New computes always carry it.
+export interface Leader { id?: string; name: string; reviews: number; rating: number | null; distanceMiles: number | null; website: boolean; shareOfVoicePct: number }
 export interface BdTarget { id: string; name: string; cat: string; referralValue: string; distanceMiles: number | null; reviews: number; rating: number | null; phone: string | null; website: string | null; address: string; lat: number | null; lng: number | null }
 export interface MarketDiagnosticData {
   meta: { city: string; state: string; careType: string; generatedAt: string; center: { lat: number; lng: number } };
@@ -23,7 +25,10 @@ export interface MarketDiagnosticData {
     demographics: { totals?: { population: number; seniors65plus: number }; seniorSharePct?: number; medianIncomeRange?: { min: number; max: number }; zctas?: Zcta[]; note?: string };
     olera: { familiesInCity: number; providersListed: number };
   };
-  competitorLandscape: { count: number; medianReviews: number | null; medianRating: number | null; withWebsitePct: number; leaders: Leader[] };
+  // `ranked` = the FULL ordered competitor list (place_id-bearing) for locating the provider at
+  // any rank, incl. below the top-10 `leaders`. Optional: only present on diagnostics computed
+  // after the cache-shape change; absent on older rows + the committed CS snapshot.
+  competitorLandscape: { count: number; medianReviews: number | null; medianRating: number | null; withWebsitePct: number; leaders: Leader[]; ranked?: Leader[] };
   referralGraph: { totalViableSources: number; byRole: { cat: string; count: number }[]; prioritizedTargets: BdTarget[] };
   channels: { channel: string; priority: number; rationale: string; oleraTool: string; key: string }[];
 }

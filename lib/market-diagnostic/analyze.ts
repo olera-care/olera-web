@@ -126,16 +126,24 @@ export async function analyzeSnapshot(snap: RawSnapshot): Promise<{ analysis: Ma
   const competitors = classified.filter((p) => p.cat === "home_care" && inCatchment(p)).sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
   const totalReviews = competitors.reduce((s, c) => s + (c.reviews || 0), 0);
   const withReviews = competitors.filter((c) => c.reviews > 0);
+  // `ranked` is the FULL ordered competitor list (every home_care place in the catchment,
+  // sorted by reviews desc) and now carries Google's place `id`. That id is the join key that
+  // lets a provider be located at ANY rank — not just the rendered top 10 — which is what the
+  // per-provider "You — #N of M" self-overlay matches against at read time (place_id, not the
+  // fragile name match the UI does today). `leaders` is just its first 10 (the bars the page
+  // renders by default); both now carry `id`.
+  const ranked = competitors.map((c) => ({
+    id: c.id, name: c.name, reviews: c.reviews, rating: c.rating, distanceMiles: c.distanceMiles,
+    website: !!c.website, shareOfVoicePct: totalReviews ? +(((c.reviews || 0) / totalReviews) * 100).toFixed(1) : 0,
+  }));
   const competitorLandscape = {
     count: competitors.length,
     totalReviewsInMarket: totalReviews,
     medianReviews: median(withReviews.map((c) => c.reviews)),
     medianRating: median(withReviews.map((c) => c.rating).filter((x): x is number => Boolean(x))),
     withWebsitePct: competitors.length ? Math.round((competitors.filter((c) => c.website).length / competitors.length) * 100) : 0,
-    leaders: competitors.slice(0, 10).map((c) => ({
-      name: c.name, reviews: c.reviews, rating: c.rating, distanceMiles: c.distanceMiles,
-      website: !!c.website, shareOfVoicePct: totalReviews ? +(((c.reviews || 0) / totalReviews) * 100).toFixed(1) : 0,
-    })),
+    leaders: ranked.slice(0, 10),
+    ranked,
   };
 
   // ---- Referral graph (cleaned + prioritized, local catchment only) ----

@@ -100,7 +100,15 @@ export default function MarketDiagnostic({
     : providerName
       ? cl.leaders.findIndex((l) => { const a2 = norm(l.name), b = norm(providerName); return a2 && b && (a2.includes(b) || b.includes(a2)); })
       : -1;
-  const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), 1);
+  // Bar scale spans the leaders AND the provider's own count — so a fetched-in provider who
+  // out-reviews everyone Google surfaced still scales correctly instead of overflowing the track.
+  const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), self?.reviews ?? 0, 1);
+  // The provider's bar renders inline as a leader (rank ≤ 8, already highlighted) OR as an
+  // explicit row below the field. Show the dedicated row whenever we have a self rank that isn't
+  // already one of the highlighted top-8 bars (rank > 8, or fetched-in and absent from leaders).
+  const RENDERED_LEADERS = 8;
+  const youInList = youIdx >= 0 && youIdx < RENDERED_LEADERS;
+  const showYouRow = !!self && !youInList;
 
   return (
     <div className="lg:grid lg:grid-cols-[180px_minmax(0,680px)] lg:gap-12">
@@ -132,7 +140,7 @@ export default function MarketDiagnostic({
             <div key={l.name} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <div className={`flex items-center gap-1.5 text-[13px] sm:w-44 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
                 <span className="truncate">{l.name}</span>
-                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">You</span>}
+                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">{self?.rank ? `You · #${self.rank}` : "You"}</span>}
               </div>
               <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
                 <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
@@ -143,6 +151,29 @@ export default function MarketDiagnostic({
             </div>
           );
         })}
+
+        {/* The provider's own bar when they rank below the visible leaders (or were fetched-in).
+            This is the honest "here's where you actually stand" — shown lower with an explicit
+            rank, never hidden, so a #14-of-18 agency still sees themselves on their own chart. */}
+        {showYouRow && self && (
+          <>
+            {self.rank > RENDERED_LEADERS + 1 && (
+              <div className="flex justify-center text-stone-300 text-lg leading-none select-none" aria-hidden>⋯</div>
+            )}
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+              <div className="flex items-center gap-1.5 text-[13px] sm:w-44 text-[#199087] font-semibold">
+                <span className="truncate">You</span>
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">#{self.rank} of {self.outOf}</span>
+              </div>
+              <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
+                <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-[#199087]" style={{ width: `${Math.min((self.reviews / maxRev) * 100, 100)}%` }} />
+                </div>
+                <div className="w-24 shrink-0 text-right text-[12px] text-stone-500 tabular-nums">{self.reviews} rev · {self.rating ?? "—"}★</div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <a

@@ -140,7 +140,7 @@ export default function MarketDiagnostic({
             <div key={l.name} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <div className={`flex items-center gap-1.5 text-[13px] sm:w-44 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
                 <span className="truncate">{l.name}</span>
-                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">{self?.rank ? `You · #${self.rank}` : "You"}</span>}
+                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">{self?.matchedBy === "place_id" && self.rank ? `You · #${self.rank}` : "You"}</span>}
               </div>
               <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
                 <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">

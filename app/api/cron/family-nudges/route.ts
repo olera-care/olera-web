@@ -726,6 +726,7 @@ export async function GET(request: NextRequest) {
           const inboxUrl = await generateMagicLinkUrl(db, family, inboxPath, siteUrl);
 
           const html = monthlyProviderRecommendationsEmail({
+            unsubscribeId: family.id,
             familyName: firstName,
             profileUrl,
             inboxUrl,
@@ -804,6 +805,7 @@ export async function GET(request: NextRequest) {
           const profileUrl = await generateMagicLinkUrl(db, family, profilePath, siteUrl);
 
           const html = completionCelebrationEmail({
+            unsubscribeId: family.id,
             familyName: firstName,
             profileUrl,
             city: family.city || undefined,
@@ -942,6 +944,7 @@ export async function GET(request: NextRequest) {
           let html: string;
           if (isMaintenanceNudge) {
             html = completionMaintenanceEmail({
+              unsubscribeId: family.id,
               familyName: firstName,
               welcomeUrl,
               providers: topProviders,
@@ -955,6 +958,7 @@ export async function GET(request: NextRequest) {
             switch (nudgeNumber) {
               case 1:
                 html = completionNudge1Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   welcomeUrl,
                   missingFields: completeness.missingFields,
@@ -965,6 +969,7 @@ export async function GET(request: NextRequest) {
                 break;
               case 2:
                 html = completionNudge2Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   welcomeUrl,
                   missingFields: completeness.missingFields,
@@ -976,6 +981,7 @@ export async function GET(request: NextRequest) {
                 break;
               case 3:
                 html = completionNudge3Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   welcomeUrl,
                   missingFields: completeness.missingFields,
@@ -988,6 +994,7 @@ export async function GET(request: NextRequest) {
               case 4:
               default:
                 html = completionNudge4Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   welcomeUrl,
                   missingFields: completeness.missingFields,
@@ -1132,6 +1139,7 @@ export async function GET(request: NextRequest) {
           let html: string;
           if (isMaintenanceNudge) {
             html = publishMaintenanceEmail({
+              unsubscribeId: family.id,
               familyName: firstName,
               matchesUrl,
               providerCount,
@@ -1144,6 +1152,7 @@ export async function GET(request: NextRequest) {
             switch (nudgeNumber) {
               case 1:
                 html = publishNudge1Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   matchesUrl,
                   providerCount,
@@ -1152,6 +1161,7 @@ export async function GET(request: NextRequest) {
                 break;
               case 2:
                 html = publishNudge2Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   matchesUrl,
                   providerCount,
@@ -1161,6 +1171,7 @@ export async function GET(request: NextRequest) {
                 break;
               case 3:
                 html = publishNudge3Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   matchesUrl,
                   familiesThisWeek: connectionStats.familiesThisWeek,
@@ -1173,6 +1184,7 @@ export async function GET(request: NextRequest) {
               case 4:
               default:
                 html = publishNudge4Email({
+                  unsubscribeId: family.id,
                   familyName: firstName,
                   matchesUrl,
                   city: family.city || undefined,
@@ -1257,6 +1269,7 @@ export async function GET(request: NextRequest) {
             to: email,
             subject: pcfSubject,
             html: postConnectionFollowupEmail({
+              unsubscribeId: family.id,
               familyName: firstName,
               providerName,
               providerSlug,
@@ -1365,6 +1378,7 @@ export async function GET(request: NextRequest) {
         const inboxUrl = await generateMagicLinkUrl(db, family, inboxPath, siteUrl);
 
         const html = inactivityReengagementEmail({
+          unsubscribeId: family.id,
           familyName: firstName,
           profileUrl,
           inboxUrl,

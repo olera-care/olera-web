@@ -160,6 +160,7 @@ export async function POST(req: NextRequest) {
 
   // Build and send email using existing goLiveReminderEmail template
   const html = goLiveReminderEmail({
+    unsubscribeId: fromProfile.id,
     familyName,
     matchesUrl,
     city,

@@ -223,6 +223,7 @@ export async function GET(request: NextRequest) {
         const matchesUrl = appendTrackingParams(`${siteUrl}/portal/profile`, emailLogId);
 
         html = goLiveReminderEmail({
+          unsubscribeId: familyId,
           familyName,
           matchesUrl,
           city: fromProfile?.city || "your area",
@@ -297,6 +298,7 @@ export async function GET(request: NextRequest) {
         const profileUrl = appendTrackingParams(`${siteUrl}/portal/profile`, emailLogId);
 
         html = familyNudgeEmail({
+          unsubscribeId: familyId,
           familyName,
           providerName,
           missingFields: completeness.missingFields.slice(0, 5),

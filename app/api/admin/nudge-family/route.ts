@@ -153,6 +153,7 @@ export async function POST(req: NextRequest) {
 
   // Build email HTML
   const html = familyNudgeEmail({
+    unsubscribeId: familyProfile.id,
     familyName,
     providerName,
     missingFields: completeness.missingFields.slice(0, 5), // Max 5 fields
@@ -205,6 +206,7 @@ export async function POST(req: NextRequest) {
 
   // Rebuild email HTML with tracked URL for actual send
   const trackedHtml = familyNudgeEmail({
+    unsubscribeId: familyProfile.id,
     familyName,
     providerName,
     missingFields: completeness.missingFields.slice(0, 5),

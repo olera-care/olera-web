@@ -246,6 +246,7 @@ export async function GET(request: NextRequest) {
       .insert({
         user_id: userId,
         display_name: displayName,
+        onboarding_completed: true, // Provider onboarding happens implicitly via email claim
       })
       .select("id")
       .single();

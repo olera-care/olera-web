@@ -4,6 +4,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { staleConversationProviderEmail, staleConversationFamilyEmail } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/conversation-stale
@@ -292,30 +293,9 @@ export async function GET(request: NextRequest) {
         // Build family inbox URL
         const familyInboxPath = `/portal/inbox?id=${conn.id}`;
         const trackedFamilyDest = appendTrackingParams(familyInboxPath, familyLogId);
-        let familyViewUrl = `${siteUrl}${trackedFamilyDest}`;
 
-        // Generate magic link for authenticated families
-        if (familyProfile?.account_id) {
-          try {
-            const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
-              type: "magiclink",
-              email: familyEmail,
-              options: {
-                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(trackedFamilyDest)}`,
-              },
-            });
-
-            if (!linkError && linkData?.properties?.action_link) {
-              familyViewUrl = linkData.properties.action_link;
-            }
-          } catch (linkErr) {
-            console.error("[cron/conversation-stale] Family magic link failed:", linkErr);
-          }
-        } else if (familyProfile?.claim_token) {
-          // Guest family: include claim token
-          const separator = trackedFamilyDest.includes("?") ? "&" : "?";
-          familyViewUrl = `${siteUrl}${trackedFamilyDest}${separator}token=${familyProfile.claim_token}`;
-        }
+        // Generate HMAC token URL for family inbox (72-hour expiry, more reliable than Supabase magic links)
+        const familyViewUrl = generateFamilyInboxUrl(familyEmail, trackedFamilyDest, siteUrl);
 
         const { success: familySuccess } = await sendEmail({
           to: familyEmail,

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams, isSuppressedRecipient } from "@/lib/email";
+import { isUndeliverable } from "@/lib/email-verification";
 import { providerNudgeEmail } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -28,6 +29,10 @@ export async function POST(req: NextRequest) {
   }
 
   const db = getServiceClient();
+
+  // Check if this is a preview request
+  const { searchParams } = new URL(req.url);
+  const isPreview = searchParams.get("preview") === "true";
 
   // Parse body
   let body: { connection_id?: string };
@@ -213,11 +218,51 @@ export async function POST(req: NextRequest) {
   const providerSlug = providerProfile.slug || providerProfile.source_provider_id || "";
   const providerName = providerProfile.display_name || "Your Organization";
   const familyName = familyProfile?.display_name || "A family";
+  const subject = `${familyName} is waiting for a response`;
+  const fromAddress = "Olera <noreply@olera.care>";
 
-  // Reserve email log ID for tracking
+  // Build view URL (without tracking for preview, with tracking for actual send)
+  const viewUrl = isPreview
+    ? `${siteUrl}/provider/connections`
+    : appendTrackingParams(`${siteUrl}/provider/connections`, null);
+
+  // Build email HTML
+  const html = providerNudgeEmail({
+    providerName,
+    familyName,
+    messagePreview,
+    daysSinceInquiry,
+    viewUrl,
+    providerSlug,
+  });
+
+  // If preview mode, return email details without sending
+  if (isPreview) {
+    // Check if email would be suppressed
+    let warning: string | null = null;
+    const suppressed = await isSuppressedRecipient(providerProfile.email);
+    const undeliverable = await isUndeliverable(providerProfile.email);
+
+    if (suppressed) {
+      warning = "This email may be suppressed due to prior bounces or spam complaints on record.";
+    } else if (undeliverable) {
+      warning = "This email may be suppressed because the address was verified as invalid/undeliverable.";
+    }
+
+    return NextResponse.json({
+      preview: true,
+      from: fromAddress,
+      to: providerProfile.email,
+      subject,
+      html,
+      warning,
+    });
+  }
+
+  // Reserve email log ID for tracking (only when actually sending)
   const emailLogId = await reserveEmailLogId({
     to: providerProfile.email,
-    subject: `${familyName} is waiting for a response`,
+    subject,
     emailType: "provider_nudge",
     recipientType: "provider",
     providerId: providerSlug,
@@ -228,26 +273,27 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Build view URL with tracking
-  const viewUrl = appendTrackingParams(
+  // Update viewUrl with tracking params for actual send
+  const trackedViewUrl = appendTrackingParams(
     `${siteUrl}/provider/connections`,
     emailLogId
   );
 
-  // Build and send email
-  const html = providerNudgeEmail({
+  // Rebuild email HTML with tracked URL for actual send
+  const trackedHtml = providerNudgeEmail({
     providerName,
     familyName,
     messagePreview,
     daysSinceInquiry,
-    viewUrl,
+    viewUrl: trackedViewUrl,
     providerSlug,
   });
 
+  // Send email with tracked HTML
   const { success, error: sendError } = await sendEmail({
     to: providerProfile.email,
-    subject: `${familyName} is waiting for a response`,
-    html,
+    subject,
+    html: trackedHtml,
     emailType: "provider_nudge",
     recipientType: "provider",
     providerId: providerSlug,

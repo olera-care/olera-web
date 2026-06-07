@@ -46,17 +46,10 @@ function MagicLinkHandler() {
           }
 
           // No session and no tokens - link is expired or invalid
-          // Still redirect to intended destination so user sees context
-          // They'll just need to sign in manually via the onboard page
-          if (next && next !== "/") {
-            router.replace(next);
-            return;
-          }
-
-          // No destination - redirect to home
-          setError("Invalid or expired link. Please request a new one.");
-          setStatus("error");
-          setTimeout(() => router.replace("/"), 3000);
+          // Redirect to browse page (family landing) with context
+          // Better UX than showing error - they can sign in naturally from there
+          console.log("[magic-link] Link expired or invalid, redirecting to browse page");
+          router.replace("/browse");
           return;
         }
 

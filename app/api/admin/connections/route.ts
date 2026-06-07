@@ -11,8 +11,11 @@ import {
 } from "@/lib/admin/profile-completeness";
 import {
   getEngagementLevel,
+  getFamilyEngagementLevel,
   type EngagementLevel,
+  type FamilyEngagementLevel,
   type EngagementData,
+  type FamilyEngagementData,
 } from "@/lib/connection-engagement";
 
 /**
@@ -96,7 +99,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel;
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "no_email";
 
 // Stuck threshold: 3+ nudges with no response
 const STUCK_NUDGE_THRESHOLD = 3;
@@ -119,7 +122,21 @@ interface EngagementCounts {
   connected: number;
   stuck: number;
   needs_call: number;
+  no_email: number; // Cross-cutting filter: providers without email
 }
+
+// Family engagement-based tab counts (family perspective)
+interface FamilyEngagementCounts {
+  all: number;
+  new: number;
+  awaiting: number;
+  engaged: number;
+  stuck: number;
+  needs_call: number;
+}
+
+// Perspective type
+type Perspective = "provider" | "family";
 
 // Funnel stats for the stats row
 interface FunnelStats {
@@ -159,6 +176,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const responseFilter = (searchParams.get("filter") || "all") as TabFilter;
+    const perspective = (searchParams.get("perspective") || "provider") as Perspective;
     const stateFilter = searchParams.get("state") as ConnectionTemperatureState | null;
     const includeClosed = searchParams.get("include_closed") === "true";
     const search = (searchParams.get("search") || "").trim().toLowerCase();
@@ -199,6 +217,45 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error("[connections] query error:", error);
       return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
+    }
+
+    // CRITICAL FIX: Fetch missing provider emails from olera-providers table
+    // This ensures email display matches email sending logic (which checks both tables)
+    const providerEmailFallback = new Map<string, string>();
+
+    // Collect unique source_provider_ids that need email lookup from iOS table
+    // Use Set to deduplicate (same provider may appear in multiple connections)
+    const uniqueSourceIds = new Set<string>();
+    for (const r of rows ?? []) {
+      const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
+      if (provider?.source_provider_id && !provider?.email?.trim()) {
+        uniqueSourceIds.add(provider.source_provider_id);
+      }
+    }
+
+    // Batch fetch emails from olera-providers for providers missing email
+    // Filter out deleted providers to match email sending behavior
+    if (uniqueSourceIds.size > 0) {
+      const sourceIds = Array.from(uniqueSourceIds);
+      const { data: iosProviders, error: iosError } = await db
+        .from("olera-providers")
+        .select("provider_id, email")
+        .in("provider_id", sourceIds)
+        .not("deleted", "is", true);
+
+      if (iosError) {
+        console.error("[connections] olera-providers email lookup failed:", iosError);
+        // Continue with empty fallback map - fail gracefully
+      }
+
+      // Build map of source_provider_id -> email for quick lookup
+      // Trim emails to prevent whitespace-only values from being stored
+      for (const ios of iosProviders ?? []) {
+        const trimmedEmail = ios.email?.trim();
+        if (trimmedEmail) {
+          providerEmailFallback.set(ios.provider_id, trimmedEmail);
+        }
+      }
     }
 
     const now = Date.now();
@@ -255,9 +312,15 @@ export async function GET(request: NextRequest) {
       // This determines if we need to nudge the family
       // Only counts REAL replies (non-auto, non-system, with actual text)
       let familyRepliedAfterProvider = false;
+      let familyMessageCountAfterProvider = 0;
+      let lastFamilyMessageAt: string | null = null;
+      const providerRespondedAt = providerMsg?.created_at || null;
+
       if (responded && providerMsg?.created_at) {
         const providerResponseTime = new Date(providerMsg.created_at).getTime();
-        familyRepliedAfterProvider = thread.some(
+
+        // Find all family messages after provider responded
+        const familyMessagesAfterProvider = thread.filter(
           (m) =>
             m.from_profile_id === r.from_profile_id &&
             m.is_auto_reply !== true &&
@@ -266,6 +329,17 @@ export async function GET(request: NextRequest) {
             m.created_at &&
             new Date(m.created_at).getTime() > providerResponseTime
         );
+
+        familyRepliedAfterProvider = familyMessagesAfterProvider.length > 0;
+        familyMessageCountAfterProvider = familyMessagesAfterProvider.length;
+
+        // Find the most recent family message (for staleness calculation)
+        if (familyMessagesAfterProvider.length > 0) {
+          lastFamilyMessageAt = familyMessagesAfterProvider.reduce((latest, m) => {
+            if (!latest) return m.created_at!;
+            return new Date(m.created_at!).getTime() > new Date(latest).getTime() ? m.created_at! : latest;
+          }, null as string | null);
+        }
       }
 
       // Find the last message timestamp (for staleness calculation)
@@ -383,7 +457,9 @@ export async function GET(request: NextRequest) {
           display_name: provider?.display_name ?? null,
           slug: provider?.slug ?? null,
           source_provider_id: provider?.source_provider_id ?? null,
-          email: provider?.email ?? null,
+          // CRITICAL FIX: Fall back to olera-providers email if business_profiles.email is null/empty
+          // Use || instead of ?? to catch empty strings, matching email sending logic
+          email: provider?.email?.trim() || (provider?.source_provider_id ? providerEmailFallback.get(provider.source_provider_id) : null) || null,
           phone: provider?.phone ?? null,
           image_url: provider?.image_url ?? null,
           is_active: providerIsActive,
@@ -392,7 +468,10 @@ export async function GET(request: NextRequest) {
         },
         messagePreview,
         responded,
+        providerRespondedAt,
         familyRepliedAfterProvider,
+        familyMessageCountAfterProvider,
+        lastFamilyMessageAt,
         providerNudgeCount,
         familyNudgeCount,
         providerNudgedAt,
@@ -424,7 +503,9 @@ export async function GET(request: NextRequest) {
     )].slice(0, 1000);
 
     // Per-provider engagement tracking
-    const providerEngagement = new Map<string, {
+    // CONNECTION-SPECIFIC engagement tracking (not provider-level)
+    // Each connection has its own engagement data based on events with matching connection_id
+    const connectionEngagement = new Map<string, {
       email_clicked: boolean;
       lead_opened: boolean;
       contact_revealed: boolean;
@@ -436,9 +517,9 @@ export async function GET(request: NextRequest) {
       lastActivityAt: string | null;
     }>();
 
-    // Initialize all providers as not engaged
-    for (const key of allProviderKeys) {
-      providerEngagement.set(key, {
+    // Initialize engagement data for each CONNECTION (not provider)
+    for (const r of rows ?? []) {
+      connectionEngagement.set(r.id, {
         email_clicked: false,
         lead_opened: false,
         contact_revealed: false,
@@ -451,7 +532,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch engagement events by provider (include metadata for contact_revealed type)
+    // Fetch engagement events filtered by CONNECTION_ID in metadata
+    // This ensures each connection shows only its own engagement, not provider-wide
+
     if (allProviderKeys.length > 0) {
       const { data: actEvents } = await db
         .from("provider_activity")
@@ -461,29 +544,80 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(10000);
 
-      for (const ev of actEvents ?? []) {
-        const eng = providerEngagement.get(ev.provider_id);
-        if (!eng) continue;
+      // Build a map of provider_id -> connection_ids for multi-lead email handling
+      const providerToConnections = new Map<string, string[]>();
+      for (const c of searched) {
+        const providerKey = c.provider.activityKey;
+        if (!providerKey) continue;
+        if (!providerToConnections.has(providerKey)) {
+          providerToConnections.set(providerKey, []);
+        }
+        providerToConnections.get(providerKey)!.push(c.id);
+      }
 
-        if (ev.event_type === "email_click") eng.email_clicked = true;
-        else if (ev.event_type === "lead_opened") eng.lead_opened = true;
-        else if (ev.event_type === "contact_revealed") {
-          eng.contact_revealed = true;
-          // Track what was copied (phone vs email)
-          const meta = ev.metadata as Record<string, unknown> | null;
-          if (meta?.contact_type === "phone") {
-            eng.phone_copied = true;
-          } else {
-            eng.email_copied = true; // Default to email if not specified
+      for (const ev of actEvents ?? []) {
+        const meta = ev.metadata as Record<string, unknown> | null;
+        // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
+        const connectionId = (meta?.connection_id || meta?.lead_id) as string | undefined;
+
+        // Handle connection-specific events (most common case)
+        if (connectionId) {
+          const eng = connectionEngagement.get(connectionId);
+          if (!eng) {
+            // Connection not in our current view (likely filtered out by date range or limit)
+            // If this is a lead_opened event, treat it as a provider-wide signal
+            // (fallback to multi-lead behavior for old connections)
+            if (ev.event_type === "lead_opened" && ev.provider_id) {
+              const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
+              for (const connId of connectionIds) {
+                const e = connectionEngagement.get(connId);
+                if (e) {
+                  e.lead_opened = true;
+                  if (!e.lastActivityAt || (ev.created_at && ev.created_at > e.lastActivityAt)) {
+                    e.lastActivityAt = ev.created_at;
+                  }
+                }
+              }
+            } else {
+              // Non-lead_opened event for connection not in view - skip it
+            }
+            continue;
+          }
+
+          if (ev.event_type === "email_click") eng.email_clicked = true;
+          else if (ev.event_type === "lead_opened") eng.lead_opened = true;
+          else if (ev.event_type === "contact_revealed") {
+            eng.contact_revealed = true;
+            // Track what was copied (phone vs email)
+            if (meta?.contact_type === "phone") {
+              eng.phone_copied = true;
+            } else {
+              eng.email_copied = true; // Default to email if not specified
+            }
+          }
+          else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
+          else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
+          else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
+
+          // Track most recent activity FOR THIS CONNECTION
+          if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
+            eng.lastActivityAt = ev.created_at;
           }
         }
-        else if (ev.event_type === "phone_clicked") eng.phone_clicked = true;
-        else if (ev.event_type === "email_link_clicked") eng.email_link_clicked = true;
-        else if (ev.event_type === "continue_in_inbox") eng.continue_in_inbox = true;
-
-        // Track most recent activity
-        if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
-          eng.lastActivityAt = ev.created_at;
+        // Handle provider-wide events (multi-lead emails with no specific connection_id)
+        // When provider clicks a multi-lead email and lands on inbox, mark ALL their connections as viewed
+        else if (ev.event_type === "lead_opened" && ev.provider_id) {
+          const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
+          for (const connId of connectionIds) {
+            const eng = connectionEngagement.get(connId);
+            if (eng) {
+              eng.lead_opened = true;
+              // Track activity time for all connections
+              if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
+                eng.lastActivityAt = ev.created_at;
+              }
+            }
+          }
         }
       }
     }
@@ -552,6 +686,17 @@ export async function GET(request: NextRequest) {
       connected: 0,
       stuck: 0,
       needs_call: 0,
+      no_email: 0,
+    };
+
+    // Family engagement-based counts (family perspective)
+    const familyEngagementCounts: FamilyEngagementCounts = {
+      all: 0,
+      new: 0,
+      awaiting: 0,
+      engaged: 0,
+      stuck: 0,
+      needs_call: 0,
     };
 
     // Funnel stats
@@ -562,10 +707,11 @@ export async function GET(request: NextRequest) {
 
     // Calculate engagement level for each connection and store it
     const connectionEngagementLevels = new Map<string, EngagementLevel>();
+    const connectionFamilyEngagementLevels = new Map<string, FamilyEngagementLevel>();
 
     for (const c of searched) {
-      // Get engagement data for this provider
-      const eng = c.provider.activityKey ? providerEngagement.get(c.provider.activityKey) : null;
+      // Get engagement data for THIS SPECIFIC CONNECTION (not provider-wide)
+      const eng = connectionEngagement.get(c.id) ?? null;
 
       // Calculate engagement level for this connection
       // Use the most recent of: engagement event OR message timestamp
@@ -597,6 +743,19 @@ export async function GET(request: NextRequest) {
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
 
+      // Calculate family engagement level for this connection
+      const familyEngagementData: FamilyEngagementData = {
+        providerResponded: c.responded || c.markedReplied || c.alreadyConnected,
+        providerRespondedAt: c.providerRespondedAt,
+        familyReplied: c.familyRepliedAfterProvider,
+        familyMessageCount: c.familyMessageCountAfterProvider,
+        lastFamilyActivityAt: c.lastFamilyMessageAt,
+        familyNudgeCount: c.familyNudgeCount,
+      };
+
+      const familyEngResult = getFamilyEngagementLevel(familyEngagementData, c.created_at, now);
+      connectionFamilyEngagementLevels.set(c.id, familyEngResult.level);
+
       // Only count active connections (those with workflowState)
       // This ensures tab counts match the displayed connections
       if (c.workflowState) {
@@ -604,9 +763,18 @@ export async function GET(request: NextRequest) {
         workflowCounts.all++;
         workflowCounts[c.workflowState]++;
 
-        // Count engagement levels
+        // Count engagement levels (provider perspective)
         engagementCounts.all++;
         engagementCounts[engResult.level]++;
+
+        // Count providers without email (cross-cutting filter)
+        if (!c.provider.email?.trim()) {
+          engagementCounts.no_email++;
+        }
+
+        // Count family engagement levels
+        familyEngagementCounts.all++;
+        familyEngagementCounts[familyEngResult.level]++;
 
         // Funnel stats (based on provider engagement)
         if (eng?.lead_opened) providerViewedCount++;
@@ -649,17 +817,32 @@ export async function GET(request: NextRequest) {
     // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
-    // Check if filter is an engagement level
-    const engagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
-    const isEngagementFilter = engagementLevels.includes(responseFilter as EngagementLevel);
+    // Check if filter is an engagement level (provider or family)
+    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
+    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "engaged", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
-      if (isEngagementFilter) {
-        // Filter by engagement level
-        list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+      // Special filter: no_email (provider perspective only - cross-cutting filter)
+      if (responseFilter === "no_email" && perspective === "provider") {
+        list = list.filter((c) => !c.provider.email?.trim());
+      } else if (perspective === "family") {
+        // Family perspective - filter by family engagement level
+        const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
+        if (isFamilyEngagementFilter) {
+          list = list.filter((c) => connectionFamilyEngagementLevels.get(c.id) === responseFilter);
+        } else {
+          // Filter by workflow state (legacy)
+          list = list.filter((c) => c.workflowState === responseFilter);
+        }
       } else {
-        // Filter by workflow state (legacy)
-        list = list.filter((c) => c.workflowState === responseFilter);
+        // Provider perspective - filter by provider engagement level
+        const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
+        if (isEngagementFilter) {
+          list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+        } else {
+          // Filter by workflow state (legacy)
+          list = list.filter((c) => c.workflowState === responseFilter);
+        }
       }
     }
 
@@ -673,29 +856,30 @@ export async function GET(request: NextRequest) {
     const pageRaw = list.slice(offset, offset + limit);
 
     // Add engagement level to each connection in the page
+    // Include both provider and family engagement levels so UI can display appropriately
     const page = pageRaw.map((c) => ({
       ...c,
       engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
+      familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
     }));
 
-    // Per-provider engagement data for UI badges (keyed by provider activityKey)
-    // Note: "messaged", "markedReplied", "alreadyConnected" are NOT included here
-    // because they're per-connection, not per-provider. The frontend should use
-    // c.responded, c.markedReplied, c.alreadyConnected directly.
+    // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
+    // This shows engagement specific to each connection, not aggregated across all provider's connections.
+    // "messaged", "markedReplied", "alreadyConnected" are already per-connection via
+    // c.responded, c.markedReplied, c.alreadyConnected.
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
     for (const c of pageRaw) {
-      const key = c.provider.activityKey;
-      if (key && !engagement[key]) {
-        const eng = providerEngagement.get(key);
-        engagement[key] = {
-          email_clicked: eng?.email_clicked ?? false,
-          lead_opened: eng?.lead_opened ?? false,
-          contact_revealed: eng?.contact_revealed ?? false,
-          phone_copied: eng?.phone_copied ?? false,
-          email_copied: eng?.email_copied ?? false,
-          phone_clicked: eng?.phone_clicked ?? false,
-          email_link_clicked: eng?.email_link_clicked ?? false,
-          continue_in_inbox: eng?.continue_in_inbox ?? false,
+      const eng = connectionEngagement.get(c.id);
+      if (eng) {
+        engagement[c.id] = {
+          email_clicked: eng.email_clicked,
+          lead_opened: eng.lead_opened,
+          contact_revealed: eng.contact_revealed,
+          phone_copied: eng.phone_copied,
+          email_copied: eng.email_copied,
+          phone_clicked: eng.phone_clicked,
+          email_link_clicked: eng.email_link_clicked,
+          continue_in_inbox: eng.continue_in_inbox,
         };
       }
     }
@@ -708,8 +892,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       connections: page,
       total: list.length,
+      perspective,
       workflowCounts,
       engagementCounts,
+      familyEngagementCounts,
       funnelStats,
       providerActions,
       engagement,

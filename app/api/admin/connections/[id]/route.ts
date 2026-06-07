@@ -86,6 +86,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const provider = Array.isArray(c.to_profile) ? c.to_profile[0] : c.to_profile;
     const meta = (c.metadata ?? {}) as Record<string, unknown>;
 
+    // Fetch provider email from olera-providers if missing from business_profiles
+    let providerEmailFallback: string | null = null;
+    if (provider?.source_provider_id && !provider?.email?.trim()) {
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("email")
+        .eq("provider_id", provider.source_provider_id)
+        .not("deleted", "is", true)
+        .maybeSingle();
+      providerEmailFallback = iosProvider?.email?.trim() || null;
+    }
+
     const temperature = getConnectionTemperature(
       {
         from_profile_id: c.from_profile_id ?? "",
@@ -97,7 +109,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       Date.now()
     );
 
-    const providerEmail = provider?.email ?? null;
+    const providerEmail = provider?.email?.trim() || providerEmailFallback || null;
     const nudgeCount = (meta.nudge_count as number) || 0;
     const nextStep = recommendNextStep(temperature, {
       providerHasEmail: !!providerEmail?.trim(),

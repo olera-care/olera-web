@@ -156,7 +156,28 @@ Production deploys automatically on push to `main` (GitHub-linked Vercel project
    - `https://olera.care` (or olera2-web.vercel.app) loads
    - Any feature shipped in this promotion is visibly live
    - No console errors on the homepage / a key provider page
-3. Report final status:
+   - Note: `curl` against the prod URL returns **HTTP 429** (the Vercel WAF bot-challenge) — that is expected, not an outage. Verify in a real browser, not curl.
+
+3. **Critical-file indicator assertions** (ported from `/pr-merge` Phase 2.5). Confirm the code that just shipped to `main` still contains each load-bearing SEO/analytics/auth/branding indicator — these are the features most likely to be *silently* lost in a large promotion. Assert against `origin/main` (what actually shipped), and only bother checking a file if the promotion touched it (`git diff --name-only origin/main@{1}..origin/main`, or the Phase 1 file list):
+
+   ```bash
+   # each grep should return ≥1; a 0 is a REGRESSION
+   git show origin/main:app/layout.tsx        | grep -c "G-"                  # GA4 measurement id present
+   git show origin/main:app/layout.tsx        | grep -c "next/font"           # self-hosted fonts
+   git show origin/main:components/shared/Footer.tsx | grep -c "Find senior care"  # discovery zone
+   git show origin/main:app/page.tsx          | grep -c "geoState\|geoCity"   # geo-personalization
+   git show origin/main:middleware.ts         | grep -c "V1_CATEGORY_SLUGS"   # v1 redirect map
+   git show origin/main:next.config.ts        | grep -c "permanent: true"     # SEO redirects (baseline ~54)
+   git show origin/main:components/shared/Navbar.tsx | grep -c "olera-logo"   # branding
+   # SEO metadata must survive on any page with generateMetadata that shipped:
+   git show origin/main:app/provider/[slug]/page.tsx | grep -c "canonical"
+   git show origin/main:app/provider/[slug]/page.tsx | grep -c "openGraph"
+   ```
+
+   For any indicator that returns 0 on a file the promotion changed, flag:
+   **REGRESSION SHIPPED: `<file>` lost `<indicator>` in this promotion.** This shouldn't happen if the Phase 1 inverted-hazard check was clean (main is a subset of staging), so treat it as a sign staging itself regressed — investigate before it propagates, and consider a hotfix/revert. For `next.config.ts`, compare the `permanent: true` count to the ~54 baseline rather than just ">0".
+
+4. Report final status:
    ```markdown
    ## Promotion Complete
 
@@ -167,6 +188,15 @@ Production deploys automatically on push to `main` (GitHub-linked Vercel project
    ### Verification
    - olera.care: [loads / issue]
    - Shipped features live: [yes / list]
+
+   ### Critical-file indicators (only files this promotion touched)
+   - layout.tsx: GA4 [intact/MISSING], self-hosted fonts [intact/MISSING]
+   - Footer.tsx: discovery zone [intact/MISSING]
+   - page.tsx: geo-personalization [intact/MISSING]
+   - middleware.ts: V1_CATEGORY_SLUGS [intact/MISSING]
+   - next.config.ts: permanent redirects [N / baseline ~54]
+   - Navbar.tsx: logo [intact/MISSING]
+   - provider/[slug]: canonical + openGraph [intact/MISSING]
 
    ### Next
    - Watch the Vercel production deploy to green.

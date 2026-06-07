@@ -15,14 +15,16 @@ import type { SelfRank } from "@/lib/market-diagnostic/self-rank";
  * passes it in via `pinned` and it renders on top of the diagnostic.
  */
 export default function FindFamiliesMarketView({
-  city, state, category, providerName, providerPlaceId, pinned,
+  city, state, category, providerName, providerPlaceId, providerSourceId, pinned,
 }: {
   city: string;
   state: string;
   category: string;
   providerName?: string;
-  /** The viewing provider's Google place_id — powers the per-provider self-rank overlay. */
+  /** The viewing provider's Google place_id (from metadata) — powers the self-rank overlay. */
   providerPlaceId?: string;
+  /** olera-providers link (source_provider_id) — higher-coverage server-side place_id fallback. */
+  providerSourceId?: string;
   /** Optional "family near you" section, rendered above the market diagnostic. */
   pinned?: ReactNode;
 }) {
@@ -42,6 +44,7 @@ export default function FindFamiliesMarketView({
     const MAX_POLL_MS = 4 * 60 * 1000; // stop hammering after ~4 min; the degrade copy says "check back"
     const qs = new URLSearchParams({ city, state: state || "", careType: category || "" });
     if (providerPlaceId) qs.set("placeId", providerPlaceId);
+    if (providerSourceId) qs.set("sourceProviderId", providerSourceId);
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     // First visit to a cold city computes in the background (~60-90s); poll until it flips ready.
@@ -63,7 +66,7 @@ export default function FindFamiliesMarketView({
     };
     poll();
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, [city, state, category, providerPlaceId]);
+  }, [city, state, category, providerPlaceId, providerSourceId]);
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">

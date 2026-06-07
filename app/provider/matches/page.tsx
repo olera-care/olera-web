@@ -1853,6 +1853,7 @@ export default function ProviderMatchesPage() {
           category={careType}
           providerName={providerProfile.display_name || ""}
           providerPlaceId={providerPlaceId}
+          providerSourceId={providerProfile.source_provider_id || undefined}
           pinned={pinned}
         />
         {reachOutDrawerNode}

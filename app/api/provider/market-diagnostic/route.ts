@@ -46,16 +46,43 @@ const DIR = path.join(process.cwd(), "data/market-diagnostic");
  * Per-provider self-rank overlay for a ready diagnostic. The cached `data` is the shared
  * city×care-type report; `self` is computed at read time from its competitorLandscape.ranked
  * (the step-1 cache-shape change) by matching the viewing provider's place_id — exact match,
- * else one lean Places lookup inserted at the right position (fetch-if-missing). Null when no
- * placeId, an older cache row without `ranked`, or the provider can't be located/fetched — the
- * client then falls back to the existing name-match highlight.
+ * else one lean Places lookup inserted at the right position (fetch-if-missing). Null when we
+ * can't resolve a place_id, an older cache row without `ranked`, or the provider can't be
+ * located/fetched — the client then falls back to the existing name-match highlight.
+ *
+ * place_id resolution (in priority): the `placeId` the client read from
+ * business_profiles.metadata.google_metadata (~50% of verified providers), else the linked
+ * olera-providers.place_id via source_provider_id (~90% coverage). The olera-providers lookup
+ * runs only on the ready path AND only when needed (no metadata place_id), and never for older
+ * cache rows lacking `ranked` (the early return below).
  */
-async function selfFor(data: unknown, placeId: string | null): Promise<SelfRank | null> {
-  if (!placeId) return null;
+type Db = ReturnType<typeof getServiceClient>;
+async function selfFor(
+  data: unknown,
+  placeId: string | null,
+  sourceProviderId: string | null,
+  db: Db,
+): Promise<SelfRank | null> {
   const cl = (data as { competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number } })
     ?.competitorLandscape;
   if (!cl?.ranked) return null;
-  return resolveSelfRank({ ranked: cl.ranked, totalReviewsInMarket: cl.totalReviewsInMarket ?? 0, placeId });
+
+  let effectivePlaceId = placeId;
+  if (!effectivePlaceId && sourceProviderId) {
+    const { data: prov } = await db
+      .from("olera-providers")
+      .select("place_id")
+      .eq("provider_id", sourceProviderId)
+      .maybeSingle();
+    effectivePlaceId = ((prov as { place_id?: string | null } | null)?.place_id) ?? null;
+  }
+  if (!effectivePlaceId) return null;
+
+  return resolveSelfRank({
+    ranked: cl.ranked,
+    totalReviewsInMarket: cl.totalReviewsInMarket ?? 0,
+    placeId: effectivePlaceId,
+  });
 }
 
 function normCareTypeFile(input: string | null): "homecare" | "assisted_living" | null {
@@ -109,8 +136,11 @@ export async function GET(req: Request) {
   const cityRaw = (url.searchParams.get("city") || "").trim();
   const stateRaw = (url.searchParams.get("state") || "").trim();
   const careTypeRaw = url.searchParams.get("careType");
-  // Optional: the viewing provider's Google place_id, for the per-provider self-rank overlay.
+  // Optional inputs for the per-provider self-rank overlay: the place_id the client read from
+  // provider metadata, and the olera-providers link (source_provider_id) as a higher-coverage
+  // server-side fallback when metadata has no place_id.
   const placeId = (url.searchParams.get("placeId") || "").trim() || null;
+  const sourceProviderId = (url.searchParams.get("sourceProviderId") || "").trim() || null;
   if (!cityRaw) return reply({ status: "unavailable", available: false, error: "city required" }, { status: 400 });
 
   const cityLc = cityRaw.toLowerCase();
@@ -121,13 +151,13 @@ export async function GET(req: Request) {
   // 1. Cache table — the fast path for any previously-computed city.
   const row = await getRow(key, db);
   if (row && row.status === "ready" && isFresh(row)) {
-    return reply({ status: "ready", available: true, data: row.data, self: await selfFor(row.data, placeId) });
+    return reply({ status: "ready", available: true, data: row.data, self: await selfFor(row.data, placeId, sourceProviderId, db) });
   }
 
   // 2. Committed-file fallback (College Station etc.) — serve immediately, no compute.
   const fileData = loadFileSnapshot(cityLc, stateLc, normCareTypeFile(careTypeRaw));
   if (fileData && (!row || row.status !== "ready")) {
-    return reply({ status: "ready", available: true, data: fileData, self: await selfFor(fileData, placeId) });
+    return reply({ status: "ready", available: true, data: fileData, self: await selfFor(fileData, placeId, sourceProviderId, db) });
   }
 
   // 3. Stale-but-ready — serve stale now, refresh in the background (stale-while-revalidate).
@@ -135,7 +165,7 @@ export async function GET(req: Request) {
     if (resolveCity(cityRaw, stateRaw) && await claimForCompute(key, db)) {
       scheduleCompute(key, cityRaw, stateRaw, careTypeRaw);
     }
-    return reply({ status: "ready", available: true, data: row.data, self: await selfFor(row.data, placeId) });
+    return reply({ status: "ready", available: true, data: row.data, self: await selfFor(row.data, placeId, sourceProviderId, db) });
   }
 
   // 4. Can we even diagnose this city? Unknown city → we don't cover this area; say so honestly

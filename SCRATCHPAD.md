@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-06-07 — New `/promote-to-main` slash command + shipped #955 to production
+
+**Outcome:** Built a reusable staging→main production-promotion command and used it to ship the pending delta live.
+
+**What shipped:**
+- **`.claude/commands/promote-to-main.md`** — new `/promote-to-main` command. Models `/pr-merge`'s rigor but adapted for the reverse direction (cumulative staging→main promotion, not a single feature branch into a moving target). Phases: delta/changelog → production pre-flight (staging CI green, deploy health, migration/env-var awareness) → report → production confirmation gate → create merge-commit PR + merge as TJ → prod smoke-check → Notion report. Supports `<summary>` arg and `--dry-run`.
+- **Promotion executed:** PR **#956** (staging→main) merged → main now at `af6bc1d1`. Shipped **#955** (Family & Lead Experience: email previews, analytics cleanup, engagement tracking fix) to production. Pre-flight was clean (staging CI green, main confirmed strict subset of staging).
+
+**Key mechanic learned — DON'T use commit-count for the staging↔main hazard check.** `git rev-list --count origin/staging..origin/main` reads ~45 even when main is a perfect subset, because staging accumulates **squash** commits while main records **merge** commits (SHAs diverge by design). The reliable signal is **content-level**: `git diff --stat origin/staging origin/main` should be the exact inverse of the promotion delta (same files, ins/del swapped). The command was fixed to use this, not the misleading count.
+
+**Known gap (flagged to TJ, not yet decided):** the command does NOT port `/pr-merge`'s Phase 2.5 critical-file watchlist + indicator spot-checks (Footer discovery zone, GA4, canonicals, redirect count). Reasoning: in the promotion direction the inverted-hazard subset check structurally subsumes "silent loss of a main feature." Open offer: add those specific indicator assertions to Phase 6 post-deploy verification if TJ wants belt-and-suspenders.
+
+**Note:** #956 promotion touched `vercel.json` (+12, cron/route config) — first place to look if prod behaves oddly.
+
 ### 2026-06-06 — Benefits pipeline: PUBLISHED NY (Ces QA) + FL (State Page QA) → PR to staging (awaiting TJ merge)
 
 **Outcome:** Applied all QA corrections, set programs `approved`, regenerated `drafts.ts`, opened PR → staging. **TJ merges to publish** (he asked to "come in at the end"; per CLAUDE.md only TJ can merge anyway). Branch `publish-benefits-ny-fl`.

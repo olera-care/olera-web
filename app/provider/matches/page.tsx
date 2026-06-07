@@ -956,6 +956,14 @@ export default function ProviderMatchesPage() {
     return meta?.accepted_payments || [];
   }, [providerProfile]);
 
+  // The provider's Google place_id — feeds the market diagnostic's per-provider self-rank
+  // overlay (same metadata path the public provider page uses). Undefined for providers without
+  // a linked Google listing; the diagnostic then falls back to the legacy name-match highlight.
+  const providerPlaceId = useMemo(() => {
+    const meta = providerProfile?.metadata as { google_metadata?: { place_id?: string } } | undefined;
+    return meta?.google_metadata?.place_id || undefined;
+  }, [providerProfile]);
+
   // Memoize connections count to avoid recomputing in multiple places
   const connectionsCount = useMemo(
     () => Array.from(connectionData.values()).filter((c) => c.status === "accepted").length,
@@ -1844,6 +1852,7 @@ export default function ProviderMatchesPage() {
           state={providerProfile.state || ""}
           category={careType}
           providerName={providerProfile.display_name || ""}
+          providerPlaceId={providerPlaceId}
           pinned={pinned}
         />
         {reachOutDrawerNode}

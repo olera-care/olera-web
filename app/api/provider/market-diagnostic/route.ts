@@ -10,6 +10,7 @@ import {
   normalizeKey, getRow, isFresh, claimForCompute, writeReady, writeFailed,
   isOverBudget, MONTHLY_CAP_USD, MAX_ATTEMPTS, type DiagKey,
 } from "@/lib/market-diagnostic/cache";
+import { resolveSelfRank, type RankedEntry, type SelfRank } from "@/lib/market-diagnostic/self-rank";
 
 /**
  * Serves a provider's local market diagnostic ("Your Market"), computed on demand.
@@ -40,6 +41,22 @@ function reply(body: unknown, init?: ResponseInit) {
 }
 
 const DIR = path.join(process.cwd(), "data/market-diagnostic");
+
+/**
+ * Per-provider self-rank overlay for a ready diagnostic. The cached `data` is the shared
+ * city×care-type report; `self` is computed at read time from its competitorLandscape.ranked
+ * (the step-1 cache-shape change) by matching the viewing provider's place_id — exact match,
+ * else one lean Places lookup inserted at the right position (fetch-if-missing). Null when no
+ * placeId, an older cache row without `ranked`, or the provider can't be located/fetched — the
+ * client then falls back to the existing name-match highlight.
+ */
+async function selfFor(data: unknown, placeId: string | null): Promise<SelfRank | null> {
+  if (!placeId) return null;
+  const cl = (data as { competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number } })
+    ?.competitorLandscape;
+  if (!cl?.ranked) return null;
+  return resolveSelfRank({ ranked: cl.ranked, totalReviewsInMarket: cl.totalReviewsInMarket ?? 0, placeId });
+}
 
 function normCareTypeFile(input: string | null): "homecare" | "assisted_living" | null {
   if (!input) return null;
@@ -92,6 +109,8 @@ export async function GET(req: Request) {
   const cityRaw = (url.searchParams.get("city") || "").trim();
   const stateRaw = (url.searchParams.get("state") || "").trim();
   const careTypeRaw = url.searchParams.get("careType");
+  // Optional: the viewing provider's Google place_id, for the per-provider self-rank overlay.
+  const placeId = (url.searchParams.get("placeId") || "").trim() || null;
   if (!cityRaw) return reply({ status: "unavailable", available: false, error: "city required" }, { status: 400 });
 
   const cityLc = cityRaw.toLowerCase();
@@ -102,13 +121,13 @@ export async function GET(req: Request) {
   // 1. Cache table — the fast path for any previously-computed city.
   const row = await getRow(key, db);
   if (row && row.status === "ready" && isFresh(row)) {
-    return reply({ status: "ready", available: true, data: row.data });
+    return reply({ status: "ready", available: true, data: row.data, self: await selfFor(row.data, placeId) });
   }
 
   // 2. Committed-file fallback (College Station etc.) — serve immediately, no compute.
   const fileData = loadFileSnapshot(cityLc, stateLc, normCareTypeFile(careTypeRaw));
   if (fileData && (!row || row.status !== "ready")) {
-    return reply({ status: "ready", available: true, data: fileData });
+    return reply({ status: "ready", available: true, data: fileData, self: await selfFor(fileData, placeId) });
   }
 
   // 3. Stale-but-ready — serve stale now, refresh in the background (stale-while-revalidate).
@@ -116,7 +135,7 @@ export async function GET(req: Request) {
     if (resolveCity(cityRaw, stateRaw) && await claimForCompute(key, db)) {
       scheduleCompute(key, cityRaw, stateRaw, careTypeRaw);
     }
-    return reply({ status: "ready", available: true, data: row.data });
+    return reply({ status: "ready", available: true, data: row.data, self: await selfFor(row.data, placeId) });
   }
 
   // 4. Can we even diagnose this city? Unknown city → we don't cover this area; say so honestly

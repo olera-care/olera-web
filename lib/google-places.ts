@@ -221,6 +221,56 @@ export async function validateGooglePlaceId(
 }
 
 /**
+ * Lean place lookup: rating + review count ONLY (no `reviews` Advanced field, so this is the
+ * cheaper Places SKU). Used by the market-diagnostic self-rank overlay to look up a provider's
+ * own Google review count when they're absent from the surfaced competitor set (fetch-if-missing).
+ *
+ * Cached in-instance for an hour by place_id so the polling serve route / repeat visits don't
+ * re-bill the same lookup within a warm serverless instance. (Durable per-provider caching for
+ * the email path can source the count from olera-providers.google_reviews_data instead.)
+ *
+ * Returns null on no key / empty id / API error / a place with no rating signal.
+ */
+const RATING_COUNT_TTL_MS = 60 * 60 * 1000;
+const ratingCountCache = new Map<string, { value: { rating: number | null; reviewCount: number } | null; at: number }>();
+
+export async function fetchPlaceRatingCount(
+  placeId: string,
+): Promise<{ rating: number | null; reviewCount: number } | null> {
+  if (!placeId) return null;
+  const cached = ratingCountCache.get(placeId);
+  if (cached && Date.now() - cached.at < RATING_COUNT_TTL_MS) return cached.value;
+
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) {
+    console.warn("[google-places] GOOGLE_PLACES_API_KEY not set, skipping rating-count fetch");
+    return null;
+  }
+
+  let value: { rating: number | null; reviewCount: number } | null = null;
+  try {
+    const url = `${PLACES_API_BASE}/${placeId}?fields=rating,userRatingCount&key=${apiKey}`;
+    const res = await fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
+    if (!res.ok) {
+      const errorBody = await res.text().catch(() => "");
+      console.error(`[google-places] rating-count error for ${placeId}: ${res.status} ${errorBody}`);
+    } else {
+      const data: PlacesApiResponse = await res.json();
+      // A place with no rating AND no count carries no usable signal → null (don't cache a
+      // misleading 0-review rank); a real 0-count place is rare and also returns null here.
+      if (data.userRatingCount || data.rating) {
+        value = { rating: data.rating ?? null, reviewCount: data.userRatingCount ?? 0 };
+      }
+    }
+  } catch (err) {
+    console.error(`[google-places] rating-count failed for ${placeId}:`, err);
+  }
+
+  ratingCountCache.set(placeId, { value, at: Date.now() });
+  return value;
+}
+
+/**
  * Batch fetch Google reviews with rate limiting.
  *
  * Processes providers in chunks to avoid hitting API rate limits.

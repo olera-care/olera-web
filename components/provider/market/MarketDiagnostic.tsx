@@ -5,6 +5,7 @@ import CatchmentMapLoader from "./CatchmentMapLoader";
 import { CAT_COLOR } from "./CatchmentMap";
 import CountUp from "./CountUp";
 import PlaybookAction from "./PlaybookAction";
+import type { SelfRank } from "@/lib/market-diagnostic/self-rank";
 
 const NAV = [
   { id: "competition", label: "Competition" },
@@ -74,8 +75,8 @@ function StatCard({ value, label }: { value: number | string; label: string }) {
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
  */
 export default function MarketDiagnostic({
-  data, showHeader = true, interactive = false, providerName,
-}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string }) {
+  data, showHeader = true, interactive = false, providerName, self,
+}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string; self?: SelfRank | null }) {
   const a = data;
   const dem = a.demand.demographics;
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
@@ -88,10 +89,17 @@ export default function MarketDiagnostic({
     .sort((x, y) => y.score - x.score)
     .slice(0, 4);
 
-  // "You" highlight — light up the provider's own bar when they're a Google-listed agency.
-  const youIdx = providerName
-    ? cl.leaders.findIndex((l) => { const a2 = norm(l.name), b = norm(providerName); return a2 && b && (a2.includes(b) || b.includes(a2)); })
-    : -1;
+  // "You" highlight — prefer the reliable place_id self-match. `self.rank` is the position in the
+  // full ranked list, which == the index in `leaders` (leaders === ranked.slice(0,10)), so rank-1
+  // is the bar to light up. Fall back to the legacy fuzzy-name match when there's no self overlay
+  // (older cache rows / committed snapshot). A provider ranked below the rendered leaders, or
+  // fetched-in via fetch-if-missing (matchedBy "fetched"), stays -1 here — step 3 renders their
+  // row explicitly rather than highlighting a top bar.
+  const youIdx = self?.matchedBy === "place_id" && self.rank
+    ? self.rank - 1
+    : providerName
+      ? cl.leaders.findIndex((l) => { const a2 = norm(l.name), b = norm(providerName); return a2 && b && (a2.includes(b) || b.includes(a2)); })
+      : -1;
   const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), 1);
 
   return (

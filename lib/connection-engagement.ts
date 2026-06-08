@@ -28,14 +28,14 @@ export type EngagementLevel =
  *
  *   New       → Provider hasn't responded yet (family is waiting)
  *   Awaiting  → Provider responded, family hasn't replied (ball in family's court)
- *   Engaged   → Family replied at least once (conversation active)
+ *   Connected → Family replied at least once (conversation active)
  *   Stuck     → No family activity for 14+ days
  *   Needs Call → No family activity for 24+ days
  */
 export type FamilyEngagementLevel =
   | "new"
   | "awaiting"
-  | "engaged"
+  | "connected"
   | "stuck"
   | "needs_call";
 
@@ -116,7 +116,7 @@ export const ENGAGEMENT_LABELS: Record<EngagementLevel, string> = {
 export const FAMILY_ENGAGEMENT_LABELS: Record<FamilyEngagementLevel, string> = {
   new: "New",
   awaiting: "Awaiting",
-  engaged: "Engaged",
+  connected: "Connected",
   stuck: "Stuck",
   needs_call: "Needs Call",
 };
@@ -179,8 +179,8 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
     text: "text-amber-700",
     description: "Provider responded, awaiting family reply",
   },
-  engaged: {
-    label: "Engaged",
+  connected: {
+    label: "Connected",
     dot: "bg-emerald-400",
     text: "text-emerald-700",
     description: "Family replied to provider",
@@ -324,7 +324,7 @@ export const FAMILY_ENGAGEMENT_PRIORITY: Record<FamilyEngagementLevel, number> =
   awaiting: 1,   // Hot - provider responded, family hasn't
   new: 2,        // Cold - waiting on provider
   stuck: 3,      // Stale - family went silent
-  engaged: 4,    // Success - family replied
+  connected: 4,  // Success - family replied
 };
 
 /**
@@ -337,8 +337,8 @@ export const FAMILY_ENGAGEMENT_PRIORITY: Record<FamilyEngagementLevel, number> =
  * Hierarchy:
  *   1. Provider hasn't responded yet → "new"
  *   2. Provider responded, family hasn't replied → "awaiting"
- *   3. Family replied at least once → "engaged" (success state)
- *   4. No family activity for 14+ days (not engaged) → "stuck"
+ *   3. Family replied at least once → "connected" (success state)
+ *   4. No family activity for 14+ days (not connected) → "stuck"
  *   5. No family activity for 24+ days → "needs_call"
  */
 export function getFamilyEngagementLevel(
@@ -399,16 +399,16 @@ export function getFamilyEngagementLevel(
 
   if (data.familyReplied) {
     // Family replied at least once - success state
-    baseLevel = "engaged";
+    baseLevel = "connected";
   } else {
     // Provider responded but family hasn't replied
     baseLevel = "awaiting";
   }
 
-  // Engaged doesn't become stuck (success state)
+  // Connected doesn't become stuck (success state)
   let level: FamilyEngagementLevel;
-  if (baseLevel === "engaged") {
-    level = "engaged";
+  if (baseLevel === "connected") {
+    level = "connected";
   } else if (needsCallByTime) {
     level = "needs_call";
   } else if (isStale) {

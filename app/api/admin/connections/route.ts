@@ -130,7 +130,7 @@ interface FamilyEngagementCounts {
   all: number;
   new: number;
   awaiting: number;
-  engaged: number;
+  connected: number;
   stuck: number;
   needs_call: number;
 }
@@ -856,7 +856,7 @@ export async function GET(request: NextRequest) {
       all: 0,
       new: 0,
       awaiting: 0,
-      engaged: 0,
+      connected: 0,
       stuck: 0,
       needs_call: 0,
     };
@@ -988,7 +988,7 @@ export async function GET(request: NextRequest) {
 
     // Check if filter is an engagement level (provider or family)
     const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
-    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "engaged", "stuck", "needs_call"];
+    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
       // Special filter: no_email (provider perspective only - cross-cutting filter)

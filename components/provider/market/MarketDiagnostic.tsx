@@ -202,7 +202,7 @@ export default function MarketDiagnostic({
           <span className="text-stone-900 font-medium">{ref.totalViableSources} local sources</span>. This is the
           single highest-leverage channel, and it&apos;s one you can&apos;t assemble yourself.
         </p>
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-6">
           {ref.byRole.filter((r) => CAT_LABEL[r.cat]).slice(0, 6).map((r) => (
             <StatCard key={r.cat} value={r.count} label={CAT_LABEL[r.cat]} />
           ))}
@@ -237,7 +237,14 @@ export default function MarketDiagnostic({
               <div className="font-display text-lg text-stone-300 w-6 sm:w-7 shrink-0">{i + 1}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
-                <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usdK(z.medianIncome) + " median" : "—"}</div>
+                <div className="text-[12px] text-stone-500">
+                  {z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? (
+                    <>
+                      <span className="sm:hidden">{usdK(z.medianIncome)} median</span>
+                      <span className="hidden sm:inline">{usd(z.medianIncome)} median income</span>
+                    </>
+                  ) : "—"}
+                </div>
               </div>
               {z.medianIncome && z.medianIncome >= 70000 && (
                 <span className="shrink-0 mt-0.5 text-[10.5px] font-medium text-[#199087] bg-[#199087]/10 rounded-full px-2 py-0.5">High private-pay</span>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import ReferralTargets from "./ReferralTargets";
 import SectionNav from "./SectionNav";
+import MobileSectionNav from "./MobileSectionNav";
 import CatchmentMapLoader from "./CatchmentMapLoader";
 import { CAT_COLOR } from "./CatchmentMap";
 import CountUp from "./CountUp";
@@ -49,23 +50,11 @@ function Eyebrow({ children }: { children: ReactNode }) {
 
 function Section({ id, kicker, title, children }: { id?: string; kicker: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="mt-16 scroll-mt-24">
+    <section id={id} className="mt-16 sm:mt-20 scroll-mt-24">
       <Eyebrow>{kicker}</Eyebrow>
       <h2 className="font-display text-[1.75rem] leading-tight text-stone-900 mt-1.5 mb-5">{title}</h2>
       {children}
     </section>
-  );
-}
-
-/** Perena-style stat card — soft, solid, gently shadowed. Numbers count up on reveal. */
-function StatCard({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-stone-200/80 bg-white px-3 py-3 sm:px-5 sm:py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
-      <div className="font-display text-[1.35rem] sm:text-[2rem] leading-none text-stone-900">
-        {typeof value === "number" ? <CountUp value={value} /> : value}
-      </div>
-      <div className="text-[11.5px] sm:text-[12.5px] leading-snug text-stone-500 mt-1.5 sm:mt-2">{label}</div>
-    </div>
   );
 }
 
@@ -233,6 +222,9 @@ export default function MarketDiagnostic({
       )}
       </div>{/* /competition */}
 
+      {/* Mobile in-page wayfinding — sticks below the hero once you scroll past it. */}
+      <MobileSectionNav sections={NAV} />
+
       {/* ── The unlock — referral map (the differentiated payoff) ── */}
       <Section id="referral" kicker="The unlock" title="The referral map most agencies never build">
         <p className="text-[14px] text-stone-600 leading-relaxed mb-6 max-w-xl">
@@ -243,7 +235,10 @@ export default function MarketDiagnostic({
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-6">
           {ref.byRole.filter((r) => CAT_LABEL[r.cat]).slice(0, 6).map((r) => (
-            <StatCard key={r.cat} value={r.count} label={CAT_LABEL[r.cat]} />
+            <div key={r.cat} className="rounded-xl bg-stone-50 px-3 py-3 text-center">
+              <div className="font-display text-[1.35rem] sm:text-[1.6rem] leading-none text-stone-900 tabular-nums">{r.count}</div>
+              <div className="mt-1 text-[10px] sm:text-[10.5px] uppercase tracking-[0.06em] leading-tight text-stone-400">{CAT_LABEL[r.cat]}</div>
+            </div>
           ))}
         </div>
 
@@ -321,9 +316,12 @@ export default function MarketDiagnostic({
         </div>
       </Section>
 
-      <div className="border-t border-stone-200/80 mt-12 pt-5 text-[11px] text-stone-400">
-        Olera Market Intelligence · live data from Google Places, U.S. Census ACS, and Olera&apos;s demand funnel ·
-        generated {new Date(a.meta.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+      <div className="border-t border-stone-200/80 mt-12 pt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[11px] text-stone-400">
+          Olera Market Intelligence · live data from Google Places, U.S. Census ACS, and Olera&apos;s demand funnel ·
+          generated {new Date(a.meta.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        </p>
+        <a href="#competition" className="shrink-0 self-start text-[12px] font-medium text-[#199087] transition-colors hover:text-[#147a72]">Back to top ↑</a>
       </div>
       </div>{/* /content */}
     </div>

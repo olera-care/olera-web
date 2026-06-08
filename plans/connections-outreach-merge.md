@@ -1,6 +1,6 @@
 # Plan: Merge Outreach into Connections Page
 
-## Status: In Progress
+## Status: Complete (Pending QA)
 **Branch:** `user-connections`
 **Created:** 2026-06-08
 
@@ -102,11 +102,16 @@ Add "Inbound / Outbound" toggle to the existing Connections page so admins can v
 
 ---
 
-## Phase 5: Cleanup
+## Phase 5: Cleanup ✅ COMPLETE
 
-- [ ] 5.1 Add redirect from `/admin/outreach` → `/admin/connections?direction=outbound`
-- [ ] 5.2 Update sidebar nav (optional: remove Outreach link or keep as redirect)
-- [ ] 5.3 Delete old Outreach files after confirming everything works (optional)
+- [x] 5.1 Add redirect from `/admin/outreach` → `/admin/connections?direction=outbound`
+- [x] 5.2 Update sidebar nav — removed Outreach link (now part of Connections)
+- [ ] 5.3 Delete old Outreach API files after confirming everything works (optional, deferred)
+
+**Implementation notes:**
+- Outreach page replaced with client-side redirect (preserves bookmarks)
+- Sidebar Outreach link removed with comment explaining the merge
+- Old `/api/admin/outreach/route.ts` kept for now — can delete after QA confirms everything works
 
 ---
 

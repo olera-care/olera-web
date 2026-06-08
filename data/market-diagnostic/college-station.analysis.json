@@ -91,6 +91,7 @@
     "withWebsitePct": 81,
     "leaders": [
       {
+        "id": "ChIJs-xkkGGERoYRKVTB9_agk3U",
         "name": "Comfort Keepers",
         "reviews": 62,
         "rating": 4.8,
@@ -99,6 +100,7 @@
         "shareOfVoicePct": 14.6
       },
       {
+        "id": "ChIJKTB9D-aDRoYRFiXdOowr9FE",
         "name": "CareCo - The Caregiving Company: Senior Home Care College Station",
         "reviews": 53,
         "rating": 4.9,
@@ -107,6 +109,7 @@
         "shareOfVoicePct": 12.4
       },
       {
+        "id": "ChIJLePWQEqBRoYRlRBYydFj4As",
         "name": "Right at Home",
         "reviews": 41,
         "rating": 4.8,
@@ -115,6 +118,7 @@
         "shareOfVoicePct": 9.6
       },
       {
+        "id": "ChIJOxIAWcGFRoYRsx6v51Zujqk",
         "name": "Homewatch CareGivers of Bryan College Station",
         "reviews": 41,
         "rating": 5,
@@ -123,6 +127,7 @@
         "shareOfVoicePct": 9.6
       },
       {
+        "id": "ChIJBRcgaXGFRoYR0YFdiJW9pXk",
         "name": "BrightStar Care",
         "reviews": 36,
         "rating": 4.9,
@@ -131,6 +136,7 @@
         "shareOfVoicePct": 8.5
       },
       {
+        "id": "ChIJU2nxV5uGRoYRFYDwcP2sUbQ",
         "name": "Visiting Angels Senior Home Care",
         "reviews": 28,
         "rating": 4.6,
@@ -139,6 +145,7 @@
         "shareOfVoicePct": 6.6
       },
       {
+        "id": "ChIJJ8_MI1iBRoYRBa3WzbupPXs",
         "name": "Home Instead",
         "reviews": 27,
         "rating": 4.8,
@@ -147,6 +154,7 @@
         "shareOfVoicePct": 6.3
       },
       {
+        "id": "ChIJuQdJO5mDRoYR6FdmIDW9HKA",
         "name": "Senior Helpers",
         "reviews": 27,
         "rating": 4.8,
@@ -155,6 +163,7 @@
         "shareOfVoicePct": 6.3
       },
       {
+        "id": "ChIJ_0JcozKTQIYRP36ky6H6v0Q",
         "name": "Brazos Home Care",
         "reviews": 22,
         "rating": 4.8,
@@ -163,12 +172,204 @@
         "shareOfVoicePct": 5.2
       },
       {
+        "id": "ChIJhZD27vmPRoYR-I6HQ2pyQSc",
         "name": "Century Home Care Partners",
         "reviews": 22,
         "rating": 5,
         "distanceMiles": 4.8,
         "website": true,
         "shareOfVoicePct": 5.2
+      }
+    ],
+    "ranked": [
+      {
+        "id": "ChIJs-xkkGGERoYRKVTB9_agk3U",
+        "name": "Comfort Keepers",
+        "reviews": 62,
+        "rating": 4.8,
+        "distanceMiles": 2.2,
+        "website": true,
+        "shareOfVoicePct": 14.6
+      },
+      {
+        "id": "ChIJKTB9D-aDRoYRFiXdOowr9FE",
+        "name": "CareCo - The Caregiving Company: Senior Home Care College Station",
+        "reviews": 53,
+        "rating": 4.9,
+        "distanceMiles": 0.2,
+        "website": true,
+        "shareOfVoicePct": 12.4
+      },
+      {
+        "id": "ChIJLePWQEqBRoYRlRBYydFj4As",
+        "name": "Right at Home",
+        "reviews": 41,
+        "rating": 4.8,
+        "distanceMiles": 2.5,
+        "website": true,
+        "shareOfVoicePct": 9.6
+      },
+      {
+        "id": "ChIJOxIAWcGFRoYRsx6v51Zujqk",
+        "name": "Homewatch CareGivers of Bryan College Station",
+        "reviews": 41,
+        "rating": 5,
+        "distanceMiles": 5.2,
+        "website": true,
+        "shareOfVoicePct": 9.6
+      },
+      {
+        "id": "ChIJBRcgaXGFRoYR0YFdiJW9pXk",
+        "name": "BrightStar Care",
+        "reviews": 36,
+        "rating": 4.9,
+        "distanceMiles": 2.7,
+        "website": true,
+        "shareOfVoicePct": 8.5
+      },
+      {
+        "id": "ChIJU2nxV5uGRoYRFYDwcP2sUbQ",
+        "name": "Visiting Angels Senior Home Care",
+        "reviews": 28,
+        "rating": 4.6,
+        "distanceMiles": 0.1,
+        "website": true,
+        "shareOfVoicePct": 6.6
+      },
+      {
+        "id": "ChIJJ8_MI1iBRoYRBa3WzbupPXs",
+        "name": "Home Instead",
+        "reviews": 27,
+        "rating": 4.8,
+        "distanceMiles": 1.6,
+        "website": true,
+        "shareOfVoicePct": 6.3
+      },
+      {
+        "id": "ChIJuQdJO5mDRoYR6FdmIDW9HKA",
+        "name": "Senior Helpers",
+        "reviews": 27,
+        "rating": 4.8,
+        "distanceMiles": 1.3,
+        "website": true,
+        "shareOfVoicePct": 6.3
+      },
+      {
+        "id": "ChIJ_0JcozKTQIYRP36ky6H6v0Q",
+        "name": "Brazos Home Care",
+        "reviews": 22,
+        "rating": 4.8,
+        "distanceMiles": 4,
+        "website": true,
+        "shareOfVoicePct": 5.2
+      },
+      {
+        "id": "ChIJhZD27vmPRoYR-I6HQ2pyQSc",
+        "name": "Century Home Care Partners",
+        "reviews": 22,
+        "rating": 5,
+        "distanceMiles": 4.8,
+        "website": true,
+        "shareOfVoicePct": 5.2
+      },
+      {
+        "id": "ChIJD8W2rRyFRoYRr7QEZv6gOMs",
+        "name": "Amada Senior Care",
+        "reviews": 22,
+        "rating": 5,
+        "distanceMiles": 4.5,
+        "website": true,
+        "shareOfVoicePct": 5.2
+      },
+      {
+        "id": "ChIJpwdzKVmBRoYRnqiXFprGn84",
+        "name": "HomeSpark",
+        "reviews": 19,
+        "rating": 4.8,
+        "distanceMiles": 2,
+        "website": true,
+        "shareOfVoicePct": 4.5
+      },
+      {
+        "id": "ChIJAVxAaX-DRoYR7j8xhIhhitk",
+        "name": "SYNERGY HomeCare",
+        "reviews": 14,
+        "rating": 4.1,
+        "distanceMiles": 0.7,
+        "website": true,
+        "shareOfVoicePct": 3.3
+      },
+      {
+        "id": "ChIJUcoygY2BRoYRiiHB_hDvNcI",
+        "name": "ABCS Home Care",
+        "reviews": 7,
+        "rating": 5,
+        "distanceMiles": 3.8,
+        "website": true,
+        "shareOfVoicePct": 1.6
+      },
+      {
+        "id": "ChIJ2XSoKUODRoYR0mTxWroVj-w",
+        "name": "At Your Side Home Care (College Station, TX)",
+        "reviews": 2,
+        "rating": 5,
+        "distanceMiles": 0.3,
+        "website": true,
+        "shareOfVoicePct": 0.5
+      },
+      {
+        "id": "ChIJDzoIYCaFRoYR3XJinNDKjX8",
+        "name": "Magnolia Care",
+        "reviews": 1,
+        "rating": 5,
+        "distanceMiles": 2.9,
+        "website": false,
+        "shareOfVoicePct": 0.2
+      },
+      {
+        "id": "ChIJlaqHovyDRoYRgY7AjecNMOA",
+        "name": "Private Duty",
+        "reviews": 1,
+        "rating": 5,
+        "distanceMiles": 1.2,
+        "website": false,
+        "shareOfVoicePct": 0.2
+      },
+      {
+        "id": "ChIJycbYz--ERoYR3QnWL5Y1_9g",
+        "name": "Thrive Skilled Pediatric Care",
+        "reviews": 1,
+        "rating": 5,
+        "distanceMiles": 4.5,
+        "website": true,
+        "shareOfVoicePct": 0.2
+      },
+      {
+        "id": "ChIJzVsJ_rSBRoYR843t40YtQ3I",
+        "name": "Strive Health Services, LLC",
+        "reviews": 0,
+        "rating": null,
+        "distanceMiles": 2.3,
+        "website": true,
+        "shareOfVoicePct": 0
+      },
+      {
+        "id": "ChIJeZsr9XCGRoYRIIxuivknIRE",
+        "name": "Choice Home Care",
+        "reviews": 0,
+        "rating": null,
+        "distanceMiles": 4.5,
+        "website": false,
+        "shareOfVoicePct": 0
+      },
+      {
+        "id": "ChIJF1L2VOG_RoYRb4PABvPwsNc",
+        "name": "dmd home & companion care services, llc",
+        "reviews": 0,
+        "rating": null,
+        "distanceMiles": 22.7,
+        "website": false,
+        "shareOfVoicePct": 0
       }
     ]
   },

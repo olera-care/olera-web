@@ -324,10 +324,13 @@ export async function GET(request: NextRequest) {
         // In force mode, we don't skip based on followup_stopped_at
         // because we explicitly want to re-engage stuck connections
       } else {
-        // NORMAL MODE: Check if sequence was already stopped
-        // Only skip if stopped for engagement/response (success cases) or needs_call (terminal)
-        // Don't skip if stopped_reason is "stuck" — allow progression to stages 6/7
-        if (meta.followup_stopped_at && meta.followup_stopped_reason !== "stuck") {
+        // NORMAL MODE: Check if sequence was already stopped for a REAL connection
+        // Only skip if stopped for actual connection ("connected", "responded") or terminal ("needs_call")
+        // Don't skip "stuck" — allow progression to stages 6/7
+        // Don't skip old "engaged" — those were just views, provider should still get emails
+        const stopReason = meta.followup_stopped_reason;
+        const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "needs_call";
+        if (meta.followup_stopped_at && isRealStop) {
           counts.skipped++;
           counts.skipReasons.sequence_stopped++;
           continue;

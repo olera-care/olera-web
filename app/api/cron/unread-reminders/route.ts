@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail, unreadReminderEmail, firstName } from "@/lib/email-templates";
+import { newMessageEmailForProvider, unreadReminderEmail, firstName } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
@@ -327,10 +327,10 @@ export async function GET(request: NextRequest) {
           viewUrl,
         });
       } else {
-        // Provider: use generic template
-        emailHtml = newMessageEmail({
-          recipientName: recipient.display_name || "",
-          senderName: sender?.display_name || "",
+        // Provider: use provider-specific template
+        emailHtml = newMessageEmailForProvider({
+          providerName: recipient.display_name || "",
+          familyName: sender?.display_name || "",
           messagePreview: preview,
           viewUrl,
         });

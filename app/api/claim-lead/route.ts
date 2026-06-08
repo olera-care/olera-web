@@ -42,8 +42,34 @@ export async function GET(request: NextRequest) {
   });
 
   // Helper to fall back to onboard page when auth fails
-  const fallbackToOnboard = (reason: string, slug?: string | null) => {
+  // IMPORTANT: We still track lead_opened even on fallback, so the connection
+  // moves from "New" to "Viewed" in the admin panel. The provider clicked
+  // the link and landed on our site - that's a "view" even if auth failed.
+  const fallbackToOnboard = async (reason: string, slug?: string | null) => {
     console.log("[claim-lead] falling back to onboard:", { reason, slug, connectionId });
+
+    // Track lead_opened even on fallback (if we have enough info)
+    if (slug && connectionId) {
+      try {
+        const admin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        await admin.from("provider_activity").insert({
+          provider_id: slug,
+          event_type: "lead_opened",
+          metadata: {
+            connection_id: connectionId,
+            lead_id: connectionId,
+            source: "claim-lead-fallback",
+            fallback_reason: reason,
+          },
+        });
+        console.log("[claim-lead] Tracked lead_opened on fallback for:", slug);
+      } catch (trackErr) {
+        console.error("[claim-lead] Failed to track lead_opened on fallback:", trackErr);
+      }
+    }
 
     // If we don't have a slug, redirect to home
     if (!slug) {
@@ -70,7 +96,7 @@ export async function GET(request: NextRequest) {
     console.error("[claim-lead] token validation failed:", validation.error);
     // Token invalid/expired - redirect to onboard page if we have a slug, else home
     // This lets expired links still land on a useful page instead of a dead end
-    return fallbackToOnboard(validation.error, validation.providerId || null);
+    return await fallbackToOnboard(validation.error, validation.providerId || null);
   }
 
   const { providerId: providerSlug, email } = validation;
@@ -82,7 +108,7 @@ export async function GET(request: NextRequest) {
 
   if (!supabaseUrl || !anonKey || !serviceKey) {
     console.error("[claim-lead] missing env vars");
-    return fallbackToOnboard("missing env vars", providerSlug);
+    return await fallbackToOnboard("missing env vars", providerSlug);
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
@@ -98,7 +124,7 @@ export async function GET(request: NextRequest) {
 
   if (!providerProfile) {
     console.error("[claim-lead] provider profile lookup failed:", profileError?.message || "not found");
-    return fallbackToOnboard("provider not found", providerSlug);
+    return await fallbackToOnboard("provider not found", providerSlug);
   }
 
   // Use the actual slug from the profile for onboard fallback (more reliable)
@@ -110,7 +136,7 @@ export async function GET(request: NextRequest) {
       tokenEmail: normalizedEmail,
       profileEmail: providerProfile.email?.toLowerCase(),
     });
-    return fallbackToOnboard("email mismatch", actualSlug);
+    return await fallbackToOnboard("email mismatch", actualSlug);
   }
 
   // 3. If connectionId provided, verify it belongs to this provider
@@ -144,7 +170,7 @@ export async function GET(request: NextRequest) {
       createError.message?.includes("already exists");
     if (!alreadyExists) {
       console.error("[claim-lead] createUser failed:", createError.message);
-      return fallbackToOnboard("createUser failed", actualSlug);
+      return await fallbackToOnboard("createUser failed", actualSlug);
     }
   } else {
     userId = createdUser?.user?.id;
@@ -158,7 +184,7 @@ export async function GET(request: NextRequest) {
 
   if (linkError || !linkData?.properties?.hashed_token) {
     console.error("[claim-lead] generateLink failed:", linkError?.message);
-    return fallbackToOnboard("generateLink failed", actualSlug);
+    return await fallbackToOnboard("generateLink failed", actualSlug);
   }
   if (!userId) userId = linkData.user?.id;
   const tokenHash = linkData.properties.hashed_token;
@@ -182,7 +208,7 @@ export async function GET(request: NextRequest) {
 
   if (otpError || !otpData?.session) {
     console.error("[claim-lead] verifyOtp failed:", otpError?.message);
-    return fallbackToOnboard("verifyOtp failed", actualSlug);
+    return await fallbackToOnboard("verifyOtp failed", actualSlug);
   }
 
   // 7. Build the redirect response and write session cookies onto it
@@ -220,13 +246,13 @@ export async function GET(request: NextRequest) {
 
   if (setSessionError) {
     console.error("[claim-lead] setSession failed:", setSessionError.message);
-    return fallbackToOnboard("setSession failed", actualSlug);
+    return await fallbackToOnboard("setSession failed", actualSlug);
   }
 
   // 8. Ensure an account row exists, then link the profile to it (idempotent)
   if (!userId) {
     console.error("[claim-lead] could not resolve userId");
-    return fallbackToOnboard("no userId", actualSlug);
+    return await fallbackToOnboard("no userId", actualSlug);
   }
 
   let { data: account } = await admin

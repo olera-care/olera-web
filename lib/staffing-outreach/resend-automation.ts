@@ -239,11 +239,10 @@ function loganSignature(): string {
         </td>
         <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;">
           <p style="margin:0 0 4px;font-weight:600;color:#111827;">Dr. Logan DuBose, MD, MBA</p>
-          <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
-          <p style="margin:0 0 2px;">Affiliate Faculty, <a href="https://publichealth.tamu.edu/" style="color:${BRAND_COLOR};">Texas A&amp;M School of Public Health</a></p>
+          <p style="margin:0 0 2px;">Chief Research Officer (CRO), <a href="https://www.olera.care" style="color:${BRAND_COLOR};">Olera</a></p>
           <p style="margin:0 0 2px;">Researcher, funded by <a href="https://www.sbir.gov/" style="color:${BRAND_COLOR};">NIH SBIR Program</a></p>
-          <p style="margin:0 0 2px;">General Practitioner (GP), Licensed in VA</p>
-          <p style="margin:0 0 8px;">Co-founder, <a href="https://www.olera.care" style="color:${BRAND_COLOR};">www.olera.care</a></p>
+          <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
+          <p style="margin:0 0 8px;">General Practitioner (GP), Licensed in VA</p>
           <p style="margin:0 0 8px;">
             <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};">LinkedIn</a> |
             <a href="https://www.facebook.com/oleracare/" style="color:${BRAND_COLOR};">Facebook</a> |
@@ -304,7 +303,7 @@ export function generateEmail1(params: {
   const body = `
     <p>Hello</p>
     <p>I am hoping to reach the person who handles hiring to share more information on a pilot ${escapeHtml(universityName)} Student Caregiver Program.</p>
-    <p>My name is Dr. Logan DuBose. I am a physician-researcher working with the National Institute of Aging, a small business owner, and affiliate faculty at ${escapeHtml(universityName)}. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.</p>
+    <p>My name is Dr. Logan DuBose. I am a physician-researcher funded by the National Institutes of Health (NIH) Small Business Innovation Research (SBIR) Program and Chief Research Officer at Olera. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.</p>
     <p>Would you be interested in hearing more about this program? In pilot testing in the ${escapeHtml(serviceArea)}, I have seen potential for it to be an evergreen pipeline delivering vetted pre-health ${escapeHtml(universityName)} students seeking employment in caregiver roles.</p>
     <p>Some materials to consider:</p>
     <ul style="margin:16px 0;padding-left:20px;">
@@ -367,7 +366,7 @@ export function getSequenceEmailPreviews(params: {
 
 I am hoping to reach the person who handles hiring to share more information on a pilot ${universityName} Student Caregiver Program.
 
-My name is Dr. Logan DuBose. I am a physician-researcher working with the National Institute of Aging, a small business owner, and affiliate faculty at ${universityName}. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.
+My name is Dr. Logan DuBose. I am a physician-researcher funded by the National Institutes of Health (NIH) Small Business Innovation Research (SBIR) Program and Chief Research Officer at Olera. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.
 
 Would you be interested in hearing more about this program? In pilot testing in the ${serviceArea}, I have seen potential for it to be an evergreen pipeline delivering vetted pre-health ${universityName} students seeking employment in caregiver roles.
 

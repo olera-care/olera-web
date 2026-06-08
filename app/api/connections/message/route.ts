@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail, firstMessageEmail, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
+import { newMessageEmailForFamily, newMessageEmailForProvider, firstMessageEmailForFamily, firstMessageEmailForProvider, firstName, firstResponseConfirmationEmail, matchesEncouragementEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { normalizeUSPhone } from "@/lib/twilio";
@@ -330,20 +330,44 @@ export async function POST(request: Request) {
             isFirstMessage: isFirstMessageToRecipient,
           });
 
-          // Use different template based on whether recipient has messaged before
-          const emailTemplate = isFirstMessageToRecipient
-            ? firstMessageEmail
-            : newMessageEmail;
+          // Use different template based on recipient type AND whether they've messaged before
+          let emailHtml: string;
+          if (isFamily) {
+            // Sending to family (provider replied)
+            emailHtml = isFirstMessageToRecipient
+              ? firstMessageEmailForFamily({
+                  familyName: recipientProfile?.display_name || "",
+                  providerName: senderProfile?.display_name || "",
+                  messagePreview: preview,
+                  viewUrl,
+                })
+              : newMessageEmailForFamily({
+                  familyName: recipientProfile?.display_name || "",
+                  providerName: senderProfile?.display_name || "",
+                  messagePreview: preview,
+                  viewUrl,
+                });
+          } else {
+            // Sending to provider (family replied)
+            emailHtml = isFirstMessageToRecipient
+              ? firstMessageEmailForProvider({
+                  providerName: recipientProfile?.display_name || "",
+                  familyName: senderProfile?.display_name || "",
+                  messagePreview: preview,
+                  viewUrl,
+                })
+              : newMessageEmailForProvider({
+                  providerName: recipientProfile?.display_name || "",
+                  familyName: senderProfile?.display_name || "",
+                  messagePreview: preview,
+                  viewUrl,
+                });
+          }
 
           await sendEmail({
             to: recipientEmail,
             subject: msgSubject,
-            html: emailTemplate({
-              recipientName: recipientProfile?.display_name || "",
-              senderName: senderProfile?.display_name || "",
-              messagePreview: preview,
-              viewUrl,
-            }),
+            html: emailHtml,
             emailType: 'new_message',
             recipientType: isFamily ? "family" : "provider",
             providerId: !isFamily ? recipientProfileId : undefined,

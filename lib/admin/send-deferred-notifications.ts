@@ -232,9 +232,20 @@ export async function sendDeferredNotificationsForProvider(
           emailLogId: emailLogId ?? undefined,
         });
 
-        // Mark as sent
+        // Mark as sent and reset follow-up sequence
+        // This ensures providers who got email added later start fresh from Day 0
         delete meta.needs_provider_email;
         meta.email_sent_at = new Date().toISOString();
+        // Reset follow-up sequence to start fresh
+        meta.followup_stage = 0;
+        meta.followup_sent_at = null;
+        meta.followup_sent_by = null;
+        meta.followup_stopped_at = null;
+        meta.followup_stopped_reason = null;
+        meta.needs_call = null;
+        // Reset nudge counts for fresh start
+        meta.nudge_count = 0;
+        meta.nudged_at = null;
         await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
 
         result.leadEmailsSent++;

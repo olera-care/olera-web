@@ -409,6 +409,7 @@ export async function GET(request: NextRequest) {
 
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
+    let marketHeroCount = 0;
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -560,6 +561,7 @@ export async function GET(request: NextRequest) {
 
       if (dryRun) {
         sent += 1;
+        if (marketRank) marketHeroCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -579,6 +581,7 @@ export async function GET(request: NextRequest) {
           providerId,
         });
         sent += 1;
+        if (marketRank) marketHeroCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -606,13 +609,14 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
         ok: true,
         processed: providerIds.length,
         sent,
+        marketHeroSent: marketHeroCount,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,

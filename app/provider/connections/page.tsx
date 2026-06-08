@@ -316,19 +316,19 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => onMarkAsReplied?.(lead.id)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 hover:border-primary-300 transition-colors"
               >
-                <span className="w-4 h-4 rounded border-2 border-gray-300 bg-white" />
+                <span className="w-4 h-4 rounded border-2 border-primary-400 bg-white" />
                 Mark as Replied
               </button>
             )
           )}
         </div>
         {/* Contact card */}
-        <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
           <div className="space-y-3">
             {lead.phone && (
-              <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+              <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-gray-200">
                 <div className="min-w-0">
                   <p className="text-xs text-gray-500 mb-0.5">Phone</p>
                   <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.phone}</p>
@@ -368,7 +368,7 @@ function LeadDetailDrawer({
               </div>
             )}
             {lead.email && (
-              <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+              <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-gray-200">
                 <div className="min-w-0">
                   <p className="text-xs text-gray-500 mb-0.5">Email</p>
                   <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.email}</p>
@@ -429,9 +429,9 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => onMarkAsReplied?.(lead.id)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 hover:border-primary-300 transition-colors"
               >
-                <span className="w-4 h-4 rounded border-2 border-gray-300 bg-white" />
+                <span className="w-4 h-4 rounded border-2 border-primary-400 bg-white" />
                 Mark as Replied
               </button>
             )

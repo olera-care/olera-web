@@ -604,11 +604,11 @@ export default function ConnectionRow({
           ) : detail ? (
             <div className="space-y-4">
               {/* Section 1: Action bar */}
-              {/* Stuck connection alert - show call options prominently */}
-              {/* Family perspective: only show if family has phone (otherwise not actionable) */}
-              {/* Provider perspective: show for stuck/needs_call */}
+              {/* Stuck/Needs Call banner - only show if we can actually call someone */}
+              {/* Family perspective: only show if family has phone */}
+              {/* Provider perspective: only show if provider has phone */}
               {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call") && detail.family.phone) ||
-                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call"))) && (
+                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call") && detail.provider.phone)) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
                     {perspective === "family"
@@ -616,12 +616,12 @@ export default function ConnectionRow({
                         ? "Family requires manual call. No activity for 24+ days."
                         : "Family needs follow-up. No activity for 14+ days."
                       : c.engagementLevel === "needs_call"
-                        ? "This connection requires manual call. No activity for 24+ days."
-                        : "This connection needs follow-up. No activity for 14+ days."}
+                        ? "Provider requires manual call. No activity for 24+ days."
+                        : "Provider needs follow-up. No activity for 14+ days."}
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (
-                      // Family perspective: only show Call Family (we already checked family has phone above)
+                      // Family perspective: only show Call Family
                       <a
                         href={`tel:${detail.family.phone}`}
                         className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
@@ -629,43 +629,14 @@ export default function ConnectionRow({
                         Call Family
                       </a>
                     ) : (
-                      // Provider perspective: existing logic
+                      // Provider perspective: only show Call Provider + Fact Sheet
                       <>
-                        {/* Primary call button based on who we're waiting on */}
-                        {c.waitingOn === "provider" && detail.provider.phone && (
-                          <a
-                            href={`tel:${detail.provider.phone}`}
-                            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                          >
-                            Call Provider
-                          </a>
-                        )}
-                        {c.waitingOn === "family" && detail.family.phone && (
-                          <a
-                            href={`tel:${detail.family.phone}`}
-                            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                          >
-                            Call Family
-                          </a>
-                        )}
-                        {/* Secondary call option */}
-                        {c.waitingOn === "provider" && detail.family.phone && (
-                          <a
-                            href={`tel:${detail.family.phone}`}
-                            className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                          >
-                            Call Family
-                          </a>
-                        )}
-                        {c.waitingOn === "family" && detail.provider.phone && (
-                          <a
-                            href={`tel:${detail.provider.phone}`}
-                            className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                          >
-                            Call Provider
-                          </a>
-                        )}
-                        {/* Fact Sheet button - provider perspective only */}
+                        <a
+                          href={`tel:${detail.provider.phone}`}
+                          className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
+                        >
+                          Call Provider
+                        </a>
                         <button
                           onClick={() => setShowFactSheet(true)}
                           className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"

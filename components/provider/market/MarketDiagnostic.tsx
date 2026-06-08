@@ -70,6 +70,22 @@ function StatCard({ value, label }: { value: number | string; label: string }) {
 }
 
 /**
+ * The "stakes" strip — three headline figures in one quiet container, split by hairlines.
+ * Robinhood/Linear register: confident tabular numbers, tiny uppercase muted labels, no
+ * box-in-box. Centered + overflow-hidden so a long figure can never cross a divider on mobile.
+ */
+function HeroStat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <div className="min-w-0 px-1.5 py-4 text-center sm:px-3">
+      <div className="font-display text-[1.35rem] sm:text-[1.9rem] leading-none tracking-tight text-stone-900 tabular-nums">
+        {typeof value === "number" ? <CountUp value={value} /> : value}
+      </div>
+      <div className="mt-2 text-[10px] sm:text-[11px] uppercase tracking-[0.07em] leading-tight text-stone-400">{label}</div>
+    </div>
+  );
+}
+
+/**
  * The "Your Market" strategic layer — a provider's local client-acquisition diagnostic.
  * Leads with competition (the hook) with demand folded in as the stakes.
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
@@ -127,10 +143,10 @@ export default function MarketDiagnostic({
         and the one channel you fully control. Here&apos;s where the field stands.
       </p>
 
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-7">
-        <StatCard value={totalSeniors.toLocaleString()} label="seniors 65+ nearby" />
-        <StatCard value={cl.count} label="agencies competing" />
-        <StatCard value={cl.medianReviews ?? "—"} label="median reviews" />
+      <div className="mt-7 grid grid-cols-3 divide-x divide-stone-200/70 overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
+        <HeroStat value={totalSeniors.toLocaleString()} label="seniors 65+" />
+        <HeroStat value={cl.count} label="agencies" />
+        <HeroStat value={cl.medianReviews ?? "—"} label="median reviews" />
       </div>
 
       <div className="space-y-2 mt-7">

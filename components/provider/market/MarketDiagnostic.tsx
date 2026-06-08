@@ -74,35 +74,6 @@ function HeroStat({ value, label }: { value: number | string; label: string }) {
 }
 
 /**
- * One competitor in the share-of-voice list: a muted rank numeral, the name over a thin
- * hairline rail, and the review count on the right. Linear/Apple-spec register — a scannable
- * ranking, not a chunky bar chart. The viewing provider's row turns teal and carries a tag.
- */
-function RankRow({ rank, name, reviews, rating, maxRev, isYou = false, tag }: {
-  rank: number; name: string; reviews: number; rating: number | null;
-  maxRev: number; isYou?: boolean; tag?: ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className={`w-5 shrink-0 text-right text-[12.5px] tabular-nums ${isYou ? "text-[#199087] font-semibold" : "text-stone-300"}`}>{rank}</div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <span className={`truncate text-[13px] ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>{name}</span>
-          {tag}
-        </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone-100">
-          <div
-            className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`}
-            style={{ width: `${Math.min((reviews / maxRev) * 100, 100)}%` }}
-          />
-        </div>
-      </div>
-      <div className="shrink-0 text-right text-[12px] tabular-nums text-stone-500">{reviews} rev · {rating ?? "—"}★</div>
-    </div>
-  );
-}
-
-/**
  * The "Your Market" strategic layer — a provider's local client-acquisition diagnostic.
  * Leads with competition (the hook) with demand folded in as the stakes.
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
@@ -166,39 +137,45 @@ export default function MarketDiagnostic({
         <HeroStat value={cl.medianReviews ?? "—"} label="median reviews" />
       </div>
 
-      <div className="space-y-3.5 mt-7">
-        {cl.leaders.slice(0, 8).map((l, i) => (
-          <RankRow
-            key={l.name}
-            rank={i + 1}
-            name={l.name}
-            reviews={l.reviews}
-            rating={l.rating}
-            maxRev={maxRev}
-            isYou={i === youIdx}
-            tag={i === youIdx ? (
-              <span className="shrink-0 rounded bg-[#199087] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">You</span>
-            ) : undefined}
-          />
-        ))}
+      <div className="space-y-2 mt-7">
+        {cl.leaders.slice(0, 8).map((l, i) => {
+          const isYou = i === youIdx;
+          return (
+            <div key={l.name} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+              <div className={`flex items-center gap-1.5 text-[13px] sm:w-44 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
+                <span className="truncate">{l.name}</span>
+                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">{self?.matchedBy === "place_id" && self.rank ? `You · #${self.rank}` : "You"}</span>}
+              </div>
+              <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
+                <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
+                </div>
+                <div className="w-24 shrink-0 text-right text-[12px] text-stone-500 tabular-nums">{l.reviews} rev · {l.rating ?? "—"}★</div>
+              </div>
+            </div>
+          );
+        })}
 
-        {/* The provider's own row when they rank below the visible leaders (or were fetched-in).
-            The honest "here's where you actually stand" — shown lower with an explicit rank,
-            never hidden, so a #13-of-21 agency still sees themselves on their own chart. */}
+        {/* The provider's own bar when they rank below the visible leaders (or were fetched-in) —
+            shown lower with an explicit rank, never hidden, so a #13-of-21 agency still sees
+            themselves on their own chart. Same friendly thick-bar style as the leaders. */}
         {showYouRow && self && (
           <>
             {self.rank > RENDERED_LEADERS + 1 && (
-              <div className="flex justify-center text-stone-300 leading-none select-none" aria-hidden>⋯</div>
+              <div className="flex justify-center text-stone-300 text-lg leading-none select-none" aria-hidden>⋯</div>
             )}
-            <RankRow
-              rank={self.rank}
-              name="You"
-              reviews={self.reviews}
-              rating={self.rating}
-              maxRev={maxRev}
-              isYou
-              tag={<span className="shrink-0 text-[11px] tabular-nums text-stone-400">of {self.outOf}</span>}
-            />
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+              <div className="flex items-center gap-1.5 text-[13px] sm:w-44 text-[#199087] font-semibold">
+                <span className="truncate">You</span>
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">#{self.rank} of {self.outOf}</span>
+              </div>
+              <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
+                <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-[#199087]" style={{ width: `${Math.min((self.reviews / maxRev) * 100, 100)}%` }} />
+                </div>
+                <div className="w-24 shrink-0 text-right text-[12px] text-stone-500 tabular-nums">{self.reviews} rev · {self.rating ?? "—"}★</div>
+              </div>
+            </div>
           </>
         )}
       </div>

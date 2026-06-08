@@ -730,6 +730,15 @@ export default function ConnectionRow({
                     {c.engagementLevel === "connected" && (
                       <span className="text-sm text-emerald-600 font-medium">Provider reached out to family</span>
                     )}
+                    {/* Fact Sheet for needs_call when banner doesn't show (no provider phone) */}
+                    {(c.engagementLevel === "needs_call" || c.engagementLevel === "stuck") && !detail.provider.phone && (
+                      <button
+                        onClick={() => setShowFactSheet(true)}
+                        className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100"
+                      >
+                        Fact Sheet
+                      </button>
+                    )}
                   </>
                 )}
 

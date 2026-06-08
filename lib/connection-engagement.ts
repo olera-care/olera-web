@@ -265,14 +265,19 @@ export function getEngagementLevel(
 
   // Determine final engagement level
   // - Connected: provider reached out (success) - never becomes stuck/needs_call
+  // - Needs Call (cron): cron marked as needing manual intervention - override viewed/engaged
   // - Viewed/Engaged: provider showed interest - keep in their tab so re-engagement emails continue
   // - New: no activity - becomes stuck (10+ days) or needs_call (14+ days)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
+  } else if (engagement.needsCall) {
+    // Cron marked this connection as needing manual call - override viewed/engaged
+    // This ensures providers who viewed but never connected appear in Needs Call tab
+    level = "needs_call";
   } else if (baseLevel === "viewed" || baseLevel === "engaged") {
-    // Provider showed interest - keep them in their tab regardless of time
-    // Re-engagement emails will continue working on them
+    // Provider showed interest - keep them in their tab
+    // Re-engagement emails will continue working on them until cron marks needs_call
     level = baseLevel;
   } else if (needsCallByTime) {
     // 14+ days with NO engagement → needs manual intervention

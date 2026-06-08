@@ -5,6 +5,7 @@ import CatchmentMapLoader from "./CatchmentMapLoader";
 import { CAT_COLOR } from "./CatchmentMap";
 import CountUp from "./CountUp";
 import PlaybookAction from "./PlaybookAction";
+import type { SelfRank } from "@/lib/market-diagnostic/self-rank";
 
 const NAV = [
   { id: "competition", label: "Competition" },
@@ -15,7 +16,9 @@ const NAV = [
 
 // ── Types (shape produced by scripts/market-diagnostic/analyze-diagnostic.mjs) ──
 export interface Zcta { zcta: string; population: number; seniors65plus: number; medianIncome: number | null }
-export interface Leader { name: string; reviews: number; rating: number | null; distanceMiles: number | null; website: boolean; shareOfVoicePct: number }
+// `id` = Google place_id. Optional: older cached diagnostics + the committed CS snapshot
+// predate it and match by name instead (see youIdx fallback). New computes always carry it.
+export interface Leader { id?: string; name: string; reviews: number; rating: number | null; distanceMiles: number | null; website: boolean; shareOfVoicePct: number }
 export interface BdTarget { id: string; name: string; cat: string; referralValue: string; distanceMiles: number | null; reviews: number; rating: number | null; phone: string | null; website: string | null; address: string; lat: number | null; lng: number | null }
 export interface MarketDiagnosticData {
   meta: { city: string; state: string; careType: string; generatedAt: string; center: { lat: number; lng: number } };
@@ -23,7 +26,10 @@ export interface MarketDiagnosticData {
     demographics: { totals?: { population: number; seniors65plus: number }; seniorSharePct?: number; medianIncomeRange?: { min: number; max: number }; zctas?: Zcta[]; note?: string };
     olera: { familiesInCity: number; providersListed: number };
   };
-  competitorLandscape: { count: number; medianReviews: number | null; medianRating: number | null; withWebsitePct: number; leaders: Leader[] };
+  // `ranked` = the FULL ordered competitor list (place_id-bearing) for locating the provider at
+  // any rank, incl. below the top-10 `leaders`. Optional: only present on diagnostics computed
+  // after the cache-shape change; absent on older rows + the committed CS snapshot.
+  competitorLandscape: { count: number; medianReviews: number | null; medianRating: number | null; withWebsitePct: number; leaders: Leader[]; ranked?: Leader[] };
   referralGraph: { totalViableSources: number; byRole: { cat: string; count: number }[]; prioritizedTargets: BdTarget[] };
   channels: { channel: string; priority: number; rationale: string; oleraTool: string; key: string }[];
 }
@@ -43,7 +49,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 
 function Section({ id, kicker, title, children }: { id?: string; kicker: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="mt-16 scroll-mt-24">
+    <section id={id} className="mt-16 sm:mt-20 scroll-mt-24">
       <Eyebrow>{kicker}</Eyebrow>
       <h2 className="font-display text-[1.75rem] leading-tight text-stone-900 mt-1.5 mb-5">{title}</h2>
       {children}
@@ -51,14 +57,47 @@ function Section({ id, kicker, title, children }: { id?: string; kicker: string;
   );
 }
 
-/** Perena-style stat card — soft, solid, gently shadowed. Numbers count up on reveal. */
-function StatCard({ value, label }: { value: number | string; label: string }) {
+/**
+ * The "stakes" strip — three headline figures in one quiet container, split by hairlines.
+ * Robinhood/Linear register: confident tabular numbers, tiny uppercase muted labels, no
+ * box-in-box. Centered + overflow-hidden so a long figure can never cross a divider on mobile.
+ */
+function HeroStat({ value, label }: { value: number | string; label: string }) {
   return (
-    <div className="rounded-2xl border border-stone-200/80 bg-white px-3.5 py-3.5 sm:px-5 sm:py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
-      <div className="font-display text-[1.5rem] sm:text-[2rem] leading-none text-stone-900">
+    <div className="min-w-0 px-1.5 py-4 text-center sm:px-3">
+      <div className="font-display text-[1.35rem] sm:text-[1.9rem] leading-none tracking-tight text-stone-900 tabular-nums">
         {typeof value === "number" ? <CountUp value={value} /> : value}
       </div>
-      <div className="text-[12.5px] text-stone-500 mt-2">{label}</div>
+      <div className="mt-2 text-[10px] sm:text-[11px] uppercase tracking-[0.07em] leading-tight text-stone-400">{label}</div>
+    </div>
+  );
+}
+
+/**
+ * One competitor in the share-of-voice list: a muted rank numeral, the name over a thin
+ * hairline rail, and the review count on the right. Linear/Apple-spec register — a scannable
+ * ranking, not a chunky bar chart. The viewing provider's row turns teal and carries a tag.
+ */
+function RankRow({ rank, name, reviews, rating, maxRev, isYou = false, tag }: {
+  rank: number; name: string; reviews: number; rating: number | null;
+  maxRev: number; isYou?: boolean; tag?: ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`w-5 shrink-0 text-right text-[12.5px] tabular-nums ${isYou ? "text-[#199087] font-semibold" : "text-stone-300"}`}>{rank}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className={`truncate text-[13px] ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>{name}</span>
+          {tag}
+        </div>
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone-100">
+          <div
+            className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`}
+            style={{ width: `${Math.min((reviews / maxRev) * 100, 100)}%` }}
+          />
+        </div>
+      </div>
+      <div className="shrink-0 text-right text-[12px] tabular-nums text-stone-500">{reviews} rev · {rating ?? "—"}★</div>
     </div>
   );
 }
@@ -69,8 +108,8 @@ function StatCard({ value, label }: { value: number | string; label: string }) {
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
  */
 export default function MarketDiagnostic({
-  data, showHeader = true, interactive = false, providerName,
-}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string }) {
+  data, showHeader = true, interactive = false, providerName, self,
+}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string; self?: SelfRank | null }) {
   const a = data;
   const dem = a.demand.demographics;
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
@@ -83,11 +122,26 @@ export default function MarketDiagnostic({
     .sort((x, y) => y.score - x.score)
     .slice(0, 4);
 
-  // "You" highlight — light up the provider's own bar when they're a Google-listed agency.
-  const youIdx = providerName
-    ? cl.leaders.findIndex((l) => { const a2 = norm(l.name), b = norm(providerName); return a2 && b && (a2.includes(b) || b.includes(a2)); })
-    : -1;
-  const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), 1);
+  // "You" highlight — prefer the reliable place_id self-match. `self.rank` is the position in the
+  // full ranked list, which == the index in `leaders` (leaders === ranked.slice(0,10)), so rank-1
+  // is the bar to light up. Fall back to the legacy fuzzy-name match when there's no self overlay
+  // (older cache rows / committed snapshot). A provider ranked below the rendered leaders, or
+  // fetched-in via fetch-if-missing (matchedBy "fetched"), stays -1 here — step 3 renders their
+  // row explicitly rather than highlighting a top bar.
+  const youIdx = self?.matchedBy === "place_id" && self.rank
+    ? self.rank - 1
+    : providerName
+      ? cl.leaders.findIndex((l) => { const a2 = norm(l.name), b = norm(providerName); return a2 && b && (a2.includes(b) || b.includes(a2)); })
+      : -1;
+  // Bar scale spans the leaders AND the provider's own count — so a fetched-in provider who
+  // out-reviews everyone Google surfaced still scales correctly instead of overflowing the track.
+  const maxRev = Math.max(...cl.leaders.map((l) => l.reviews), self?.reviews ?? 0, 1);
+  // The provider's bar renders inline as a leader (rank ≤ 8, already highlighted) OR as an
+  // explicit row below the field. Show the dedicated row whenever we have a self rank that isn't
+  // already one of the highlighted top-8 bars (rank > 8, or fetched-in and absent from leaders).
+  const RENDERED_LEADERS = 8;
+  const youInList = youIdx >= 0 && youIdx < RENDERED_LEADERS;
+  const showYouRow = !!self && !youInList;
 
   return (
     <div className="lg:grid lg:grid-cols-[180px_minmax(0,680px)] lg:gap-12">
@@ -106,30 +160,47 @@ export default function MarketDiagnostic({
         and the one channel you fully control. Here&apos;s where the field stands.
       </p>
 
-      <div className="grid grid-cols-3 gap-3 mt-7">
-        <StatCard value={totalSeniors.toLocaleString()} label="seniors (65+) in your area" />
-        <StatCard value={cl.count} label="agencies competing" />
-        <StatCard value={cl.medianReviews ?? "—"} label="median reviews per agency" />
+      <div className="mt-7 grid grid-cols-3 divide-x divide-stone-200/70 overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
+        <HeroStat value={totalSeniors.toLocaleString()} label="seniors 65+" />
+        <HeroStat value={cl.count} label="agencies" />
+        <HeroStat value={cl.medianReviews ?? "—"} label="median reviews" />
       </div>
 
-      <div className="space-y-2 mt-7">
-        {cl.leaders.slice(0, 8).map((l, i) => {
-          const isYou = i === youIdx;
-          return (
-            <div key={l.name} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-              <div className={`flex items-center gap-1.5 text-[13px] sm:w-44 ${isYou ? "text-[#199087] font-semibold" : "text-stone-700"}`}>
-                <span className="truncate">{l.name}</span>
-                {isYou && <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide bg-[#199087] text-white rounded px-1.5 py-0.5">You</span>}
-              </div>
-              <div className="flex items-center gap-3 sm:flex-1 sm:min-w-0">
-                <div className="flex-1 h-5 bg-stone-100 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${isYou ? "bg-[#199087]" : "bg-stone-300"}`} style={{ width: `${(l.reviews / maxRev) * 100}%` }} />
-                </div>
-                <div className="w-24 shrink-0 text-right text-[12px] text-stone-500 tabular-nums">{l.reviews} rev · {l.rating ?? "—"}★</div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="space-y-3.5 mt-7">
+        {cl.leaders.slice(0, 8).map((l, i) => (
+          <RankRow
+            key={l.name}
+            rank={i + 1}
+            name={l.name}
+            reviews={l.reviews}
+            rating={l.rating}
+            maxRev={maxRev}
+            isYou={i === youIdx}
+            tag={i === youIdx ? (
+              <span className="shrink-0 rounded bg-[#199087] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">You</span>
+            ) : undefined}
+          />
+        ))}
+
+        {/* The provider's own row when they rank below the visible leaders (or were fetched-in).
+            The honest "here's where you actually stand" — shown lower with an explicit rank,
+            never hidden, so a #13-of-21 agency still sees themselves on their own chart. */}
+        {showYouRow && self && (
+          <>
+            {self.rank > RENDERED_LEADERS + 1 && (
+              <div className="flex justify-center text-stone-300 leading-none select-none" aria-hidden>⋯</div>
+            )}
+            <RankRow
+              rank={self.rank}
+              name="You"
+              reviews={self.reviews}
+              rating={self.rating}
+              maxRev={maxRev}
+              isYou
+              tag={<span className="shrink-0 text-[11px] tabular-nums text-stone-400">of {self.outOf}</span>}
+            />
+          </>
+        )}
       </div>
 
       <a
@@ -158,9 +229,12 @@ export default function MarketDiagnostic({
           <span className="text-stone-900 font-medium">{ref.totalViableSources} local sources</span>. This is the
           single highest-leverage channel, and it&apos;s one you can&apos;t assemble yourself.
         </p>
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-6">
           {ref.byRole.filter((r) => CAT_LABEL[r.cat]).slice(0, 6).map((r) => (
-            <StatCard key={r.cat} value={r.count} label={CAT_LABEL[r.cat]} />
+            <div key={r.cat} className="rounded-xl bg-stone-50 px-3 py-3 text-center">
+              <div className="font-display text-[1.35rem] sm:text-[1.6rem] leading-none text-stone-900 tabular-nums">{r.count}</div>
+              <div className="mt-1 text-[10px] sm:text-[10.5px] uppercase tracking-[0.06em] leading-tight text-stone-400">{CAT_LABEL[r.cat]}</div>
+            </div>
           ))}
         </div>
 
@@ -189,14 +263,21 @@ export default function MarketDiagnostic({
         </p>
         <div className="divide-y divide-stone-200/50">
           {topAreas.map((z, i) => (
-            <div key={z.zcta} className="flex items-center gap-4 py-3.5">
-              <div className="font-display text-lg text-stone-300 w-7">{i + 1}</div>
-              <div className="flex-1">
+            <div key={z.zcta} className="flex items-start gap-3 sm:gap-4 py-3.5">
+              <div className="font-display text-lg text-stone-300 w-6 sm:w-7 shrink-0">{i + 1}</div>
+              <div className="flex-1 min-w-0">
                 <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
-                <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usd(z.medianIncome) + " median income" : "—"}</div>
+                <div className="text-[12px] text-stone-500">
+                  {z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? (
+                    <>
+                      <span className="sm:hidden">{usdK(z.medianIncome)} median</span>
+                      <span className="hidden sm:inline">{usd(z.medianIncome)} median income</span>
+                    </>
+                  ) : "—"}
+                </div>
               </div>
               {z.medianIncome && z.medianIncome >= 70000 && (
-                <span className="text-[11px] font-medium text-[#199087]">High private-pay</span>
+                <span className="shrink-0 mt-0.5 text-[10.5px] font-medium text-[#199087] bg-[#199087]/10 rounded-full px-2 py-0.5">High private-pay</span>
               )}
             </div>
           ))}
@@ -231,9 +312,12 @@ export default function MarketDiagnostic({
         </div>
       </Section>
 
-      <div className="border-t border-stone-200/80 mt-12 pt-5 text-[11px] text-stone-400">
-        Olera Market Intelligence · live data from Google Places, U.S. Census ACS, and Olera&apos;s demand funnel ·
-        generated {new Date(a.meta.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+      <div className="border-t border-stone-200/80 mt-12 pt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[11px] text-stone-400">
+          Olera Market Intelligence · live data from Google Places, U.S. Census ACS, and Olera&apos;s demand funnel ·
+          generated {new Date(a.meta.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        </p>
+        <a href="#competition" className="shrink-0 self-start text-[12px] font-medium text-[#199087] transition-colors hover:text-[#147a72]">Back to top ↑</a>
       </div>
       </div>{/* /content */}
     </div>

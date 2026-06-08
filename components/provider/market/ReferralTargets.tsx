@@ -123,7 +123,7 @@ export default function ReferralTargets({
               } ${dimmed ? "opacity-50" : ""} ${celebrating[k] ? "mro-pop" : ""}`}
             >
               <div
-                className={`flex items-center gap-3 px-5 py-3.5 ${guidance ? "cursor-pointer" : ""}`}
+                className={`flex items-center gap-2.5 sm:gap-3 px-4 sm:px-5 py-3.5 ${guidance ? "cursor-pointer" : ""}`}
                 onClick={() => guidance && setExpanded(isOpen ? null : k)}
               >
                 <div className="flex-1 min-w-0">
@@ -146,7 +146,7 @@ export default function ReferralTargets({
                     value={s}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => update(t, e.target.value)}
-                    className={`shrink-0 text-[12px] font-medium rounded-full border px-2.5 py-1 cursor-pointer appearance-none ${meta.cls}`}
+                    className={`shrink-0 text-[13px] font-medium rounded-full border px-2.5 py-1.5 cursor-pointer appearance-none ${meta.cls}`}
                     aria-label={`Status for ${t.name}`}
                   >
                     {ORDER.map((o) => (

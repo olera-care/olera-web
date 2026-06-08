@@ -273,7 +273,7 @@ interface OutboundDetail {
 }
 
 // Row for outbound connections with expand/collapse
-function OutboundConnectionRow({ connection }: { connection: OutboundConnection }) {
+function OutboundConnectionRow({ connection, onDelete }: { connection: OutboundConnection; onDelete?: (id: string) => void }) {
   const c = connection;
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<OutboundDetail | null>(null);
@@ -284,12 +284,6 @@ function OutboundConnectionRow({ connection }: { connection: OutboundConnection 
   const providerName = c.provider.display_name || "Provider";
   const familyName = c.family.display_name || "Family";
   const providerLocation = [c.provider.city, c.provider.state].filter(Boolean).join(", ");
-  const familyLocation = c.family.city || "";
-
-  // Format date
-  const createdDate = c.created_at
-    ? new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-    : "";
 
   // Time ago helper
   const timeAgo = (isoDate: string | null): string => {
@@ -311,6 +305,8 @@ function OutboundConnectionRow({ connection }: { connection: OutboundConnection 
     }
   };
 
+  const age = timeAgo(c.created_at);
+
   async function toggle() {
     const next = !open;
     setOpen(next);
@@ -331,49 +327,72 @@ function OutboundConnectionRow({ connection }: { connection: OutboundConnection 
 
   return (
     <div className="group">
-      {/* Collapsed row */}
-      <div
-        className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-3"
-        onClick={toggle}
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 text-sm">
+      {/* Collapsed row - matches ConnectionRow styling */}
+      <div className="flex w-full items-center gap-3 px-4 py-4 hover:bg-stone-50/60 transition-colors">
+        <button
+          onClick={toggle}
+          className="flex-1 min-w-0 text-left"
+          aria-expanded={open}
+        >
+          {/* Primary line: names */}
+          <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900 truncate">{providerName}</span>
-            {providerLocation && (
-              <span className="text-gray-400 text-xs truncate">({providerLocation})</span>
-            )}
             <span className="text-gray-400">→</span>
             <span className="font-medium text-gray-900 truncate">{familyName}</span>
-            {familyLocation && (
-              <span className="text-gray-400 text-xs truncate">({familyLocation})</span>
+          </div>
+          {/* Secondary line: location + status */}
+          <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+            {providerLocation && (
+              <>
+                <span className="truncate">{providerLocation}</span>
+                <span className="text-gray-300">|</span>
+              </>
+            )}
+            <OutboundStatusBadge status={c.status} />
+            {c.threadLength > 1 && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="text-gray-400">{c.threadLength} messages</span>
+              </>
             )}
           </div>
-          {c.messagePreview && (
-            <p className="mt-1 text-xs text-gray-500 truncate">{c.messagePreview}</p>
-          )}
-          {c.replyMessage && (
-            <p className="mt-1 text-xs text-gray-600 truncate">
-              <span className="text-gray-400">Reply:</span> {c.replyMessage.length > 100 ? c.replyMessage.slice(0, 100) + "..." : c.replyMessage}
-            </p>
-          )}
-        </div>
+        </button>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <OutboundStatusBadge status={c.status} />
-          <div className="text-xs text-gray-400 text-right">
-            <div>{createdDate}</div>
-            <div>{timeAgo(c.created_at)}</div>
-          </div>
-          {/* Expand chevron */}
+        {/* Timestamp */}
+        <span className="text-sm text-gray-400 shrink-0">{age}</span>
+
+        {/* Delete button - hover reveal */}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(c.id);
+            }}
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 text-gray-300 hover:text-red-500 transition-all"
+            title="Delete connection"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
+
+        {/* Expand chevron */}
+        <button
+          onClick={toggle}
+          className="p-1"
+          aria-label={open ? "Collapse" : "Expand"}
+        >
           <svg
             className={`h-5 w-5 text-gray-300 transition-transform shrink-0 ${open ? "rotate-90" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-        </div>
+        </button>
       </div>
 
       {/* Expanded detail */}

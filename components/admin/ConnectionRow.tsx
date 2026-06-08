@@ -616,8 +616,8 @@ export default function ConnectionRow({
                         ? "Family requires manual call. No activity for 24+ days."
                         : "Family needs follow-up. No activity for 14+ days."
                       : c.engagementLevel === "needs_call"
-                        ? "Provider requires manual call. No activity for 24+ days."
-                        : "Provider needs follow-up. No activity for 14+ days."}
+                        ? "Provider requires manual call. No activity for 14+ days."
+                        : "Provider needs follow-up. No activity for 10+ days."}
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (

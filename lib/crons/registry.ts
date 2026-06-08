@@ -157,7 +157,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "lead-followup-sequence",
     name: "Lead follow-up sequence",
     description:
-      "Multi-stage follow-up for unanswered leads. Day 1/3/6/10 emails; Day 14 marks as Stuck; Day 17 re-engagement. Stops on engagement (lead_opened event). Replaces lead-response-nudge with staged cadence.",
+      "Multi-stage follow-up for unanswered leads. Day 1/3/5/7 emails; Day 10 marks as Stuck; Day 11 re-engagement; Day 14 Needs Call. Stops on engagement (lead_opened event). Replaces lead-response-nudge with staged cadence.",
     recipientCohort: "Providers with unviewed leads 1+ days old, not yet at final stage.",
     audience: "Providers",
     fn: "nudge",

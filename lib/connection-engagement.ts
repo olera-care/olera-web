@@ -8,7 +8,7 @@
  *   Viewed     → Provider opened the lead page
  *   Engaged    → Provider revealed contact info (opened drawer)
  *   Connected  → Provider reached out (called, emailed, or messaged)
- *   Stuck      → No activity for 10+ days, awaiting re-engagement
+ *   Stuck      → No provider activity for 10+ days, awaiting re-engagement
  *   Needs Call → Re-engagement email sent, still no response (14+ days)
  *
  * This matches the actual provider journey rather than assuming
@@ -29,8 +29,8 @@ export type EngagementLevel =
  *   New       → Provider hasn't responded yet (family is waiting)
  *   Awaiting  → Provider responded, family hasn't replied (ball in family's court)
  *   Connected → Family replied at least once (conversation active)
- *   Stuck     → No family activity for 10+ days
- *   Needs Call → No family activity for 14+ days
+ *   Stuck     → No family activity for 14+ days
+ *   Needs Call → No family activity for 24+ days
  */
 export type FamilyEngagementLevel =
   | "new"
@@ -96,11 +96,23 @@ export interface FamilyEngagementResult {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Connections with no activity beyond this are "stuck" */
-export const STUCK_THRESHOLD_DAYS = 10;
+// Provider engagement thresholds (compressed for faster human intervention)
+/** Provider connections with no activity beyond this are "stuck" */
+export const PROVIDER_STUCK_THRESHOLD_DAYS = 10;
+/** Provider connections stuck beyond this need manual call intervention */
+export const PROVIDER_NEEDS_CALL_THRESHOLD_DAYS = 14;
 
-/** Connections stuck beyond this need manual call intervention */
-export const NEEDS_CALL_THRESHOLD_DAYS = 14;
+// Family engagement thresholds (more lenient)
+/** Family connections with no activity beyond this are "stuck" */
+export const FAMILY_STUCK_THRESHOLD_DAYS = 14;
+/** Family connections stuck beyond this need manual call intervention */
+export const FAMILY_NEEDS_CALL_THRESHOLD_DAYS = 24;
+
+// Legacy exports for backwards compatibility (use provider thresholds)
+/** @deprecated Use PROVIDER_STUCK_THRESHOLD_DAYS or FAMILY_STUCK_THRESHOLD_DAYS */
+export const STUCK_THRESHOLD_DAYS = PROVIDER_STUCK_THRESHOLD_DAYS;
+/** @deprecated Use PROVIDER_NEEDS_CALL_THRESHOLD_DAYS or FAMILY_NEEDS_CALL_THRESHOLD_DAYS */
+export const NEEDS_CALL_THRESHOLD_DAYS = PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 
 // ── Labels ──
 
@@ -189,13 +201,13 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
     label: "Stuck",
     dot: "bg-gray-400",
     text: "text-gray-500",
-    description: "No family activity for 10+ days",
+    description: "No family activity for 14+ days",
   },
   needs_call: {
     label: "Needs Call",
     dot: "bg-red-400",
     text: "text-red-600",
-    description: "No family activity for 14+ days",
+    description: "No family activity for 24+ days",
   },
 };
 
@@ -207,8 +219,8 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
  *   2. Engaged - provider revealed contact info
  *   3. Viewed - provider opened the lead
  *   4. New - no engagement yet
- *   5. Stuck - any of above but stale (14+ days)
- *   6. Needs Call - stuck beyond 24 days OR marked by cron as needing manual intervention
+ *   5. Stuck - any of above but stale (10+ days)
+ *   6. Needs Call - stuck beyond 14 days OR marked by cron as needing manual intervention
  */
 export function getEngagementLevel(
   engagement: EngagementData,
@@ -225,8 +237,8 @@ export function getEngagementLevel(
   // If provider's activity is older than this connection, use connection creation time
   const lastActivity = Math.max(providerLastActivity, connectionCreatedTime);
   const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
-  const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
-  const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;
+  const isStale = daysSinceActivity >= PROVIDER_STUCK_THRESHOLD_DAYS;
+  const needsCallByTime = daysSinceActivity >= PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 
   // Determine base level first (before applying time-based rules)
   let baseLevel: EngagementLevel;
@@ -254,7 +266,7 @@ export function getEngagementLevel(
   // Determine final engagement level
   // - Connected: provider reached out (success) - never becomes stuck/needs_call
   // - Viewed/Engaged: provider showed interest - keep in their tab so re-engagement emails continue
-  // - New: no activity - becomes stuck (14+ days) or needs_call (24+ days)
+  // - New: no activity - becomes stuck (10+ days) or needs_call (14+ days)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
@@ -263,10 +275,10 @@ export function getEngagementLevel(
     // Re-engagement emails will continue working on them
     level = baseLevel;
   } else if (needsCallByTime) {
-    // 24+ days with NO engagement → needs manual intervention
+    // 14+ days with NO engagement → needs manual intervention
     level = "needs_call";
   } else if (isStale) {
-    // 14+ days with NO engagement → stuck (awaiting re-engagement email)
+    // 10+ days with NO engagement → stuck (awaiting re-engagement email)
     level = "stuck";
   } else {
     level = baseLevel;
@@ -359,10 +371,10 @@ export function getFamilyEngagementLevel(
     let level: FamilyEngagementLevel;
     let isStale: boolean;
 
-    if (daysSinceCreation >= NEEDS_CALL_THRESHOLD_DAYS) {
+    if (daysSinceCreation >= FAMILY_NEEDS_CALL_THRESHOLD_DAYS) {
       level = "needs_call";
       isStale = true;
-    } else if (daysSinceCreation >= STUCK_THRESHOLD_DAYS) {
+    } else if (daysSinceCreation >= FAMILY_STUCK_THRESHOLD_DAYS) {
       level = "stuck";
       isStale = true;
     } else {
@@ -391,8 +403,8 @@ export function getFamilyEngagementLevel(
   // (family can't be stale before provider even responded)
   const lastActivity = Math.max(familyLastActivity, providerRespondedTime);
   const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
-  const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
-  const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;
+  const isStale = daysSinceActivity >= FAMILY_STUCK_THRESHOLD_DAYS;
+  const needsCallByTime = daysSinceActivity >= FAMILY_NEEDS_CALL_THRESHOLD_DAYS;
 
   // Determine base level
   let baseLevel: FamilyEngagementLevel;

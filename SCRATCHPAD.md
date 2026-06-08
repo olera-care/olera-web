@@ -7,6 +7,33 @@
 
 ## Current Focus
 
+### 2026-06-08 — Market Intelligence: provider rank feature + weekly-digest email hero (shipping to prod TODAY)
+
+**Outcome:** Built + merged to staging the whole "show a provider their rank in their local market" arc, plus the digest email that drives them to it. Three PRs on staging, ready to promote to main before today's 13:00 UTC digest send.
+
+**What shipped to staging (all merged):**
+- **PR #960 — the rank feature.** Provider's own rank on the Find Families competitor chart. Layers: (1) cache-shape change — persist competitor `place_id` + the FULL ranked array in `competitorLandscape` (`lib/market-diagnostic/analyze.ts` + `.mjs` parity); (2) read-time self-rank primitive `lib/market-diagnostic/self-rank.ts` (`resolveSelfRank`) — exact place_id match against the cached `ranked`, else ONE lean Places lookup inserts the provider (fetch-if-missing); (3) serve route returns `self`; (4) UI shows the teal "You" highlight + "You — #N of M" row. Coverage fix: resolve place_id from `metadata.google_metadata` → else linked `olera-providers.place_id` via `source_provider_id` (~50%→~90% of verified providers). CS snapshot regenerated with place_ids (free re-analysis).
+- **PR #963 — the digest email hero.** Turns the bland "Your week on Olera" analytics branch into a "where you rank" hook deep-linking to `/provider/matches`. `marketRank` on `DigestOpts` (`lib/email-templates.tsx`); cron (`app/api/cron/weekly-provider-digest/route.ts`) resolves each no-question provider's rank, background-warms uncached cities (`after()`, budget-guarded) for future weeks, reports `marketHeroSent` + `warmCities`. **Page-vs-push framing:** lead with rank when flattering (top-5 or top-quartile), lead with curiosity ("See where you rank") otherwise — bad number never in the subject.
+- **PR #964 — restored the friendly thick competitor bars.** The thin "ranked rows" (rank numerals + hairline rails) I built during the design pass read aggressive; TJ wants the original thick `h-5` rounded bars. Reverted the bar STYLE only; kept the hero stat strip, the "You" self-rank, mobile-friendliness. Removed the `RankRow` component.
+
+**Reverted (don't re-add without diagnosis):** mobile **bottom tab bar** (`MobileProviderTabBar`) + in-page **section nav** (`MobileSectionNav`) threw a runtime 500 on `/provider/matches`. Code was type-clean + built fine — a client-component runtime throw I couldn't repro statically. Reverted (commit on `loving-lehmann`) to restore service. Re-adding needs the live browser-console error to pinpoint it.
+
+**KEY LESSON (memory `feedback_no_timeout_in_shell`):** the Bash shell has **no `timeout` binary** — `timeout … tsc` silently no-ops (command-not-found → empty output → false "0 errors"). That's how the 500 shipped. **Run tsc DIRECTLY.** And a passing tsc+build ≠ a working client render — verify on the live preview / grab the console error. Also: borrowed desktop `node_modules` is missing `@vercel/functions`/`@react-pdf/renderer`/`qrcode` → ~4 spurious tsc errors in untouched files; filter to your changed files.
+
+**Verified:** sent 3 dummy emails to tfalohun@gmail.com via Resend (transpile template to CJS with tsc → render → POST to Resend; tsx/esbuild can't expose the big .tsx's named exports). Flattering "You're #3 of 21", curiosity "See where you rank", and the 0-views/0-CTA edge case (adaptive stats row — only non-zero cells render; gate guarantees ≥1 signal so the box is never empty). TJ approved the design; keep the weekly stats under the hero.
+
+**NEXT (today, before 13:00 UTC = 8 AM Central):**
+1. **Build the audience expansion** TJ just asked for: a provider with a great rank but a QUIET traffic week is currently skipped (signal gate needs weekly views/CTA/leads/questions). Treat "has a resolvable market rank" as its own signal so they still get the email — the lever to pull MORE providers into the portal. (In the cron's signal gate + audience build.)
+2. **`/promote-to-main`** — ships #960 + #963 + #964 to production (none are on main yet). The digest cron runs on PROD.
+3. **Dry-run on prod** (`?dry_run=true`, admin browser session — preview domains have no auth cookies, hence Unauthorized) → check `marketHeroSent` + `warmCities`.
+4. **Pre-warm** the `warmCities` (one per city via `/api/admin/market-backfill?city=&state=&careType=`) to expand THIS week's reach (self-warm only helps future weeks).
+5. **Send** — 13:00 UTC cron auto-fires with the new code, or trigger manually (`?` no dry_run) on prod.
+
+**Aggie test account:** reverted to original metadata (SYNERGY place_id removed) post-QA — exact-match to backup confirmed.
+
+**Worktrees this session:** `loving-lehmann` (the #960 branch, now merged), `market-email-hero` (#963), `friendly-bars` (#964). All merged; can clean up later.
+
+
 ### 2026-06-07 — New `/promote-to-main` slash command + shipped #955 to production
 
 **Outcome:** Built a reusable staging→main production-promotion command and used it to ship the pending delta live.

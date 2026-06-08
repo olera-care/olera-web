@@ -400,9 +400,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Calculate days since inquiry and expected stage
+      // Calculate days since sequence started (Day 0 email sent)
+      // Use email_sent_at if present (for providers who got email added later)
+      // Otherwise fall back to connection creation date
+      const sequenceStartDate = (meta.email_sent_at as string) || conn.created_at;
       const daysSinceInquiry = Math.floor(
-        (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        (now - new Date(sequenceStartDate).getTime()) / (1000 * 60 * 60 * 24)
       );
       const currentStage = meta.followup_stage ?? 0;
 

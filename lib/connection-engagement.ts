@@ -54,6 +54,13 @@ export interface EngagementData {
   lastActivityAt: string | null;
   /** Set by cron when all automated outreach is exhausted */
   needsCall?: boolean;
+  /**
+   * When the follow-up sequence started (Day 0 email sent).
+   * For providers who had email from the start, this equals connection creation.
+   * For providers who got email added later, this is when email was added.
+   * Used to calculate staleness - provider can't be "stale" before receiving the lead.
+   */
+  sequenceStartAt?: string | null;
 }
 
 /**
@@ -228,14 +235,20 @@ export function getEngagementLevel(
   now: number = Date.now()
 ): EngagementResult {
   // Calculate staleness
-  // Use the MORE RECENT of: provider's last activity OR connection creation
-  // A connection can't be "stale" before it was created!
+  // Use sequenceStartAt (when Day 0 email was sent) if available, otherwise connection creation
+  // This handles providers who got email added later - they can't be "stale" before receiving the lead
   const connectionCreatedTime = new Date(connectionCreatedAt).getTime();
+  const sequenceStartTime = engagement.sequenceStartAt
+    ? new Date(engagement.sequenceStartAt).getTime()
+    : connectionCreatedTime;
+  // Use the later of: connection creation OR sequence start (handles edge cases)
+  const baselineTime = Math.max(connectionCreatedTime, sequenceStartTime);
+
   const providerLastActivity = engagement.lastActivityAt
     ? new Date(engagement.lastActivityAt).getTime()
-    : connectionCreatedTime;
-  // If provider's activity is older than this connection, use connection creation time
-  const lastActivity = Math.max(providerLastActivity, connectionCreatedTime);
+    : baselineTime;
+  // Use the more recent of: provider's last activity OR baseline
+  const lastActivity = Math.max(providerLastActivity, baselineTime);
   const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
   const isStale = daysSinceActivity >= PROVIDER_STUCK_THRESHOLD_DAYS;
   const needsCallByTime = daysSinceActivity >= PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;

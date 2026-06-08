@@ -647,6 +647,9 @@ export async function GET(request: NextRequest) {
         alreadyConnected,
         // For engagement-based "Needs Call" tab
         needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
+        // When Day 0 email was sent (for staleness calculation)
+        // Providers who got email added later start fresh from that date
+        sequenceStartAt: (meta.email_sent_at as string) || null,
       };
     });
 
@@ -900,6 +903,8 @@ export async function GET(request: NextRequest) {
         alreadyConnected: c.alreadyConnected,
         lastActivityAt: combinedLastActivity,
         needsCall: c.needsCall,
+        // When Day 0 email was sent - providers who got email added later start fresh
+        sequenceStartAt: c.sequenceStartAt,
       };
 
       const engResult = getEngagementLevel(engagementData, c.created_at, now);

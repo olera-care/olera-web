@@ -889,40 +889,41 @@ export default function ConnectionsTrackerPage() {
         </div>
       )}
 
-      {/* Perspective Toggle - Inbound only */}
-      {direction === "inbound" && (
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-600">Perspective:</span>
-        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-          <button
-            type="button"
-            onClick={() => setPerspective("provider")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              perspective === "provider"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Provider
-          </button>
-          <button
-            type="button"
-            onClick={() => setPerspective("family")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              perspective === "family"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Family
-          </button>
-        </div>
-      </div>
-      )}
+      {/* Perspective toggle + Search bar (same row) */}
+      <div className="mb-6 flex items-center gap-4">
+        {/* Perspective toggle - left side, inbound only */}
+        {direction === "inbound" && (
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm font-medium text-gray-500">Perspective:</span>
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setPerspective("provider")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  perspective === "provider"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Provider
+              </button>
+              <button
+                type="button"
+                onClick={() => setPerspective("family")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  perspective === "family"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Family
+              </button>
+            </div>
+          </div>
+        )}
 
-      {/* Search bar */}
-      <div className="mb-6">
-        <div className="relative">
+        {/* Search input - takes remaining space */}
+        <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
             xmlns="http://www.w3.org/2000/svg"

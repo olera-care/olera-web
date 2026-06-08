@@ -927,7 +927,14 @@ export async function GET(request: NextRequest) {
 
         // Count engagement levels (provider perspective)
         engagementCounts.all++;
-        engagementCounts[engResult.level]++;
+
+        // For needs_call: only count if provider HAS email
+        // Providers without email should only appear in no_email tab
+        if (engResult.level === "needs_call" && !c.provider.email?.trim()) {
+          // Don't count in needs_call - they'll be in no_email instead
+        } else {
+          engagementCounts[engResult.level]++;
+        }
 
         // Count providers without email (cross-cutting filter)
         if (!c.provider.email?.trim()) {
@@ -1000,7 +1007,16 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+          if (responseFilter === "needs_call") {
+            // Needs Call: only include providers WITH email
+            // Providers without email should be in "No Email" tab instead
+            list = list.filter((c) =>
+              connectionEngagementLevels.get(c.id) === "needs_call" &&
+              c.provider.email?.trim()
+            );
+          } else {
+            list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+          }
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);

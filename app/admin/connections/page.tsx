@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
@@ -510,6 +511,11 @@ function OutboundConnectionRow({ connection, onDelete }: { connection: OutboundC
 }
 
 export default function ConnectionsTrackerPage() {
+  const searchParams = useSearchParams();
+
+  // Read initial direction from URL (supports /admin/outreach redirect)
+  const initialDirection = searchParams.get("direction") === "outbound" ? "outbound" : "inbound";
+
   const [range, setRange] = useState<DateRangeValue>({
     preset: "30d",
     customFrom: "",
@@ -517,9 +523,12 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [direction, setDirection] = useState<Direction>("inbound");
+  const [direction, setDirection] = useState<Direction>(initialDirection);
   const [perspective, setPerspective] = useState<Perspective>("provider");
-  const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>("new"); // Default to New leads
+  // Default filter: "new" for inbound, "all" for outbound
+  const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>(
+    initialDirection === "outbound" ? "all" : "new"
+  );
   const [page, setPage] = useState(0);
 
   // Stats row state (collapsible)

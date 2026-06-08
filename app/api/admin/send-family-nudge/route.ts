@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail } from "@/lib/email-templates";
+import { newMessageEmailForFamily } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 
 /**
@@ -130,9 +130,9 @@ export async function POST(req: NextRequest) {
   const { success, error: sendError } = await sendEmail({
     to: familyEmail,
     subject: `${providerName} replied to your care inquiry`,
-    html: newMessageEmail({
-      recipientName: familyName,
-      senderName: providerName,
+    html: newMessageEmailForFamily({
+      familyName,
+      providerName,
       messagePreview: preview,
       viewUrl,
     }),

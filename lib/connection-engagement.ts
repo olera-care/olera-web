@@ -271,9 +271,10 @@ export function getEngagementLevel(
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
-  } else if (engagement.needsCall) {
-    // Cron marked this connection as needing manual call - override viewed/engaged
+  } else if (engagement.needsCall && needsCallByTime) {
+    // Cron marked this connection as needing manual call AND it's actually old enough
     // This ensures providers who viewed but never connected appear in Needs Call tab
+    // The time check protects against corrupted metadata on young connections
     level = "needs_call";
   } else if (baseLevel === "viewed" || baseLevel === "engaged") {
     // Provider showed interest - keep them in their tab

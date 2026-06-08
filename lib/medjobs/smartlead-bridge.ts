@@ -575,11 +575,18 @@ function toSmartleadHtml(
   adminFirstName: string,
   campusSlug: string | null,
 ): string {
+  const pdfUrl = campusSlug
+    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}`
+    : PROGRAM_URL;
+  // Templates that place the program PDF inline use the {program_pdf} token;
+  // we fill it here (per-campaign slug). Stakeholder templates still say
+  // "attached information packet" — rewrite that + append the link instead.
+  const hasInlinePdf = /\{program_pdf\}/.test(body);
   let rewritten = body
+    .replace(/\{program_pdf\}/g, pdfUrl)
     .replace(/The attached information packet/g, "The program packet (linked below)")
     .replace(/the attached information packet/g, "the program packet (linked below)");
-  if (campusSlug) {
-    const pdfUrl = `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}`;
+  if (campusSlug && !hasInlinePdf) {
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));

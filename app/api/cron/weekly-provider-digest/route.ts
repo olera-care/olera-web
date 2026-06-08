@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
-import { generateNotificationUrl } from "@/lib/claim-tokens";
+import { generateNotificationUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
 import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
@@ -326,6 +326,7 @@ export async function GET(request: NextRequest) {
       state: string | null;
       category: string | null;
       metadata: Record<string, unknown> | null;
+      account_id: string | null; // non-null = a claimed/owned listing → keep the punchy digest, not the cold note
     };
     // Resolve business_profiles by slug first, then fall back to
     // source_provider_id for legacy URLs whose event provider_id is the
@@ -339,7 +340,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySlug } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySlug ?? []) as BP[]) {
@@ -352,7 +353,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySourceId } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id")
         .in("source_provider_id", stillMissing)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySourceId ?? []) as BP[]) {
@@ -408,6 +409,7 @@ export async function GET(request: NextRequest) {
             state: ip.state,
             category: null,
             metadata: null,
+            account_id: null,
           });
         }
 
@@ -436,6 +438,7 @@ export async function GET(request: NextRequest) {
             state: ip.state,
             category: null,
             metadata: null,
+            account_id: null,
           });
         }
       }
@@ -598,25 +601,49 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      const html = providerWeeklyDigestEmail({
-        providerName: displayName,
-        providerSlug,
-        tier,
-        viewsThisWeek: bucket.viewsThisWeek,
-        viewsPriorWeek: bucket.viewsPriorWeek,
-        deltaPct,
-        localDemand,
-        areaDemand: areaDemandCount,
-        city: bp.city,
-        category: bp.category,
-        ctaClicks: bucket.ctaClicks,
-        leadsReceived: bucket.leads,
-        questionsReceived: bucket.questions,
-        topSource,
-        unansweredQuestion,
-        answerUrl,
-        marketRank,
-      });
+      // Cold first-contact: a §1c rank-enrolled provider with no weekly activity, no question,
+      // and no claimed account → they've never engaged with Olera, so the trust-forward note
+      // (who/legit/permission/cost) earns the read before the rank. Claimed-but-quiet and any
+      // provider with weekly signal keep the punchy digest.
+      const isColdFirstContact =
+        !!marketRank &&
+        preRank.has(providerId) &&
+        !hasNonQuestionSignal &&
+        !unansweredQuestion &&
+        !bp.account_id;
+
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const html = isColdFirstContact
+        ? coldProviderRankEmail({
+            rank: marketRank!.rank,
+            outOf: marketRank!.outOf,
+            cityLabel: marketRank!.cityLabel,
+            careLabel: marketRank!.careLabel,
+            // One-click "market" magic link → invisibly authenticates onto /provider/matches.
+            ctaUrl: generateProviderPortalUrl(providerSlug, bp.email, "market"),
+            manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
+            removeUrl: `${siteUrl}/for-providers/removal-request/${providerSlug}`,
+            unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
+          })
+        : providerWeeklyDigestEmail({
+            providerName: displayName,
+            providerSlug,
+            tier,
+            viewsThisWeek: bucket.viewsThisWeek,
+            viewsPriorWeek: bucket.viewsPriorWeek,
+            deltaPct,
+            localDemand,
+            areaDemand: areaDemandCount,
+            city: bp.city,
+            category: bp.category,
+            ctaClicks: bucket.ctaClicks,
+            leadsReceived: bucket.leads,
+            questionsReceived: bucket.questions,
+            topSource,
+            unansweredQuestion,
+            answerUrl,
+            marketRank,
+          });
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`

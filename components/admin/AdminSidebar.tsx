@@ -32,7 +32,7 @@ const navSections: NavSection[] = [
       { label: "Demand", href: "/admin/demand" },
       { label: "Connections", href: "/admin/connections" },
       { label: "Leads", href: "/admin/leads" },
-      { label: "Outreach", href: "/admin/outreach" },
+      // Outreach merged into Connections (direction=outbound toggle)
       { label: "Questions", href: "/admin/questions" },
     ],
   },

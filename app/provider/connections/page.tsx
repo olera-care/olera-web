@@ -437,7 +437,7 @@ function LeadDetailDrawer({
             )
           )}
         </div>
-        <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
           <p className="text-sm text-gray-500">No contact information provided yet</p>
         </div>
       </div>

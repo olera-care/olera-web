@@ -119,16 +119,22 @@ const median = (arr) => { if (!arr.length) return null; const s = [...arr].sort(
   const competitors = classified.filter((p) => p.cat === "home_care" && inCatchment(p)).sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
   const totalReviews = competitors.reduce((s, c) => s + (c.reviews || 0), 0);
   const withReviews = competitors.filter((c) => c.reviews > 0);
+  // `ranked` = full ordered competitor list carrying Google's place `id` (the join key for
+  // per-provider "You — #N of M" self-overlay at any rank); `leaders` = its first 10. Kept in
+  // parity with lib/market-diagnostic/analyze.ts so regenerating a committed snapshot matches
+  // the runtime cache shape.
+  const ranked = competitors.map((c) => ({
+    id: c.id, name: c.name, reviews: c.reviews, rating: c.rating, distanceMiles: c.distanceMiles,
+    website: !!c.website, shareOfVoicePct: totalReviews ? +(((c.reviews || 0) / totalReviews) * 100).toFixed(1) : 0,
+  }));
   const competitorLandscape = {
     count: competitors.length,
     totalReviewsInMarket: totalReviews,
     medianReviews: median(withReviews.map((c) => c.reviews)),
     medianRating: median(withReviews.map((c) => c.rating).filter(Boolean)),
     withWebsitePct: competitors.length ? Math.round((competitors.filter((c) => c.website).length / competitors.length) * 100) : 0,
-    leaders: competitors.slice(0, 10).map((c) => ({
-      name: c.name, reviews: c.reviews, rating: c.rating, distanceMiles: c.distanceMiles,
-      website: !!c.website, shareOfVoicePct: totalReviews ? +(((c.reviews || 0) / totalReviews) * 100).toFixed(1) : 0,
-    })),
+    leaders: ranked.slice(0, 10),
+    ranked,
   };
 
   // ---- Referral graph (cleaned + prioritized, local catchment only) ----

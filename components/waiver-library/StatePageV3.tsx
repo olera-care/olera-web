@@ -392,13 +392,13 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
               H1 right below, so the back link is the only crumb that matters
               on mobile. SEO breadcrumb data is JSON-LD elsewhere. */}
           <Link
-            href="/benefits"
+            href="/senior-benefits"
             className="sm:hidden inline-flex items-center gap-1 text-sm text-gray-500 mb-6 -ml-1.5 pl-1 pr-2 py-1.5 rounded-lg active:bg-gray-100 transition-colors"
           >
             <CaretLeft className="w-4 h-4 shrink-0" /> Benefits Hub
           </Link>
           <nav className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 mb-8">
-            <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>&#8250;</span>
             <span className="text-gray-600">{state.name}</span>
           </nav>
@@ -893,7 +893,7 @@ export function StatePageV3({ state, overview, pipelinePrograms = [], familyQues
           {/* Explore other states */}
           <div className="flex items-center gap-4">
             <p className="text-sm text-gray-500">Looking at other states?</p>
-            <Link href="/benefits" className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">
+            <Link href="/senior-benefits" className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors">
               Explore all 50 states &rarr;
             </Link>
           </div>

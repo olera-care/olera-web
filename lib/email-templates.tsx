@@ -154,17 +154,14 @@ function offRampBlock(providerSlug?: string): string {
 
 /**
  * Dr. Logan's signature block with photo for lead notification emails.
- * Includes intro paragraph, soft urgency line, and credentials.
+ * Includes intro paragraph and credentials.
  */
 function loganLeadSignature(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
   return `
     <div style="margin:24px 0 0;">
-      <p style="font-size:14px;color:#374151;margin:0 0 16px;line-height:1.6;">
-        I'm Dr. Logan DuBose, Olera's COO. We're an NIH-backed platform built by a team with backgrounds in medicine and research — we made Olera so families can find trustworthy care and connect with good providers directly, without a broker in the middle.
-      </p>
       <p style="font-size:14px;color:#374151;margin:0 0 20px;line-height:1.6;">
-        Families usually reach out to a few providers while they decide, so even a short reply means a lot to them.
+        I'm Dr. Logan DuBose, Olera's Chief Research Officer (CRO). We're a National Institute of Health (NIH)-backed senior care directory built by a team with backgrounds in academia and engineering. With the NIH's help, we made Olera as a directory for families and providers to match based on senior care needs and offerings. We do NOT charge for matching. In other words, this is NOT a fee-for-lead directory. You can connect with families on Olera for free. Families reach out to a few providers with their care needs, scheduling request, and urgency. Even a short reply from you means a lot to them and could be helpful for you in establishing a new client.
       </p>
       <table cellpadding="0" cellspacing="0" style="margin:0;">
         <tr>
@@ -173,7 +170,7 @@ function loganLeadSignature(): string {
           </td>
           <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
             <p style="margin:0;font-weight:600;color:#111827;">— Dr. Logan DuBose</p>
-            <p style="margin:2px 0 0;color:#6b7280;">COO, Olera · Affiliate Faculty, Texas A&amp;M College of Nursing</p>
+            <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
           </td>
         </tr>
       </table>
@@ -3192,7 +3189,7 @@ function getPronounsFromCareRecipient(careRecipient?: string | null): {
 }
 
 /**
- * Light signature block for follow-up emails (Days 1, 3, 10).
+ * Light signature block for follow-up emails (Days 1, 3, 7, 11).
  * Simple sign-off without photo or detailed credentials.
  */
 function loganLightSignature(): string {
@@ -3200,21 +3197,21 @@ function loganLightSignature(): string {
     <div style="margin:24px 0 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
         — Dr. Logan DuBose<br/>
-        <span style="color:#6b7280;">COO, Olera</span>
+        <span style="color:#6b7280;">CRO, Olera · Researcher funded by NIH SBIR Program</span>
       </p>
     </div>`;
 }
 
 /**
- * Heavy signature block for Day 6 follow-up email.
- * Full intro, photo, and credentials (NIH-backed, Texas A&M).
+ * Heavy signature block for Day 5 follow-up email.
+ * Shorter intro (reminder about free matching) + photo and credentials.
  */
 function loganHeavySignature(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
   return `
     <div style="margin:24px 0 0;">
       <p style="font-size:14px;color:#374151;margin:0 0 16px;line-height:1.6;">
-        I'm Dr. Logan DuBose, Olera's COO. We're an NIH-backed platform built by a team with backgrounds in medicine and research — we don't charge you or sell your information, we just make the introduction.
+        Quick reminder: Olera is free for providers. We do NOT charge for matching — this is NOT a fee-for-lead directory. You can connect with families on Olera for free.
       </p>
       <table cellpadding="0" cellspacing="0" style="margin:0;">
         <tr>
@@ -3223,7 +3220,7 @@ function loganHeavySignature(): string {
           </td>
           <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
             <p style="margin:0;font-weight:600;color:#111827;">— Dr. Logan DuBose</p>
-            <p style="margin:2px 0 0;color:#6b7280;">COO, Olera · Affiliate Faculty, Texas A&amp;M College of Nursing</p>
+            <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
           </td>
         </tr>
       </table>

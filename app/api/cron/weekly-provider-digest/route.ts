@@ -620,6 +620,9 @@ export async function GET(request: NextRequest) {
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,
+        // The exact city×care-type list to pre-warm (so a dry_run shows what to warm before the
+        // real send to expand THIS week's hero reach, not just next week's).
+        warmCities: uniqueWarm.map((t) => `${t.city}, ${t.state} (${normCareType(t.careType)})`),
         dry_run: dryRun,
       };
     },

@@ -8,6 +8,7 @@ import {
 } from "@/lib/connection-temperature";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import EmailPreviewModal from "@/components/admin/EmailPreviewModal";
+import ProviderFactSheetModal from "@/components/admin/ProviderFactSheetModal";
 
 interface ProfileCompleteness {
   percentage: number;
@@ -35,6 +36,8 @@ export interface ConnectionRowData {
   provider: {
     id?: string | null;
     display_name: string | null;
+    slug?: string | null;
+    source_provider_id?: string | null;
     email?: string | null;
     phone?: string | null;
     image_url?: string | null;
@@ -264,6 +267,9 @@ export default function ConnectionRow({
   const [emailInput, setEmailInput] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
+
+  // Fact sheet modal state
+  const [showFactSheet, setShowFactSheet] = useState(false);
 
   // Email trail state (collapsed by default)
   const [showEmails, setShowEmails] = useState(false);
@@ -599,8 +605,9 @@ export default function ConnectionRow({
             <div className="space-y-4">
               {/* Section 1: Action bar */}
               {/* Stuck connection alert - show call options prominently */}
-              {/* Show for stuck/needs_call based on current perspective */}
-              {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call")) ||
+              {/* Family perspective: only show if family has phone (otherwise not actionable) */}
+              {/* Provider perspective: show for stuck/needs_call */}
+              {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call") && detail.family.phone) ||
                 (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call"))) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
@@ -614,25 +621,13 @@ export default function ConnectionRow({
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (
-                      // Family perspective: primary action is calling family
-                      <>
-                        {detail.family.phone && (
-                          <a
-                            href={`tel:${detail.family.phone}`}
-                            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                          >
-                            Call Family
-                          </a>
-                        )}
-                        {detail.provider.phone && (
-                          <a
-                            href={`tel:${detail.provider.phone}`}
-                            className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                          >
-                            Call Provider
-                          </a>
-                        )}
-                      </>
+                      // Family perspective: only show Call Family (we already checked family has phone above)
+                      <a
+                        href={`tel:${detail.family.phone}`}
+                        className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
+                      >
+                        Call Family
+                      </a>
                     ) : (
                       // Provider perspective: existing logic
                       <>
@@ -670,6 +665,13 @@ export default function ConnectionRow({
                             Call Provider
                           </a>
                         )}
+                        {/* Fact Sheet button - provider perspective only */}
+                        <button
+                          onClick={() => setShowFactSheet(true)}
+                          className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
+                        >
+                          Fact Sheet
+                        </button>
                       </>
                     )}
                   </div>
@@ -997,6 +999,16 @@ export default function ConnectionRow({
           html={emailPreview.html}
           sending={nudging}
           warning={emailPreview.warning}
+        />
+      )}
+
+      {/* Provider Fact Sheet Modal */}
+      {showFactSheet && (
+        <ProviderFactSheetModal
+          isOpen={showFactSheet}
+          onClose={() => setShowFactSheet(false)}
+          providerId={c.provider.slug || c.provider.source_provider_id || c.provider.id || ""}
+          providerName={c.provider.display_name || "Provider"}
         />
       )}
     </div>

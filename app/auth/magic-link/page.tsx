@@ -262,7 +262,7 @@ function MagicLinkHandler() {
           // Non-blocking — tracking failure should never affect auth flow
         }
 
-        // Track lead_opened for providers landing on connections page
+        // Track lead_opened for providers landing on connections/inbox page
         // This catches magic-link flows from stale_conversation, unread_reminder, etc.
         // that bypass /api/claim-lead
         try {
@@ -271,58 +271,33 @@ function MagicLinkHandler() {
 
           // Check if destination is provider connections page
           const isProviderConnections = dest === "/provider/connections";
+          // Check if destination is provider inbox (role=provider in query)
+          const isProviderInbox = dest === "/portal/inbox" &&
+            nextUrl.searchParams.get("role") === "provider";
           // Check if destination is provider onboard with lead/message action
           const isOnboardLead = dest.match(/^\/provider\/[^/]+\/onboard/) &&
             ["lead", "message"].includes(nextUrl.searchParams.get("action") || "");
 
-          if (isProviderConnections || isOnboardLead) {
+          if (isProviderConnections || isProviderInbox || isOnboardLead) {
             // Extract connection_id from URL params
             const connectionId = nextUrl.searchParams.get("id") ||
               nextUrl.searchParams.get("actionId") ||
               null;
 
-            // Extract provider slug from path or fetch from session
-            const pathParts = dest.split("/");
-            const providerIdx = pathParts.indexOf("provider");
-            const providerSlug = providerIdx >= 0 && pathParts[providerIdx + 1] !== "connections"
-              ? pathParts[providerIdx + 1]
-              : null;
+            // Use server-side endpoint to track lead_opened
+            // This endpoint gets the provider profile from the authenticated session
+            fetch("/api/activity/track-lead-opened", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                connection_id: connectionId,
+                source: "magic_link",
+                destination: next,
+              }),
+              keepalive: true,
+            }).catch(() => {});
 
-            // Get provider key - try slug from path, or fetch active profile
-            let providerKey = providerSlug;
-            if (!providerKey) {
-              try {
-                const profileRes = await fetch("/api/provider/profile");
-                if (profileRes.ok) {
-                  const profileData = await profileRes.json();
-                  providerKey = profileData?.profile?.slug ||
-                    profileData?.profile?.source_provider_id ||
-                    profileData?.profile?.id;
-                }
-              } catch {
-                // Non-blocking
-              }
-            }
-
-            if (providerKey) {
-              fetch("/api/activity/track", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  provider_id: providerKey,
-                  event_type: "lead_opened",
-                  metadata: {
-                    connection_id: connectionId,
-                    lead_id: connectionId,
-                    source: "magic_link",
-                    destination: next,
-                  },
-                }),
-                keepalive: true,
-              }).catch(() => {});
-
-              console.log("[magic-link] Tracked lead_opened for provider:", providerKey, "connection:", connectionId);
-            }
+            console.log("[magic-link] Tracking lead_opened for connection:", connectionId);
           }
         } catch {
           // Non-blocking — tracking failure should never affect auth flow

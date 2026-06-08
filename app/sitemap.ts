@@ -96,7 +96,6 @@ export default async function sitemap({
         { path: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
         { path: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
         { path: "/senior-benefits", priority: 0.6, changeFrequency: "monthly" as const },
-        { path: "/senior-benefits/forms", priority: 0.5, changeFrequency: "monthly" as const },
       ];
 
       for (const page of staticPages) {

@@ -219,7 +219,7 @@ export default async function BenefitsSlugPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Benefits Hub", item: "https://olera.care/benefits" },
+      { "@type": "ListItem", position: 1, name: "Benefits Hub", item: "https://olera.care/senior-benefits" },
       { "@type": "ListItem", position: 2, name: state.name, item: `https://olera.care/benefits/${slug}` },
     ],
   };

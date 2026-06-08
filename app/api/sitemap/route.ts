@@ -121,7 +121,6 @@ export async function GET(request: Request) {
         { path: "/privacy", priority: 0.3, freq: "yearly" },
         { path: "/terms", priority: 0.3, freq: "yearly" },
         { path: "/senior-benefits", priority: 0.6, freq: "monthly" },
-        { path: "/senior-benefits/forms", priority: 0.5, freq: "monthly" },
         { path: "/medjobs", priority: 0.8, freq: "weekly" },
         { path: "/medjobs/candidates", priority: 0.7, freq: "daily" },
         { path: "/medjobs/apply", priority: 0.7, freq: "monthly" },

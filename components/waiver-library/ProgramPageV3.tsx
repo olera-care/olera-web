@@ -892,7 +892,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             <HeaderActions program={program} state={state} className="-mr-1" />
           </div>
           <nav className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 mb-6">
-            <Link href="/benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
+            <Link href="/senior-benefits" className="hover:text-gray-600 transition-colors">Benefits Hub</Link>
             <span>›</span>
             <Link href={`/benefits/${state.id}`} className="hover:text-gray-600 transition-colors">{state.name}</Link>
             <span>›</span>

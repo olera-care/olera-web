@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, careReportEmail, firstLeadCelebrationEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, careReportEmail, firstLeadCelebrationEmail } from "@/lib/email-templates";
 import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
 import { sendSlackAlert, slackNewLead, slackMissingEmail, slackLeadCaptureConverted, slackLegacyConnectConverted } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
@@ -760,57 +760,6 @@ async function handleGuestConnection({
       entry_point: entryPoint || null,
     },
   });
-
-  // DISABLED: guestConnectionEmail has been consolidated into careReportEmail
-  // The care report email now includes the magic link and confirmation message
-  // if (isNewUser) {
-  //   try {
-  //     const careTypeLabels: Record<string, string> = {
-  //       home_care: "Home Care",
-  //       home_health: "Home Health Care",
-  //       assisted_living: "Assisted Living",
-  //       memory_care: "Memory Care",
-  //     };
-  //
-  //     const welcomeEmailLogId = await reserveEmailLogId({
-  //       to: normalizedEmail,
-  //       subject: `Your inquiry to ${providerName} was sent`,
-  //       emailType: "guest_connection",
-  //       recipientType: "family",
-  //       metadata: { connection_id: newConnection.id, provider_id: toProfileId },
-  //     });
-  //
-  //     const inboxDest = appendTrackingParams("/portal/inbox", welcomeEmailLogId);
-  //
-  //     // Generate magic link for email sign-in
-  //     const { data: magicLinkData, error: magicLinkError } = await authClient.auth.admin.generateLink({
-  //       type: "magiclink",
-  //       email: normalizedEmail,
-  //       options: {
-  //         redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(inboxDest)}`,
-  //       },
-  //     });
-  //
-  //     if (!magicLinkError && magicLinkData?.properties?.action_link) {
-  //       await sendEmail({
-  //         to: normalizedEmail,
-  //         subject: `Your inquiry to ${providerName} was sent`,
-  //         html: guestConnectionEmail({
-  //           familyName: firstName || "there",
-  //           providerName,
-  //           careType: intentData?.careType ? (careTypeLabels[intentData.careType] || intentData.careType) : null,
-  //           magicLinkUrl: magicLinkData.properties.action_link,
-  //         }),
-  //         emailType: 'guest_connection',
-  //         recipientType: 'family',
-  //         emailLogId: welcomeEmailLogId ?? undefined,
-  //       });
-  //     }
-  //   } catch (emailErr) {
-  //     console.error("Failed to send welcome email:", emailErr);
-  //     // Non-blocking — user has instant session, email is for multi-device access
-  //   }
-  // }
 
   // Provider notifications (fire-and-forget)
   try {

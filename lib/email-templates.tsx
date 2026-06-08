@@ -396,34 +396,6 @@ export function connectionSentEmail(opts: {
   `, "We'll notify you when they respond.");
 }
 
-/**
- * Combined email for guest connections — serves as both confirmation AND magic link.
- * Single email reduces confusion and improves conversion.
- */
-export function guestConnectionEmail(opts: {
-  familyName: string;
-  providerName: string;
-  careType: string | null;
-  magicLinkUrl: string;
-}): string {
-  const careLine = opts.careType
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;"><strong>Care type:</strong> ${escapeHtml(opts.careType)}</p>`
-    : "";
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your message is on its way</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, your inquiry to <strong>${escapeHtml(opts.providerName)}</strong> has been delivered. We'll notify you as soon as they respond.
-    </p>
-    ${careLine}
-    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;">Click below to view your inbox — you'll be signed in automatically.</p>
-    <div style="margin:0 0 24px;">${button("View your inbox", opts.magicLinkUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      This link expires in 1 hour. Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
-    </p>
-  `, "We'll notify you when they respond.");
-}
-
 /** Email to verify email address after instant account creation */
 export function verifyEmailEmail(opts: {
   familyName: string;

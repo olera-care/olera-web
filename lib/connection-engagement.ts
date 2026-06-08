@@ -228,18 +228,7 @@ export function getEngagementLevel(
   const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
   const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;
 
-  // If explicitly marked as needs_call by cron AND actually old enough, return that
-  // This double-check prevents data corruption from showing new leads as needs_call
-  if (engagement.needsCall && daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS) {
-    return {
-      level: "needs_call",
-      label: ENGAGEMENT_LABELS.needs_call,
-      daysSinceActivity,
-      isStale: true,
-    };
-  }
-
-  // Determine base level (before stuck check)
+  // Determine base level first (before applying time-based rules)
   let baseLevel: EngagementLevel;
 
   if (
@@ -262,15 +251,22 @@ export function getEngagementLevel(
     baseLevel = "new";
   }
 
-  // Connected connections don't become stuck or needs_call (they're successful)
+  // Determine final engagement level
+  // - Connected: provider reached out (success) - never becomes stuck/needs_call
+  // - Viewed/Engaged: provider showed interest - keep in their tab so re-engagement emails continue
+  // - New: no activity - becomes stuck (14+ days) or needs_call (24+ days)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
+  } else if (baseLevel === "viewed" || baseLevel === "engaged") {
+    // Provider showed interest - keep them in their tab regardless of time
+    // Re-engagement emails will continue working on them
+    level = baseLevel;
   } else if (needsCallByTime) {
-    // 24+ days without engagement → needs manual intervention
+    // 24+ days with NO engagement → needs manual intervention
     level = "needs_call";
   } else if (isStale) {
-    // 14+ days → stuck (awaiting re-engagement email)
+    // 14+ days with NO engagement → stuck (awaiting re-engagement email)
     level = "stuck";
   } else {
     level = baseLevel;

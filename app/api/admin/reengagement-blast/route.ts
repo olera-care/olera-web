@@ -134,8 +134,10 @@ export async function POST(request: NextRequest) {
       const meta = (conn.metadata as Record<string, unknown>) || {};
       const stage = meta.followup_stage as number | undefined;
 
-      // Calculate age
-      const daysSince = Math.floor((now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24));
+      // Calculate age from sequence start (email_sent_at if present, otherwise created_at)
+      // This handles providers who got email added later - they start fresh from that date
+      const sequenceStartDate = (meta.email_sent_at as string) || conn.created_at;
+      const daysSince = Math.floor((now - new Date(sequenceStartDate).getTime()) / (1000 * 60 * 60 * 24));
 
       // Must be old enough (10+ days = stuck threshold)
       if (daysSince < PROVIDER_STUCK_THRESHOLD_DAYS) {
@@ -230,7 +232,10 @@ export async function POST(request: NextRequest) {
       const careTypes = fromProfile?.care_types as string[] | null;
       const careType = careTypes?.[0] || null;
       const city = (toProfile?.city as string) || null;
-      const daysSinceInquiry = Math.floor((now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24));
+      // Use sequence start date for display (same as eligibility calculation)
+      const connMeta = (conn.metadata as Record<string, unknown>) || {};
+      const connSequenceStart = (connMeta.email_sent_at as string) || conn.created_at;
+      const daysSinceInquiry = Math.floor((now - new Date(connSequenceStart).getTime()) / (1000 * 60 * 60 * 24));
 
       // Care recipient from family metadata
       const familyMeta = (fromProfile?.metadata as Record<string, unknown>) || {};

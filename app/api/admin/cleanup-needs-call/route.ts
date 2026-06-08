@@ -59,9 +59,11 @@ export async function POST(request: NextRequest) {
       if (meta.needs_call === true || meta.followup_stopped_reason === "needs_call") {
         counts.total_checked++;
 
-        // Calculate days since creation
+        // Calculate days since sequence started (email_sent_at if present, otherwise created_at)
+        // This handles providers who got email added later - they start fresh from that date
+        const sequenceStartDate = (meta.email_sent_at as string) || conn.created_at;
         const daysSince = Math.floor(
-          (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          (now - new Date(sequenceStartDate).getTime()) / (1000 * 60 * 60 * 24)
         );
 
         // If less than threshold days, this is incorrect

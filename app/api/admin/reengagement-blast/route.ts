@@ -4,18 +4,22 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { providerFollowupDay17Email } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
+import { PROVIDER_STUCK_THRESHOLD_DAYS, PROVIDER_NEEDS_CALL_THRESHOLD_DAYS } from "@/lib/connection-engagement";
 
 /**
  * POST /api/admin/reengagement-blast
  *
- * Admin-only endpoint to trigger the Day 17 re-engagement email blast
- * for stuck providers. Requires admin authentication.
+ * Admin-only endpoint to trigger re-engagement email blast for stuck providers.
+ * Requires admin authentication.
  *
  * Eligibility criteria:
- *   - Connection is 14+ days old
- *   - Provider has NOT engaged (no lead_opened, contact_revealed, etc.)
+ *   - Connection is 10+ days old (PROVIDER_STUCK_THRESHOLD_DAYS)
+ *   - Provider has NOT connected (no phone_clicked, email_link_clicked, or message sent)
  *   - NOT already sent re-engagement email (stage 6)
  *   - Provider has a valid email address
+ *
+ * NOTE: Viewing or engaging (revealing contact info) does NOT exclude a provider.
+ * Only actual connection (clicking phone/email or sending message) excludes them.
  *
  * Query params:
  *   - dry_run=true: Preview mode, shows what would be sent without sending
@@ -88,55 +92,42 @@ export async function POST(request: NextRequest) {
     // Get all connection IDs to check engagement
     const allConnectionIds = (connections || []).map((c) => c.id);
 
-    // Query provider_activity for engagement events (lead_opened, contact_revealed, etc.)
-    // This ensures we ONLY send to providers who have NOT engaged
-    // Note: one_click_access may have null connection_id for multi-lead emails,
-    // so we also track engaged PROVIDERS separately from engaged CONNECTIONS.
-    const ENGAGEMENT_EVENTS = [
-      "one_click_access",    // Clicked email link (may have null connection_id)
-      "lead_opened",         // Viewed lead details
-      "contact_revealed",    // Revealed contact info
+    // Query provider_activity for CONNECTION events only (phone/email clicks)
+    // NOTE: We do NOT check lead_opened or contact_revealed — viewing/engaging doesn't exclude
+    // Only actual connection (clicking phone/email) excludes a provider
+    const CONNECTION_EVENTS = [
       "phone_clicked",       // Clicked phone button
       "email_link_clicked",  // Clicked email button
-      "continue_in_inbox",   // Clicked "Continue in Inbox"
     ];
-    const { data: engagementEvents, error: engagementError } = await db
+    const { data: connectionEvents, error: connectionError } = await db
       .from("provider_activity")
       .select("provider_id, metadata, event_type")
-      .in("event_type", ENGAGEMENT_EVENTS)
+      .in("event_type", CONNECTION_EVENTS)
       .limit(100000);
 
-    if (engagementError) {
-      console.error("[admin/reengagement-blast] Engagement query failed:", engagementError);
-      return NextResponse.json({ error: "Failed to check engagement" }, { status: 500 });
+    if (connectionError) {
+      console.error("[admin/reengagement-blast] Connection query failed:", connectionError);
+      return NextResponse.json({ error: "Failed to check connections" }, { status: 500 });
     }
 
-    // Build set of connection IDs that have been engaged with
-    const engagedConnectionIds = new Set<string>();
-    // Also track providers who clicked email links (one_click_access) - catches multi-lead emails
-    const engagedProviderIds = new Set<string>();
+    // Build set of connection IDs where provider has connected (clicked phone/email)
+    const connectedConnectionIds = new Set<string>();
     const connectionIdSet = new Set(allConnectionIds);
 
-    for (const event of engagementEvents || []) {
+    for (const event of connectionEvents || []) {
       const meta = event.metadata as Record<string, unknown>;
       const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
 
       // Match by connection_id if available
       if (connId && connectionIdSet.has(connId)) {
-        engagedConnectionIds.add(connId);
-      }
-
-      // For one_click_access, also track the provider as engaged
-      // This catches multi-lead emails where connection_id is null
-      if (event.event_type === "one_click_access" && event.provider_id) {
-        engagedProviderIds.add(event.provider_id);
+        connectedConnectionIds.add(connId);
       }
     }
 
     // Filter to eligible connections:
-    // - 14+ days old with no engagement
+    // - 10+ days old (PROVIDER_STUCK_THRESHOLD_DAYS)
     // - NOT already sent re-engagement email (stage 6)
-    // - NOT already engaged (lead viewed, contact revealed, etc.)
+    // - NOT already connected (clicked phone/email)
     counts.total_inquiries_checked = (connections || []).length;
 
     const eligibleConnections = (connections || []).filter((conn) => {
@@ -146,8 +137,8 @@ export async function POST(request: NextRequest) {
       // Calculate age
       const daysSince = Math.floor((now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24));
 
-      // Must be old enough (14+ days)
-      if (daysSince < 14) {
+      // Must be old enough (10+ days = stuck threshold)
+      if (daysSince < PROVIDER_STUCK_THRESHOLD_DAYS) {
         counts.filtered_too_recent++;
         return false;
       }
@@ -158,24 +149,16 @@ export async function POST(request: NextRequest) {
         return false;
       }
 
-      // Must NOT have been engaged with (this is the real engagement check)
-      if (engagedConnectionIds.has(conn.id)) {
+      // Must NOT have connected (clicked phone/email)
+      // Note: viewing or engaging does NOT exclude - only actual connection does
+      if (connectedConnectionIds.has(conn.id)) {
         counts.filtered_engaged++;
         return false;
       }
 
-      // Also check provider-level engagement (catches multi-lead email clicks)
-      // Provider could be identified by slug, source_provider_id, or id
-      const toProfile = (Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile) as Record<string, unknown> | null;
-      const providerSlug = (toProfile?.slug as string) || "";
-      const sourceProviderId = (toProfile?.source_provider_id as string) || "";
-      const profileId = (toProfile?.id as string) || "";
-
-      if (
-        (providerSlug && engagedProviderIds.has(providerSlug)) ||
-        (sourceProviderId && engagedProviderIds.has(sourceProviderId)) ||
-        (profileId && engagedProviderIds.has(profileId))
-      ) {
+      // Exclude if sequence was stopped due to actual connection (responded or connected)
+      const stopReason = meta.followup_stopped_reason as string | undefined;
+      if (stopReason === "connected" || stopReason === "responded") {
         counts.filtered_engaged++;
         return false;
       }
@@ -183,8 +166,8 @@ export async function POST(request: NextRequest) {
       // Apply target filter if specified (respects which tab user is on)
       if (targetFilter) {
         const needsCall = meta.needs_call === true;
-        const isStuck = stage === 5 || (stage === undefined && daysSince >= 14 && daysSince < 24);
-        const isNeedsCall = stage === 7 || needsCall || (stage === undefined && daysSince >= 24);
+        const isStuck = stage === 5 || (stage === undefined && daysSince >= PROVIDER_STUCK_THRESHOLD_DAYS && daysSince < PROVIDER_NEEDS_CALL_THRESHOLD_DAYS);
+        const isNeedsCall = stage === 7 || needsCall || (stage === undefined && daysSince >= PROVIDER_NEEDS_CALL_THRESHOLD_DAYS);
 
         if (targetFilter === "stuck" && !isStuck) {
           return false;

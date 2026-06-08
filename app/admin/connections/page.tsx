@@ -8,6 +8,9 @@ import ConnectionRow, { type ConnectionRowData } from "@/components/admin/Connec
 // Per-provider engagement data (does NOT include "messaged", "markedReplied", "alreadyConnected" since those are per-connection)
 type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean };
 
+// Direction type for inbound/outbound toggle
+type Direction = "inbound" | "outbound";
+
 interface WorkflowCounts {
   all: number;
   needs_attention: number;
@@ -116,6 +119,77 @@ const FAMILY_TABS: TabConfig[] = [
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
+// Outbound tabs (provider-initiated outreach to families)
+type OutboundFilterKey = "all" | "accepted" | "pending" | "declined";
+interface OutboundTabConfig {
+  key: OutboundFilterKey;
+  label: string;
+  description: string;
+  emptyMessage: string;
+}
+
+const OUTBOUND_TABS: OutboundTabConfig[] = [
+  { key: "all", label: "All", description: "All outreach", emptyMessage: "No outreach sent yet." },
+  { key: "accepted", label: "Accepted", description: "Family accepted the request", emptyMessage: "No accepted requests yet." },
+  { key: "pending", label: "Pending", description: "Awaiting family response", emptyMessage: "No pending requests." },
+  { key: "declined", label: "Declined", description: "Family declined the request", emptyMessage: "No declined requests." },
+];
+
+// Outbound connection type from API
+interface OutboundConnection {
+  id: string;
+  type: string;
+  status: "accepted" | "pending" | "declined";
+  created_at: string;
+  family: {
+    id: string | null;
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+    image_url: string | null;
+    city: string | null;
+  };
+  provider: {
+    id: string | null;
+    display_name: string | null;
+    slug: string | null;
+    email: string | null;
+    phone: string | null;
+    image_url: string | null;
+    is_active: boolean;
+    city: string | null;
+    state: string | null;
+  };
+  messagePreview: string;
+  replyMessage: string | null;
+  repliedAt: string | null;
+  threadLength: number;
+}
+
+interface OutboundCounts {
+  all: number;
+  accepted: number;
+  pending: number;
+  declined: number;
+}
+
+interface OutboundStats {
+  total: number;
+  accepted: number;
+  pending: number;
+  declined: number;
+  acceptRate: number;
+}
+
+interface OutboundListResponse {
+  connections: OutboundConnection[];
+  total: number;
+  direction: "outbound";
+  outboundCounts: OutboundCounts;
+  outboundStats: OutboundStats;
+  truncated: boolean;
+}
+
 const PAGE_SIZE = 50;
 
 // Funnel stat component - matches Care Seekers style
@@ -149,6 +223,273 @@ function FunnelStat({
   );
 }
 
+// Status badge for outbound connections
+function OutboundStatusBadge({ status }: { status: "accepted" | "pending" | "declined" }) {
+  const config = {
+    accepted: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Accepted" },
+    pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" },
+    declined: { bg: "bg-gray-100", text: "text-gray-600", label: "Declined" },
+  };
+  const { bg, text, label } = config[status];
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${bg} ${text}`}>
+      {label}
+    </span>
+  );
+}
+
+// Detail type for outbound connections (from detail API)
+interface OutboundDetail {
+  id: string;
+  type: string;
+  status: string;
+  isOutbound: boolean;
+  family: {
+    id: string | null;
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  provider: {
+    id: string | null;
+    display_name: string | null;
+    email: string | null;
+    phone: string | null;
+    slug: string | null;
+  };
+  thread: Array<{
+    text: string;
+    created_at: string | null;
+    is_auto_reply: boolean;
+    role: "provider" | "family" | "system";
+  }>;
+  emails: Array<{
+    id: string;
+    email_type: string | null;
+    recipient_type: string | null;
+    status: string | null;
+    created_at: string | null;
+  }>;
+}
+
+// Row for outbound connections with expand/collapse
+function OutboundConnectionRow({ connection }: { connection: OutboundConnection }) {
+  const c = connection;
+  const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<OutboundDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [showEmails, setShowEmails] = useState(false);
+
+  const providerName = c.provider.display_name || "Provider";
+  const familyName = c.family.display_name || "Family";
+  const providerLocation = [c.provider.city, c.provider.state].filter(Boolean).join(", ");
+  const familyLocation = c.family.city || "";
+
+  // Format date
+  const createdDate = c.created_at
+    ? new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+    : "";
+
+  // Time ago helper
+  const timeAgo = (isoDate: string | null): string => {
+    if (!isoDate) return "";
+    const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return "Today";
+    if (days === 1) return "1d ago";
+    if (days < 7) return `${days}d ago`;
+    if (days < 30) return `${Math.floor(days / 7)}w ago`;
+    return `${Math.floor(days / 30)}mo ago`;
+  };
+
+  const fmtDate = (iso: string | null): string => {
+    if (!iso) return "";
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    } catch {
+      return "";
+    }
+  };
+
+  async function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && !detail && !loading) {
+      setLoading(true);
+      setLoadError(false);
+      try {
+        const res = await fetch(`/api/admin/connections/${c.id}`);
+        if (!res.ok) throw new Error("failed");
+        setDetail(await res.json());
+      } catch {
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  return (
+    <div className="group">
+      {/* Collapsed row */}
+      <div
+        className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-3"
+        onClick={toggle}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium text-gray-900 truncate">{providerName}</span>
+            {providerLocation && (
+              <span className="text-gray-400 text-xs truncate">({providerLocation})</span>
+            )}
+            <span className="text-gray-400">→</span>
+            <span className="font-medium text-gray-900 truncate">{familyName}</span>
+            {familyLocation && (
+              <span className="text-gray-400 text-xs truncate">({familyLocation})</span>
+            )}
+          </div>
+          {c.messagePreview && (
+            <p className="mt-1 text-xs text-gray-500 truncate">{c.messagePreview}</p>
+          )}
+          {c.replyMessage && (
+            <p className="mt-1 text-xs text-gray-600 truncate">
+              <span className="text-gray-400">Reply:</span> {c.replyMessage.length > 100 ? c.replyMessage.slice(0, 100) + "..." : c.replyMessage}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <OutboundStatusBadge status={c.status} />
+          <div className="text-xs text-gray-400 text-right">
+            <div>{createdDate}</div>
+            <div>{timeAgo(c.created_at)}</div>
+          </div>
+          {/* Expand chevron */}
+          <svg
+            className={`h-5 w-5 text-gray-300 transition-transform shrink-0 ${open ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Expanded detail */}
+      {open && (
+        <div className="border-t border-gray-100 bg-stone-50/40 px-4 py-4">
+          {loading ? (
+            <p className="text-sm text-gray-400">Loading...</p>
+          ) : loadError ? (
+            <p className="text-sm text-rose-600">Could not load details. Try again.</p>
+          ) : detail ? (
+            <div className="space-y-4">
+              {/* Contact cards */}
+              <div className="flex gap-4 flex-wrap">
+                {/* Provider contact */}
+                <div className="flex-1 min-w-[200px] bg-white rounded-lg border border-gray-200 p-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Provider</span>
+                  <p className="font-medium text-gray-900 text-sm truncate mt-1">{detail.provider.display_name || "Unknown"}</p>
+                  <div className="mt-1 space-y-0.5 text-sm">
+                    {detail.provider.email && (
+                      <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate">{detail.provider.email}</a>
+                    )}
+                    {detail.provider.phone && (
+                      <a href={`tel:${detail.provider.phone}`} className="block text-blue-600 hover:underline">{detail.provider.phone}</a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Family contact */}
+                <div className="flex-1 min-w-[200px] bg-white rounded-lg border border-gray-200 p-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Family</span>
+                  <p className="font-medium text-gray-900 text-sm truncate mt-1">{detail.family.display_name || "Unknown"}</p>
+                  <div className="mt-1 space-y-0.5 text-sm">
+                    {detail.family.email && (
+                      <a href={`mailto:${detail.family.email}`} className="block text-blue-600 hover:underline truncate">{detail.family.email}</a>
+                    )}
+                    {detail.family.phone && (
+                      <a href={`tel:${detail.family.phone}`} className="block text-blue-600 hover:underline">{detail.family.phone}</a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Conversation thread */}
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Conversation</h3>
+                {detail.thread.length === 0 ? (
+                  <p className="text-sm text-gray-400">No messages yet.</p>
+                ) : (
+                  <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                    {detail.thread.map((m, i) => (
+                      <div key={i} className="p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-gray-500 uppercase">
+                            {m.role === "family" ? "Family" : m.role === "provider" ? "Provider" : "System"}
+                          </span>
+                          {m.is_auto_reply && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">auto</span>
+                          )}
+                          {m.created_at && (
+                            <span className="text-xs text-gray-400">{fmtDate(m.created_at)}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700">{m.text || <span className="text-gray-300">-</span>}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Email trail */}
+              {detail.emails.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmails(!showEmails)}
+                    className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      className={`w-3 h-3 transition-transform ${showEmails ? "rotate-90" : ""}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                    </svg>
+                    Show {detail.emails.length} email{detail.emails.length !== 1 ? "s" : ""} sent
+                  </button>
+
+                  {showEmails && (
+                    <div className="mt-2 bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                      {detail.emails.map((e) => (
+                        <div key={e.id} className="p-3 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-700">{e.email_type?.replace(/_/g, " ") || "Email"}</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              e.recipient_type === "family"
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-purple-50 text-purple-600"
+                            }`}>
+                              {e.recipient_type === "family" ? "To Family" : "To Provider"}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-400">{fmtDate(e.created_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ConnectionsTrackerPage() {
   const [range, setRange] = useState<DateRangeValue>({
     preset: "30d",
@@ -157,8 +498,9 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [direction, setDirection] = useState<Direction>("inbound");
   const [perspective, setPerspective] = useState<Perspective>("provider");
-  const [activeFilter, setActiveFilter] = useState<FilterKey>("new"); // Default to New leads
+  const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>("new"); // Default to New leads
   const [page, setPage] = useState(0);
 
   // Stats row state (collapsible)
@@ -192,13 +534,24 @@ export default function ConnectionsTrackerPage() {
     setPage(0);
   }, [activeFilter, range]);
 
-  // Reset filter to "new" when perspective changes (since filter keys differ between perspectives)
+  // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
     setActiveFilter("new");
     setPage(0);
   }, [perspective]);
 
+  // Reset filter and perspective when direction changes
+  useEffect(() => {
+    if (direction === "outbound") {
+      setActiveFilter("all"); // Outbound default tab
+    } else {
+      setActiveFilter("new"); // Inbound default tab
+    }
+    setPage(0);
+  }, [direction]);
+
   const [list, setList] = useState<ListResponse | null>(null);
+  const [outboundList, setOutboundList] = useState<OutboundListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -215,8 +568,17 @@ export default function ConnectionsTrackerPage() {
     setError(false);
     const params = buildDateParams();
     if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
-    params.set("filter", activeFilter);
-    params.set("perspective", perspective);
+
+    // Validate filter matches direction to prevent race condition on direction switch
+    const validOutboundFilters = ["all", "accepted", "pending", "declined"];
+    const validFilter = direction === "outbound"
+      ? (validOutboundFilters.includes(activeFilter) ? activeFilter : "all")
+      : activeFilter;
+    params.set("filter", validFilter);
+    params.set("direction", direction);
+    if (direction === "inbound") {
+      params.set("perspective", perspective);
+    }
     params.set("limit", String(PAGE_SIZE));
     params.set("offset", String(page * PAGE_SIZE));
 
@@ -225,27 +587,35 @@ export default function ConnectionsTrackerPage() {
         if (!r.ok) throw new Error("failed");
         return r.json();
       })
-      .then((data: ListResponse) => {
-        setList(data);
+      .then((data) => {
+        if (direction === "outbound") {
+          setOutboundList(data as OutboundListResponse);
+          setList(null);
+        } else {
+          setList(data as ListResponse);
+          setOutboundList(null);
+        }
       })
       .catch(() => {
         setError(true);
         setList(null);
+        setOutboundList(null);
       })
       .finally(() => setLoading(false));
-  }, [buildDateParams, debouncedSearch, activeFilter, perspective, page]);
+  }, [buildDateParams, debouncedSearch, activeFilter, direction, perspective, page]);
 
   // Fetch connections when dependencies change
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
 
-  // Use perspective-aware tabs
-  const TABS = perspective === "family" ? FAMILY_TABS : PROVIDER_TABS;
-  const activeTabConfig = TABS.find((t) => t.key === activeFilter);
+  // Use direction-aware and perspective-aware tabs
+  const INBOUND_TABS = perspective === "family" ? FAMILY_TABS : PROVIDER_TABS;
+  const activeInboundTabConfig = INBOUND_TABS.find((t) => t.key === activeFilter);
+  const activeOutboundTabConfig = OUTBOUND_TABS.find((t) => t.key === activeFilter);
 
-  // Get count for tab (using perspective-aware engagement counts)
-  const getTabCount = (key: FilterKey): number => {
+  // Get count for inbound tab (using perspective-aware engagement counts)
+  const getInboundTabCount = (key: FilterKey): number => {
     if (perspective === "family") {
       if (!list?.familyEngagementCounts) return 0;
       const counts = list.familyEngagementCounts;
@@ -261,6 +631,12 @@ export default function ConnectionsTrackerPage() {
       }
       return 0;
     }
+  };
+
+  // Get count for outbound tab
+  const getOutboundTabCount = (key: OutboundFilterKey): number => {
+    if (!outboundList?.outboundCounts) return 0;
+    return outboundList.outboundCounts[key] ?? 0;
   };
 
   // Delete handlers
@@ -322,7 +698,11 @@ export default function ConnectionsTrackerPage() {
     }
   };
 
-  const totalPages = list ? Math.ceil(list.total / PAGE_SIZE) : 0;
+  const totalPages = direction === "outbound"
+    ? (outboundList ? Math.ceil(outboundList.total / PAGE_SIZE) : 0)
+    : (list ? Math.ceil(list.total / PAGE_SIZE) : 0);
+
+  const currentTotal = direction === "outbound" ? outboundList?.total ?? 0 : list?.total ?? 0;
 
   return (
     <div>
@@ -335,8 +715,51 @@ export default function ConnectionsTrackerPage() {
         onRangeChange={setRange}
       />
 
-      {/* Collapsible Funnel Stats - Provider perspective only */}
-      {perspective === "provider" && (
+      {/* Direction Toggle - Inbound / Outbound */}
+      <div className="mb-6 flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-600">Direction:</span>
+        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+          <button
+            type="button"
+            onClick={() => setDirection("inbound")}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              direction === "inbound"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Inbound
+          </button>
+          <button
+            type="button"
+            onClick={() => setDirection("outbound")}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              direction === "outbound"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Outbound
+          </button>
+        </div>
+        <span className="text-xs text-gray-400">
+          {direction === "inbound" ? "Families reaching out to providers" : "Providers reaching out to families"}
+        </span>
+      </div>
+
+      {/* Outbound Stats */}
+      {direction === "outbound" && outboundList?.outboundStats && (
+        <div className="mb-6 grid grid-cols-5 gap-3">
+          <FunnelStat label="Total Sent" value={outboundList.outboundStats.total} />
+          <FunnelStat label="Accepted" value={outboundList.outboundStats.accepted} highlight />
+          <FunnelStat label="Pending" value={outboundList.outboundStats.pending} />
+          <FunnelStat label="Declined" value={outboundList.outboundStats.declined} />
+          <FunnelStat label="Accept Rate" value={outboundList.outboundStats.acceptRate} format="percent" />
+        </div>
+      )}
+
+      {/* Collapsible Funnel Stats - Inbound + Provider perspective only */}
+      {direction === "inbound" && perspective === "provider" && (
         <div className="mb-6">
           <button
             type="button"
@@ -383,8 +806,8 @@ export default function ConnectionsTrackerPage() {
         </div>
       )}
 
-      {/* Collapsible Provider Actions - Provider perspective only */}
-      {perspective === "provider" && (
+      {/* Collapsible Provider Actions - Inbound + Provider perspective only */}
+      {direction === "inbound" && perspective === "provider" && (
         <div className="mb-6">
           <button
             type="button"
@@ -442,7 +865,8 @@ export default function ConnectionsTrackerPage() {
         </div>
       )}
 
-      {/* Perspective Toggle */}
+      {/* Perspective Toggle - Inbound only */}
+      {direction === "inbound" && (
       <div className="mb-6 flex items-center gap-3">
         <span className="text-sm font-medium text-gray-600">Perspective:</span>
         <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
@@ -470,6 +894,7 @@ export default function ConnectionsTrackerPage() {
           </button>
         </div>
       </div>
+      )}
 
       {/* Search bar */}
       <div className="mb-6">
@@ -508,28 +933,55 @@ export default function ConnectionsTrackerPage() {
 
       {/* Tabs - underline style */}
       <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">
-        {TABS.map((tab) => {
-          const count = getTabCount(tab.key);
-          const isActive = activeFilter === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveFilter(tab.key)}
-              title={tab.description}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                isActive
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              {tab.label}
-              <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
+        {direction === "outbound" ? (
+          // Outbound tabs
+          OUTBOUND_TABS.map((tab) => {
+            const count = getOutboundTabCount(tab.key);
+            const isActive = activeFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveFilter(tab.key)}
+                title={tab.description}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  isActive
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab.label}
+                <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })
+        ) : (
+          // Inbound tabs (existing)
+          INBOUND_TABS.map((tab) => {
+            const count = getInboundTabCount(tab.key);
+            const isActive = activeFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveFilter(tab.key)}
+                title={tab.description}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  isActive
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab.label}
+                <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })
+        )}
       </div>
 
       {/* List */}
@@ -540,35 +992,51 @@ export default function ConnectionsTrackerPage() {
           <div className="px-4 py-16 text-center text-sm text-rose-600">
             Could not load connections. Try again.
           </div>
-        ) : !list || list.connections.length === 0 ? (
-          <div className="px-4 py-16 text-center text-sm text-gray-400">
-            {activeTabConfig?.emptyMessage ?? "No connections found."}
-          </div>
+        ) : direction === "outbound" ? (
+          // Outbound connections rendering
+          !outboundList || outboundList.connections.length === 0 ? (
+            <div className="px-4 py-16 text-center text-sm text-gray-400">
+              {activeOutboundTabConfig?.emptyMessage ?? "No outreach found."}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {outboundList.connections.map((c) => (
+                <OutboundConnectionRow key={c.id} connection={c} />
+              ))}
+            </div>
+          )
         ) : (
-          <div className="divide-y divide-gray-100">
-            {list.connections.map((c) => (
-              <ConnectionRow
-                key={c.id}
-                c={c}
-                perspective={perspective}
-                engagement={
-                  c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
-                }
-                onDelete={requestDelete}
-                onNudgeSuccess={fetchConnections}
-              />
-            ))}
-          </div>
+          // Inbound connections rendering (existing)
+          !list || list.connections.length === 0 ? (
+            <div className="px-4 py-16 text-center text-sm text-gray-400">
+              {activeInboundTabConfig?.emptyMessage ?? "No connections found."}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {list.connections.map((c) => (
+                <ConnectionRow
+                  key={c.id}
+                  c={c}
+                  perspective={perspective}
+                  engagement={
+                    c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
+                  }
+                  onDelete={requestDelete}
+                  onNudgeSuccess={fetchConnections}
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
 
       {/* Pagination */}
-      {!loading && list && list.connections.length > 0 && (
+      {!loading && currentTotal > 0 && (
         <div className="flex items-center justify-between mt-6 px-2">
           <p className="text-sm text-gray-500">
-            {list.total <= PAGE_SIZE
-              ? `${list.total} total`
-              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, list.total)} of ${list.total}`
+            {currentTotal <= PAGE_SIZE
+              ? `${currentTotal} total`
+              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, currentTotal)} of ${currentTotal}`
             }
           </p>
           {totalPages > 1 && (
@@ -592,7 +1060,7 @@ export default function ConnectionsTrackerPage() {
         </div>
       )}
 
-      {list?.truncated && (
+      {(list?.truncated || outboundList?.truncated) && (
         <p className="mt-2 text-xs text-amber-600">
           Showing a capped slice — narrow the date range for complete counts.
         </p>

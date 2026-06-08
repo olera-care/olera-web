@@ -66,12 +66,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
     const db = getServiceClient();
 
+    // Select all relevant fields from both profiles to support both inbound and outbound
+    // For inbound: from_profile=family, to_profile=provider
+    // For outbound: from_profile=provider, to_profile=family
     const { data: c, error } = await db
       .from("connections")
       .select(`
         id, type, status, message, metadata, created_at, from_profile_id, to_profile_id,
-        from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email, phone, care_types),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, phone)
+        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, slug, source_provider_id, email, phone, care_types),
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, phone, care_types)
       `)
       .eq("id", id)
       .maybeSingle();
@@ -82,9 +85,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }
     if (!c) return NextResponse.json({ error: "Connection not found" }, { status: 404 });
 
-    const family = Array.isArray(c.from_profile) ? c.from_profile[0] : c.from_profile;
-    const provider = Array.isArray(c.to_profile) ? c.to_profile[0] : c.to_profile;
     const meta = (c.metadata ?? {}) as Record<string, unknown>;
+
+    // Detect outbound connections (provider-initiated via "Find Families")
+    // For outbound: from_profile=provider, to_profile=family (SWAPPED from inbound)
+    const isOutbound = c.type === "request" && meta.provider_initiated === true;
+
+    // Profile mapping depends on direction
+    const fromProfile = Array.isArray(c.from_profile) ? c.from_profile[0] : c.from_profile;
+    const toProfile = Array.isArray(c.to_profile) ? c.to_profile[0] : c.to_profile;
+
+    // For inbound: from=family, to=provider
+    // For outbound: from=provider, to=family
+    const family = isOutbound ? toProfile : fromProfile;
+    const provider = isOutbound ? fromProfile : toProfile;
+    const familyProfileId = isOutbound ? c.to_profile_id : c.from_profile_id;
+    const providerProfileId = isOutbound ? c.from_profile_id : c.to_profile_id;
 
     // Fetch provider email from olera-providers if missing from business_profiles
     let providerEmailFallback: string | null = null;
@@ -117,26 +133,28 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     // Conversation thread, tagged by role for rendering.
+    // Use direction-aware profile IDs for correct role assignment
     const rawThread = (meta.thread as ThreadMsg[]) || [];
     const thread = rawThread.map((m) => ({
       text: m.text ?? "",
       created_at: m.created_at ?? null,
       is_auto_reply: m.is_auto_reply === true,
       role:
-        m.from_profile_id === c.to_profile_id
+        m.from_profile_id === providerProfileId
           ? "provider"
-          : m.from_profile_id === c.from_profile_id
+          : m.from_profile_id === familyProfileId
             ? "family"
             : "system",
     }));
 
     // Provider engagement (opened/clicked/contact revealed).
     // Use all possible provider identifiers for engagement lookup (matches list API)
+    // Use direction-aware providerProfileId instead of hardcoded c.to_profile_id
     const engagementKeys = [
       provider?.slug,
       provider?.source_provider_id,
       provider?.id,
-      c.to_profile_id,
+      providerProfileId,
     ].filter(Boolean) as string[];
     let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_copied: false, email_copied: false, phone_clicked: false, email_link_clicked: false, messaged: false };
     if (engagementKeys.length > 0) {
@@ -164,8 +182,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // Check if provider actually sent a message in the thread
+    // Use direction-aware providerProfileId
     const providerMessaged = rawThread.some(
-      (m) => m.from_profile_id === c.to_profile_id && m.is_auto_reply !== true && !!m.text?.trim()
+      (m) => m.from_profile_id === providerProfileId && m.is_auto_reply !== true && !!m.text?.trim()
     );
     engagement.messaged = providerMessaged;
 
@@ -264,8 +283,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         const emailProviderId = emailMeta?.provider_id as string | undefined;
 
         // If email has provider_id in metadata, it must match this connection's provider
+        // Use direction-aware providerProfileId
         if (emailProviderId) {
-          return emailProviderId === c.to_profile_id;
+          return emailProviderId === providerProfileId;
         }
 
         // For emails without provider_id (older data), only include if sent within
@@ -280,8 +300,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // 3. Query provider emails by provider_id (for older emails without connection_id)
+    // Use direction-aware providerProfileId
     const emailProviderKeys = [
-      c.to_profile_id,
+      providerProfileId,
       provider?.slug,
       provider?.source_provider_id,
     ].filter(Boolean) as string[];
@@ -345,11 +366,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json({
       id: c.id,
+      type: c.type,
       status: c.status,
       created_at: c.created_at,
+      isOutbound,
       emails,
       family: {
-        id: c.from_profile_id ?? null,
+        id: familyProfileId ?? null,
         display_name: family?.display_name ?? null,
         email: family?.email ?? null,
         phone: family?.phone ?? null,
@@ -359,6 +382,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         timeline,
       },
       provider: {
+        id: providerProfileId ?? null,
         display_name: provider?.display_name ?? null,
         email: providerEmail,
         phone: provider?.phone ?? null,
@@ -366,7 +390,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         nudgeCount,
         lastNudgedAt: (meta.nudged_at as string) || null,
         // Directory accepts provider_id / slug / business-profile id as the key.
-        slug: provider?.slug ?? provider?.source_provider_id ?? c.to_profile_id ?? null,
+        slug: provider?.slug ?? provider?.source_provider_id ?? providerProfileId ?? null,
       },
       ask: familyAsk(c.message, family?.care_types),
       thread,

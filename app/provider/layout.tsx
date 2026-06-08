@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import Button from "@/components/ui/Button";
+import MobileProviderTabBar from "@/components/provider/MobileProviderTabBar";
 import type { ReactNode } from "react";
 
 export default function ProviderLayout({ children }: { children: ReactNode }) {
@@ -128,5 +129,12 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  // Authenticated hub route — render the page plus the persistent mobile tab bar. The bottom
+  // padding (mobile only) keeps the last of the page content clear of the fixed bar.
+  return (
+    <>
+      <div className="pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+      <MobileProviderTabBar />
+    </>
+  );
 }

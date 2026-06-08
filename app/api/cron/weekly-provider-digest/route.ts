@@ -1,10 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { providerWeeklyDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
+import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
+import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
+import { normCareType } from "@/lib/market-diagnostic/resolve";
+import { warmCity } from "@/lib/market-diagnostic/warm";
 
 /**
  * GET /api/cron/weekly-provider-digest
@@ -405,8 +409,12 @@ export async function GET(request: NextRequest) {
 
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
+    let marketHeroCount = 0;
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
+    // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
+    // the background after the response so next week's digest can show their rank.
+    const warmTargets: { city: string; state: string; careType: string | null }[] = [];
     const bumpSkip = (r: string) => {
       skipReasons[r] = (skipReasons[r] ?? 0) + 1;
       skipped += 1;
@@ -507,6 +515,20 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Market Intelligence hero — only for the no-question (analytics-only) branch. Resolves
+      // the provider's rank from their cached city×care-type diagnostic; collects a warm target
+      // when it's not cached yet. Non-fatal: a failure just falls back to the analytics email.
+      let marketRank: DigestMarketRank | null = null;
+      if (!unansweredQuestion) {
+        try {
+          const mr = await resolveProviderMarketRank(bp, db);
+          marketRank = mr.rank;
+          if (mr.warmTarget) warmTargets.push(mr.warmTarget);
+        } catch (err) {
+          console.error(`[weekly-provider-digest] market-rank resolve failed for ${providerSlug}:`, err);
+        }
+      }
+
       const html = providerWeeklyDigestEmail({
         providerName: displayName,
         providerSlug,
@@ -524,16 +546,22 @@ export async function GET(request: NextRequest) {
         topSource,
         unansweredQuestion,
         answerUrl,
+        marketRank,
       });
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
-        : bucket.viewsThisWeek > 0
-          ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
-          : `Your week on Olera`;
+        : marketRank
+          ? marketRank.flattering
+            ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
+            : `See where you rank in ${marketRank.cityLabel}`
+          : bucket.viewsThisWeek > 0
+            ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
+            : `Your week on Olera`;
 
       if (dryRun) {
         sent += 1;
+        if (marketRank) marketHeroCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -553,6 +581,7 @@ export async function GET(request: NextRequest) {
           providerId,
         });
         sent += 1;
+        if (marketRank) marketHeroCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -560,21 +589,103 @@ export async function GET(request: NextRequest) {
       }
     }
 
+      // Warm any uncached city×care-type diagnostics in the background (after the response is
+      // sent, within maxDuration) so next week's digest can show those providers' rank. Skipped
+      // on dry runs. warmCity self-guards (monthly budget circuit-breaker + claim dedup), so a
+      // big miss list can't run away on cost.
+      const uniqueWarm = Array.from(
+        new Map(warmTargets.map((t) => [`${t.city}|${t.state}|${t.careType ?? ""}`, t])).values(),
+      );
+      if (!dryRun && uniqueWarm.length > 0) {
+        after(async () => {
+          for (const t of uniqueWarm) {
+            try {
+              await warmCity(t.city, t.state, t.careType);
+            } catch (err) {
+              console.error(`[weekly-provider-digest] warm failed ${t.city},${t.state}:`, (err as Error).message);
+            }
+          }
+        });
+      }
+
       console.log(
-        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} skipped=${skipped} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
         ok: true,
         processed: providerIds.length,
         sent,
+        marketHeroSent: marketHeroCount,
         skipped,
         skipReasons,
+        warmQueued: uniqueWarm.length,
+        // The exact city×care-type list to pre-warm (so a dry_run shows what to warm before the
+        // real send to expand THIS week's hero reach, not just next week's).
+        warmCities: uniqueWarm.map((t) => `${t.city}, ${t.state} (${normCareType(t.careType)})`),
         dry_run: dryRun,
       };
     },
     { triggeredBy },
   );
+}
+
+type DigestMarketRank = { rank: number; outOf: number; cityLabel: string; careLabel: string; flattering: boolean };
+
+/**
+ * Resolve a no-question provider's rank in their local market for the digest Market-Intel hero.
+ * place_id comes from metadata.google_metadata first, else the linked olera-providers row; it's
+ * then matched against the cached city×care-type diagnostic via resolveSelfRank (the same path
+ * the Find Families page uses, so the email matches what they'll see on the page).
+ *
+ * Returns the rank when it resolves. When the diagnostic isn't cached yet, returns a `warmTarget`
+ * (the city to warm in the background) instead — so reach grows week over week, no separate cron.
+ * `flattering` (top-5 or top-quartile) drives the page-vs-push framing in the template + subject.
+ */
+async function resolveProviderMarketRank(
+  bp: { metadata: Record<string, unknown> | null; source_provider_id: string | null; city: string | null; state: string | null; category: string | null },
+  db: ReturnType<typeof getServiceClient>,
+): Promise<{ rank: DigestMarketRank | null; warmTarget: { city: string; state: string; careType: string | null } | null }> {
+  if (!bp.city) return { rank: null, warmTarget: null };
+  let placeId =
+    (bp.metadata as { google_metadata?: { place_id?: string } } | null)?.google_metadata?.place_id ?? null;
+  if (!placeId && bp.source_provider_id) {
+    const { data } = await db
+      .from("olera-providers")
+      .select("place_id")
+      .eq("provider_id", bp.source_provider_id)
+      .maybeSingle();
+    placeId = (data as { place_id?: string | null } | null)?.place_id ?? null;
+  }
+  if (!placeId) return { rank: null, warmTarget: null }; // no key to match — skip, don't warm
+
+  const key = normalizeKey(bp.city, bp.state ?? "", bp.category);
+  const row = await getRow(key, db);
+  if (!(row && row.status === "ready" && row.data)) {
+    // Diagnostic not cached → warm it in the background for next week.
+    return { rank: null, warmTarget: { city: bp.city, state: bp.state ?? "", careType: bp.category } };
+  }
+
+  const cl = (row.data as { competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number } })
+    .competitorLandscape;
+  const self = await resolveSelfRank({
+    ranked: cl?.ranked,
+    totalReviewsInMarket: cl?.totalReviewsInMarket ?? 0,
+    placeId,
+  });
+  if (!self) return { rank: null, warmTarget: null };
+
+  const careLabel = normCareType(bp.category) === "assisted_living" ? "assisted living" : "home care";
+  return {
+    rank: {
+      rank: self.rank,
+      outOf: self.outOf,
+      cityLabel: bp.city,
+      careLabel,
+      flattering: self.rank <= 5 || self.rank <= Math.ceil(self.outOf / 4),
+    },
+    warmTarget: null,
+  };
 }
 
 function computeDeltaPct(current: number, prior: number): number | null {

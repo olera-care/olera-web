@@ -2493,6 +2493,21 @@ interface DigestOpts {
   /** City+state-level page-view count this week (category-agnostic). Powers the
    *  demand-led email's no-views fallback line. Null when unknown. */
   areaDemand?: number | null;
+  /**
+   * Market Intelligence hook for no-question providers (the analytics-only branch). When set,
+   * the email leads with where the provider ranks in their local market and deep-links to the
+   * Find Families market view, instead of the bland "Your week on Olera" recap. `flattering`
+   * (top-5 or top-quartile) gates the page-vs-push framing: lead with the rank when it's good,
+   * lead with curiosity ("see where you rank") when it isn't — the bad number never goes in the
+   * subject. Only attached when the city×care-type diagnostic is cached and the rank resolves.
+   */
+  marketRank?: {
+    rank: number;
+    outOf: number;
+    cityLabel: string;
+    careLabel: string;
+    flattering: boolean;
+  } | null;
 }
 
 
@@ -2645,12 +2660,31 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
       ? `<div style="display:flex;gap:12px;background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 24px;">${microStats.join("")}</div>`
       : "";
 
+  // Market Intelligence hero (no-question providers with a resolved rank) replaces the bland
+  // "Your week on Olera" recap. Lead with the rank when flattering, with curiosity otherwise.
+  const m = opts.marketRank;
+  const eyebrowText = m ? `Your market · ${escapeHtml(m.cityLabel)}` : "Your week on Olera";
+  const headlineHtml = m
+    ? m.flattering
+      ? `You're <span style="color:${BRAND_COLOR};">#${m.rank}</span> of ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
+      : `See where you rank among ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
+    : headline;
+  const leadHtml = m
+    ? m.flattering
+      ? `Share of voice — who owns the reviews families read on Google — is the currency of local trust. Here's exactly where you stand, and the fastest ways to climb.`
+      : `We mapped your local market: your competitors by share of voice, your best referral sources, and the ZIPs worth your marketing time.`
+    : lead;
+  const ctaLabel = m ? "See your market" : "See your full analytics";
+  const ctaUrl = m
+    ? `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=market_rank`
+    : dashboardUrl;
+
   return layout(`
-    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your week on Olera</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${headline}</h1>
-    ${lead ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${lead}</p>` : ""}
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${eyebrowText}</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${headlineHtml}</h1>
+    ${leadHtml ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${leadHtml}</p>` : ""}
     ${microStatsBlock}
-    <div>${button("See your full analytics", dashboardUrl)}</div>
+    <div>${button(ctaLabel, ctaUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

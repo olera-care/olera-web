@@ -60,11 +60,11 @@ function Section({ id, kicker, title, children }: { id?: string; kicker: string;
 /** Perena-style stat card — soft, solid, gently shadowed. Numbers count up on reveal. */
 function StatCard({ value, label }: { value: number | string; label: string }) {
   return (
-    <div className="rounded-2xl border border-stone-200/80 bg-white px-3.5 py-3.5 sm:px-5 sm:py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
-      <div className="font-display text-[1.5rem] sm:text-[2rem] leading-none text-stone-900">
+    <div className="rounded-2xl border border-stone-200/80 bg-white px-3 py-3 sm:px-5 sm:py-4 shadow-[0_1px_3px_rgba(28,25,23,0.05)]">
+      <div className="font-display text-[1.35rem] sm:text-[2rem] leading-none text-stone-900">
         {typeof value === "number" ? <CountUp value={value} /> : value}
       </div>
-      <div className="text-[12.5px] text-stone-500 mt-2">{label}</div>
+      <div className="text-[11.5px] sm:text-[12.5px] leading-snug text-stone-500 mt-1.5 sm:mt-2">{label}</div>
     </div>
   );
 }
@@ -127,10 +127,10 @@ export default function MarketDiagnostic({
         and the one channel you fully control. Here&apos;s where the field stands.
       </p>
 
-      <div className="grid grid-cols-3 gap-3 mt-7">
-        <StatCard value={totalSeniors.toLocaleString()} label="seniors (65+) in your area" />
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-7">
+        <StatCard value={totalSeniors.toLocaleString()} label="seniors 65+ nearby" />
         <StatCard value={cl.count} label="agencies competing" />
-        <StatCard value={cl.medianReviews ?? "—"} label="median reviews per agency" />
+        <StatCard value={cl.medianReviews ?? "—"} label="median reviews" />
       </div>
 
       <div className="space-y-2 mt-7">
@@ -233,14 +233,14 @@ export default function MarketDiagnostic({
         </p>
         <div className="divide-y divide-stone-200/50">
           {topAreas.map((z, i) => (
-            <div key={z.zcta} className="flex items-center gap-4 py-3.5">
-              <div className="font-display text-lg text-stone-300 w-7">{i + 1}</div>
-              <div className="flex-1">
+            <div key={z.zcta} className="flex items-start gap-3 sm:gap-4 py-3.5">
+              <div className="font-display text-lg text-stone-300 w-6 sm:w-7 shrink-0">{i + 1}</div>
+              <div className="flex-1 min-w-0">
                 <div className="text-[15px] text-stone-900 font-medium">ZIP {z.zcta}</div>
-                <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usd(z.medianIncome) + " median income" : "—"}</div>
+                <div className="text-[12px] text-stone-500">{z.seniors65plus.toLocaleString()} seniors · {z.medianIncome ? usdK(z.medianIncome) + " median" : "—"}</div>
               </div>
               {z.medianIncome && z.medianIncome >= 70000 && (
-                <span className="text-[11px] font-medium text-[#199087]">High private-pay</span>
+                <span className="shrink-0 mt-0.5 text-[10.5px] font-medium text-[#199087] bg-[#199087]/10 rounded-full px-2 py-0.5">High private-pay</span>
               )}
             </div>
           ))}

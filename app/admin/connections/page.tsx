@@ -713,39 +713,35 @@ export default function ConnectionsTrackerPage() {
         statsPath="/api/admin/connections/pulse"
         range={range}
         onRangeChange={setRange}
+        actions={
+          <div className="flex items-center gap-2">
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setDirection("inbound")}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  direction === "inbound"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Inbound
+              </button>
+              <button
+                type="button"
+                onClick={() => setDirection("outbound")}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  direction === "outbound"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Outbound
+              </button>
+            </div>
+          </div>
+        }
       />
-
-      {/* Direction Toggle - Inbound / Outbound */}
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-600">Direction:</span>
-        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-          <button
-            type="button"
-            onClick={() => setDirection("inbound")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              direction === "inbound"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Inbound
-          </button>
-          <button
-            type="button"
-            onClick={() => setDirection("outbound")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              direction === "outbound"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Outbound
-          </button>
-        </div>
-        <span className="text-xs text-gray-400">
-          {direction === "inbound" ? "Families reaching out to providers" : "Providers reaching out to families"}
-        </span>
-      </div>
 
       {/* Outbound Stats */}
       {direction === "outbound" && outboundList?.outboundStats && (

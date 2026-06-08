@@ -6,17 +6,24 @@ import { isUndeliverable } from "./email-verification";
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
 /**
- * Provider-directed notification/outreach email types. These go to provider
- * addresses sourced from the directory (often unverified/scraped), which bounce
- * far above Resend's 4% threshold and would otherwise degrade olera.care's
- * reputation — the same domain our families, students, and auth mail depend on.
+ * Cold provider-directed mail that ring-fences to PROVIDER_NOTIFY_FROM when set.
+ * These go to provider addresses sourced from the directory (often unverified /
+ * scraped), which bounce far above Resend's 4% threshold and would otherwise
+ * degrade olera.care's reputation — the same domain our families, students, and
+ * auth mail depend on.
  *
  * When PROVIDER_NOTIFY_FROM is set, these send from that isolated domain instead
  * of the default olera.care address, ring-fencing provider-acquisition
  * reputation away from the crown jewel. Until the env var is set, behavior is
  * unchanged. An explicit `from` passed by the caller always wins.
+ *
+ * weekly_analytics_digest is intentionally NOT in this set. It's healthy (bounce
+ * well under threshold), its open rate benefits from the recognizable olera.care
+ * brand, and its large weekly burst is the worst volume to land on a freshly
+ * warming domain. Keep it on the crown jewel; revisit moving it once the cousin
+ * domain has a proven sending reputation.
  */
-const PROVIDER_NOTIFICATION_TYPES = new Set<string>([
+const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   "question_received",
   "provider_nudge",
   "profile_incomplete_nudge",
@@ -25,17 +32,16 @@ const PROVIDER_NOTIFICATION_TYPES = new Set<string>([
   "provider_recommendation",
   "provider_reach_out",
   "new_review",
-  "weekly_analytics_digest",
   "new_candidate_alert",
 ]);
 
 /**
- * Resolve the From address. Precedence: explicit caller value > provider-
+ * Resolve the From address. Precedence: explicit caller value > cold provider-
  * notification override (PROVIDER_NOTIFY_FROM, when set) > default olera.care.
  */
 function resolveFromAddress(explicitFrom: string | undefined, emailType: string): string {
   if (explicitFrom) return explicitFrom;
-  if (PROVIDER_NOTIFICATION_TYPES.has(emailType) && process.env.PROVIDER_NOTIFY_FROM) {
+  if (PROVIDER_NOTIFY_FROM_TYPES.has(emailType) && process.env.PROVIDER_NOTIFY_FROM) {
     return process.env.PROVIDER_NOTIFY_FROM;
   }
   return FROM_ADDRESS;

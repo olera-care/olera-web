@@ -133,7 +133,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
   // padding (mobile only) keeps the last of the page content clear of the fixed bar.
   return (
     <>
-      <div className="pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+      <div className="pb-[calc(4.25rem_+_env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
       <MobileProviderTabBar />
     </>
   );

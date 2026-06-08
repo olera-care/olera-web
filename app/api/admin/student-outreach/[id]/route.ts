@@ -2038,6 +2038,20 @@ async function handleScheduleSequence(
  * surfaces the reason to the admin and aborts before queueing call tasks.
  */
 async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) {
+  // Stabilization guard: without the magic-link secret, rowToLeads silently
+  // bakes the PROGRAM_URL marketing page (/medjobs/providers) into each lead's
+  // welcome_url — which is exactly the "magic link drops me on the general
+  // MedJobs page instead of the authenticated, campus-filtered board" failure.
+  // Refuse to launch so we never ship marketing-page links disguised as magic
+  // links. (The lead-backfill tool already guards the same way.)
+  if (!process.env.MEDJOBS_MAGIC_LINK_SECRET) {
+    throw new Error(
+      "MEDJOBS_MAGIC_LINK_SECRET is not configured on this environment — " +
+        "cannot launch outreach (the magic-link CTA would fall back to the " +
+        "marketing page). Set the secret, then relaunch.",
+    );
+  }
+
   const { data: campusRow } = await db
     .from("student_outreach_campuses")
     .select("name, city, slug")

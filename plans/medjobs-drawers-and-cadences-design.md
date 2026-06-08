@@ -1,352 +1,446 @@
-# MedJobs Drawers, Outcome Modals & Cadence-Launch — Design (pre-build)
+# MedJobs Drawers, Outcome Modals & Cadence-Launch — Final Design
 
-Status: **DESIGN — for Logan review.** No build yet.
+Status: **DESIGN v2 — for Logan review.** No build yet.
 Created: 2026-06-08
 Companion to: `plans/medjobs-post-outreach-workflow.md` (the 6-phase build plan).
 Reconciles with existing code: `NextStepCard.tsx`, `ReplyClassifierModal.tsx`, `LogCallOutcomeModal.tsx`, `LogMeetingModal.tsx`, `PreFlightReviewModal.tsx`, `cadence.ts`.
 
 ---
 
-## 0. The one thing everything points at
+## 0. Decisions locked (Logan, 2026-06-08)
 
-Every drawer, every outcome, every cadence has exactly one finish line:
-
-> **Provider clicks their magic link → lands authenticated on the campus-filtered Hire Caregivers board → accepts the combined Terms → Trial Active.**
-
-If an action doesn't move a provider toward that click, it shouldn't be in the drawer.
-
----
-
-## 1. Mental model (read this first)
-
-Three concepts, and how they fit together:
-
-**A) The Drawer** — one panel that opens when you click a provider row. It always has the
-same skeleton; only the **Next Step** box changes depending on what the provider is doing.
-- When a *call* is due → it shows its **Call face**.
-- When you're working a *reply* → its **Email face**.
-- When a *meeting* exists → its **Meeting face**.
-- These are not three separate screens. Same drawer, same history below, different "do this now."
-
-**B) The Outcome Modal ("Log …")** — the small pop-up you get when you click the primary
-button in the Next Step box ("Log call outcome", "Log reply", "Log meeting"). You pick *what
-happened*; the system advances the provider's state. These already exist and are good — we
-refine them, we don't replace them.
-
-**C) The Cadence-Launch Module (NEW, generalized from Pre-Flight)** — when an outcome means
-"now start a *sequence* of follow-ups" (not a one-off), the Outcome Modal hands off to a
-review screen that shows **every queued email and call, with timing**, lets you **edit**, and
-ends in **one Launch button**. This is the same UX as today's "Confirm outreach plan" /
-Pre-Flight modal — just reused for two new contexts.
-
-```
-  Row click ──▶ DRAWER ──▶ Next Step box ──▶ [Log …] ──▶ OUTCOME MODAL
-                                                              │
-                       outcome is a one-off  ────────────────┤──▶ done, state advances
-                       outcome starts a sequence ────────────┘──▶ CADENCE-LAUNCH MODULE
-                                                                      (review → edit → Launch)
-```
-
-**Why this matters:** today, an "Interested" outcome just *stops* the cold cadence and leaves
-the provider sitting there. Your instinct is right — interested-but-not-activated is exactly
-where we should be launching a *purpose-built* follow-up sequence, reviewed before it fires.
+1. **Cadence timing** — author's call; reasonable, non-aggressive (spelled out in §8).
+2. **Voice** — every cadence email is written **as the Research Assistant** and **approved by
+   Logan before it sends.** The review-and-launch module *is* the approval gate: nothing leaves
+   the building until Logan clicks **Launch**. Signature block carries the RA's name + Dr.
+   DuBose's Calendly link.
+3. **"Interested" does NOT auto-fire a sequence.** It surfaces an **optional "Launch activation
+   follow-up" button** on the row. Admin clicks it when ready → review-and-launch. (Stay in
+   control; no surprise sequences.)
+4. **Post-meeting cadence is in scope now** (email + call).
 
 ---
 
-## 2. The Cadence-Launch Module (the new shared piece)
+## 1. The one thing everything points at
 
-This is a generalization of `PreFlightReviewModal`. Today that modal is hardwired to the
-cold-outreach cadence and shows **emails only**. We make it accept a **cadence key** and also
-render **call steps with their scripts**.
+> **Provider clicks their magic link → lands authenticated on the campus-filtered Hire
+> Caregivers board → accepts the combined Terms → Trial Active.**
 
-### What the admin sees
-```
-┌──────────────────────────────────────────────────────────┐
-│  Launch activation follow-up                          ✕  │
-│  Sunrise Home Care · Texas A&M                            │
-│  These follow-ups nudge an interested provider to finish  │
-│  setup. They stop automatically the moment they activate. │
-├──────────────────────────────────────────────────────────┤
-│  Sends to: Jane Doe (jane@sunrise.com)                    │
-│                                                          │
-│  ▸ Now    ✉  "Here's your link to get set up"            │
-│  ▸ +2 days ✉  "Quick nudge — 2 min to activate"         │
-│  ▸ +4 days ☎  Call script: "Did you get the link…"      │
-│  ▸ +6 days ✉  "Last call on your campus students"        │
-│                                                          │
-│  (click any row to expand + edit subject / body / script)│
-│                                                          │
-│  📎 Each email carries the provider's magic activation    │
-│     link → opens Terms ready to accept.                   │
-├──────────────────────────────────────────────────────────┤
-│  4 steps ready          [ Cancel ]   [ Launch follow-up ] │
-└──────────────────────────────────────────────────────────┘
-```
-
-### How it works (admin manual)
-- **What you see:** the whole follow-up plan as a list of cards — emails *and* calls — each
-  stamped with when it fires (Now / +2d / +4d …).
-- **What you do:** read it, expand any card to tweak the wording or the call script (one-off
-  edit, same as Pre-Flight today), then click **Launch**.
-- **What happens:** the first step fires now (or is queued for today's call list); the rest
-  are queued and the cron picks them up — identical plumbing to the cold cadence. The whole
-  sequence **auto-stops** the instant the provider hits Trial Active.
-- **Calls** land in the Calls tab on their day with the script attached (exactly like cold
-  calls do now). **Emails** send through the same pipeline (Smartlead/Resend) the cold
-  cadence uses.
-
-### Reuse note (semi-technical)
-- `PreFlightReviewModal` already loops `OUTREACH_DAYS_BY_TYPE[key]` and renders email steps.
-  We (a) let it also render `channel: "phone"` steps (show the script, not a subject/body),
-  and (b) add two new keys to `OUTREACH_DAYS_BY_TYPE`: `activation_followup`,
-  `post_meeting_followup`. No new dispatcher action — it submits through the same
-  `schedule_sequence` path. (Discipline G2/G7 preserved.)
+If a button doesn't move a provider toward that click, it doesn't belong in the drawer.
 
 ---
 
-## 3. The Call drawer (face)
+## 2. Mental model (read first)
+
+Three pieces:
+
+- **The Drawer** — one panel that opens when you click a provider. Same skeleton always; only
+  the **"Next Step" box** changes based on what the provider is doing right now. The "Call
+  drawer / Email drawer / Meeting drawer" are three **faces** of this one drawer, not separate
+  screens.
+- **The Outcome Modal ("Log …")** — the pop-up after you click the Next Step's primary button.
+  You pick *what happened*; the system advances the provider's state.
+- **The Cadence-Launch Module** — when an outcome means "start a *sequence* of follow-ups,"
+  this review screen shows **every queued email and call with its timing**, lets you **edit**,
+  and ends in one **Launch** button. (This is your existing Pre-Flight modal, generalized.)
+
+```
+ Click provider row
+        │
+        ▼
+ ┌─────────────┐   click "Log …"   ┌──────────────┐
+ │   DRAWER    │ ────────────────▶ │ OUTCOME MODAL │
+ │ (3 faces)   │                   └──────┬────────┘
+ └─────────────┘            one-off ──────┤────▶ state advances, done
+                            a sequence ───┘────▶ ┌────────────────────┐
+                                                 │ CADENCE-LAUNCH      │
+                                                 │ review → edit → 🚀  │
+                                                 └────────────────────┘
+```
+
+---
+
+## 3. Where the rows live (the tabs) — context sketch
+
+The provider rows you click into live in tabbed boards (already built). Relevant tabs:
+
+```
+┌ MedJobs · Texas A&M ─────────────────────────────────────────┐
+│  [ Prospects ] [ In Outreach ] [ Calls ] [ Replies ] [ Meetings ] [ Clients ]
+│                                              ▲
+│  Sunrise Home Care      Awaiting activation · nudge ready  ▸  │  ← click opens drawer
+│  Bluebonnet Caregivers  Replied 2h ago · unread           ▸  │
+│  Aggieland Home Health  Call due today                    ▸  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+- **Calls** — rows with a phone step due → drawer opens to the **Call face**.
+- **Replies** — rows where a provider replied / awaiting activation → **Email face**.
+- **Meetings** — real booked meetings only → **Meeting face**.
+
+Nothing changes about the tabs themselves; this is just so you can see where a click starts.
+
+---
+
+## 4. The Drawer skeleton (all faces share this)
+
+```
+┌── Sunrise Home Care · Texas A&M · Provider ───────────  ✕ ─┐
+│                                                            │
+│  ① NEXT STEP   ← the only part that changes per face       │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │  one-line WHY  +  DO THIS NOW  +  primary [ Log … ]    │ │
+│  └──────────────────────────────────────────────────────┘ │
+│                                                            │
+│  ② CONTEXT (one line)  link sent ✓ · opened 2× · not active│
+│                                                            │
+│  ③ TIMELINE (collapsible)  every email/call/reply so far  │
+│                                                            │
+│  ④ More details ▾   (contact info, danger zone)           │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Admin manual — the skeleton:**
+- **What you see:** the provider's name + campus up top, then "what to do next" in a single
+  box, a one-line status, the full history, and rarely-needed details tucked away.
+- **Why it's shaped this way:** the thing you act on is always at the top; you never scroll to
+  find the button. History is there when you want it, hidden when you don't.
+
+---
+
+## 5. The CALL face
 
 ### Sketch
 ```
-┌── Sunrise Home Care · Texas A&M · Provider ──────────────┐
-│                                                          │
 │  NEXT STEP                                               │
 │  ┌────────────────────────────────────────────────────┐ │
 │  │ [CALL]  Make the call, use the script, log it.      │ │
-│  │ 📞 (979) 555-0142 · Jane Doe                        │ │
+│  │ 📞 (979) 555-0142 · Jane Doe (Owner)               │ │
 │  │ ▸ Day 3 script  "Hi Jane, did you get our email…"   │ │
 │  │                                                    │ │
-│  │ [ Log call outcome → ]   [ Log reply ]             │ │
+│  │ [ Log call outcome → ]      [ Log reply ]          │ │
 │  └────────────────────────────────────────────────────┘ │
-│                                                          │
 │  CONTEXT  link sent ✓ · opened 2× · not activated        │
-│  ── timeline (collapsible) ──                            │
-│  More details ▾                                          │
-└──────────────────────────────────────────────────────────┘
 ```
 
 ### Admin manual
-- **What you see:** the phone number (one tap to dial), who you're calling, and the script
-  for whatever day the cadence is on.
-- **What the Next Step tells you:** "Make the call, use the script, log it." Plus a context
-  line showing whether they've already gotten/clicked their activation link — so you know if
-  this is a cold nudge or a "you're so close, let's finish" call.
-- **What script is shown:** the script attached to today's queued call (set when the cadence
-  was launched).
-- **What you do:** call, then click **Log call outcome**.
+- **What you see:** a one-tap phone number, who you're calling, and today's script (click to
+  expand). The CONTEXT line tells you whether they already have/clicked their activation link —
+  so you know if this is a cold nudge or a "you're almost there" call.
+- **What the Next Step tells you:** "Make the call, use the script, log it."
+- **What you do:** tap the number, talk, then click **Log call outcome**. (If they actually
+  emailed you back instead, use the secondary **Log reply**.)
+- **Why:** the three things a caller needs — number, who, what to say — are all in front of you,
+  and there's exactly one button that matters.
 
-### Outcomes (the Log Call modal) and what each does
-Grouped exactly as today — *Didn't reach them / Reached them / Other*:
+### Outcome modal — "Log call outcome"
+```
+┌ Log call outcome · Sunrise Home Care · Jane Doe ─────── ✕ ┐
+│ DIDN'T REACH THEM                                         │
+│  ○ No answer            returns on next call day          │
+│  ○ Left voicemail       → Replies, awaiting callback      │
+│  ○ Wrong number         closes the row                    │
+│ REACHED THEM                                              │
+│  ○ Promised callback    → Replies, awaiting callback      │
+│  ○ Interested ★         stops cold cadence; offer to      │
+│                          launch activation follow-up      │
+│  ○ Meeting scheduled    → Meetings  [date/time ▾]         │
+│  ○ Became a Client ✓    → Trial Active (you activate)     │
+│  ○ Not interested       closes the row                    │
+│ OTHER                                                     │
+│  ○ Stop communications  /  ○ Archive — no response        │
+│ Notes ____________________________________                │
+│                                  [ Cancel ] [ Log ]       │
+└───────────────────────────────────────────────────────────┘
+```
 
-| Outcome | What it does | Funnels to Trial Active? |
+### What each outcome does
+| Outcome | Result | To Trial Active? |
 |---|---|---|
-| No answer | Marks this call done; row returns on next call day | keeps cadence alive |
-| Left voicemail | Row → Replies as "awaiting callback"; future calls still fire | keeps cadence alive |
-| Wrong number | Closes the row | no |
-| Promised callback | → engaged; row → Replies awaiting callback | keeps warm |
-| **Interested** ★ | Stops the cold cadence **and opens the Cadence-Launch Module for `activation_followup`** | **YES — starts activation push** |
-| Meeting scheduled | Row → Meetings (optionally with date) | path to activate |
-| **Became a Client ✓** | `make_client` → **Trial Active**, terms accepted on their behalf | **YES — finish line** |
-| Not interested | Closes the row, cancels pending tasks | no |
-| Stop communications / Archive | Terminal closeouts | no |
+| No answer | call done; back on next call day | keeps cadence alive |
+| Left voicemail | → Replies, awaiting callback; calls still fire | keeps alive |
+| Wrong number | closes row | no |
+| Promised callback | → Replies, awaiting callback | keeps warm |
+| **Interested ★** | stops cold cadence; row shows **"Launch activation follow-up"** button | **starts activation push** |
+| Meeting scheduled | → Meetings (optional date) | path to activate |
+| **Became a Client ✓** | **Trial Active**, terms accepted on their behalf | **finish line** |
+| Not interested | closes row, cancels tasks | no |
+| Stop comms / Archive | terminal closeouts | no |
 
-**The one change vs. today:** "Interested" no longer just stops and goes quiet — it launches
-the activation follow-up (reviewed first). Everything else is unchanged.
+**Change vs. today:** "Interested" stops the cold cadence and then surfaces the optional
+**Launch activation follow-up** button (per decision #3) instead of going quiet.
 
 ---
 
-## 4. The Email drawer (face)
-
-This is the highest-volume face and gets the most new capability (Phases 1–3).
+## 6. The EMAIL face (highest-volume; most new capability)
 
 ### Sketch
 ```
-┌── Sunrise Home Care · Texas A&M · Provider ──────────────┐
-│                                                          │
 │  NEXT STEP                                               │
 │  ┌────────────────────────────────────────────────────┐ │
-│  │ ✉ THEY REPLIED — 2h ago                             │ │
+│  │ ✉ THEY REPLIED — 2h ago · jane@sunrise.com          │ │
 │  │ ┌──────────────────────────────────────────────┐   │ │
-│  │ │ "Thanks for reaching out — this sounds useful.│   │ │
-│  │ │  How does it work / what does it cost?"        │   │ │
+│  │ │ "Thanks for reaching out — this sounds useful. │   │ │
+│  │ │  How does it work and what does it cost?"      │   │ │
 │  │ └──────────────────────────────────────────────┘   │ │
 │  │                                                    │ │
-│  │ Reply with:  [Interested ★] [Wants to meet]        │ │
-│  │              [Send link] [Not interested] [Other]  │ │
-│  │                                                    │ │
-│  │ ┌─ editable draft (prefilled from the pill) ────┐  │ │
-│  │ │ Hi Jane — great to hear from you. Here's a     │  │ │
-│  │ │ link to see the students near you and get set  │  │ │
-│  │ │ up: {magic link}. Happy to answer questions.   │  │ │
+│  │ Reply:  [Interested ★] [Wants to meet] [Send link] │ │
+│  │         [Not interested] [Redirected] [Other]      │ │
+│  │ ┌─ editable draft (prefilled from the pill) ─────┐  │ │
+│  │ │ Hi Jane — great to hear from you. Here's your   │  │ │
+│  │ │ link to see the students near you and get set   │  │ │
+│  │ │ up: {magic link}. Happy to answer any questions.│  │ │
+│  │ │ — {RA name}, Research Assistant, Olera           │  │ │
 │  │ └────────────────────────────────────────────────┘  │ │
 │  │ [ Send reply → ]   (sends in-thread via Smartlead)  │ │
 │  └────────────────────────────────────────────────────┘ │
-│                                                          │
 │  CONTEXT  link sent ✓ · opened 2× · awaiting activation  │
-│  ── timeline ──   More details ▾                         │
-└──────────────────────────────────────────────────────────┘
 ```
 
 ### Admin manual
-- **What reply text is shown:** the provider's actual incoming reply (pulled in by the
-  Smartlead webhook), in a quoted box at the top — so you respond to what they *said*, not a
-  generic prompt.
-- **What response templates are available:** quick **pills** that map to intent —
-  *Interested ★*, *Wants to meet*, *Send link*, *Not interested*, *Other (blank)*. Clicking a
-  pill drops an **editable draft** below.
-- **How you reply:** edit the draft if needed → **Send reply** → it goes out in the same email
-  thread through Smartlead (no leaving the dashboard). *(If the Phase-0 plumbing check fails,
-  the same draft becomes copy-ready and you paste it into Smartlead — the design doesn't change,
-  only the send button's behavior.)*
-- **What happens after sending:** the reply is logged on the timeline, and the pill's intent
-  advances the provider's state (below).
+- **What reply text is shown:** the provider's *actual* incoming message, quoted at the top
+  (pulled in automatically by the Smartlead webhook). You're answering what they said, not a
+  blank box.
+- **What templates are available:** intent **pills** — *Interested ★ · Wants to meet · Send
+  link · Not interested · Redirected · Other*. Click one → an **editable draft appears**,
+  already in the RA's voice and signature.
+- **How you reply:** tweak the draft if you want → **Send reply** → it goes out in the same
+  email thread through Smartlead. You never leave the dashboard.
+  *(If the Smartlead send-plumbing turns out not to support in-thread send, the exact same draft
+  becomes copy-ready and you paste it into Smartlead — the screen is identical, only the button
+  changes. This is the only thing the optional Phase-0 check would settle.)*
+- **What happens after sending:** the reply is saved to the timeline and the pill's intent
+  advances the provider (table below). For **Interested / Send link**, the row then shows the
+  **Launch activation follow-up** button.
+- **Why:** reading their words + one-click intent + an editable draft is the fastest possible
+  "answer a warm lead" loop, and it keeps every reply logged automatically.
 
-### Outcomes (the reply pills) and what each does
-
-| Pill | What it sends | State effect | Cadence? |
+### Outcome — the reply pills
+| Pill | Sends | State effect | Then |
 |---|---|---|---|
-| **Interested ★** | Draft with the **magic activation link** | → **Awaiting Activation** | **Opens Cadence-Launch (`activation_followup`)** |
-| **Wants to meet** | Dual: "send me times & I'll book" **+** Dr. DuBose's Calendly link (w/ tracking) | → Meetings / awaiting-schedule | no sequence (human handles booking) |
-| Already booked | (no send) records the meeting | → Meetings | no |
-| **Send link** | Just the magic link, light copy | → Awaiting Activation | optional activation cadence |
-| Not interested | Gracious close | Closes row | no |
-| Redirected | Asks for the right contact; captures it | swaps contact, stops cold cadence | no |
-| Other | Blank draft | logs reply, cold cadence continues | no |
-
-**The funnel:** *Interested* and *Send link* both put the magic link in the provider's hands
-**and** start the reviewed activation cadence so they don't stall. That's the core loop.
+| **Interested ★** | draft w/ **magic activation link** | → Awaiting Activation | **shows Launch activation follow-up** |
+| **Wants to meet** | dual: "send me times" **+** Dr. DuBose Calendly (tracked) | → Meetings/awaiting-schedule | human books |
+| Already booked | (no send) records meeting | → Meetings | — |
+| **Send link** | light note + magic link | → Awaiting Activation | shows Launch button |
+| Not interested | gracious close | closes row | — |
+| Redirected | asks for right contact, captures it | swaps contact, stops cold cadence | — |
+| Other | blank draft | logs reply, cadence continues | — |
 
 ---
 
-## 5. The Meeting drawer (face)
+## 7. The MEETING face
 
 ### Sketch
 ```
-┌── Sunrise Home Care · Texas A&M · Provider ──────────────┐
 │  NEXT STEP                                               │
 │  ┌────────────────────────────────────────────────────┐ │
-│  │ 📅 Meeting booked · Tue Jun 10, 2:00pm              │ │
+│  │ 📅 Meeting booked · Tue Jun 10, 2:00 PM             │ │
 │  │ Prep: their campus students are pre-loaded; have    │ │
-│  │ the activation link ready to send live.             │ │
+│  │ the activation link ready to send live on the call. │ │
 │  │                                                    │ │
 │  │ [ Log meeting → ]                                  │ │
 │  └────────────────────────────────────────────────────┘ │
 │  CONTEXT  booked via Calendly · link not yet sent        │
-│  ── timeline ──   More details ▾                         │
-└──────────────────────────────────────────────────────────┘
 ```
 
 ### Admin manual
-- **What meeting details are shown:** date/time and a short prep line. (Meetings tab =
-  **real scheduled meetings only** — "still finding a time" lives in Replies, not here.)
-- **What you do before:** have the activation link ready to drop in chat during the call.
-- **What you do after:** click **Log meeting**, pick the outcome.
+- **What you see:** the date/time and a short prep line. (Meetings tab = **real booked meetings
+  only**; "still finding a time" stays in Replies so this tab never lies about what's scheduled.)
+- **Before the meeting:** have the activation link ready to drop in chat.
+- **After the meeting:** click **Log meeting** and pick the outcome.
 
-### Outcomes (the Log Meeting modal — simplified) and what each does
+### Outcome modal — "Log meeting"
+```
+┌ Log meeting · Sunrise Home Care · Jane Doe ──────────── ✕ ┐
+│  ○ Held → activate pilot 🎉   → Trial Active (you activate)│
+│  ○ Held → needs follow-up     → launch post-meeting cadence│
+│  ○ Held → not a fit           closes row                  │
+│  ○ No-show / reschedule       stays in Meetings to re-book │
+│  Notes ____________________________________               │
+│                                  [ Cancel ] [ Save ]      │
+└───────────────────────────────────────────────────────────┘
+```
 
-| Outcome | What it does | Funnels to Trial Active? |
+### What each outcome does
+| Outcome | Result | To Trial Active? |
 |---|---|---|
-| **Held → activate pilot 🎉** | `make_client` → **Trial Active** (terms accepted on their behalf) | **YES — finish line** |
-| **Held → needs follow-up** | **Opens Cadence-Launch (`post_meeting_followup`)** — reviewed email+call sequence | **YES — drives to activate** |
-| Held → not a fit | Closes row as not interested | no |
-| No-show / reschedule | Keeps row in Meetings, ready to re-book | back to scheduling |
+| **Held → activate 🎉** | **Trial Active**, terms accepted on their behalf | **finish line** |
+| **Held → needs follow-up** | opens **Cadence-Launch (post-meeting)** | **drives to activate** |
+| Held → not a fit | closes row | no |
+| No-show / reschedule | stays in Meetings, ready to re-book | back to scheduling |
 
-**The one change vs. today:** "Done — needs more email" becomes "needs follow-up" and opens
-the reviewed **post-meeting cadence** (email *and* call) instead of silently bouncing the row
-to Replies. The post-meeting copy is its own voice — "great talking today, here's the link to
-get started," not the cold-intro copy.
+**Change vs. today:** "needs more email" becomes "needs follow-up" and opens the reviewed
+post-meeting cadence (email + call) instead of silently bouncing to Replies.
 
 ---
 
-## 6. The three cadences, side by side
+## 8. The CADENCE-LAUNCH module (the shared new piece)
 
-| | **Initial (cold)** `provider` | **Activation** `activation_followup` (NEW) | **Post-meeting** `post_meeting_followup` (NEW) |
-|---|---|---|---|
-| Trigger | Admin launches from Pre-Flight | "Interested" reply/call outcome | "Held → needs follow-up" meeting outcome |
-| Context | They've never heard from us | They're interested, haven't activated | We've met, they're warm |
-| Steps | 3 emails + 2 calls / 7d | ~3 emails + 1 call (Now/+2/+4/+6) | email + call (+1/+4/+8) |
-| Voice | Cold intro, "easy way to hire" | "you're one click away," link-forward | "great talking, let's get you set up" |
-| Every step carries | flyer + program link | **magic activation link** | **magic activation link** |
-| Auto-stops on | reply / not-interested | **Trial Active** | **Trial Active** |
-| Reviewed before launch | ✓ (Pre-Flight) | ✓ (Cadence-Launch) | ✓ (Cadence-Launch) |
+Generalized from `PreFlightReviewModal`. Same look, now also shows **calls + scripts** and
+serves the two new cadences. This is **also the approval gate** (decision #2): the emails are
+drafted in the RA's voice, and **nothing sends until you read and click Launch.**
 
-All three use the **same review-and-launch module** and the **same queue/cron plumbing**.
-The only differences are the copy and the timing rows in `OUTREACH_DAYS_BY_TYPE`.
+### Sketch
+```
+┌ Launch activation follow-up · Sunrise Home Care ─────── ✕ ┐
+│ Nudges an interested provider to finish setup. Every email │
+│ is from {RA name} and carries their activation link. Stops │
+│ automatically the moment they activate.                    │
+│ Sends to: Jane Doe (jane@sunrise.com)                      │
+│                                                          │
+│  ▸ Now     ✉  "Here's your link to get set up"          ▾ │
+│  ▸ +2 days ✉  "Quick nudge — 2 minutes to activate"      │
+│  ▸ +4 days ☎  Call script: "Hi Jane, did you get the     │
+│                 link I sent? Happy to walk you through it" │
+│  ▸ +7 days ✉  "Last note — your campus students are ready"│
+│                                                          │
+│  (expand any row to edit subject / body / call script)    │
+│  📎 magic activation link → opens Terms ready to accept    │
+├────────────────────────────────────────────────────────┤
+│  4 steps ready              [ Cancel ]  [ Launch 🚀 ]     │
+└───────────────────────────────────────────────────────────┘
+```
+
+### Admin manual
+- **What you see:** the whole follow-up plan as a list — emails **and** calls — each stamped
+  with when it fires. Email cards expand to edit wording; call cards expand to edit the script.
+- **What you do:** read it (this is your approval), tweak anything, click **Launch**.
+- **What happens:** the first step fires now (or lands on today's call list); the rest queue
+  and the cron sends them on schedule. The whole sequence **auto-stops the instant they hit
+  Trial Active** — no awkward "you're already a customer" emails.
+- **Why a review screen instead of auto-send:** these go out under our name to real businesses.
+  You approve the plan once, then it runs itself. Same trust model as Pre-Flight.
+
+### Cadence A — Activation follow-up (`activation_followup`)
+Context: *interested, hasn't activated.* Reasonable, link-forward, **3 emails + 1 call / 7 days.**
+| When | Channel | Gist |
+|---|---|---|
+| Now | ✉ email | "Here's your link to see your campus students and get set up." |
+| +2 days | ✉ email | "Quick nudge — it takes ~2 minutes; here's the link again." |
+| +4 days | ☎ call | "Did you get the link? Happy to walk you through it now." |
+| +7 days | ✉ email | "Last note — your campus students are ready when you are." |
+
+### Cadence B — Post-meeting follow-up (`post_meeting_followup`)
+Context: *we met, they're warm.* **2 emails + 1 call / 8 days.**
+| When | Channel | Gist |
+|---|---|---|
+| +1 day | ✉ email | "Great talking today — here's your link to get started." (recaps the call) |
+| +4 days | ☎ call | "Following up on our chat — any questions before you set up?" |
+| +8 days | ✉ email | "Checking in — still glad to help you get the first shifts filled." |
+
+Both: email-only steps skip nothing; **call steps only queue if we have a phone number**
+(same rule the cold cadence uses today). Both carry the **`&activate=1` magic link** so the
+provider lands one tap from accepting Terms.
 
 ---
 
-## 7. Master outcome → action → result map
+## 9. The "Awaiting Activation" row + the optional Launch button
 
-This is the single source of truth for "what does each outcome do." Everything maps to an
-**existing** backend action (no new dispatcher verbs).
+When a provider is interested but hasn't activated, the row's Next Step looks like this:
 
-| Where | Outcome | Backend action(s) | Result |
+```
+│  NEXT STEP                                               │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │ ★ Interested — not activated yet.                   │ │
+│  │ They got the link; waiting on them to accept Terms. │ │
+│  │                                                    │ │
+│  │ [ Launch activation follow-up ]   [ Nudge now ]    │ │
+│  │ [ Resend link ]                                    │ │
+│  └────────────────────────────────────────────────────┘ │
+│  CONTEXT  link sent 3d ago · opened 2× · no accept yet   │
+```
+
+**Admin manual:**
+- **What you see:** a clear "interested but not across the line yet" state, with how long it's
+  been and whether they've opened the link.
+- **What you do:** click **Launch activation follow-up** to set the reviewed 7-day sequence
+  running, or **Nudge now** for a single manual email, or **Resend link** if they lost it.
+- **Why optional (not automatic):** per your call — you decide when a sequence starts; the
+  system never surprises a provider with emails you didn't approve.
+
+This whole state disappears automatically when they accept Terms (→ Trial Active).
+
+---
+
+## 10. Where the link lands (the finish line UI)
+
+```
+   magic activation link (&activate=1)
+        │
+        ▼
+┌ Hire Caregivers · Texas A&M students ────────────────────┐
+│  Welcome! Review your campus students below.              │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │  ACCEPT TERMS TO START YOUR FREE TRIAL        ✕?  │    │  ← auto-opens
+│  │  • See full student profiles & contact them       │    │
+│  │  • 90-day pilot, no card required                 │    │
+│  │  [ Accept & start trial ]                         │    │
+│  └──────────────────────────────────────────────────┘    │
+│  [student card] [student card] [student card] …          │
+└────────────────────────────────────────────────────────────┘
+        │ accept
+        ▼  Trial Active 🎉  → drawer shows "Pilot Active · 90 days left"
+```
+
+**Admin manual:** the provider clicks any link we send → they're already logged in (silent
+auth), looking at their campus's students, with the Terms box open. One tap = **Trial Active**,
+and their row flips to the green "Pilot Active" state. That click is the entire point of every
+drawer and cadence above it.
+
+---
+
+## 11. Master outcome → action → result map
+
+Everything maps to an **existing** backend action (no new verbs).
+
+| Face | Outcome | Backend action(s) | Result |
 |---|---|---|---|
-| Call | Interested | `log_call_outcome(connected_engaged)` → **Cadence-Launch** | Awaiting Activation + activation cadence |
+| Call | Interested | `log_call_outcome(connected_engaged)` → show Launch button | Awaiting Activation |
 | Call | Meeting scheduled | `mark_meeting_scheduled` | → Meetings |
 | Call | Became a Client | `make_client` | **Trial Active** |
 | Call | No answer / VM / callback | `log_call_outcome(...)` | cadence continues |
 | Call | Not interested / wrong # | `mark_not_interested` / `log_call_outcome(wrong_number)` | closed |
-| Email | Interested / Send link | `classify_reply(keep_emailing)` + `sendReply` → **Cadence-Launch** | Awaiting Activation + activation cadence |
+| Email | Interested / Send link | `classify_reply(keep_emailing)` + `sendReply` → show Launch button | Awaiting Activation |
 | Email | Wants to meet | `flag_wants_meeting` + `sendReply`(dual) | → Replies/Meetings |
 | Email | Already booked | `mark_meeting_scheduled` | → Meetings |
 | Email | Not interested | `classify_reply(not_interested)` | closed |
 | Email | Redirected | `add_contact` + `classify_reply(keep_emailing, stop_cadence)` | contact swapped |
+| Awaiting | Launch activation follow-up | `schedule_sequence(activation_followup)` | reviewed cadence runs |
 | Meeting | Held → activate | `make_client` | **Trial Active** |
-| Meeting | Held → follow-up | `mark_meeting_followup` → **Cadence-Launch** | post-meeting cadence |
+| Meeting | Held → follow-up | `mark_meeting_followup` → `schedule_sequence(post_meeting_followup)` | reviewed cadence runs |
 | Meeting | Not a fit | `mark_not_interested` | closed |
 | Meeting | No-show | `flag_wants_meeting(no_show)` | stays in Meetings |
 | Calendly webhook | invitee.created | `mark_meeting_scheduled` + supersede call/email tasks | → Meetings (auto) |
 
 ---
 
-## 8. How it all reaches Trial Active (the activation link)
+## 12. New vs. existing (the delta you're approving)
 
-The magic activation link is the connective tissue. Two variants:
-- **Standard** (cold cadence): link → board (campus-filtered) + welcome banner.
-- **Activation** (`&activate=1`, used by activation + post-meeting cadences and the
-  Interested/Send-link replies): link → board → **Terms modal auto-opens, ready to accept** →
-  accept → **Trial Active**.
+**Exists, kept (refine copy/labels only):** the unified drawer + Next Step box; all three Log
+modals and their groupings; the Pre-Flight review-and-launch UX and the queue/cron plumbing;
+`make_client → Trial Active`; Calendly-aware meeting states.
 
-So no matter which path a provider takes — cold email reply, a call, or a meeting — the moment
-they're "interested," they get a link that lands them one tap from accepting Terms, and a
-reviewed follow-up sequence keeps nudging that single tap until it happens.
-
----
-
-## 9. What's NEW vs. what already exists (the delta you're approving)
-
-**Already exists, unchanged in spirit (we refine copy/labels only):**
-- The one unified drawer + stage-driven Next Step box.
-- All three Log modals (Call / Reply / Meeting) and their outcome groupings.
-- The Pre-Flight review-and-launch UX and the queue/cron plumbing.
-- `make_client` → Trial Active; Calendly-aware meeting states.
-
-**New (what this design adds):**
-1. **Real reply text** in the Email face (Smartlead webhook). *(Phase 1)*
-2. **Reply pills + editable draft + Send** in the Email face. *(Phase 2)*
-3. **Cadence-Launch Module** generalized from Pre-Flight to (a) accept a cadence key and
-   (b) render call/script steps, not just emails. *(Phase 3)*
+**New:**
+1. Real reply text in the Email face (Smartlead webhook). *(Phase 1)*
+2. Reply pills + editable draft + Send. *(Phase 2)*
+3. Cadence-Launch module = Pre-Flight generalized to take a cadence key + render call/script
+   steps. *(Phase 3)*
 4. Two new cadences in `OUTREACH_DAYS_BY_TYPE`: `activation_followup`, `post_meeting_followup`,
-   each launched through the review module. *(Phases 3 & 5)*
-5. "Interested" outcomes (call + reply) and "needs follow-up" (meeting) now **open the
-   Cadence-Launch module** instead of going quiet. *(Phases 3 & 5)*
-6. The **`&activate=1`** link variant (Terms auto-open). *(Phase 3)*
-7. **Calendly webhook** auto-creates the Meeting card + clears stale call/email work. *(Phase 4)*
-8. Drawer **action-first polish** across all three faces. *(Phase 6)*
+   with RA-voiced copy. *(Phases 3 & 5)*
+5. "Awaiting Activation" row state + optional **Launch activation follow-up / Nudge / Resend**
+   buttons. *(Phase 3)*
+6. The `&activate=1` link variant (Terms auto-open). *(Phase 3)*
+7. Calendly webhook auto-creates the Meeting card + clears stale call/email work. *(Phase 4)*
+8. Action-first polish across all three faces. *(Phase 6)*
 
-**Discipline kept:** no new dispatcher actions, no new touchpoint types, no new tables —
-new cadences are config + copy; webhooks are new routes that reuse existing handlers.
+**Discipline kept:** no new dispatcher actions, no new touchpoint types, no new tables — new
+cadences are config + copy; webhooks are new routes reusing existing handlers.
 
 ---
 
-## 10. Open questions for Logan
+## 13. Build sequencing (unchanged from the build plan)
 
-1. **Activation cadence timing** — Now / +2 / +4 / +6 with one call at +4? Or fewer touches?
-2. **Activation/post-meeting voice** — personal note from Dr. DuBose, or lighter "the Olera
-   team"? (Drives the copy.)
-3. **"Interested" auto-opens the Cadence-Launch every time, or is it optional** (a "Launch
-   activation follow-up" button on the Awaiting-Activation row the admin clicks when ready)?
-   Recommend: **optional button** — you stay in control, no surprise sequences.
-4. **Post-meeting cadence** — confirm you want it (email + call), or keep post-meeting manual
-   for v1 and add the cadence later?
+Phase 1 (reply text) → 2 (reply + Send) → 3 (Cadence-Launch + activation cadence + Awaiting
+state + `&activate=1`) → 4 (Calendly) → 5 (post-meeting cadence) → 6 (polish). Each phase is one
+revertable PR, typecheck clean, staging → main per the workflow. Phase 0 (Smartlead send
+spike) skipped per Logan unless Phase 2 hits the send-plumbing wall.

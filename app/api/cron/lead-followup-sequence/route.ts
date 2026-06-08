@@ -18,15 +18,15 @@ import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tok
  * Runs daily at 14:00 UTC (~9 AM ET). Multi-stage follow-up sequence for
  * provider leads that haven't been viewed.
  *
- * Sequence:
+ * Sequence (compressed for faster human intervention):
  * - Day 0: Initial email (connectionRequestEmail — sent elsewhere)
  * - Day 1: Follow-up #1 — "In case it got buried" (stage 1)
  * - Day 3: Follow-up #2 — "Still waiting, replying is effortless" (stage 2)
- * - Day 6: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
- * - Day 10: Final message — "Graceful last call" (stage 4)
- * - Day 14: Mark as "Stuck" — no email, awaiting re-engagement (stage 5)
- * - Day 17: Re-engagement email — "One more try" (stage 6, template pending)
- * - Day 24: Mark as "Needs Call" — no email, requires manual call (stage 7)
+ * - Day 5: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
+ * - Day 7: Final message — "Graceful last call" (stage 4)
+ * - Day 10: Mark as "Stuck" — no email, awaiting re-engagement (stage 5)
+ * - Day 11: Re-engagement email — "One more try" (stage 6)
+ * - Day 14: Mark as "Needs Call" — no email, requires manual call (stage 7)
  *
  * STOP CONDITION: Sequence stops the moment provider VIEWS the lead (lead_opened event)
  * or takes any engagement action.
@@ -43,15 +43,15 @@ const ENGAGEMENT_EVENTS = [
 
 export const maxDuration = 120;
 
-// Stage thresholds in days since inquiry
+// Stage thresholds in days since inquiry (compressed sequence)
 const STAGE_THRESHOLDS = {
   1: 1,   // Day 1-2 → Stage 1
-  2: 3,   // Day 3-5 → Stage 2
-  3: 6,   // Day 6-9 → Stage 3
-  4: 10,  // Day 10-13 → Stage 4
-  5: 14,  // Day 14-16 → Stage 5 (stuck)
-  6: 17,  // Day 17-23 → Stage 6 (re-engagement email, template pending)
-  7: 24,  // Day 24+ → Stage 7 (needs_call — manual intervention)
+  2: 3,   // Day 3-4 → Stage 2
+  3: 5,   // Day 5-6 → Stage 3
+  4: 7,   // Day 7-9 → Stage 4
+  5: 10,  // Day 10 → Stage 5 (stuck)
+  6: 11,  // Day 11-13 → Stage 6 (re-engagement email)
+  7: 14,  // Day 14+ → Stage 7 (needs_call — manual intervention)
 } as const;
 
 type FollowupStage = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;

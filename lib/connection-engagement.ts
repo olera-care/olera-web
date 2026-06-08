@@ -8,8 +8,8 @@
  *   Viewed     → Provider opened the lead page
  *   Engaged    → Provider revealed contact info (opened drawer)
  *   Connected  → Provider reached out (called, emailed, or messaged)
- *   Stuck      → No activity for 14+ days, awaiting re-engagement
- *   Needs Call → Re-engagement email sent, still no response (24+ days)
+ *   Stuck      → No activity for 10+ days, awaiting re-engagement
+ *   Needs Call → Re-engagement email sent, still no response (14+ days)
  *
  * This matches the actual provider journey rather than assuming
  * a messaging-based workflow.
@@ -29,8 +29,8 @@ export type EngagementLevel =
  *   New       → Provider hasn't responded yet (family is waiting)
  *   Awaiting  → Provider responded, family hasn't replied (ball in family's court)
  *   Connected → Family replied at least once (conversation active)
- *   Stuck     → No family activity for 14+ days
- *   Needs Call → No family activity for 24+ days
+ *   Stuck     → No family activity for 10+ days
+ *   Needs Call → No family activity for 14+ days
  */
 export type FamilyEngagementLevel =
   | "new"
@@ -97,10 +97,10 @@ export interface FamilyEngagementResult {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Connections with no activity beyond this are "stuck" */
-export const STUCK_THRESHOLD_DAYS = 14;
+export const STUCK_THRESHOLD_DAYS = 10;
 
 /** Connections stuck beyond this need manual call intervention */
-export const NEEDS_CALL_THRESHOLD_DAYS = 24;
+export const NEEDS_CALL_THRESHOLD_DAYS = 14;
 
 // ── Labels ──
 
@@ -153,7 +153,7 @@ export const ENGAGEMENT_CONFIG: Record<
     label: "Stuck",
     dot: "bg-gray-400",
     text: "text-gray-500",
-    description: "No activity for 14+ days",
+    description: "No activity for 10+ days",
   },
   needs_call: {
     label: "Needs Call",
@@ -189,13 +189,13 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
     label: "Stuck",
     dot: "bg-gray-400",
     text: "text-gray-500",
-    description: "No family activity for 14+ days",
+    description: "No family activity for 10+ days",
   },
   needs_call: {
     label: "Needs Call",
     dot: "bg-red-400",
     text: "text-red-600",
-    description: "No family activity for 24+ days",
+    description: "No family activity for 14+ days",
   },
 };
 

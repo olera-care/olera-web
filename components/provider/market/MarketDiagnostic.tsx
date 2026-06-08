@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import ReferralTargets from "./ReferralTargets";
 import SectionNav from "./SectionNav";
-import MobileSectionNav from "./MobileSectionNav";
 import CatchmentMapLoader from "./CatchmentMapLoader";
 import { CAT_COLOR } from "./CatchmentMap";
 import CountUp from "./CountUp";
@@ -221,9 +220,6 @@ export default function MarketDiagnostic({
         </p>
       )}
       </div>{/* /competition */}
-
-      {/* Mobile in-page wayfinding — sticks below the hero once you scroll past it. */}
-      <MobileSectionNav sections={NAV} />
 
       {/* ── The unlock — referral map (the differentiated payoff) ── */}
       <Section id="referral" kicker="The unlock" title="The referral map most agencies never build">

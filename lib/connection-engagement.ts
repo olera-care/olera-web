@@ -28,14 +28,14 @@ export type EngagementLevel =
  *
  *   New       → Provider hasn't responded yet (family is waiting)
  *   Awaiting  → Provider responded, family hasn't replied (ball in family's court)
- *   Engaged   → Family replied at least once (conversation active)
+ *   Connected → Family replied at least once (conversation active)
  *   Stuck     → No family activity for 14+ days
  *   Needs Call → No family activity for 24+ days
  */
 export type FamilyEngagementLevel =
   | "new"
   | "awaiting"
-  | "engaged"
+  | "connected"
   | "stuck"
   | "needs_call";
 
@@ -116,7 +116,7 @@ export const ENGAGEMENT_LABELS: Record<EngagementLevel, string> = {
 export const FAMILY_ENGAGEMENT_LABELS: Record<FamilyEngagementLevel, string> = {
   new: "New",
   awaiting: "Awaiting",
-  engaged: "Engaged",
+  connected: "Connected",
   stuck: "Stuck",
   needs_call: "Needs Call",
 };
@@ -179,8 +179,8 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
     text: "text-amber-700",
     description: "Provider responded, awaiting family reply",
   },
-  engaged: {
-    label: "Engaged",
+  connected: {
+    label: "Connected",
     dot: "bg-emerald-400",
     text: "text-emerald-700",
     description: "Family replied to provider",
@@ -228,18 +228,7 @@ export function getEngagementLevel(
   const isStale = daysSinceActivity >= STUCK_THRESHOLD_DAYS;
   const needsCallByTime = daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS;
 
-  // If explicitly marked as needs_call by cron AND actually old enough, return that
-  // This double-check prevents data corruption from showing new leads as needs_call
-  if (engagement.needsCall && daysSinceActivity >= NEEDS_CALL_THRESHOLD_DAYS) {
-    return {
-      level: "needs_call",
-      label: ENGAGEMENT_LABELS.needs_call,
-      daysSinceActivity,
-      isStale: true,
-    };
-  }
-
-  // Determine base level (before stuck check)
+  // Determine base level first (before applying time-based rules)
   let baseLevel: EngagementLevel;
 
   if (
@@ -262,15 +251,22 @@ export function getEngagementLevel(
     baseLevel = "new";
   }
 
-  // Connected connections don't become stuck or needs_call (they're successful)
+  // Determine final engagement level
+  // - Connected: provider reached out (success) - never becomes stuck/needs_call
+  // - Viewed/Engaged: provider showed interest - keep in their tab so re-engagement emails continue
+  // - New: no activity - becomes stuck (14+ days) or needs_call (24+ days)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
+  } else if (baseLevel === "viewed" || baseLevel === "engaged") {
+    // Provider showed interest - keep them in their tab regardless of time
+    // Re-engagement emails will continue working on them
+    level = baseLevel;
   } else if (needsCallByTime) {
-    // 24+ days without engagement → needs manual intervention
+    // 24+ days with NO engagement → needs manual intervention
     level = "needs_call";
   } else if (isStale) {
-    // 14+ days → stuck (awaiting re-engagement email)
+    // 14+ days with NO engagement → stuck (awaiting re-engagement email)
     level = "stuck";
   } else {
     level = baseLevel;
@@ -328,7 +324,7 @@ export const FAMILY_ENGAGEMENT_PRIORITY: Record<FamilyEngagementLevel, number> =
   awaiting: 1,   // Hot - provider responded, family hasn't
   new: 2,        // Cold - waiting on provider
   stuck: 3,      // Stale - family went silent
-  engaged: 4,    // Success - family replied
+  connected: 4,  // Success - family replied
 };
 
 /**
@@ -341,8 +337,8 @@ export const FAMILY_ENGAGEMENT_PRIORITY: Record<FamilyEngagementLevel, number> =
  * Hierarchy:
  *   1. Provider hasn't responded yet → "new"
  *   2. Provider responded, family hasn't replied → "awaiting"
- *   3. Family replied at least once → "engaged" (success state)
- *   4. No family activity for 14+ days (not engaged) → "stuck"
+ *   3. Family replied at least once → "connected" (success state)
+ *   4. No family activity for 14+ days (not connected) → "stuck"
  *   5. No family activity for 24+ days → "needs_call"
  */
 export function getFamilyEngagementLevel(
@@ -403,16 +399,16 @@ export function getFamilyEngagementLevel(
 
   if (data.familyReplied) {
     // Family replied at least once - success state
-    baseLevel = "engaged";
+    baseLevel = "connected";
   } else {
     // Provider responded but family hasn't replied
     baseLevel = "awaiting";
   }
 
-  // Engaged doesn't become stuck (success state)
+  // Connected doesn't become stuck (success state)
   let level: FamilyEngagementLevel;
-  if (baseLevel === "engaged") {
-    level = "engaged";
+  if (baseLevel === "connected") {
+    level = "connected";
   } else if (needsCallByTime) {
     level = "needs_call";
   } else if (isStale) {

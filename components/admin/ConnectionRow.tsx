@@ -8,6 +8,7 @@ import {
 } from "@/lib/connection-temperature";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import EmailPreviewModal from "@/components/admin/EmailPreviewModal";
+import ProviderFactSheetModal from "@/components/admin/ProviderFactSheetModal";
 
 interface ProfileCompleteness {
   percentage: number;
@@ -16,7 +17,7 @@ interface ProfileCompleteness {
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
 export type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
-export type FamilyEngagementLevel = "new" | "awaiting" | "engaged" | "stuck" | "needs_call";
+export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
 export type Perspective = "provider" | "family";
 
 export interface ConnectionRowData {
@@ -35,6 +36,8 @@ export interface ConnectionRowData {
   provider: {
     id?: string | null;
     display_name: string | null;
+    slug?: string | null;
+    source_provider_id?: string | null;
     email?: string | null;
     phone?: string | null;
     image_url?: string | null;
@@ -265,6 +268,9 @@ export default function ConnectionRow({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
 
+  // Fact sheet modal state
+  const [showFactSheet, setShowFactSheet] = useState(false);
+
   // Email trail state (collapsed by default)
   const [showEmails, setShowEmails] = useState(false);
   const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
@@ -313,8 +319,8 @@ export default function ConnectionRow({
       const famLevel = c.familyEngagementLevel || "new";
 
       switch (famLevel) {
-        case "engaged":
-          return { status: "Engaged", color: "text-emerald-600", nudgeInfo: null };
+        case "connected":
+          return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
         case "awaiting":
           return { status: "Awaiting Reply", color: "text-amber-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
         case "stuck":
@@ -598,10 +604,11 @@ export default function ConnectionRow({
           ) : detail ? (
             <div className="space-y-4">
               {/* Section 1: Action bar */}
-              {/* Stuck connection alert - show call options prominently */}
-              {/* Show for stuck/needs_call based on current perspective */}
-              {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call")) ||
-                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call"))) && (
+              {/* Stuck/Needs Call banner - only show if we can actually call someone */}
+              {/* Family perspective: only show if family has phone */}
+              {/* Provider perspective: only show if provider has phone */}
+              {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call") && detail.family.phone) ||
+                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call") && detail.provider.phone)) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
                     {perspective === "family"
@@ -609,67 +616,33 @@ export default function ConnectionRow({
                         ? "Family requires manual call. No activity for 24+ days."
                         : "Family needs follow-up. No activity for 14+ days."
                       : c.engagementLevel === "needs_call"
-                        ? "This connection requires manual call. No activity for 24+ days."
-                        : "This connection needs follow-up. No activity for 14+ days."}
+                        ? "Provider requires manual call. No activity for 24+ days."
+                        : "Provider needs follow-up. No activity for 14+ days."}
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (
-                      // Family perspective: primary action is calling family
-                      <>
-                        {detail.family.phone && (
-                          <a
-                            href={`tel:${detail.family.phone}`}
-                            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                          >
-                            Call Family
-                          </a>
-                        )}
-                        {detail.provider.phone && (
-                          <a
-                            href={`tel:${detail.provider.phone}`}
-                            className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                          >
-                            Call Provider
-                          </a>
-                        )}
-                      </>
+                      // Family perspective: only show Call Family
+                      <a
+                        href={`tel:${detail.family.phone}`}
+                        className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
+                      >
+                        Call Family
+                      </a>
                     ) : (
-                      // Provider perspective: existing logic
+                      // Provider perspective: only show Call Provider + Fact Sheet
                       <>
-                        {/* Primary call button based on who we're waiting on */}
-                        {c.waitingOn === "provider" && detail.provider.phone && (
-                          <a
-                            href={`tel:${detail.provider.phone}`}
-                            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                          >
-                            Call Provider
-                          </a>
-                        )}
-                        {c.waitingOn === "family" && detail.family.phone && (
-                          <a
-                            href={`tel:${detail.family.phone}`}
-                            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
-                          >
-                            Call Family
-                          </a>
-                        )}
-                        {/* Secondary call option */}
-                        {c.waitingOn === "provider" && detail.family.phone && (
-                          <a
-                            href={`tel:${detail.family.phone}`}
-                            className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                          >
-                            Call Family
-                          </a>
-                        )}
-                        {c.waitingOn === "family" && detail.provider.phone && (
-                          <a
-                            href={`tel:${detail.provider.phone}`}
-                            className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
-                          >
-                            Call Provider
-                          </a>
-                        )}
+                        <a
+                          href={`tel:${detail.provider.phone}`}
+                          className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700"
+                        >
+                          Call Provider
+                        </a>
+                        <button
+                          onClick={() => setShowFactSheet(true)}
+                          className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
+                        >
+                          Fact Sheet
+                        </button>
                       </>
                     )}
                   </div>
@@ -682,7 +655,7 @@ export default function ConnectionRow({
                 {perspective === "family" ? (
                   // Family perspective: primary action is nudging family
                   <>
-                    {c.familyEngagementLevel !== "engaged" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_call" && (
+                    {c.familyEngagementLevel !== "connected" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_call" && (
                       <>
                         {/* Family nudge - primary action in family perspective */}
                         {detail.family.email && (
@@ -707,8 +680,8 @@ export default function ConnectionRow({
                     {c.familyEngagementLevel === "new" && (
                       <span className="text-sm text-gray-500">Waiting for provider to respond</span>
                     )}
-                    {c.familyEngagementLevel === "engaged" && (
-                      <span className="text-sm text-emerald-600 font-medium">Family replied</span>
+                    {c.familyEngagementLevel === "connected" && (
+                      <span className="text-sm text-emerald-600 font-medium">Family connected</span>
                     )}
                   </>
                 ) : (
@@ -756,6 +729,15 @@ export default function ConnectionRow({
                     )}
                     {c.engagementLevel === "connected" && (
                       <span className="text-sm text-emerald-600 font-medium">Provider reached out to family</span>
+                    )}
+                    {/* Fact Sheet for needs_call when banner doesn't show (no provider phone) */}
+                    {(c.engagementLevel === "needs_call" || c.engagementLevel === "stuck") && !detail.provider.phone && (
+                      <button
+                        onClick={() => setShowFactSheet(true)}
+                        className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100"
+                      >
+                        Fact Sheet
+                      </button>
                     )}
                   </>
                 )}
@@ -997,6 +979,16 @@ export default function ConnectionRow({
           html={emailPreview.html}
           sending={nudging}
           warning={emailPreview.warning}
+        />
+      )}
+
+      {/* Provider Fact Sheet Modal */}
+      {showFactSheet && (
+        <ProviderFactSheetModal
+          isOpen={showFactSheet}
+          onClose={() => setShowFactSheet(false)}
+          providerId={c.provider.slug || c.provider.source_provider_id || c.provider.id || ""}
+          providerName={c.provider.display_name || "Provider"}
         />
       )}
     </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { newMessageEmail } from "@/lib/email-templates";
+import { newMessageEmailForFamily, newMessageEmailForProvider } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 
 interface ThreadMessage {
@@ -146,12 +146,19 @@ export async function GET(request: NextRequest) {
       await sendEmail({
         to: recipient.email,
         subject: urSubject,
-        html: newMessageEmail({
-          recipientName: recipient.display_name || "there",
-          senderName,
-          messagePreview: preview,
-          viewUrl,
-        }),
+        html: isFamily
+          ? newMessageEmailForFamily({
+              familyName: recipient.display_name || "",
+              providerName: senderName,
+              messagePreview: preview,
+              viewUrl,
+            })
+          : newMessageEmailForProvider({
+              providerName: recipient.display_name || "",
+              familyName: senderName,
+              messagePreview: preview,
+              viewUrl,
+            }),
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
         emailLogId: urLogId ?? undefined,

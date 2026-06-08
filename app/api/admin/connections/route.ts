@@ -130,7 +130,7 @@ interface FamilyEngagementCounts {
   all: number;
   new: number;
   awaiting: number;
-  engaged: number;
+  connected: number;
   stuck: number;
   needs_call: number;
 }
@@ -176,6 +176,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const responseFilter = (searchParams.get("filter") || "all") as TabFilter;
+    const direction = (searchParams.get("direction") || "inbound") as "inbound" | "outbound";
     const perspective = (searchParams.get("perspective") || "provider") as Perspective;
     const stateFilter = searchParams.get("state") as ConnectionTemperatureState | null;
     const includeClosed = searchParams.get("include_closed") === "true";
@@ -186,6 +187,167 @@ export async function GET(request: NextRequest) {
     const offset = Number(searchParams.get("offset")) || 0;
 
     const db = getServiceClient();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OUTBOUND CONNECTIONS (provider-initiated via "Find Families")
+    // Separate code path that returns early - does NOT touch existing inbound logic
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (direction === "outbound") {
+      // Outbound tabs: all, accepted, pending, declined
+      type OutboundTab = "all" | "accepted" | "pending" | "declined";
+      const outboundFilter = (searchParams.get("filter") || "all") as OutboundTab;
+
+      let outboundQuery = db
+        .from("connections")
+        .select(`
+          id,
+          type,
+          status,
+          message,
+          metadata,
+          created_at,
+          from_profile_id,
+          to_profile_id,
+          from_profile:business_profiles!connections_from_profile_id_fkey(
+            id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
+            website, address, city, state, description, care_types, metadata
+          ),
+          to_profile:business_profiles!connections_to_profile_id_fkey(
+            id, display_name, type, email, phone, image_url, city, description, care_types, metadata
+          )
+        `)
+        .eq("type", "request")
+        .contains("metadata", { provider_initiated: true })
+        .order("created_at", { ascending: false })
+        .limit(FETCH_CAP);
+
+      if (dateFrom) outboundQuery = outboundQuery.gte("created_at", dateFrom);
+      if (dateTo) outboundQuery = outboundQuery.lte("created_at", dateTo);
+
+      const { data: outboundRows, error: outboundError } = await outboundQuery;
+      if (outboundError) {
+        console.error("[connections/outbound] query error:", outboundError);
+        return NextResponse.json({ error: "Failed to load outbound connections" }, { status: 500 });
+      }
+
+      // For outbound: provider = from_profile, family = to_profile (SWAPPED from inbound)
+      const outboundAll = (outboundRows ?? []).map((r) => {
+        const provider = one(r.from_profile as ProfileJoin<ProviderProfile>);
+        const family = one(r.to_profile as ProfileJoin<FamilyProfile>);
+        const meta = (r.metadata as Record<string, unknown>) ?? {};
+
+        // Map status to outbound status: accepted, pending, declined
+        const outboundStatus = r.status === "accepted" ? "accepted"
+          : r.status === "declined" ? "declined"
+          : "pending";
+
+        // Extract thread and reply info
+        type ThreadMsg = { from_profile_id: string; text?: string; is_auto_reply?: boolean; created_at?: string };
+        const thread = (meta.thread as ThreadMsg[]) || [];
+
+        // Message preview from the initial outreach message
+        let messagePreview = "";
+        if (r.message) {
+          try {
+            const msgJson = JSON.parse(String(r.message));
+            messagePreview = msgJson.message || msgJson.notes || "";
+          } catch {
+            messagePreview = String(r.message);
+          }
+        }
+        if (messagePreview.length > 80) {
+          messagePreview = messagePreview.substring(0, 77) + "...";
+        }
+
+        // Family's reply (if any)
+        const familyReply = thread.find(
+          (m) => m.from_profile_id === r.to_profile_id && m.text && !m.is_auto_reply
+        );
+        const replyMessage = familyReply?.text || meta.reply_message as string | undefined || null;
+        const repliedAt = familyReply?.created_at || meta.replied_at as string | undefined || null;
+
+        return {
+          id: r.id,
+          type: r.type,
+          status: outboundStatus,
+          created_at: r.created_at,
+          // For outbound, family and provider are swapped from the connection record
+          family: {
+            id: family?.id ?? null,
+            display_name: family?.display_name ?? null,
+            email: family?.email ?? null,
+            phone: family?.phone ?? null,
+            image_url: family?.image_url ?? null,
+            city: family?.city ?? null,
+          },
+          provider: {
+            id: provider?.id ?? null,
+            display_name: provider?.display_name ?? null,
+            slug: provider?.slug ?? null,
+            email: provider?.email ?? null,
+            phone: provider?.phone ?? null,
+            image_url: provider?.image_url ?? null,
+            is_active: provider?.is_active !== false,
+            city: provider?.city ?? null,
+            state: provider?.state ?? null,
+          },
+          messagePreview,
+          replyMessage,
+          repliedAt,
+          threadLength: thread.length,
+        };
+      });
+
+      // Search filter
+      const outboundSearched = search
+        ? outboundAll.filter(
+            (c) =>
+              (c.family.display_name || "").toLowerCase().includes(search) ||
+              (c.provider.display_name || "").toLowerCase().includes(search)
+          )
+        : outboundAll;
+
+      // Tab counts for outbound
+      const outboundCounts = {
+        all: outboundSearched.length,
+        accepted: outboundSearched.filter((c) => c.status === "accepted").length,
+        pending: outboundSearched.filter((c) => c.status === "pending").length,
+        declined: outboundSearched.filter((c) => c.status === "declined").length,
+      };
+
+      // Stats for outbound
+      const outboundStats = {
+        total: outboundCounts.all,
+        accepted: outboundCounts.accepted,
+        pending: outboundCounts.pending,
+        declined: outboundCounts.declined,
+        acceptRate: outboundCounts.all > 0
+          ? Math.round((outboundCounts.accepted / outboundCounts.all) * 100)
+          : 0,
+      };
+
+      // Filter by tab
+      let outboundList = outboundSearched;
+      if (outboundFilter !== "all") {
+        outboundList = outboundSearched.filter((c) => c.status === outboundFilter);
+      }
+
+      // Paginate
+      const outboundPage = outboundList.slice(offset, offset + limit);
+
+      return NextResponse.json({
+        connections: outboundPage,
+        total: outboundList.length,
+        direction: "outbound",
+        outboundCounts,
+        outboundStats,
+        truncated: (outboundRows ?? []).length >= FETCH_CAP,
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // INBOUND CONNECTIONS (family-initiated inquiries) - EXISTING CODE UNCHANGED
+    // ═══════════════════════════════════════════════════════════════════════════
 
     let q = db
       .from("connections")
@@ -694,7 +856,7 @@ export async function GET(request: NextRequest) {
       all: 0,
       new: 0,
       awaiting: 0,
-      engaged: 0,
+      connected: 0,
       stuck: 0,
       needs_call: 0,
     };
@@ -765,7 +927,14 @@ export async function GET(request: NextRequest) {
 
         // Count engagement levels (provider perspective)
         engagementCounts.all++;
-        engagementCounts[engResult.level]++;
+
+        // For needs_call: only count if provider HAS email
+        // Providers without email should only appear in no_email tab
+        if (engResult.level === "needs_call" && !c.provider.email?.trim()) {
+          // Don't count in needs_call - they'll be in no_email instead
+        } else {
+          engagementCounts[engResult.level]++;
+        }
 
         // Count providers without email (cross-cutting filter)
         if (!c.provider.email?.trim()) {
@@ -819,7 +988,7 @@ export async function GET(request: NextRequest) {
 
     // Check if filter is an engagement level (provider or family)
     const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
-    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "engaged", "stuck", "needs_call"];
+    const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
       // Special filter: no_email (provider perspective only - cross-cutting filter)
@@ -838,7 +1007,16 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+          if (responseFilter === "needs_call") {
+            // Needs Call: only include providers WITH email
+            // Providers without email should be in "No Email" tab instead
+            list = list.filter((c) =>
+              connectionEngagementLevels.get(c.id) === "needs_call" &&
+              c.provider.email?.trim()
+            );
+          } else {
+            list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+          }
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);

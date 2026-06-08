@@ -396,34 +396,6 @@ export function connectionSentEmail(opts: {
   `, "We'll notify you when they respond.");
 }
 
-/**
- * Combined email for guest connections — serves as both confirmation AND magic link.
- * Single email reduces confusion and improves conversion.
- */
-export function guestConnectionEmail(opts: {
-  familyName: string;
-  providerName: string;
-  careType: string | null;
-  magicLinkUrl: string;
-}): string {
-  const careLine = opts.careType
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;"><strong>Care type:</strong> ${escapeHtml(opts.careType)}</p>`
-    : "";
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your message is on its way</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, your inquiry to <strong>${escapeHtml(opts.providerName)}</strong> has been delivered. We'll notify you as soon as they respond.
-    </p>
-    ${careLine}
-    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;">Click below to view your inbox — you'll be signed in automatically.</p>
-    <div style="margin:0 0 24px;">${button("View your inbox", opts.magicLinkUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      This link expires in 1 hour. Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
-    </p>
-  `, "We'll notify you when they respond.");
-}
-
 /** Email to verify email address after instant account creation */
 export function verifyEmailEmail(opts: {
   familyName: string;
@@ -483,24 +455,29 @@ export function connectionResponseEmail(opts: {
  * Email for when someone sends their FIRST message in a thread (initiating contact).
  * Shows the message preview and says "sent you a message" not "got back to you".
  */
-export function firstMessageEmail(opts: {
-  recipientName: string;
-  senderName: string;
+/**
+ * First message email to FAMILY (when a PROVIDER sends them a message for the first time).
+ * Greeting: Family's first name or "Hi there,"
+ * Sender: Provider's full name
+ */
+export function firstMessageEmailForFamily(opts: {
+  familyName: string;
+  providerName: string;
   messagePreview: string;
   viewUrl: string;
 }): string {
-  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
-  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
-    ? escapeHtml(firstName(opts.recipientName, "there"))
+  const providerFullName = escapeHtml(opts.providerName || "A provider");
+  const familyGreeting = opts.familyName && opts.familyName.trim()
+    ? escapeHtml(firstName(opts.familyName, "there"))
     : "there";
   const safePreview = escapeHtml(opts.messagePreview);
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${recipientGreeting},
+      Hi ${familyGreeting},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${safeSenderFullName}</strong> sent you a message:
+      <strong>${providerFullName}</strong> sent you a message:
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
@@ -523,28 +500,74 @@ export function firstMessageEmail(opts: {
 }
 
 /**
- * Email for when someone REPLIES in an ongoing conversation.
- * Says "got back to you" since recipient has messaged before.
+ * First message email to PROVIDER (when a FAMILY sends them a message for the first time).
+ * Greeting: Provider's full name (business name)
+ * Sender: Family's first name or "A family"
  */
-export function newMessageEmail(opts: {
-  recipientName: string;
-  senderName: string;
+export function firstMessageEmailForProvider(opts: {
+  providerName: string;
+  familyName: string;
   messagePreview: string;
   viewUrl: string;
 }): string {
-  // Use full sender name (not shortened) in first line, as specified
-  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
-  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
-    ? escapeHtml(firstName(opts.recipientName, "there"))
-    : "there";
+  const providerGreeting = escapeHtml(opts.providerName || "there");
+  const safeFamilyName = firstName(opts.familyName, "");
+  const familyRef = safeFamilyName ? escapeHtml(safeFamilyName) : "A family";
+  const safePreview = escapeHtml(opts.messagePreview);
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${recipientGreeting},
+      Hi ${providerGreeting},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Good news — <strong>${safeSenderFullName}</strong> just got back to you. You can read their message and reply right here:
+      <strong>${familyRef}</strong> sent you a message:
     </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
+    <div style="margin:0 0 24px;">${button("Read their message", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Families appreciate a quick, personal response — it can make all the difference in their decision.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions? We're here to help — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "A family sent you a message — read and respond.");
+}
+
+/**
+ * Email to FAMILY when a PROVIDER replies in an ongoing conversation.
+ * Greeting: Family's first name or "Hi there,"
+ * Sender: Provider's full name
+ */
+export function newMessageEmailForFamily(opts: {
+  familyName: string;
+  providerName: string;
+  messagePreview: string;
+  viewUrl: string;
+}): string {
+  // Family greeting: first name or "there"
+  const familyGreeting = opts.familyName && opts.familyName.trim()
+    ? escapeHtml(firstName(opts.familyName, "there"))
+    : "there";
+  // Provider: use full name, fallback to "A provider"
+  const providerFullName = escapeHtml(opts.providerName || "A provider");
+  const safePreview = escapeHtml(opts.messagePreview);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${familyGreeting},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Good news — <strong>${providerFullName}</strong> just got back to you:
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
     <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
     <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
@@ -560,6 +583,48 @@ export function newMessageEmail(opts: {
       Warmly,<br>The Olera team
     </p>
   `, "Read their message and reply whenever you're ready.");
+}
+
+/**
+ * Email to PROVIDER when a FAMILY replies in an ongoing conversation.
+ * Greeting: Provider's full name (business name)
+ * Sender: Family's first name or "A family"
+ */
+export function newMessageEmailForProvider(opts: {
+  providerName: string;
+  familyName: string;
+  messagePreview: string;
+  viewUrl: string;
+}): string {
+  // Provider greeting: full business name
+  const providerGreeting = escapeHtml(opts.providerName || "there");
+  // Family: first name if available, otherwise "A family"
+  const safeFamilyName = firstName(opts.familyName, "");
+  const familyRef = safeFamilyName ? escapeHtml(safeFamilyName) : "A family";
+  const safePreview = escapeHtml(opts.messagePreview);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${providerGreeting},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${familyRef}</strong> just replied:
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
+    <div style="margin:0 0 24px;">${button("Read their message", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Families appreciate a quick, personal response — it can make all the difference in their decision.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions? We're here to help — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "A family replied — read their message and respond.");
 }
 
 /** Reminder email to family when provider responded but family hasn't engaged */

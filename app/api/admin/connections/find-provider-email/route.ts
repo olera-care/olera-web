@@ -130,6 +130,16 @@ export async function POST(request: NextRequest) {
       state,
     };
 
+    // Validate provider has minimal data for enrichment
+    if (!ctx.name && !ctx.website && !ctx.place_id) {
+      return NextResponse.json({
+        error: "Provider has insufficient data for email lookup (no name, website, or place_id)",
+        email: null,
+        source: null,
+        candidates: [],
+      }, { status: 200 }); // 200 because it's not a client error, just no data available
+    }
+
     // Create context hash for cache invalidation
     const contextHash = JSON.stringify({
       name: ctx.name || "",
@@ -146,13 +156,17 @@ export async function POST(request: NextRequest) {
 
       if (cachedData && cachedData.enriched_at) {
         const enrichedAt = new Date(cachedData.enriched_at as string);
-        const ageInDays = (Date.now() - enrichedAt.getTime()) / (1000 * 60 * 60 * 24);
+        const timestamp = enrichedAt.getTime();
 
-        // Validate cache: must be fresh AND context must match
-        const cachedContextHash = cachedData.context_hash as string | undefined;
-        const contextMatches = cachedContextHash === contextHash;
+        // Skip cache if timestamp is invalid
+        if (!isNaN(timestamp)) {
+          const ageInDays = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
 
-        if (ageInDays < 30 && contextMatches) {
+          // Validate cache: must be fresh AND context must match
+          const cachedContextHash = cachedData.context_hash as string | undefined;
+          const contextMatches = cachedContextHash === contextHash;
+
+          if (ageInDays < 30 && ageInDays >= 0 && contextMatches) {
           // Update stats for cache hit (fire and forget)
           const updatedStats = updateEnrichmentStats(provider.metadata, {
             wasHit: true,
@@ -175,19 +189,34 @@ export async function POST(request: NextRequest) {
               }
             });
 
-          return NextResponse.json({
-            email: cachedData.email || null,
-            source: cachedData.source || null,
-            candidates: (cachedData.candidates as string[]) || [],
-            cached: true,
-            enriched_at: cachedData.enriched_at,
-          });
+            return NextResponse.json({
+              email: cachedData.email || null,
+              source: cachedData.source || null,
+              candidates: (cachedData.candidates as string[]) || [],
+              cached: true,
+              enriched_at: cachedData.enriched_at,
+            });
+          }
         }
       }
     }
 
     // Call the email finder (tries scraping first, then Perplexity AI)
-    const result = await findEmail(ctx);
+    let result;
+    try {
+      result = await findEmail(ctx);
+    } catch (enrichmentError) {
+      console.error("[find-provider-email] Enrichment failed:", enrichmentError);
+
+      // Return graceful error
+      return NextResponse.json({
+        error: "Email enrichment failed. The provider's website may be inaccessible or the service may be experiencing issues.",
+        email: null,
+        source: null,
+        candidates: [],
+        details: enrichmentError instanceof Error ? enrichmentError.message : "Unknown error",
+      }, { status: 500 });
+    }
 
     // Update both cache and stats in single metadata write (fire and forget)
     const metadata = (provider.metadata || {}) as Record<string, unknown>;

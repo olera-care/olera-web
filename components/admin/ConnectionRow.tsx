@@ -325,14 +325,21 @@ export default function ConnectionRow({
               setFoundEmails(data.candidates);
             }
           } else if (res.ok && !data.email) {
-            const errorMsg = "No email found" + (data.cached ? " (cached)" : "");
+            // No email found or insufficient data
+            const errorMsg = data.error || ("No email found" + (data.cached ? " (cached)" : ""));
             setFindEmailError(errorMsg);
             setIsCachedResult(data.cached || false);
           } else {
+            // API error
             setFindEmailError(data.error || "Failed to find email");
           }
-        } catch {
-          setFindEmailError("Network error");
+        } catch (err) {
+          // Network or timeout error
+          const isTimeout = err instanceof Error && err.name === "TimeoutError";
+          const errorMsg = isTimeout
+            ? "Request timed out. Try again later."
+            : "Network error";
+          setFindEmailError(errorMsg);
         } finally {
           setFindingEmail(false);
         }
@@ -704,15 +711,22 @@ export default function ConnectionRow({
           setFoundEmails(data.candidates);
         }
       } else if (res.ok && !data.email) {
-        // No email found
-        const errorMsg = "No email found for this provider" + (data.cached ? " (cached)" : "");
+        // No email found or insufficient data
+        const errorMsg = data.error || ("No email found for this provider" + (data.cached ? " (cached)" : ""));
         setFindEmailError(errorMsg);
         setIsCachedResult(data.cached || false);
       } else {
-        setFindEmailError(data.error || "Failed to find email");
+        // API error
+        const errorMsg = data.error || "Failed to find email";
+        setFindEmailError(errorMsg);
       }
-    } catch {
-      setFindEmailError("Network error");
+    } catch (err) {
+      // Network or timeout error
+      const isTimeout = err instanceof Error && err.name === "TimeoutError";
+      const errorMsg = isTimeout
+        ? "Request timed out. The provider's website may be slow to respond. Try again later."
+        : "Network error. Please check your connection and try again.";
+      setFindEmailError(errorMsg);
     } finally {
       setFindingEmail(false);
     }

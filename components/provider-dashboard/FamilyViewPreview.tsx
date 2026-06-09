@@ -53,9 +53,9 @@ function EditLink({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="inline-flex flex-shrink-0 items-center gap-1 text-sm font-medium text-gray-400 transition-colors hover:text-primary-700"
+      className="-my-1.5 inline-flex flex-shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-400 transition-colors hover:text-primary-700 active:bg-gray-100 active:text-primary-700"
     >
-      <PencilIcon className="h-3.5 w-3.5" />
+      <PencilIcon className="h-4 w-4" />
       Edit
     </button>
   );
@@ -83,10 +83,10 @@ function GhostRow({
   return (
     <button
       onClick={onClick}
-      className="group flex w-full items-center justify-between gap-4 rounded-xl border border-dashed border-gray-300 bg-gray-50/60 px-5 py-4 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/40"
+      className="group flex w-full flex-col items-start gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50/60 px-5 py-4 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/40 active:bg-primary-50/60 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
     >
       <span className="text-[15px] text-gray-500">{text}</span>
-      <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 transition-colors group-hover:bg-primary-100">
+      <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-primary-50 px-4 py-2.5 text-sm font-semibold text-primary-700 transition-colors group-hover:bg-primary-100">
         {cta}
         <span aria-hidden>&rarr;</span>
       </span>
@@ -165,7 +165,7 @@ function GhostOwner({ onClick }: { onClick: () => void }) {
         </p>
         <button
           onClick={onClick}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-primary-50 px-6 py-2.5 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-primary-50 px-6 py-3 text-sm font-semibold text-primary-700 transition-colors hover:bg-primary-100 active:scale-[0.98]"
         >
           Add your story
           <span aria-hidden>&rarr;</span>
@@ -215,26 +215,29 @@ export default function FamilyViewPreview({
 
       <div className="mx-auto max-w-2xl px-6 py-8">
         {/* Identity */}
-        <div className="mb-2 flex items-center gap-4">
+        <div className="mb-2 flex items-start gap-3 sm:gap-4">
           {heroImage ? (
             <Image
               src={heroImage}
               alt={profile.display_name}
               width={72}
               height={72}
-              className="h-[72px] w-[72px] rounded-2xl object-cover"
+              className="h-[72px] w-[72px] flex-shrink-0 rounded-2xl object-cover"
             />
           ) : (
             <button
               onClick={() => onEdit("overview")}
-              className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 text-xs font-medium text-primary-700 hover:bg-primary-50/40"
+              className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-50/40 active:bg-primary-50/60"
             >
               Add logo
             </button>
           )}
+          {/* Name is a plain block (no truncate) so it wraps full-width instead
+              of collapsing to "A..." on mobile; EditLink is shrink-0 and never
+              steals its measure. */}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate font-display text-2xl font-bold text-gray-900">{profile.display_name}</h1>
-            <p className="mt-0.5 text-sm text-gray-500">{location || "Add your location"}</p>
+            <h1 className="font-display text-2xl font-bold leading-tight text-gray-900">{profile.display_name}</h1>
+            <p className="mt-1 text-sm text-gray-500">{location || "Add your location"}</p>
           </div>
           <EditLink onClick={() => onEdit("overview")} />
         </div>

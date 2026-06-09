@@ -252,6 +252,9 @@ export default function FamilyViewPreview({
                   width={220}
                   height={220}
                   className="aspect-square w-full rounded-lg object-cover"
+                  // owner-only preview thumb — skip the optimizer so a fresh
+                  // upload doesn't render broken/slow (see GalleryCard)
+                  unoptimized
                 />
               ))}
             </div>

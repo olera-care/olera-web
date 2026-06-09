@@ -18,7 +18,7 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
-import { type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
+import { OUTREACH_DAYS_BY_TYPE, type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
 import { getTemplate } from "@/lib/student-outreach/templates";
 import {
   planSequence,
@@ -32,6 +32,7 @@ import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
 import {
   buildSmartleadPreview,
   enrollRowIntoCampusCampaign,
+  enrollActivationLead,
   type BridgeRow,
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
@@ -361,6 +362,24 @@ export async function POST(
       // ── v4 auto-send outreach ───────────────────────────────────────
       case "schedule_sequence":
         await handleScheduleSequence(db, row, body, user.id);
+        break;
+
+      // Activation system (Phase 2, 2026-06-09): launch the activation
+      // cadence from a warm signal (Interested on an email reply, a call,
+      // or a meeting). Queues the activation CALL tasks immediately and
+      // records the cadence + the deliberate activation-link send. The
+      // activation EMAIL delivery (per-campus Smartlead activation
+      // campaign) is wired as a follow-up integration; the approved
+      // snapshots are persisted on the launch touchpoint for it to use.
+      case "launch_activation":
+        await handleLaunchActivation(db, row, body, user.id);
+        break;
+
+      // Stop a running activation cadence (cancels its pending tasks).
+      // Trial Active already auto-stops via the conversion task-cleanup;
+      // this is the manual off-switch on the drawer's running state.
+      case "stop_activation":
+        await handleStopActivation(db, row, user.id);
         break;
       case "offer_call":
         await handleOfferCall(db, row, body, user.id);
@@ -2021,6 +2040,260 @@ async function handleScheduleSequence(
       },
     });
   }
+}
+
+/**
+ * Activation cadence launch (Phase 2). Fired by the drawer's "Interested"
+ * action on an email reply, a call, or a meeting. Unlike schedule_sequence
+ * (cold), this does NOT reset the row's stage or re-enroll the cold cadence.
+ * It:
+ *   1. Cancels any still-pending COLD cadence tasks (the provider is warm now).
+ *   2. Promotes outreach_sent → engaged (leaves more-advanced stages alone).
+ *   3. Queues the activation CALL tasks (tagged payload.cadence='activation';
+ *      only when we have a phone number).
+ *   4. Records two touchpoints: `activation_launched` (carries the approved
+ *      email snapshots + recipient for the Smartlead activation enrollment to
+ *      pick up) and `activation_link_sent` (the marker that puts the row in
+ *      "awaiting activation" until Trial Active).
+ *
+ * The activation EMAIL delivery (a per-campus Smartlead activation campaign) is
+ * a separate, focused integration; the calls queued here are live immediately.
+ */
+async function handleLaunchActivation(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    call_scripts?: Array<{ day: number; script: string }>;
+    recipient?: {
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      contact_id?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+    };
+    source?: string;
+  },
+  userId: string,
+) {
+  // Guard: don't double-launch an activation cadence.
+  const { data: alreadyRunning } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .filter("payload->>cadence", "eq", "activation")
+    .limit(1);
+  if ((alreadyRunning ?? []).length > 0) {
+    throw new Error("Activation cadence already running — stop it before relaunching.");
+  }
+
+  const recipient = body.recipient ?? {};
+  const source = body.source ?? "reply";
+
+  // 1. Stop the cold cadence (CRM side). Smartlead auto-pauses the email drip
+  //    on reply; this clears any pending cold call/email tasks so they don't
+  //    fire on a now-warm provider.
+  await db
+    .from("student_outreach_tasks")
+    .update({ status: "cancelled" })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_followup_call", "outreach_email_send", "outreach_day_0"]);
+
+  // 2. Promote to engaged without disturbing a more advanced stage.
+  if (row.status === "outreach_sent") {
+    await transitionStage(db, row, "engaged", userId, "activation_launched");
+  } else {
+    await touchOutreach(db, row.id, userId);
+  }
+
+  // 3. Queue activation CALL tasks (only when we have a phone). Inserted AFTER
+  //    the stage transition so they can't be swept by exit-task cancellation.
+  const scriptByDay = new Map(
+    (body.call_scripts ?? []).map((s) => [s.day, s.script]),
+  );
+  const now = Date.now();
+  if (recipient.phone) {
+    const callInserts = OUTREACH_DAYS_BY_TYPE["activation"]
+      .map((day) => {
+        const phoneStep = day.steps.find((s) => s.channel === "phone");
+        if (!phoneStep) return null;
+        return {
+          outreach_id: row.id,
+          task_type: "outreach_followup_call" as const,
+          due_at: new Date(now + day.day * 86_400_000).toISOString(),
+          payload: {
+            cadence: "activation",
+            day: day.day,
+            label: phoneStep.label ?? "Activation check-in call",
+            script: scriptByDay.get(day.day) ?? null,
+            recipient_name: recipient.name ?? null,
+            recipient_phone: recipient.phone ?? null,
+            recipient_contact_id: recipient.contact_id ?? null,
+          },
+          created_by: userId,
+        };
+      })
+      .filter((t): t is NonNullable<typeof t> => t !== null);
+    if (callInserts.length > 0) {
+      const { error } = await db.from("student_outreach_tasks").insert(callInserts);
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  // 3b. Enroll the engaged contact into the activation Smartlead campaign so
+  //     the email drip actually sends. Best-effort: a Smartlead error must not
+  //     undo the calls + touchpoints already recorded above.
+  let emailDelivery = "smartlead_pending";
+  if (recipient.email) {
+    try {
+      const enrolled = await enrollRowIntoActivationCampaign(db, row, {
+        email: recipient.email,
+        first_name: recipient.first_name ?? null,
+        last_name: recipient.last_name ?? null,
+        contact_id: recipient.contact_id ?? null,
+      });
+      emailDelivery = `smartlead_${enrolled.status}`;
+      if (enrolled.status === "error") {
+        console.error("[launch_activation] activation enrollment error:", enrolled.detail);
+      }
+    } catch (e) {
+      emailDelivery = "smartlead_error";
+      console.error(
+        "[launch_activation] activation enrollment threw:",
+        e instanceof Error ? e.message : e,
+      );
+    }
+  }
+
+  // 4. Record the launch + the deliberate activation-link send.
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    payload: {
+      reason: "activation_launched",
+      source,
+      recipient,
+      call_scripts: body.call_scripts ?? [],
+      // Outcome of the activation Smartlead enrollment (enrolled / skipped /
+      // error / pending). The campaign is created PAUSED — a human starts it.
+      email_delivery: emailDelivery,
+    },
+  });
+  if (recipient.email) {
+    await insertTouchpoint(db, row.id, "note_added", userId, {
+      channel: "email",
+      payload: {
+        reason: "activation_link_sent",
+        email: recipient.email,
+        source,
+      },
+    });
+  }
+
+  // Surface the row as unread so the new activation work boosts the tab.
+  await db.from("student_outreach").update({ viewed_at: null }).eq("id", row.id);
+}
+
+/**
+ * Enroll the engaged contact into the campus's ACTIVATION Smartlead campaign so
+ * the activation emails actually drip (Phase 4c). Mirrors enrollRowIntoSmartlead
+ * (cold): resolve campus, reuse the campus's activation campaign id from a
+ * sibling (or this row's own linkage), else provision a new PAUSED one; persist
+ * the linkage on success. Best-effort — the caller does NOT fail the launch on a
+ * Smartlead error (calls + touchpoints already landed). Skips (never throws)
+ * when the magic-link secret is unset, so we never enroll activation emails
+ * whose CTA would degrade to the marketing page.
+ */
+async function enrollRowIntoActivationCampaign(
+  db: DB,
+  row: OutreachRow,
+  recipient: {
+    email: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    contact_id?: string | null;
+  },
+): Promise<{ status: "enrolled" | "skipped" | "error"; detail?: string }> {
+  if (!process.env.MEDJOBS_MAGIC_LINK_SECRET) {
+    return { status: "skipped", detail: "MEDJOBS_MAGIC_LINK_SECRET unset" };
+  }
+
+  const { data: campusRow } = await db
+    .from("student_outreach_campuses")
+    .select("name, city, slug")
+    .eq("id", row.campus_id)
+    .maybeSingle();
+  const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
+  const campusName = campus?.name ?? "Unknown Campus";
+
+  // Reuse the campus's existing ACTIVATION campaign id (this row's own linkage,
+  // then a sibling's); the first activation in a campus provisions a new one.
+  const ownCid = row.research_data?.smartlead_activation?.campaign_id;
+  let existingCampaignId: number | undefined =
+    typeof ownCid === "number" ? ownCid : undefined;
+  if (!existingCampaignId) {
+    const { data: siblings } = await db
+      .from("student_outreach")
+      .select("research_data")
+      .eq("campus_id", row.campus_id)
+      .neq("id", row.id);
+    for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+      const cid = s.research_data?.smartlead_activation?.campaign_id;
+      if (typeof cid === "number") {
+        existingCampaignId = cid;
+        break;
+      }
+    }
+  }
+
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  const enroll = await enrollActivationLead({
+    outreach_id: row.id,
+    organizationName: row.organization_name,
+    campus: { name: campusName, city: campus?.city ?? null, slug: campus?.slug ?? null },
+    campaignName: `MedJobs Activation — ${campusName} — ${yyyymm}`,
+    existingCampaignId,
+    recipient,
+  });
+
+  if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };
+  if (!enroll.ok || !enroll.campaign_id) {
+    const detail =
+      enroll.errors.map((e) => `${e.stage}: ${e.message}`).join("; ") || "unknown";
+    return { status: "error", detail };
+  }
+
+  const nextResearch: ResearchData = {
+    ...row.research_data,
+    smartlead_activation: {
+      campaign_id: enroll.campaign_id,
+      lead_email: recipient.email,
+      enrolled_at: new Date().toISOString(),
+    },
+  };
+  await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
+
+  return { status: "enrolled" };
+}
+
+/** Stop a running activation cadence: cancel its pending tasks + mark stopped. */
+async function handleStopActivation(db: DB, row: OutreachRow, userId: string) {
+  await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "cancelled",
+      completed_at: new Date().toISOString(),
+      completed_by: userId,
+    })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .filter("payload->>cadence", "eq", "activation");
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    payload: { reason: "activation_stopped" },
+  });
+  await touchOutreach(db, row.id, userId);
 }
 
 /**

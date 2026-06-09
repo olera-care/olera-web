@@ -392,7 +392,8 @@ export function buildEmailSequence(
   // actual cadence-derived type so each stakeholder cadence gets the right
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
-  const ctxStakeholderType = cadenceKey === "provider" ? "student_org" : cadenceKey;
+  const ctxStakeholderType =
+    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
@@ -462,7 +463,10 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/\{organization_name\}/g, MERGE_COMPANY)
     .replace(/\{campus_name\}/g, MERGE_CAMPUS)
     .replace(/\{admin_first_name\}/g, adminFirstName)
-    .replace(/\{calendly_url\}/g, CALENDLY_URL)
+    // Carry the outreach_id on the Calendly link so a self-booked meeting
+    // correlates deterministically in the Calendly webhook (tracking.utm_content
+    // → outreach row); the {{outreach_id}} merge field is set per-lead.
+    .replace(/\{calendly_url\}/g, `${CALENDLY_URL}?utm_content={{outreach_id}}`)
     .replace(/\{program_url\}/g, PROGRAM_URL)
     // v10 Phase 2+3 Bullet 6 (2026-06-04): per-lead welcome URL set in
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
@@ -1055,6 +1059,128 @@ export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<E
   result.created = true;
 
   const added = await addLeads(prov.campaign_id, leads);
+  if (!added.ok) {
+    result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+    return result;
+  }
+  result.enrolled = true;
+
+  result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
+  result.ok = result.errors.length === 0;
+  return result;
+}
+
+export interface ActivationEnrollInput {
+  outreach_id: string;
+  organizationName: string;
+  campus: CampusContext;
+  /** Used only when no campus ACTIVATION campaign exists yet. */
+  campaignName: string;
+  /** The campus's existing activation campaign id (from a sibling row's
+   *  research_data.smartlead_activation.campaign_id). Append to it when set;
+   *  provision a new PAUSED activation campaign when absent. */
+  existingCampaignId?: number;
+  /** The ONE engaged contact the activation cadence targets (not a fan-out). */
+  recipient: {
+    email: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    contact_id?: string | null;
+  };
+  senderEmails?: string[];
+  adminFirstName?: string;
+  schedule?: Record<string, unknown>;
+}
+
+/**
+ * Enroll ONE engaged contact into the campus's ACTIVATION Smartlead campaign.
+ *
+ * Distinct from `enrollRowIntoCampusCampaign` (cold) on purpose:
+ *   - NO eligibility filter: the row is `engaged` + already enrolled in the
+ *     cold campaign — both of which the cold filter rejects, but both are
+ *     EXPECTED here (the activation cadence is a deliberate warm follow-up).
+ *   - Single lead (the engaged contact), not a General + Named fan-out.
+ *   - The lead's welcome_url carries `?a=1` so the magic link auto-opens Terms.
+ *   - Uses the `activation` sequence (canonical activation templates).
+ *
+ * Same safety as the cold path: never STARTs (campaign left PAUSED for a human
+ * to start in Smartlead), never writes the CRM (caller persists the linkage),
+ * aggregates errors. Inert when SMARTLEAD_API_KEY is unset (addLeads/create
+ * return ok:false).
+ */
+export async function enrollActivationLead(input: ActivationEnrollInput): Promise<EnrollResult> {
+  const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
+
+  const email = input.recipient.email?.trim();
+  if (!email) {
+    result.skipped_reason = "no_email";
+    return result;
+  }
+
+  // Per-lead magic link with the activate flag so it lands on Terms. Falls back
+  // to PROGRAM_URL only when the secret is unset (dev/preview) — same posture
+  // as rowToLeads.
+  const magicLinkSecret = process.env.MEDJOBS_MAGIC_LINK_SECRET ?? "";
+  const welcomeUrl = (() => {
+    if (!magicLinkSecret) return PROGRAM_URL;
+    try {
+      return buildWelcomeUrl(
+        { outreach_id: input.outreach_id, email, activate: true },
+        magicLinkSecret,
+      );
+    } catch {
+      return PROGRAM_URL;
+    }
+  })();
+
+  const firstName = input.recipient.first_name?.trim() || "";
+  const lead: SmartleadLead = {
+    email,
+    first_name: firstName,
+    company_name: input.organizationName,
+    custom_fields: {
+      campus: input.campus.name,
+      catchment_city: input.campus.city ?? "",
+      outreach_id: input.outreach_id,
+      recipient_kind: firstName ? "named" : "general",
+      contact_id: input.recipient.contact_id ?? "",
+      role: "",
+      salutation: firstName ? `Hi ${firstName}` : "Hello",
+      welcome_url: welcomeUrl,
+    },
+  };
+
+  // Existing campus activation campaign → just append this lead.
+  if (input.existingCampaignId) {
+    result.campaign_id = input.existingCampaignId;
+    const added = await addLeads(input.existingCampaignId, [lead]);
+    if (!added.ok) {
+      result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+      return result;
+    }
+    result.enrolled = true;
+    result.ok = true;
+    return result;
+  }
+
+  // First activation for this campus → provision a new PAUSED activation campaign.
+  const mb = await resolveMailboxPool(input.senderEmails);
+  result.mailbox_warnings = mb.pool.warnings;
+  if (!mb.ok) {
+    result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
+    return result;
+  }
+  const steps = buildEmailSequence("activation", {
+    adminFirstName: input.adminFirstName,
+    campusSlug: input.campus.slug ?? null,
+  });
+  const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
+  result.errors.push(...prov.errors);
+  if (!prov.campaign_id) return result;
+  result.campaign_id = prov.campaign_id;
+  result.created = true;
+
+  const added = await addLeads(prov.campaign_id, [lead]);
   if (!added.ok) {
     result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
     return result;

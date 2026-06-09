@@ -128,6 +128,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "provider_intro": return providerIntroEmail(ctx, ctx.contacts);
     case "provider_followup": return providerFollowupEmail(ctx, ctx.contacts);
     case "provider_final": return providerFinalEmail(ctx, ctx.contacts);
+    case "activation_intro": return activationIntroEmail(ctx);
+    case "activation_nudge": return activationNudgeEmail(ctx);
+    case "activation_final": return activationFinalEmail(ctx);
   }
 }
 
@@ -550,6 +553,71 @@ export function providerFinalEmail(
       `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
       ``,
       `If now isn't the right time, no problem — we'll check back next term. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Thanks for your time.`,
+    ].join("\n"),
+  };
+}
+
+// ── Activation cadence ──────────────────────────────────────────────────
+//
+// Launched from a warm signal (interested reply, interested call, or a
+// meeting). Goal: get the provider to click their magic link ({welcome_url})
+// and accept Terms. Every body offers BOTH the link and a meeting option so
+// the provider self-selects. Tone: simple, warm, human, low-pressure — a note
+// from the research assistant, not a marketing blast. No em-dashes.
+//
+// Greeting follows the provider pattern: named variant -> "Hi {first_name},";
+// general -> "Hello,". Activation usually targets the one person who engaged,
+// so named is the common case.
+
+export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
+  const variant = ctx.variant ?? "named";
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  return {
+    subject: `Your ${PLACEHOLDER.campus} students + getting set up`,
+    body: [
+      greeting,
+      ``,
+      `Great to connect. Two easy ways forward:`,
+      ``,
+      `**[Review your ${PLACEHOLDER.campus} students and get set up →](${PLACEHOLDER.welcomeUrl})** It takes about two minutes, and you'll be able to message students directly.`,
+      ``,
+      `Or if you'd rather talk it through first, [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}), or just reply with a couple of windows this week or next and I'll set it up.`,
+      ``,
+      `Either way, happy to help.`,
+    ].join("\n"),
+  };
+}
+
+export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
+  const variant = ctx.variant ?? "named";
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  return {
+    subject: `Your ${PLACEHOLDER.campus} students are ready`,
+    body: [
+      greeting,
+      ``,
+      `Just making sure this didn't get buried. You can jump in anytime here:`,
+      ``,
+      `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `Or grab a time with Dr. DuBose if it's easier to talk first: [Dr. DuBose's calendar](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
+  const variant = ctx.variant ?? "named";
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  return {
+    subject: `Still here when you're ready`,
+    body: [
+      greeting,
+      ``,
+      `No rush at all. Whenever you're ready, your link to view the ${PLACEHOLDER.campus} students and get set up is here:`,
+      ``,
+      `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
     ].join("\n"),
   };
 }

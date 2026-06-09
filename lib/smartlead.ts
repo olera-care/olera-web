@@ -181,6 +181,27 @@ export async function attachEmailAccounts(
 }
 
 /**
+ * Register a webhook on a campaign so Smartlead POSTs lifecycle events
+ * (reply / open / click / bounce / unsubscribe) to our edge function. Called
+ * once per campus campaign by the admin "Connect Smartlead replies" button.
+ * Endpoint/shape follows Smartlead's documented create-webhook API — verify
+ * against current docs before go-live (this module is dormant until the key
+ * is set, so shape drift is harmless until then).
+ */
+export async function createCampaignWebhook(
+  campaignId: number,
+  webhook: { name: string; webhookUrl: string; eventTypes: string[] },
+): Promise<SmartleadResult<{ id?: number }>> {
+  return smartleadRequest("POST", `/campaigns/${campaignId}/webhooks`, {
+    id: null,
+    name: webhook.name,
+    webhook_url: webhook.webhookUrl,
+    event_types: webhook.eventTypes,
+    categories: [],
+  });
+}
+
+/**
  * Push leads into a campaign. Smartlead caps the batch size per request
  * (currently ~100); callers with larger lists should chunk before calling.
  * `ignoreGlobalBlockList`/dedupe behavior is left at Smartlead defaults.

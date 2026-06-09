@@ -1019,6 +1019,14 @@ export async function GET(request: NextRequest) {
               connectionEngagementLevels.get(c.id) === "needs_call" &&
               c.provider.email?.trim()
             );
+          } else if (responseFilter === "stuck") {
+            // Stuck: only include providers WITH email
+            // Providers without email should be in "No Email" tab instead
+            // (Can't be "stuck" in a sequence if they never received an email)
+            list = list.filter((c) =>
+              connectionEngagementLevels.get(c.id) === "stuck" &&
+              c.provider.email?.trim()
+            );
           } else {
             list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
           }

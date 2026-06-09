@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail, coldProviderRankEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
-import { generateNotificationUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
+import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
 import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
@@ -327,6 +327,7 @@ export async function GET(request: NextRequest) {
       category: string | null;
       metadata: Record<string, unknown> | null;
       account_id: string | null; // non-null = a claimed/owned listing → keep the punchy digest, not the cold note
+      claim_state: string | null; // 'claimed' gates the completion ("sell the output") variant
     };
     // Resolve business_profiles by slug first, then fall back to
     // source_provider_id for legacy URLs whose event provider_id is the
@@ -340,7 +341,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySlug } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id, claim_state")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySlug ?? []) as BP[]) {
@@ -353,7 +354,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySourceId } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id, claim_state")
         .in("source_provider_id", stillMissing)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySourceId ?? []) as BP[]) {
@@ -410,6 +411,7 @@ export async function GET(request: NextRequest) {
             category: null,
             metadata: null,
             account_id: null,
+            claim_state: null,
           });
         }
 
@@ -439,6 +441,7 @@ export async function GET(request: NextRequest) {
             category: null,
             metadata: null,
             account_id: null,
+            claim_state: null,
           });
         }
       }
@@ -474,6 +477,7 @@ export async function GET(request: NextRequest) {
     let sent = 0;
     let marketHeroCount = 0;
     let coldRankSent = 0; // sends to the §1c cold/quiet rank-eligible audience (no weekly activity)
+    let completionCount = 0; // sends of the completion ("sell the output") variant
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -568,13 +572,36 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Completion ("sell the output") variant — CLAIMED providers who haven't
+      // added their owner story yet. Ranks ABOVE the market-rank hero in the
+      // next-rung router (question > completion > cold-rank > rank > analytics):
+      // a thin profile is a more actionable rung than a rank they can't quickly
+      // move. Owner story isn't in the completeness score, so we check
+      // metadata.staff directly — the highest-emotional-impact gap, cheapest to
+      // detect. Claimed-only (claim_state='claimed'), so it never collides with
+      // the cold-first-contact note below (that path requires !account_id). MVP:
+      // owner-story gap only; other gaps + a dedicated dormant-claimer source
+      // are tracked follow-ups (see plans/completion-carrot-plan.md).
+      let completionUrl: string | null = null;
+      if (!unansweredQuestion && bp.claim_state === "claimed") {
+        const hasOwnerStory = !!(meta.staff as { name?: string } | undefined)?.name;
+        if (!hasOwnerStory) {
+          try {
+            completionUrl = generateCompletionUrl(providerSlug, bp.email, "owner");
+          } catch (err) {
+            console.error(`[weekly-provider-digest] completion url failed for ${providerSlug}:`, err);
+          }
+        }
+      }
+
       // Market Intelligence hero — only for the no-question (analytics-only) branch. Resolves
       // the provider's rank from their cached city×care-type diagnostic; collects a warm target
       // when it's not cached yet. Non-fatal: a failure just falls back to the analytics email.
       // Rank-eligible (cold/quiet) providers carry a precomputed rank from §1c — used directly,
       // so they cost zero Places/warming calls and can never queue a warm.
+      // Skipped when a completion nudge is showing (it takes priority).
       let marketRank: DigestMarketRank | null = null;
-      if (!unansweredQuestion) {
+      if (!unansweredQuestion && !completionUrl) {
         const pre = preRank.get(providerId);
         if (pre) {
           marketRank = pre;
@@ -596,7 +623,7 @@ export async function GET(request: NextRequest) {
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
         bucket.questions > 0;
-      if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank) {
+      if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank && !completionUrl) {
         bumpSkip(rankEligible.has(providerId) ? "rank_unresolved" : "question_url_mint_failed");
         continue;
       }
@@ -625,6 +652,12 @@ export async function GET(request: NextRequest) {
             removeUrl: `${siteUrl}/for-providers/removal-request/${providerSlug}`,
             unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
           })
+        : completionUrl
+        ? providerProfileCompletionEmail({
+            providerName: displayName,
+            providerSlug,
+            ctaUrl: completionUrl,
+          })
         : providerWeeklyDigestEmail({
             providerName: displayName,
             providerSlug,
@@ -647,6 +680,8 @@ export async function GET(request: NextRequest) {
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
+        : completionUrl
+        ? `See what families see on ${displayName}`
         : isColdFirstContact
           // Cold first-contact: attribute the rank to families up front (these strangers have
           // never heard from us), matching the note's family-led opening.
@@ -674,6 +709,7 @@ export async function GET(request: NextRequest) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
         if (preRank.has(providerId)) coldRankSent += 1;
+        if (completionUrl) completionCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -696,6 +732,7 @@ export async function GET(request: NextRequest) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
         if (preRank.has(providerId)) coldRankSent += 1;
+        if (completionUrl) completionCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -723,7 +760,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -734,6 +771,7 @@ export async function GET(request: NextRequest) {
         // §1c cold/quiet expansion: providers enrolled by a top-5 cached rank, and how many got sent.
         rankEligibleEnrolled: rankEligible.size,
         coldRankSent,
+        completionSent: completionCount,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,

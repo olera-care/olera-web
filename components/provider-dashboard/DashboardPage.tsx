@@ -35,6 +35,20 @@ import EditOwnerModal from "./edit-modals/EditOwnerModal";
 import DashboardHero from "./v2/DashboardHero";
 import DashboardHeroSkeleton from "./v2/DashboardHeroSkeleton";
 
+// Editable profile sections a `?edit=<section>` deep-link may target (e.g. from
+// completion-carrot emails). Mirrors the SectionId union; needed at runtime to
+// validate the URL param since SectionId is a compile-time type only.
+const EDITABLE_SECTIONS: readonly SectionId[] = [
+  "overview",
+  "gallery",
+  "services",
+  "screening",
+  "about",
+  "pricing",
+  "payment",
+  "owner",
+];
+
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
@@ -79,6 +93,26 @@ export default function DashboardPage() {
     });
     const url = new URL(window.location.href);
     url.searchParams.delete("from");
+    router.replace(url.pathname + (url.search ? url.search : ""));
+  }, [profile, searchParams, router]);
+
+  // Deep-link to a specific edit modal: a `?edit=<section>` link (the
+  // completion-carrot email CTA, after /api/claim-complete mints the session)
+  // lands the provider here with the relevant editor already open — "sell the
+  // output, then drop them straight into filling it." Validate against the
+  // editable sections, open once (ref-guarded), then strip the param so a
+  // reload/back doesn't re-pop the modal.
+  const openedEditParam = useRef(false);
+  useEffect(() => {
+    if (openedEditParam.current) return;
+    if (!profile) return;
+    const editParam = searchParams.get("edit");
+    if (!editParam) return;
+    if (!EDITABLE_SECTIONS.includes(editParam as SectionId)) return;
+    openedEditParam.current = true;
+    setEditingSection(editParam as SectionId);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("edit");
     router.replace(url.pathname + (url.search ? url.search : ""));
   }, [profile, searchParams, router]);
 

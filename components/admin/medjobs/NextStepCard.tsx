@@ -547,7 +547,14 @@ function ReplyPreview({
       ? p.reply_body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
       : "");
   const preview = previewRaw ? previewRaw.slice(0, 320) : "";
-  const from = typeof p.from_email === "string" ? p.from_email : null;
+  // Show the PROVIDER's address (the lead email Smartlead captured as
+  // recipient_email), not from_email — Smartlead's reply payload puts our own
+  // campaign sender in from_email, so that would mislabel the reply as coming
+  // from us. Fall back to from_email only if the lead email is missing.
+  const from =
+    (typeof p.recipient_email === "string" && p.recipient_email.trim()) ||
+    (typeof p.from_email === "string" && p.from_email.trim()) ||
+    null;
   return (
     <div className="mb-1 rounded-md border border-gray-200 bg-white p-3">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">

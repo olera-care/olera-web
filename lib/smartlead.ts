@@ -123,13 +123,25 @@ async function smartleadRequest<T>(
     }
 
     if (!res.ok) {
-      const message =
-        (parsed && typeof parsed === "object" && "message" in parsed
-          ? String((parsed as { message: unknown }).message)
-          : typeof parsed === "string"
-            ? parsed
-            : `HTTP ${res.status}`) || `HTTP ${res.status}`;
-      console.error(`[smartlead] ${method} ${path} → HTTP ${res.status}: ${message}`);
+      // Surface as much of Smartlead's error body as we can — different
+      // endpoints return {message}, {error}, {errors:[...]}, or a bare string.
+      // Falling back to the raw JSON keeps the real reason visible instead of
+      // a useless "HTTP 400".
+      let message: string;
+      if (parsed && typeof parsed === "object") {
+        const o = parsed as Record<string, unknown>;
+        message =
+          (typeof o.message === "string" && o.message) ||
+          (typeof o.error === "string" && o.error) ||
+          (Array.isArray(o.errors) ? o.errors.map(String).join("; ") : "") ||
+          JSON.stringify(o);
+      } else if (typeof parsed === "string" && parsed.trim()) {
+        message = parsed;
+      } else {
+        message = `HTTP ${res.status}`;
+      }
+      message = `HTTP ${res.status}: ${message}`;
+      console.error(`[smartlead] ${method} ${path} → ${message}`);
       return { ok: false, error: message, status: res.status };
     }
 

@@ -847,13 +847,12 @@ export async function GET(request: NextRequest) {
     // SIMPLE APPROACH: Check if connection has ANY failed/bounced emails
     const connectionHasFailedEmail = new Map<string, boolean>();
 
-    const connectionIds = searched.map(c => c.id);
-
-    if (connectionIds.length > 0) {
-      // Query email_log for ALL emails to these connections
+    if (allProviderKeys.length > 0) {
+      // Query failed emails for providers in current view
       const { data: failedEmails, error: emailError } = await db
         .from("email_log")
-        .select("metadata")
+        .select("metadata, provider_id, created_at")
+        .in("provider_id", allProviderKeys)
         .eq("recipient_type", "provider")
         .or(`status.eq.failed,bounced_at.not.is.null`)
         .limit(10000);
@@ -861,30 +860,64 @@ export async function GET(request: NextRequest) {
       if (emailError) {
         console.error("[connections] Failed email query error:", emailError);
       } else {
-        console.log(`[connections] Found ${failedEmails?.length || 0} failed/bounced emails total`);
+        console.log(`[connections] Found ${failedEmails?.length || 0} failed/bounced emails for these providers`);
 
-        // Extract connection IDs from failed emails
+        // Build provider -> connections map for matching emails without connection_id
+        const providerToConnections = new Map<string, Array<{ id: string; created_at: string }>>();
+        for (const conn of searched) {
+          const providerIds = [conn.provider.slug, conn.provider.source_provider_id, conn.provider.id].filter(Boolean) as string[];
+          for (const pid of providerIds) {
+            if (!providerToConnections.has(pid)) {
+              providerToConnections.set(pid, []);
+            }
+            providerToConnections.get(pid)!.push({
+              id: conn.id,
+              created_at: conn.created_at || "",
+            });
+          }
+        }
+
         const failedConnectionIds = new Set<string>();
+
         for (const email of failedEmails || []) {
           const meta = email.metadata as Record<string, unknown>;
+
+          // Method 1: Direct connection_id match (follow-ups, edit resends)
           const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
           if (connId) {
             failedConnectionIds.add(connId);
+            continue;
           }
-          // Handle batched emails (connection_ids array)
+
+          // Method 2: Batched connection_ids (follow-up emails)
           const connIds = meta?.connection_ids as string[] | undefined;
           if (connIds && Array.isArray(connIds)) {
             for (const id of connIds) {
               failedConnectionIds.add(id);
             }
+            continue;
+          }
+
+          // Method 3: Match by provider_id + timestamp (initial emails without connection_id)
+          // If email was sent to a provider AFTER a connection was created, it's for that connection
+          if (email.provider_id) {
+            const connections = providerToConnections.get(email.provider_id);
+            if (connections) {
+              const emailTime = email.created_at ? new Date(email.created_at).getTime() : 0;
+              for (const conn of connections) {
+                const connTime = conn.created_at ? new Date(conn.created_at).getTime() : 0;
+                // Email sent after connection created -> it's for this connection
+                if (emailTime >= connTime) {
+                  failedConnectionIds.add(conn.id);
+                }
+              }
+            }
           }
         }
 
         // Mark connections that have failed emails
-        for (const conn of searched) {
-          if (failedConnectionIds.has(conn.id)) {
-            connectionHasFailedEmail.set(conn.id, true);
-          }
+        for (const connId of failedConnectionIds) {
+          connectionHasFailedEmail.set(connId, true);
         }
 
         console.log(`[connections] ${failedConnectionIds.size} connections have failed/bounced emails`);

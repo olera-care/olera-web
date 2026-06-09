@@ -185,10 +185,6 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("date_to");
     const limit = Math.min(Number(searchParams.get("limit")) || 50, 200);
     const offset = Number(searchParams.get("offset")) || 0;
-    const showBouncedOnly = searchParams.get("show_bounced_only") === "true";
-    if (showBouncedOnly) {
-      console.log("[connections] Bounced filter active - will filter to only failed/bounced emails");
-    }
 
     const db = getServiceClient();
 
@@ -667,17 +663,9 @@ export async function GET(request: NextRequest) {
       : all;
 
     // Build provider keys for engagement lookup
-    // Include ALL possible identifiers (slug, source_provider_id, id) to match email_log.provider_id
-    // because different email sends use different identifiers
     const allProviderKeys = [...new Set(
-      searched.flatMap((c) => {
-        const ids: string[] = [];
-        if (c.provider.slug) ids.push(c.provider.slug);
-        if (c.provider.source_provider_id) ids.push(c.provider.source_provider_id);
-        if (c.provider.id) ids.push(c.provider.id);
-        return ids;
-      })
-    )].slice(0, 3000); // Support up to 1000 providers × 3 identifiers each
+      searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
+    )].slice(0, 1000);
 
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
@@ -840,55 +828,6 @@ export async function GET(request: NextRequest) {
           actionClickedEmailCount++;
         } else if (ev.event_type === "continue_in_inbox") {
           actionContinuedToInboxCount++;
-        }
-      }
-    }
-
-    // DEAD SIMPLE: Just check which connections have failed emails
-    const connectionHasFailedEmail = new Map<string, boolean>();
-
-    if (showBouncedOnly && perspective === "provider") {
-      console.log("[connections] BOUNCED FILTER ACTIVE - querying failed emails");
-      console.log(`[connections] Searching among ${allProviderKeys.length} provider identifiers`);
-
-      // Query failed emails for ONLY the providers in current view
-      const { data: failedEmails, error: emailError } = await db
-        .from("email_log")
-        .select("metadata, bounced_at")
-        .in("provider_id", allProviderKeys)
-        .eq("recipient_type", "provider")
-        .eq("status", "failed")
-        .limit(10000);
-
-      console.log(`[connections] Query returned ${failedEmails?.length || 0} failed emails, error: ${emailError?.message || 'none'}`);
-
-      if (failedEmails && !emailError) {
-        const failedConnectionIds = new Set<string>();
-
-        // Extract connection IDs from metadata
-        for (const email of failedEmails) {
-          const meta = email.metadata as Record<string, unknown> | null;
-
-          // Single connection_id
-          const connId = meta?.connection_id as string | undefined;
-          if (connId) {
-            failedConnectionIds.add(connId);
-          }
-
-          // Array of connection_ids (batched emails)
-          const connIds = meta?.connection_ids as string[] | undefined;
-          if (Array.isArray(connIds)) {
-            for (const id of connIds) {
-              failedConnectionIds.add(id);
-            }
-          }
-        }
-
-        console.log(`[connections] Extracted ${failedConnectionIds.size} unique connection IDs with failed emails`);
-
-        // Mark those connections
-        for (const connId of failedConnectionIds) {
-          connectionHasFailedEmail.set(connId, true);
         }
       }
     }
@@ -1088,17 +1027,6 @@ export async function GET(request: NextRequest) {
           list = list.filter((c) => c.workflowState === responseFilter);
         }
       }
-    }
-
-    // Apply bounced email filter (cross-cutting filter that works on top of tab selection)
-    if (showBouncedOnly && perspective === "provider") {
-      const beforeFilterCount = list.length;
-      console.log(`[connections] APPLYING FILTER to ${beforeFilterCount} connections`);
-      console.log(`[connections] connectionHasFailedEmail map has ${connectionHasFailedEmail.size} entries`);
-
-      list = list.filter((c) => connectionHasFailedEmail.get(c.id) === true);
-
-      console.log(`[connections] ✓ FILTER COMPLETE: ${beforeFilterCount} → ${list.length} connections`);
     }
 
     // Sort by most recent first (matches Leads page behavior)

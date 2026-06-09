@@ -18,13 +18,14 @@ import { createCampaignWebhook, isSmartleadConfigured } from "@/lib/smartlead";
 
 export const maxDuration = 120;
 
-// Event types our edge function handles. Per Smartlead's add-webhook API,
-// the allowed values are the LEAD_* names (not EMAIL_*).
+// Smartlead's valid webhook event types are the EMAIL_* names (+ LEAD_*
+// lifecycle). Confirmed by the API rejecting LEAD_REPLIED as invalid.
+// EMAIL_BOUNCE is NOT a valid type, so it's omitted.
 const EVENT_TYPES = [
-  "LEAD_REPLIED",
-  "LEAD_OPENED",
-  "LEAD_CLICKED",
-  "LEAD_BOUNCED",
+  "EMAIL_SENT",
+  "EMAIL_OPEN",
+  "EMAIL_LINK_CLICK",
+  "EMAIL_REPLY",
   "LEAD_UNSUBSCRIBED",
 ];
 

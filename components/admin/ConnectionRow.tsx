@@ -283,6 +283,7 @@ export default function ConnectionRow({
   const [foundEmails, setFoundEmails] = useState<string[]>([]);
   const [findEmailError, setFindEmailError] = useState<string | null>(null);
   const [emailSource, setEmailSource] = useState<"scrape" | "perplexity" | null>(null);
+  const [isCachedResult, setIsCachedResult] = useState(false);
   const [autoSuggestAttempted, setAutoSuggestAttempted] = useState(false);
 
   // Cleanup timeout on unmount
@@ -305,6 +306,7 @@ export default function ConnectionRow({
         setFindEmailError(null);
         setEmailSource(null);
         setFoundEmails([]);
+        setIsCachedResult(false);
 
         try {
           const res = await fetch("/api/admin/connections/find-provider-email", {
@@ -318,11 +320,13 @@ export default function ConnectionRow({
           if (res.ok && data.email) {
             setEmailInput(data.email);
             setEmailSource(data.source);
+            setIsCachedResult(data.cached || false);
             if (data.candidates && data.candidates.length > 0) {
               setFoundEmails(data.candidates);
             }
           } else if (res.ok && !data.email) {
             setFindEmailError("No email found");
+            setIsCachedResult(data.cached || false);
           } else {
             setFindEmailError(data.error || "Failed to find email");
           }
@@ -339,6 +343,7 @@ export default function ConnectionRow({
       setAutoSuggestAttempted(false);
       setFindEmailError(null);
       setEmailSource(null);
+      setIsCachedResult(false);
       setFoundEmails([]);
     }
   }, [open, detail, autoSuggestAttempted, c.provider.id]);
@@ -561,6 +566,7 @@ export default function ConnectionRow({
 
         // Clear find email state
         setEmailSource(null);
+        setIsCachedResult(false);
         setFoundEmails([]);
         setFindEmailError(null);
 
@@ -658,19 +664,23 @@ export default function ConnectionRow({
     }
   }
 
-  async function handleFindEmail(mode: "edit" | "add" = "edit") {
+  async function handleFindEmail(mode: "edit" | "add" = "edit", forceRefresh = false) {
     if (!c.provider.id) return;
 
     setFindingEmail(true);
     setFindEmailError(null);
     setFoundEmails([]);
     setEmailSource(null);
+    setIsCachedResult(false);
 
     try {
       const res = await fetch("/api/admin/connections/find-provider-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId: c.provider.id }),
+        body: JSON.stringify({
+          providerId: c.provider.id,
+          forceRefresh,
+        }),
       });
 
       const data = await res.json();
@@ -686,6 +696,7 @@ export default function ConnectionRow({
         }
 
         setEmailSource(data.source);
+        setIsCachedResult(data.cached || false);
 
         // Store all candidates for potential dropdown
         if (data.candidates && data.candidates.length > 0) {
@@ -694,6 +705,7 @@ export default function ConnectionRow({
       } else if (res.ok && !data.email) {
         // No email found
         setFindEmailError("No email found for this provider");
+        setIsCachedResult(data.cached || false);
       } else {
         setFindEmailError(data.error || "Failed to find email");
       }
@@ -1019,6 +1031,7 @@ export default function ConnectionRow({
                                 // Clear previous find email state
                                 setFindEmailError(null);
                                 setEmailSource(null);
+                                setIsCachedResult(false);
                                 setFoundEmails([]);
                               }}
                               className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
@@ -1038,6 +1051,7 @@ export default function ConnectionRow({
                                     // Clear source indicator if user manually edits away from found emails
                                     if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                       setEmailSource(null);
+                                      setIsCachedResult(false);
                                     }
                                   }}
                                   placeholder="New provider email..."
@@ -1076,6 +1090,7 @@ export default function ConnectionRow({
                                   setFindEmailError(null);
                                   setFoundEmails([]);
                                   setEmailSource(null);
+                                  setIsCachedResult(false);
                                 }}
                                 disabled={editingEmailLoading || findingEmail}
                                 className="px-2 py-1 text-sm text-gray-500 hover:text-gray-700"
@@ -1087,6 +1102,7 @@ export default function ConnectionRow({
                             {emailSource && (
                               <p className="text-xs text-gray-500">
                                 Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                                {isCachedResult && " (cached)"}
                                 {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
                               </p>
                             )}
@@ -1130,6 +1146,7 @@ export default function ConnectionRow({
                                 // Clear source indicator if user manually edits away from found emails
                                 if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                   setEmailSource(null);
+                                  setIsCachedResult(false);
                                 }
                               }}
                               placeholder={findingEmail ? "Searching..." : "Add provider email..."}
@@ -1158,6 +1175,7 @@ export default function ConnectionRow({
                         {emailSource && (
                           <p className="text-xs text-gray-500">
                             Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                            {isCachedResult && " (cached)"}
                             {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
                           </p>
                         )}

@@ -43,8 +43,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const body = (await request.json()) as { providerId?: string };
+    const body = (await request.json()) as { providerId?: string; forceRefresh?: boolean };
     const providerId = body.providerId?.trim();
+    const forceRefresh = body.forceRefresh || false;
 
     if (!providerId) {
       return NextResponse.json(
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     // Fetch provider from business_profiles
     const { data: provider, error: providerError } = await db
       .from("business_profiles")
-      .select("id, display_name, website, city, state, source_provider_id")
+      .select("id, display_name, website, city, state, source_provider_id, metadata")
       .eq("id", providerId)
       .maybeSingle();
 
@@ -67,6 +68,28 @@ export async function POST(request: NextRequest) {
         { error: "Provider not found" },
         { status: 404 }
       );
+    }
+
+    // Check cache (unless force refresh requested)
+    if (!forceRefresh) {
+      const metadata = (provider.metadata || {}) as Record<string, unknown>;
+      const cachedData = metadata.email_enrichment_data as Record<string, unknown> | undefined;
+
+      if (cachedData && cachedData.enriched_at) {
+        const enrichedAt = new Date(cachedData.enriched_at as string);
+        const ageInDays = (Date.now() - enrichedAt.getTime()) / (1000 * 60 * 60 * 24);
+
+        // Return cached data if less than 30 days old
+        if (ageInDays < 30) {
+          return NextResponse.json({
+            email: cachedData.email || null,
+            source: cachedData.source || null,
+            candidates: (cachedData.candidates as string[]) || [],
+            cached: true,
+            enriched_at: cachedData.enriched_at,
+          });
+        }
+      }
     }
 
     // Build initial context
@@ -102,10 +125,33 @@ export async function POST(request: NextRequest) {
     // Call the email finder (tries scraping first, then Perplexity AI)
     const result = await findEmail(ctx);
 
+    // Cache the result in business_profiles.metadata
+    const metadata = (provider.metadata || {}) as Record<string, unknown>;
+    const updatedMetadata = {
+      ...metadata,
+      email_enrichment_data: {
+        email: result.email,
+        source: result.source,
+        candidates: result.candidates || [],
+        enriched_at: new Date().toISOString(),
+      },
+    };
+
+    // Update metadata (fire and forget - don't wait for it)
+    db.from("business_profiles")
+      .update({ metadata: updatedMetadata })
+      .eq("id", providerId)
+      .then(({ error }) => {
+        if (error) {
+          console.error("[find-provider-email] Failed to cache result:", error);
+        }
+      });
+
     return NextResponse.json({
       email: result.email,
       source: result.source,
       candidates: result.candidates || [],
+      cached: false,
     });
   } catch (e) {
     console.error("[find-provider-email] Error:", e);

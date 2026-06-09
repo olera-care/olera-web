@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
@@ -13,6 +13,12 @@ interface Rollup {
   clicked: number;
   bounced: number;
   complained: number;
+}
+interface VariantRow extends Rollup {
+  key: string;
+  label: string;
+  // weekly_digest only: rank-led vs plain split
+  split?: { withRank: Rollup; plain: Rollup };
 }
 interface RunRow {
   id: string;
@@ -43,6 +49,7 @@ interface DetailResponse {
   pause: { reason: string | null; by: string | null; at: string | null; until: string | null } | null;
   rollup30d: Rollup | null;
   trend: Array<{ week: string; sent: number; delivered: number; opened: number; clicked: number }>;
+  variants: VariantRow[];
   previewTypes: string[];
   runs: RunRow[];
   windowDays: number;
@@ -412,6 +419,55 @@ export default function AutomationDetailPage() {
                       })()}
                     </p>
                   </div>
+
+                  {data.variants && data.variants.length > 1 && (
+                    <div className="mt-6">
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last 30 days</h3>
+                      <div className="overflow-hidden rounded-xl border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
+                              <th className="px-4 py-2 font-medium">Variant</th>
+                              <th className="px-4 py-2 text-right font-medium">Sent</th>
+                              <th className="px-4 py-2 text-right font-medium">Delivered</th>
+                              <th className="px-4 py-2 text-right font-medium">Opened</th>
+                              <th className="px-4 py-2 text-right font-medium">Clicked</th>
+                              <th className="px-4 py-2 text-right font-medium">Bounced</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.variants.map((v) => (
+                              <Fragment key={v.key}>
+                                <tr className="border-b border-gray-100">
+                                  <td className="px-4 py-2 font-medium text-gray-800">{v.label}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{pct(v.delivered, v.sent)}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{pct(v.opened, v.sent)}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{pct(v.clicked, v.sent)}</td>
+                                  <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.bounced + v.complained || "—"}</td>
+                                </tr>
+                                {v.split && (["withRank", "plain"] as const).map((sk) => {
+                                  const s = v.split![sk];
+                                  if (!s.sent) return null;
+                                  return (
+                                    <tr key={`${v.key}-${sk}`} className="border-b border-gray-100 bg-gray-50/40 text-xs text-gray-500">
+                                      <td className="py-1.5 pl-8 pr-4">{sk === "withRank" ? "↳ led with rank hero" : "↳ no rank hero"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent.toLocaleString()}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{pct(s.delivered, s.sent)}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{pct(s.opened, s.sent)}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{pct(s.clicked, s.sent)}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.bounced + s.complained || "—"}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">Rates are % of sent. Variants are inferred from the email for sends before tagging was added.</p>
+                    </div>
+                  )}
 
                   {data.trend.length >= 2 && (
                     <details className="group">

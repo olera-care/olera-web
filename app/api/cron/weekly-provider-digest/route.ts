@@ -659,6 +659,17 @@ export async function GET(request: NextRequest) {
               ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
               : `Your week on Olera`;
 
+      // Tag the email_log row with which of the three digest variants this send is, plus whether
+      // it opened with the market-rank hero. Lets the admin automations view break down opens /
+      // clicks per variant (and per rank-led vs plain weekly digest) instead of lumping all three
+      // under one emailType. `ledWithRank` is N/A for family_question (always false there).
+      const variant = unansweredQuestion
+        ? "family_question"
+        : isColdFirstContact
+          ? "cold_rank"
+          : "weekly_digest";
+      const variantMeta = { variant, ledWithRank: !!marketRank };
+
       if (dryRun) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
@@ -680,6 +691,7 @@ export async function GET(request: NextRequest) {
           // provider_id=null and the Provider Comms Funnel's weekly_digest
           // column (answered / edited / signed-in) is structurally zero.
           providerId,
+          metadata: variantMeta,
         });
         sent += 1;
         if (marketRank) marketHeroCount += 1;

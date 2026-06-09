@@ -273,6 +273,43 @@ function InOutreachBody({
     }
   };
 
+  // ── Branch: reply received (HIGHEST PRIORITY) ─────────────────────────
+  // A reply outranks open/click signals: show the Email face (the real reply
+  // + Interested / Not interested) regardless of the engagement sub-state.
+  const latestReply = ctx.touchpoints
+    .filter((t) => t.touchpoint_type === "email_replied")
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+  if (latestReply) {
+    return (
+      <>
+        <ReplyPreview reply={latestReply} />
+        <ActivationActions
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          source="reply"
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowLogReply(true)}
+            title="Log a reply you handled in your inbox."
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Log reply
+          </button>
+        </div>
+        {showLogReply && (
+          <ReplyClassifierModalMount
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            onClose={() => setShowLogReply(false)}
+          />
+        )}
+      </>
+    );
+  }
+
   // ── Branch: clicked_not_activated (HIGHEST PRIORITY) ──────────────────
   if (subState === "clicked_not_activated" && engagement) {
     const ctaLabel = engagement.clickedCtas[0] ?? "an email link";
@@ -967,6 +1004,44 @@ function ReplyClassifierModalMount({
         }
       }}
     />
+  );
+}
+
+/**
+ * Reply face (Phase 4). Renders the provider's actual incoming reply (captured
+ * by the Smartlead webhook into the email_replied touchpoint payload) so the
+ * admin answers what they said. Prefers the plain-text preview; falls back to
+ * stripping the HTML reply body.
+ */
+function ReplyPreview({
+  reply,
+}: {
+  reply: { created_at: string; payload: Record<string, unknown> | null };
+}) {
+  const p = reply.payload ?? {};
+  const previewRaw =
+    (typeof p.preview_text === "string" && p.preview_text.trim()) ||
+    (typeof p.reply_body === "string"
+      ? p.reply_body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+      : "");
+  const preview = previewRaw ? previewRaw.slice(0, 320) : "";
+  const from = typeof p.from_email === "string" ? p.from_email : null;
+  return (
+    <div className="mb-1 rounded-md border border-gray-200 bg-white p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+        ✉ They replied{from ? ` · ${from}` : ""}
+      </p>
+      {preview ? (
+        <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800">
+          {preview}
+          {previewRaw.length > 320 ? "…" : ""}
+        </p>
+      ) : (
+        <p className="mt-1 text-sm text-gray-500">
+          Reply received — open your inbox to read the full message.
+        </p>
+      )}
+    </div>
   );
 }
 

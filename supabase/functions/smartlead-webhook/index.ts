@@ -114,6 +114,15 @@ interface LeadExtract {
    *  email_sent touchpoint's clicked_ctas[] for timeline rendering ("clicked:
    *  Review {campus} student caregivers"). */
   clickUrl?: string;
+  /** For reply events: the provider's actual reply, surfaced in the Email
+   *  drawer so the admin answers what they said. reply_body is HTML;
+   *  preview_text is the plain-text snippet. */
+  replyBody?: string;
+  replyPreview?: string;
+  replySubject?: string;
+  /** The address the reply came FROM (the provider) — may differ from the
+   *  lead email if they replied from a different mailbox. */
+  fromEmail?: string;
 }
 
 /** Pull our CRM join keys (custom_fields.outreach_id, contact_id, etc.) out of
@@ -161,6 +170,20 @@ function extractLead(raw: unknown): LeadExtract {
     (r.link as Record<string, unknown> | undefined)?.url;
   const clickUrl = clickUrlRaw != null ? String(clickUrlRaw) : undefined;
 
+  // Reply payload — field names vary across Smartlead webhook versions; accept
+  // the common aliases defensively (verify against current docs before launch).
+  const reply = (r.reply ?? {}) as Record<string, unknown>;
+  const replyBodyRaw =
+    r.reply_body ?? r.reply_message ?? r.email_body ?? r.body_html ?? reply.body ?? reply.html;
+  const replyBody = replyBodyRaw != null ? String(replyBodyRaw) : undefined;
+  const replyPreviewRaw = r.preview_text ?? r.reply_preview ?? r.snippet ?? reply.preview_text;
+  const replyPreview = replyPreviewRaw != null ? String(replyPreviewRaw) : undefined;
+  const replySubjectRaw = r.subject ?? r.reply_subject ?? reply.subject;
+  const replySubject = replySubjectRaw != null ? String(replySubjectRaw) : undefined;
+  const fromEmailRaw = r.from_email ?? r.from ?? reply.from_email ?? reply.from;
+  const fromEmail =
+    fromEmailRaw != null ? String(fromEmailRaw).trim().toLowerCase() : undefined;
+
   return {
     outreachId,
     email: email || undefined,
@@ -171,6 +194,10 @@ function extractLead(raw: unknown): LeadExtract {
     eventId,
     eventAt,
     clickUrl,
+    replyBody,
+    replyPreview,
+    replySubject,
+    fromEmail,
   };
 }
 
@@ -284,6 +311,12 @@ async function handleReply(row: ResolvedRow, extract: LeadExtract) {
     role: extract.role ?? null,
     sequence_step: extract.sequenceStep ?? null,
     occurred_at: extract.eventAt,
+    // The actual reply — surfaced in the Email drawer so the admin answers
+    // what the provider said (Phase 4 reply import).
+    reply_body: extract.replyBody ?? null,
+    preview_text: extract.replyPreview ?? null,
+    reply_subject: extract.replySubject ?? null,
+    from_email: extract.fromEmail ?? extract.email ?? null,
   }, { resetViewedAt: true });
 
   if (PROMOTE_ON_REPLY.has(row.status)) {

@@ -219,47 +219,63 @@ Explicitly out of V1; revisit after we feel the lean build:
 
 ---
 
-## 9. Phased development plan (reconciled with what's built)
+## 9. Phased development plan
 
-Legend: ✅ reuse as-is · ♻️ refactor · ➕ add · 🗑️ delete/retire
+**Principle: build ALL the UI first so it can be seen and felt; wire the external integrations
+(Smartlead reply import, Calendly booking) afterward.** Legend: ✅ reuse · ♻️ refactor · ➕ add ·
+🗑️ delete.
 
-### Phase 1 — Core activation loop (the MVP that converts)
-- ➕ Add `activation` cadence to `OUTREACH_DAYS_BY_TYPE` (`cadence.ts`) + scripts in `sequencer.ts`.
-- ➕ Add activation email templates + closing-note template (`templates.ts`).
-- ♻️ Generalize `PreFlightReviewModal` → cadence-launch review that takes a **cadence key** and
-  also renders **call/script** steps (not just emails).
-- ♻️ `schedule_sequence` / `enrollRowIntoSmartlead`: support launching the **activation** cadence
-  on an already-engaged row (new Smartlead campaign for its emails + queued call tasks) **without**
-  resetting the cold stage.
-- ♻️ Email & Call drawers (`NextStepCard`): replace the stage-specific bodies with the simplified
-  **[Interested → activation] / [Not interested → close]** ( + **[Couldn't reach]** on calls).
-- ➕ Auto-stop the activation cadence on **Trial Active** (and later on booked meeting).
-- ➕ `&activate=1` board variant → Terms modal auto-opens (`app/medjobs/candidates/page.tsx`).
-- ✅ Reuse: magic-link route, board, Terms modal, `make_client`, cron executor, Smartlead client.
-- 🗑️ Retire `ReplyClassifierModal` and the heavy `LogCallOutcomeModal` paths as the new buttons land.
+### BUILD NOW — the full UI you can click through end-to-end
 
-### Phase 2 — Reply visibility (ingestion)
-- ➕ `/api/webhooks/smartlead` (secret-validated) → `email_replied` touchpoint with `reply_body`.
-- ➕ Webhook-registration script (per campus campaign).
-- ♻️ Email drawer renders the **real reply text**; Emails tab shows reply preview + unread.
-- ✅ Reuse: `deriveRepliesState` → engaged surfacing.
+**Phase 1 — The activation cadence + its review/launch screen**
+*Exec: builds the follow-up sequence and the screen where you review, edit, and approve it before
+anything sends.*
+- ➕ `activation` cadence (timing + RA-voice copy + call scripts) in `cadence.ts` / `sequencer.ts` /
+  `templates.ts` — offers the link AND the meeting option.
+- ♻️ Generalize `PreFlightReviewModal` → cadence-launch review (takes a cadence key; renders email
+  **and** call/script steps; editable; one Launch).
+- ♻️ `schedule_sequence` launches the activation cadence on an already-engaged row without resetting
+  the cold stage.
+- ✅ Reuse: cron executor, Smartlead client, existing queue.
 
-### Phase 3 — Drawer/outcome cleanup
-- ♻️ Collapse remaining `NextStepCard` branches to the four V1 faces + passive states.
-- 🗑️ Remove old D4 (awaiting-activation action layer → status), D6 (clicked-bump), D7 (meeting
-  "finding a time"), `LogMeetingModal`'s extra outcomes.
-- ➕ Running-cadence status + **[Stop]** / **[Re-send link]** affordances.
-
-### Phase 4 — In-thread reply send (nice-to-have)
-- ➕ Send the activation cadence's first touch as a **threaded reply** via Smartlead
-  `reply-email-thread` (so it stays in-thread and replies route back to the Phase-2 webhook).
-- Fallback if the id-chain doesn't line up: new-thread send (design unchanged).
-
-### Phase 5 — Meeting drawer + Calendly
+**Phase 2 — The three working drawers (Email, Call, Meeting)**
+*Exec: the screens you'll live in — open a provider, click one obvious button, and the cadence
+launches or the row closes. This is the "see and feel" core.*
+- ♻️ Email drawer → **[Interested → activation] / [Not interested → close]** (+ reply-display area,
+  populated later in Phase 4).
+- ♻️ Call drawer → same two buttons **+ [Couldn't reach]**; script from the cadence+day.
 - ♻️ Meeting drawer → **[Interested → post-meeting activation] / [Not interested]**.
-- ➕ `/api/webhooks/calendly` (signing-key verified) → `mark_meeting_scheduled` + supersede pending
-  call/email tasks + stop the activation cadence → row appears in Meetings.
-- Needs: Calendly token + org URI (Logan provides). Deferrable until meeting volume justifies.
+- ✅ Reuse `mark_meeting_scheduled` so you can create a meeting manually to test the Meeting drawer
+  before Calendly is wired.
+- 🗑️ Retire the old pop-up outcome modals (`ReplyClassifierModal`, heavy `LogCallOutcomeModal`,
+  `LogMeetingModal` extras) as the buttons replace them.
+
+**Phase 3 — The finish line + cleanup**
+*Exec: makes sure clicking any link lands the provider one tap from activating, and the system
+tidies itself up afterward.*
+- ➕ `&activate=1` board variant → Terms modal auto-opens (`app/medjobs/candidates/page.tsx`).
+- ➕ Auto-stop the activation cadence on **Trial Active** (and on a booked meeting once Phase 5 lands).
+- ➕ Running-cadence / Pilot Active / Closed status states + **[Stop]** / **[Re-send link]**.
+- ♻️ Collapse the leftover `NextStepCard` branches to the four V1 faces.
+
+### WIRE UP LATER — external connections (the UI is already built above)
+
+**Phase 4 — Smartlead reply import**
+*Exec: replies show up inside the app automatically instead of you checking Gmail; the Email drawer
+built in Phase 2 just starts filling itself.*
+- ➕ `/api/webhooks/smartlead` (secret-validated) → `email_replied` touchpoint with reply body →
+  Email drawer + Emails-tab preview/unread.
+- ➕ Per-campaign webhook-registration script.
+
+**Phase 5 — Calendly auto-booking**
+*Exec: when a provider self-books, the meeting appears on its own and the chase emails stop; the
+Meeting drawer built in Phase 2 just starts populating itself.*
+- ➕ `/api/webhooks/calendly` (signing-key verified) → mark scheduled + supersede pending call/email
+  tasks + stop the activation cadence → row appears in Meetings.
+- Needs: Calendly token + org URI (Logan provides).
+
+*(Removed the earlier "in-thread reply send" phase — unnecessary. The activation cadence sends its
+own first email carrying the link; it doesn't need to be a threaded reply.)*
 
 Each phase = one revertable PR, typecheck clean, staging → main per the workflow.
 

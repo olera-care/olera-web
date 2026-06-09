@@ -283,6 +283,7 @@ export default function ConnectionRow({
   const [foundEmails, setFoundEmails] = useState<string[]>([]);
   const [findEmailError, setFindEmailError] = useState<string | null>(null);
   const [emailSource, setEmailSource] = useState<"scrape" | "perplexity" | null>(null);
+  const [autoSuggestAttempted, setAutoSuggestAttempted] = useState(false);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -292,6 +293,53 @@ export default function ConnectionRow({
       }
     };
   }, []);
+
+  // Auto-suggest email when drawer opens and provider has no email
+  useEffect(() => {
+    if (open && detail && !detail.provider.email && !autoSuggestAttempted && c.provider.id) {
+      setAutoSuggestAttempted(true);
+
+      // Automatically find email
+      (async () => {
+        setFindingEmail(true);
+        setFindEmailError(null);
+
+        try {
+          const res = await fetch("/api/admin/connections/find-provider-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ providerId: c.provider.id }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.email) {
+            setEmailInput(data.email);
+            setEmailSource(data.source);
+            if (data.candidates && data.candidates.length > 0) {
+              setFoundEmails(data.candidates);
+            }
+          } else if (res.ok && !data.email) {
+            setFindEmailError("No email found");
+          } else {
+            setFindEmailError(data.error || "Failed to find email");
+          }
+        } catch {
+          setFindEmailError("Network error");
+        } finally {
+          setFindingEmail(false);
+        }
+      })();
+    }
+
+    // Reset auto-suggest flag when drawer closes
+    if (!open) {
+      setAutoSuggestAttempted(false);
+      setFindEmailError(null);
+      setEmailSource(null);
+      setFoundEmails([]);
+    }
+  }, [open, detail, autoSuggestAttempted, c.provider.id]);
 
   // Fact sheet modal state
   const [showFactSheet, setShowFactSheet] = useState(false);
@@ -1032,22 +1080,40 @@ export default function ConnectionRow({
                     ) : c.provider.id ? (
                       <form onSubmit={(e) => handleAddEmail(e, c.provider.id!)} className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <input
-                            type="email"
-                            value={emailInput}
-                            onChange={(e) => setEmailInput(e.target.value)}
-                            placeholder="Add provider email..."
-                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                            disabled={addingEmail}
-                          />
+                          <div className="flex-1 flex items-center gap-1">
+                            <input
+                              type="email"
+                              value={emailInput}
+                              onChange={(e) => setEmailInput(e.target.value)}
+                              placeholder={findingEmail ? "Searching..." : "Add provider email..."}
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                              disabled={addingEmail || findingEmail}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleFindEmail}
+                              disabled={addingEmail || findingEmail}
+                              className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                              title="Find provider email using web scraping + AI"
+                            >
+                              {findingEmail ? "Searching..." : "✦ Find"}
+                            </button>
+                          </div>
                           <button
                             type="submit"
-                            disabled={addingEmail || !emailInput.trim()}
+                            disabled={addingEmail || findingEmail || !emailInput.trim()}
                             className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {addingEmail ? "Adding..." : "Add"}
                           </button>
                         </div>
+                        {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
+                        {emailSource && (
+                          <p className="text-xs text-gray-500">
+                            Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                            {foundEmails.length > 1 && ` · ${foundEmails.length} candidates found`}
+                          </p>
+                        )}
                         {emailError && (
                           <p className="text-xs text-red-600">{emailError}</p>
                         )}

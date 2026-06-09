@@ -609,7 +609,7 @@ export default function ConnectionsTrackerPage() {
     params.set("direction", direction);
     if (direction === "inbound") {
       params.set("perspective", perspective);
-      if (showBouncedOnly) params.set("show_bounced_only", "true");
+      if (showBouncedOnly && perspective === "provider") params.set("show_bounced_only", "true");
     }
     params.set("limit", String(PAGE_SIZE));
     params.set("offset", String(page * PAGE_SIZE));

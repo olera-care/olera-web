@@ -835,6 +835,7 @@ export async function GET(request: NextRequest) {
 
     // Detect bounced emails: query email_log for latest email per connection
     const connectionBouncedStatus = new Map<string, boolean>();
+    const connectionIdSet = new Set(searched.map(c => c.id));
 
     if (allProviderKeys.length > 0) {
       // Get all emails sent to providers to find latest per connection

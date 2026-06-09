@@ -303,6 +303,8 @@ export default function ConnectionRow({
       (async () => {
         setFindingEmail(true);
         setFindEmailError(null);
+        setEmailSource(null);
+        setFoundEmails([]);
 
         try {
           const res = await fetch("/api/admin/connections/find-provider-email", {
@@ -556,6 +558,12 @@ export default function ConnectionRow({
       if (res.ok) {
         setEmailSuccess(true);
         setEmailInput("");
+
+        // Clear find email state
+        setEmailSource(null);
+        setFoundEmails([]);
+        setFindEmailError(null);
+
         // Update local detail state to show new email
         if (detail) {
           setDetail({

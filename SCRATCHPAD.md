@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-09 — Per-variant conversion + weekly leads-recap variant (branch `variant-conversion`, PR #993, awaiting copy approval)
+
+**Outcome:** Two layers on the digest variant dashboard (#982). Both committed, pushed, type-clean. Holding the merge for TJ's read on the leads-email copy.
+
+**Phase 1 — per-variant downstream conversion.** Added a **Converted** column to the by-variant table: share of *delivered* sends whose provider took the variant's goal action within **14 days**, last-touch attributed (no double-count across the weekly cadence). Each variant → one distinct `provider_activity` event: family_question→`question_responded`, leads→`lead_opened`, completion→`profile_published`, cold_rank→`claim_completed`, weekly_digest→`one_click_access`. Cron sends one variant per provider per run + distinct events ⇒ unambiguous attribution. Conversion is the honest signal (opens are Apple-Mail-inflated).
+- `app/api/admin/automations/[id]/route.ts` — `provider_id` added to email_log select; `vSends` per variant; fetch `provider_activity` over the window; `countConverted()` last-touch helper; returns `converted/convRate/convEvent/convLabel`.
+- `app/admin/automations/[id]/page.tsx` — Converted column (funnel-end, before Bounced) + header InfoDot explaining the 14d model.
+
+**Phase 2 — weekly leads-recap variant.** Providers with `bucket.leads>0` got the generic digest; now get a dedicated "A family reached out about you" recap, CTA→ connections inbox. Outranks all but an open question; short-circuits completion + the market-rank resolve (no wasted Places call). Distinct from real-time `connectionRequestEmail` (this is the Monday nudge). Wired end-to-end into the dashboard (labels, order, classifier, conversion map, sample, tooltip).
+- `lib/email-templates.tsx` — `providerLeadDigestEmail()` (house style, no em-dashes, singular/plural).
+- `lib/claim-tokens.ts` + `app/provider/[slug]/onboard/page.tsx` — new `"leads"` magic-link destination → `/provider/connections` (mirrors the `"market"` addition).
+- `app/api/cron/weekly-provider-digest/route.ts` — `hasLead` gate, `leadsUrl`, html/subject/variant branches.
+- `app/api/admin/automations/[id]/preview/route.ts` — `leads` sample.
+
+**Pre-test:** clean. Verified `email_log.provider_id` exists (mig 024) before adding it to the select; confirmed the html/subject/variant ternaries are mutually exclusive (no mismatch); `countConverted` can't exceed delivered; 7-column table alignment. Fixed 1 stale tooltip (weekly_digest no longer lists "leads"). **Blind spot to watch on staging:** if Converted shows "—" for ALL variants with sends → provider_id format mismatch between email_log and provider_activity. First leads sends + real conversion data land Mon Jun 15.
+
 ### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
 
 **Outcome:** Deleted the unused "Submissions by Entry Source" section from the admin analytics panel — TJ confirmed no one uses it. Pure deletion, 213 deletions / 1 insertion.
@@ -2533,6 +2549,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-06-09 — Per-variant conversion + leads-recap variant (PR #993)
+
+Built the "Both, conversion first" task off the #982 digest dashboard. Planned the attribution model with TJ first (14-day last-touch window, `one_click_access` for weekly_digest, delivered as denominator), then built. Phase 1: Converted column. Phase 2: leads-recap variant + new `"leads"` magic-link destination. Pre-test clean (caught/fixed 1 stale tooltip). Both phases committed (`fb5578ba`, `58b627fe`, `48e7b74f`), pushed, PR #993 → staging. Holding merge for TJ's leads-email copy approval. See Current Focus for full detail. Next: TJ verifies dashboard + copy on the `git-variant-conversion` Vercel alias → merge → first real data Mon Jun 15.
 
 ### 2026-05-01 → 2026-05-02 — Texas expansion (293 cities) — full Atlas batch shipped
 

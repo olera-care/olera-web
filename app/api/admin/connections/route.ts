@@ -839,13 +839,21 @@ export async function GET(request: NextRequest) {
 
     if (allProviderKeys.length > 0) {
       // Get all emails sent to providers to find latest per connection
-      const { data: allEmails } = await db
+      const { data: allEmails, error: emailLogError } = await db
         .from("email_log")
-        .select("metadata, bounced_at, created_at")
+        .select("metadata, bounced_at, created_at, provider_id")
         .in("provider_id", allProviderKeys)
         .eq("recipient_type", "provider")
         .order("created_at", { ascending: false })
         .limit(10000);
+
+      if (emailLogError) {
+        console.error("[connections] email_log query failed:", emailLogError);
+      } else {
+        console.log(`[connections] Found ${allEmails?.length || 0} provider emails`);
+        const bouncedCount = allEmails?.filter(e => e.bounced_at).length || 0;
+        console.log(`[connections] ${bouncedCount} have bounced_at set`);
+      }
 
       // Track latest email per connection
       const connectionLatestEmail = new Map<string, { at: string; bounced: boolean }>();
@@ -870,6 +878,10 @@ export async function GET(request: NextRequest) {
       for (const [connId, status] of connectionLatestEmail) {
         connectionBouncedStatus.set(connId, status.bounced);
       }
+
+      const bouncedConnectionCount = Array.from(connectionBouncedStatus.values()).filter(b => b).length;
+      console.log(`[connections] ${connectionLatestEmail.size} connections matched with emails`);
+      console.log(`[connections] ${bouncedConnectionCount} connections have bounced latest email`);
     }
 
     // Workflow-based counts (legacy)

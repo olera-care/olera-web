@@ -183,12 +183,9 @@ function StageBody({
 function ProspectBody({ ctx: _ctx }: { ctx: DrawerContext }) {
   return (
     <>
-      <p className="text-sm font-medium text-gray-900">
-        Pre-Flight in progress
-      </p>
+      <p className="text-sm font-medium text-gray-900">Pre-Flight</p>
       <p className="mt-0.5 text-xs text-gray-500">
-        Complete the Research Card below — Visit Website, collect any missing
-        info, Call to Confirm, then Launch Outreach.
+        Finish the card below, then launch.
       </p>
     </>
   );
@@ -307,9 +304,6 @@ function CallDueBody({
         <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
           Call
         </span>
-        <p className="text-sm font-medium text-gray-900">
-          Make the call, use the script, then log what happened.
-        </p>
       </div>
       {primaryContact?.phone && (
         <p className="mt-2 text-sm">
@@ -367,10 +361,7 @@ function MeetingSetBody({
 
   return (
     <>
-      <p className="text-sm text-gray-700">
-        Meeting on the calendar. After it, pick the next step.
-      </p>
-      <p className="mt-1 text-xs text-gray-500">{sublineCopy}</p>
+      <p className="text-sm font-medium text-gray-900">{sublineCopy}</p>
       <ActivationActions ctx={ctx} action={action} setError={setError} source="meeting" />
     </>
   );
@@ -478,9 +469,6 @@ function ConvertedBody({
         <p className="mt-0.5 text-xs text-gray-600">
           Activated {formatLongDate(acceptedAt)} · {daysLeft} {daysLeft === 1 ? "day" : "days"} left in the pilot.
         </p>
-        <p className="mt-1 text-xs text-gray-500">
-          Ongoing tasks (seasonal check-ins, job-board posts) surface in the timeline below.
-        </p>
       </>
     );
   }
@@ -488,14 +476,7 @@ function ConvertedBody({
   const sinceText = acceptedAt
     ? `Since ${formatLongDate(acceptedAt)}`
     : `Marked ${stageLabel.toLowerCase()}`;
-  return (
-    <>
-      <p className="text-sm text-primary-800">✓ {sinceText}</p>
-      <p className="mt-1 text-xs text-gray-500">
-        Ongoing tasks (seasonal check-ins, job-board posts) surface in the timeline below.
-      </p>
-    </>
-  );
+  return <p className="text-sm text-primary-800">✓ {sinceText}</p>;
 }
 
 // ── closed ───────────────────────────────────────────────────────────────
@@ -695,9 +676,8 @@ function ActivationActions({
         </p>
         <p className="mt-0.5 text-xs text-gray-600">
           {nextActivationCall
-            ? `Next call ${formatRelative(nextActivationCall.due_at)}. `
-            : "Follow-ups are queued. "}
-          Stops automatically when they accept Terms.
+            ? `Next call ${formatRelative(nextActivationCall.due_at)}.`
+            : "Follow-ups queued."}
         </p>
         <button
           onClick={stopActivation}
@@ -718,7 +698,7 @@ function ActivationActions({
           title="Send the activation link + meeting option and start the follow-up cadence."
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          Interested → activation
+          Interested
         </button>
         <button
           onClick={markNotInterested}
@@ -726,7 +706,7 @@ function ActivationActions({
           title="Send a polite closing note and stop outreach."
           className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
-          Not interested → close
+          Not interested
         </button>
       </div>
       {showLaunch && (

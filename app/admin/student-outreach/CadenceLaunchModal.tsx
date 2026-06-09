@@ -241,10 +241,6 @@ export function CadenceLaunchModal({
             );
           })}
 
-          <p className="rounded-md bg-blue-50/60 px-3 py-2 text-[11px] text-blue-900">
-            Every email carries the provider&apos;s activation link + Dr. DuBose&apos;s calendar.
-            The cadence stops automatically when they accept Terms or book a meeting.
-          </p>
         </div>
 
         <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">

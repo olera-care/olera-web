@@ -75,7 +75,10 @@ export function PreFlightReviewModal({
       ? "student_org"
       : stakeholderType;
 
-  const [snapshots, setSnapshots] = useState<Snapshot[]>(() => {
+  // Read-only previews of the canonical copy. MedJobs emails are sent by
+  // Smartlead from one shared per-campus campaign sequence, so per-launch
+  // edits don't propagate — this modal shows exactly what will send.
+  const snapshots = useMemo<Snapshot[]>(() => {
     const result: Snapshot[] = [];
     for (const d of days) {
       for (const step of d.steps) {
@@ -84,9 +87,6 @@ export function PreFlightReviewModal({
           stakeholder_type: templateStakeholderType,
           organization_name: organizationName,
           campus_name: campusName,
-          // v9: provider templates compose the team greeting from
-          // the active-named contact set at snapshot-build time.
-          // Stakeholder templates ignore this field.
           contacts,
         });
         result.push({
@@ -99,10 +99,9 @@ export function PreFlightReviewModal({
       }
     }
     return result;
-  });
+  }, [days, templateStakeholderType, organizationName, campusName, contacts]);
 
   const [openIdx, setOpenIdx] = useState<number | null>(0);
-  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -111,10 +110,6 @@ export function PreFlightReviewModal({
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
-
-  const updateSnap = (idx: number, patch: Partial<Snapshot>) => {
-    setSnapshots((cur) => cur.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
-  };
 
   const submit = async () => {
     setErr(null);
@@ -227,46 +222,10 @@ export function PreFlightReviewModal({
                   <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
                 </button>
                 {isOpen && (
-                  <div className="space-y-2 border-t border-gray-100 px-3 pb-3 pt-2">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-medium text-gray-700">Subject</span>
-                      <input
-                        value={s.subject}
-                        onChange={(e) => updateSnap(idx, { subject: e.target.value })}
-                        className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="mb-1 flex items-center justify-between text-xs font-medium text-gray-700">
-                        <span>Body</span>
-                        <span className="font-normal text-gray-500">
-                          Variables: <code>{"{first_name}"}</code> <code>{"{organization_name}"}</code> <code>{"{campus_name}"}</code>
-                        </span>
-                      </span>
-                      <textarea
-                        value={s.body}
-                        onChange={(e) => updateSnap(idx, { body: e.target.value })}
-                        rows={10}
-                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-gray-400 focus:outline-none"
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewIdx(previewIdx === idx ? null : idx)}
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      {previewIdx === idx ? "Hide preview" : "Preview substitution"}
-                    </button>
-                    {previewIdx === idx && previewContact && (
-                      <div className="rounded-md border border-gray-100 bg-gray-50 p-2 text-xs">
-                        <p className="font-medium text-gray-600">Subject:</p>
-                        <p className="text-gray-800">{substituteVars(s.subject, previewVars)}</p>
-                        <p className="mt-2 font-medium text-gray-600">
-                          Body (for {[previewContact.first_name, previewContact.last_name].filter(Boolean).join(" ") || previewContact.name}):
-                        </p>
-                        <pre className="mt-1 whitespace-pre-wrap text-gray-800">{substituteVars(s.body, previewVars)}</pre>
-                      </div>
-                    )}
+                  <div className="border-t border-gray-100 px-3 pb-3 pt-2">
+                    <pre className="whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
+                      {substituteVars(s.body, previewVars)}
+                    </pre>
                   </div>
                 )}
               </div>

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, providerProfileCompletionEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
-import { generateNotificationUrl } from "@/lib/claim-tokens";
+import { generateNotificationUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
 import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
@@ -266,6 +266,7 @@ export async function GET(request: NextRequest) {
       state: string | null;
       category: string | null;
       metadata: Record<string, unknown> | null;
+      claim_state: string | null;
     };
     // Resolve business_profiles by slug first, then fall back to
     // source_provider_id for legacy URLs whose event provider_id is the
@@ -279,7 +280,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySlug } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, claim_state")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySlug ?? []) as BP[]) {
@@ -292,7 +293,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySourceId } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, claim_state")
         .in("source_provider_id", stillMissing)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySourceId ?? []) as BP[]) {
@@ -348,6 +349,7 @@ export async function GET(request: NextRequest) {
             state: ip.state,
             category: null,
             metadata: null,
+            claim_state: null,
           });
         }
 
@@ -376,6 +378,7 @@ export async function GET(request: NextRequest) {
             state: ip.state,
             category: null,
             metadata: null,
+            claim_state: null,
           });
         }
       }
@@ -410,6 +413,7 @@ export async function GET(request: NextRequest) {
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
     let marketHeroCount = 0;
+    let completionCount = 0;
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -515,11 +519,34 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Market Intelligence hero — only for the no-question (analytics-only) branch. Resolves
-      // the provider's rank from their cached city×care-type diagnostic; collects a warm target
-      // when it's not cached yet. Non-fatal: a failure just falls back to the analytics email.
+      // Completion ("sell the output") variant — CLAIMED providers who haven't
+      // added their owner story yet. Ranks ABOVE the market-rank hero in the
+      // next-rung router (question > completion > rank > analytics): a thin
+      // profile is a more actionable rung than a rank they can't quickly move.
+      // Owner story isn't in the completeness score, so we check metadata.staff
+      // directly — the highest-emotional-impact gap and the cheapest to detect.
+      // MVP scope: owner-story gap only, claimed-only, within the existing
+      // audience (a provider only reaches this loop with activity/question
+      // signal). Other gaps + a dedicated claimed-thin audience source are
+      // tracked follow-ups (see plans/completion-carrot-plan.md).
+      let completionUrl: string | null = null;
+      if (!unansweredQuestion && bp.claim_state === "claimed") {
+        const hasOwnerStory = !!(meta.staff as { name?: string } | undefined)?.name;
+        if (!hasOwnerStory) {
+          try {
+            completionUrl = generateCompletionUrl(providerSlug, bp.email, "owner");
+          } catch (err) {
+            console.error(`[weekly-provider-digest] completion url failed for ${providerSlug}:`, err);
+          }
+        }
+      }
+
+      // Market Intelligence hero — only when there's no question AND no
+      // completion nudge to show. Resolves the provider's rank from their cached
+      // city×care-type diagnostic; collects a warm target when it's not cached
+      // yet. Non-fatal: a failure just falls back to the analytics email.
       let marketRank: DigestMarketRank | null = null;
-      if (!unansweredQuestion) {
+      if (!unansweredQuestion && !completionUrl) {
         try {
           const mr = await resolveProviderMarketRank(bp, db);
           marketRank = mr.rank;
@@ -529,39 +556,48 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const html = providerWeeklyDigestEmail({
-        providerName: displayName,
-        providerSlug,
-        tier,
-        viewsThisWeek: bucket.viewsThisWeek,
-        viewsPriorWeek: bucket.viewsPriorWeek,
-        deltaPct,
-        localDemand,
-        areaDemand: areaDemandCount,
-        city: bp.city,
-        category: bp.category,
-        ctaClicks: bucket.ctaClicks,
-        leadsReceived: bucket.leads,
-        questionsReceived: bucket.questions,
-        topSource,
-        unansweredQuestion,
-        answerUrl,
-        marketRank,
-      });
+      const html = completionUrl
+        ? providerProfileCompletionEmail({
+            providerName: displayName,
+            providerSlug,
+            ctaUrl: completionUrl,
+          })
+        : providerWeeklyDigestEmail({
+            providerName: displayName,
+            providerSlug,
+            tier,
+            viewsThisWeek: bucket.viewsThisWeek,
+            viewsPriorWeek: bucket.viewsPriorWeek,
+            deltaPct,
+            localDemand,
+            areaDemand: areaDemandCount,
+            city: bp.city,
+            category: bp.category,
+            ctaClicks: bucket.ctaClicks,
+            leadsReceived: bucket.leads,
+            questionsReceived: bucket.questions,
+            topSource,
+            unansweredQuestion,
+            answerUrl,
+            marketRank,
+          });
 
-      const subject = unansweredQuestion
-        ? `A family has a question about ${displayName}`
-        : marketRank
-          ? marketRank.flattering
-            ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
-            : `See where you rank in ${marketRank.cityLabel}`
-          : bucket.viewsThisWeek > 0
-            ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
-            : `Your week on Olera`;
+      const subject = completionUrl
+        ? `See what families see on ${displayName}`
+        : unansweredQuestion
+          ? `A family has a question about ${displayName}`
+          : marketRank
+            ? marketRank.flattering
+              ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
+              : `See where you rank in ${marketRank.cityLabel}`
+            : bucket.viewsThisWeek > 0
+              ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
+              : `Your week on Olera`;
 
       if (dryRun) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (completionUrl) completionCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -582,6 +618,7 @@ export async function GET(request: NextRequest) {
         });
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (completionUrl) completionCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -609,7 +646,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} completion=${completionCount} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -617,6 +654,7 @@ export async function GET(request: NextRequest) {
         processed: providerIds.length,
         sent,
         marketHeroSent: marketHeroCount,
+        completionSent: completionCount,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,

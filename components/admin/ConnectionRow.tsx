@@ -325,7 +325,8 @@ export default function ConnectionRow({
               setFoundEmails(data.candidates);
             }
           } else if (res.ok && !data.email) {
-            setFindEmailError("No email found");
+            const errorMsg = "No email found" + (data.cached ? " (cached)" : "");
+            setFindEmailError(errorMsg);
             setIsCachedResult(data.cached || false);
           } else {
             setFindEmailError(data.error || "Failed to find email");
@@ -704,7 +705,8 @@ export default function ConnectionRow({
         }
       } else if (res.ok && !data.email) {
         // No email found
-        setFindEmailError("No email found for this provider");
+        const errorMsg = "No email found for this provider" + (data.cached ? " (cached)" : "");
+        setFindEmailError(errorMsg);
         setIsCachedResult(data.cached || false);
       } else {
         setFindEmailError(data.error || "Failed to find email");
@@ -1059,15 +1061,27 @@ export default function ConnectionRow({
                                   disabled={editingEmailLoading || findingEmail}
                                   autoFocus
                                 />
-                                <button
-                                  type="button"
-                                  onClick={() => handleFindEmail("edit")}
-                                  disabled={editingEmailLoading || findingEmail}
-                                  className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                                  title="Find provider email using web scraping + AI"
-                                >
-                                  {findingEmail ? "Searching..." : "✦ Find"}
-                                </button>
+                                {!isCachedResult ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleFindEmail("edit")}
+                                    disabled={editingEmailLoading || findingEmail}
+                                    className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                    title="Find provider email using web scraping + AI"
+                                  >
+                                    {findingEmail ? "Searching..." : "✦ Find"}
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleFindEmail("edit", true)}
+                                    disabled={editingEmailLoading || findingEmail}
+                                    className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                    title="Force refresh - bypass cache and search again"
+                                  >
+                                    {findingEmail ? "Searching..." : "↻ Refresh"}
+                                  </button>
+                                )}
                               </div>
                               <button
                                 type="submit"
@@ -1153,15 +1167,27 @@ export default function ConnectionRow({
                               className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                               disabled={addingEmail || findingEmail}
                             />
-                            <button
-                              type="button"
-                              onClick={() => handleFindEmail("add")}
-                              disabled={addingEmail || findingEmail}
-                              className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                              title="Find provider email using web scraping + AI"
-                            >
-                              {findingEmail ? "Searching..." : "✦ Find"}
-                            </button>
+                            {!isCachedResult ? (
+                              <button
+                                type="button"
+                                onClick={() => handleFindEmail("add")}
+                                disabled={addingEmail || findingEmail}
+                                className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                title="Find provider email using web scraping + AI"
+                              >
+                                {findingEmail ? "Searching..." : "✦ Find"}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleFindEmail("add", true)}
+                                disabled={addingEmail || findingEmail}
+                                className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                title="Force refresh - bypass cache and search again"
+                              >
+                                {findingEmail ? "Searching..." : "↻ Refresh"}
+                              </button>
+                            )}
                           </div>
                           <button
                             type="submit"

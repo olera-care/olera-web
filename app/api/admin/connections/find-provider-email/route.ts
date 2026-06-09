@@ -70,28 +70,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check cache (unless force refresh requested)
-    if (!forceRefresh) {
-      const metadata = (provider.metadata || {}) as Record<string, unknown>;
-      const cachedData = metadata.email_enrichment_data as Record<string, unknown> | undefined;
-
-      if (cachedData && cachedData.enriched_at) {
-        const enrichedAt = new Date(cachedData.enriched_at as string);
-        const ageInDays = (Date.now() - enrichedAt.getTime()) / (1000 * 60 * 60 * 24);
-
-        // Return cached data if less than 30 days old
-        if (ageInDays < 30) {
-          return NextResponse.json({
-            email: cachedData.email || null,
-            source: cachedData.source || null,
-            candidates: (cachedData.candidates as string[]) || [],
-            cached: true,
-            enriched_at: cachedData.enriched_at,
-          });
-        }
-      }
-    }
-
     // Build initial context
     let website = provider.website || null;
     let placeId: string | null = null;
@@ -122,6 +100,40 @@ export async function POST(request: NextRequest) {
       state,
     };
 
+    // Create context hash for cache invalidation
+    const contextHash = JSON.stringify({
+      name: ctx.name || "",
+      website: ctx.website || "",
+      place_id: ctx.place_id || "",
+      city: ctx.city || "",
+      state: ctx.state || "",
+    });
+
+    // Check cache (unless force refresh requested)
+    if (!forceRefresh) {
+      const metadata = (provider.metadata || {}) as Record<string, unknown>;
+      const cachedData = metadata.email_enrichment_data as Record<string, unknown> | undefined;
+
+      if (cachedData && cachedData.enriched_at) {
+        const enrichedAt = new Date(cachedData.enriched_at as string);
+        const ageInDays = (Date.now() - enrichedAt.getTime()) / (1000 * 60 * 60 * 24);
+
+        // Validate cache: must be fresh AND context must match
+        const cachedContextHash = cachedData.context_hash as string | undefined;
+        const contextMatches = cachedContextHash === contextHash;
+
+        if (ageInDays < 30 && contextMatches) {
+          return NextResponse.json({
+            email: cachedData.email || null,
+            source: cachedData.source || null,
+            candidates: (cachedData.candidates as string[]) || [],
+            cached: true,
+            enriched_at: cachedData.enriched_at,
+          });
+        }
+      }
+    }
+
     // Call the email finder (tries scraping first, then Perplexity AI)
     const result = await findEmail(ctx);
 
@@ -134,6 +146,7 @@ export async function POST(request: NextRequest) {
         source: result.source,
         candidates: result.candidates || [],
         enriched_at: new Date().toISOString(),
+        context_hash: contextHash,
       },
     };
 

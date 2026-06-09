@@ -71,7 +71,9 @@ export function PreFlightReviewModal({
   // the kind-specific copy lives in the template body, not the
   // salutation rule.
   const templateStakeholderType: StakeholderType =
-    stakeholderType === "provider" ? "student_org" : stakeholderType;
+    stakeholderType === "provider" || stakeholderType === "activation"
+      ? "student_org"
+      : stakeholderType;
 
   const [snapshots, setSnapshots] = useState<Snapshot[]>(() => {
     const result: Snapshot[] = [];

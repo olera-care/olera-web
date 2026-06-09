@@ -392,7 +392,8 @@ export function buildEmailSequence(
   // actual cadence-derived type so each stakeholder cadence gets the right
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
-  const ctxStakeholderType = cadenceKey === "provider" ? "student_org" : cadenceKey;
+  const ctxStakeholderType =
+    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,

@@ -339,6 +339,11 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 // time ({recipient_name}). Stakeholder paths fall through to the
 // generic line at the bottom — admin can edit in PreFlight.
 function defaultCallScriptForDay(type: CadenceKey, day: number): string {
+  if (type === "activation") {
+    // Activation cadence has a single check-in call. Reference the link we
+    // already sent and offer the meeting as the easy alternative.
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the link to view the {campus_name} students near you and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through getting set up?"`;
+  }
   if (type === "provider") {
     if (day === 0) {
       // v9.1 Graize 05.13 audit (Item 6): Day 0 purpose locked in.
@@ -421,7 +426,7 @@ export function defaultSnapshotsFor(
   // rows borrow student_org's first-name salutation pattern (informal,
   // no Dr./Prof. honorific). All other variables are kind-agnostic.
   const templateStakeholderType: StakeholderType =
-    type === "provider" ? "student_org" : type;
+    type === "provider" || type === "activation" ? "student_org" : type;
   for (const day of days) {
     for (const step of day.steps) {
       if (step.channel !== "email" || !step.template) continue;
@@ -467,7 +472,7 @@ export function defaultSnapshotsByVariant(
   const general: EmailSnapshot[] = [];
   const named: EmailSnapshot[] = [];
   const templateStakeholderType: StakeholderType =
-    type === "provider" ? "student_org" : type;
+    type === "provider" || type === "activation" ? "student_org" : type;
   for (const day of days) {
     for (const step of day.steps) {
       if (step.channel !== "email" || !step.template) continue;

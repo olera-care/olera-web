@@ -849,11 +849,13 @@ export async function GET(request: NextRequest) {
 
     if (showBouncedOnly && perspective === "provider") {
       console.log("[connections] BOUNCED FILTER ACTIVE - querying failed emails");
+      console.log(`[connections] Searching among ${allProviderKeys.length} provider identifiers`);
 
-      // Query ALL failed emails (status = 'failed')
+      // Query failed emails for ONLY the providers in current view
       const { data: failedEmails, error: emailError } = await db
         .from("email_log")
         .select("metadata, bounced_at")
+        .in("provider_id", allProviderKeys)
         .eq("recipient_type", "provider")
         .eq("status", "failed")
         .limit(10000);
@@ -882,8 +884,7 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        console.log(`[connections] Found ${failedConnectionIds.size} unique connection IDs with failed emails`);
-        console.log(`[connections] Sample failed connection IDs: ${Array.from(failedConnectionIds).slice(0, 5).join(', ')}`);
+        console.log(`[connections] Extracted ${failedConnectionIds.size} unique connection IDs with failed emails`);
 
         // Mark those connections
         for (const connId of failedConnectionIds) {
@@ -1093,15 +1094,9 @@ export async function GET(request: NextRequest) {
     if (showBouncedOnly && perspective === "provider") {
       const beforeFilterCount = list.length;
       console.log(`[connections] APPLYING FILTER to ${beforeFilterCount} connections`);
-      console.log(`[connections] connectionHasFailedEmail map size: ${connectionHasFailedEmail.size}`);
+      console.log(`[connections] connectionHasFailedEmail map has ${connectionHasFailedEmail.size} entries`);
 
-      list = list.filter((c) => {
-        const hasFailed = connectionHasFailedEmail.get(c.id) === true;
-        if (hasFailed) {
-          console.log(`[connections] KEEPING connection ${c.id} (has failed email)`);
-        }
-        return hasFailed;
-      });
+      list = list.filter((c) => connectionHasFailedEmail.get(c.id) === true);
 
       console.log(`[connections] ✓ FILTER COMPLETE: ${beforeFilterCount} → ${list.length} connections`);
     }

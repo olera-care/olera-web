@@ -204,28 +204,6 @@ type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 // populated server-side in /api/activity/track for anonymous events.
 type ReferrerBreakdown = Record<ReferrerClass, number>;
 
-// Provider response rate tracking — closes the loop on CTA effectiveness:
-// Other Lead Capture Sources — tracks lead capture entry points that are NOT
-// Submissions by entry source — accounts.signup_source bucketed for the
-// "did editorial-mounted SBF produce signups?" question. The existing
-// benefits funnel above is provider-page-only (gated on provider_activity
-// keyed by providerSlug); editorial mounts emit no provider_activity, so
-// they're invisible to that funnel. This breakdown reads accounts directly
-// so editorial submissions surface in the admin UI.
-//
-// Both provider and editorial SBF mounts now tag entrySource: provider
-// page sets `/provider/{slug}`, editorial sets `/caregiver-support/{slug}`.
-// Accounts created from non-SBF paths (auth callback, provider claims,
-// listing creation, etc.) leave signup_source NULL and are excluded here —
-// the card answers "where did SBF submissions come from?", not "where did
-// signups come from?"
-type EntrySourceBreakdown = {
-  total: number;                  // editorial + provider + other
-  editorial_total: number;        // signup_source LIKE '/caregiver-support/%'
-  provider_total: number;         // signup_source LIKE '/provider/%'
-  other_total: number;            // signup_source set but neither — future entry points
-  top_editorial_articles: Array<{ slug: string; count: number }>; // top 5 by count
-};
 type WindowResult = {
   counts: WindowedCounts;
   unique_sessions_page_view: number;
@@ -240,7 +218,6 @@ type WindowResult = {
   cta_funnel: CTAFunnel;
   cta_funnel_by_variant: CTAFunnelByVariant;
   referrer_breakdown: ReferrerBreakdown;
-  entry_source_breakdown: EntrySourceBreakdown;
 };
 
 const EMPTY_COUNTS = (): WindowedCounts => ({
@@ -353,15 +330,6 @@ const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
   direct: 0,
   other: 0,
 });
-const EMPTY_ENTRY_SOURCE_BREAKDOWN = (): EntrySourceBreakdown => ({
-  total: 0,
-  editorial_total: 0,
-  provider_total: 0,
-  other_total: 0,
-  top_editorial_articles: [],
-});
-
-
 /**
  * Pull all relevant events for one date window and bucket them into the
  * three count shapes (raw counts, unique sessions, distinct-provider counts).
@@ -513,22 +481,6 @@ async function fetchWindow(
   if (from) multiProviderQ = multiProviderQ.gte("created_at", from);
   if (to) multiProviderQ = multiProviderQ.lt("created_at", to);
 
-  // SBF-tagged accounts created in the window. signup_source is set ONLY
-  // by the SBF intake (provider mounts → '/provider/{slug}', editorial →
-  // '/caregiver-support/{slug}'). NULL means non-SBF account creation
-  // (auth callback, provider claim, listing creation, etc.) — explicitly
-  // filtered out so the bucket counts mean "SBF submissions" rather than
-  // "all new accounts". Pre-this-deploy provider SBF rows are NULL and
-  // therefore invisible until the new tagging takes effect.
-  let accountsQ = db
-    .from("accounts")
-    .select("signup_source")
-    .not("signup_source", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(50000);
-  if (from) accountsQ = accountsQ.gte("created_at", from);
-  if (to) accountsQ = accountsQ.lt("created_at", to);
-
   // CTA Variants A/B funnel. impression → clicked → converted.
   // Events are on provider_activity: cta_variant_impression, cta_variant_clicked,
   // and lead_received (with metadata.cta_variant for attribution).
@@ -584,7 +536,7 @@ async function fetchWindow(
   if (from) connectionsQ = connectionsQ.gte("created_at", from);
   if (to) connectionsQ = connectionsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, commsFunnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, accountsRes, ctaRes, connectionsRes, bannerRes] = await Promise.all([
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, commsFunnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, ctaRes, connectionsRes, bannerRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -595,7 +547,6 @@ async function fetchWindow(
     benefitsQ,
     outreachQ,
     multiProviderQ,
-    accountsQ,
     ctaQ,
     connectionsQ,
     bannerQ,
@@ -611,7 +562,6 @@ async function fetchWindow(
   if (multiProviderRes.error) return { error: "multi_provider funnel query failed" };
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
-  if (accountsRes.error) return { error: "accounts entry-source query failed" };
   if (ctaRes.error) return { error: "CTA funnel query failed" };
   if (connectionsRes.error) return { error: "connections query failed" };
   if (bannerRes.error) return { error: "dashboard banner query failed" };
@@ -1147,31 +1097,6 @@ async function fetchWindow(
     unassigned: sizesFor("unassigned"),
   };
 
-  // Entry-source bucketing — query already filters to signup_source IS NOT
-  // NULL, so every row here is an SBF submission with a tagged origin.
-  // Editorial: '/caregiver-support/{slug}'. Provider: '/provider/{slug}'.
-  // Future entry points fall into "other".
-  const entrySourceBreakdown = EMPTY_ENTRY_SOURCE_BREAKDOWN();
-  const editorialSlugCounts = new Map<string, number>();
-  const accountRows = (accountsRes.data ?? []) as Array<{ signup_source: string }>;
-  entrySourceBreakdown.total = accountRows.length;
-  for (const row of accountRows) {
-    const src = row.signup_source;
-    if (src.startsWith("/caregiver-support/")) {
-      entrySourceBreakdown.editorial_total++;
-      const slug = src.slice("/caregiver-support/".length);
-      editorialSlugCounts.set(slug, (editorialSlugCounts.get(slug) || 0) + 1);
-    } else if (src.startsWith("/provider/")) {
-      entrySourceBreakdown.provider_total++;
-    } else {
-      entrySourceBreakdown.other_total++;
-    }
-  }
-  entrySourceBreakdown.top_editorial_articles = Array.from(editorialSlugCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([slug, count]) => ({ slug, count }));
-
   // CTA Variants A/B funnel rollup. Distinct sessions per stage.
   // impression → clicked → engaged (save_comparison_clicked) → converted (lead_received with cta_variant).
   // Dynamically supports all variants from CTA_VARIANTS.
@@ -1312,7 +1237,6 @@ async function fetchWindow(
     cta_funnel: ctaFunnel,
     cta_funnel_by_variant: ctaFunnelByVariant,
     referrer_breakdown: referrerBreakdown,
-    entry_source_breakdown: entrySourceBreakdown,
   };
 }
 
@@ -1761,7 +1685,6 @@ export async function GET(request: NextRequest) {
         cta_funnel: windowedRes.cta_funnel,
         cta_funnel_by_variant: windowedRes.cta_funnel_by_variant,
         referrer_breakdown: windowedRes.referrer_breakdown,
-        entry_source_breakdown: windowedRes.entry_source_breakdown,
       },
       prior: prior
         ? {
@@ -1777,7 +1700,6 @@ export async function GET(request: NextRequest) {
             cta_funnel: prior.cta_funnel,
             cta_funnel_by_variant: prior.cta_funnel_by_variant,
             referrer_breakdown: prior.referrer_breakdown,
-            entry_source_breakdown: prior.entry_source_breakdown,
           }
         : null,
       insight,

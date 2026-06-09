@@ -90,6 +90,54 @@ function button(label: string, href: string): string {
 }
 
 /**
+ * Profile-completion ("sell the output") email — the weekly-digest variant for
+ * CLAIMED providers who haven't added their owner story yet. Instead of a
+ * "your profile is N% complete" nag, it shows the magical thing they're missing:
+ * a ghosted "Facility manager" card (silhouette + faded story + dimmed
+ * "Message you" button) captioned "Right now, this is blank" — then deep-links
+ * straight into the owner editor. Aspirational + gentle loss-aversion, no
+ * progress bar. Deliberately no fabricated "+X% messages" stat — we haven't
+ * measured the lift yet (the canonical-id resolver now lets us, later).
+ */
+export function providerProfileCompletionEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  ctaUrl: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const ghostBg = "#f3f4f6";
+  const ghostText = "#d1d5db";
+
+  // Ghosted facility-manager card — the aspirational blank they don't have yet.
+  const ghostCard = `
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:12px;margin:0 0 8px;">
+      <tr><td style="padding:24px;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:${ghostBg};margin:0 auto 14px;"></div>
+        <div style="height:12px;width:120px;background:${ghostBg};border-radius:4px;margin:0 auto 8px;"></div>
+        <div style="height:10px;width:88px;background:${ghostBg};border-radius:4px;margin:0 auto 16px;"></div>
+        <p style="font-size:13px;font-style:italic;color:${ghostText};margin:0 0 16px;line-height:1.5;">&ldquo;Your story &mdash; why you do this work&hellip;&rdquo;</p>
+        <span style="display:inline-block;padding:9px 20px;background:${ghostBg};color:${ghostText};font-size:13px;font-weight:600;border-radius:8px;">Message you</span>
+      </td></tr>
+    </table>
+    <p style="font-size:12px;color:#9ca3af;text-align:center;margin:0 0 24px;">Right now, this is blank.</p>`;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your Olera page</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">This is what families see on ${name}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">Families choose people, not listings. The owner&rsquo;s story is the first thing they look for when deciding who to trust with their parent &mdash; and yours is empty.</p>
+    ${ghostCard}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">Add your photo and a few sentences about why you do this work. It takes two minutes, and it&rsquo;s the difference between a listing and a person a family wants to call.</p>
+    <div>${button("Add your story →", opts.ctaUrl)}</div>
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
+    </div>`,
+    `Families choose people, not listings - add your story to ${opts.providerName}.`,
+  );
+}
+
+/**
  * Escape HTML special characters to prevent XSS and layout issues.
  * Use this for any user-generated content inserted into email HTML.
  */
@@ -175,6 +223,47 @@ function loganLeadSignature(): string {
         </tr>
       </table>
     </div>`;
+}
+
+/**
+ * Cold / quiet-week provider rank email — the §1c Market-Intelligence expansion audience.
+ *
+ * A trust-forward first-contact note from Dr. DuBose for providers who rank top-5 in their
+ * local market but have no weekly activity (never engaged with Olera). The copy answers the
+ * four questions a stranger asks — who is Olera, are they legit, did I sign up, do they charge —
+ * before the rank lands, with NIH (backing + an SBIR-funded researcher) + a physician CRO doing the trust
+ * work. The CTA is a one-click "market" magic link that invisibly authenticates them onto their
+ * Find Families rank view. Photo is Supabase-hosted (olera.care assets are WAF-challenged for
+ * email image proxies and render blank).
+ */
+export function coldProviderRankEmail(opts: {
+  rank: number;
+  outOf: number;
+  cityLabel: string;
+  careLabel: string;      // "home care" | "assisted living"
+  ctaUrl: string;         // one-click market magic link (auth → /provider/matches)
+  manageUrl: string;
+  removeUrl: string;
+  unsubscribeUrl: string;
+}): string {
+  const { rank, outOf, cityLabel, careLabel, ctaUrl, manageUrl, removeUrl, unsubscribeUrl } = opts;
+  const ORDINAL_WORDS = ["", "first", "second", "third", "fourth", "fifth"];
+  const rankWord = ORDINAL_WORDS[rank] ?? `#${rank}`;
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  const care = escapeHtml(careLabel);
+  const city = escapeHtml(cityLabel);
+  const body = `
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Families comparing ${care} in ${city} see ${outOf} agencies. Yours ranks <strong style="color:${BRAND_COLOR};">${rankWord}</strong>, by the Google reviews they actually read.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">I'm Dr. Logan DuBose, Olera's Chief Research Officer (CRO). We built Olera with <strong>NIH funding</strong> so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads. Your agency is already listed, and families nearby are already comparing it to the others.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">I thought you'd want to see where you stand, and to make the page yours.</p>
+    <div style="margin:0 0 30px;">${button("See where you rank", ctaUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
+      <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
+      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;"><p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p><p style="margin:2px 0 0;color:#6b7280;">CRO, Olera &middot; Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p></td>
+    </tr></table>
+    <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"><p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", manageUrl)} &middot; ${secondaryLink("Remove it", removeUrl)} &middot; ${secondaryLink("Unsubscribe", unsubscribeUrl)}</p></div>`;
+  return layout(body, `You rank ${rankWord} of ${outOf} ${careLabel} agencies in ${cityLabel}`);
 }
 
 /**

@@ -346,27 +346,19 @@ export interface OutboundRow {
   outbound_count: number;
 }
 
-// Per-row callbacks shared between RowCard and slot builders.
+// Per-row callbacks shared between RowCard and slot builders. The simplified
+// workflow keeps row cards to status + click-to-open + a Stop-outreach
+// shortcut; all outcome actions moved into the drawer, so the old per-outcome
+// callbacks (log call / classify reply / make client / mark partner / log
+// meeting / send follow-up) are gone.
 export interface RowCardCallbacks {
   onOpenDrawer: () => void;
-  onLogCallOutcome: () => void;
-  onClassifyReply: (source: "email_reply" | "callback") => void;
-  onMarkPartner: () => void;
-  /** v9 Phase 8: provider conversion shortcut in the row card
-   *  overflow. Writes business_profiles.metadata.interview_terms_
-   *  accepted_at and transitions the outreach row — same end state
-   *  as opening the drawer and clicking Make Client there. */
-  onMakeClient?: () => void;
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
-  onLogMeeting: () => void;
-  onSendFollowupEmail: () => void;
-  /** v9.0 Phase 4: reset attention. Wired to mark_unread action. */
+  /** Reset attention. Wired to mark_unread action. */
   onMarkUnread: () => Promise<void>;
-  /** v9 final: jump to the public directory page (provider rows
-   *  only — opens /provider/[slug] in a new tab). */
+  /** Jump to the public directory page (provider rows only). */
   onOpenDirectory?: () => void;
-  /** v9 final: jump to the unified Logs feed pre-filtered to this
-   *  row's outreach history. */
+  /** Jump to the unified Logs feed pre-filtered to this row's history. */
   onSeeLogHistory?: () => void;
 }
 

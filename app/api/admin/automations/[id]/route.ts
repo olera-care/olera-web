@@ -14,7 +14,7 @@ import { getCronJob, isEmailJob } from "@/lib/crons/registry";
  * cron_runs / cron_config may be absent (migration 082 not applied) — fail soft.
  */
 
-const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const ALLOWED_WINDOWS = [7, 30, 90];
 const TREND_MS = 28 * 24 * 60 * 60 * 1000;
 
 function isoWeek(d: Date): string {
@@ -25,18 +25,61 @@ function isoWeek(d: Date): string {
   return t.toISOString().slice(0, 10);
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+// ── Per-variant breakdown (weekly digest sends three distinct templates under one email_type) ──
+const VARIANT_LABELS: Record<string, string> = {
+  family_question: "Family question",
+  weekly_digest: "Weekly digest",
+  completion: "Completion nudge",
+  cold_rank: "Cold rank note",
+};
+const VARIANT_ORDER = ["family_question", "weekly_digest", "completion", "cold_rank"];
+
+type VRow = {
+  email_type: string; created_at: string; delivered_at: string | null; first_opened_at: string | null;
+  first_clicked_at: string | null; bounced_at: string | null; complained_at: string | null;
+  html_body: string | null; metadata: Record<string, unknown> | null; subject: string | null;
+};
+type VStat = { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number };
+const emptyVStat = (): VStat => ({ sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 });
+function accVStat(s: VStat, e: VRow) {
+  s.sent += 1;
+  if (e.delivered_at) s.delivered += 1;
+  if (e.first_opened_at) s.opened += 1;
+  if (e.first_clicked_at) s.clicked += 1;
+  if (e.bounced_at) s.bounced += 1;
+  if (e.complained_at) s.complained += 1;
+}
+/**
+ * Which digest variant a send is. Prefers the stamped metadata.variant (new sends); falls back to
+ * subject-pattern inference so the breakdown also covers rows sent before instrumentation landed.
+ */
+function classifyVariant(subject: string | null, metadata: Record<string, unknown> | null): { variant: string; ledWithRank: boolean } {
+  const mv = metadata?.variant;
+  if (mv === "family_question" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
+    return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
+  }
+  const s = subject ?? "";
+  if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
+  if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
+  if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
+  const led = /^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s);
+  return { variant: "weekly_digest", ledWithRank: led };
+}
+
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   const admin = await getAdminUser(user.id);
   if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
   const { id } = await params;
+  const daysParam = parseInt(new URL(req.url).searchParams.get("days") || "30", 10);
+  const windowDays = ALLOWED_WINDOWS.includes(daysParam) ? daysParam : 30;
   const job = getCronJob(id);
   if (!job) return NextResponse.json({ error: "Unknown automation" }, { status: 404 });
 
   const db = getServiceClient();
-  const since = new Date(Date.now() - WINDOW_MS).toISOString();
+  const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
   const trendSince = new Date(Date.now() - TREND_MS).toISOString();
 
   // ── run history (fail soft) ──
@@ -74,25 +117,39 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   let rollup30d: { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number } | null = null;
   let trend: Array<{ week: string; sent: number; delivered: number; opened: number; clicked: number }> = [];
   const previewTypes: string[] = [];
+  // Per-variant rollup (only meaningful when a job's one email_type fans out into templates, like
+  // the weekly digest). `variants[].split` carries the rank-led vs plain breakdown for weekly_digest.
+  type VariantOut = VStat & { key: string; label: string; split?: { withRank: VStat; plain: VStat } };
+  let variants: VariantOut[] = [];
   if (job.emailTypes.length > 0) {
     rollup30d = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
     const weekMap = new Map<string, { sent: number; delivered: number; opened: number; clicked: number }>();
+    const vAgg: Record<string, VStat> = {};
+    const wkWithRank = emptyVStat();
+    const wkPlain = emptyVStat();
+    const isDigestJob = id === "weekly-provider-digest";
     try {
+      // Fetch the wider of (rollup window, trend window) so a short window (7d) doesn't starve the
+      // fixed 4-week trend. The rollup + variants then gate to `since` per-row; the trend to trendSince.
+      const fetchSince = since < trendSince ? since : trendSince;
       const { data } = await db
         .from("email_log")
-        .select("email_type, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body")
+        .select("email_type, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body, metadata, subject")
         .in("email_type", job.emailTypes)
-        .gte("created_at", since)
+        .gte("created_at", fetchSince)
         .order("created_at", { ascending: false })
         .limit(100000);
       const seenPreviewTypes = new Set<string>();
-      for (const e of (data ?? []) as Array<{ email_type: string; created_at: string; delivered_at: string | null; first_opened_at: string | null; first_clicked_at: string | null; bounced_at: string | null; complained_at: string | null; html_body: string | null }>) {
-        rollup30d.sent += 1;
-        if (e.delivered_at) rollup30d.delivered += 1;
-        if (e.first_opened_at) rollup30d.opened += 1;
-        if (e.first_clicked_at) rollup30d.clicked += 1;
-        if (e.bounced_at) rollup30d.bounced += 1;
-        if (e.complained_at) rollup30d.complained += 1;
+      for (const e of (data ?? []) as VRow[]) {
+        const inWindow = e.created_at >= since;
+        if (inWindow) {
+          rollup30d.sent += 1;
+          if (e.delivered_at) rollup30d.delivered += 1;
+          if (e.first_opened_at) rollup30d.opened += 1;
+          if (e.first_clicked_at) rollup30d.clicked += 1;
+          if (e.bounced_at) rollup30d.bounced += 1;
+          if (e.complained_at) rollup30d.complained += 1;
+        }
         if (e.created_at >= trendSince) {
           const wk = isoWeek(new Date(e.created_at));
           const w = weekMap.get(wk) ?? { sent: 0, delivered: 0, opened: 0, clicked: 0 };
@@ -102,9 +159,29 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           if (e.first_clicked_at) w.clicked += 1;
           weekMap.set(wk, w);
         }
-        if (e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
+        // Variant breakdown — only the weekly digest fans one email_type into multiple templates,
+        // so classifyVariant's digest-specific patterns only make sense there. For any other job
+        // the subjects wouldn't match and would all collapse into a bogus "weekly_digest" bucket.
+        if (inWindow && isDigestJob) {
+          const { variant, ledWithRank } = classifyVariant(e.subject, e.metadata);
+          (vAgg[variant] ??= emptyVStat());
+          accVStat(vAgg[variant], e);
+          if (variant === "weekly_digest") accVStat(ledWithRank ? wkWithRank : wkPlain, e);
+        }
+        if (inWindow && e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
       }
       previewTypes.push(...seenPreviewTypes);
+      // Show the full digest taxonomy (all three templates + the weekly-digest rank split), even
+      // variants with no sends in this window — so the breakdown reflects what the digest *can*
+      // send, not just what happened to fire. Empty ones render muted on the page.
+      if (isDigestJob) {
+        variants = VARIANT_ORDER.map((k) => ({
+          key: k,
+          label: VARIANT_LABELS[k],
+          ...(vAgg[k] ?? emptyVStat()),
+          ...(k === "weekly_digest" ? { split: { withRank: wkWithRank, plain: wkPlain } } : {}),
+        }));
+      }
     } catch {
       rollup30d = null;
     }
@@ -120,8 +197,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     pause,
     rollup30d,
     trend,
+    variants,
     previewTypes,
     runs,
-    windowDays: 30,
+    windowDays,
   });
 }

@@ -19,18 +19,12 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { Drawer } from "@/app/admin/student-outreach/Drawer";
-import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
-import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
-import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
-import {
-  LogMeetingModal,
-  type MeetingStatus,
-} from "@/app/admin/student-outreach/LogMeetingModal";
 import type {
   Campus,
   DrawerContext,
@@ -115,14 +109,6 @@ export function MedJobsTabPage({
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
-
-  const [callOutcomeRow, setCallOutcomeRow] = useState<TabRow | null>(null);
-  const [classifierRow, setClassifierRow] = useState<{
-    row: TabRow;
-    source: "email_reply" | "callback";
-  } | null>(null);
-  const [partnerRow, setPartnerRow] = useState<TabRow | null>(null);
-  const [logMeetingRow, setLogMeetingRow] = useState<TabRow | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -287,40 +273,12 @@ export function MedJobsTabPage({
         row={row}
         recentlyMoved={isRecent(row.id)}
         onOpenDrawer={() => setOpenOutreachId(row.id)}
-        onLogCallOutcome={() => setCallOutcomeRow(row)}
-        onClassifyReply={(source) => setClassifierRow({ row, source })}
-        onMarkPartner={() => setPartnerRow(row)}
-        onMakeClient={async () => {
-          // Provider conversion shortcut from the row overflow.
-          // Mirrors the drawer's MakeClientFooter — confirm prompt,
-          // make_client action, lazy unlock of catchment Partner
-          // Prospects on next read. No modal because the conversion
-          // doesn't need committment-evidence payload (admin's
-          // judgment call from outreach signals).
-          if (
-            !window.confirm(
-              `Mark ${row.organization_name} as a Client?\n\nThis writes the conversion timestamp on the provider profile and surfaces Partner Prospects for any Site in this provider's catchment.`,
-            )
-          )
-            return;
-          try {
-            await callAction(row.id, "make_client");
-          } catch (e) {
-            setError(e instanceof Error ? e.message : "Action failed");
-          }
-        }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
           const label = STOP_OUTREACH_LABELS[reason];
           if (!window.confirm(`Stop outreach: ${label}?`)) return;
           try { await callAction(row.id, action); }
           catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
-        }}
-        onLogMeeting={() => setLogMeetingRow(row)}
-        onSendFollowupEmail={() => {
-          const subject = encodeURIComponent(`Following up — ${row.organization_name}`);
-          const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
-          window.open(url, "_blank", "noopener,noreferrer");
         }}
         onMarkUnread={async () => {
           try { await callAction(row.id, "mark_unread"); }
@@ -341,12 +299,11 @@ export function MedJobsTabPage({
     [tab, callAction, isRecent],
   );
 
-  const visibleTabs = useMemo(() => {
-    return TABS.filter((t) => {
-      const total = tabCounts?.[t.key] ?? 0;
-      return total > 0 || t.key === tab;
-    });
-  }, [tabCounts, tab]);
+  // Always show the four core operational tabs (Prospects · Calls · Emails ·
+  // Meetings), even when empty. Each has its own empty state, so a quiet
+  // "No calls due" reads better than a tab that vanishes — the admin always
+  // knows where calls/meetings will land. (Smart-hide removed for these.)
+  const visibleTabs = TABS;
 
   const isInboxEmpty = useMemo(() => {
     if (!tabCounts) return false;
@@ -505,12 +462,12 @@ export function MedJobsTabPage({
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
             The In Basket is clear. Head to{" "}
-            <a
+            <Link
               href="/admin/medjobs/logs"
               className="font-medium text-primary-700 underline hover:no-underline"
             >
               Logs
-            </a>
+            </Link>
             {" "}to review what you and the team finished.
           </p>
         </div>
@@ -717,162 +674,6 @@ export function MedJobsTabPage({
           onClose={() => {
             setOpenCandidateId(null);
             void refetch();
-          }}
-        />
-      )}
-
-      {callOutcomeRow && (
-        <LogCallOutcomeModal
-          organizationName={callOutcomeRow.organization_name}
-          contactName={callOutcomeRow.primary_contact_name}
-          contactPhone={callOutcomeRow.primary_contact_phone}
-          rowKind={callOutcomeRow.kind === "provider" ? "provider" : "stakeholder"}
-          onCancel={() => setCallOutcomeRow(null)}
-          onSubmit={async (outcome, notes, partner, meetingAt) => {
-            // R5: terminal admin overrides dispatched directly.
-            if (outcome === "mark_dnc" || outcome === "mark_no_response_closed") {
-              await callAction(callOutcomeRow.id, outcome, { notes });
-            } else if (outcome === "meeting_scheduled") {
-              // P1: call-driven meeting commitment dispatches
-              // mark_meeting_scheduled directly.
-              await callAction(callOutcomeRow.id, "mark_meeting_scheduled", {
-                meeting_at: meetingAt ?? null,
-                notes,
-              });
-            } else {
-              // v9 final: scope the log to this row's specific call task
-              // so the General Contact card and each Specific Contact
-              // card close their own tasks independently. Without
-              // task_id the server falls back to the oldest due call.
-              await callAction(callOutcomeRow.id, "log_call", {
-                outcome,
-                notes,
-                task_id: callOutcomeRow.due_call_task?.id,
-              });
-              if (partner) {
-                await callAction(callOutcomeRow.id, "mark_partner", { ...partner });
-              }
-            }
-            setCallOutcomeRow(null);
-          }}
-        />
-      )}
-      {classifierRow && (
-        <ReplyClassifierModal
-          organizationName={classifierRow.row.organization_name}
-          source={classifierRow.source}
-          rowKind={classifierRow.row.kind === "provider" ? "provider" : "stakeholder"}
-          onCancel={() => setClassifierRow(null)}
-          onSubmit={async (classification, payload, partner, redirect) => {
-            if (classification === "became_client") {
-              // P3: provider reply → direct client conversion.
-              await callAction(classifierRow.row.id, "make_client", {
-                notes: payload.notes,
-              });
-            } else if (classification === "redirected" && redirect) {
-              // P4: add the new contact + stop the original cadence.
-              // stop_cadence: true ensures cadence stops for the original
-              // recipient even though we're using keep_emailing.
-              const derivedName =
-                [redirect.first_name, redirect.last_name]
-                  .filter(Boolean)
-                  .join(" ")
-                  .trim() || redirect.email;
-              await callAction(classifierRow.row.id, "add_contact", {
-                name: derivedName,
-                first_name: redirect.first_name || null,
-                last_name: redirect.last_name || null,
-                email: redirect.email || null,
-              });
-              await callAction(classifierRow.row.id, "classify_reply", {
-                classification: "keep_emailing",
-                notes: payload.notes,
-                stop_cadence: true,
-              });
-            } else {
-              await callAction(classifierRow.row.id, "classify_reply", {
-                classification,
-                notes: payload.notes,
-                meeting_at: payload.meeting_at,
-              });
-              if (partner) {
-                await callAction(classifierRow.row.id, "mark_partner", { ...partner });
-              }
-            }
-            setClassifierRow(null);
-          }}
-        />
-      )}
-      {partnerRow && (
-        <MarkPartnerModal
-          organizationName={partnerRow.organization_name}
-          onCancel={() => setPartnerRow(null)}
-          onConfirm={async (payload) => {
-            try {
-              await callAction(partnerRow.id, "mark_partner", { ...payload });
-              setPartnerRow(null);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-            }
-          }}
-        />
-      )}
-      {logMeetingRow && (
-        <LogMeetingModal
-          organizationName={logMeetingRow.organization_name}
-          contactName={logMeetingRow.primary_contact_name}
-          initialStatus={
-            logMeetingRow.meeting_state === "scheduled" ? "booked" : "finding_time"
-          }
-          initialMeetingAt={
-            logMeetingRow.meeting_at
-              ? logMeetingRow.meeting_at.slice(0, 16)
-              : undefined
-          }
-          rowKind={logMeetingRow.kind === "provider" ? "provider" : "stakeholder"}
-          onCancel={() => setLogMeetingRow(null)}
-          onSubmit={async (status: MeetingStatus, payload, partner) => {
-            try {
-              if (status === "booked") {
-                await callAction(logMeetingRow.id, "mark_meeting_scheduled", {
-                  meeting_at: payload.meeting_at,
-                  notes: payload.notes,
-                });
-              } else if (status === "finding_time") {
-                await callAction(logMeetingRow.id, "flag_wants_meeting", {
-                  notes: payload.notes,
-                });
-              } else if (status === "no_show") {
-                // P6: emit meeting_no_show + keep meeting_state in_flight.
-                await callAction(logMeetingRow.id, "flag_wants_meeting", {
-                  notes: payload.notes,
-                  no_show: true,
-                });
-              } else if (status === "done_followup") {
-                await callAction(logMeetingRow.id, "mark_meeting_followup", {
-                  notes: payload.notes,
-                });
-              } else if (status === "done_partner" && partner) {
-                // v9.0 Phase 7 Commit G: done_partner is now a direct
-                // mark_partner; no chained MarkPartnerModal. The meeting
-                // log itself is implicit in the partner conversion.
-                await callAction(logMeetingRow.id, "mark_partner", { ...partner });
-              } else if (status === "done_client") {
-                // P3: post-meeting provider conversion.
-                await callAction(logMeetingRow.id, "make_client", {
-                  notes: payload.notes,
-                });
-              } else if (status === "not_a_fit") {
-                // C3: post-meeting decline path.
-                await callAction(logMeetingRow.id, "mark_not_interested", {
-                  notes: payload.notes,
-                });
-              }
-              setLogMeetingRow(null);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Save failed");
-              throw e;
-            }
           }}
         />
       )}

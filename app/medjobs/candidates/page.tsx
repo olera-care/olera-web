@@ -62,6 +62,8 @@ function CandidateBrowseInner() {
 
   const claimConflict = searchParams?.get("claim_conflict") === "1";
   const outreachIdFromUrl = searchParams?.get("outreach_id") ?? undefined;
+  // Activation-cadence links carry ?activate=1 → open Terms on arrival.
+  const autoOpenTerms = searchParams?.get("activate") === "1";
   // The magic-link landing resolves the provider's campus → university id.
   const universityFromUrl = searchParams?.get("university") ?? null;
 
@@ -239,6 +241,7 @@ function CandidateBrowseInner() {
             claimConflict={claimConflict}
             isProvider={!!isProvider}
             outreachId={outreachIdFromUrl}
+            autoOpen={autoOpenTerms}
           />
         )}
 

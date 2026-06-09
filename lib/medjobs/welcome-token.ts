@@ -121,6 +121,9 @@ export function buildWelcomeUrl(
     outreach_id: string;
     email: string;
     site_url?: string;
+    /** Activation-cadence links: append ?a=1 so the landing route carries
+     *  activate=1 to the board and the Terms modal auto-opens. */
+    activate?: boolean;
   },
   secret: string,
 ): string {
@@ -133,7 +136,8 @@ export function buildWelcomeUrl(
     jti: freshJti(),
   };
   const token = signWelcomeToken(payload, secret);
-  return `${siteUrl}/medjobs/m/${encodeURIComponent(token)}`;
+  const base = `${siteUrl}/medjobs/m/${encodeURIComponent(token)}`;
+  return params.activate ? `${base}?a=1` : base;
 }
 
 // ── Base64url helpers ───────────────────────────────────────────────────

@@ -81,6 +81,9 @@ interface InviteeExtract {
   event_uri: string | null;
   /** Event arrival time (for the canceled+created reschedule pairing). */
   event_at: string;
+  /** tracking.utm_content — carries the outreach_id when the provider booked
+   *  via a Calendly link from our emails (deterministic match). */
+  utm_content: string | null;
 }
 
 function extractInvitee(raw: unknown): InviteeExtract {
@@ -108,6 +111,12 @@ function extractInvitee(raw: unknown): InviteeExtract {
     r.created_at ?? r.timestamp ?? new Date().toISOString();
   const eventAt = String(eventAtRaw);
 
+  const tracking = (payload.tracking ?? {}) as Record<string, unknown>;
+  const utmContent =
+    typeof tracking.utm_content === "string" && tracking.utm_content.trim()
+      ? tracking.utm_content.trim()
+      : null;
+
   return {
     invitee_email: email,
     invitee_name: name,
@@ -115,13 +124,30 @@ function extractInvitee(raw: unknown): InviteeExtract {
     invitee_uri: inviteeUri,
     event_uri: eventUri,
     event_at: eventAt,
+    utm_content: utmContent,
+  };
+}
+
+/** Deterministic match: the Calendly link in our emails carries
+ *  ?utm_content={{outreach_id}}, which Calendly returns in tracking. */
+async function resolveRowByOutreachId(
+  outreachId: string,
+): Promise<ResolvedRow | null> {
+  const { data } = await supabase
+    .from("student_outreach")
+    .select("id, status")
+    .eq("id", outreachId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id as string,
+    status: data.status as string,
   };
 }
 
 interface ResolvedRow {
   id: string;
   status: string;
-  replies_state: string | null;
 }
 
 /** Match invitee email against the outreach population via the canonical
@@ -134,22 +160,42 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   const lc = email.toLowerCase();
   const excluded = ["not_interested", "no_response_closed", "do_not_contact"];
 
-  // Layer 1: general_contact.email
+  // Layer 0: Smartlead lead email (cold + activation). This is the exact
+  // surface the reply webhook resolves rows on, and it's proven to match the
+  // +tagged prospect addresses. For cold rows it equals general_contact.email,
+  // but keying off it first sidesteps any drift between the contact record and
+  // the enrolled lead address.
+  for (const path of [
+    "research_data->smartlead->>lead_email",
+    "research_data->smartlead_activation->>lead_email",
+  ]) {
+    const { data: d0 } = await supabase
+      .from("student_outreach")
+      .select("id, status")
+      .ilike(path, lc)
+      .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
+      .limit(2);
+    const r0 = (d0 ?? []) as Array<ResolvedRow>;
+    if (r0.length === 1) return r0[0];
+    if (r0.length > 1) return null; // ambiguous
+  }
+
+  // Layer 1: general_contact.email (case-insensitive)
   let { data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state")
-    .filter("research_data->general_contact->>email", "eq", lc)
+    .select("id, status")
+    .ilike("research_data->general_contact->>email", lc)
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .limit(2);
   let rows = (data ?? []) as Array<ResolvedRow>;
   if (rows.length === 1) return rows[0];
   if (rows.length > 1) return null; // ambiguous
 
-  // Layer 2: decision_maker.email
+  // Layer 2: decision_maker.email (case-insensitive)
   ({ data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state")
-    .filter("research_data->decision_maker->>email", "eq", lc)
+    .select("id, status")
+    .ilike("research_data->decision_maker->>email", lc)
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .limit(2));
   rows = (data ?? []) as Array<ResolvedRow>;
@@ -159,13 +205,12 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   // Layer 3: linked business_profile.email (legacy).
   ({ data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state, provider_business_profile_id")
+    .select("id, status, provider_business_profile_id")
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .not("provider_business_profile_id", "is", null));
   const candidateBpIds = ((data ?? []) as Array<{
     id: string;
     status: string;
-    replies_state: string | null;
     provider_business_profile_id: string;
   }>).map((r) => r.provider_business_profile_id);
   if (candidateBpIds.length === 0) return null;
@@ -180,14 +225,12 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   const matchingRows = ((data ?? []) as Array<{
     id: string;
     status: string;
-    replies_state: string | null;
     provider_business_profile_id: string;
   }>).filter((r) => matchingBpIds.includes(r.provider_business_profile_id));
   if (matchingRows.length === 1) {
     return {
       id: matchingRows[0].id,
       status: matchingRows[0].status,
-      replies_state: matchingRows[0].replies_state,
     };
   }
   return null;
@@ -219,7 +262,11 @@ async function insertTouchpoint(
     outreach_id: outreachId,
     contact_id: null,
     touchpoint_type: type,
-    channel: "calendly",
+    // The touchpoints CHECK constraint only allows
+    // email/phone/ig_dm/contact_form/meeting/system — "calendly" is NOT valid
+    // and silently fails the insert. These are meeting-channel events; the
+    // Calendly origin is recorded in payload.source instead.
+    channel: "meeting",
     outcome: null,
     notes,
     payload,
@@ -244,13 +291,25 @@ async function handleCreated(row: ResolvedRow, extract: InviteeExtract) {
     occurred_at: extract.event_at,
   }, `Calendly booking · ${extract.invitee_name ?? extract.invitee_email ?? "invitee"}`);
 
-  // Reset viewed_at so the row resurfaces in admin's Meetings tab
-  // immediately — mirrors the row-modification semantics of the Smartlead
-  // webhook reply handler.
+  // A booked meeting supersedes the chase — cancel pending cadence tasks so
+  // neither the cold cadence NOR the activation cadence (its calls are
+  // outreach_followup_call tasks) keeps firing at a provider who just booked.
+  // Mirrors handleMarkMeetingScheduled's supersedePending* calls in route.ts.
   await supabase
-    .from("student_outreach")
-    .update({ viewed_at: null })
-    .eq("id", row.id);
+    .from("student_outreach_tasks")
+    .update({ status: "superseded", completed_at: new Date().toISOString() })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_email_send", "outreach_followup_call", "outreach_day_0"]);
+
+  // Promote pre-engaged rows to engaged (mirrors mark_meeting_scheduled) and
+  // reset viewed_at so the row resurfaces in admin's Meetings tab immediately.
+  const patch: Record<string, unknown> = { viewed_at: null };
+  if (["outreach_sent", "researched", "prospect", "no_response_closed"].includes(row.status)) {
+    patch.status = "engaged";
+    if (row.status === "no_response_closed") patch.reopen_at = null;
+  }
+  await supabase.from("student_outreach").update(patch).eq("id", row.id);
 }
 
 async function handleCanceled(row: ResolvedRow, extract: InviteeExtract) {
@@ -393,12 +452,34 @@ Deno.serve(async (req: Request) => {
   // forever (mirrors the resend/smartlead-webhook convention).
   try {
     const kind = classify(raw);
+
+    // Field-shape probe — surfaces exactly what Calendly sends so a non-match
+    // is diagnosable from the logs (the Smartlead lesson). The two things that
+    // decide a match are tracking.utm_content (the outreach_id baked into the
+    // booking link) and the invitee email; log both plus the payload keys.
+    const rr = raw as Record<string, unknown>;
+    const rp = (rr.payload ?? {}) as Record<string, unknown>;
+    const rt = (rp.tracking ?? {}) as Record<string, unknown>;
+    console.log("[calendly-webhook] received", {
+      kind,
+      event: rr?.event ?? null,
+      payload_keys: rp && typeof rp === "object" ? Object.keys(rp) : null,
+      invitee_email: typeof rp.email === "string" ? rp.email : null,
+      utm_content: rt?.utm_content ?? null,
+      tracking_keys: rt && typeof rt === "object" ? Object.keys(rt) : null,
+    });
+
     if (kind === "ignore") return new Response("ok (ignored)", { status: 200 });
 
     const extract = extractInvitee(raw);
-    const row = await resolveRow(extract.invitee_email);
+    // Deterministic utm_content match first; fall back to invitee email.
+    const row =
+      (extract.utm_content
+        ? await resolveRowByOutreachId(extract.utm_content)
+        : null) ?? (await resolveRow(extract.invitee_email));
     if (!row) {
       console.warn("[calendly-webhook] could not map event to a row", {
+        utm_content: extract.utm_content,
         email: extract.invitee_email,
         kind,
       });

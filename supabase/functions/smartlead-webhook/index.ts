@@ -104,6 +104,9 @@ function classify(raw: unknown): Kind {
 interface LeadExtract {
   outreachId?: string;
   email?: string;
+  /** Smartlead campaign id from the event payload. Present on reply/open/click
+   *  events (which carry no custom_fields). Diagnostic aid for unmatched events. */
+  campaignId?: number;
   contactId?: string | null;
   recipientKind?: string;
   role?: string;
@@ -114,12 +117,28 @@ interface LeadExtract {
    *  email_sent touchpoint's clicked_ctas[] for timeline rendering ("clicked:
    *  Review {campus} student caregivers"). */
   clickUrl?: string;
+  /** For reply events: the provider's actual reply, surfaced in the Email
+   *  drawer so the admin answers what they said. reply_body is HTML;
+   *  preview_text is the plain-text snippet. */
+  replyBody?: string;
+  replyPreview?: string;
+  replySubject?: string;
+  /** The address the reply came FROM (the provider) — may differ from the
+   *  lead email if they replied from a different mailbox. */
+  fromEmail?: string;
 }
 
 /** Pull our CRM join keys (custom_fields.outreach_id, contact_id, etc.) out of
  *  the lead, however Smartlead nests it; fall back to the lead email for a
- *  research_data lookup. */
-function extractLead(raw: unknown): LeadExtract {
+ *  research_data lookup.
+ *
+ *  CRITICAL — reply events differ in shape: Smartlead's EMAIL_REPLY payload
+ *  carries NO `lead` object and NO `custom_fields` (so no outreach_id). The
+ *  canonical lead address is `sl_lead_email` (the campaign lead) — correct even
+ *  when the provider replies from a DIFFERENT mailbox, in which case
+ *  `to_email`/`from_email` hold that other mailbox, not our prospect. So for
+ *  replies resolve off sl_lead_email; never off from_email. `kind` drives this. */
+function extractLead(raw: unknown, kind: Kind): LeadExtract {
   const r = raw as Record<string, unknown>;
   const lead = (r.lead ?? r.lead_data ?? r) as Record<string, unknown>;
   const cf = (lead.custom_fields ?? r.custom_fields ?? {}) as Record<string, unknown>;
@@ -132,9 +151,25 @@ function extractLead(raw: unknown): LeadExtract {
   const recipientKind = cf.recipient_kind != null ? String(cf.recipient_kind) : undefined;
   const role = cf.role != null ? String(cf.role) : undefined;
 
-  const email = String(
-    (lead.email ?? r.to_email ?? r.to ?? lead.to_email ?? "") as string,
-  ).trim().toLowerCase();
+  // The LEAD/prospect email used to resolve the CRM row. Replies put the
+  // canonical lead in sl_lead_email; other events carry it on the lead object
+  // / to_email. Never resolve a row off from_email (the reply sender).
+  const email = (
+    kind === "reply"
+      ? String((r.sl_lead_email ?? r.to_email ?? r.to ?? "") as string)
+      : String(
+          (lead.email ?? r.sl_lead_email ?? r.to_email ?? r.to ?? lead.to_email ?? "") as string,
+        )
+  )
+    .trim()
+    .toLowerCase();
+
+  const campaignIdRaw =
+    r.campaign_id ?? (r.campaign as Record<string, unknown> | undefined)?.id;
+  const campaignId =
+    campaignIdRaw != null && !Number.isNaN(Number(campaignIdRaw))
+      ? Number(campaignIdRaw)
+      : undefined;
 
   const sequenceStepRaw =
     (r.sequence_step ?? r.step ?? r.seq_number ?? (r.sequence as Record<string, unknown> | undefined)?.step) as
@@ -161,9 +196,31 @@ function extractLead(raw: unknown): LeadExtract {
     (r.link as Record<string, unknown> | undefined)?.url;
   const clickUrl = clickUrlRaw != null ? String(clickUrlRaw) : undefined;
 
+  // Reply payload — field names vary across Smartlead webhook versions; accept
+  // the common aliases defensively (verify against current docs before launch).
+  const reply = (r.reply ?? {}) as Record<string, unknown>;
+  const replyBodyRaw =
+    r.reply_body ??
+    r.sent_message_body ?? // Smartlead's live EMAIL_REPLY body field (HTML)
+    r.reply_message ??
+    r.email_body ??
+    r.body_html ??
+    reply.body ??
+    reply.html;
+  const replyBody = replyBodyRaw != null ? String(replyBodyRaw) : undefined;
+  const replyPreviewRaw =
+    r.preview_text ?? r.sent_message ?? r.reply_preview ?? r.snippet ?? reply.preview_text;
+  const replyPreview = replyPreviewRaw != null ? String(replyPreviewRaw) : undefined;
+  const replySubjectRaw = r.subject ?? r.reply_subject ?? reply.subject;
+  const replySubject = replySubjectRaw != null ? String(replySubjectRaw) : undefined;
+  const fromEmailRaw = r.from_email ?? r.from ?? reply.from_email ?? reply.from;
+  const fromEmail =
+    fromEmailRaw != null ? String(fromEmailRaw).trim().toLowerCase() : undefined;
+
   return {
     outreachId,
     email: email || undefined,
+    campaignId,
     contactId,
     recipientKind,
     role,
@@ -171,6 +228,10 @@ function extractLead(raw: unknown): LeadExtract {
     eventId,
     eventAt,
     clickUrl,
+    replyBody,
+    replyPreview,
+    replySubject,
+    fromEmail,
   };
 }
 
@@ -181,7 +242,17 @@ interface ResolvedRow {
 }
 
 /** Resolve the student_outreach row id + current status from the join key or
- *  email. Returns null if we can't map the event to a row. */
+ *  email. Returns null if we can't map the event to a row.
+ *
+ *  Resolution order, most → least reliable:
+ *    1. custom_fields.outreach_id (sent/open/click carry it; replies do NOT).
+ *    2. lead email against the COLD linkage (research_data.smartlead.lead_email).
+ *    3. lead email against the ACTIVATION linkage
+ *       (research_data.smartlead_activation.lead_email) — an engaged provider
+ *       replying to the activation cadence has a different campaign than cold.
+ *
+ *  Email matches are case-insensitive (ilike) since the stored lead_email's
+ *  casing isn't guaranteed to match the payload's. */
 async function resolveRow(
   outreachId: string | undefined,
   email: string | undefined,
@@ -201,16 +272,24 @@ async function resolveRow(
     }
   }
   if (email) {
-    // Match by the lead email stored in the row's smartlead linkage.
-    const { data } = await supabase
-      .from("student_outreach")
-      .select("id, status, research_data")
-      .eq("research_data->smartlead->>lead_email", email)
-      .limit(1);
-    const row = (data ?? [])[0] as
-      | { id: string; status: string; research_data: Record<string, unknown> | null }
-      | undefined;
-    if (row) return { id: row.id, status: row.status, research_data: row.research_data ?? null };
+    // Match by the lead email stored in either smartlead linkage — cold first,
+    // then activation. Both store the prospect's address as `lead_email`.
+    for (const path of [
+      "research_data->smartlead->>lead_email",
+      "research_data->smartlead_activation->>lead_email",
+    ]) {
+      const { data } = await supabase
+        .from("student_outreach")
+        .select("id, status, research_data")
+        .ilike(path, email)
+        .limit(1);
+      const row = (data ?? [])[0] as
+        | { id: string; status: string; research_data: Record<string, unknown> | null }
+        | undefined;
+      if (row) {
+        return { id: row.id, status: row.status, research_data: row.research_data ?? null };
+      }
+    }
   }
   return null;
 }
@@ -284,6 +363,12 @@ async function handleReply(row: ResolvedRow, extract: LeadExtract) {
     role: extract.role ?? null,
     sequence_step: extract.sequenceStep ?? null,
     occurred_at: extract.eventAt,
+    // The actual reply — surfaced in the Email drawer so the admin answers
+    // what the provider said (Phase 4 reply import).
+    reply_body: extract.replyBody ?? null,
+    preview_text: extract.replyPreview ?? null,
+    reply_subject: extract.replySubject ?? null,
+    from_email: extract.fromEmail ?? extract.email ?? null,
   }, { resetViewedAt: true });
 
   if (PROMOTE_ON_REPLY.has(row.status)) {
@@ -494,14 +579,31 @@ Deno.serve(async (req: Request) => {
   // doesn't retry forever (the resend-webhook convention).
   try {
     const kind = classify(raw);
+
+    // Field-shape probe — Smartlead's payload differs per event type (replies
+    // carry no lead/custom_fields and put the canonical lead in sl_lead_email).
+    // Logging the top-level keys + the email-ish fields makes any future shape
+    // drift diagnosable from the function logs. Bodies are omitted.
+    const rr = raw as Record<string, unknown>;
+    console.log("[smartlead-webhook] received", {
+      kind,
+      event: rr?.event_type ?? rr?.event ?? null,
+      keys: raw && typeof raw === "object" ? Object.keys(rr) : typeof raw,
+      sl_lead_email: rr?.sl_lead_email ?? null,
+      to_email: rr?.to_email ?? null,
+      from_email: rr?.from_email ?? null,
+      campaign_id: rr?.campaign_id ?? null,
+    });
+
     if (kind === "ignore") return new Response("ok (ignored)", { status: 200 });
 
-    const extract = extractLead(raw);
+    const extract = extractLead(raw, kind);
     const row = await resolveRow(extract.outreachId, extract.email);
     if (!row) {
       console.warn("[smartlead-webhook] could not map event to a row", {
         outreachId: extract.outreachId,
         email: extract.email,
+        campaignId: extract.campaignId,
         kind,
       });
       return new Response("ok (unmatched)", { status: 200 });

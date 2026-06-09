@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
@@ -13,6 +13,12 @@ interface Rollup {
   clicked: number;
   bounced: number;
   complained: number;
+}
+interface VariantRow extends Rollup {
+  key: string;
+  label: string;
+  // weekly_digest only: rank-led vs plain split
+  split?: { withRank: Rollup; plain: Rollup };
 }
 interface RunRow {
   id: string;
@@ -43,18 +49,45 @@ interface DetailResponse {
   pause: { reason: string | null; by: string | null; at: string | null; until: string | null } | null;
   rollup30d: Rollup | null;
   trend: Array<{ week: string; sent: number; delivered: number; opened: number; clicked: number }>;
+  variants: VariantRow[];
   previewTypes: string[];
   runs: RunRow[];
   windowDays: number;
 }
 interface PreviewResponse {
-  type: string;
+  type?: string;
   html: string;
-  recipient: string;
+  recipient?: string;
   subject: string;
-  sentAt: string;
-  metadata: Record<string, unknown> | null;
+  sentAt?: string;
+  metadata?: Record<string, unknown> | null;
+  from?: string;
+  preheader?: string | null;
+  // Variant-sample mode (digest): synthetic sample rendered from the template, no real recipient.
+  variant?: string;
+  sample?: boolean;
 }
+
+// The weekly digest's distinct email looks, for the sample preview picker.
+const DIGEST_SAMPLES: { key: string; label: string }[] = [
+  { key: "family_question", label: "Family question" },
+  { key: "weekly_digest_rank", label: "Weekly digest · with rank" },
+  { key: "weekly_digest_plain", label: "Weekly digest · plain" },
+  { key: "completion", label: "Completion nudge" },
+  { key: "cold_rank", label: "Cold rank note" },
+];
+
+// What triggers each variant — shown in the breakdown table via a hover/tap tooltip.
+const VARIANT_TRIGGERS: Record<string, string> = {
+  family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
+  weekly_digest: "Goes to providers active in the last 14 days — page views, clicks, leads, or questions received.",
+  completion: "Goes to claimed providers with an incomplete profile (e.g. no owner story). Nudges them to finish it with a one-click deep link to the editor.",
+  cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",
+};
+const SPLIT_TRIGGERS: Record<string, string> = {
+  withRank: "When we've computed their local market, the digest opens with where they rank.",
+  plain: "When their market isn't computed yet, it's the plain weekly recap.",
+};
 
 type RecipientStatus = "all" | "delivered" | "opened" | "clicked" | "bounced" | "complained" | "undelivered";
 interface RecipientRow {
@@ -150,6 +183,27 @@ function runOptionLabel(r: { started_at: string; status: string; summary: Record
   return `${when}${sent != null ? ` · ${sent.toLocaleString()} sent` : ` · ${r.status}`}`;
 }
 
+/** Small info dot with a tooltip (hover on desktop, tap to toggle on touch). Used to explain variant triggers. */
+function InfoDot({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="group relative ml-1 inline-flex align-middle">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setOpen(false)}
+        aria-label="What triggers this variant"
+        className="inline-flex text-gray-300 transition-colors hover:text-gray-500"
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 4.75a1 1 0 112 0 1 1 0 01-2 0zM6.75 7h1.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0V8.5h-.75a.75.75 0 010-1.5z" /></svg>
+      </button>
+      <span role="tooltip" className={`pointer-events-none absolute left-0 top-full z-30 mt-1 w-60 rounded-lg bg-gray-900 px-3 py-2 text-left text-[11px] font-normal normal-case leading-snug tracking-normal text-white shadow-lg transition-opacity ${open ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+        {text}
+      </span>
+    </span>
+  );
+}
+
 function Sparkline({ values, className = "" }: { values: number[]; className?: string }) {
   if (!values || values.length < 2) return null;
   const w = 56, h = 18;
@@ -208,32 +262,41 @@ export default function AutomationDetailPage() {
   const [recipientPage, setRecipientPage] = useState(1);
   const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | "error" | null>(null);
   const [showAllRuns, setShowAllRuns] = useState(false);
+  const [windowDays, setWindowDays] = useState(30);
+  const reqSeq = useRef(0);
 
   const load = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
+    // Don't flip to the full-page loading state on window-change refetches — keep the current
+    // numbers visible and let them update in place. The initial useState(true) covers first load.
     setErr(null);
+    const reqId = ++reqSeq.current;
     try {
-      const r = await fetch(`/api/admin/automations/${id}`);
+      const r = await fetch(`/api/admin/automations/${id}?days=${windowDays}`);
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       const d: DetailResponse = await r.json();
+      if (reqId !== reqSeq.current) return; // a newer window selection superseded this fetch
       setData(d);
-      setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
+      const isDigestJob = d.job.id === "weekly-provider-digest";
+      setPreviewType((prev) => prev ?? (isDigestJob ? DIGEST_SAMPLES[0].key : (d.previewTypes[0] ?? null)));
       const bestRun = d.runs.find((rr) => { const s = rr.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
       setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
+      if (reqId === reqSeq.current) setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, windowDays]);
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     if (!id || !previewType) return;
     setPreview("loading");
     let cancelled = false;
-    fetch(`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}`)
+    // Digest sample keys fetch a rendered variant sample; other jobs fetch their latest real email.
+    const isSample = DIGEST_SAMPLES.some((s) => s.key === previewType);
+    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`;
+    fetch(`/api/admin/automations/${id}/preview?${qs}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
       .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
       .catch(() => { if (!cancelled) setPreview("none"); });
@@ -376,11 +439,26 @@ export default function AutomationDetailPage() {
           {/* ── OVERVIEW ── */}
           {tab === "overview" && (
             <div className="mt-5 space-y-6">
+              {data.job.isEmail && (
+                <div className="flex items-center justify-end">
+                  <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs">
+                    {[7, 30, 90].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setWindowDays(d)}
+                        className={`rounded-md px-3 py-1 font-medium transition-colors ${windowDays === d ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}
+                      >
+                        {d}d
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {data.rollup30d ? (
                 <>
                   <div>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub="last 30 days">
+                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub={`last ${data.windowDays} days`}>
                         {data.trend.length >= 2 && <Sparkline values={data.trend.map((w) => w.sent)} className="text-gray-300" />}
                       </StatCard>
                       <StatCard value={pct(data.rollup30d.delivered, data.rollup30d.sent)} label="Delivered" />
@@ -412,6 +490,59 @@ export default function AutomationDetailPage() {
                       })()}
                     </p>
                   </div>
+
+                  {data.variants && data.variants.length > 1 && (
+                    <div className="mt-6">
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last {data.windowDays} days</h3>
+                      {/* No overflow-hidden here: the per-row trigger tooltips are absolutely positioned and must escape the wrapper. */}
+                      <div className="rounded-xl border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
+                              <th className="px-4 py-2 font-medium">Variant</th>
+                              <th className="px-4 py-2 text-right font-medium">Sent</th>
+                              <th className="px-4 py-2 text-right font-medium">Delivered</th>
+                              <th className="px-4 py-2 text-right font-medium">Opened</th>
+                              <th className="px-4 py-2 text-right font-medium">Clicked</th>
+                              <th className="px-4 py-2 text-right font-medium">Bounced</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.variants.map((v) => (
+                              <Fragment key={v.key}>
+                                <tr className={`border-b border-gray-100 ${v.sent === 0 ? "text-gray-300" : ""}`}>
+                                  <td className={`px-4 py-2 font-medium ${v.sent === 0 ? "" : "text-gray-800"}`}>
+                                    {v.label}
+                                    {VARIANT_TRIGGERS[v.key] && <InfoDot text={VARIANT_TRIGGERS[v.key]} />}
+                                    {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
+                                  </td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.sent > 0 ? (v.bounced + v.complained || "—") : "—"}</td>
+                                </tr>
+                                {v.split && (["withRank", "plain"] as const).map((sk) => {
+                                  const s = v.split![sk];
+                                  return (
+                                    <tr key={`${v.key}-${sk}`} className="border-b border-gray-100 bg-gray-50/40 text-xs text-gray-400">
+                                      <td className="py-1.5 pl-8 pr-4">{sk === "withRank" ? "↳ led with rank hero" : "↳ no rank hero"}<InfoDot text={SPLIT_TRIGGERS[sk]} /></td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent.toLocaleString()}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.delivered, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.opened, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.clicked, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.sent > 0 ? (s.bounced + s.complained || "—") : "—"}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">Rates are % of sent. Variants are inferred from the email for sends before tagging was added.</p>
+                    </div>
+                  )}
 
                   {data.trend.length >= 2 && (
                     <details className="group">
@@ -446,40 +577,67 @@ export default function AutomationDetailPage() {
                 </div>
               )}
 
-              {/* Latest email */}
-              {data.previewTypes.length > 0 && (
-                <div className="overflow-hidden rounded-xl border border-gray-200">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
-                    <div className="flex min-w-0 items-center gap-2 text-sm">
-                      <span className="font-medium text-gray-700">Latest email</span>
-                      {preview && typeof preview === "object" && (
-                        <span className="truncate text-xs text-gray-400">to <code className="text-gray-500">{preview.recipient}</code> · &ldquo;{preview.subject}&rdquo; · {timeAgo(preview.sentAt)}</span>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      {data.previewTypes.length > 1 && (
-                        <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
-                          {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      )}
-                      {previewType && <a href={`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}&raw=1`} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
-                    </div>
-                  </div>
-                  {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
-                  {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">No rendered email on file yet for this type.</div>}
-                  {preview && typeof preview === "object" && (
-                    <div className="relative bg-white">
-                      <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
-                      {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
-                      <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
-                        <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
-                          {previewExpanded ? "Collapse" : "Expand"}
-                        </button>
+              {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
+              {(() => {
+                const isDigest = data.job.id === "weekly-provider-digest";
+                if (!isDigest && data.previewTypes.length === 0) return null;
+                const sampleSel = DIGEST_SAMPLES.some((s) => s.key === previewType);
+                const fullUrl = previewType
+                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`}&raw=1`
+                  : null;
+                return (
+                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
+                      <div className="flex min-w-0 items-center gap-2 text-sm">
+                        <span className="font-medium text-gray-700">{isDigest ? "Email samples" : "Latest email"}</span>
+                        {preview && typeof preview === "object" && (
+                          <span className="truncate text-xs text-gray-400">
+                            {preview.sample
+                              ? <>sample &middot; &ldquo;{preview.subject}&rdquo;</>
+                              : <>to <code className="text-gray-500">{preview.recipient}</code> &middot; &ldquo;{preview.subject}&rdquo;{preview.sentAt ? ` · ${timeAgo(preview.sentAt)}` : ""}</>}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        {!isDigest && data.previewTypes.length > 1 && (
+                          <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                            {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        )}
+                        {fullUrl && <a href={fullUrl} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    {isDigest && (
+                      <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
+                        {DIGEST_SAMPLES.map((s) => (
+                          <button key={s.key} onClick={() => { setPreviewType(s.key); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.key ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {preview && typeof preview === "object" && (preview.from || preview.preheader) && (
+                      <div className="space-y-0.5 border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
+                        {preview.from && <div className="truncate"><span className="font-medium text-gray-500">From</span> <code className="text-gray-600">{preview.from}</code></div>}
+                        {preview.preheader && <div className="truncate"><span className="font-medium text-gray-500">Preview text</span> {preview.preheader}</div>}
+                      </div>
+                    )}
+                    {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
+                    {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">{isDigest ? "Couldn't render this sample." : "No rendered email on file yet for this type."}</div>}
+                    {preview && typeof preview === "object" && (
+                      <div className="relative bg-white">
+                        <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
+                        {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
+                        <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
+                          <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
+                            {previewExpanded ? "Collapse" : "Expand"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 

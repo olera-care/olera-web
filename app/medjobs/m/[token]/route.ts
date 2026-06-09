@@ -344,6 +344,14 @@ export async function GET(
   if (universityId) boardParams.set("university", universityId);
   boardParams.set("outreach_id", outreach_id);
   if (claimConflict) boardParams.set("claim_conflict", "1");
+  // Activation-cadence links append ?a=1 to the magic-link URL → carry it
+  // through to the board as ?activate=1 so Terms auto-opens on arrival.
+  if (
+    requestUrl.searchParams.get("a") === "1" ||
+    requestUrl.searchParams.get("activate") === "1"
+  ) {
+    boardParams.set("activate", "1");
+  }
   const boardPath = `/medjobs/candidates?${boardParams.toString()}`;
 
   const welcomeUrl = new URL("/medjobs/candidates", request.url);

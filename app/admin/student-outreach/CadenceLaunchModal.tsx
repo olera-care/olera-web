@@ -1,22 +1,17 @@
 "use client";
 
 /**
- * CadenceLaunchModal — the review/launch screen for any cadence.
+ * CadenceLaunchModal — the review/launch screen for the activation cadence.
  *
- * Phase 1 of the activation system (2026-06-09). A clean, self-contained
- * sibling to PreFlightReviewModal: where that modal is wired to the cold
- * initial-outreach launch, this one takes ANY cadence key and renders its
- * plan — editable email steps + reviewable call scripts with timing — ending
- * in one Launch button. Launch IS the approval: nothing sends until the admin
- * clicks it.
+ * Honest model: MedJobs emails are delivered by Smartlead from ONE shared
+ * per-campus campaign sequence built from the canonical templates, so the
+ * email copy is NOT per-launch editable — this screen shows it READ-ONLY, as a
+ * preview of exactly what will send. Call scripts ARE editable (calls are
+ * CRM-queued tasks, so per-launch edits take effect). Launch is the approval:
+ * nothing sends until the admin clicks it.
  *
- * Built for the activation cadence first (launched from a warm reply / call /
- * meeting via the drawer's "Interested" button in Phase 2), but cadence-key
- * agnostic so the same component serves any future sequence.
- *
- * Mirrors PreFlightReviewModal's editing UX (collapsible cards, raw template
- * body with {placeholders} + a substitution preview) on purpose, so admins who
- * already use Pre-Flight find it immediately familiar.
+ * Opened by `ActivationActions` (Interested on a reply / call / meeting) with
+ * cadenceKey="activation".
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -24,15 +19,13 @@ import {
   OUTREACH_DAYS_BY_TYPE,
   type CadenceKey,
   type OutreachDay,
-  type TemplateKey,
 } from "@/lib/student-outreach/cadence";
-import { defaultCallScriptsFor, type EmailSnapshot, type CallScript } from "@/lib/student-outreach/sequencer";
+import { defaultCallScriptsFor, type CallScript } from "@/lib/student-outreach/sequencer";
 import { getTemplate, substituteVars, firstNameOf } from "@/lib/student-outreach/templates";
 import type { StakeholderType } from "@/lib/student-outreach/types";
 
 interface EmailCard {
   day: number;
-  template: TemplateKey;
   subject: string;
   body: string;
   title: string;
@@ -45,7 +38,6 @@ interface CallCard {
 }
 
 export interface CadenceLaunchSubmit {
-  email_snapshots: EmailSnapshot[];
   call_scripts: CallScript[];
 }
 
@@ -57,8 +49,6 @@ interface Props {
   /** The single contact this cadence targets (for preview + first-name). */
   recipientName?: string | null;
   recipientEmail?: string | null;
-  /** Optional day-0 email template override (e.g. the post-meeting opener). */
-  introTemplateOverride?: TemplateKey;
   /** Header copy. Sensible activation defaults if omitted. */
   title?: string;
   introText?: string;
@@ -73,7 +63,6 @@ export function CadenceLaunchModal({
   campusName,
   recipientName,
   recipientEmail,
-  introTemplateOverride,
   title,
   introText,
   submitLabel,
@@ -81,55 +70,40 @@ export function CadenceLaunchModal({
   onSubmit,
 }: Props) {
   const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[cadenceKey];
-  // Activation borrows the provider/student_org informal salutation pattern;
-  // the kind-specific copy lives in the template body, not the salutation rule.
   const templateStakeholderType: StakeholderType =
     cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
 
-  const [emailCards, setEmailCards] = useState<EmailCard[]>(() => {
+  // Email steps — read-only previews of the canonical copy Smartlead will send.
+  const emailCards = useMemo<EmailCard[]>(() => {
     const result: EmailCard[] = [];
     for (const d of days) {
       for (const step of d.steps) {
         if (step.channel !== "email" || !step.template) continue;
-        // Day-0 opener can be swapped (e.g. post-meeting flavor).
-        const template =
-          d.day === 0 && introTemplateOverride ? introTemplateOverride : step.template;
-        const tpl = getTemplate(template, {
+        const tpl = getTemplate(step.template, {
           stakeholder_type: templateStakeholderType,
           organization_name: organizationName,
           campus_name: campusName,
           variant: "named",
         });
-        result.push({
-          day: d.day,
-          template,
-          subject: tpl.subject,
-          body: tpl.body,
-          title: d.title,
-        });
+        result.push({ day: d.day, subject: tpl.subject, body: tpl.body, title: d.title });
       }
     }
     return result;
-  });
+  }, [days, templateStakeholderType, organizationName, campusName]);
 
+  // Call steps — editable (calls are CRM tasks; edits take effect).
   const [callCards, setCallCards] = useState<CallCard[]>(() => {
-    const scripts = defaultCallScriptsFor(cadenceKey);
-    const byDay = new Map(scripts.map((s) => [s.day, s.script]));
+    const byDay = new Map(defaultCallScriptsFor(cadenceKey).map((s) => [s.day, s.script]));
     const result: CallCard[] = [];
     for (const d of days) {
       if (!d.steps.some((s) => s.channel === "phone")) continue;
-      result.push({
-        day: d.day,
-        title: d.title,
-        script: byDay.get(d.day) ?? "Follow-up call",
-      });
+      result.push({ day: d.day, title: d.title, script: byDay.get(d.day) ?? "Follow-up call" });
     }
     return result;
   });
 
   const [openEmail, setOpenEmail] = useState<number | null>(0);
   const [openCall, setOpenCall] = useState<number | null>(null);
-  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -149,30 +123,14 @@ export function CadenceLaunchModal({
     [recipientName, organizationName, campusName],
   );
 
-  const updateEmail = (idx: number, patch: Partial<EmailCard>) =>
-    setEmailCards((cur) => cur.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
   const updateCall = (idx: number, patch: Partial<CallCard>) =>
     setCallCards((cur) => cur.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
   const submit = async () => {
     setErr(null);
-    for (const c of emailCards) {
-      if (!c.subject.trim() || !c.body.trim()) {
-        setErr(`Day ${c.day} subject and body required`);
-        return;
-      }
-    }
     setSubmitting(true);
     try {
-      await onSubmit({
-        email_snapshots: emailCards.map((c) => ({
-          day: c.day,
-          template: c.template,
-          subject: c.subject.trim(),
-          body: c.body.trim(),
-        })),
-        call_scripts: callCards.map((c) => ({ day: c.day, script: c.script.trim() })),
-      });
+      await onSubmit({ call_scripts: callCards.map((c) => ({ day: c.day, script: c.script.trim() })) });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Launch failed");
     } finally {
@@ -183,10 +141,11 @@ export function CadenceLaunchModal({
   const headerTitle = title ?? "Launch activation cadence";
   const headerIntro =
     introText ??
-    "Sends the link plus a meeting option, then nudges until they activate or book a time. Stops automatically on either. Every email is from Graize. Review and approve below.";
+    "Sends the link plus a meeting option, then nudges until they activate or book. Stops automatically on either. Emails send as written (our standard activation copy); edit the call scripts if you like.";
   const launchLabel = submitLabel ?? "Launch cadence";
 
-  const stripDayPrefix = (t: string) => t.replace(/^Day \d+\s*·\s*/, "").replace(/^Now\s*·\s*/, "");
+  const stripDayPrefix = (t: string) =>
+    t.replace(/^Day \d+\s*·\s*/, "").replace(/^Now\s*·\s*/, "");
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
@@ -206,15 +165,14 @@ export function CadenceLaunchModal({
 
           {(recipientName || recipientEmail) && (
             <div className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-              Sends to{" "}
-              <strong>{recipientName || recipientEmail}</strong>
+              Sends to <strong>{recipientName || recipientEmail}</strong>
               {recipientName && recipientEmail ? (
                 <span className="text-gray-500"> ({recipientEmail})</span>
               ) : null}
             </div>
           )}
 
-          {/* Email steps — editable */}
+          {/* Email steps — read-only previews of what sends */}
           {emailCards.map((c, idx) => {
             const isOpen = openEmail === idx;
             const subjectPreview = substituteVars(c.subject, previewVars);
@@ -234,52 +192,17 @@ export function CadenceLaunchModal({
                   <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
                 </button>
                 {isOpen && (
-                  <div className="space-y-2 border-t border-gray-100 px-3 pb-3 pt-2">
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-medium text-gray-700">Subject</span>
-                      <input
-                        value={c.subject}
-                        onChange={(e) => updateEmail(idx, { subject: e.target.value })}
-                        className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="mb-1 flex items-center justify-between text-xs font-medium text-gray-700">
-                        <span>Body</span>
-                        <span className="font-normal text-gray-500">
-                          Variables: <code>{"{first_name}"}</code> <code>{"{campus_name}"}</code>{" "}
-                          <code>{"{welcome_url}"}</code> <code>{"{calendly_url}"}</code>
-                        </span>
-                      </span>
-                      <textarea
-                        value={c.body}
-                        onChange={(e) => updateEmail(idx, { body: e.target.value })}
-                        rows={10}
-                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-gray-400 focus:outline-none"
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewIdx(previewIdx === idx ? null : idx)}
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      {previewIdx === idx ? "Hide preview" : "Preview substitution"}
-                    </button>
-                    {previewIdx === idx && (
-                      <div className="rounded-md border border-gray-100 bg-gray-50 p-2 text-xs">
-                        <p className="font-medium text-gray-600">Subject:</p>
-                        <p className="text-gray-800">{substituteVars(c.subject, previewVars)}</p>
-                        <p className="mt-2 font-medium text-gray-600">Body:</p>
-                        <pre className="mt-1 whitespace-pre-wrap text-gray-800">{substituteVars(c.body, previewVars)}</pre>
-                      </div>
-                    )}
+                  <div className="border-t border-gray-100 px-3 pb-3 pt-2">
+                    <pre className="whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
+                      {substituteVars(c.body, previewVars)}
+                    </pre>
                   </div>
                 )}
               </div>
             );
           })}
 
-          {/* Call steps — reviewable script */}
+          {/* Call steps — editable script */}
           {callCards.map((c, idx) => {
             const isOpen = openCall === idx;
             const scriptPreview = substituteVars(c.script, previewVars).replace(
@@ -297,7 +220,7 @@ export function CadenceLaunchModal({
                     <p className="text-sm font-medium text-gray-900">
                       ☎ Day {c.day} · {stripDayPrefix(c.title)}
                     </p>
-                    <p className="mt-0.5 truncate text-xs text-gray-500">Call script</p>
+                    <p className="mt-0.5 truncate text-xs text-gray-500">Call script (editable)</p>
                   </div>
                   <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
                 </button>
@@ -317,6 +240,11 @@ export function CadenceLaunchModal({
               </div>
             );
           })}
+
+          <p className="rounded-md bg-blue-50/60 px-3 py-2 text-[11px] text-blue-900">
+            Every email carries the provider&apos;s activation link + Dr. DuBose&apos;s calendar.
+            The cadence stops automatically when they accept Terms or book a meeting.
+          </p>
         </div>
 
         <footer className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-6 py-3">

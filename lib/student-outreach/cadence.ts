@@ -33,7 +33,6 @@ export type TemplateKey =
   // and accept Terms. Every body carries the link AND the meeting
   // option; the cadence stops on Trial Active or a booked meeting.
   | "activation_intro"
-  | "activation_postmeeting_intro"
   | "activation_nudge"
   | "activation_final";
 

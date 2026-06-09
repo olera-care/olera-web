@@ -129,7 +129,6 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "provider_followup": return providerFollowupEmail(ctx, ctx.contacts);
     case "provider_final": return providerFinalEmail(ctx, ctx.contacts);
     case "activation_intro": return activationIntroEmail(ctx);
-    case "activation_postmeeting_intro": return activationPostMeetingIntroEmail(ctx);
     case "activation_nudge": return activationNudgeEmail(ctx);
     case "activation_final": return activationFinalEmail(ctx);
   }
@@ -585,23 +584,6 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
       `Or if you'd rather talk it through first, [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}), or just reply with a couple of windows this week or next and I'll set it up.`,
       ``,
       `Either way, happy to help.`,
-    ].join("\n"),
-  };
-}
-
-export function activationPostMeetingIntroEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
-  return {
-    subject: `Thanks for the time today`,
-    body: [
-      greeting,
-      ``,
-      `Thanks for taking the time with Dr. DuBose today. As promised, here's your link to view the ${PLACEHOLDER.campus} students and get set up:`,
-      ``,
-      `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
-      ``,
-      `Anything that came up after, just reply here and I'll help.`,
     ].join("\n"),
   };
 }

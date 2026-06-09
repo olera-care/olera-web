@@ -43,7 +43,6 @@ import {
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
-import type { TemplateKey } from "@/lib/student-outreach/cadence";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 
@@ -372,13 +371,7 @@ function MeetingSetBody({
         Meeting on the calendar. After it, pick the next step.
       </p>
       <p className="mt-1 text-xs text-gray-500">{sublineCopy}</p>
-      <ActivationActions
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        source="meeting"
-        introTemplate="activation_postmeeting_intro"
-      />
+      <ActivationActions ctx={ctx} action={action} setError={setError} source="meeting" />
     </>
   );
 }
@@ -603,21 +596,19 @@ function ReplyPreview({
  * Recipient resolution honors the two-contact model: email prefers the
  * Decision Maker, then the primary active contact, then the General
  * Contact; phone uses the primary active contact (or General Contact).
- * `source` tags where the interest came from; `introTemplate` swaps the
- * Day-0 opener (e.g. the post-meeting flavor).
+ * `source` tags where the interest came from (audit only — the activation
+ * cadence sends one canonical opener regardless of source).
  */
 function ActivationActions({
   ctx,
   action,
   setError,
   source,
-  introTemplate,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (m: string | null) => void;
   source: "reply" | "phone" | "meeting";
-  introTemplate?: TemplateKey;
 }) {
   const [showLaunch, setShowLaunch] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -745,12 +736,10 @@ function ActivationActions({
           campusName={ctx.campus.name}
           recipientName={recipientName}
           recipientEmail={recipientEmail}
-          introTemplateOverride={introTemplate}
           onCancel={() => setShowLaunch(false)}
           onSubmit={async (payload) => {
             try {
               await action("launch_activation", {
-                email_snapshots: payload.email_snapshots,
                 call_scripts: payload.call_scripts,
                 recipient: {
                   name: recipientName,
@@ -761,7 +750,6 @@ function ActivationActions({
                   last_name: recipientLastName,
                 },
                 source,
-                intro_template: introTemplate ?? null,
               });
               setShowLaunch(false);
             } catch (e) {

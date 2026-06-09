@@ -2063,7 +2063,6 @@ async function handleLaunchActivation(
   db: DB,
   row: OutreachRow,
   body: {
-    email_snapshots?: EmailSnapshot[];
     call_scripts?: Array<{ day: number; script: string }>;
     recipient?: {
       name?: string | null;
@@ -2074,7 +2073,6 @@ async function handleLaunchActivation(
       last_name?: string | null;
     };
     source?: string;
-    intro_template?: string | null;
   },
   userId: string,
 ) {
@@ -2176,9 +2174,7 @@ async function handleLaunchActivation(
       reason: "activation_launched",
       source,
       recipient,
-      email_snapshots: body.email_snapshots ?? [],
       call_scripts: body.call_scripts ?? [],
-      intro_template: body.intro_template ?? null,
       // Outcome of the activation Smartlead enrollment (enrolled / skipped /
       // error / pending). The campaign is created PAUSED — a human starts it.
       email_delivery: emailDelivery,

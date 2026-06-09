@@ -100,6 +100,7 @@ interface EmailTrailEntry {
   first_clicked_at: string | null;
   bounced_at: string | null;
   complained_at: string | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 interface Detail {
@@ -919,6 +920,11 @@ export default function ConnectionRow({
                                   : "bg-purple-50 text-purple-600"
                               }`}>
                                 {e.recipient_type === "family" ? "To Family" : "To Provider"}
+                                {(() => {
+                                  if (e.recipient_type === "family") return "";
+                                  const version = (e.metadata as Record<string, unknown> | null)?.email_version;
+                                  return version && typeof version === "number" && version > 1 ? ` (V${version})` : "";
+                                })()}
                               </span>
                               <span className="text-gray-300">·</span>
                               <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>

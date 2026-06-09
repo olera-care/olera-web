@@ -287,6 +287,7 @@ export default async function ProviderPage({
   let aiTrustSignals: AiTrustSignals | null = null;
   let providerPlaceId: string | null = null;
   let rawProviderId: string | null = null;
+  let parentOrganization: { name: string; url?: string } | null = null;
   let providerSource: "ios" | "bp" = "ios";
 
   // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
@@ -308,6 +309,7 @@ export default async function ProviderPage({
       aiTrustSignals = bySlug.ai_trust_signals ?? null;
       providerPlaceId = bySlug.place_id;
       rawProviderId = bySlug.provider_id;
+      parentOrganization = bySlug.parent_organization ?? null;
     } else {
       // Fall back to provider_id (legacy alphanumeric ID)
       const { data: byId } = await supabase
@@ -324,6 +326,7 @@ export default async function ProviderPage({
         aiTrustSignals = byId.ai_trust_signals ?? null;
         providerPlaceId = byId.place_id;
         rawProviderId = byId.provider_id;
+        parentOrganization = byId.parent_organization ?? null;
       }
     }
   } catch {
@@ -773,6 +776,16 @@ export default async function ProviderPage({
     }),
     ...(profile.phone && { telephone: profile.phone }),
     ...(images.length > 0 && { image: images[0] }),
+    // Franchise affiliation (migration 101) — lets Google associate this
+    // location with the broader trusted brand. Only emitted when the provider
+    // was confidently classified against the franchise dictionary.
+    ...(parentOrganization?.name && {
+      parentOrganization: {
+        "@type": "Organization",
+        name: parentOrganization.name,
+        ...(parentOrganization.url && { url: parentOrganization.url }),
+      },
+    }),
     // Google requires AggregateRating.reviewCount to be a positive integer.
     // Only emit the block when there's a real rating AND at least one review —
     // otherwise the entire review snippet is rejected as invalid structured data.

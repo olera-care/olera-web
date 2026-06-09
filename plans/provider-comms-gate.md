@@ -18,28 +18,25 @@ No provider receives more than **3 nudge emails per rolling 7 days**. Transactio
 
 ---
 
-## ⛔ Task 0 — Canonical provider identity (BLOCKER — must resolve first)
-The audit (2026-06-09) found the three target senders stamp `email_log.provider_id` in **different identifier spaces**:
-- `weekly-provider-digest` → the `provider_activity` loop id (slug OR legacy alphanumeric, resolved from `provider_questions`/`provider_activity`).
-- `lead-followup-sequence` → `group.providerSlug` = `toProfile.slug || source_provider_id || toProfile.id`.
-- `unread-reminders` → `recipientProfileId` = **`business_profiles.id` (profile UUID)** (set in `reserveEmailLogId`, route line ~248).
+## Task 0 — Canonical provider identity (RESOLVED by data 2026-06-09)
+Identity investigation (sampled live `email_log` / `provider_activity` / `provider_questions` + membership tests) settled this empirically — no judgment call:
+- `provider_activity.provider_id`: **100% slug-ish**, resolves **96% to `olera-providers.slug`** (0% to `business_profiles.id`). Consistent — **no legacy-id mix in live data.**
+- `weekly-provider-digest` email_log: 99% slug. **Already canonical.** ✅
+- `lead-followup-sequence` email_log: 98% slug (`providerSlug` = `slug || source_provider_id || profile id`). **Already canonical.** ✅
+- `unread-reminders` email_log: **100% `business_profiles.id` (profile UUID)** — the lone outlier. Zero raw-id overlap with the digest.
 
-**Consequence:** the same provider is keyed up to 3 different ways → the gate's per-provider count fragments → the cap leaks. The gate cannot work until every nudge sender stamps ONE canonical key.
+**Canonical key = the slug space** (`olera-providers.slug` == `provider_activity.provider_id` == `business_profiles.slug` for claimed). Confirmed it works for unread's providers: all 108 sampled have a `business_profiles.slug`, and 90% resolve straight into `provider_activity.provider_id` (the 10% just have no recent activity — not a format mismatch).
 
-**Open decision — what is canonical?** Recommendation: the **`provider_activity`/slug space** (slug → source_provider_id → profile id fallback), because the conversion dashboard + question-decay + `email_log.provider_id` were all built around that space (email_log.provider_id was added specifically to join against provider_activity). 
-**But verify first:** what space is `provider_activity.provider_id` / `provider_questions.provider_id` actually in, and is it *consistent* across event sources? (Legacy rows have random-prefix ids — see memory `feedback_provider_id_legacy_format`.) This investigation gates the whole build.
-
-**Task 0 work once canonical key is confirmed:**
-- `unread-reminders`: stop stamping the raw profile UUID; resolve profile → canonical (add `slug, source_provider_id` to the `business_profiles` select at line ~186, stamp that in `reserveEmailLogId`).
-- `lead-followup-sequence`: verify `providerSlug` lands in the canonical space (it mostly does; the `|| toProfile.id` fallback diverges for providers with no slug/source_provider_id).
-- `weekly-provider-digest`: already canonical.
+**The ONLY fix needed:** `unread-reminders` — add `slug, source_provider_id` to the recipient `business_profiles` select (~line 186) and stamp `recipient.slug || recipient.source_provider_id || recipientProfileId` (mirroring lead-followup's chain) instead of the raw `recipientProfileId` in `reserveEmailLogId` (~line 248). digest + lead-followup unchanged.
 - **Acceptance:** a single physical provider produces ONE `provider_id` value across all three senders' `email_log` rows.
 
 ## Task 1 — Nudge classification (`lib/email-governance.ts`)
 `NUDGE_EMAIL_TYPES: Set<string>` (start = the 3) + `isGovernedNudge(type)`. Default = send freely. Log when a `recipientType:"provider"` email's type is in neither list (gap detection).
 
 ## Task 2 — The gate in `sendEmail` (`lib/email.ts`)
-After the existing suppression block: `if (recipientType === "provider" && providerId && isGovernedNudge(emailType))` → count this provider's *sent* nudge rows in `email_log` (type ∈ nudge set, `created_at >= now-7d`). If `>= 3` → `return { success: true, skipped: true, reason: "nudge_cap" }`, log, don't send. One indexed query per nudge send (`idx_email_log_provider_id`). Single-recipient only (matches existing suppression scope).
+After the existing bounce/complaint suppression block: `if (recipientType === "provider" && providerId && isGovernedNudge(emailType))` → count this provider's nudge rows in `email_log` where `email_type ∈ nudge set AND status = 'sent' AND created_at >= now-7d`. If `>= 3` → mark the reserved row (if `existingLogId`) `status:"failed", errorMessage:"nudge_cap"` (mirrors the bounce-suppression path at ~line 330), `return { success: true, skipped: true }`, don't send.
+- **`status = 'sent'` filter is mandatory:** `reserveEmailLogId` writes a `pending` row BEFORE the send (so the in-flight send's own row must not self-count), and suppressed sends are `failed` (must not count). Confirmed lifecycle: pending → sent/failed.
+- One indexed query per nudge send (`idx_email_log_provider_id`). Single-recipient only (matches existing suppression scope).
 
 ## Task 3 — Stateful senders honor `skipped`
 - `lead-followup-sequence`: on `skipped`, do NOT advance `followup_stage`/`followup_sent_at` — retry next run.

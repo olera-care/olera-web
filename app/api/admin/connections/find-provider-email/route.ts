@@ -4,13 +4,12 @@ import { findEmail, type ProviderContext } from "@/lib/medjobs/outreach-enrichme
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Track enrichment usage for analytics
+ * Update enrichment stats in metadata
+ * Returns updated stats object (does not write to DB)
  */
-async function trackEnrichmentAttempt(
-  db: SupabaseClient,
-  providerId: string,
+function updateEnrichmentStats(
   currentMetadata: unknown,
-  stats: {
+  update: {
     wasHit: boolean;
     hadEmail: boolean;
     source: string | null;
@@ -20,31 +19,16 @@ async function trackEnrichmentAttempt(
   const metadata = (currentMetadata || {}) as Record<string, unknown>;
   const existingStats = (metadata.email_enrichment_stats || {}) as Record<string, unknown>;
 
-  const updatedStats = {
+  return {
     total_attempts: ((existingStats.total_attempts as number) || 0) + 1,
-    cache_hits: ((existingStats.cache_hits as number) || 0) + (stats.wasHit ? 1 : 0),
-    cache_misses: ((existingStats.cache_misses as number) || 0) + (stats.wasHit ? 0 : 1),
-    successful_finds: ((existingStats.successful_finds as number) || 0) + (stats.hadEmail ? 1 : 0),
-    scrape_count: ((existingStats.scrape_count as number) || 0) + (stats.source === "scrape" ? 1 : 0),
-    perplexity_count: ((existingStats.perplexity_count as number) || 0) + (stats.source === "perplexity" ? 1 : 0),
+    cache_hits: ((existingStats.cache_hits as number) || 0) + (update.wasHit ? 1 : 0),
+    cache_misses: ((existingStats.cache_misses as number) || 0) + (update.wasHit ? 0 : 1),
+    enrichment_successes: ((existingStats.enrichment_successes as number) || 0) + (!update.wasHit && update.hadEmail ? 1 : 0),
+    scrape_count: ((existingStats.scrape_count as number) || 0) + (update.source === "scrape" ? 1 : 0),
+    perplexity_count: ((existingStats.perplexity_count as number) || 0) + (update.source === "perplexity" ? 1 : 0),
     last_attempted_at: new Date().toISOString(),
-    last_attempted_by: `admin:${stats.adminUserId}`,
+    last_attempted_by: `admin:${update.adminUserId}`,
   };
-
-  const updatedMetadata = {
-    ...metadata,
-    email_enrichment_stats: updatedStats,
-  };
-
-  // Fire and forget
-  db.from("business_profiles")
-    .update({ metadata: updatedMetadata })
-    .eq("id", providerId)
-    .then(({ error }) => {
-      if (error) {
-        console.error("[track-enrichment] Failed to update stats:", error);
-      }
-    });
 }
 
 /**
@@ -169,13 +153,27 @@ export async function POST(request: NextRequest) {
         const contextMatches = cachedContextHash === contextHash;
 
         if (ageInDays < 30 && contextMatches) {
-          // Track cache hit
-          trackEnrichmentAttempt(db, providerId, provider.metadata, {
+          // Update stats for cache hit (fire and forget)
+          const updatedStats = updateEnrichmentStats(provider.metadata, {
             wasHit: true,
             hadEmail: !!cachedData.email,
             source: cachedData.source as string | null,
             adminUserId,
           });
+
+          const updatedMetadata = {
+            ...metadata,
+            email_enrichment_stats: updatedStats,
+          };
+
+          db.from("business_profiles")
+            .update({ metadata: updatedMetadata })
+            .eq("id", providerId)
+            .then(({ error }) => {
+              if (error) {
+                console.error("[find-provider-email] Failed to update cache hit stats:", error);
+              }
+            });
 
           return NextResponse.json({
             email: cachedData.email || null,
@@ -191,16 +189,15 @@ export async function POST(request: NextRequest) {
     // Call the email finder (tries scraping first, then Perplexity AI)
     const result = await findEmail(ctx);
 
-    // Track cache miss (enrichment ran)
-    trackEnrichmentAttempt(db, providerId, provider.metadata, {
+    // Update both cache and stats in single metadata write (fire and forget)
+    const metadata = (provider.metadata || {}) as Record<string, unknown>;
+    const updatedStats = updateEnrichmentStats(provider.metadata, {
       wasHit: false,
       hadEmail: !!result.email,
       source: result.source,
       adminUserId,
     });
 
-    // Cache the result in business_profiles.metadata
-    const metadata = (provider.metadata || {}) as Record<string, unknown>;
     const updatedMetadata = {
       ...metadata,
       email_enrichment_data: {
@@ -210,15 +207,16 @@ export async function POST(request: NextRequest) {
         enriched_at: new Date().toISOString(),
         context_hash: contextHash,
       },
+      email_enrichment_stats: updatedStats,
     };
 
-    // Update metadata (fire and forget - don't wait for it)
+    // Single write for both cache and stats (fire and forget)
     db.from("business_profiles")
       .update({ metadata: updatedMetadata })
       .eq("id", providerId)
       .then(({ error }) => {
         if (error) {
-          console.error("[find-provider-email] Failed to cache result:", error);
+          console.error("[find-provider-email] Failed to cache result and update stats:", error);
         }
       });
 

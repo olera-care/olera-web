@@ -42,7 +42,7 @@ export async function GET() {
       total_attempts: 0,
       cache_hits: 0,
       cache_misses: 0,
-      successful_finds: 0,
+      enrichment_successes: 0,
       scrape_count: 0,
       perplexity_count: 0,
       providers_enriched: providers?.length || 0,
@@ -56,7 +56,7 @@ export async function GET() {
         aggregated.total_attempts += (stats.total_attempts as number) || 0;
         aggregated.cache_hits += (stats.cache_hits as number) || 0;
         aggregated.cache_misses += (stats.cache_misses as number) || 0;
-        aggregated.successful_finds += (stats.successful_finds as number) || 0;
+        aggregated.enrichment_successes += (stats.enrichment_successes as number) || 0;
         aggregated.scrape_count += (stats.scrape_count as number) || 0;
         aggregated.perplexity_count += (stats.perplexity_count as number) || 0;
       }
@@ -68,7 +68,7 @@ export async function GET() {
       : "0.0";
 
     const success_rate = aggregated.cache_misses > 0
-      ? ((aggregated.successful_finds / aggregated.cache_misses) * 100).toFixed(1)
+      ? ((aggregated.enrichment_successes / aggregated.cache_misses) * 100).toFixed(1)
       : "0.0";
 
     const estimated_cost = aggregated.perplexity_count * 0.008;

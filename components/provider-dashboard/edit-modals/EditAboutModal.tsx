@@ -8,6 +8,17 @@ import { trackProfileEdit } from "@/lib/analytics/track-profile-edit";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 
+// Bed Count only applies to residential facilities — irrelevant for in-home
+// agencies (home care / home health / hospice), day programs, and caregivers.
+const BED_COUNT_CATEGORIES = new Set<string>([
+  "independent_living",
+  "assisted_living",
+  "memory_care",
+  "nursing_home",
+  "inpatient_hospice",
+  "rehab_facility",
+]);
+
 export default function EditAboutModal({
   profile,
   metadata,
@@ -35,6 +46,7 @@ export default function EditAboutModal({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const showBedCount = BED_COUNT_CATEGORIES.has(profile.category ?? "");
 
   const hasChanges =
     description !== (profile.description || "") ||
@@ -104,6 +116,7 @@ export default function EditAboutModal({
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Year Founded"
+            optional
             type="number"
             value={yearFounded}
             onChange={(e) => setYearFounded((e.target as HTMLInputElement).value)}
@@ -111,21 +124,26 @@ export default function EditAboutModal({
           />
           <Input
             label="License Number"
+            optional
             value={licenseNumber}
             onChange={(e) => setLicenseNumber((e.target as HTMLInputElement).value)}
             placeholder="e.g. AL-12345"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Bed Count"
-            type="number"
-            value={bedCount}
-            onChange={(e) => setBedCount((e.target as HTMLInputElement).value)}
-            placeholder="e.g. 48"
-          />
+          {showBedCount && (
+            <Input
+              label="Bed Count"
+              optional
+              type="number"
+              value={bedCount}
+              onChange={(e) => setBedCount((e.target as HTMLInputElement).value)}
+              placeholder="e.g. 48"
+            />
+          )}
           <Input
             label="Staff Count"
+            optional
             type="number"
             value={staffCount}
             onChange={(e) => setStaffCount((e.target as HTMLInputElement).value)}

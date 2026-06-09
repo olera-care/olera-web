@@ -15,6 +15,8 @@ interface BaseInputProps {
   size?: "sm" | "md" | "lg";
   /** Show required indicator (only with label) */
   required?: boolean;
+  /** Show a muted "optional" hint after the label (only with label) */
+  optional?: boolean;
 }
 
 type TextInputProps = BaseInputProps &
@@ -64,7 +66,7 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
       .join(" ");
 
     // Remove 'as' and 'size' from props before spreading
-    const { as: _as, required, ...restProps } = props as TextareaProps & { required?: boolean };
+    const { as: _as, required, optional, ...restProps } = props as TextareaProps & { required?: boolean; optional?: boolean };
     void _as;
 
     const inputElement = isTextarea ? (
@@ -108,6 +110,7 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
+          {optional && <span className="ml-1.5 text-[11px] font-normal text-gray-400">optional</span>}
         </label>
 
         {inputElement}

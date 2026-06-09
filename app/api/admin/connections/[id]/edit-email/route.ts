@@ -4,6 +4,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 import { getSiteUrl } from "@/lib/site-url";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 /**
  * POST /api/admin/connections/[id]/edit-email
@@ -87,6 +88,14 @@ export async function POST(
       return NextResponse.json({ error: "Failed to update provider email" }, { status: 500 });
     }
 
+    // Also update olera-providers.email if source_provider_id exists (keep databases in sync)
+    if (toProfile.source_provider_id) {
+      await db
+        .from("olera-providers")
+        .update({ email: newEmail })
+        .eq("provider_id", toProfile.source_provider_id);
+    }
+
     // Prepare metadata for later update
     const meta = (conn.metadata || {}) as Record<string, unknown>;
     const previousEmails = (meta.previous_emails as Array<{ email: string; changed_at: string; changed_by: string }>) || [];
@@ -133,13 +142,13 @@ export async function POST(
       city = iosProvider?.city || null;
     }
 
-    // Send Day 0 email
+    // Send Day 0 email (use canonical UUID for tracking consistency)
     const emailLogId = await reserveEmailLogId({
       to: newEmail,
       subject: `${familyName} is interested in your care services`,
       emailType: "connection_request",
       recipientType: "provider",
-      providerId: providerSlug,
+      providerId: toProfile.id,
       metadata: {
         connection_id: connectionId,
         email_version: emailVersion,
@@ -170,7 +179,7 @@ export async function POST(
       html,
       emailType: "connection_request",
       recipientType: "provider",
-      providerId: providerSlug,
+      providerId: toProfile.id,
       metadata: {
         connection_id: connectionId,
         email_version: emailVersion,
@@ -202,6 +211,7 @@ export async function POST(
       followup_stopped_at: null,
       followup_stopped_reason: null,
       needs_call: false,
+      nudge_count: 0,
       nudged_at: null,
     };
 
@@ -230,11 +240,63 @@ export async function POST(
       `${oldEmail || "(none)"} → ${newEmail} (v${emailVersion}). Day 0 email sent.`
     );
 
+    // Send deferred notifications for ALL other pending connections/questions
+    // This ensures email editing behaves like email adding (consistency)
+    let deferredResult = {
+      leadEmailsSent: 0,
+      questionEmailsSent: 0,
+      leadsSkipped: 0,
+    };
+    let deferredNotificationsSucceeded = true;
+
+    try {
+      // Build slug variants for question lookup
+      const additionalSlugVariants: string[] = [];
+      if (toProfile.slug && toProfile.slug !== providerSlug) {
+        additionalSlugVariants.push(toProfile.slug);
+      }
+      if (toProfile.source_provider_id && toProfile.source_provider_id !== providerSlug) {
+        additionalSlugVariants.push(toProfile.source_provider_id);
+      }
+
+      // Get provider metadata to check leads_unsubscribed status
+      const { data: providerMeta } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", toProfile.id)
+        .maybeSingle();
+
+      const providerMetadata = (providerMeta?.metadata as Record<string, unknown>) || {};
+      const leadsUnsubscribed = !!providerMetadata.leads_unsubscribed;
+
+      deferredResult = await sendDeferredNotificationsForProvider({
+        profileId: toProfile.id,
+        email: newEmail,
+        providerName: toProfile.display_name || providerName,
+        providerSlug,
+        additionalSlugVariants,
+        leadsUnsubscribed,
+      });
+
+      console.log(
+        `[edit-email] Deferred notifications sent: ${deferredResult.leadEmailsSent} leads, ` +
+        `${deferredResult.questionEmailsSent} questions, ${deferredResult.leadsSkipped} skipped`
+      );
+    } catch (deferredErr) {
+      console.error("[edit-email] Failed to send deferred notifications:", deferredErr);
+      // Non-blocking - email was updated successfully, deferred notifications are best-effort
+      deferredNotificationsSucceeded = false;
+    }
+
     return NextResponse.json({
       success: true,
       emailVersion,
       oldEmail,
       newEmail,
+      deferredNotifications: {
+        ...deferredResult,
+        succeeded: deferredNotificationsSucceeded,
+      },
     });
   } catch (err) {
     console.error("[edit-email] Fatal error:", err);

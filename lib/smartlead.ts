@@ -197,7 +197,6 @@ export async function createCampaignWebhook(
     name: webhook.name,
     webhook_url: webhook.webhookUrl,
     event_types: webhook.eventTypes,
-    categories: [],
   });
 }
 

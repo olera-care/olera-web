@@ -186,6 +186,9 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Number(searchParams.get("limit")) || 50, 200);
     const offset = Number(searchParams.get("offset")) || 0;
     const showBouncedOnly = searchParams.get("show_bounced_only") === "true";
+    if (showBouncedOnly) {
+      console.log("[connections] Bounced filter active - will filter to only failed/bounced emails");
+    }
 
     const db = getServiceClient();
 
@@ -913,8 +916,10 @@ export async function GET(request: NextRequest) {
       }
 
       // Mark all connections to a provider as bounced if that provider's latest email failed
+      let providersWithFailedEmail = 0;
       for (const [canonicalId, status] of canonicalLatestEmail) {
         if (status.failed) {
+          providersWithFailedEmail++;
           const connectionIds = canonicalIdToConnections.get(canonicalId);
           if (connectionIds) {
             for (const connId of connectionIds) {
@@ -926,7 +931,8 @@ export async function GET(request: NextRequest) {
 
       const bouncedConnectionCount = Array.from(connectionBouncedStatus.values()).filter(b => b).length;
       console.log(`[connections] ${canonicalLatestEmail.size} unique providers matched with emails`);
-      console.log(`[connections] ${bouncedConnectionCount} connections have provider with bounced/failed latest email`);
+      console.log(`[connections] ${providersWithFailedEmail} providers have failed latest email`);
+      console.log(`[connections] ${bouncedConnectionCount} connections marked as bounced`);
     }
 
     // Workflow-based counts (legacy)
@@ -1128,7 +1134,9 @@ export async function GET(request: NextRequest) {
 
     // Apply bounced email filter (cross-cutting filter that works on top of tab selection)
     if (showBouncedOnly && perspective === "provider") {
+      const beforeFilterCount = list.length;
       list = list.filter((c) => connectionBouncedStatus.get(c.id) === true);
+      console.log(`[connections] Bounced filter applied: ${beforeFilterCount} → ${list.length} connections`);
     }
 
     // Sort by most recent first (matches Leads page behavior)

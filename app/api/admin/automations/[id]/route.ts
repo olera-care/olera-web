@@ -28,11 +28,12 @@ function isoWeek(d: Date): string {
 // ── Per-variant breakdown (weekly digest sends three distinct templates under one email_type) ──
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
+  leads: "Leads recap",
   weekly_digest: "Weekly digest",
   completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "weekly_digest", "completion", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "leads", "weekly_digest", "completion", "cold_rank"];
 
 // ── Per-variant downstream CONVERSION ──
 // Each variant maps to the one provider_activity event that means "this email worked".
@@ -43,12 +44,14 @@ const VARIANT_ORDER = ["family_question", "weekly_digest", "completion", "cold_r
 // hard conversion, by design (it's the recurring engine, not a one-time ask).
 const CONVERSION_EVENT: Record<string, string> = {
   family_question: "question_responded",
+  leads: "lead_opened",
   completion: "profile_published",
   cold_rank: "claim_completed",
   weekly_digest: "one_click_access",
 };
 const CONVERSION_LABEL: Record<string, string> = {
   family_question: "Answered",
+  leads: "Lead opened",
   completion: "Profile published",
   cold_rank: "Listing claimed",
   weekly_digest: "Re-visited portal",
@@ -109,11 +112,12 @@ function accVStat(s: VStat, e: VRow) {
  */
 function classifyVariant(subject: string | null, metadata: Record<string, unknown> | null): { variant: string; ledWithRank: boolean } {
   const mv = metadata?.variant;
-  if (mv === "family_question" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
+  if (mv === "family_question" || mv === "leads" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
     return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
   }
   const s = subject ?? "";
   if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
+  if (/reached out about .+ this week$/i.test(s)) return { variant: "leads", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
   if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
   const led = /^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s);

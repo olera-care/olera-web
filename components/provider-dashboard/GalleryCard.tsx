@@ -43,12 +43,16 @@ export default function GalleryCard({
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
           {images.map((src, i) => (
             <div key={i} className="relative aspect-square">
+              {/* unoptimized: owner-only thumbnail; avoids the Next image
+                  optimizer racing fresh Supabase uploads (broken/slow thumb).
+                  Public page stays optimized. */}
               <Image
                 src={src}
                 alt={`Gallery photo ${i + 1}`}
                 fill
                 sizes="(max-width: 640px) 33vw, 25vw"
                 className="rounded-lg object-cover shadow-xs hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
+                unoptimized
               />
             </div>
           ))}

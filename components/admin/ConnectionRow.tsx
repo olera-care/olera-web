@@ -275,6 +275,7 @@ export default function ConnectionRow({
   const [editEmailError, setEditEmailError] = useState<string | null>(null);
   const [editEmailSuccess, setEditEmailSuccess] = useState(false);
   const [editingEmailLoading, setEditingEmailLoading] = useState(false);
+  const [pendingEmailEdit, setPendingEmailEdit] = useState<{ oldEmail: string; newEmail: string } | null>(null);
   const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup timeout on unmount
@@ -524,19 +525,35 @@ export default function ConnectionRow({
     }
   }
 
-  async function handleEditEmail(e: React.FormEvent) {
+  function handleEditEmail(e: React.FormEvent) {
     e.preventDefault();
     if (!editEmailInput.trim()) return;
+
+    const oldEmail = detail?.provider.email || "(none)";
+    const newEmail = editEmailInput.trim();
+
+    if (oldEmail === newEmail) {
+      setEditEmailError("New email is the same as current email");
+      return;
+    }
+
+    // Show confirmation modal
+    setPendingEmailEdit({ oldEmail, newEmail });
+  }
+
+  async function confirmEditEmail() {
+    if (!pendingEmailEdit) return;
 
     setEditingEmailLoading(true);
     setEditEmailError(null);
     setEditEmailSuccess(false);
+    setPendingEmailEdit(null); // Close modal
 
     try {
       const res = await fetch(`/api/admin/connections/${c.id}/edit-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newEmail: editEmailInput.trim() }),
+        body: JSON.stringify({ newEmail: pendingEmailEdit.newEmail }),
       });
 
       const data = await res.json();
@@ -549,7 +566,7 @@ export default function ConnectionRow({
         if (detail) {
           setDetail({
             ...detail,
-            provider: { ...detail.provider, email: data.newEmail || editEmailInput.trim(), hasEmail: true },
+            provider: { ...detail.provider, email: data.newEmail || pendingEmailEdit.newEmail, hasEmail: true },
           });
         }
 
@@ -1126,6 +1143,65 @@ export default function ConnectionRow({
           providerId={c.provider.slug || c.provider.source_provider_id || c.provider.id || ""}
           providerName={c.provider.display_name || "Provider"}
         />
+      )}
+
+      {/* Email edit confirmation modal */}
+      {pendingEmailEdit && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-email-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 id="edit-email-title" className="text-base font-semibold text-gray-900 mb-3">
+              Update provider email?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{c.provider.display_name || "Unknown"}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-gray-400">Current email</dt>
+                <dd className="text-gray-900">{pendingEmailEdit.oldEmail}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-gray-400">New email</dt>
+                <dd className="font-medium text-teal-700">{pendingEmailEdit.newEmail}</dd>
+              </div>
+            </dl>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+              <p className="text-[12px] text-amber-900 leading-relaxed space-y-1">
+                <span className="block font-medium">⚠️ This will:</span>
+                <span className="block">• Update this provider&apos;s email globally (directory, all connections)</span>
+                <span className="block">• Send a new Day 0 email immediately to the new address</span>
+                <span className="block">• Restart the email sequence from Day 0</span>
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingEmailEdit(null);
+                  setEditEmailError(null);
+                }}
+                disabled={editingEmailLoading}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmEditEmail}
+                disabled={editingEmailLoading}
+                className="text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {editingEmailLoading ? "Updating..." : "Confirm Update"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -32,6 +32,7 @@ import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
 import {
   buildSmartleadPreview,
   enrollRowIntoCampusCampaign,
+  enrollActivationLead,
   type BridgeRow,
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
@@ -2069,6 +2070,8 @@ async function handleLaunchActivation(
       email?: string | null;
       phone?: string | null;
       contact_id?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
     };
     source?: string;
     intro_template?: string | null;
@@ -2141,6 +2144,31 @@ async function handleLaunchActivation(
     }
   }
 
+  // 3b. Enroll the engaged contact into the activation Smartlead campaign so
+  //     the email drip actually sends. Best-effort: a Smartlead error must not
+  //     undo the calls + touchpoints already recorded above.
+  let emailDelivery = "smartlead_pending";
+  if (recipient.email) {
+    try {
+      const enrolled = await enrollRowIntoActivationCampaign(db, row, {
+        email: recipient.email,
+        first_name: recipient.first_name ?? null,
+        last_name: recipient.last_name ?? null,
+        contact_id: recipient.contact_id ?? null,
+      });
+      emailDelivery = `smartlead_${enrolled.status}`;
+      if (enrolled.status === "error") {
+        console.error("[launch_activation] activation enrollment error:", enrolled.detail);
+      }
+    } catch (e) {
+      emailDelivery = "smartlead_error";
+      console.error(
+        "[launch_activation] activation enrollment threw:",
+        e instanceof Error ? e.message : e,
+      );
+    }
+  }
+
   // 4. Record the launch + the deliberate activation-link send.
   await insertTouchpoint(db, row.id, "note_added", userId, {
     channel: "system",
@@ -2151,9 +2179,9 @@ async function handleLaunchActivation(
       email_snapshots: body.email_snapshots ?? [],
       call_scripts: body.call_scripts ?? [],
       intro_template: body.intro_template ?? null,
-      // Smartlead activation-campaign enrollment is the follow-up integration;
-      // snapshots are persisted here for it to send. Calls above are live now.
-      email_delivery: "smartlead_pending",
+      // Outcome of the activation Smartlead enrollment (enrolled / skipped /
+      // error / pending). The campaign is created PAUSED — a human starts it.
+      email_delivery: emailDelivery,
     },
   });
   if (recipient.email) {
@@ -2169,6 +2197,88 @@ async function handleLaunchActivation(
 
   // Surface the row as unread so the new activation work boosts the tab.
   await db.from("student_outreach").update({ viewed_at: null }).eq("id", row.id);
+}
+
+/**
+ * Enroll the engaged contact into the campus's ACTIVATION Smartlead campaign so
+ * the activation emails actually drip (Phase 4c). Mirrors enrollRowIntoSmartlead
+ * (cold): resolve campus, reuse the campus's activation campaign id from a
+ * sibling (or this row's own linkage), else provision a new PAUSED one; persist
+ * the linkage on success. Best-effort — the caller does NOT fail the launch on a
+ * Smartlead error (calls + touchpoints already landed). Skips (never throws)
+ * when the magic-link secret is unset, so we never enroll activation emails
+ * whose CTA would degrade to the marketing page.
+ */
+async function enrollRowIntoActivationCampaign(
+  db: DB,
+  row: OutreachRow,
+  recipient: {
+    email: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    contact_id?: string | null;
+  },
+): Promise<{ status: "enrolled" | "skipped" | "error"; detail?: string }> {
+  if (!process.env.MEDJOBS_MAGIC_LINK_SECRET) {
+    return { status: "skipped", detail: "MEDJOBS_MAGIC_LINK_SECRET unset" };
+  }
+
+  const { data: campusRow } = await db
+    .from("student_outreach_campuses")
+    .select("name, city, slug")
+    .eq("id", row.campus_id)
+    .maybeSingle();
+  const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
+  const campusName = campus?.name ?? "Unknown Campus";
+
+  // Reuse the campus's existing ACTIVATION campaign id (this row's own linkage,
+  // then a sibling's); the first activation in a campus provisions a new one.
+  const ownCid = row.research_data?.smartlead_activation?.campaign_id;
+  let existingCampaignId: number | undefined =
+    typeof ownCid === "number" ? ownCid : undefined;
+  if (!existingCampaignId) {
+    const { data: siblings } = await db
+      .from("student_outreach")
+      .select("research_data")
+      .eq("campus_id", row.campus_id)
+      .neq("id", row.id);
+    for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+      const cid = s.research_data?.smartlead_activation?.campaign_id;
+      if (typeof cid === "number") {
+        existingCampaignId = cid;
+        break;
+      }
+    }
+  }
+
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  const enroll = await enrollActivationLead({
+    outreach_id: row.id,
+    organizationName: row.organization_name,
+    campus: { name: campusName, city: campus?.city ?? null, slug: campus?.slug ?? null },
+    campaignName: `MedJobs Activation — ${campusName} — ${yyyymm}`,
+    existingCampaignId,
+    recipient,
+  });
+
+  if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };
+  if (!enroll.ok || !enroll.campaign_id) {
+    const detail =
+      enroll.errors.map((e) => `${e.stage}: ${e.message}`).join("; ") || "unknown";
+    return { status: "error", detail };
+  }
+
+  const nextResearch: ResearchData = {
+    ...row.research_data,
+    smartlead_activation: {
+      campaign_id: enroll.campaign_id,
+      lead_email: recipient.email,
+      enrolled_at: new Date().toISOString(),
+    },
+  };
+  await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
+
+  return { status: "enrolled" };
 }
 
 /** Stop a running activation cadence: cancel its pending tasks + mark stopped. */

@@ -1092,6 +1092,11 @@ function ActivationActions({
       primary.name
     : dm?.name ?? null;
   const recipientContactId = primary?.id ?? null;
+  const recipientFirstName =
+    primary?.first_name ??
+    (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ??
+    null;
+  const recipientLastName = primary?.last_name ?? null;
 
   const [stopping, setStopping] = useState(false);
 
@@ -1204,6 +1209,8 @@ function ActivationActions({
                   email: recipientEmail,
                   phone: recipientPhone,
                   contact_id: recipientContactId,
+                  first_name: recipientFirstName,
+                  last_name: recipientLastName,
                 },
                 source,
                 intro_template: introTemplate ?? null,

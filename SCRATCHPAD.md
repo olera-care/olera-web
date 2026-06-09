@@ -7,7 +7,22 @@
 
 ## Current Focus
 
-### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
+### 2026-06-09 — Provider engagement build: completion carrot Phase 1 (merged) + Phase 2 preview (PR #984, in QA)
+
+**Strategy (Notion "Provider Engagement Reframe" `3795903a-0ffe-8174…`; memory `project_engagement_reframe`):** ONE ladder = provider discoverability/chooseability. Completion = activation milestone (juiciest carrot), reviews→rank = recurring engine, answering = episodic conversion (69% of providers get 1 question ever). Digest = the recurring trigger surfacing each provider's next rung.
+
+**Shipped/merged this session:**
+- **T1 — `question_received` off olera.care:** PR **#967** (env-gated `PROVIDER_NOTIFY_FROM` split; digest stays on olera.care). Merged. **Ops still pending TJ:** Resend-verify oleracare.com + MERGE SPF with Loops + set env vars.
+- **Step 1 (ID resolver) — VALIDATED, no build needed.** `lib/provider-id-variants.ts resolveCanonicalProviderKeys` already exists; running the non-answerer join through it collapsed the bogus "85% no-notify" artifact → real funnel (unreachable 27.6% · delivered-not-opened 42.2% dominant · …). Apply per-feature.
+- **Completion carrot Phase 1:** PR **#978** (merged) — claimed providers w/ no owner story get a "sell the output" digest variant + `/api/claim-complete` one-click auth + `?edit=<section>` deep-link. **Reconciled with #966** (parallel cold-rank expansion that hit the same cron) into one router: question > completion > cold-first-contact > rank > analytics.
+
+**In progress — Phase 2 preview (branch `completion-preview`, PR #984, OPEN, off staging):** in-dashboard "Preview as families" toggle → `FamilyViewPreview` (family-framed view of their page; ghosts for empty high-impact sections led by the owner story; per-section Edit). Iterated hard via /pre-test + /dejank + /mobilize + /ui-critique: fixed broken-thumb (Next optimizer racing fresh Supabase uploads → `unoptimized` on owner-only thumbs), EditAbout (Bed Count gated by category — robust to mixed enum/label data; fields marked optional), and a full mobile pass (de-nested containers → divider-led layout Robinhood/Wise-style, utility-bar header, name-as-hero killing the flex-row ladder, hide completeness banner). **Awaiting TJ's mobile QA on the PR preview link.**
+
+**Decisions:** completion is claimed-only (warm; keeps cold volume off the crown jewel); preview reuses public-page section pieces, NOT the public server component (SEO/CTA-router/reverted-mobile-nav-500 traps); mobile = no card-in-card, dividers do the work; rank stays Google-pure (never inflated by completion).
+
+**Next up:** (1) TJ QA #984 on the auto-updating PR preview (name wrap, ghost stacking, de-nest) → merge; (2) T1 oleracare.com ops; (3) variant-stamp + admin variant-visibility live in TJ's parallel branch (don't duplicate); (4) follow-ups: heavier preview sections, dedicated dormant-claimer audience source, non-answerer diagnose-then-respond system (data now legible via the resolver).
+
+
 
 **Outcome:** Deleted the unused "Submissions by Entry Source" section from the admin analytics panel — TJ confirmed no one uses it. Pure deletion, 213 deletions / 1 insertion.
 

@@ -530,6 +530,7 @@ export default function ConnectionsTrackerPage() {
     initialDirection === "outbound" ? "all" : "new"
   );
   const [page, setPage] = useState(0);
+  const [showBouncedOnly, setShowBouncedOnly] = useState(false);
 
   // Stats row state (collapsible)
   const [statsExpanded, setStatsExpanded] = useState(false);
@@ -560,12 +561,13 @@ export default function ConnectionsTrackerPage() {
   // Reset page when filter changes
   useEffect(() => {
     setPage(0);
-  }, [activeFilter, range]);
+  }, [activeFilter, range, showBouncedOnly]);
 
   // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
     setActiveFilter("new");
     setPage(0);
+    setShowBouncedOnly(false); // Reset bounced filter when switching perspectives
   }, [perspective]);
 
   // Reset filter and perspective when direction changes
@@ -576,6 +578,7 @@ export default function ConnectionsTrackerPage() {
       setActiveFilter("new"); // Inbound default tab
     }
     setPage(0);
+    setShowBouncedOnly(false); // Reset bounced filter when switching direction
   }, [direction]);
 
   const [list, setList] = useState<ListResponse | null>(null);
@@ -606,6 +609,7 @@ export default function ConnectionsTrackerPage() {
     params.set("direction", direction);
     if (direction === "inbound") {
       params.set("perspective", perspective);
+      if (showBouncedOnly) params.set("show_bounced_only", "true");
     }
     params.set("limit", String(PAGE_SIZE));
     params.set("offset", String(page * PAGE_SIZE));
@@ -630,7 +634,7 @@ export default function ConnectionsTrackerPage() {
         setOutboundList(null);
       })
       .finally(() => setLoading(false));
-  }, [buildDateParams, debouncedSearch, activeFilter, direction, perspective, page]);
+  }, [buildDateParams, debouncedSearch, activeFilter, direction, perspective, page, showBouncedOnly]);
 
   // Fetch connections when dependencies change
   useEffect(() => {
@@ -955,6 +959,28 @@ export default function ConnectionsTrackerPage() {
           )}
         </div>
       </div>
+
+      {/* Bounced email filter - Provider perspective only */}
+      {direction === "inbound" && perspective === "provider" && (
+        <div className="mb-4 flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={showBouncedOnly}
+              onChange={(e) => setShowBouncedOnly(e.target.checked)}
+              className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+              Show only bounced emails
+            </span>
+          </label>
+          {showBouncedOnly && (
+            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+              Filter active
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Tabs - underline style */}
       <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">

@@ -185,6 +185,7 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("date_to");
     const limit = Math.min(Number(searchParams.get("limit")) || 50, 200);
     const offset = Number(searchParams.get("offset")) || 0;
+    const showBouncedOnly = searchParams.get("show_bounced_only") === "true";
 
     const db = getServiceClient();
 
@@ -832,6 +833,44 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Detect bounced emails: query email_log for latest email per connection
+    const connectionBouncedStatus = new Map<string, boolean>();
+
+    if (allProviderKeys.length > 0) {
+      // Get all emails sent to providers to find latest per connection
+      const { data: allEmails } = await db
+        .from("email_log")
+        .select("metadata, bounced_at, created_at")
+        .in("provider_id", allProviderKeys)
+        .eq("recipient_type", "provider")
+        .order("created_at", { ascending: false })
+        .limit(10000);
+
+      // Track latest email per connection
+      const connectionLatestEmail = new Map<string, { at: string; bounced: boolean }>();
+
+      for (const row of allEmails || []) {
+        const meta = row.metadata as Record<string, unknown>;
+        const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+        if (!connId || !connectionIdSet.has(connId)) continue;
+
+        const emailTime = row.created_at || "";
+        const existing = connectionLatestEmail.get(connId);
+
+        if (!existing || emailTime > existing.at) {
+          connectionLatestEmail.set(connId, {
+            at: emailTime,
+            bounced: !!row.bounced_at,
+          });
+        }
+      }
+
+      // Set bounced status for connections
+      for (const [connId, status] of connectionLatestEmail) {
+        connectionBouncedStatus.set(connId, status.bounced);
+      }
+    }
+
     // Workflow-based counts (legacy)
     const workflowCounts: WorkflowCounts = {
       all: 0,
@@ -1027,6 +1066,11 @@ export async function GET(request: NextRequest) {
           list = list.filter((c) => c.workflowState === responseFilter);
         }
       }
+    }
+
+    // Apply bounced email filter (cross-cutting filter that works on top of tab selection)
+    if (showBouncedOnly && perspective === "provider") {
+      list = list.filter((c) => connectionBouncedStatus.get(c.id) === true);
     }
 
     // Sort by most recent first (matches Leads page behavior)

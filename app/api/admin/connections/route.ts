@@ -674,7 +674,7 @@ export async function GET(request: NextRequest) {
         if (c.provider.id) ids.push(c.provider.id);
         return ids;
       })
-    )].slice(0, 1000);
+    )].slice(0, 3000); // Support up to 1000 providers × 3 identifiers each
 
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
@@ -845,16 +845,26 @@ export async function GET(request: NextRequest) {
     // If a provider's latest email bounced, ALL connections to that provider are affected
     const connectionBouncedStatus = new Map<string, boolean>();
 
-    // Build map of provider identifiers → connection IDs
-    const providerToConnections = new Map<string, Set<string>>();
+    // Build normalization map: any provider identifier → canonical business_profile id
+    // This fixes the bug where different emails use different identifiers (slug vs id)
+    const identifierToCanonicalId = new Map<string, string>();
+    const canonicalIdToConnections = new Map<string, Set<string>>();
+
     for (const conn of searched) {
-      const providerIds = [conn.provider.slug, conn.provider.source_provider_id, conn.provider.id].filter(Boolean) as string[];
-      for (const pid of providerIds) {
-        if (!providerToConnections.has(pid)) {
-          providerToConnections.set(pid, new Set());
-        }
-        providerToConnections.get(pid)!.add(conn.id);
+      const canonicalId = conn.provider.id; // business_profile id is canonical
+      if (!canonicalId) continue;
+
+      // Map all identifiers to this canonical id
+      const identifiers = [conn.provider.slug, conn.provider.source_provider_id, conn.provider.id].filter(Boolean) as string[];
+      for (const identifier of identifiers) {
+        identifierToCanonicalId.set(identifier, canonicalId);
       }
+
+      // Track connections by canonical id
+      if (!canonicalIdToConnections.has(canonicalId)) {
+        canonicalIdToConnections.set(canonicalId, new Set());
+      }
+      canonicalIdToConnections.get(canonicalId)!.add(conn.id);
     }
 
     if (allProviderKeys.length > 0) {
@@ -876,21 +886,26 @@ export async function GET(request: NextRequest) {
         console.log(`[connections] ${bouncedCount} bounced, ${failedCount} failed`);
       }
 
-      // Track latest email per provider (to determine if provider's LATEST email failed)
-      const providerLatestEmail = new Map<string, { at: Date; failed: boolean }>();
+      // Track latest email per CANONICAL provider id (normalized across all identifiers)
+      // This ensures we find the TRUE latest email even if different sends used different identifiers
+      const canonicalLatestEmail = new Map<string, { at: Date; failed: boolean }>();
 
       for (const row of allEmails || []) {
-        const providerId = row.provider_id;
-        if (!providerId || !providerToConnections.has(providerId)) continue;
+        const rawProviderId = row.provider_id;
+        if (!rawProviderId) continue;
+
+        // Normalize to canonical business_profile id
+        const canonicalId = identifierToCanonicalId.get(rawProviderId);
+        if (!canonicalId) continue; // Email to provider not in current result set
 
         // Use Date objects for reliable comparison (not string comparison)
         const emailTime = row.created_at ? new Date(row.created_at) : new Date(0);
-        const existing = providerLatestEmail.get(providerId);
+        const existing = canonicalLatestEmail.get(canonicalId);
 
         if (!existing || emailTime > existing.at) {
           // Email failed if either bounced (webhook) OR status is "failed" (send rejected)
           const hasFailed = !!row.bounced_at || row.status === "failed";
-          providerLatestEmail.set(providerId, {
+          canonicalLatestEmail.set(canonicalId, {
             at: emailTime,
             failed: hasFailed,
           });
@@ -898,9 +913,9 @@ export async function GET(request: NextRequest) {
       }
 
       // Mark all connections to a provider as bounced if that provider's latest email failed
-      for (const [providerId, status] of providerLatestEmail) {
+      for (const [canonicalId, status] of canonicalLatestEmail) {
         if (status.failed) {
-          const connectionIds = providerToConnections.get(providerId);
+          const connectionIds = canonicalIdToConnections.get(canonicalId);
           if (connectionIds) {
             for (const connId of connectionIds) {
               connectionBouncedStatus.set(connId, true);
@@ -910,8 +925,8 @@ export async function GET(request: NextRequest) {
       }
 
       const bouncedConnectionCount = Array.from(connectionBouncedStatus.values()).filter(b => b).length;
-      console.log(`[connections] ${providerLatestEmail.size} providers matched with emails`);
-      console.log(`[connections] ${bouncedConnectionCount} connections have provider with bounced latest email`);
+      console.log(`[connections] ${canonicalLatestEmail.size} unique providers matched with emails`);
+      console.log(`[connections] ${bouncedConnectionCount} connections have provider with bounced/failed latest email`);
     }
 
     // Workflow-based counts (legacy)

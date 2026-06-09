@@ -123,6 +123,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const vAgg: Record<string, VStat> = {};
     const wkWithRank = emptyVStat();
     const wkPlain = emptyVStat();
+    const isDigestJob = id === "weekly-provider-digest";
     try {
       const { data } = await db
         .from("email_log")
@@ -148,11 +149,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           if (e.first_clicked_at) w.clicked += 1;
           weekMap.set(wk, w);
         }
-        // Variant breakdown.
-        const { variant, ledWithRank } = classifyVariant(e.subject, e.metadata);
-        (vAgg[variant] ??= emptyVStat());
-        accVStat(vAgg[variant], e);
-        if (variant === "weekly_digest") accVStat(ledWithRank ? wkWithRank : wkPlain, e);
+        // Variant breakdown — only the weekly digest fans one email_type into multiple templates,
+        // so classifyVariant's digest-specific patterns only make sense there. For any other job
+        // the subjects wouldn't match and would all collapse into a bogus "weekly_digest" bucket.
+        if (isDigestJob) {
+          const { variant, ledWithRank } = classifyVariant(e.subject, e.metadata);
+          (vAgg[variant] ??= emptyVStat());
+          accVStat(vAgg[variant], e);
+          if (variant === "weekly_digest") accVStat(ledWithRank ? wkWithRank : wkPlain, e);
+        }
         if (e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
       }
       previewTypes.push(...seenPreviewTypes);

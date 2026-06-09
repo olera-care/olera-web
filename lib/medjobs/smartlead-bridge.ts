@@ -463,7 +463,10 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/\{organization_name\}/g, MERGE_COMPANY)
     .replace(/\{campus_name\}/g, MERGE_CAMPUS)
     .replace(/\{admin_first_name\}/g, adminFirstName)
-    .replace(/\{calendly_url\}/g, CALENDLY_URL)
+    // Carry the outreach_id on the Calendly link so a self-booked meeting
+    // correlates deterministically in the Calendly webhook (tracking.utm_content
+    // → outreach row); the {{outreach_id}} merge field is set per-lead.
+    .replace(/\{calendly_url\}/g, `${CALENDLY_URL}?utm_content={{outreach_id}}`)
     .replace(/\{program_url\}/g, PROGRAM_URL)
     // v10 Phase 2+3 Bullet 6 (2026-06-04): per-lead welcome URL set in
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes

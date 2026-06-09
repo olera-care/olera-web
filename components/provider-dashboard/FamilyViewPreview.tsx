@@ -32,7 +32,43 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-const SECTION_H2 = "text-2xl font-bold text-gray-900 font-display mb-5";
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Subtle per-section edit affordance. This is the OWNER's preview, so every
+ * section is editable — whether it's already filled or still a ghost — not just
+ * the empty ones.
+ */
+function EditLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex flex-shrink-0 items-center gap-1 text-sm font-medium text-gray-400 transition-colors hover:text-primary-700"
+    >
+      <PencilIcon className="h-3.5 w-3.5" />
+      Edit
+    </button>
+  );
+}
+
+function SectionHeader({ title, onEdit }: { title: string; onEdit: () => void }) {
+  return (
+    <div className="mb-5 flex items-center justify-between gap-4">
+      <h2 className="font-display text-2xl font-bold text-gray-900">{title}</h2>
+      <EditLink onClick={onEdit} />
+    </div>
+  );
+}
 
 /** A restrained, inviting empty-state row — an invitation, not a gray skeleton. */
 function GhostRow({
@@ -173,7 +209,7 @@ export default function FamilyViewPreview({
         </svg>
         <p className="text-sm text-gray-600">
           This is your page as <span className="font-semibold text-gray-900">families</span> see it.
-          Tap any gap to fill it.
+          Tap any section to edit it.
         </p>
       </div>
 
@@ -196,15 +232,16 @@ export default function FamilyViewPreview({
               Add logo
             </button>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="truncate font-display text-2xl font-bold text-gray-900">{profile.display_name}</h1>
             <p className="mt-0.5 text-sm text-gray-500">{location || "Add your location"}</p>
           </div>
+          <EditLink onClick={() => onEdit("overview")} />
         </div>
 
         {/* Photos */}
         <section className="border-t border-gray-200 py-6">
-          <h2 className={SECTION_H2}>Photos</h2>
+          <SectionHeader title="Photos" onEdit={() => onEdit("gallery")} />
           {images.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
               {images.slice(0, 6).map((src, i) => (
@@ -229,13 +266,13 @@ export default function FamilyViewPreview({
 
         {/* Facility manager — centerpiece */}
         <section className="border-t border-gray-200 py-6">
-          <h2 className={SECTION_H2}>Facility manager</h2>
+          <SectionHeader title="Facility manager" onEdit={() => onEdit("owner")} />
           {staff?.name ? <RealOwner staff={staff} claimed={claimed} /> : <GhostOwner onClick={() => onEdit("owner")} />}
         </section>
 
         {/* About */}
         <section className="border-t border-gray-200 py-6">
-          <h2 className={SECTION_H2}>About</h2>
+          <SectionHeader title="About" onEdit={() => onEdit("about")} />
           {profile.description?.trim() ? (
             <ExpandableText text={profile.description} maxLength={300} />
           ) : (
@@ -249,7 +286,7 @@ export default function FamilyViewPreview({
 
         {/* Care services */}
         <section className="border-t border-gray-200 py-6">
-          <h2 className={SECTION_H2}>Care services</h2>
+          <SectionHeader title="Care services" onEdit={() => onEdit("services")} />
           {careTypes.length > 0 ? (
             <CareServicesList services={careTypes} initialCount={6} />
           ) : (

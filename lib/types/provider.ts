@@ -40,6 +40,7 @@ export interface Provider {
   deleted: boolean;
   deleted_at: string | null;
   deletion_reason: "data_sweep" | "provider_request" | "duplicate" | "out_of_scope" | "other" | null;
+  parent_organization: { name: string; url?: string } | null; // Franchise parent brand for schema.org parentOrganization (migration 101)
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
   google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)

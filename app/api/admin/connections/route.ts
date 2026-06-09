@@ -844,95 +844,51 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Detect bounced emails: query email_log for latest email PER PROVIDER
-    // If a provider's latest email bounced, ALL connections to that provider are affected
-    const connectionBouncedStatus = new Map<string, boolean>();
+    // SIMPLE APPROACH: Check if connection has ANY failed/bounced emails
+    const connectionHasFailedEmail = new Map<string, boolean>();
 
-    // Build normalization map: any provider identifier → canonical business_profile id
-    // This fixes the bug where different emails use different identifiers (slug vs id)
-    const identifierToCanonicalId = new Map<string, string>();
-    const canonicalIdToConnections = new Map<string, Set<string>>();
+    const connectionIds = searched.map(c => c.id);
 
-    for (const conn of searched) {
-      const canonicalId = conn.provider.id; // business_profile id is canonical
-      if (!canonicalId) continue;
-
-      // Map all identifiers to this canonical id
-      const identifiers = [conn.provider.slug, conn.provider.source_provider_id, conn.provider.id].filter(Boolean) as string[];
-      for (const identifier of identifiers) {
-        identifierToCanonicalId.set(identifier, canonicalId);
-      }
-
-      // Track connections by canonical id
-      if (!canonicalIdToConnections.has(canonicalId)) {
-        canonicalIdToConnections.set(canonicalId, new Set());
-      }
-      canonicalIdToConnections.get(canonicalId)!.add(conn.id);
-    }
-
-    if (allProviderKeys.length > 0) {
-      // Get all emails sent to providers to find latest per provider
-      const { data: allEmails, error: emailLogError } = await db
+    if (connectionIds.length > 0) {
+      // Query email_log for ALL emails to these connections
+      const { data: failedEmails, error: emailError } = await db
         .from("email_log")
-        .select("bounced_at, status, created_at, provider_id")
-        .in("provider_id", allProviderKeys)
+        .select("metadata")
         .eq("recipient_type", "provider")
-        .order("created_at", { ascending: false })
+        .or(`status.eq.failed,bounced_at.not.is.null`)
         .limit(10000);
 
-      if (emailLogError) {
-        console.error("[connections] email_log query failed:", emailLogError);
+      if (emailError) {
+        console.error("[connections] Failed email query error:", emailError);
       } else {
-        console.log(`[connections] Found ${allEmails?.length || 0} provider emails`);
-        const bouncedCount = allEmails?.filter(e => e.bounced_at).length || 0;
-        const failedCount = allEmails?.filter(e => e.status === "failed").length || 0;
-        console.log(`[connections] ${bouncedCount} bounced, ${failedCount} failed`);
-      }
+        console.log(`[connections] Found ${failedEmails?.length || 0} failed/bounced emails total`);
 
-      // Track latest email per CANONICAL provider id (normalized across all identifiers)
-      // This ensures we find the TRUE latest email even if different sends used different identifiers
-      const canonicalLatestEmail = new Map<string, { at: Date; failed: boolean }>();
-
-      for (const row of allEmails || []) {
-        const rawProviderId = row.provider_id;
-        if (!rawProviderId) continue;
-
-        // Normalize to canonical business_profile id
-        const canonicalId = identifierToCanonicalId.get(rawProviderId);
-        if (!canonicalId) continue; // Email to provider not in current result set
-
-        // Use Date objects for reliable comparison (not string comparison)
-        const emailTime = row.created_at ? new Date(row.created_at) : new Date(0);
-        const existing = canonicalLatestEmail.get(canonicalId);
-
-        if (!existing || emailTime > existing.at) {
-          // Email failed if either bounced (webhook) OR status is "failed" (send rejected)
-          const hasFailed = !!row.bounced_at || row.status === "failed";
-          canonicalLatestEmail.set(canonicalId, {
-            at: emailTime,
-            failed: hasFailed,
-          });
-        }
-      }
-
-      // Mark all connections to a provider as bounced if that provider's latest email failed
-      let providersWithFailedEmail = 0;
-      for (const [canonicalId, status] of canonicalLatestEmail) {
-        if (status.failed) {
-          providersWithFailedEmail++;
-          const connectionIds = canonicalIdToConnections.get(canonicalId);
-          if (connectionIds) {
-            for (const connId of connectionIds) {
-              connectionBouncedStatus.set(connId, true);
+        // Extract connection IDs from failed emails
+        const failedConnectionIds = new Set<string>();
+        for (const email of failedEmails || []) {
+          const meta = email.metadata as Record<string, unknown>;
+          const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+          if (connId) {
+            failedConnectionIds.add(connId);
+          }
+          // Handle batched emails (connection_ids array)
+          const connIds = meta?.connection_ids as string[] | undefined;
+          if (connIds && Array.isArray(connIds)) {
+            for (const id of connIds) {
+              failedConnectionIds.add(id);
             }
           }
         }
-      }
 
-      const bouncedConnectionCount = Array.from(connectionBouncedStatus.values()).filter(b => b).length;
-      console.log(`[connections] ${canonicalLatestEmail.size} unique providers matched with emails`);
-      console.log(`[connections] ${providersWithFailedEmail} providers have failed latest email`);
-      console.log(`[connections] ${bouncedConnectionCount} connections marked as bounced`);
+        // Mark connections that have failed emails
+        for (const conn of searched) {
+          if (failedConnectionIds.has(conn.id)) {
+            connectionHasFailedEmail.set(conn.id, true);
+          }
+        }
+
+        console.log(`[connections] ${failedConnectionIds.size} connections have failed/bounced emails`);
+      }
     }
 
     // Workflow-based counts (legacy)
@@ -1135,7 +1091,7 @@ export async function GET(request: NextRequest) {
     // Apply bounced email filter (cross-cutting filter that works on top of tab selection)
     if (showBouncedOnly && perspective === "provider") {
       const beforeFilterCount = list.length;
-      list = list.filter((c) => connectionBouncedStatus.get(c.id) === true);
+      list = list.filter((c) => connectionHasFailedEmail.get(c.id) === true);
       console.log(`[connections] Bounced filter applied: ${beforeFilterCount} → ${list.length} connections`);
     }
 

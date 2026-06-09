@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
@@ -512,6 +512,7 @@ function OutboundConnectionRow({ connection, onDelete }: { connection: OutboundC
 
 export default function ConnectionsTrackerPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Read initial direction from URL (supports /admin/outreach redirect)
   const initialDirection = searchParams.get("direction") === "outbound" ? "outbound" : "inbound";
@@ -530,7 +531,7 @@ export default function ConnectionsTrackerPage() {
     initialDirection === "outbound" ? "all" : "new"
   );
   const [page, setPage] = useState(0);
-  const [showBouncedOnly, setShowBouncedOnly] = useState(false);
+  const [showBouncedOnly, setShowBouncedOnly] = useState(searchParams.get("bounced") === "true");
 
   // Stats row state (collapsible)
   const [statsExpanded, setStatsExpanded] = useState(false);
@@ -580,6 +581,18 @@ export default function ConnectionsTrackerPage() {
     setPage(0);
     setShowBouncedOnly(false); // Reset bounced filter when switching direction
   }, [direction]);
+
+  // Sync bounced filter state to URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (showBouncedOnly) {
+      params.set("bounced", "true");
+    } else {
+      params.delete("bounced");
+    }
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    router.replace(newUrl, { scroll: false });
+  }, [showBouncedOnly, router]);
 
   const [list, setList] = useState<ListResponse | null>(null);
   const [outboundList, setOutboundList] = useState<OutboundListResponse | null>(null);

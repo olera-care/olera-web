@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
-import { generateNotificationUrl } from "@/lib/claim-tokens";
+import { generateNotificationUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
 import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
@@ -235,6 +235,66 @@ export async function GET(request: NextRequest) {
       ensureBucket(id);
     }
 
+    // ── 1c. Rank-eligible providers (Market Intel cold/quiet expansion) ──
+    // A third recipient source: providers whose place_id sits in the TOP 5 of an
+    // ALREADY-CACHED city×care-type diagnostic — even with zero weekly activity. Their rank
+    // comes straight from the shared cache (exact place_id match, no Places / Anthropic /
+    // warming), so this adds reach at zero marginal external cost, bounded to cities we've
+    // already computed. Enrollment caps at rank<=5 so the "you're #N" hook is always
+    // flattering (product call 2026-06-08); widen to top-half later if it converts.
+    const rankEligible = new Set<string>();
+    const preRank = new Map<string, DigestMarketRank>();
+    {
+      const RANK_CHUNK = 200;
+      const TOP_RANK_FOR_ENROLLMENT = 5;
+      const { data: readyDiags, error: diagErr } = await db
+        .from("market_diagnostics")
+        .select("city, state, care_type, data")
+        .eq("status", "ready")
+        .limit(20000);
+      if (diagErr) {
+        console.error("[weekly-provider-digest] ready-diagnostics query failed:", diagErr);
+      }
+      // place_id → its rank in the cached diagnostic (first/best diagnostic wins on collision).
+      const placeRank = new Map<string, DigestMarketRank>();
+      for (const d of (readyDiags ?? []) as Array<{ city: string; state: string; care_type: string; data: unknown }>) {
+        const data = d.data as { meta?: { city?: string }; competitorLandscape?: { ranked?: RankedEntry[] } } | null;
+        const ranked = data?.competitorLandscape?.ranked ?? [];
+        const careLabel = d.care_type === "assisted_living" ? "assisted living" : "home care";
+        const cityLabel = data?.meta?.city ?? d.city;
+        for (let i = 0; i < Math.min(ranked.length, TOP_RANK_FOR_ENROLLMENT); i++) {
+          const pid = ranked[i]?.id;
+          if (!pid || placeRank.has(pid)) continue;
+          placeRank.set(pid, { rank: i + 1, outOf: ranked.length, cityLabel, careLabel, flattering: true });
+        }
+      }
+      // Map those top-5 place_ids → Olera providers with an email. Keyed by provider_id so the
+      // existing bp resolution (§2/§2b) routes claimed rows through business_profiles (preserving
+      // the metadata opt-out) and unclaimed rows through olera-providers.
+      const placeIdList = [...placeRank.keys()];
+      for (let i = 0; i < placeIdList.length; i += RANK_CHUNK) {
+        const chunk = placeIdList.slice(i, i + RANK_CHUNK);
+        const { data: provs, error: provErr } = await db
+          .from("olera-providers")
+          .select("provider_id, place_id, email")
+          .in("place_id", chunk)
+          .not("deleted", "is", true);
+        if (provErr) {
+          console.error("[weekly-provider-digest] rank-eligible provider query failed:", provErr);
+          continue;
+        }
+        for (const p of (provs ?? []) as Array<{ provider_id: string; place_id: string | null; email: string | null }>) {
+          if (!p.email || !p.place_id) continue;
+          const rank = placeRank.get(p.place_id);
+          if (!rank) continue;
+          const id = String(p.provider_id);
+          ensureBucket(id);
+          rankEligible.add(id);
+          preRank.set(id, rank);
+        }
+      }
+    }
+
     // Order recipients by freshest unanswered question DESC, then views DESC.
     // Providers with no question (activity-only) fall to the bottom -- they
     // get the existing analytics digest when their bucket has signal.
@@ -266,6 +326,7 @@ export async function GET(request: NextRequest) {
       state: string | null;
       category: string | null;
       metadata: Record<string, unknown> | null;
+      account_id: string | null; // non-null = a claimed/owned listing → keep the punchy digest, not the cold note
     };
     // Resolve business_profiles by slug first, then fall back to
     // source_provider_id for legacy URLs whose event provider_id is the
@@ -279,7 +340,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySlug } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySlug ?? []) as BP[]) {
@@ -292,7 +353,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySourceId } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata")
+        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id")
         .in("source_provider_id", stillMissing)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySourceId ?? []) as BP[]) {
@@ -348,6 +409,7 @@ export async function GET(request: NextRequest) {
             state: ip.state,
             category: null,
             metadata: null,
+            account_id: null,
           });
         }
 
@@ -376,6 +438,7 @@ export async function GET(request: NextRequest) {
             state: ip.state,
             category: null,
             metadata: null,
+            account_id: null,
           });
         }
       }
@@ -410,6 +473,7 @@ export async function GET(request: NextRequest) {
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
     let marketHeroCount = 0;
+    let coldRankSent = 0; // sends to the §1c cold/quiet rank-eligible audience (no weekly activity)
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -463,7 +527,8 @@ export async function GET(request: NextRequest) {
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
         bucket.questions > 0 ||
-        !!openQ;
+        !!openQ ||
+        rankEligible.has(providerId);
       if (!hasSignal) {
         bumpSkip("no_signal");
         continue;
@@ -503,65 +568,101 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // If the only signal was a question and we couldn't mint a URL, skip
-      // rather than ship a question-less email to a provider with no traffic.
+      // Market Intelligence hero — only for the no-question (analytics-only) branch. Resolves
+      // the provider's rank from their cached city×care-type diagnostic; collects a warm target
+      // when it's not cached yet. Non-fatal: a failure just falls back to the analytics email.
+      // Rank-eligible (cold/quiet) providers carry a precomputed rank from §1c — used directly,
+      // so they cost zero Places/warming calls and can never queue a warm.
+      let marketRank: DigestMarketRank | null = null;
+      if (!unansweredQuestion) {
+        const pre = preRank.get(providerId);
+        if (pre) {
+          marketRank = pre;
+        } else {
+          try {
+            const mr = await resolveProviderMarketRank(bp, db);
+            marketRank = mr.rank;
+            if (mr.warmTarget) warmTargets.push(mr.warmTarget);
+          } catch (err) {
+            console.error(`[weekly-provider-digest] market-rank resolve failed for ${providerSlug}:`, err);
+          }
+        }
+      }
+
+      // If the only signal was a question we couldn't mint a URL for — or a rank that didn't
+      // resolve — skip rather than ship a blank email to a provider with no traffic.
       const hasNonQuestionSignal =
         bucket.viewsThisWeek > 0 ||
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
         bucket.questions > 0;
-      if (!unansweredQuestion && !hasNonQuestionSignal) {
-        bumpSkip("question_url_mint_failed");
+      if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank) {
+        bumpSkip(rankEligible.has(providerId) ? "rank_unresolved" : "question_url_mint_failed");
         continue;
       }
 
-      // Market Intelligence hero — only for the no-question (analytics-only) branch. Resolves
-      // the provider's rank from their cached city×care-type diagnostic; collects a warm target
-      // when it's not cached yet. Non-fatal: a failure just falls back to the analytics email.
-      let marketRank: DigestMarketRank | null = null;
-      if (!unansweredQuestion) {
-        try {
-          const mr = await resolveProviderMarketRank(bp, db);
-          marketRank = mr.rank;
-          if (mr.warmTarget) warmTargets.push(mr.warmTarget);
-        } catch (err) {
-          console.error(`[weekly-provider-digest] market-rank resolve failed for ${providerSlug}:`, err);
-        }
-      }
+      // Cold first-contact: a §1c rank-enrolled provider with no weekly activity, no question,
+      // and no claimed account → they've never engaged with Olera, so the trust-forward note
+      // (who/legit/permission/cost) earns the read before the rank. Claimed-but-quiet and any
+      // provider with weekly signal keep the punchy digest.
+      const isColdFirstContact =
+        !!marketRank &&
+        preRank.has(providerId) &&
+        !hasNonQuestionSignal &&
+        !unansweredQuestion &&
+        !bp.account_id;
 
-      const html = providerWeeklyDigestEmail({
-        providerName: displayName,
-        providerSlug,
-        tier,
-        viewsThisWeek: bucket.viewsThisWeek,
-        viewsPriorWeek: bucket.viewsPriorWeek,
-        deltaPct,
-        localDemand,
-        areaDemand: areaDemandCount,
-        city: bp.city,
-        category: bp.category,
-        ctaClicks: bucket.ctaClicks,
-        leadsReceived: bucket.leads,
-        questionsReceived: bucket.questions,
-        topSource,
-        unansweredQuestion,
-        answerUrl,
-        marketRank,
-      });
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const html = isColdFirstContact
+        ? coldProviderRankEmail({
+            rank: marketRank!.rank,
+            outOf: marketRank!.outOf,
+            cityLabel: marketRank!.cityLabel,
+            careLabel: marketRank!.careLabel,
+            // One-click "market" magic link → invisibly authenticates onto /provider/matches.
+            ctaUrl: generateProviderPortalUrl(providerSlug, bp.email, "market"),
+            manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
+            removeUrl: `${siteUrl}/for-providers/removal-request/${providerSlug}`,
+            unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
+          })
+        : providerWeeklyDigestEmail({
+            providerName: displayName,
+            providerSlug,
+            tier,
+            viewsThisWeek: bucket.viewsThisWeek,
+            viewsPriorWeek: bucket.viewsPriorWeek,
+            deltaPct,
+            localDemand,
+            areaDemand: areaDemandCount,
+            city: bp.city,
+            category: bp.category,
+            ctaClicks: bucket.ctaClicks,
+            leadsReceived: bucket.leads,
+            questionsReceived: bucket.questions,
+            topSource,
+            unansweredQuestion,
+            answerUrl,
+            marketRank,
+          });
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
-        : marketRank
-          ? marketRank.flattering
-            ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
-            : `See where you rank in ${marketRank.cityLabel}`
-          : bucket.viewsThisWeek > 0
-            ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
-            : `Your week on Olera`;
+        : isColdFirstContact
+          // Cold first-contact: attribute the rank to families up front (these strangers have
+          // never heard from us), matching the note's family-led opening.
+          ? `Families in ${marketRank!.cityLabel} rank you #${marketRank!.rank} of ${marketRank!.outOf}`
+          : marketRank
+            ? marketRank.flattering
+              ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
+              : `See where you rank in ${marketRank.cityLabel}`
+            : bucket.viewsThisWeek > 0
+              ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
+              : `Your week on Olera`;
 
       if (dryRun) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (preRank.has(providerId)) coldRankSent += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -582,6 +683,7 @@ export async function GET(request: NextRequest) {
         });
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (preRank.has(providerId)) coldRankSent += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -609,7 +711,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -617,6 +719,9 @@ export async function GET(request: NextRequest) {
         processed: providerIds.length,
         sent,
         marketHeroSent: marketHeroCount,
+        // §1c cold/quiet expansion: providers enrolled by a top-5 cached rank, and how many got sent.
+        rankEligibleEnrolled: rankEligible.size,
+        coldRankSent,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,

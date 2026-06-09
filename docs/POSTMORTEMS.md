@@ -404,3 +404,17 @@ The pattern is documented in `feedback_schema_text_not_enum.md` (Olera uses TEXT
 **Lesson**: An application allowlist is a design intent. A DB CHECK constraint is the actual gate. Adding to the first without the second produces the worst kind of failure: silent at the user level, silent at the route logs (without inspection), and visible only as "no engagement" in the analytics dashboards we built specifically to detect engagement. Memory existed; I didn't apply it. Next time I add an event type to ANY allowlist, the first reflex is `grep -r "provider_activity_event_type_check" supabase/migrations/`. If the value isn't there, the migration is part of the same PR.
 
 ---
+
+### 2026-06-09: Claimed a real slash command "isn't registered" without searching
+
+**Symptom**: TJ asked me to "create a /slack-notes" for the AI dev team. I confidently asserted `/slack-notes` "isn't a registered skill (nothing got loaded)" and drafted a freehand message that violated nearly every norm in the actual command file. TJ had to push back twice ("Are you sure? Thoroughly look through the repo") before I searched and found it.
+
+**Root Cause**: I conflated "not auto-injected into my context" with "doesn't exist." When a user *formally invokes* a command (`/pre-test`, `/pr-merge`), the harness injects its full content as a `<command-name>` block. But TJ referenced `/slack-notes` *inline in prose* ("Let's create a /slack-notes…"), which the harness does NOT auto-load. I treated the missing injected block as proof of non-existence instead of searching `.claude/commands/`. The command was sitting at `.claude/commands/slack-notes.md` with detailed, learned-the-hard-way norms (TJ voice, no PR links/numbers, no bullets, default channel `#ai-product-development`, tag `@Logan @Esther`).
+
+**Fix**: One `find`/`grep` across `.claude/commands`, `.claude/skills`, `~/.claude`, and `~/Desktop/TJ-hq/.claude` found it in seconds. Read it, redrafted to spec.
+
+**Prevention**: New memory `feedback_search_commands_referenced_in_prose.md` — when the user references a `/command` by name (even mid-sentence, not as a formal invocation), search `.claude/commands/*.md` + skill dirs BEFORE concluding it doesn't exist or improvising. A slash prefix is a strong signal a real command with norms exists; absence of an auto-injected `<command-name>` block means it wasn't formally invoked, NOT that it's absent.
+
+**Lesson**: "It didn't load into my context" is not evidence about what exists on disk. When a user names a slash command, the first reflex is to read its file, not to reason about why it didn't auto-inject. Cheap to verify, expensive to assume wrong.
+
+---

@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-06-09 (late) — T1 deliverability SHIPPED + VERIFIED: provider notifications now send from `oleracare.com`
+
+**Supersedes the "T1 ops never done (the real blocker)" note further below — T1 is now DONE and live in production.**
+
+**What happened:** the #967 code (env-gated `PROVIDER_NOTIFY_FROM` split in `lib/email.ts`, `resolveFromAddress`) is in production. Tonight TJ did the ops, and they were far simpler than the planned runbook:
+- **Domain LOCKED:** `oleracare.com` (TJ chose it over seniorlistings.net), and the **root** — NOT a `notify.` subdomain. KEY DISCOVERY: `oleracare.com` was **already verified in Resend** (added ~6mo ago via GoDaddy) → the entire subdomain/DNS/SPF-merge runbook was MOOT. Zero DNS work.
+- **Vercel env (Production + Preview, both Sensitive = write-only):** `PROVIDER_NOTIFY_FROM = Olera <noreply@oleracare.com>`, `PROVIDER_NOTIFY_REPLY_TO = hello@olera.care`. Redeployed production (the #996 deploy) to activate — env vars only attach to deployments created after they're set.
+
+**VERIFIED via email_log + the actual delivered email:** test `question_received` → `tfalohun@gmail.com` from `Olera <noreply@oleracare.com>`, Reply-To `hello@olera.care` (subject "A family has a question about Aggie Assisted Living"). All provider-directed sends ≤14:19 UTC were `olera.care` → clean cutover at the redeploy (~15:00 UTC on). Family nudges (`welcome`/`publish_nudge_*`/`completion_nudge_*`) correctly STAYED on `olera.care`. The Reply-To header only gets set on the oleracare.com path (`lib/email.ts:363-367`), so its presence is independent proof.
+
+**Gotcha resolved live:** TJ saw a family "Aggie Home Care is waiting to hear from you" nudge from olera.care and thought T1 failed — that's a *family* email (to the care seeker), not in the rerouted provider set; correctly stays on the crown jewel.
+
+**Watching (passive, no action):** that the ~7.2% bounce lands on `oleracare.com` and its reputation holds sharing space with the cold/Loops stream over a few days. Reversible: delete `PROVIDER_NOTIFY_FROM` in Vercel + redeploy → back to olera.care.
+
+**Separate follow-up (NOT T1):** family-nudge copy "Aggie Home Care is waiting to hear from you" reads like "Aggie" is a person's name — needs a copy pass.
+
+**Durable handoff:** Notion "Branch Handoff Reports" page (updated to VERIFIED). Also note: `staging` == `main` (delta 0); completion preview #984 already live in production.
+
 ### 2026-06-09 — Per-variant conversion + weekly leads-recap variant (branch `variant-conversion`, PR #993, awaiting copy approval)
 
 **Outcome:** Two layers on the digest variant dashboard (#982). Both committed, pushed, type-clean. Holding the merge for TJ's read on the leads-email copy.

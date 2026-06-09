@@ -373,6 +373,13 @@ export async function POST(
       case "launch_activation":
         await handleLaunchActivation(db, row, body, user.id);
         break;
+
+      // Stop a running activation cadence (cancels its pending tasks).
+      // Trial Active already auto-stops via the conversion task-cleanup;
+      // this is the manual off-switch on the drawer's running state.
+      case "stop_activation":
+        await handleStopActivation(db, row, user.id);
+        break;
       case "offer_call":
         await handleOfferCall(db, row, body, user.id);
         break;
@@ -2162,6 +2169,25 @@ async function handleLaunchActivation(
 
   // Surface the row as unread so the new activation work boosts the tab.
   await db.from("student_outreach").update({ viewed_at: null }).eq("id", row.id);
+}
+
+/** Stop a running activation cadence: cancel its pending tasks + mark stopped. */
+async function handleStopActivation(db: DB, row: OutreachRow, userId: string) {
+  await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "cancelled",
+      completed_at: new Date().toISOString(),
+      completed_by: userId,
+    })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .filter("payload->>cadence", "eq", "activation");
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    payload: { reason: "activation_stopped" },
+  });
+  await touchOutreach(db, row.id, userId);
 }
 
 /**

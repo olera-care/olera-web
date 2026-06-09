@@ -1018,6 +1018,32 @@ function ActivationActions({
     : dm?.name ?? null;
   const recipientContactId = primary?.id ?? null;
 
+  const [stopping, setStopping] = useState(false);
+
+  // Detect a running activation cadence from the timeline: launched with no
+  // later stop. Converted rows render ConvertedBody, so this never shows after
+  // Trial Active (the conversion cleanup also cancels the cadence's tasks).
+  const latestReasonAt = (reason: string): string | null =>
+    ctx.touchpoints
+      .filter(
+        (t) =>
+          t.touchpoint_type === "note_added" &&
+          (t.payload as Record<string, unknown> | null)?.reason === reason,
+      )
+      .map((t) => t.created_at)
+      .sort()
+      .at(-1) ?? null;
+  const launchedAt = latestReasonAt("activation_launched");
+  const stoppedAt = latestReasonAt("activation_stopped");
+  const isRunning = !!launchedAt && (!stoppedAt || stoppedAt < launchedAt);
+  const nextActivationCall = ctx.pending_tasks
+    .filter(
+      (t) =>
+        t.task_type === "outreach_followup_call" &&
+        (t.payload as Record<string, unknown> | null)?.cadence === "activation",
+    )
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+
   const markNotInterested = async () => {
     setClosing(true);
     setError(null);
@@ -1029,6 +1055,41 @@ function ActivationActions({
       setClosing(false);
     }
   };
+
+  const stopActivation = async () => {
+    setStopping(true);
+    setError(null);
+    try {
+      await action("stop_activation", {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to stop");
+    } finally {
+      setStopping(false);
+    }
+  };
+
+  if (isRunning) {
+    return (
+      <div className="mt-3 rounded-md border border-primary-200 bg-primary-50/60 px-3 py-2.5">
+        <p className="text-sm font-semibold text-primary-800">
+          Activation cadence running
+        </p>
+        <p className="mt-0.5 text-xs text-gray-600">
+          {nextActivationCall
+            ? `Next call ${formatRelative(nextActivationCall.due_at)}. `
+            : "Follow-ups are queued. "}
+          Stops automatically when they accept Terms.
+        </p>
+        <button
+          onClick={stopActivation}
+          disabled={stopping}
+          className="mt-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {stopping ? "Stopping…" : "Stop activation"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>

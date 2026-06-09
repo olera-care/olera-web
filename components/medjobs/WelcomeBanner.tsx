@@ -25,14 +25,18 @@ export default function WelcomeBanner({
   claimConflict,
   isProvider,
   outreachId,
+  autoOpen,
 }: {
   claimConflict: boolean;
   isProvider: boolean;
   /** Threaded from the magic-link landing so activation targets the right
    *  org deterministically (decision: org-owned). */
   outreachId?: string;
+  /** From `?activate=1` (activation-cadence links). Lands the provider with
+   *  the Terms modal already open, one tap from Trial Active. */
+  autoOpen?: boolean;
 }) {
-  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(!!autoOpen && !claimConflict);
 
   return (
     <div className="mb-6 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4 sm:px-6 sm:py-5">

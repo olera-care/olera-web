@@ -92,13 +92,20 @@ export async function POST(request: Request) {
     if (existingAccount) {
       // Account exists — check if user has ANY profiles
       const acctId = (existingAccount as Account).id;
+      // Fetch ALL of the account's profiles (there are only ever a handful) so
+      // we can reliably tell a provider/student account apart from a family
+      // one. The old .limit(1) made that detection a coin-flip — it could miss
+      // a family profile, or miss the provider profile and wrongly treat the
+      // account as a plain family seeker.
       const { data: existingProfiles } = await dbClient
         .from("business_profiles")
         .select("id, type")
-        .eq("account_id", acctId)
-        .limit(1);
+        .eq("account_id", acctId);
 
       const existingFamilyProfile = existingProfiles?.find(p => p.type === "family");
+      const providerProfile = existingProfiles?.find(p =>
+        ["organization", "student", "caregiver"].includes(p.type)
+      );
       const hasAnyProfile = existingProfiles && existingProfiles.length > 0;
 
       // Only create a family profile if:
@@ -221,8 +228,10 @@ export async function POST(request: Request) {
               .delete()
               .eq("id", placeholder.id);
 
-            // Ensure active_profile_id is set so welcome page can find connections
-            if (!(existingAccount as Account).active_profile_id) {
+            // Ensure active_profile_id is set so welcome page can find
+            // connections — but never override a provider/student account's
+            // active profile with this family profile.
+            if (!(existingAccount as Account).active_profile_id && !providerProfile) {
               await dbClient
                 .from("accounts")
                 .update({ active_profile_id: mainFamilyId })
@@ -235,13 +244,20 @@ export async function POST(request: Request) {
         }
       }
 
-      // Also ensure active_profile_id is set even without a claim token
-      // Some accounts may exist without active_profile_id being set
-      if (existingFamilyProfile && !(existingAccount as Account).active_profile_id) {
-        await dbClient
-          .from("accounts")
-          .update({ active_profile_id: existingFamilyProfile.id })
-          .eq("id", acctId);
+      // Ensure active_profile_id is set even without a claim token — some
+      // accounts exist without it. CRITICAL: for a provider/student account,
+      // point at their real (organization/student) profile, NEVER a family
+      // one. Pointing a provider's active profile at an empty family profile
+      // is what made provider inboxes "disappear" after Google sign-in
+      // (Esther, 2026-06-03).
+      if (!(existingAccount as Account).active_profile_id) {
+        const targetProfile = providerProfile || existingFamilyProfile;
+        if (targetProfile) {
+          await dbClient
+            .from("accounts")
+            .update({ active_profile_id: targetProfile.id })
+            .eq("id", acctId);
+        }
       }
 
       // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)

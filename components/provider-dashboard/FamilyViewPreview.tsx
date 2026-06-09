@@ -149,8 +149,11 @@ export default function FamilyViewPreview({
   onEdit: (section: SectionId) => void;
 }) {
   const staff = meta.staff as StaffInfo | undefined;
-  const images = (meta.images ?? []).filter(Boolean);
-  const careTypes = (profile.care_types ?? []).filter(Boolean);
+  // Guard with Array.isArray, not just ??: these come from untyped JSONB /
+  // legacy data and can be present-but-not-an-array, which would throw on
+  // .filter/.map. Mirrors the shipped GalleryCard's defensive check.
+  const images = (Array.isArray(meta.images) ? meta.images : []).filter(Boolean);
+  const careTypes = (Array.isArray(profile.care_types) ? profile.care_types : []).filter(Boolean);
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
   const heroImage = profile.image_url || images[0] || null;
   const claimed = profile.claim_state === "claimed";

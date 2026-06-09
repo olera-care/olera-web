@@ -12,7 +12,7 @@
 **Strategy (Notion "Provider Engagement Reframe" `3795903a-0ffe-8174…`; memory `project_engagement_reframe`):** ONE ladder = provider discoverability/chooseability. Completion = activation milestone (juiciest carrot), reviews→rank = recurring engine, answering = episodic conversion (69% of providers get 1 question ever). Digest = the recurring trigger surfacing each provider's next rung.
 
 **Shipped/merged this session:**
-- **T1 — `question_received` off olera.care:** PR **#967** (env-gated `PROVIDER_NOTIFY_FROM` split; digest stays on olera.care). Merged. **Ops still pending TJ:** Resend-verify oleracare.com + MERGE SPF with Loops + set env vars.
+- **T1 — `question_received` off olera.care:** PR **#967** (env-gated `PROVIDER_NOTIFY_FROM` split; digest stays on olera.care). **STILL OPEN — not merged.** Needs TJ to (1) merge #967, then (2) the ops: Resend-verify oleracare.com + MERGE SPF with Loops + set `PROVIDER_NOTIFY_FROM`/`PROVIDER_NOTIFY_REPLY_TO`. Inert until both done.
 - **Step 1 (ID resolver) — VALIDATED, no build needed.** `lib/provider-id-variants.ts resolveCanonicalProviderKeys` already exists; running the non-answerer join through it collapsed the bogus "85% no-notify" artifact → real funnel (unreachable 27.6% · delivered-not-opened 42.2% dominant · …). Apply per-feature.
 - **Completion carrot Phase 1:** PR **#978** (merged) — claimed providers w/ no owner story get a "sell the output" digest variant + `/api/claim-complete` one-click auth + `?edit=<section>` deep-link. **Reconciled with #966** (parallel cold-rank expansion that hit the same cron) into one router: question > completion > cold-first-contact > rank > analytics.
 

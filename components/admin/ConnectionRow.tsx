@@ -650,7 +650,7 @@ export default function ConnectionRow({
     }
   }
 
-  async function handleFindEmail() {
+  async function handleFindEmail(mode: "edit" | "add" = "edit") {
     if (!c.provider.id) return;
 
     setFindingEmail(true);
@@ -669,16 +669,20 @@ export default function ConnectionRow({
 
       if (res.ok && data.email) {
         // Set the best match as the input value
-        setEditEmailInput(data.email);
+        if (mode === "edit") {
+          setEditEmailInput(data.email);
+          setEditEmailError(null);
+        } else {
+          setEmailInput(data.email);
+          setEmailError(null);
+        }
+
         setEmailSource(data.source);
 
         // Store all candidates for potential dropdown
         if (data.candidates && data.candidates.length > 0) {
           setFoundEmails(data.candidates);
         }
-
-        // Clear any previous errors
-        setEditEmailError(null);
       } else if (res.ok && !data.email) {
         // No email found
         setFindEmailError("No email found for this provider");
@@ -1004,6 +1008,10 @@ export default function ConnectionRow({
                                 setEditEmailInput(detail.provider.email || "");
                                 setEditEmailError(null);
                                 setEditEmailSuccess(false);
+                                // Clear previous find email state
+                                setFindEmailError(null);
+                                setEmailSource(null);
+                                setFoundEmails([]);
                               }}
                               className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
                             >
@@ -1017,7 +1025,13 @@ export default function ConnectionRow({
                                 <input
                                   type="email"
                                   value={editEmailInput}
-                                  onChange={(e) => setEditEmailInput(e.target.value)}
+                                  onChange={(e) => {
+                                    setEditEmailInput(e.target.value);
+                                    // Clear source indicator if user manually edits away from found emails
+                                    if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
+                                      setEmailSource(null);
+                                    }
+                                  }}
                                   placeholder="New provider email..."
                                   className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                                   disabled={editingEmailLoading || findingEmail}
@@ -1025,7 +1039,7 @@ export default function ConnectionRow({
                                 />
                                 <button
                                   type="button"
-                                  onClick={handleFindEmail}
+                                  onClick={() => handleFindEmail("edit")}
                                   disabled={editingEmailLoading || findingEmail}
                                   className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                                   title="Find provider email using web scraping + AI"
@@ -1084,14 +1098,20 @@ export default function ConnectionRow({
                             <input
                               type="email"
                               value={emailInput}
-                              onChange={(e) => setEmailInput(e.target.value)}
+                              onChange={(e) => {
+                                setEmailInput(e.target.value);
+                                // Clear source indicator if user manually edits away from found emails
+                                if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
+                                  setEmailSource(null);
+                                }
+                              }}
                               placeholder={findingEmail ? "Searching..." : "Add provider email..."}
                               className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                               disabled={addingEmail || findingEmail}
                             />
                             <button
                               type="button"
-                              onClick={handleFindEmail}
+                              onClick={() => handleFindEmail("add")}
                               disabled={addingEmail || findingEmail}
                               className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                               title="Find provider email using web scraping + AI"

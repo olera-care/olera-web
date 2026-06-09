@@ -186,7 +186,7 @@ function loganLeadSignature(): string {
  * A trust-forward first-contact note from Dr. DuBose for providers who rank top-5 in their
  * local market but have no weekly activity (never engaged with Olera). The copy answers the
  * four questions a stranger asks — who is Olera, are they legit, did I sign up, do they charge —
- * before the rank lands, with NIH + a physician COO + the Texas A&M affiliation doing the trust
+ * before the rank lands, with NIH (backing + an SBIR-funded researcher) + a physician CRO doing the trust
  * work. The CTA is a one-click "market" magic link that invisibly authenticates them onto their
  * Find Families rank view. Photo is Supabase-hosted (olera.care assets are WAF-challenged for
  * email image proxies and render blank).
@@ -210,12 +210,12 @@ export function coldProviderRankEmail(opts: {
   const city = escapeHtml(cityLabel);
   const body = `
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Families comparing ${care} in ${city} see ${outOf} agencies. Yours ranks <strong style="color:${BRAND_COLOR};">${rankWord}</strong>, by the Google reviews they actually read.</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">I'm Dr. Logan DuBose, a physician and Olera's COO. We built Olera with <strong>NIH funding</strong> so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads. Your agency is already listed, and families nearby are already comparing it to the others.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">I'm Dr. Logan DuBose, Olera's Chief Research Officer (CRO). We built Olera with <strong>NIH funding</strong> so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads. Your agency is already listed, and families nearby are already comparing it to the others.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">I thought you'd want to see where you stand, and to make the page yours.</p>
     <div style="margin:0 0 30px;">${button("See where you rank", ctaUrl)}</div>
     <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
       <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
-      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;"><p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p><p style="margin:2px 0 0;color:#6b7280;">COO, Olera &middot; Affiliate Faculty, Texas A&amp;M College of Nursing</p></td>
+      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;"><p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p><p style="margin:2px 0 0;color:#6b7280;">CRO, Olera &middot; Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p></td>
     </tr></table>
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"><p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", manageUrl)} &middot; ${secondaryLink("Remove it", removeUrl)} &middot; ${secondaryLink("Unsubscribe", unsubscribeUrl)}</p></div>`;
   return layout(body, `You rank ${rankWord} of ${outOf} ${careLabel} agencies in ${cityLabel}`);

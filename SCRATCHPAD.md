@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
+
+**Outcome:** Deleted the unused "Submissions by Entry Source" section from the admin analytics panel — TJ confirmed no one uses it. Pure deletion, 213 deletions / 1 insertion.
+
+**What changed:**
+- **`app/admin/analytics/page.tsx`** — removed the `<CollapsibleSection>`, the `EntrySourceCard` + `EntrySourceStat` components, the `EntrySourceBreakdown` interface, and its fields in `SummaryResponse` (windowed + prior).
+- **`app/api/admin/analytics/summary/route.ts`** — removed the `accounts.signup_source` query (one fewer Supabase call per analytics request), the `EntrySourceBreakdown` type, `EMPTY_ENTRY_SOURCE_BREAKDOWN`, the bucketing loop, and all `entry_source_breakdown` payload fields. `accountsQ`/`accountsRes` dropped from the `Promise.all` (13 queries now, destructuring matches).
+
+**Pre-test review caught 1 leftover:** an orphaned doc comment from the deleted `EntrySourceCard` was stranded above the unrelated `FunnelStat` function — removed it. Repo-wide grep confirms zero remaining references; `tsc --noEmit` = 0 errors.
+
 ### 2026-06-07 — New `/promote-to-main` slash command + shipped #955 to production
 
 **Outcome:** Built a reusable staging→main production-promotion command and used it to ship the pending delta live.

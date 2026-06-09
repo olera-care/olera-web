@@ -267,6 +267,37 @@ export function coldProviderRankEmail(opts: {
 }
 
 /**
+ * Weekly lead-recap variant — providers who received one or more new family inquiries in the
+ * past week. Distinct from the real-time connectionRequestEmail (sent the moment a lead lands):
+ * this is the Monday recap that nudges providers who haven't responded yet. Warm and specific,
+ * no NIH trust wall (they've already received leads, they know us). The CTA is a one-click magic
+ * link straight to their Find Families connections inbox. Goal action: opening / responding to
+ * the lead (provider_activity lead_opened).
+ */
+export function providerLeadDigestEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  leadCount: number;
+  ctaUrl: string;          // one-click magic link → /provider/connections
+  manageUrl: string;
+  unsubscribeUrl: string;
+}): string {
+  const { leadCount, ctaUrl, manageUrl, unsubscribeUrl } = opts;
+  const name = escapeHtml(opts.providerName);
+  const many = leadCount > 1;
+  const who = many ? `${leadCount} families` : "A family";
+  const heading = many ? `${leadCount} families reached out about you` : "A family reached out about you";
+  const body = `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">New on Olera</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${heading}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">This past week, ${many ? who : "a family"} asked to connect with ${name} on Olera. They shared what kind of care they&rsquo;re looking for and when they need it.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Families usually reach out to a few providers at once, so the first thoughtful reply tends to win the conversation. It takes a minute, and there&rsquo;s no fee to respond.</p>
+    <div style="margin:0 0 30px;">${button(many ? "See who reached out →" : "See their request →", ctaUrl)}</div>
+    <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"><p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", manageUrl)} &middot; ${secondaryLink("Unsubscribe", unsubscribeUrl)}</p></div>`;
+  return layout(body, `${who} asked to connect with ${name} on Olera.`);
+}
+
+/**
  * Provider-specific off-ramp block with magic link URLs for managing listing and settings.
  * @param manageListingUrl - Magic link URL to provider dashboard
  * @param settingsUrl - Magic link URL to provider settings (lead preferences)

@@ -28,17 +28,74 @@ function isoWeek(d: Date): string {
 // ── Per-variant breakdown (weekly digest sends three distinct templates under one email_type) ──
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
+  leads: "Leads recap",
   weekly_digest: "Weekly digest",
   completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "weekly_digest", "completion", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "leads", "weekly_digest", "completion", "cold_rank"];
+
+// ── Per-variant downstream CONVERSION ──
+// Each variant maps to the one provider_activity event that means "this email worked".
+// Because the cron router sends exactly ONE variant per provider per run, and each
+// variant's conversion event is distinct, attribution is unambiguous: a question_responded
+// can only belong to a family_question send, a claim_completed only to a cold_rank send, etc.
+// weekly_digest is the soft one — a portal re-visit (one_click_access), re-engagement not a
+// hard conversion, by design (it's the recurring engine, not a one-time ask).
+const CONVERSION_EVENT: Record<string, string> = {
+  family_question: "question_responded",
+  leads: "lead_opened",
+  completion: "profile_published",
+  cold_rank: "claim_completed",
+  weekly_digest: "one_click_access",
+};
+const CONVERSION_LABEL: Record<string, string> = {
+  family_question: "Answered",
+  leads: "Lead opened",
+  completion: "Profile published",
+  cold_rank: "Listing claimed",
+  weekly_digest: "Re-visited portal",
+};
+// Last-touch attribution window: an action counts as driven by a send if it happens within
+// 14 days AFTER that send. Last-touch (most recent preceding send wins) so the weekly cadence
+// can't double-count a single action across two consecutive sends.
+const ATTRIBUTION_DAYS = 14;
 
 type VRow = {
   email_type: string; created_at: string; delivered_at: string | null; first_opened_at: string | null;
   first_clicked_at: string | null; bounced_at: string | null; complained_at: string | null;
   html_body: string | null; metadata: Record<string, unknown> | null; subject: string | null;
+  provider_id: string | null;
 };
+type Send = { providerId: string | null; sentAt: number; delivered: boolean };
+/**
+ * Count delivered sends that converted, under last-touch N-day attribution.
+ * For each conversion event, credit the most recent preceding send within the window; a send
+ * credited by any event counts once. `eventTimes`: providerId -> sorted-asc event timestamps.
+ */
+function countConverted(sends: Send[], eventTimes: Map<string, number[]>, windowMs: number): number {
+  const byProvider = new Map<string, number[]>();
+  for (const s of sends) {
+    if (!s.delivered || !s.providerId) continue;
+    const arr = byProvider.get(s.providerId);
+    if (arr) arr.push(s.sentAt);
+    else byProvider.set(s.providerId, [s.sentAt]);
+  }
+  let converted = 0;
+  for (const [pid, sentTimes] of byProvider) {
+    const evs = eventTimes.get(pid);
+    if (!evs || evs.length === 0) continue;
+    sentTimes.sort((a, b) => a - b);
+    const credited = new Set<number>();
+    for (const evAt of evs) {
+      let best = -1; // index of most recent send strictly before this event
+      for (let i = 0; i < sentTimes.length && sentTimes[i] < evAt; i++) best = i;
+      if (best >= 0 && evAt - sentTimes[best] <= windowMs) credited.add(best);
+    }
+    converted += credited.size;
+  }
+  return converted;
+}
 type VStat = { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number };
 const emptyVStat = (): VStat => ({ sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 });
 function accVStat(s: VStat, e: VRow) {
@@ -55,11 +112,12 @@ function accVStat(s: VStat, e: VRow) {
  */
 function classifyVariant(subject: string | null, metadata: Record<string, unknown> | null): { variant: string; ledWithRank: boolean } {
   const mv = metadata?.variant;
-  if (mv === "family_question" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
+  if (mv === "family_question" || mv === "leads" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
     return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
   }
   const s = subject ?? "";
   if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
+  if (/reached out about .+ this week$/i.test(s)) return { variant: "leads", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
   if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
   const led = /^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s);
@@ -119,12 +177,17 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const previewTypes: string[] = [];
   // Per-variant rollup (only meaningful when a job's one email_type fans out into templates, like
   // the weekly digest). `variants[].split` carries the rank-led vs plain breakdown for weekly_digest.
-  type VariantOut = VStat & { key: string; label: string; split?: { withRank: VStat; plain: VStat } };
+  // `converted`/`convRate`/`convEvent`/`convLabel` carry the downstream-conversion attribution.
+  type VariantOut = VStat & {
+    key: string; label: string; split?: { withRank: VStat; plain: VStat };
+    converted?: number; convRate?: number; convEvent?: string; convLabel?: string;
+  };
   let variants: VariantOut[] = [];
   if (job.emailTypes.length > 0) {
     rollup30d = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
     const weekMap = new Map<string, { sent: number; delivered: number; opened: number; clicked: number }>();
     const vAgg: Record<string, VStat> = {};
+    const vSends: Record<string, Send[]> = {}; // per-variant delivered/undelivered sends for conversion attribution
     const wkWithRank = emptyVStat();
     const wkPlain = emptyVStat();
     const isDigestJob = id === "weekly-provider-digest";
@@ -134,7 +197,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       const fetchSince = since < trendSince ? since : trendSince;
       const { data } = await db
         .from("email_log")
-        .select("email_type, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body, metadata, subject")
+        .select("email_type, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body, metadata, subject, provider_id")
         .in("email_type", job.emailTypes)
         .gte("created_at", fetchSince)
         .order("created_at", { ascending: false })
@@ -166,6 +229,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           const { variant, ledWithRank } = classifyVariant(e.subject, e.metadata);
           (vAgg[variant] ??= emptyVStat());
           accVStat(vAgg[variant], e);
+          (vSends[variant] ??= []).push({ providerId: e.provider_id, sentAt: Date.parse(e.created_at), delivered: !!e.delivered_at });
           if (variant === "weekly_digest") accVStat(ledWithRank ? wkWithRank : wkPlain, e);
         }
         if (inWindow && e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
@@ -175,12 +239,46 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       // variants with no sends in this window — so the breakdown reflects what the digest *can*
       // send, not just what happened to fire. Empty ones render muted on the page.
       if (isDigestJob) {
-        variants = VARIANT_ORDER.map((k) => ({
-          key: k,
-          label: VARIANT_LABELS[k],
-          ...(vAgg[k] ?? emptyVStat()),
-          ...(k === "weekly_digest" ? { split: { withRank: wkWithRank, plain: wkPlain } } : {}),
-        }));
+        // Downstream conversion: fetch the mapped provider_activity events over the rollup window
+        // (every event that could attribute to an in-window send falls at or after `since`), then
+        // last-touch-attribute each to a send within the 14-day window. Fail-soft: if the table or
+        // columns are absent, variants render without conversion (the page falls back gracefully).
+        const eventTimesByType = new Map<string, Map<string, number[]>>(); // eventType -> providerId -> times
+        try {
+          const { data: acts } = await db
+            .from("provider_activity")
+            .select("provider_id, event_type, created_at")
+            .in("event_type", Object.values(CONVERSION_EVENT))
+            .gte("created_at", since)
+            .limit(100000);
+          for (const a of (acts ?? []) as Array<{ provider_id: string | null; event_type: string; created_at: string }>) {
+            if (!a.provider_id) continue;
+            const byProv = eventTimesByType.get(a.event_type) ?? new Map<string, number[]>();
+            const arr = byProv.get(a.provider_id);
+            if (arr) arr.push(Date.parse(a.created_at));
+            else byProv.set(a.provider_id, [Date.parse(a.created_at)]);
+            eventTimesByType.set(a.event_type, byProv);
+          }
+        } catch {
+          /* provider_activity unavailable — skip conversion */
+        }
+        const windowMs = ATTRIBUTION_DAYS * 24 * 60 * 60 * 1000;
+        variants = VARIANT_ORDER.map((k) => {
+          const stat = vAgg[k] ?? emptyVStat();
+          const evType = CONVERSION_EVENT[k];
+          const eventTimes = eventTimesByType.get(evType);
+          const converted = eventTimes ? countConverted(vSends[k] ?? [], eventTimes, windowMs) : 0;
+          return {
+            key: k,
+            label: VARIANT_LABELS[k],
+            ...stat,
+            ...(k === "weekly_digest" ? { split: { withRank: wkWithRank, plain: wkPlain } } : {}),
+            converted,
+            convRate: stat.delivered > 0 ? converted / stat.delivered : 0,
+            convEvent: evType,
+            convLabel: CONVERSION_LABEL[k],
+          };
+        });
       }
     } catch {
       rollup30d = null;

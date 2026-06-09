@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
@@ -572,9 +572,26 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Leads recap variant — providers who received one or more new family inquiries this week.
+      // Highest-value weekly signal (a family actively asked to connect, ~10x a passive view), so
+      // it outranks everything except a live unanswered question. Sending the dedicated recap also
+      // short-circuits the completion nudge and the market-rank resolve below — both gated on
+      // !hasLead — so a hot lead is never buried under "finish your profile", and we never spend a
+      // Places call resolving rank for a provider who's getting the leads email anyway. The CTA is
+      // a one-click magic link to their connections inbox. Goal action: opening the lead.
+      const hasLead = !unansweredQuestion && bucket.leads > 0;
+      let leadsUrl: string | null = null;
+      if (hasLead) {
+        try {
+          leadsUrl = generateProviderPortalUrl(providerSlug, bp.email, "leads");
+        } catch (err) {
+          console.error(`[weekly-provider-digest] leads url failed for ${providerSlug}:`, err);
+        }
+      }
+
       // Completion ("sell the output") variant — CLAIMED providers who haven't
       // added their owner story yet. Ranks ABOVE the market-rank hero in the
-      // next-rung router (question > completion > cold-rank > rank > analytics):
+      // next-rung router (question > leads > completion > cold-rank > rank > analytics):
       // a thin profile is a more actionable rung than a rank they can't quickly
       // move. Owner story isn't in the completeness score, so we check
       // metadata.staff directly — the highest-emotional-impact gap, cheapest to
@@ -583,7 +600,7 @@ export async function GET(request: NextRequest) {
       // owner-story gap only; other gaps + a dedicated dormant-claimer source
       // are tracked follow-ups (see plans/completion-carrot-plan.md).
       let completionUrl: string | null = null;
-      if (!unansweredQuestion && bp.claim_state === "claimed") {
+      if (!unansweredQuestion && !hasLead && bp.claim_state === "claimed") {
         const hasOwnerStory = !!(meta.staff as { name?: string } | undefined)?.name;
         if (!hasOwnerStory) {
           try {
@@ -601,7 +618,7 @@ export async function GET(request: NextRequest) {
       // so they cost zero Places/warming calls and can never queue a warm.
       // Skipped when a completion nudge is showing (it takes priority).
       let marketRank: DigestMarketRank | null = null;
-      if (!unansweredQuestion && !completionUrl) {
+      if (!unansweredQuestion && !hasLead && !completionUrl) {
         const pre = preRank.get(providerId);
         if (pre) {
           marketRank = pre;
@@ -652,6 +669,15 @@ export async function GET(request: NextRequest) {
             removeUrl: `${siteUrl}/for-providers/removal-request/${providerSlug}`,
             unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
           })
+        : leadsUrl
+        ? providerLeadDigestEmail({
+            providerName: displayName,
+            providerSlug,
+            leadCount: bucket.leads,
+            ctaUrl: leadsUrl,
+            manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
+            unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
+          })
         : completionUrl
         ? providerProfileCompletionEmail({
             providerName: displayName,
@@ -680,6 +706,10 @@ export async function GET(request: NextRequest) {
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
+        : leadsUrl
+        ? bucket.leads > 1
+          ? `${bucket.leads} families reached out about ${displayName} this week`
+          : `A family reached out about ${displayName} this week`
         : completionUrl
         ? `See what families see on ${displayName}`
         : isColdFirstContact
@@ -701,11 +731,13 @@ export async function GET(request: NextRequest) {
       // `ledWithRank` only applies to the analytics weekly_digest (false everywhere else).
       const variant = unansweredQuestion
         ? "family_question"
-        : isColdFirstContact
-          ? "cold_rank"
-          : completionUrl
-            ? "completion"
-            : "weekly_digest";
+        : leadsUrl
+          ? "leads"
+          : isColdFirstContact
+            ? "cold_rank"
+            : completionUrl
+              ? "completion"
+              : "weekly_digest";
       const variantMeta = { variant, ledWithRank: !!marketRank };
 
       if (dryRun) {

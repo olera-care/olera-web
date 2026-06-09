@@ -19,6 +19,12 @@ interface VariantRow extends Rollup {
   label: string;
   // weekly_digest only: rank-led vs plain split
   split?: { withRank: Rollup; plain: Rollup };
+  // Downstream conversion (share of delivered sends whose provider took the variant's goal action
+  // within 14 days). converted = count, convRate = converted/delivered, convLabel = the action.
+  converted?: number;
+  convRate?: number;
+  convEvent?: string;
+  convLabel?: string;
 }
 interface RunRow {
   id: string;
@@ -71,6 +77,7 @@ interface PreviewResponse {
 // The weekly digest's distinct email looks, for the sample preview picker.
 const DIGEST_SAMPLES: { key: string; label: string }[] = [
   { key: "family_question", label: "Family question" },
+  { key: "leads", label: "Leads recap" },
   { key: "weekly_digest_rank", label: "Weekly digest · with rank" },
   { key: "weekly_digest_plain", label: "Weekly digest · plain" },
   { key: "completion", label: "Completion nudge" },
@@ -80,7 +87,8 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
 // What triggers each variant — shown in the breakdown table via a hover/tap tooltip.
 const VARIANT_TRIGGERS: Record<string, string> = {
   family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
-  weekly_digest: "Goes to providers active in the last 14 days — page views, clicks, leads, or questions received.",
+  leads: "Goes to providers who received one or more new family inquiries this week. A weekly recap that nudges them to respond, with a one-click link to their connections inbox. Outranks every variant except an open question — a lead is the hottest weekly signal.",
+  weekly_digest: "Goes to providers active in the last 14 days — page views or clicks. Providers with a new lead or an open question get the Leads recap / Family question variant instead.",
   completion: "Goes to claimed providers with an incomplete profile (e.g. no owner story). Nudges them to finish it with a one-click deep link to the editor.",
   cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",
 };
@@ -504,6 +512,9 @@ export default function AutomationDetailPage() {
                               <th className="px-4 py-2 text-right font-medium">Delivered</th>
                               <th className="px-4 py-2 text-right font-medium">Opened</th>
                               <th className="px-4 py-2 text-right font-medium">Clicked</th>
+                              <th className="px-4 py-2 text-right font-medium">
+                                <span className="inline-flex items-center">Converted<InfoDot text="Share of delivered emails where the provider took that variant's goal action (answered, claimed, published, or re-visited the portal) within 14 days of the send — last-touch, so a single action is never double-counted across consecutive weekly sends. This is the honest signal: opens are inflated by Apple Mail's privacy proxy. Note: very recent sends may still be inside their 14-day window." /></span>
+                              </th>
                               <th className="px-4 py-2 text-right font-medium">Bounced</th>
                             </tr>
                           </thead>
@@ -520,6 +531,14 @@ export default function AutomationDetailPage() {
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right">
+                                    {v.sent > 0 && v.delivered > 0 ? (
+                                      <div className="leading-tight">
+                                        <span className={`tabular-nums font-semibold ${(v.converted ?? 0) > 0 ? "text-emerald-700" : "text-gray-400"}`}>{pct(v.converted ?? 0, v.delivered)}</span>
+                                        <span className="block text-[10px] font-normal text-gray-400">{(v.converted ?? 0).toLocaleString()} {(v.convLabel ?? "").toLowerCase()}</span>
+                                      </div>
+                                    ) : "—"}
+                                  </td>
                                   <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.sent > 0 ? (v.bounced + v.complained || "—") : "—"}</td>
                                 </tr>
                                 {v.split && (["withRank", "plain"] as const).map((sk) => {
@@ -531,6 +550,7 @@ export default function AutomationDetailPage() {
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.delivered, s.sent) : "—"}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.opened, s.sent) : "—"}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.clicked, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right text-gray-300">—</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.sent > 0 ? (s.bounced + s.complained || "—") : "—"}</td>
                                     </tr>
                                   );
@@ -540,7 +560,7 @@ export default function AutomationDetailPage() {
                           </tbody>
                         </table>
                       </div>
-                      <p className="mt-2 text-xs text-gray-400">Rates are % of sent. Variants are inferred from the email for sends before tagging was added.</p>
+                      <p className="mt-2 text-xs text-gray-400">Open/click rates are % of sent. Converted is % of delivered who took the variant&apos;s goal action within 14 days. Variants are inferred from the email for sends before tagging was added.</p>
                     </div>
                   )}
 

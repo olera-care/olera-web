@@ -971,7 +971,7 @@ export default function ConnectionsTrackerPage() {
               className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer"
             />
             <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
-              Show only bounced emails
+              Show only bounced/failed emails
             </span>
           </label>
           {showBouncedOnly && (

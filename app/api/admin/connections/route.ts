@@ -841,7 +841,7 @@ export async function GET(request: NextRequest) {
       // Get all emails sent to providers to find latest per connection
       const { data: allEmails, error: emailLogError } = await db
         .from("email_log")
-        .select("metadata, bounced_at, created_at, provider_id")
+        .select("metadata, bounced_at, status, created_at, provider_id")
         .in("provider_id", allProviderKeys)
         .eq("recipient_type", "provider")
         .order("created_at", { ascending: false })
@@ -852,7 +852,8 @@ export async function GET(request: NextRequest) {
       } else {
         console.log(`[connections] Found ${allEmails?.length || 0} provider emails`);
         const bouncedCount = allEmails?.filter(e => e.bounced_at).length || 0;
-        console.log(`[connections] ${bouncedCount} have bounced_at set`);
+        const failedCount = allEmails?.filter(e => e.status === "failed").length || 0;
+        console.log(`[connections] ${bouncedCount} bounced, ${failedCount} failed`);
       }
 
       // Track latest email per connection
@@ -867,9 +868,11 @@ export async function GET(request: NextRequest) {
         const existing = connectionLatestEmail.get(connId);
 
         if (!existing || emailTime > existing.at) {
+          // Email failed if either bounced OR status is "failed"
+          const failed = !!row.bounced_at || row.status === "failed";
           connectionLatestEmail.set(connId, {
             at: emailTime,
-            bounced: !!row.bounced_at,
+            bounced: failed,
           });
         }
       }

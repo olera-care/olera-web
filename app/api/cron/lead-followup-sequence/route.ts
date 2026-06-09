@@ -431,9 +431,11 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const providerId = conn.to_profile_id;
-      // Use slug, then source_provider_id, then id as fallback for token generation
-      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || "";
+      // CANONICAL PROVIDER IDENTIFIERS
+      // providerId: Always use UUID for email tracking (prevents fragmentation in email_log)
+      // providerSlug: Use slug/source_provider_id/id for URL generation (claim tokens need slug)
+      const providerId = conn.to_profile_id; // UUID - canonical identifier
+      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || ""; // For URLs
       const providerName = toProfile?.display_name || "Your Organization";
 
       // Extract family info with fallbacks
@@ -556,13 +558,13 @@ export async function GET(request: NextRequest) {
       const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount);
       const emailType = getEmailTypeForStage(templateStage);
 
-      // Reserve email log ID
+      // Reserve email log ID (use canonical UUID for consistent tracking)
       const emailLogId = await reserveEmailLogId({
         to: group.providerEmail,
         subject,
         emailType,
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerId,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: templateStage,
@@ -638,14 +640,14 @@ export async function GET(request: NextRequest) {
           continue;
       }
 
-      // Send email
+      // Send email (use canonical UUID for consistent tracking)
       const { success, error: sendError } = await sendEmail({
         to: group.providerEmail,
         subject,
         html,
         emailType,
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerId,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: templateStage,

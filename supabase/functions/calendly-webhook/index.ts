@@ -135,21 +135,19 @@ async function resolveRowByOutreachId(
 ): Promise<ResolvedRow | null> {
   const { data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state")
+    .select("id, status")
     .eq("id", outreachId)
     .maybeSingle();
   if (!data) return null;
   return {
     id: data.id as string,
     status: data.status as string,
-    replies_state: (data.replies_state as string | null) ?? null,
   };
 }
 
 interface ResolvedRow {
   id: string;
   status: string;
-  replies_state: string | null;
 }
 
 /** Match invitee email against the outreach population via the canonical
@@ -173,7 +171,7 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   ]) {
     const { data: d0 } = await supabase
       .from("student_outreach")
-      .select("id, status, replies_state")
+      .select("id, status")
       .ilike(path, lc)
       .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
       .limit(2);
@@ -185,7 +183,7 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   // Layer 1: general_contact.email (case-insensitive)
   let { data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state")
+    .select("id, status")
     .ilike("research_data->general_contact->>email", lc)
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .limit(2);
@@ -196,7 +194,7 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   // Layer 2: decision_maker.email (case-insensitive)
   ({ data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state")
+    .select("id, status")
     .ilike("research_data->decision_maker->>email", lc)
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .limit(2));
@@ -207,13 +205,12 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   // Layer 3: linked business_profile.email (legacy).
   ({ data } = await supabase
     .from("student_outreach")
-    .select("id, status, replies_state, provider_business_profile_id")
+    .select("id, status, provider_business_profile_id")
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .not("provider_business_profile_id", "is", null));
   const candidateBpIds = ((data ?? []) as Array<{
     id: string;
     status: string;
-    replies_state: string | null;
     provider_business_profile_id: string;
   }>).map((r) => r.provider_business_profile_id);
   if (candidateBpIds.length === 0) return null;
@@ -228,14 +225,12 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   const matchingRows = ((data ?? []) as Array<{
     id: string;
     status: string;
-    replies_state: string | null;
     provider_business_profile_id: string;
   }>).filter((r) => matchingBpIds.includes(r.provider_business_profile_id));
   if (matchingRows.length === 1) {
     return {
       id: matchingRows[0].id,
       status: matchingRows[0].status,
-      replies_state: matchingRows[0].replies_state,
     };
   }
   return null;

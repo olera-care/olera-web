@@ -55,13 +55,24 @@ interface DetailResponse {
   windowDays: number;
 }
 interface PreviewResponse {
-  type: string;
+  type?: string;
   html: string;
-  recipient: string;
+  recipient?: string;
   subject: string;
-  sentAt: string;
-  metadata: Record<string, unknown> | null;
+  sentAt?: string;
+  metadata?: Record<string, unknown> | null;
+  // Variant-sample mode (digest): synthetic sample rendered from the template, no real recipient.
+  variant?: string;
+  sample?: boolean;
 }
+
+// The weekly digest's distinct email looks, for the sample preview picker.
+const DIGEST_SAMPLES: { key: string; label: string }[] = [
+  { key: "family_question", label: "Family question" },
+  { key: "weekly_digest_rank", label: "Weekly digest · with rank" },
+  { key: "weekly_digest_plain", label: "Weekly digest · plain" },
+  { key: "cold_rank", label: "Cold rank note" },
+];
 
 type RecipientStatus = "all" | "delivered" | "opened" | "clicked" | "bounced" | "complained" | "undelivered";
 interface RecipientRow {
@@ -230,7 +241,8 @@ export default function AutomationDetailPage() {
       const d: DetailResponse = await r.json();
       if (reqId !== reqSeq.current) return; // a newer window selection superseded this fetch
       setData(d);
-      setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
+      const isDigestJob = d.job.id === "weekly-provider-digest";
+      setPreviewType((prev) => prev ?? (isDigestJob ? DIGEST_SAMPLES[0].key : (d.previewTypes[0] ?? null)));
       const bestRun = d.runs.find((rr) => { const s = rr.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
       setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
@@ -245,7 +257,10 @@ export default function AutomationDetailPage() {
     if (!id || !previewType) return;
     setPreview("loading");
     let cancelled = false;
-    fetch(`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}`)
+    // Digest sample keys fetch a rendered variant sample; other jobs fetch their latest real email.
+    const isSample = DIGEST_SAMPLES.some((s) => s.key === previewType);
+    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`;
+    fetch(`/api/admin/automations/${id}/preview?${qs}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
       .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
       .catch(() => { if (!cancelled) setPreview("none"); });
@@ -524,40 +539,61 @@ export default function AutomationDetailPage() {
                 </div>
               )}
 
-              {/* Latest email */}
-              {data.previewTypes.length > 0 && (
-                <div className="overflow-hidden rounded-xl border border-gray-200">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
-                    <div className="flex min-w-0 items-center gap-2 text-sm">
-                      <span className="font-medium text-gray-700">Latest email</span>
-                      {preview && typeof preview === "object" && (
-                        <span className="truncate text-xs text-gray-400">to <code className="text-gray-500">{preview.recipient}</code> · &ldquo;{preview.subject}&rdquo; · {timeAgo(preview.sentAt)}</span>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      {data.previewTypes.length > 1 && (
-                        <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
-                          {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      )}
-                      {previewType && <a href={`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}&raw=1`} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
-                    </div>
-                  </div>
-                  {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
-                  {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">No rendered email on file yet for this type.</div>}
-                  {preview && typeof preview === "object" && (
-                    <div className="relative bg-white">
-                      <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
-                      {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
-                      <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
-                        <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
-                          {previewExpanded ? "Collapse" : "Expand"}
-                        </button>
+              {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
+              {(() => {
+                const isDigest = data.job.id === "weekly-provider-digest";
+                if (!isDigest && data.previewTypes.length === 0) return null;
+                const sampleSel = DIGEST_SAMPLES.some((s) => s.key === previewType);
+                const fullUrl = previewType
+                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`}&raw=1`
+                  : null;
+                return (
+                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
+                      <div className="flex min-w-0 items-center gap-2 text-sm">
+                        <span className="font-medium text-gray-700">{isDigest ? "Email samples" : "Latest email"}</span>
+                        {preview && typeof preview === "object" && (
+                          <span className="truncate text-xs text-gray-400">
+                            {preview.sample
+                              ? <>sample &middot; &ldquo;{preview.subject}&rdquo;</>
+                              : <>to <code className="text-gray-500">{preview.recipient}</code> &middot; &ldquo;{preview.subject}&rdquo;{preview.sentAt ? ` · ${timeAgo(preview.sentAt)}` : ""}</>}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        {!isDigest && data.previewTypes.length > 1 && (
+                          <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                            {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        )}
+                        {fullUrl && <a href={fullUrl} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    {isDigest && (
+                      <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
+                        {DIGEST_SAMPLES.map((s) => (
+                          <button key={s.key} onClick={() => { setPreviewType(s.key); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.key ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
+                    {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">{isDigest ? "Couldn't render this sample." : "No rendered email on file yet for this type."}</div>}
+                    {preview && typeof preview === "object" && (
+                      <div className="relative bg-white">
+                        <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
+                        {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
+                        <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
+                          <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
+                            {previewExpanded ? "Collapse" : "Expand"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 

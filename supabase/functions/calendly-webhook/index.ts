@@ -162,22 +162,42 @@ async function resolveRow(email: string | null): Promise<ResolvedRow | null> {
   const lc = email.toLowerCase();
   const excluded = ["not_interested", "no_response_closed", "do_not_contact"];
 
-  // Layer 1: general_contact.email
+  // Layer 0: Smartlead lead email (cold + activation). This is the exact
+  // surface the reply webhook resolves rows on, and it's proven to match the
+  // +tagged prospect addresses. For cold rows it equals general_contact.email,
+  // but keying off it first sidesteps any drift between the contact record and
+  // the enrolled lead address.
+  for (const path of [
+    "research_data->smartlead->>lead_email",
+    "research_data->smartlead_activation->>lead_email",
+  ]) {
+    const { data: d0 } = await supabase
+      .from("student_outreach")
+      .select("id, status, replies_state")
+      .ilike(path, lc)
+      .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
+      .limit(2);
+    const r0 = (d0 ?? []) as Array<ResolvedRow>;
+    if (r0.length === 1) return r0[0];
+    if (r0.length > 1) return null; // ambiguous
+  }
+
+  // Layer 1: general_contact.email (case-insensitive)
   let { data } = await supabase
     .from("student_outreach")
     .select("id, status, replies_state")
-    .filter("research_data->general_contact->>email", "eq", lc)
+    .ilike("research_data->general_contact->>email", lc)
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .limit(2);
   let rows = (data ?? []) as Array<ResolvedRow>;
   if (rows.length === 1) return rows[0];
   if (rows.length > 1) return null; // ambiguous
 
-  // Layer 2: decision_maker.email
+  // Layer 2: decision_maker.email (case-insensitive)
   ({ data } = await supabase
     .from("student_outreach")
     .select("id, status, replies_state")
-    .filter("research_data->decision_maker->>email", "eq", lc)
+    .ilike("research_data->decision_maker->>email", lc)
     .not("status", "in", `(${excluded.map((s) => `"${s}"`).join(",")})`)
     .limit(2));
   rows = (data ?? []) as Array<ResolvedRow>;
@@ -433,6 +453,23 @@ Deno.serve(async (req: Request) => {
   // forever (mirrors the resend/smartlead-webhook convention).
   try {
     const kind = classify(raw);
+
+    // Field-shape probe — surfaces exactly what Calendly sends so a non-match
+    // is diagnosable from the logs (the Smartlead lesson). The two things that
+    // decide a match are tracking.utm_content (the outreach_id baked into the
+    // booking link) and the invitee email; log both plus the payload keys.
+    const rr = raw as Record<string, unknown>;
+    const rp = (rr.payload ?? {}) as Record<string, unknown>;
+    const rt = (rp.tracking ?? {}) as Record<string, unknown>;
+    console.log("[calendly-webhook] received", {
+      kind,
+      event: rr?.event ?? null,
+      payload_keys: rp && typeof rp === "object" ? Object.keys(rp) : null,
+      invitee_email: typeof rp.email === "string" ? rp.email : null,
+      utm_content: rt?.utm_content ?? null,
+      tracking_keys: rt && typeof rt === "object" ? Object.keys(rt) : null,
+    });
+
     if (kind === "ignore") return new Response("ok (ignored)", { status: 200 });
 
     const extract = extractInvitee(raw);

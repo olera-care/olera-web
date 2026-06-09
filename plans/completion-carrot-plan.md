@@ -1,7 +1,7 @@
 # Plan: Completion Carrot — "Sell the Output, Not the Checklist"
 
 Created: 2026-06-08
-Status: Not Started (awaiting TJ approval)
+Status: Phase 1 BUILT (foundation + completion variant) — unverified; staging CI typecheck + dry-run pending. Phase 2 (preview surface) deferred. Task 6 (tracking migration) dropped — MVP attribution rides the existing one_click_access event.
 Context: Step 2 of the provider-engagement build. See Notion "Provider Engagement Reframe" (canonical) + memory `project_engagement_reframe`.
 
 ## Goal

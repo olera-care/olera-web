@@ -262,7 +262,11 @@ async function insertTouchpoint(
     outreach_id: outreachId,
     contact_id: null,
     touchpoint_type: type,
-    channel: "calendly",
+    // The touchpoints CHECK constraint only allows
+    // email/phone/ig_dm/contact_form/meeting/system — "calendly" is NOT valid
+    // and silently fails the insert. These are meeting-channel events; the
+    // Calendly origin is recorded in payload.source instead.
+    channel: "meeting",
     outcome: null,
     notes,
     payload,

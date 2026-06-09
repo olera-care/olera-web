@@ -8,6 +8,33 @@ import { trackProfileEdit } from "@/lib/analytics/track-profile-edit";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 
+// Bed Count is a residential-facility concept — irrelevant for in-home agencies
+// (home care / home health / hospice), day programs, and caregivers. The
+// category column is messy: underscore enums ("assisted_living") AND Title-Case
+// labels ("Assisted Living"), compound ("Assisted Living | Memory Care"), and
+// many nulls. So we DON'T allowlist facilities (that hid Bed Count for any
+// label-form facility + every null) — we only HIDE when the category clearly
+// reads home-based, and default to showing otherwise. That preserves the
+// pre-change behavior for facilities + unknown/null (no regression) while still
+// dropping the field for home-care agencies.
+function isHomeBasedCategory(category: string | null | undefined): boolean {
+  const c = (category ?? "").toLowerCase();
+  if (!c) return false;
+  if (c.includes("inpatient")) return false; // inpatient hospice = has beds
+  return (
+    c.includes("home care") ||
+    c.includes("home_care") ||
+    c.includes("home health") ||
+    c.includes("home_health") ||
+    c.includes("non-medical") ||
+    c.includes("caregiver") ||
+    c.includes("hospice") ||
+    c.includes("adult day") ||
+    c.includes("adult_day") ||
+    c.includes("wellness")
+  );
+}
+
 export default function EditAboutModal({
   profile,
   metadata,
@@ -35,6 +62,7 @@ export default function EditAboutModal({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const showBedCount = !isHomeBasedCategory(profile.category);
 
   const hasChanges =
     description !== (profile.description || "") ||
@@ -104,6 +132,7 @@ export default function EditAboutModal({
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Year Founded"
+            optional
             type="number"
             value={yearFounded}
             onChange={(e) => setYearFounded((e.target as HTMLInputElement).value)}
@@ -111,21 +140,26 @@ export default function EditAboutModal({
           />
           <Input
             label="License Number"
+            optional
             value={licenseNumber}
             onChange={(e) => setLicenseNumber((e.target as HTMLInputElement).value)}
             placeholder="e.g. AL-12345"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Bed Count"
-            type="number"
-            value={bedCount}
-            onChange={(e) => setBedCount((e.target as HTMLInputElement).value)}
-            placeholder="e.g. 48"
-          />
+          {showBedCount && (
+            <Input
+              label="Bed Count"
+              optional
+              type="number"
+              value={bedCount}
+              onChange={(e) => setBedCount((e.target as HTMLInputElement).value)}
+              placeholder="e.g. 48"
+            />
+          )}
           <Input
             label="Staff Count"
+            optional
             type="number"
             value={staffCount}
             onChange={(e) => setStaffCount((e.target as HTMLInputElement).value)}

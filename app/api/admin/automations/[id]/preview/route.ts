@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
 import { resolveFromAddress } from "@/lib/email";
 
 /** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
@@ -65,6 +65,14 @@ function digestVariantSample(variant: string): { subject: string; html: string }
         html: coldProviderRankEmail({
           rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care",
           ctaUrl: SAMPLE_LINK, manageUrl: SAMPLE_LINK, removeUrl: `${SAMPLE_LINK}/remove`, unsubscribeUrl: `${SAMPLE_LINK}/unsubscribe`,
+        }),
+      };
+    case "leads":
+      return {
+        subject: "2 families reached out about Evergreen Home Care this week",
+        html: providerLeadDigestEmail({
+          providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care", leadCount: 2,
+          ctaUrl: SAMPLE_LINK, manageUrl: SAMPLE_LINK, unsubscribeUrl: `${SAMPLE_LINK}/unsubscribe`,
         }),
       };
     default:

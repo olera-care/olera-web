@@ -277,7 +277,11 @@ export async function GET(request: NextRequest) {
           headers: response.headers,
         });
       } else {
-        // Account exists — ensure family profile exists (handles edge cases)
+        // Account exists — ensure family profile exists (handles edge cases).
+        // BUT never auto-create a family profile for a provider/student
+        // account. Spawning an empty family profile here is what let the
+        // active-profile logic latch onto it and hide the provider's real
+        // inbox after a Google sign-in (Esther, 2026-06-03).
         const { data: existingFamily } = await admin
           .from("business_profiles")
           .select("id")
@@ -286,7 +290,15 @@ export async function GET(request: NextRequest) {
           .limit(1)
           .maybeSingle();
 
-        if (!existingFamily) {
+        const { data: nonFamilyProfile } = await admin
+          .from("business_profiles")
+          .select("id")
+          .eq("account_id", existing.id)
+          .in("type", ["organization", "student", "caregiver"])
+          .limit(1)
+          .maybeSingle();
+
+        if (!existingFamily && !nonFamilyProfile) {
           const rawName =
             data.user.user_metadata?.full_name ||
             data.user.user_metadata?.name ||
@@ -361,14 +373,16 @@ export async function GET(request: NextRequest) {
                   .delete()
                   .eq("id", placeholder.id);
 
-                // Ensure active_profile_id is set so welcome page can find connections
+                // Ensure active_profile_id is set so welcome page can find
+                // connections — but never repoint a provider/student account
+                // at this family profile (keeps their real inbox active).
                 const { data: accountData } = await admin
                   .from("accounts")
                   .select("active_profile_id")
                   .eq("id", existing.id)
                   .single();
 
-                if (!accountData?.active_profile_id) {
+                if (!accountData?.active_profile_id && !nonFamilyProfile) {
                   await admin
                     .from("accounts")
                     .update({ active_profile_id: mainFamilyId })

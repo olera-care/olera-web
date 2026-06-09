@@ -7,6 +7,38 @@
 
 ## Current Focus
 
+### 2026-06-09 — Per-variant conversion + weekly leads-recap variant (branch `variant-conversion`, PR #993, awaiting copy approval)
+
+**Outcome:** Two layers on the digest variant dashboard (#982). Both committed, pushed, type-clean. Holding the merge for TJ's read on the leads-email copy.
+
+**Phase 1 — per-variant downstream conversion.** Added a **Converted** column to the by-variant table: share of *delivered* sends whose provider took the variant's goal action within **14 days**, last-touch attributed (no double-count across the weekly cadence). Each variant → one distinct `provider_activity` event: family_question→`question_responded`, leads→`lead_opened`, completion→`profile_published`, cold_rank→`claim_completed`, weekly_digest→`one_click_access`. Cron sends one variant per provider per run + distinct events ⇒ unambiguous attribution. Conversion is the honest signal (opens are Apple-Mail-inflated).
+- `app/api/admin/automations/[id]/route.ts` — `provider_id` added to email_log select; `vSends` per variant; fetch `provider_activity` over the window; `countConverted()` last-touch helper; returns `converted/convRate/convEvent/convLabel`.
+- `app/admin/automations/[id]/page.tsx` — Converted column (funnel-end, before Bounced) + header InfoDot explaining the 14d model.
+
+**Phase 2 — weekly leads-recap variant.** Providers with `bucket.leads>0` got the generic digest; now get a dedicated "A family reached out about you" recap, CTA→ connections inbox. Outranks all but an open question; short-circuits completion + the market-rank resolve (no wasted Places call). Distinct from real-time `connectionRequestEmail` (this is the Monday nudge). Wired end-to-end into the dashboard (labels, order, classifier, conversion map, sample, tooltip).
+- `lib/email-templates.tsx` — `providerLeadDigestEmail()` (house style, no em-dashes, singular/plural).
+- `lib/claim-tokens.ts` + `app/provider/[slug]/onboard/page.tsx` — new `"leads"` magic-link destination → `/provider/connections` (mirrors the `"market"` addition).
+- `app/api/cron/weekly-provider-digest/route.ts` — `hasLead` gate, `leadsUrl`, html/subject/variant branches.
+- `app/api/admin/automations/[id]/preview/route.ts` — `leads` sample.
+
+**Pre-test:** clean. Verified `email_log.provider_id` exists (mig 024) before adding it to the select; confirmed the html/subject/variant ternaries are mutually exclusive (no mismatch); `countConverted` can't exceed delivered; 7-column table alignment. Fixed 1 stale tooltip (weekly_digest no longer lists "leads"). **Blind spot to watch on staging:** if Converted shows "—" for ALL variants with sends → provider_id format mismatch between email_log and provider_activity. First leads sends + real conversion data land Mon Jun 15.
+
+### 2026-06-09 — Provider engagement build: completion carrot Phase 1 + Phase 2 preview both MERGED to staging
+
+**Strategy (Notion "Provider Engagement Reframe" `3795903a-0ffe-8174…`; memory `project_engagement_reframe`):** ONE ladder = provider discoverability/chooseability. Completion = activation milestone (juiciest carrot), reviews→rank = recurring engine, answering = episodic conversion (69% of providers get 1 question ever). Digest = the recurring trigger surfacing each provider's next rung.
+
+**Shipped/merged this session:**
+- **T1 — `question_received` off olera.care:** PR **#967** (env-gated `PROVIDER_NOTIFY_FROM` split; digest stays on olera.care). **STILL OPEN — not merged, and INERT.** Analyzed clean-to-merge (51 behind staging but no semantic conflict with #982's `lib/email.ts` variant change — staging only references the renamed const in the 2 spots #967 renames). **CONFIRMED this session: the oleracare.com OPS WERE NEVER DONE** — that's the real blocker, not the merge. T1 goes live only when ALL of: (1) #967 merged [code, inert], (2) oleracare.com verified in Resend + DNS added at GoDaddy **MERGING the SPF with Loops'** existing record (one TXT, not two), (3) `PROVIDER_NOTIFY_FROM`/`PROVIDER_NOTIFY_REPLY_TO` set in Vercel. Steps 2–3 are TJ-only (dashboard/DNS; the WAF blocks the assistant). TJ started "do the ops now" then paused. **Open question worth revisiting: oleracare.com already carries Loops cold outreach (Logan flagged flakiness) — reusing it mixes streams; a clean cousin domain (seniorlistings.net) was the alternative.**
+- **Step 1 (ID resolver) — VALIDATED, no build needed.** `lib/provider-id-variants.ts resolveCanonicalProviderKeys` already exists; running the non-answerer join through it collapsed the bogus "85% no-notify" artifact → real funnel (unreachable 27.6% · delivered-not-opened 42.2% dominant · …). Apply per-feature.
+- **Completion carrot Phase 1:** PR **#978** (merged) — claimed providers w/ no owner story get a "sell the output" digest variant + `/api/claim-complete` one-click auth + `?edit=<section>` deep-link. **Reconciled with #966** (parallel cold-rank expansion that hit the same cron) into one router: question > completion > cold-first-contact > rank > analytics.
+
+**Phase 2 preview (PR #984 — MERGED to staging `a5b219b8`, clean squash, zero file overlap):** in-dashboard "Preview as families" toggle → `FamilyViewPreview` (family-framed view of their page; ghosts for empty high-impact sections led by the owner story; per-section Edit). Iterated hard via /pre-test + /dejank + /mobilize + /ui-critique: fixed broken-thumb (Next optimizer racing fresh Supabase uploads → `unoptimized` on owner-only thumbs), EditAbout (Bed Count gated by category — robust to mixed enum/label data; fields marked optional), and a full mobile pass (de-nested containers → divider-led layout Robinhood/Wise-style, utility-bar header, name-as-hero killing the flex-row ladder, hide completeness banner). **Awaiting TJ's mobile QA on the PR preview link.**
+
+**Decisions:** completion is claimed-only (warm; keeps cold volume off the crown jewel); preview reuses public-page section pieces, NOT the public server component (SEO/CTA-router/reverted-mobile-nav-500 traps); mobile = no card-in-card, dividers do the work; rank stays Google-pure (never inflated by completion).
+
+**Next up:** (1) **T1 is THE open thread** — merge #967 (clean+inert) AND do the oleracare.com ops (NOT done; TJ-only dashboard/DNS work; the WAF blocks the assistant from the cron) — or reconsider the domain (oleracare.com mixes with Loops; seniorlistings.net is cleaner). Until the ops are done, `question_received` still bounces 7.2% on the crown jewel. (2) Completion carrot is otherwise live end-to-end on staging (Ph1 #978 + Ph2 preview #984) — NOT yet promoted to main. (3) Follow-ups: heavier preview sections, "see your page" link from the completion email, dedicated dormant-claimer audience source, non-answerer diagnose-then-respond system (data now legible via the resolver). Variant-stamp + admin variant-visibility already shipped to staging in TJ's parallel branch (#982).
+
+
 ### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
 
 **Outcome:** Deleted the unused "Submissions by Entry Source" section from the admin analytics panel — TJ confirmed no one uses it. Pure deletion, 213 deletions / 1 insertion.
@@ -2533,6 +2565,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-06-09 — Per-variant conversion + leads-recap variant (PR #993)
+
+Built the "Both, conversion first" task off the #982 digest dashboard. Planned the attribution model with TJ first (14-day last-touch window, `one_click_access` for weekly_digest, delivered as denominator), then built. Phase 1: Converted column. Phase 2: leads-recap variant + new `"leads"` magic-link destination. Pre-test clean (caught/fixed 1 stale tooltip). Both phases committed (`fb5578ba`, `58b627fe`, `48e7b74f`), pushed, PR #993 → staging. Holding merge for TJ's leads-email copy approval. See Current Focus for full detail. Next: TJ verifies dashboard + copy on the `git-variant-conversion` Vercel alias → merge → first real data Mon Jun 15.
 
 ### 2026-05-01 → 2026-05-02 — Texas expansion (293 cities) — full Atlas batch shipped
 

@@ -252,12 +252,18 @@ export default function EditGalleryModal({
               const isProfilePhoto = src === profilePhoto;
               return (
                 <div key={src} className={`relative group rounded-xl overflow-hidden aspect-square ${isProfilePhoto ? "ring-2 ring-primary-500 ring-offset-2" : ""}`}>
+                  {/* unoptimized: a just-uploaded Supabase object races the Next
+                      image optimizer's server-side fetch — that's the broken
+                      thumbnail (until reload) AND the slow part. The bucket is
+                      public, so the browser loads it directly + instantly.
+                      Owner-only modal, so optimization is moot here. */}
                   <Image
                     src={src}
                     alt={`Gallery photo ${i + 1}`}
                     fill
                     sizes="(max-width: 768px) 33vw, 200px"
                     className="object-cover"
+                    unoptimized
                   />
                   {/* Profile photo badge */}
                   {isProfilePhoto && (
@@ -300,6 +306,7 @@ export default function EditGalleryModal({
                   fill
                   sizes="(max-width: 768px) 33vw, 200px"
                   className="object-cover opacity-50"
+                  unoptimized
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-600 rounded-full animate-spin" />

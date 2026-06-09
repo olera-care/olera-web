@@ -161,6 +161,33 @@ export function generateProviderPortalUrl(
 }
 
 /**
+ * Generate a profile-completion one-click URL for the weekly digest's
+ * "sell the output" variant (claimed-but-thin providers).
+ *
+ * Routes to /api/claim-complete, which authenticates the provider server-side
+ * (same flow as /api/claim-lead) and redirects to the dashboard with the given
+ * edit section already open (`/provider?edit=<section>`). Server-side auth means
+ * no client-side race and no login wall.
+ *
+ * @param providerSlug - Provider's slug or ID (used for token + profile lookup)
+ * @param email - Provider's email for token generation + the email-match check
+ * @param section - Editable section to open on arrival (e.g. "owner", "gallery")
+ * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
+ */
+export function generateCompletionUrl(
+  providerSlug: string,
+  email: string,
+  section: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken(providerSlug, email);
+  const url = new URL(`${baseUrl}/api/claim-complete`);
+  url.searchParams.set("otk", token);
+  url.searchParams.set("section", section);
+  return url.toString();
+}
+
+/**
  * Generate a MedJobs notification URL with embedded claim token.
  * Used for interview email links — routes to the one-click claim handler
  * which authenticates the provider and redirects to their calendar in a

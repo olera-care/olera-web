@@ -647,13 +647,17 @@ export async function GET(request: NextRequest) {
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
-        : marketRank
-          ? marketRank.flattering
-            ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
-            : `See where you rank in ${marketRank.cityLabel}`
-          : bucket.viewsThisWeek > 0
-            ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
-            : `Your week on Olera`;
+        : isColdFirstContact
+          // Cold first-contact: attribute the rank to families up front (these strangers have
+          // never heard from us), matching the note's family-led opening.
+          ? `Families in ${marketRank!.cityLabel} rank you #${marketRank!.rank} of ${marketRank!.outOf}`
+          : marketRank
+            ? marketRank.flattering
+              ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
+              : `See where you rank in ${marketRank.cityLabel}`
+            : bucket.viewsThisWeek > 0
+              ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
+              : `Your week on Olera`;
 
       if (dryRun) {
         sent += 1;

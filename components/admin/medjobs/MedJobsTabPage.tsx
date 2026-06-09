@@ -299,12 +299,11 @@ export function MedJobsTabPage({
     [tab, callAction, isRecent],
   );
 
-  const visibleTabs = useMemo(() => {
-    return TABS.filter((t) => {
-      const total = tabCounts?.[t.key] ?? 0;
-      return total > 0 || t.key === tab;
-    });
-  }, [tabCounts, tab]);
+  // Always show the four core operational tabs (Prospects · Calls · Emails ·
+  // Meetings), even when empty. Each has its own empty state, so a quiet
+  // "No calls due" reads better than a tab that vanishes — the admin always
+  // knows where calls/meetings will land. (Smart-hide removed for these.)
+  const visibleTabs = TABS;
 
   const isInboxEmpty = useMemo(() => {
     if (!tabCounts) return false;

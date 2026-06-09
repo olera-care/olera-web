@@ -366,8 +366,13 @@ export default async function ProviderPage({
   //    whose underlying iOS row got soft-deleted still wins. Without this,
   //    every soft-delete falls to a generic 404 — ~40K rows bleeding into
   //    the GSC "Not found" bucket and losing link equity.
-  //      provider_request → notFound() (placeholder for HTTP 410)
+  //      provider_request → HTTP 410 Gone
   //      everything else  → permanentRedirect() to /{category}/{state}/{city}
+  //
+  //    The 410 is normally emitted by middleware.ts (App Router pages can't set
+  //    410 — Next's HTTP-access fallback only allows 401/403/404). The
+  //    notFound() below is the degraded fallback for when middleware's edge
+  //    lookup couldn't run (Supabase unreachable) — a 404 instead of 410.
   //
   //    Lookup runs inside try/catch (network can fail), but notFound() /
   //    permanentRedirect() are called OUTSIDE — both throw control-flow

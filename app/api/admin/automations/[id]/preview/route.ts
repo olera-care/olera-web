@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
 import { providerWeeklyDigestEmail, coldProviderRankEmail } from "@/lib/email-templates";
+import { resolveFromAddress } from "@/lib/email";
+
+/** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
+function extractPreheader(html: string): string | null {
+  const m = html.match(/<div style="display:none[^"]*">([\s\S]*?)<\/div>/);
+  if (!m) return null;
+  let t = m[1];
+  const z = t.indexOf("&zwnj;");
+  if (z >= 0) t = t.slice(0, z); // drop the trailing spacer run
+  t = t
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .trim();
+  return t || null;
+}
 
 // Representative sample of each weekly-digest variant, rendered from the live templates with canned
 // (PII-free) data — so every variant is viewable in the admin even before its first real send.
@@ -81,7 +96,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const sample = digestVariantSample(variant);
     if (!sample) return NextResponse.json({ error: `Unknown variant "${variant}"` }, { status: 404 });
     if (raw) return new NextResponse(sample.html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
-    return NextResponse.json({ variant, html: sample.html, subject: sample.subject, sample: true });
+    return NextResponse.json({
+      variant,
+      html: sample.html,
+      subject: sample.subject,
+      sample: true,
+      from: resolveFromAddress(undefined, job.emailTypes[0]),
+      preheader: extractPreheader(sample.html),
+    });
   }
 
   const requested = searchParams.get("type");
@@ -111,5 +133,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     subject: data.subject,
     sentAt: data.created_at,
     metadata: data.metadata ?? null,
+    from: resolveFromAddress(undefined, type),
+    preheader: extractPreheader(data.html_body),
   });
 }

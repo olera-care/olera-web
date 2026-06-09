@@ -33,7 +33,7 @@ const PROVIDER_NOTIFICATION_TYPES = new Set<string>([
  * Resolve the From address. Precedence: explicit caller value > provider-
  * notification override (PROVIDER_NOTIFY_FROM, when set) > default olera.care.
  */
-function resolveFromAddress(explicitFrom: string | undefined, emailType: string): string {
+export function resolveFromAddress(explicitFrom: string | undefined, emailType: string): string {
   if (explicitFrom) return explicitFrom;
   if (PROVIDER_NOTIFICATION_TYPES.has(emailType) && process.env.PROVIDER_NOTIFY_FROM) {
     return process.env.PROVIDER_NOTIFY_FROM;

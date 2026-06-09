@@ -61,6 +61,8 @@ interface PreviewResponse {
   subject: string;
   sentAt?: string;
   metadata?: Record<string, unknown> | null;
+  from?: string;
+  preheader?: string | null;
   // Variant-sample mode (digest): synthetic sample rendered from the template, no real recipient.
   variant?: string;
   sample?: boolean;
@@ -73,6 +75,17 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
   { key: "weekly_digest_plain", label: "Weekly digest · plain" },
   { key: "cold_rank", label: "Cold rank note" },
 ];
+
+// What triggers each variant — shown in the breakdown table via a hover/tap tooltip.
+const VARIANT_TRIGGERS: Record<string, string> = {
+  family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
+  weekly_digest: "Goes to providers active in the last 14 days — page views, clicks, leads, or questions received.",
+  cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",
+};
+const SPLIT_TRIGGERS: Record<string, string> = {
+  withRank: "When we've computed their local market, the digest opens with where they rank.",
+  plain: "When their market isn't computed yet, it's the plain weekly recap.",
+};
 
 type RecipientStatus = "all" | "delivered" | "opened" | "clicked" | "bounced" | "complained" | "undelivered";
 interface RecipientRow {
@@ -166,6 +179,27 @@ function runOptionLabel(r: { started_at: string; status: string; summary: Record
   const sent = typeof rawSent === "number" ? rawSent : null;
   const when = new Date(r.started_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   return `${when}${sent != null ? ` · ${sent.toLocaleString()} sent` : ` · ${r.status}`}`;
+}
+
+/** Small info dot with a tooltip (hover on desktop, tap to toggle on touch). Used to explain variant triggers. */
+function InfoDot({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="group relative ml-1 inline-flex align-middle">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setOpen(false)}
+        aria-label="What triggers this variant"
+        className="inline-flex text-gray-300 transition-colors hover:text-gray-500"
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 4.75a1 1 0 112 0 1 1 0 01-2 0zM6.75 7h1.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0V8.5h-.75a.75.75 0 010-1.5z" /></svg>
+      </button>
+      <span role="tooltip" className={`pointer-events-none absolute left-0 top-full z-30 mt-1 w-60 rounded-lg bg-gray-900 px-3 py-2 text-left text-[11px] font-normal normal-case leading-snug tracking-normal text-white shadow-lg transition-opacity ${open ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+        {text}
+      </span>
+    </span>
+  );
 }
 
 function Sparkline({ values, className = "" }: { values: number[]; className?: string }) {
@@ -458,7 +492,8 @@ export default function AutomationDetailPage() {
                   {data.variants && data.variants.length > 1 && (
                     <div className="mt-6">
                       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last {data.windowDays} days</h3>
-                      <div className="overflow-hidden rounded-xl border border-gray-200">
+                      {/* No overflow-hidden here: the per-row trigger tooltips are absolutely positioned and must escape the wrapper. */}
+                      <div className="rounded-xl border border-gray-200">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
@@ -476,6 +511,7 @@ export default function AutomationDetailPage() {
                                 <tr className={`border-b border-gray-100 ${v.sent === 0 ? "text-gray-300" : ""}`}>
                                   <td className={`px-4 py-2 font-medium ${v.sent === 0 ? "" : "text-gray-800"}`}>
                                     {v.label}
+                                    {VARIANT_TRIGGERS[v.key] && <InfoDot text={VARIANT_TRIGGERS[v.key]} />}
                                     {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
                                   </td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
@@ -488,7 +524,7 @@ export default function AutomationDetailPage() {
                                   const s = v.split![sk];
                                   return (
                                     <tr key={`${v.key}-${sk}`} className="border-b border-gray-100 bg-gray-50/40 text-xs text-gray-400">
-                                      <td className="py-1.5 pl-8 pr-4">{sk === "withRank" ? "↳ led with rank hero" : "↳ no rank hero"}</td>
+                                      <td className="py-1.5 pl-8 pr-4">{sk === "withRank" ? "↳ led with rank hero" : "↳ no rank hero"}<InfoDot text={SPLIT_TRIGGERS[sk]} /></td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent.toLocaleString()}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.delivered, s.sent) : "—"}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.opened, s.sent) : "—"}</td>
@@ -576,6 +612,12 @@ export default function AutomationDetailPage() {
                             {s.label}
                           </button>
                         ))}
+                      </div>
+                    )}
+                    {preview && typeof preview === "object" && (preview.from || preview.preheader) && (
+                      <div className="space-y-0.5 border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
+                        {preview.from && <div className="truncate"><span className="font-medium text-gray-500">From</span> <code className="text-gray-600">{preview.from}</code></div>}
+                        {preview.preheader && <div className="truncate"><span className="font-medium text-gray-500">Preview text</span> {preview.preheader}</div>}
                       </div>
                     )}
                     {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}

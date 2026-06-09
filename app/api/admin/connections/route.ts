@@ -856,30 +856,31 @@ export async function GET(request: NextRequest) {
         console.log(`[connections] ${bouncedCount} bounced, ${failedCount} failed`);
       }
 
-      // Track latest email per connection
-      const connectionLatestEmail = new Map<string, { at: string; bounced: boolean }>();
+      // Track latest email per connection (to determine if LATEST email failed)
+      const connectionLatestEmail = new Map<string, { at: Date; failed: boolean }>();
 
       for (const row of allEmails || []) {
         const meta = row.metadata as Record<string, unknown>;
         const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
         if (!connId || !connectionIdSet.has(connId)) continue;
 
-        const emailTime = row.created_at || "";
+        // Use Date objects for reliable comparison (not string comparison)
+        const emailTime = row.created_at ? new Date(row.created_at) : new Date(0);
         const existing = connectionLatestEmail.get(connId);
 
         if (!existing || emailTime > existing.at) {
-          // Email failed if either bounced OR status is "failed"
-          const failed = !!row.bounced_at || row.status === "failed";
+          // Email failed if either bounced (webhook) OR status is "failed" (send rejected)
+          const hasFailed = !!row.bounced_at || row.status === "failed";
           connectionLatestEmail.set(connId, {
             at: emailTime,
-            bounced: failed,
+            failed: hasFailed,
           });
         }
       }
 
-      // Set bounced status for connections
+      // Set failed status for connections (only those where LATEST email failed)
       for (const [connId, status] of connectionLatestEmail) {
-        connectionBouncedStatus.set(connId, status.bounced);
+        connectionBouncedStatus.set(connId, status.failed);
       }
 
       const bouncedConnectionCount = Array.from(connectionBouncedStatus.values()).filter(b => b).length;

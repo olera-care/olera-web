@@ -73,6 +73,7 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
   { key: "family_question", label: "Family question" },
   { key: "weekly_digest_rank", label: "Weekly digest · with rank" },
   { key: "weekly_digest_plain", label: "Weekly digest · plain" },
+  { key: "completion", label: "Completion nudge" },
   { key: "cold_rank", label: "Cold rank note" },
 ];
 
@@ -80,6 +81,7 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
 const VARIANT_TRIGGERS: Record<string, string> = {
   family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
   weekly_digest: "Goes to providers active in the last 14 days — page views, clicks, leads, or questions received.",
+  completion: "Goes to claimed providers with an incomplete profile (e.g. no owner story). Nudges them to finish it with a one-click deep link to the editor.",
   cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",
 };
 const SPLIT_TRIGGERS: Record<string, string> = {

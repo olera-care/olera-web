@@ -29,9 +29,10 @@ function isoWeek(d: Date): string {
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
   weekly_digest: "Weekly digest",
+  completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "weekly_digest", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "weekly_digest", "completion", "cold_rank"];
 
 type VRow = {
   email_type: string; created_at: string; delivered_at: string | null; first_opened_at: string | null;
@@ -54,12 +55,13 @@ function accVStat(s: VStat, e: VRow) {
  */
 function classifyVariant(subject: string | null, metadata: Record<string, unknown> | null): { variant: string; ledWithRank: boolean } {
   const mv = metadata?.variant;
-  if (mv === "family_question" || mv === "weekly_digest" || mv === "cold_rank") {
+  if (mv === "family_question" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
     return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
   }
   const s = subject ?? "";
   if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
+  if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
   const led = /^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s);
   return { variant: "weekly_digest", ledWithRank: led };
 }

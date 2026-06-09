@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   formatAge,
   type ConnectionTemperature,
@@ -269,6 +269,23 @@ export default function ConnectionRow({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
 
+  // Edit email state
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editEmailInput, setEditEmailInput] = useState("");
+  const [editEmailError, setEditEmailError] = useState<string | null>(null);
+  const [editEmailSuccess, setEditEmailSuccess] = useState(false);
+  const [editingEmailLoading, setEditingEmailLoading] = useState(false);
+  const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (editEmailTimeoutRef.current) {
+        clearTimeout(editEmailTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Fact sheet modal state
   const [showFactSheet, setShowFactSheet] = useState(false);
 
@@ -504,6 +521,54 @@ export default function ConnectionRow({
       setEmailError("Network error");
     } finally {
       setAddingEmail(false);
+    }
+  }
+
+  async function handleEditEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editEmailInput.trim()) return;
+
+    setEditingEmailLoading(true);
+    setEditEmailError(null);
+    setEditEmailSuccess(false);
+
+    try {
+      const res = await fetch(`/api/admin/connections/${c.id}/edit-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail: editEmailInput.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setEditEmailSuccess(true);
+        setEditEmailInput("");
+
+        // Update local detail state to show new email
+        if (detail) {
+          setDetail({
+            ...detail,
+            provider: { ...detail.provider, email: data.newEmail || editEmailInput.trim(), hasEmail: true },
+          });
+        }
+
+        // Notify parent to refresh list
+        onNudgeSuccess?.();
+
+        // Close form after showing success message
+        editEmailTimeoutRef.current = setTimeout(() => {
+          setEditingEmail(false);
+          setEditEmailSuccess(false);
+          editEmailTimeoutRef.current = null;
+        }, 3000);
+      } else {
+        setEditEmailError(data.error || "Failed to update email");
+      }
+    } catch {
+      setEditEmailError("Network error");
+    } finally {
+      setEditingEmailLoading(false);
     }
   }
 
@@ -805,7 +870,72 @@ export default function ConnectionRow({
                   <p className="font-medium text-gray-900 text-sm truncate">{detail.provider.display_name || "Unknown"}</p>
                   <div className="mt-1 space-y-1 text-sm">
                     {detail.provider.email ? (
-                      <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate">{detail.provider.email}</a>
+                      <div className="space-y-1">
+                        {!editingEmail ? (
+                          <div className="flex items-center justify-between gap-2">
+                            <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
+                            <button
+                              onClick={() => {
+                                if (editEmailTimeoutRef.current) {
+                                  clearTimeout(editEmailTimeoutRef.current);
+                                  editEmailTimeoutRef.current = null;
+                                }
+                                setEditingEmail(true);
+                                setEditEmailInput(detail.provider.email || "");
+                                setEditEmailError(null);
+                                setEditEmailSuccess(false);
+                              }}
+                              className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        ) : (
+                          <form onSubmit={handleEditEmail} className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="email"
+                                value={editEmailInput}
+                                onChange={(e) => setEditEmailInput(e.target.value)}
+                                placeholder="New provider email..."
+                                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                disabled={editingEmailLoading}
+                                autoFocus
+                              />
+                              <button
+                                type="submit"
+                                disabled={editingEmailLoading || !editEmailInput.trim() || editEmailInput === detail.provider.email}
+                                className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {editingEmailLoading ? "Saving..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (editEmailTimeoutRef.current) {
+                                    clearTimeout(editEmailTimeoutRef.current);
+                                    editEmailTimeoutRef.current = null;
+                                  }
+                                  setEditingEmail(false);
+                                  setEditEmailInput("");
+                                  setEditEmailError(null);
+                                  setEditEmailSuccess(false);
+                                }}
+                                disabled={editingEmailLoading}
+                                className="px-2 py-1 text-sm text-gray-500 hover:text-gray-700"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            {editEmailError && <p className="text-xs text-red-600">{editEmailError}</p>}
+                            {editEmailSuccess && (
+                              <p className="text-xs text-emerald-600">
+                                Email updated! Day 0 notification sent. Sequence restarted.
+                              </p>
+                            )}
+                          </form>
+                        )}
+                      </div>
                     ) : c.provider.id ? (
                       <form onSubmit={(e) => handleAddEmail(e, c.provider.id!)} className="space-y-1">
                         <div className="flex items-center gap-2">

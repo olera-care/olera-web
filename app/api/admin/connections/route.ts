@@ -664,8 +664,16 @@ export async function GET(request: NextRequest) {
       : all;
 
     // Build provider keys for engagement lookup
+    // Include ALL possible identifiers (slug, source_provider_id, id) to match email_log.provider_id
+    // because different email sends use different identifiers
     const allProviderKeys = [...new Set(
-      searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
+      searched.flatMap((c) => {
+        const ids: string[] = [];
+        if (c.provider.slug) ids.push(c.provider.slug);
+        if (c.provider.source_provider_id) ids.push(c.provider.source_provider_id);
+        if (c.provider.id) ids.push(c.provider.id);
+        return ids;
+      })
     )].slice(0, 1000);
 
     // Per-provider engagement tracking
@@ -833,15 +841,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Detect bounced emails: query email_log for latest email per connection
+    // Detect bounced emails: query email_log for latest email PER PROVIDER
+    // If a provider's latest email bounced, ALL connections to that provider are affected
     const connectionBouncedStatus = new Map<string, boolean>();
-    const connectionIdSet = new Set(searched.map(c => c.id));
+
+    // Build map of provider identifiers → connection IDs
+    const providerToConnections = new Map<string, Set<string>>();
+    for (const conn of searched) {
+      const providerIds = [conn.provider.slug, conn.provider.source_provider_id, conn.provider.id].filter(Boolean) as string[];
+      for (const pid of providerIds) {
+        if (!providerToConnections.has(pid)) {
+          providerToConnections.set(pid, new Set());
+        }
+        providerToConnections.get(pid)!.add(conn.id);
+      }
+    }
 
     if (allProviderKeys.length > 0) {
-      // Get all emails sent to providers to find latest per connection
+      // Get all emails sent to providers to find latest per provider
       const { data: allEmails, error: emailLogError } = await db
         .from("email_log")
-        .select("metadata, bounced_at, status, created_at, provider_id")
+        .select("bounced_at, status, created_at, provider_id")
         .in("provider_id", allProviderKeys)
         .eq("recipient_type", "provider")
         .order("created_at", { ascending: false })
@@ -856,36 +876,42 @@ export async function GET(request: NextRequest) {
         console.log(`[connections] ${bouncedCount} bounced, ${failedCount} failed`);
       }
 
-      // Track latest email per connection (to determine if LATEST email failed)
-      const connectionLatestEmail = new Map<string, { at: Date; failed: boolean }>();
+      // Track latest email per provider (to determine if provider's LATEST email failed)
+      const providerLatestEmail = new Map<string, { at: Date; failed: boolean }>();
 
       for (const row of allEmails || []) {
-        const meta = row.metadata as Record<string, unknown>;
-        const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
-        if (!connId || !connectionIdSet.has(connId)) continue;
+        const providerId = row.provider_id;
+        if (!providerId || !providerToConnections.has(providerId)) continue;
 
         // Use Date objects for reliable comparison (not string comparison)
         const emailTime = row.created_at ? new Date(row.created_at) : new Date(0);
-        const existing = connectionLatestEmail.get(connId);
+        const existing = providerLatestEmail.get(providerId);
 
         if (!existing || emailTime > existing.at) {
           // Email failed if either bounced (webhook) OR status is "failed" (send rejected)
           const hasFailed = !!row.bounced_at || row.status === "failed";
-          connectionLatestEmail.set(connId, {
+          providerLatestEmail.set(providerId, {
             at: emailTime,
             failed: hasFailed,
           });
         }
       }
 
-      // Set failed status for connections (only those where LATEST email failed)
-      for (const [connId, status] of connectionLatestEmail) {
-        connectionBouncedStatus.set(connId, status.failed);
+      // Mark all connections to a provider as bounced if that provider's latest email failed
+      for (const [providerId, status] of providerLatestEmail) {
+        if (status.failed) {
+          const connectionIds = providerToConnections.get(providerId);
+          if (connectionIds) {
+            for (const connId of connectionIds) {
+              connectionBouncedStatus.set(connId, true);
+            }
+          }
+        }
       }
 
       const bouncedConnectionCount = Array.from(connectionBouncedStatus.values()).filter(b => b).length;
-      console.log(`[connections] ${connectionLatestEmail.size} connections matched with emails`);
-      console.log(`[connections] ${bouncedConnectionCount} connections have bounced latest email`);
+      console.log(`[connections] ${providerLatestEmail.size} providers matched with emails`);
+      console.log(`[connections] ${bouncedConnectionCount} connections have provider with bounced latest email`);
     }
 
     // Workflow-based counts (legacy)

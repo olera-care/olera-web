@@ -278,19 +278,19 @@ export function getEngagementLevel(
 
   // Determine final engagement level (purely time-based for UI tabs)
   // - Connected: provider reached out (success) - never becomes stuck/needs_call
-  // - Needs Call: ANY non-connected 14+ day old connection (regardless of cron flag)
-  // - Viewed/Engaged: provider showed interest, keep in their tab until 14 days
-  // - Stuck: no engagement for 10+ days (only for "new" connections)
+  // - Viewed/Engaged: provider showed interest, keep in their tab and continue sequence
+  // - Needs Call: 14+ days with NO engagement (only for "new" connections)
+  // - Stuck: 10+ days with NO engagement (only for "new" connections)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
-  } else if (needsCallByTime) {
-    // Any non-connected 14+ day old connection needs manual call
-    // This is purely time-based - no dependency on cron's needsCall flag
-    level = "needs_call";
   } else if (baseLevel === "viewed" || baseLevel === "engaged") {
-    // Provider showed interest - keep them in their tab until 14 days
+    // Provider showed interest - keep them in their tab and continue sequence
+    // Even if it's 14+ days old, if they viewed/engaged, they stay in that tab
     level = baseLevel;
+  } else if (needsCallByTime) {
+    // Only NEW connections (never viewed/engaged) that are 14+ days old need manual call
+    level = "needs_call";
   } else if (isStale) {
     // 10+ days with NO engagement → stuck (awaiting re-engagement email)
     level = "stuck";

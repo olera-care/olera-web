@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { validateClaimToken } from "@/lib/claim-tokens";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult
+} from "@/lib/claim-trust";
+import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/lib/slack";
 
 /**
  * GET /api/claim-lead?connectionId=<id>&otk=<token>
@@ -117,7 +123,7 @@ export async function GET(request: NextRequest) {
   //    The token's providerId is actually the provider slug
   const { data: providerProfile, error: profileError } = await admin
     .from("business_profiles")
-    .select("id, slug, email, account_id, source_provider_id, display_name")
+    .select("id, slug, email, account_id, source_provider_id, display_name, city, state, website")
     .or(`slug.eq.${providerSlug},source_provider_id.eq.${providerSlug},id.eq.${providerSlug}`)
     .in("type", ["organization", "caregiver"])
     .maybeSingle();
@@ -277,14 +283,36 @@ export async function GET(request: NextRequest) {
       .select("id")
       .single();
 
-    if (accountError || !newAccount) {
-      console.error("[claim-lead] account insert failed:", accountError?.message);
-      // Non-fatal: session is already set, they're signed in
-      // Just won't have the profile linked properly
+    if (accountError) {
+      // Handle race condition: if account creation failed due to unique constraint
+      // (another request created it simultaneously), try to fetch it
+      if (accountError.code === "23505") {
+        const { data: raceAccount } = await admin
+          .from("accounts")
+          .select("id")
+          .eq("user_id", userId)
+          .single();
+        account = raceAccount;
+      }
+
+      if (!account) {
+        console.error("[claim-lead] account creation failed:", accountError.message);
+        // Session is already set, but without an account they can't claim the profile
+        // Fall back to onboard page where they can try again
+        return await fallbackToOnboard("account creation failed", actualSlug);
+      }
     } else {
       account = newAccount;
     }
   }
+
+  // 8b. Trust scoring & verification flow (matches /api/claim/finalize pattern)
+  // Track whether this is a new claim (not a re-click)
+  let isNewClaim = false;
+  let trustResult: ClaimTrustResult = {
+    level: "medium",
+    reason: "not_scored"
+  };
 
   // Link profile to account if possible
   if (account) {
@@ -292,31 +320,59 @@ export async function GET(request: NextRequest) {
       // Profile owned by someone else — still let them in
       console.warn("[claim-lead] profile already linked to different account");
     } else if (!providerProfile.account_id) {
-      // Link the unclaimed profile to this account
+      // This is a NEW claim - run trust scoring and link profile
+      isNewClaim = true;
+
+      try {
+        trustResult = await scoreClaimTrust({
+          email: normalizedEmail,
+          providerName: providerProfile.display_name || actualSlug,
+          providerCity: providerProfile.city,
+          providerState: providerProfile.state,
+          providerDomain: extractDomainFromWebsite(providerProfile.website),
+        });
+      } catch (err) {
+        console.error("[claim-lead] trust scoring failed:", err);
+      }
+
+      const verificationState = trustResult.level === "high"
+        ? "not_required"
+        : "unverified";
+
+      // Update all fields in one atomic operation (matches /api/claim/finalize pattern)
       const { error: linkErr } = await admin
         .from("business_profiles")
-        .update({ account_id: account.id, claim_state: "claimed" })
+        .update({
+          account_id: account.id,
+          claim_state: "claimed",
+          verification_state: verificationState,
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: trustResult.reason,
+        })
         .eq("id", providerProfile.id);
 
       if (linkErr) {
         console.error("[claim-lead] profile link failed:", linkErr.message);
         // Non-fatal: they're still signed in
+        isNewClaim = false; // Failed to claim, don't send notifications
       } else {
-        console.log("[claim-lead] profile linked to account");
+        console.log("[claim-lead] profile linked to account with trust level:", trustResult.level);
       }
 
       // Set active profile if the account has none yet
-      const { data: accountRow } = await admin
-        .from("accounts")
-        .select("active_profile_id")
-        .eq("id", account.id)
-        .single();
-
-      if (!accountRow?.active_profile_id) {
-        await admin
+      if (isNewClaim) {
+        const { data: accountRow } = await admin
           .from("accounts")
-          .update({ active_profile_id: providerProfile.id })
-          .eq("id", account.id);
+          .select("active_profile_id")
+          .eq("id", account.id)
+          .single();
+
+        if (!accountRow?.active_profile_id) {
+          await admin
+            .from("accounts")
+            .update({ active_profile_id: providerProfile.id })
+            .eq("id", account.id);
+        }
       }
     }
   }
@@ -352,6 +408,54 @@ export async function GET(request: NextRequest) {
   });
   if (openedError) {
     console.error("[claim-lead] lead_opened tracking failed:", openedError.message);
+  }
+
+  // Track claim_completed event and send Slack notifications ONLY on new claims
+  // (not on re-clicks of the claim link)
+  if (isNewClaim) {
+    // Track claim_completed event for admin visibility
+    const { error: claimCompletedErr } = await admin.from("provider_activity").insert({
+      provider_id: providerKey,
+      profile_id: providerProfile.id,
+      event_type: "claim_completed",
+      metadata: {
+        source: "email",
+        connection_id: validConnectionId || null,
+      },
+    });
+    if (claimCompletedErr) {
+      console.error("[claim-lead] claim_completed tracking failed:", claimCompletedErr.message);
+    }
+
+    // Send Slack notifications (fire-and-forget)
+    try {
+      const alert = slackProviderClaimed({
+        providerName: providerProfile.display_name || actualSlug,
+        claimedByEmail: normalizedEmail,
+        providerSlug: actualSlug,
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch (slackErr) {
+      console.error("[claim-lead] Slack claim notification failed:", slackErr);
+    }
+
+    // Suspicious claim alert for medium/low trust
+    // Only send if trust scoring actually ran (not just using the default)
+    if (trustResult.reason !== "not_scored" &&
+        (trustResult.level === "medium" || trustResult.level === "low")) {
+      try {
+        const suspiciousAlert = slackSuspiciousClaim({
+          providerName: providerProfile.display_name || actualSlug,
+          providerSlug: actualSlug,
+          claimedByEmail: normalizedEmail,
+          trustLevel: trustResult.level,
+          trustReason: trustResult.reason,
+        });
+        await sendSlackAlert(suspiciousAlert.text, suspiciousAlert.blocks);
+      } catch (slackErr) {
+        console.error("[claim-lead] Slack suspicious claim alert failed:", slackErr);
+      }
+    }
   }
 
   console.log("[claim-lead] success, redirecting to:", redirectTarget.toString());

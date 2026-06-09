@@ -14,7 +14,7 @@ import { getCronJob, isEmailJob } from "@/lib/crons/registry";
  * cron_runs / cron_config may be absent (migration 082 not applied) — fail soft.
  */
 
-const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const ALLOWED_WINDOWS = [7, 30, 90];
 const TREND_MS = 28 * 24 * 60 * 60 * 1000;
 
 function isoWeek(d: Date): string {
@@ -64,18 +64,20 @@ function classifyVariant(subject: string | null, metadata: Record<string, unknow
   return { variant: "weekly_digest", ledWithRank: led };
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   const admin = await getAdminUser(user.id);
   if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
   const { id } = await params;
+  const daysParam = parseInt(new URL(req.url).searchParams.get("days") || "30", 10);
+  const windowDays = ALLOWED_WINDOWS.includes(daysParam) ? daysParam : 30;
   const job = getCronJob(id);
   if (!job) return NextResponse.json({ error: "Unknown automation" }, { status: 404 });
 
   const db = getServiceClient();
-  const since = new Date(Date.now() - WINDOW_MS).toISOString();
+  const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
   const trendSince = new Date(Date.now() - TREND_MS).toISOString();
 
   // ── run history (fail soft) ──
@@ -161,16 +163,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         if (e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
       }
       previewTypes.push(...seenPreviewTypes);
-      variants = VARIANT_ORDER
-        .filter((k) => vAgg[k]?.sent)
-        .map((k) => ({
+      // Show the full digest taxonomy (all three templates + the weekly-digest rank split), even
+      // variants with no sends in this window — so the breakdown reflects what the digest *can*
+      // send, not just what happened to fire. Empty ones render muted on the page.
+      if (isDigestJob) {
+        variants = VARIANT_ORDER.map((k) => ({
           key: k,
           label: VARIANT_LABELS[k],
-          ...vAgg[k],
-          ...(k === "weekly_digest" && (wkWithRank.sent || wkPlain.sent)
-            ? { split: { withRank: wkWithRank, plain: wkPlain } }
-            : {}),
+          ...(vAgg[k] ?? emptyVStat()),
+          ...(k === "weekly_digest" ? { split: { withRank: wkWithRank, plain: wkPlain } } : {}),
         }));
+      }
     } catch {
       rollup30d = null;
     }
@@ -189,6 +192,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     variants,
     previewTypes,
     runs,
-    windowDays: 30,
+    windowDays,
   });
 }

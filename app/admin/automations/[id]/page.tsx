@@ -215,13 +215,15 @@ export default function AutomationDetailPage() {
   const [recipientPage, setRecipientPage] = useState(1);
   const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | "error" | null>(null);
   const [showAllRuns, setShowAllRuns] = useState(false);
+  const [windowDays, setWindowDays] = useState(30);
 
   const load = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
+    // Don't flip to the full-page loading state on window-change refetches — keep the current
+    // numbers visible and let them update in place. The initial useState(true) covers first load.
     setErr(null);
     try {
-      const r = await fetch(`/api/admin/automations/${id}`);
+      const r = await fetch(`/api/admin/automations/${id}?days=${windowDays}`);
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       const d: DetailResponse = await r.json();
       setData(d);
@@ -233,7 +235,7 @@ export default function AutomationDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, windowDays]);
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
@@ -383,11 +385,26 @@ export default function AutomationDetailPage() {
           {/* ── OVERVIEW ── */}
           {tab === "overview" && (
             <div className="mt-5 space-y-6">
+              {data.job.isEmail && (
+                <div className="flex items-center justify-end">
+                  <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs">
+                    {[7, 30, 90].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setWindowDays(d)}
+                        className={`rounded-md px-3 py-1 font-medium transition-colors ${windowDays === d ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}
+                      >
+                        {d}d
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {data.rollup30d ? (
                 <>
                   <div>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub="last 30 days">
+                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub={`last ${data.windowDays} days`}>
                         {data.trend.length >= 2 && <Sparkline values={data.trend.map((w) => w.sent)} className="text-gray-300" />}
                       </StatCard>
                       <StatCard value={pct(data.rollup30d.delivered, data.rollup30d.sent)} label="Delivered" />
@@ -422,7 +439,7 @@ export default function AutomationDetailPage() {
 
                   {data.variants && data.variants.length > 1 && (
                     <div className="mt-6">
-                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last 30 days</h3>
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last {data.windowDays} days</h3>
                       <div className="overflow-hidden rounded-xl border border-gray-200">
                         <table className="w-full text-sm">
                           <thead>
@@ -438,25 +455,27 @@ export default function AutomationDetailPage() {
                           <tbody>
                             {data.variants.map((v) => (
                               <Fragment key={v.key}>
-                                <tr className="border-b border-gray-100">
-                                  <td className="px-4 py-2 font-medium text-gray-800">{v.label}</td>
+                                <tr className={`border-b border-gray-100 ${v.sent === 0 ? "text-gray-300" : ""}`}>
+                                  <td className={`px-4 py-2 font-medium ${v.sent === 0 ? "" : "text-gray-800"}`}>
+                                    {v.label}
+                                    {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
+                                  </td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{pct(v.delivered, v.sent)}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{pct(v.opened, v.sent)}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{pct(v.clicked, v.sent)}</td>
-                                  <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.bounced + v.complained || "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.sent > 0 ? (v.bounced + v.complained || "—") : "—"}</td>
                                 </tr>
                                 {v.split && (["withRank", "plain"] as const).map((sk) => {
                                   const s = v.split![sk];
-                                  if (!s.sent) return null;
                                   return (
-                                    <tr key={`${v.key}-${sk}`} className="border-b border-gray-100 bg-gray-50/40 text-xs text-gray-500">
+                                    <tr key={`${v.key}-${sk}`} className="border-b border-gray-100 bg-gray-50/40 text-xs text-gray-400">
                                       <td className="py-1.5 pl-8 pr-4">{sk === "withRank" ? "↳ led with rank hero" : "↳ no rank hero"}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent.toLocaleString()}</td>
-                                      <td className="px-4 py-1.5 text-right tabular-nums">{pct(s.delivered, s.sent)}</td>
-                                      <td className="px-4 py-1.5 text-right tabular-nums">{pct(s.opened, s.sent)}</td>
-                                      <td className="px-4 py-1.5 text-right tabular-nums">{pct(s.clicked, s.sent)}</td>
-                                      <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.bounced + s.complained || "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.delivered, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.opened, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.clicked, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.sent > 0 ? (s.bounced + s.complained || "—") : "—"}</td>
                                     </tr>
                                   );
                                 })}

@@ -127,21 +127,27 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const wkPlain = emptyVStat();
     const isDigestJob = id === "weekly-provider-digest";
     try {
+      // Fetch the wider of (rollup window, trend window) so a short window (7d) doesn't starve the
+      // fixed 4-week trend. The rollup + variants then gate to `since` per-row; the trend to trendSince.
+      const fetchSince = since < trendSince ? since : trendSince;
       const { data } = await db
         .from("email_log")
         .select("email_type, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body, metadata, subject")
         .in("email_type", job.emailTypes)
-        .gte("created_at", since)
+        .gte("created_at", fetchSince)
         .order("created_at", { ascending: false })
         .limit(100000);
       const seenPreviewTypes = new Set<string>();
       for (const e of (data ?? []) as VRow[]) {
-        rollup30d.sent += 1;
-        if (e.delivered_at) rollup30d.delivered += 1;
-        if (e.first_opened_at) rollup30d.opened += 1;
-        if (e.first_clicked_at) rollup30d.clicked += 1;
-        if (e.bounced_at) rollup30d.bounced += 1;
-        if (e.complained_at) rollup30d.complained += 1;
+        const inWindow = e.created_at >= since;
+        if (inWindow) {
+          rollup30d.sent += 1;
+          if (e.delivered_at) rollup30d.delivered += 1;
+          if (e.first_opened_at) rollup30d.opened += 1;
+          if (e.first_clicked_at) rollup30d.clicked += 1;
+          if (e.bounced_at) rollup30d.bounced += 1;
+          if (e.complained_at) rollup30d.complained += 1;
+        }
         if (e.created_at >= trendSince) {
           const wk = isoWeek(new Date(e.created_at));
           const w = weekMap.get(wk) ?? { sent: 0, delivered: 0, opened: 0, clicked: 0 };
@@ -154,13 +160,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         // Variant breakdown — only the weekly digest fans one email_type into multiple templates,
         // so classifyVariant's digest-specific patterns only make sense there. For any other job
         // the subjects wouldn't match and would all collapse into a bogus "weekly_digest" bucket.
-        if (isDigestJob) {
+        if (inWindow && isDigestJob) {
           const { variant, ledWithRank } = classifyVariant(e.subject, e.metadata);
           (vAgg[variant] ??= emptyVStat());
           accVStat(vAgg[variant], e);
           if (variant === "weekly_digest") accVStat(ledWithRank ? wkWithRank : wkPlain, e);
         }
-        if (e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
+        if (inWindow && e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
       }
       previewTypes.push(...seenPreviewTypes);
       // Show the full digest taxonomy (all three templates + the weekly-digest rank split), even

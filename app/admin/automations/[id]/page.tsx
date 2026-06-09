@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Fragment, useCallback, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
@@ -216,22 +216,25 @@ export default function AutomationDetailPage() {
   const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | "error" | null>(null);
   const [showAllRuns, setShowAllRuns] = useState(false);
   const [windowDays, setWindowDays] = useState(30);
+  const reqSeq = useRef(0);
 
   const load = useCallback(async () => {
     if (!id) return;
     // Don't flip to the full-page loading state on window-change refetches — keep the current
     // numbers visible and let them update in place. The initial useState(true) covers first load.
     setErr(null);
+    const reqId = ++reqSeq.current;
     try {
       const r = await fetch(`/api/admin/automations/${id}?days=${windowDays}`);
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       const d: DetailResponse = await r.json();
+      if (reqId !== reqSeq.current) return; // a newer window selection superseded this fetch
       setData(d);
       setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
       const bestRun = d.runs.find((rr) => { const s = rr.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
       setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
+      if (reqId === reqSeq.current) setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
       setLoading(false);
     }

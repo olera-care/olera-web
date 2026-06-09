@@ -57,6 +57,8 @@ import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-mess
 import { ReplyClassifierModal } from "@/app/admin/student-outreach/ReplyClassifierModal";
 import { LogMeetingModal } from "@/app/admin/student-outreach/LogMeetingModal";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import type { TemplateKey } from "@/lib/student-outreach/cadence";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 
@@ -387,11 +389,12 @@ function InOutreachBody({
         When they respond, continue the conversation directly from your inbox and log the outcome here so the team sees it.
       </p>
       <p className="mt-1 text-xs text-gray-500">{subline}</p>
+      <ActivationActions ctx={ctx} action={action} setError={setError} source="reply" />
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setShowLogReply(true)}
           title="Log a reply you received in your inbox."
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
         >
           Log reply
         </button>
@@ -513,6 +516,7 @@ function CallDueBody({
           Next step: make the call, use the script, log the outcome.
         </p>
       </div>
+      <ActivationActions ctx={ctx} action={action} setError={setError} source="phone" />
       {primaryContact?.phone && (
         <p className="mt-2 text-sm">
           <a
@@ -666,10 +670,17 @@ function MeetingSetBody({
         Meeting workflow active. Log the meeting status to keep the row moving.
       </p>
       <p className="mt-1 text-xs text-gray-500">{sublineCopy}</p>
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="meeting"
+        introTemplate="activation_postmeeting_intro"
+      />
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setShowLogMeeting(true)}
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
         >
           Log meeting →
         </button>
@@ -956,6 +967,120 @@ function ReplyClassifierModalMount({
         }
       }}
     />
+  );
+}
+
+/**
+ * Activation system (Phase 2). The two buttons that carry the whole
+ * post-outreach funnel from any warm signal:
+ *   Interested → opens the CadenceLaunchModal (review the activation
+ *                emails + calls, then Launch).
+ *   Not interested → closes the row.
+ *
+ * Recipient resolution honors the two-contact model: email prefers the
+ * Decision Maker, then the primary active contact, then the General
+ * Contact; phone uses the primary active contact (or General Contact).
+ * `source` tags where the interest came from; `introTemplate` swaps the
+ * Day-0 opener (e.g. the post-meeting flavor).
+ */
+function ActivationActions({
+  ctx,
+  action,
+  setError,
+  source,
+  introTemplate,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+  source: "reply" | "phone" | "meeting";
+  introTemplate?: TemplateKey;
+}) {
+  const [showLaunch, setShowLaunch] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const primary =
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const gc = ctx.outreach.research_data?.general_contact;
+
+  const recipientEmail =
+    (dm && !dm.unavailable && dm.email ? dm.email : null) ??
+    primary?.email ??
+    gc?.email ??
+    null;
+  const recipientPhone = primary?.phone ?? gc?.phone ?? null;
+  const recipientName = primary
+    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() ||
+      primary.name
+    : dm?.name ?? null;
+  const recipientContactId = primary?.id ?? null;
+
+  const markNotInterested = async () => {
+    setClosing(true);
+    setError(null);
+    try {
+      await action("mark_not_interested", {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to close");
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowLaunch(true)}
+          title="Send the activation link + meeting option and start the follow-up cadence."
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+        >
+          Interested → activation
+        </button>
+        <button
+          onClick={markNotInterested}
+          disabled={closing}
+          title="Send a polite closing note and stop outreach."
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Not interested → close
+        </button>
+      </div>
+      {showLaunch && (
+        <CadenceLaunchModal
+          cadenceKey="activation"
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          recipientName={recipientName}
+          recipientEmail={recipientEmail}
+          introTemplateOverride={introTemplate}
+          onCancel={() => setShowLaunch(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("launch_activation", {
+                email_snapshots: payload.email_snapshots,
+                call_scripts: payload.call_scripts,
+                recipient: {
+                  name: recipientName,
+                  email: recipientEmail,
+                  phone: recipientPhone,
+                  contact_id: recipientContactId,
+                },
+                source,
+                intro_template: introTemplate ?? null,
+              });
+              setShowLaunch(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Launch failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 

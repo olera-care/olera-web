@@ -18,7 +18,7 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
-import { type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
+import { OUTREACH_DAYS_BY_TYPE, type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
 import { getTemplate } from "@/lib/student-outreach/templates";
 import {
   planSequence,
@@ -361,6 +361,17 @@ export async function POST(
       // ── v4 auto-send outreach ───────────────────────────────────────
       case "schedule_sequence":
         await handleScheduleSequence(db, row, body, user.id);
+        break;
+
+      // Activation system (Phase 2, 2026-06-09): launch the activation
+      // cadence from a warm signal (Interested on an email reply, a call,
+      // or a meeting). Queues the activation CALL tasks immediately and
+      // records the cadence + the deliberate activation-link send. The
+      // activation EMAIL delivery (per-campus Smartlead activation
+      // campaign) is wired as a follow-up integration; the approved
+      // snapshots are persisted on the launch touchpoint for it to use.
+      case "launch_activation":
+        await handleLaunchActivation(db, row, body, user.id);
         break;
       case "offer_call":
         await handleOfferCall(db, row, body, user.id);
@@ -2021,6 +2032,136 @@ async function handleScheduleSequence(
       },
     });
   }
+}
+
+/**
+ * Activation cadence launch (Phase 2). Fired by the drawer's "Interested"
+ * action on an email reply, a call, or a meeting. Unlike schedule_sequence
+ * (cold), this does NOT reset the row's stage or re-enroll the cold cadence.
+ * It:
+ *   1. Cancels any still-pending COLD cadence tasks (the provider is warm now).
+ *   2. Promotes outreach_sent → engaged (leaves more-advanced stages alone).
+ *   3. Queues the activation CALL tasks (tagged payload.cadence='activation';
+ *      only when we have a phone number).
+ *   4. Records two touchpoints: `activation_launched` (carries the approved
+ *      email snapshots + recipient for the Smartlead activation enrollment to
+ *      pick up) and `activation_link_sent` (the marker that puts the row in
+ *      "awaiting activation" until Trial Active).
+ *
+ * The activation EMAIL delivery (a per-campus Smartlead activation campaign) is
+ * a separate, focused integration; the calls queued here are live immediately.
+ */
+async function handleLaunchActivation(
+  db: DB,
+  row: OutreachRow,
+  body: {
+    email_snapshots?: EmailSnapshot[];
+    call_scripts?: Array<{ day: number; script: string }>;
+    recipient?: {
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      contact_id?: string | null;
+    };
+    source?: string;
+    intro_template?: string | null;
+  },
+  userId: string,
+) {
+  // Guard: don't double-launch an activation cadence.
+  const { data: alreadyRunning } = await db
+    .from("student_outreach_tasks")
+    .select("id")
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .filter("payload->>cadence", "eq", "activation")
+    .limit(1);
+  if ((alreadyRunning ?? []).length > 0) {
+    throw new Error("Activation cadence already running — stop it before relaunching.");
+  }
+
+  const recipient = body.recipient ?? {};
+  const source = body.source ?? "reply";
+
+  // 1. Stop the cold cadence (CRM side). Smartlead auto-pauses the email drip
+  //    on reply; this clears any pending cold call/email tasks so they don't
+  //    fire on a now-warm provider.
+  await db
+    .from("student_outreach_tasks")
+    .update({ status: "cancelled" })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_followup_call", "outreach_email_send", "outreach_day_0"]);
+
+  // 2. Promote to engaged without disturbing a more advanced stage.
+  if (row.status === "outreach_sent") {
+    await transitionStage(db, row, "engaged", userId, "activation_launched");
+  } else {
+    await touchOutreach(db, row.id, userId);
+  }
+
+  // 3. Queue activation CALL tasks (only when we have a phone). Inserted AFTER
+  //    the stage transition so they can't be swept by exit-task cancellation.
+  const scriptByDay = new Map(
+    (body.call_scripts ?? []).map((s) => [s.day, s.script]),
+  );
+  const now = Date.now();
+  if (recipient.phone) {
+    const callInserts = OUTREACH_DAYS_BY_TYPE["activation"]
+      .map((day) => {
+        const phoneStep = day.steps.find((s) => s.channel === "phone");
+        if (!phoneStep) return null;
+        return {
+          outreach_id: row.id,
+          task_type: "outreach_followup_call" as const,
+          due_at: new Date(now + day.day * 86_400_000).toISOString(),
+          payload: {
+            cadence: "activation",
+            day: day.day,
+            label: phoneStep.label ?? "Activation check-in call",
+            script: scriptByDay.get(day.day) ?? null,
+            recipient_name: recipient.name ?? null,
+            recipient_phone: recipient.phone ?? null,
+            recipient_contact_id: recipient.contact_id ?? null,
+          },
+          created_by: userId,
+        };
+      })
+      .filter((t): t is NonNullable<typeof t> => t !== null);
+    if (callInserts.length > 0) {
+      const { error } = await db.from("student_outreach_tasks").insert(callInserts);
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  // 4. Record the launch + the deliberate activation-link send.
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    payload: {
+      reason: "activation_launched",
+      source,
+      recipient,
+      email_snapshots: body.email_snapshots ?? [],
+      call_scripts: body.call_scripts ?? [],
+      intro_template: body.intro_template ?? null,
+      // Smartlead activation-campaign enrollment is the follow-up integration;
+      // snapshots are persisted here for it to send. Calls above are live now.
+      email_delivery: "smartlead_pending",
+    },
+  });
+  if (recipient.email) {
+    await insertTouchpoint(db, row.id, "note_added", userId, {
+      channel: "email",
+      payload: {
+        reason: "activation_link_sent",
+        email: recipient.email,
+        source,
+      },
+    });
+  }
+
+  // Surface the row as unread so the new activation work boosts the tab.
+  await db.from("student_outreach").update({ viewed_at: null }).eq("id", row.id);
 }
 
 /**

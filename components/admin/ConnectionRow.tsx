@@ -333,13 +333,9 @@ export default function ConnectionRow({
             // API error
             setFindEmailError(data.error || "Failed to find email");
           }
-        } catch (err) {
-          // Network or timeout error
-          const isTimeout = err instanceof Error && err.name === "TimeoutError";
-          const errorMsg = isTimeout
-            ? "Request timed out. Try again later."
-            : "Network error";
-          setFindEmailError(errorMsg);
+        } catch {
+          // Network error
+          setFindEmailError("Network error");
         } finally {
           setFindingEmail(false);
         }
@@ -720,13 +716,9 @@ export default function ConnectionRow({
         const errorMsg = data.error || "Failed to find email";
         setFindEmailError(errorMsg);
       }
-    } catch (err) {
-      // Network or timeout error
-      const isTimeout = err instanceof Error && err.name === "TimeoutError";
-      const errorMsg = isTimeout
-        ? "Request timed out. The provider's website may be slow to respond. Try again later."
-        : "Network error. Please check your connection and try again.";
-      setFindEmailError(errorMsg);
+    } catch {
+      // Network error
+      setFindEmailError("Network error. Please check your connection and try again.");
     } finally {
       setFindingEmail(false);
     }

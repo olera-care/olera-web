@@ -10,6 +10,33 @@ import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-
 import { normCareType } from "@/lib/market-diagnostic/resolve";
 import { warmCity } from "@/lib/market-diagnostic/warm";
 
+// ── Question recency decay (2026-06-09) ──
+// The family_question rung used to fire for ANY open question, top priority, every week. Because
+// the recipient pool is dominated by open-question providers (~3,450, 64% with a question older
+// than a month), that meant ~99.7% of digests were "a family has a question" — re-flogging the
+// same stale, ignored question weekly and starving every other nudge (leads/completion/rank).
+// Fix: a question only LEADS the digest when it's fresh, or on a quarterly resurface. Once stale
+// it steps out of the cascade entirely (unansweredQuestion left null), so the provider flows to
+// the next applicable rung — or goes quiet if none applies, instead of getting the dead nudge.
+const QUESTION_FRESH_DAYS = 30; // ≤ this old → still leads (≈4 weekly nudges before demotion)
+const QUESTION_RESURFACE_DAYS = 90; // demoted questions resurface ~once per quarter
+const RUN_INTERVAL_DAYS = 7; // weekly cadence — the look-back for the resurface-boundary crossing
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Should this run lead with the provider's open question?
+ * True when the question is fresh (≤ QUESTION_FRESH_DAYS), or when its age crosses a
+ * QUESTION_RESURFACE_DAYS boundary since the previous weekly run (one resurface per ~quarter).
+ * Stateless — derived purely from the question's age, so no per-send tracking table is needed.
+ */
+function shouldLeadWithQuestion(ageDays: number): boolean {
+  if (ageDays <= QUESTION_FRESH_DAYS) return true;
+  const crossedBoundary =
+    Math.floor(ageDays / QUESTION_RESURFACE_DAYS) >
+    Math.floor((ageDays - RUN_INTERVAL_DAYS) / QUESTION_RESURFACE_DAYS);
+  return crossedBoundary;
+}
+
 /**
  * GET /api/cron/weekly-provider-digest
  *
@@ -27,11 +54,12 @@ import { warmCity } from "@/lib/market-diagnostic/warm";
  *      (slug, provider_id), mirroring app/api/admin/questions/add-email
  *      strategies 1-3.
  *
- * Ordering: freshest unanswered question DESC, then views DESC. Makes
- * `?limit=N` deterministic -- the most-urgent question audience always
- * comes first. The Vercel (Monday) cron uses limit=2000, which covers the
- * full reachable unanswered-question pool (~1,300 with an email on file);
- * raise the cap (5000) if the pool grows past that.
+ * Ordering: send-worthy providers first (we'll lead with their fresh/resurfaced question, OR
+ * they have activity signal, OR they're rank-enrolled), then likely-skippers (stale question,
+ * nothing else) last; within each group, freshest question DESC then views DESC. This keeps
+ * `?limit=N` deterministic AND ensures the cap is spent on providers who'll actually get an email
+ * — without it, the ~3,450 open-question providers (most with a stale question) would consume the
+ * whole 2,000 cap and starve the activity/rank audience. The Vercel (Monday) cron uses limit=2000.
  *
  * Email variant:
  *   - Question present  -> demand-led: leads with the newest open
@@ -295,13 +323,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Order recipients by freshest unanswered question DESC, then views DESC.
-    // Providers with no question (activity-only) fall to the bottom -- they
-    // get the existing analytics digest when their bucket has signal.
-    // This makes `?limit=N` deterministic: the most-urgent question audience
-    // is always at the top of the list.
+    // Order recipients so the `maxProviders` cap is spent on providers we'll actually email.
+    // CRITICAL interaction with question decay: there are ~3,450 open-question providers but the
+    // cap is 2,000, so before decay the slice was ENTIRELY question providers (newest-first) and
+    // the activity/rank audience was never reached — which is exactly why the digest was ~99.7%
+    // family_question. Now that stale questions are demoted (and, with no other signal, skipped),
+    // a stale-question provider we're going to skip must not consume a cap slot ahead of an
+    // activity/rank provider who'd get a real nudge (leads/completion/rank). So: rank send-worthy
+    // providers first (we'll lead with their fresh/resurfaced question, OR they have activity
+    // signal, OR they're rank-enrolled), likely-skippers last. Within each group keep the existing
+    // freshest-question-DESC then views-DESC order, so `?limit=N` stays deterministic.
+    const willLeadQuestion = (id: string): boolean => {
+      const oq = openQuestionsByProvider.get(id);
+      if (!oq) return false;
+      return shouldLeadWithQuestion((now.getTime() - Date.parse(oq.newest.created_at)) / DAY_MS);
+    };
+    const sendWorthy = (id: string): boolean => {
+      if (willLeadQuestion(id)) return true;
+      const b = buckets.get(id);
+      if (b && (b.viewsThisWeek > 0 || b.ctaClicks > 0 || b.leads > 0 || b.questions > 0)) return true;
+      return rankEligible.has(id);
+    };
     const allIds = [...buckets.keys()];
     allIds.sort((a, b) => {
+      const sa = sendWorthy(a) ? 0 : 1;
+      const sb = sendWorthy(b) ? 0 : 1;
+      if (sa !== sb) return sa - sb;
       const qa = openQuestionsByProvider.get(a)?.newest.created_at ?? "";
       const qb = openQuestionsByProvider.get(b)?.newest.created_at ?? "";
       if (qa !== qb) return qb.localeCompare(qa);
@@ -549,12 +596,24 @@ export async function GET(request: NextRequest) {
       // abc123-..." in the subject. "your business" is the cleaner fallback.
       const displayName = bp.display_name ?? "your business";
 
-      // Mint the one-click answer URL when there's an unanswered question.
+      // Question recency decay: lead with the question only when it's fresh or on a quarterly
+      // resurface (shouldLeadWithQuestion). A stale, repeatedly-ignored question is demoted —
+      // unansweredQuestion stays null, so every downstream rung (leads/completion/rank), which
+      // already gates on !unansweredQuestion, gets its turn instead of being smothered.
+      const questionAgeDays = openQ
+        ? (now.getTime() - Date.parse(openQ.newest.created_at)) / DAY_MS
+        : Infinity;
+      const leadWithQuestion = !!openQ && shouldLeadWithQuestion(questionAgeDays);
+      // A provider whose only signal was a question we chose NOT to lead with this week. Used below
+      // to keep rank resolution cache-only for them (never queue a paid warm for a demoted question).
+      const demotedQuestionOnly = !!openQ && !leadWithQuestion;
+
+      // Mint the one-click answer URL only when leading with the question.
       // Failure here is non-fatal: the provider still gets the analytics email
       // if they have other signal, otherwise they're skipped.
       let answerUrl: string | null = null;
       let unansweredQuestion: { id: string; question: string; totalCount: number } | null = null;
-      if (openQ) {
+      if (openQ && leadWithQuestion) {
         try {
           answerUrl = generateNotificationUrl(
             providerSlug,
@@ -611,9 +670,12 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Market Intelligence hero — only for the no-question (analytics-only) branch. Resolves
-      // the provider's rank from their cached city×care-type diagnostic; collects a warm target
-      // when it's not cached yet. Non-fatal: a failure just falls back to the analytics email.
+      // Market Intelligence hero — for any send not leading with a question/lead/completion. That
+      // now includes demoted-question providers (their question was set aside this week), which is
+      // how a stale-question provider can pick up a rank nudge instead. Resolves the provider's
+      // rank from their cached city×care-type diagnostic; collects a warm target when it's not
+      // cached yet (suppressed for demoted questions — see below). Non-fatal: a failure just
+      // falls back to the analytics email.
       // Rank-eligible (cold/quiet) providers carry a precomputed rank from §1c — used directly,
       // so they cost zero Places/warming calls and can never queue a warm.
       // Skipped when a completion nudge is showing (it takes priority).
@@ -626,7 +688,11 @@ export async function GET(request: NextRequest) {
           try {
             const mr = await resolveProviderMarketRank(bp, db);
             marketRank = mr.rank;
-            if (mr.warmTarget) warmTargets.push(mr.warmTarget);
+            // Demoting stale questions newly routes ~2,200 question-providers into this block. A
+            // cache READ (resolveProviderMarketRank) is cheap, but queuing a warm spends Places +
+            // Anthropic. For a demoted-question provider, use only an already-cached rank — never
+            // pay to warm a city for an unclaimed provider whose question we just set aside.
+            if (mr.warmTarget && !demotedQuestionOnly) warmTargets.push(mr.warmTarget);
           } catch (err) {
             console.error(`[weekly-provider-digest] market-rank resolve failed for ${providerSlug}:`, err);
           }
@@ -641,7 +707,17 @@ export async function GET(request: NextRequest) {
         bucket.leads > 0 ||
         bucket.questions > 0;
       if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank && !completionUrl) {
-        bumpSkip(rankEligible.has(providerId) ? "rank_unresolved" : "question_url_mint_failed");
+        // Distinguish the new common case: a provider whose only signal was a stale question we
+        // demoted this week, with no other rung to fall to → intentionally goes quiet (the whole
+        // point of decay) rather than getting the dead nudge. Kept separate from the genuine
+        // failure modes so ops can see decay working vs. a rank/URL problem.
+        bumpSkip(
+          demotedQuestionOnly
+            ? "question_demoted_no_other_signal"
+            : rankEligible.has(providerId)
+              ? "rank_unresolved"
+              : "question_url_mint_failed",
+        );
         continue;
       }
 

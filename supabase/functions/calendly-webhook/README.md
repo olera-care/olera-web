@@ -12,14 +12,20 @@ mirror Calendly state in the CRM.
 
 | Calendly event | CRM effect |
 |---|---|
-| `invitee.created` | `meeting_scheduled` touchpoint with `payload.meeting_at = start_time`. Surfaces in Meetings tab Upcoming via the existing `meeting_state="scheduled"` derivation. Resets `viewed_at` so the row re-bolds. |
+| `invitee.created` | `meeting_scheduled` touchpoint with `payload.meeting_at = start_time`. Surfaces in Meetings tab Upcoming via the existing `meeting_state="scheduled"` derivation. **Cancels pending cadence tasks** (`outreach_email_send` / `outreach_followup_call` / `outreach_day_0`) so a booking stops BOTH the cold and the activation cadence. Promotes pre-engaged rows to `engaged`. Resets `viewed_at` so the row re-bolds. |
 | `invitee.canceled` (alone) | `meeting_no_show` touchpoint with `payload.reason="canceled"`. Surfaces in Meetings tab No-show / Reschedule. |
 | `invitee.canceled` (within 60s of a `meeting_scheduled`) | `note_added` touchpoint with `payload.reason="calendly_reschedule_pending"`. Pairs with the subsequent `invitee.created` (which sets the new time). |
 | `invitee.rescheduled` (when emitted as discrete event) | Treated as `created` — the new meeting time wins. |
 
-## Matching invitee.email → outreach row
+## Matching the booking → outreach row
 
-Three-layer best-match:
+**0. Deterministic — `tracking.utm_content`.** The Calendly links in our emails
+carry `?utm_content={{outreach_id}}` (set in `finalizeTokens`), which Calendly
+returns in the invitee `tracking` object. When present, this resolves the row
+directly — no ambiguity. The email fallback below covers bookings from links
+without the utm tag (e.g. Dr. DuBose's signature link).
+
+Email fallback — three-layer best-match:
 
 1. `research_data.general_contact.email` (most reliable cold-outreach surface)
 2. `research_data.decision_maker.email`

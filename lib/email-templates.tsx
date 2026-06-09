@@ -202,17 +202,14 @@ function offRampBlock(providerSlug?: string): string {
 
 /**
  * Dr. Logan's signature block with photo for lead notification emails.
- * Includes intro paragraph, soft urgency line, and credentials.
+ * Includes intro paragraph and credentials.
  */
 function loganLeadSignature(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
   return `
     <div style="margin:24px 0 0;">
-      <p style="font-size:14px;color:#374151;margin:0 0 16px;line-height:1.6;">
-        I'm Dr. Logan DuBose, Olera's COO. We're an NIH-backed platform built by a team with backgrounds in medicine and research — we made Olera so families can find trustworthy care and connect with good providers directly, without a broker in the middle.
-      </p>
       <p style="font-size:14px;color:#374151;margin:0 0 20px;line-height:1.6;">
-        Families usually reach out to a few providers while they decide, so even a short reply means a lot to them.
+        I'm Dr. Logan DuBose, Olera's Chief Research Officer (CRO). We're a National Institute of Health (NIH)-backed senior care directory built by a team with backgrounds in academia and engineering. With the NIH's help, we made Olera as a directory for families and providers to match based on senior care needs and offerings. We do NOT charge for matching. In other words, this is NOT a fee-for-lead directory. You can connect with families on Olera for free. Families reach out to a few providers with their care needs, scheduling request, and urgency. Even a short reply from you means a lot to them and could be helpful for you in establishing a new client.
       </p>
       <table cellpadding="0" cellspacing="0" style="margin:0;">
         <tr>
@@ -221,11 +218,52 @@ function loganLeadSignature(): string {
           </td>
           <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
             <p style="margin:0;font-weight:600;color:#111827;">— Dr. Logan DuBose</p>
-            <p style="margin:2px 0 0;color:#6b7280;">COO, Olera · Affiliate Faculty, Texas A&amp;M College of Nursing</p>
+            <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
           </td>
         </tr>
       </table>
     </div>`;
+}
+
+/**
+ * Cold / quiet-week provider rank email — the §1c Market-Intelligence expansion audience.
+ *
+ * A trust-forward first-contact note from Dr. DuBose for providers who rank top-5 in their
+ * local market but have no weekly activity (never engaged with Olera). The copy answers the
+ * four questions a stranger asks — who is Olera, are they legit, did I sign up, do they charge —
+ * before the rank lands, with NIH (backing + an SBIR-funded researcher) + a physician CRO doing the trust
+ * work. The CTA is a one-click "market" magic link that invisibly authenticates them onto their
+ * Find Families rank view. Photo is Supabase-hosted (olera.care assets are WAF-challenged for
+ * email image proxies and render blank).
+ */
+export function coldProviderRankEmail(opts: {
+  rank: number;
+  outOf: number;
+  cityLabel: string;
+  careLabel: string;      // "home care" | "assisted living"
+  ctaUrl: string;         // one-click market magic link (auth → /provider/matches)
+  manageUrl: string;
+  removeUrl: string;
+  unsubscribeUrl: string;
+}): string {
+  const { rank, outOf, cityLabel, careLabel, ctaUrl, manageUrl, removeUrl, unsubscribeUrl } = opts;
+  const ORDINAL_WORDS = ["", "first", "second", "third", "fourth", "fifth"];
+  const rankWord = ORDINAL_WORDS[rank] ?? `#${rank}`;
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  const care = escapeHtml(careLabel);
+  const city = escapeHtml(cityLabel);
+  const body = `
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Families comparing ${care} in ${city} see ${outOf} agencies. Yours ranks <strong style="color:${BRAND_COLOR};">${rankWord}</strong>, by the Google reviews they actually read.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">I'm Dr. Logan DuBose, Olera's Chief Research Officer (CRO). We built Olera with <strong>NIH funding</strong> so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads. Your agency is already listed, and families nearby are already comparing it to the others.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">I thought you'd want to see where you stand, and to make the page yours.</p>
+    <div style="margin:0 0 30px;">${button("See where you rank", ctaUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
+      <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
+      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;"><p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p><p style="margin:2px 0 0;color:#6b7280;">CRO, Olera &middot; Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p></td>
+    </tr></table>
+    <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"><p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", manageUrl)} &middot; ${secondaryLink("Remove it", removeUrl)} &middot; ${secondaryLink("Unsubscribe", unsubscribeUrl)}</p></div>`;
+  return layout(body, `You rank ${rankWord} of ${outOf} ${careLabel} agencies in ${cityLabel}`);
 }
 
 /**
@@ -444,34 +482,6 @@ export function connectionSentEmail(opts: {
   `, "We'll notify you when they respond.");
 }
 
-/**
- * Combined email for guest connections — serves as both confirmation AND magic link.
- * Single email reduces confusion and improves conversion.
- */
-export function guestConnectionEmail(opts: {
-  familyName: string;
-  providerName: string;
-  careType: string | null;
-  magicLinkUrl: string;
-}): string {
-  const careLine = opts.careType
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;"><strong>Care type:</strong> ${escapeHtml(opts.careType)}</p>`
-    : "";
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your message is on its way</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, your inquiry to <strong>${escapeHtml(opts.providerName)}</strong> has been delivered. We'll notify you as soon as they respond.
-    </p>
-    ${careLine}
-    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;">Click below to view your inbox — you'll be signed in automatically.</p>
-    <div style="margin:0 0 24px;">${button("View your inbox", opts.magicLinkUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
-      This link expires in 1 hour. Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
-    </p>
-  `, "We'll notify you when they respond.");
-}
-
 /** Email to verify email address after instant account creation */
 export function verifyEmailEmail(opts: {
   familyName: string;
@@ -531,24 +541,29 @@ export function connectionResponseEmail(opts: {
  * Email for when someone sends their FIRST message in a thread (initiating contact).
  * Shows the message preview and says "sent you a message" not "got back to you".
  */
-export function firstMessageEmail(opts: {
-  recipientName: string;
-  senderName: string;
+/**
+ * First message email to FAMILY (when a PROVIDER sends them a message for the first time).
+ * Greeting: Family's first name or "Hi there,"
+ * Sender: Provider's full name
+ */
+export function firstMessageEmailForFamily(opts: {
+  familyName: string;
+  providerName: string;
   messagePreview: string;
   viewUrl: string;
 }): string {
-  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
-  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
-    ? escapeHtml(firstName(opts.recipientName, "there"))
+  const providerFullName = escapeHtml(opts.providerName || "A provider");
+  const familyGreeting = opts.familyName && opts.familyName.trim()
+    ? escapeHtml(firstName(opts.familyName, "there"))
     : "there";
   const safePreview = escapeHtml(opts.messagePreview);
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${recipientGreeting},
+      Hi ${familyGreeting},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${safeSenderFullName}</strong> sent you a message:
+      <strong>${providerFullName}</strong> sent you a message:
     </p>
     <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
@@ -571,28 +586,74 @@ export function firstMessageEmail(opts: {
 }
 
 /**
- * Email for when someone REPLIES in an ongoing conversation.
- * Says "got back to you" since recipient has messaged before.
+ * First message email to PROVIDER (when a FAMILY sends them a message for the first time).
+ * Greeting: Provider's full name (business name)
+ * Sender: Family's first name or "A family"
  */
-export function newMessageEmail(opts: {
-  recipientName: string;
-  senderName: string;
+export function firstMessageEmailForProvider(opts: {
+  providerName: string;
+  familyName: string;
   messagePreview: string;
   viewUrl: string;
 }): string {
-  // Use full sender name (not shortened) in first line, as specified
-  const safeSenderFullName = escapeHtml(opts.senderName || "Someone");
-  const recipientGreeting = opts.recipientName && opts.recipientName.trim()
-    ? escapeHtml(firstName(opts.recipientName, "there"))
-    : "there";
+  const providerGreeting = escapeHtml(opts.providerName || "there");
+  const safeFamilyName = firstName(opts.familyName, "");
+  const familyRef = safeFamilyName ? escapeHtml(safeFamilyName) : "A family";
+  const safePreview = escapeHtml(opts.messagePreview);
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${recipientGreeting},
+      Hi ${providerGreeting},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Good news — <strong>${safeSenderFullName}</strong> just got back to you. You can read their message and reply right here:
+      <strong>${familyRef}</strong> sent you a message:
     </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
+    <div style="margin:0 0 24px;">${button("Read their message", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Families appreciate a quick, personal response — it can make all the difference in their decision.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions? We're here to help — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "A family sent you a message — read and respond.");
+}
+
+/**
+ * Email to FAMILY when a PROVIDER replies in an ongoing conversation.
+ * Greeting: Family's first name or "Hi there,"
+ * Sender: Provider's full name
+ */
+export function newMessageEmailForFamily(opts: {
+  familyName: string;
+  providerName: string;
+  messagePreview: string;
+  viewUrl: string;
+}): string {
+  // Family greeting: first name or "there"
+  const familyGreeting = opts.familyName && opts.familyName.trim()
+    ? escapeHtml(firstName(opts.familyName, "there"))
+    : "there";
+  // Provider: use full name, fallback to "A provider"
+  const providerFullName = escapeHtml(opts.providerName || "A provider");
+  const safePreview = escapeHtml(opts.messagePreview);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${familyGreeting},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Good news — <strong>${providerFullName}</strong> just got back to you:
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
     <div style="margin:0 0 24px;">${button("Read their reply", opts.viewUrl)}</div>
     <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
@@ -608,6 +669,48 @@ export function newMessageEmail(opts: {
       Warmly,<br>The Olera team
     </p>
   `, "Read their message and reply whenever you're ready.");
+}
+
+/**
+ * Email to PROVIDER when a FAMILY replies in an ongoing conversation.
+ * Greeting: Provider's full name (business name)
+ * Sender: Family's first name or "A family"
+ */
+export function newMessageEmailForProvider(opts: {
+  providerName: string;
+  familyName: string;
+  messagePreview: string;
+  viewUrl: string;
+}): string {
+  // Provider greeting: full business name
+  const providerGreeting = escapeHtml(opts.providerName || "there");
+  // Family: first name if available, otherwise "A family"
+  const safeFamilyName = firstName(opts.familyName, "");
+  const familyRef = safeFamilyName ? escapeHtml(safeFamilyName) : "A family";
+  const safePreview = escapeHtml(opts.messagePreview);
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${providerGreeting},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      <strong>${familyRef}</strong> just replied:
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${safePreview}"</p>
+    </div>
+    <div style="margin:0 0 24px;">${button("Read their message", opts.viewUrl)}</div>
+    <div style="border-top:1px solid #e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Families appreciate a quick, personal response — it can make all the difference in their decision.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:24px 0 0;line-height:1.5;">
+      Questions? We're here to help — <a href="${BASE_URL}/contact" style="color:#6b7280;text-decoration:underline;">contact us anytime</a>.
+    </p>
+    <p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">
+      Warmly,<br>The Olera team
+    </p>
+  `, "A family replied — read their message and respond.");
 }
 
 /** Reminder email to family when provider responded but family hasn't engaged */
@@ -3175,7 +3278,7 @@ function getPronounsFromCareRecipient(careRecipient?: string | null): {
 }
 
 /**
- * Light signature block for follow-up emails (Days 1, 3, 10).
+ * Light signature block for follow-up emails (Days 1, 3, 7, 11).
  * Simple sign-off without photo or detailed credentials.
  */
 function loganLightSignature(): string {
@@ -3183,21 +3286,21 @@ function loganLightSignature(): string {
     <div style="margin:24px 0 0;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
         — Dr. Logan DuBose<br/>
-        <span style="color:#6b7280;">COO, Olera</span>
+        <span style="color:#6b7280;">CRO, Olera · Researcher funded by NIH SBIR Program</span>
       </p>
     </div>`;
 }
 
 /**
- * Heavy signature block for Day 6 follow-up email.
- * Full intro, photo, and credentials (NIH-backed, Texas A&M).
+ * Heavy signature block for Day 5 follow-up email.
+ * Shorter intro (reminder about free matching) + photo and credentials.
  */
 function loganHeavySignature(): string {
   const photoUrl = "https://olera.care/images/for-providers/team/logan.jpg";
   return `
     <div style="margin:24px 0 0;">
       <p style="font-size:14px;color:#374151;margin:0 0 16px;line-height:1.6;">
-        I'm Dr. Logan DuBose, Olera's COO. We're an NIH-backed platform built by a team with backgrounds in medicine and research — we don't charge you or sell your information, we just make the introduction.
+        Quick reminder: Olera is free for providers. We do NOT charge for matching — this is NOT a fee-for-lead directory. You can connect with families on Olera for free.
       </p>
       <table cellpadding="0" cellspacing="0" style="margin:0;">
         <tr>
@@ -3206,7 +3309,7 @@ function loganHeavySignature(): string {
           </td>
           <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
             <p style="margin:0;font-weight:600;color:#111827;">— Dr. Logan DuBose</p>
-            <p style="margin:2px 0 0;color:#6b7280;">COO, Olera · Affiliate Faculty, Texas A&amp;M College of Nursing</p>
+            <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
           </td>
         </tr>
       </table>

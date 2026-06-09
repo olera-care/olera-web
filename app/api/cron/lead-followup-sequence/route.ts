@@ -16,42 +16,46 @@ import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tok
  * GET /api/cron/lead-followup-sequence
  *
  * Runs daily at 14:00 UTC (~9 AM ET). Multi-stage follow-up sequence for
- * provider leads that haven't been viewed.
+ * provider leads that haven't connected.
  *
- * Sequence:
+ * Sequence (compressed for faster human intervention):
  * - Day 0: Initial email (connectionRequestEmail — sent elsewhere)
  * - Day 1: Follow-up #1 — "In case it got buried" (stage 1)
  * - Day 3: Follow-up #2 — "Still waiting, replying is effortless" (stage 2)
- * - Day 6: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
- * - Day 10: Final message — "Graceful last call" (stage 4)
- * - Day 14: Mark as "Stuck" — no email, awaiting re-engagement (stage 5)
- * - Day 17: Re-engagement email — "One more try" (stage 6, template pending)
- * - Day 24: Mark as "Needs Call" — no email, requires manual call (stage 7)
+ * - Day 5: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
+ * - Day 7: Final message — "Graceful last call" (stage 4)
+ * - Day 10: Mark as "Stuck" — no email, awaiting re-engagement (stage 5)
+ * - Day 11: Re-engagement email — "One more try" (stage 6)
+ * - Day 14: Mark as "Needs Call" — no email, requires manual call (stage 7)
  *
- * STOP CONDITION: Sequence stops the moment provider VIEWS the lead (lead_opened event)
- * or takes any engagement action.
+ * STOP CONDITION: Sequence stops only when provider CONNECTS (not just views/engages):
+ *   - Clicks phone number (phone_clicked)
+ *   - Clicks email link (email_link_clicked)
+ *   - Sends a message to family
+ *   - Marks lead as "Replied"
+ *   - Archives with "Already connected" reason
+ *
+ * Viewing or engaging (revealing contact info) does NOT stop the sequence.
  */
 
-// Engagement events that indicate the provider has seen/acted on the lead
-const ENGAGEMENT_EVENTS = [
-  "lead_opened",
-  "contact_revealed",
+// Connection events from provider_activity that indicate provider reached out
+// NOTE: lead_opened and contact_revealed are NOT here — viewing/engaging doesn't stop sequence
+const CONNECTION_EVENTS = [
   "phone_clicked",
   "email_link_clicked",
-  "continue_in_inbox",
 ] as const;
 
 export const maxDuration = 120;
 
-// Stage thresholds in days since inquiry
+// Stage thresholds in days since inquiry (compressed sequence)
 const STAGE_THRESHOLDS = {
   1: 1,   // Day 1-2 → Stage 1
-  2: 3,   // Day 3-5 → Stage 2
-  3: 6,   // Day 6-9 → Stage 3
-  4: 10,  // Day 10-13 → Stage 4
-  5: 14,  // Day 14-16 → Stage 5 (stuck)
-  6: 17,  // Day 17-23 → Stage 6 (re-engagement email, template pending)
-  7: 24,  // Day 24+ → Stage 7 (needs_call — manual intervention)
+  2: 3,   // Day 3-4 → Stage 2
+  3: 5,   // Day 5-6 → Stage 3
+  4: 7,   // Day 7-9 → Stage 4
+  5: 10,  // Day 10 → Stage 5 (stuck)
+  6: 11,  // Day 11-13 → Stage 6 (re-engagement email)
+  7: 14,  // Day 14+ → Stage 7 (needs_call — manual intervention)
 } as const;
 
 type FollowupStage = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -61,7 +65,7 @@ interface FollowupMetadata {
   followup_sent_at?: string | null;
   followup_sent_by?: string;
   followup_stopped_at?: string | null;
-  followup_stopped_reason?: "engaged" | "responded" | "stuck" | "needs_call" | null;
+  followup_stopped_reason?: "connected" | "responded" | "stuck" | "needs_call" | null;
   needs_call?: boolean;
   thread?: ThreadMessage[];
 }
@@ -187,8 +191,8 @@ export async function GET(request: NextRequest) {
       leads_marked_needs_call: 0,
       skipped: 0,
       skipReasons: {
-        engaged: 0,
-        responded: 0,
+        connected: 0,  // Provider clicked phone/email
+        responded: 0,  // Provider sent message, marked replied, or already connected
         no_email: 0,
         already_at_stage: 0,
         sequence_stopped: 0,
@@ -257,50 +261,39 @@ export async function GET(request: NextRequest) {
     }
     const allProviderKeys = [...providerKeyMap.keys()];
 
-    // Query provider_activity for any engagement events on these connections
-    // FAIL-CLOSED: if we can't check engagement, don't send (Rule #1 protection)
-    // Include one_click_access to catch multi-lead email clicks (where connection_id is null)
-    const ENGAGEMENT_QUERY_LIMIT = 100000;
-    const allEngagementEvents = [...ENGAGEMENT_EVENTS, "one_click_access"] as const;
-    const { data: engagementEvents, error: engagementError } = await db
+    // Query provider_activity for connection events (phone/email clicks)
+    // FAIL-CLOSED: if we can't check, don't send (Rule #1 protection)
+    // NOTE: We do NOT query lead_opened or contact_revealed — viewing/engaging doesn't stop sequence
+    const CONNECTION_QUERY_LIMIT = 100000;
+    const { data: connectionEvents, error: connectionError } = await db
       .from("provider_activity")
       .select("provider_id, event_type, metadata")
-      .in("event_type", allEngagementEvents)
-      .limit(ENGAGEMENT_QUERY_LIMIT);
+      .in("event_type", CONNECTION_EVENTS)
+      .limit(CONNECTION_QUERY_LIMIT);
 
-    if (engagementEvents && engagementEvents.length >= ENGAGEMENT_QUERY_LIMIT) {
+    if (connectionEvents && connectionEvents.length >= CONNECTION_QUERY_LIMIT) {
       console.warn(
-        `[cron/lead-followup-sequence] Hit engagement query limit (${ENGAGEMENT_QUERY_LIMIT}). ` +
-        "Some engagement events may be missed. Consider optimizing the query."
+        `[cron/lead-followup-sequence] Hit connection query limit (${CONNECTION_QUERY_LIMIT}). ` +
+        "Some connection events may be missed. Consider optimizing the query."
       );
     }
 
-    if (engagementError) {
-      console.error("[cron/lead-followup-sequence] Engagement query failed:", engagementError);
-      throw new Error(`Failed to check engagement events: ${engagementError.message}`);
+    if (connectionError) {
+      console.error("[cron/lead-followup-sequence] Connection query failed:", connectionError);
+      throw new Error(`Failed to check connection events: ${connectionError.message}`);
     }
 
-    // Build a Set of connection IDs that have been engaged with
-    const engagedConnectionIds = new Set<string>();
+    // Build a Set of connection IDs where provider has connected (clicked phone/email)
+    const connectedConnectionIds = new Set<string>();
     const connectionIdSet = new Set(allConnectionIds);
-    // Also track engaged PROVIDERS (catches multi-lead email clicks)
-    const engagedProviderIds = new Set<string>();
 
-    for (const event of engagementEvents || []) {
+    for (const event of connectionEvents || []) {
       const meta = event.metadata as Record<string, unknown>;
       const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
 
       // Match by connection_id if available
       if (connId && connectionIdSet.has(connId)) {
-        engagedConnectionIds.add(connId);
-      }
-
-      // For one_click_access and lead_opened, also track the provider as engaged
-      // This catches multi-lead emails where connection_id is null
-      if ((event.event_type === "one_click_access" || event.event_type === "lead_opened") && event.provider_id) {
-        if (allProviderKeys.includes(event.provider_id)) {
-          engagedProviderIds.add(event.provider_id);
-        }
+        connectedConnectionIds.add(connId);
       }
     }
 
@@ -331,34 +324,29 @@ export async function GET(request: NextRequest) {
         // In force mode, we don't skip based on followup_stopped_at
         // because we explicitly want to re-engage stuck connections
       } else {
-        // NORMAL MODE: Check if sequence was already stopped
-        // Only skip if stopped for engagement/response (success cases) or needs_call (terminal)
-        // Don't skip if stopped_reason is "stuck" — allow progression to stages 6/7
-        if (meta.followup_stopped_at && meta.followup_stopped_reason !== "stuck") {
+        // NORMAL MODE: Check if sequence was already stopped for a REAL connection
+        // Only skip if stopped for actual connection ("connected", "responded") or terminal ("needs_call")
+        // Don't skip "stuck" — allow progression to stages 6/7
+        // Don't skip old "engaged" — those were just views, provider should still get emails
+        const stopReason = meta.followup_stopped_reason;
+        const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "needs_call";
+        if (meta.followup_stopped_at && isRealStop) {
           counts.skipped++;
           counts.skipReasons.sequence_stopped++;
           continue;
         }
       }
 
-      // Check if provider has engaged with this lead (connection-level or provider-level)
-      // Provider-level check catches multi-lead email clicks where connection_id is null
-      const providerKeys = [
-        toProfile?.slug,
-        toProfile?.source_provider_id,
-        toProfile?.id,
-      ].filter(Boolean) as string[];
-      const isEngaged =
-        engagedConnectionIds.has(conn.id) ||
-        providerKeys.some((key) => engagedProviderIds.has(key));
+      // Check if provider has connected via phone/email click
+      const hasClickedContact = connectedConnectionIds.has(conn.id);
 
-      if (isEngaged) {
-        // Mark as engaged and stop sequence
+      if (hasClickedContact) {
+        // Mark as connected and stop sequence
         if (!dryRun) {
           const updatedMeta = {
             ...meta,
             followup_stopped_at: new Date().toISOString(),
-            followup_stopped_reason: "engaged" as const,
+            followup_stopped_reason: "connected" as const,
           };
           await db
             .from("connections")
@@ -366,7 +354,7 @@ export async function GET(request: NextRequest) {
             .eq("id", conn.id);
         }
         counts.skipped++;
-        counts.skipReasons.engaged++;
+        counts.skipReasons.connected++;
         continue;
       }
 
@@ -412,9 +400,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Calculate days since inquiry and expected stage
+      // Calculate days since sequence started (Day 0 email sent)
+      // Use email_sent_at if present (for providers who got email added later)
+      // Otherwise fall back to connection creation date
+      const sequenceStartDate = (meta.email_sent_at as string) || conn.created_at;
       const daysSinceInquiry = Math.floor(
-        (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        (now - new Date(sequenceStartDate).getTime()) / (1000 * 60 * 60 * 24)
       );
       const currentStage = meta.followup_stage ?? 0;
 

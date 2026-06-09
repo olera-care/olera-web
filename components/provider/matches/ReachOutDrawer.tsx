@@ -934,19 +934,14 @@ ${context}${urgencyNote}. I'd love to help.
 
   // ── Contact Info Section (Connected state only) ──
   const ContactInfoSection = outreachStatus === "connected" && (familyPhone || familyEmail) ? (
-    <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-          <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-        </div>
-        <p className="text-sm font-semibold text-primary-800">Contact Information</p>
+        <p className="text-sm font-semibold text-gray-700">Contact Information</p>
       </div>
       <div className="space-y-3">
         {/* Phone */}
         {familyPhone && (
-          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-gray-200">
             <div className="min-w-0">
               <p className="text-xs text-gray-500 mb-0.5">Phone</p>
               <p className="text-[15px] font-semibold text-gray-900 truncate">{familyPhone}</p>
@@ -987,7 +982,7 @@ ${context}${urgencyNote}. I'd love to help.
 
         {/* Email */}
         {familyEmail && (
-          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-primary-100">
+          <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-gray-200">
             <div className="min-w-0">
               <p className="text-xs text-gray-500 mb-0.5">Email</p>
               <p className="text-[15px] font-semibold text-gray-900 truncate">{familyEmail}</p>

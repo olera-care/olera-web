@@ -177,22 +177,6 @@ interface ReferrerBreakdown {
   other: number;
 }
 
-// SBF submissions bucketed by entry source. Both editorial AND provider
-// mounts now tag entrySource — editorial passes /caregiver-support/{slug},
-// provider passes /provider/{slug}. The query filters to NOT NULL so non-
-// SBF account creations (auth callback, claim flows, listing creation)
-// don't pollute the counts. Pre-tagging-deploy provider SBF rows are NULL
-// and therefore invisible until enough time passes for tagged inserts to
-// dominate the window.
-interface EntrySourceBreakdown {
-  total: number;
-  editorial_total: number;
-  provider_total: number;
-  other_total: number;
-  top_editorial_articles: Array<{ slug: string; count: number }>;
-}
-
-
 // One row of the Dashboard Banners leaderboard — distinct providers shown vs.
 // clicked, per hero banner. CTR is derived client-side.
 interface BannerLeaderboardRow {
@@ -217,7 +201,6 @@ interface SummaryResponse {
     cta_funnel: CTAFunnel;
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
-    entry_source_breakdown: EntrySourceBreakdown;
   };
   prior: {
     counts: WindowedCounts;
@@ -232,7 +215,6 @@ interface SummaryResponse {
     cta_funnel: CTAFunnel;
     cta_funnel_by_variant: CTAFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
-    entry_source_breakdown: EntrySourceBreakdown;
   } | null;
   insight: string | null;
   botRejects: { count: number; date: string };
@@ -432,15 +414,6 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <DashboardBannersCard summary={summary} />
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title="Submissions by Entry Source"
-        storageKey="entrySource"
-        defaultCollapsed={true}
-        loading={loading && !!summary}
-      >
-        <EntrySourceCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -2598,118 +2571,6 @@ function CTAVariantSplit({
           {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before CTA A/B was wired).
         </p>
       )}
-    </div>
-  );
-}
-
-
-// Submissions bucketed by entry source. The benefits funnel above is
-// provider_activity-driven and editorial mounts emit zero provider_activity,
-// so editorial submissions are invisible there. This card reads accounts
-// directly so editorial conversions surface — and so we can answer
-// "did /caregiver-support/ produce signups?" without a SQL detour.
-function EntrySourceCard({
-  summary,
-  loading,
-  range,
-}: {
-  summary: SummaryResponse | null;
-  loading: boolean;
-  range: DateRangeValue;
-}) {
-  if (loading && !summary) {
-    return <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
-  }
-  if (!summary) return null;
-
-  const b = summary.windowed.entry_source_breakdown;
-  const pb = summary.prior?.entry_source_breakdown ?? null;
-
-  const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : "—");
-  const delta = (curr: number, prior: number | null) => {
-    if (prior === null) return null;
-    if (prior === 0) return curr > 0 ? "new" : null;
-    const change = Math.round(((curr - prior) / prior) * 100);
-    return `${change >= 0 ? "+" : ""}${change}%`;
-  };
-
-  const editorialDelta = delta(b.editorial_total, pb?.editorial_total ?? null);
-  const providerDelta = delta(b.provider_total, pb?.provider_total ?? null);
-
-  return (
-    <>
-      <p className="text-xs text-gray-500 mb-5">
-        SBF intake submissions {rangeLabel(range).toLowerCase()}, bucketed by{" "}
-        <code className="text-[11px] bg-gray-50 px-1 rounded">accounts.signup_source</code>
-        . Editorial mounts tag <code className="text-[11px] bg-gray-50 px-1 rounded">/caregiver-support/&#123;slug&#125;</code>; provider mounts tag <code className="text-[11px] bg-gray-50 px-1 rounded">/provider/&#123;slug&#125;</code>. Untagged accounts (auth callback, claim flows, etc.) are excluded. Provider SBF submissions made before the tagging deploy are also untagged → invisible until they roll out of the window.
-      </p>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-3 mb-5">
-        <EntrySourceStat label="Total tagged" value={b.total} delta={null} />
-        <EntrySourceStat
-          label="Editorial"
-          value={b.editorial_total}
-          subLabel={pct(b.editorial_total, b.total)}
-          delta={editorialDelta}
-        />
-        <EntrySourceStat
-          label="Provider"
-          value={b.provider_total}
-          subLabel={pct(b.provider_total, b.total)}
-          delta={providerDelta}
-        />
-        <EntrySourceStat label="Other" value={b.other_total} subLabel={pct(b.other_total, b.total)} delta={null} />
-      </div>
-
-      {b.top_editorial_articles.length > 0 ? (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-2">
-            Top editorial articles
-          </div>
-          <ul className="space-y-1.5">
-            {b.top_editorial_articles.map(({ slug, count }) => (
-              <li key={slug} className="flex items-baseline justify-between text-sm">
-                <a
-                  href={`/caregiver-support/${slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-700 hover:text-gray-900 truncate mr-3 underline-offset-2 hover:underline"
-                >
-                  /caregiver-support/{slug}
-                </a>
-                <span className="tabular-nums text-gray-900 font-medium flex-shrink-0">{count}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : b.editorial_total === 0 ? (
-        <p className="text-[11px] text-gray-400 mt-3">
-          No editorial submissions yet in this window. Top articles by submission count appear here once <code className="text-[10px] bg-gray-50 px-1 rounded">/caregiver-support/[slug]</code> mounts start producing tagged accounts.
-        </p>
-      ) : null}
-    </>
-  );
-}
-
-function EntrySourceStat({
-  label,
-  value,
-  subLabel,
-  delta,
-}: {
-  label: string;
-  value: number;
-  subLabel?: string;
-  delta: string | null;
-}) {
-  return (
-    <div>
-      <div className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-0.5">{label}</div>
-      <div className="flex items-baseline gap-2">
-        <div className="text-xl font-semibold tabular-nums text-gray-900">{value}</div>
-        {subLabel && <div className="text-[12px] text-gray-500 tabular-nums">{subLabel}</div>}
-      </div>
-      {delta && <div className="text-[11px] text-gray-400 mt-0.5">{delta} vs prior</div>}
     </div>
   );
 }

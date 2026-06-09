@@ -81,6 +81,9 @@ interface InviteeExtract {
   event_uri: string | null;
   /** Event arrival time (for the canceled+created reschedule pairing). */
   event_at: string;
+  /** tracking.utm_content — carries the outreach_id when the provider booked
+   *  via a Calendly link from our emails (deterministic match). */
+  utm_content: string | null;
 }
 
 function extractInvitee(raw: unknown): InviteeExtract {
@@ -108,6 +111,12 @@ function extractInvitee(raw: unknown): InviteeExtract {
     r.created_at ?? r.timestamp ?? new Date().toISOString();
   const eventAt = String(eventAtRaw);
 
+  const tracking = (payload.tracking ?? {}) as Record<string, unknown>;
+  const utmContent =
+    typeof tracking.utm_content === "string" && tracking.utm_content.trim()
+      ? tracking.utm_content.trim()
+      : null;
+
   return {
     invitee_email: email,
     invitee_name: name,
@@ -115,6 +124,25 @@ function extractInvitee(raw: unknown): InviteeExtract {
     invitee_uri: inviteeUri,
     event_uri: eventUri,
     event_at: eventAt,
+    utm_content: utmContent,
+  };
+}
+
+/** Deterministic match: the Calendly link in our emails carries
+ *  ?utm_content={{outreach_id}}, which Calendly returns in tracking. */
+async function resolveRowByOutreachId(
+  outreachId: string,
+): Promise<ResolvedRow | null> {
+  const { data } = await supabase
+    .from("student_outreach")
+    .select("id, status, replies_state")
+    .eq("id", outreachId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id as string,
+    status: data.status as string,
+    replies_state: (data.replies_state as string | null) ?? null,
   };
 }
 
@@ -244,13 +272,25 @@ async function handleCreated(row: ResolvedRow, extract: InviteeExtract) {
     occurred_at: extract.event_at,
   }, `Calendly booking · ${extract.invitee_name ?? extract.invitee_email ?? "invitee"}`);
 
-  // Reset viewed_at so the row resurfaces in admin's Meetings tab
-  // immediately — mirrors the row-modification semantics of the Smartlead
-  // webhook reply handler.
+  // A booked meeting supersedes the chase — cancel pending cadence tasks so
+  // neither the cold cadence NOR the activation cadence (its calls are
+  // outreach_followup_call tasks) keeps firing at a provider who just booked.
+  // Mirrors handleMarkMeetingScheduled's supersedePending* calls in route.ts.
   await supabase
-    .from("student_outreach")
-    .update({ viewed_at: null })
-    .eq("id", row.id);
+    .from("student_outreach_tasks")
+    .update({ status: "superseded", completed_at: new Date().toISOString() })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_email_send", "outreach_followup_call", "outreach_day_0"]);
+
+  // Promote pre-engaged rows to engaged (mirrors mark_meeting_scheduled) and
+  // reset viewed_at so the row resurfaces in admin's Meetings tab immediately.
+  const patch: Record<string, unknown> = { viewed_at: null };
+  if (["outreach_sent", "researched", "prospect", "no_response_closed"].includes(row.status)) {
+    patch.status = "engaged";
+    if (row.status === "no_response_closed") patch.reopen_at = null;
+  }
+  await supabase.from("student_outreach").update(patch).eq("id", row.id);
 }
 
 async function handleCanceled(row: ResolvedRow, extract: InviteeExtract) {
@@ -396,9 +436,14 @@ Deno.serve(async (req: Request) => {
     if (kind === "ignore") return new Response("ok (ignored)", { status: 200 });
 
     const extract = extractInvitee(raw);
-    const row = await resolveRow(extract.invitee_email);
+    // Deterministic utm_content match first; fall back to invitee email.
+    const row =
+      (extract.utm_content
+        ? await resolveRowByOutreachId(extract.utm_content)
+        : null) ?? (await resolveRow(extract.invitee_email));
     if (!row) {
       console.warn("[calendly-webhook] could not map event to a row", {
+        utm_content: extract.utm_content,
         email: extract.invitee_email,
         kind,
       });

@@ -2172,87 +2172,26 @@ function EnrollmentBanner({
   const secondaryClass =
     "rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50";
 
+  // The full cadence on whichever channels this contact has.
+  const addMode = hasEmail && hasPhone
+    ? "full_both"
+    : hasEmail
+      ? "full_email_cadence"
+      : "full_call_cadence";
+
   return (
     <div className="border-t border-primary-200 bg-primary-50/40 px-3 py-2">
-      <p className="text-[11px] text-primary-900">
-        Just added · outreach already in flight. How should we proceed?
-      </p>
+      <p className="text-[11px] text-primary-900">Added after launch — send to them too?</p>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
-        {hasEmail && hasPhone && (
-          <>
-            <button
-              onClick={() => dispatch("send_now_both")}
-              disabled={saving != null}
-              className={buttonClass}
-              title="Queue one Day-0 email + one Day-0 call for this recipient now."
-            >
-              {saving === "send_now_both" ? "Queuing…" : "Send Day 0 (email + call)"}
-            </button>
-            <button
-              onClick={() => dispatch("full_both")}
-              disabled={saving != null}
-              className={buttonClass}
-              title="Queue the full provider cadence (3 emails + 3 calls) starting today."
-            >
-              {saving === "full_both" ? "Queuing…" : "Run full cadence"}
-            </button>
-          </>
-        )}
-        {hasEmail && !hasPhone && (
-          <>
-            <button
-              onClick={() => dispatch("send_now_email")}
-              disabled={saving != null}
-              className={buttonClass}
-            >
-              {saving === "send_now_email" ? "Queuing…" : "Send Day 0 email"}
-            </button>
-            <button
-              onClick={() => dispatch("full_email_cadence")}
-              disabled={saving != null}
-              className={buttonClass}
-            >
-              {saving === "full_email_cadence" ? "Queuing…" : "Run email cadence"}
-            </button>
-          </>
-        )}
-        {!hasEmail && hasPhone && (
-          <>
-            <button
-              onClick={() => dispatch("send_now_call")}
-              disabled={saving != null}
-              className={buttonClass}
-            >
-              {saving === "send_now_call" ? "Queuing…" : "Queue Day 0 call"}
-            </button>
-            <button
-              onClick={() => dispatch("full_call_cadence")}
-              disabled={saving != null}
-              className={buttonClass}
-            >
-              {saving === "full_call_cadence" ? "Queuing…" : "Run call cadence"}
-            </button>
-          </>
-        )}
-        {hasEmail && hasPhone && (
-          <>
-            <button
-              onClick={() => dispatch("full_email_cadence")}
-              disabled={saving != null}
-              className={secondaryClass}
-              title="Email cadence only — calls skipped for this recipient."
-            >
-              Email cadence only
-            </button>
-            <button
-              onClick={() => dispatch("full_call_cadence")}
-              disabled={saving != null}
-              className={secondaryClass}
-              title="Call cadence only — emails skipped for this recipient."
-            >
-              Call cadence only
-            </button>
-          </>
+        {(hasEmail || hasPhone) && (
+          <button
+            onClick={() => dispatch(addMode)}
+            disabled={saving != null}
+            className={buttonClass}
+            title="Run the cadence for this contact too."
+          >
+            {saving === addMode ? "Adding…" : "Add to cadence"}
+          </button>
         )}
         <button
           onClick={() => dispatch("informational")}
@@ -2260,7 +2199,7 @@ function EnrollmentBanner({
           className={secondaryClass}
           title="Keep in the contact list but don't send anything."
         >
-          {saving === "informational" ? "Saving…" : "Informational only"}
+          {saving === "informational" ? "Saving…" : "Just add (no send)"}
         </button>
       </div>
     </div>
@@ -2361,8 +2300,8 @@ export function ContactFormBanner({
         <ul className="mt-1 list-disc space-y-0.5 pl-4">
           <li>Contact forms come in different shapes — use the best available fields and your judgment.</li>
           <li>Email field → use <span className="font-mono">graize@olera.care</span>.</li>
-          <li>Phone field → use Olera's outreach phone number.</li>
-          <li>Family / client-lead forms → still submit the message if it's the only contact path; the goal is reaching the agency through every available channel.</li>
+          <li>Phone field → use Olera&apos;s outreach phone number.</li>
+          <li>Family / client-lead forms → still submit the message if it&apos;s the only contact path; the goal is reaching the agency through every available channel.</li>
           <li>Paste the message above, submit the form, then log the outcome below.</li>
         </ul>
       </div>

@@ -44,6 +44,12 @@ export function normalizeKey(city: string, state: string, careType: string | nul
 
 export function isFresh(row: DiagRow): boolean {
   if (row.status !== "ready" || !row.generated_at) return false;
+  // Pre-#960 rows lack competitorLandscape.ranked (the self-rank source). Treat them as stale so
+  // warmCity + the serve route recompute them into the new shape instead of serving inert data
+  // that can never surface a provider's rank.
+  if (!(row.data as { competitorLandscape?: { ranked?: unknown[] } } | null)?.competitorLandscape?.ranked) {
+    return false;
+  }
   const ageMs = Date.now() - new Date(row.generated_at).getTime();
   return ageMs < TTL_DAYS * 24 * 60 * 60 * 1000;
 }

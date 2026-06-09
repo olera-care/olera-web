@@ -223,6 +223,14 @@ export interface ResearchData {
       last_clicked_at?: string;
     };
   };
+  /** Activation cadence Smartlead linkage — a SEPARATE per-campus campaign
+   *  from the cold `smartlead` one above, enrolling the engaged contact into
+   *  the activation sequence. Set by enrollRowIntoActivationCampaign. */
+  smartlead_activation?: {
+    campaign_id: number;
+    lead_email: string | null;
+    enrolled_at: string;
+  };
 }
 
 export interface Campus {

@@ -560,64 +560,21 @@ export function FilterPill({
 // ── Per-tab slot builders ────────────────────────────────────────────────
 
 /**
- * v8.10.15: every card across every tab gets the same overflow menu —
- * Make Partner + Stop Outreach are universally accessible from the ⋯
- * top-right of any card. Per-tab additions go via `extraItems`; per-row
- * exclusions (e.g. Make Partner on already-active partners) via
- * `excludeMakePartner`.
+ * Row overflow menu — the simplified workflow keeps the cards to status +
+ * click-to-open. The ⋯ menu carries only utilities (mark unread, jump to the
+ * directory / log history) plus the Stop-outreach picker. All outcome actions
+ * (interested / not interested / log call / log meeting / make client) live in
+ * the drawer now, reached by clicking the card.
  */
-export function buildUniversalOverflow(
-  cb: RowCardCallbacks,
-  options: {
-    excludeMakePartner?: boolean;
-    extraItems?: OverflowItem[];
-    /** When the row is kind='provider', swap the Mark-Partner item
-     *  for Make-Client. Provider rows graduate via the Client signal
-     *  on business_profiles, not via mark_partner on the outreach
-     *  row — see lib/medjobs/partner-prospect-gate.ts. */
-    row?: TabRow;
-  } = {},
-): ReactNode {
+export function buildUniversalOverflow(cb: RowCardCallbacks): ReactNode {
   const items: OverflowItem[] = [];
-  if (!options.excludeMakePartner) {
-    const isProvider = options.row?.kind === "provider";
-    if (isProvider && cb.onMakeClient) {
-      items.push({
-        label: "Make Client ✓",
-        onClick: cb.onMakeClient,
-        tone: "celebration",
-      });
-    } else if (!isProvider) {
-      items.push({
-        label: "Make Partner ★",
-        onClick: cb.onMarkPartner,
-        tone: "celebration",
-      });
-    }
-    // Provider rows without onMakeClient handler skip the terminal
-    // CTA from the overflow — admin can still convert from the
-    // drawer footer.
-  }
-  if (options.extraItems) items.push(...options.extraItems);
   items.push({ label: "Mark as unread", onClick: () => void cb.onMarkUnread() });
-  // v9 final: cross-surface navigation. Open in directory jumps to
-  // the public listing (provider rows only — cb.onOpenDirectory is
-  // populated server-side only when provider_slug exists). See log
-  // history filters the unified Logs feed to this row's outreach_id.
   if (cb.onOpenDirectory) {
     items.push({ label: "Open in directory ↗", onClick: cb.onOpenDirectory });
   }
   if (cb.onSeeLogHistory) {
     items.push({ label: "See log history", onClick: cb.onSeeLogHistory });
   }
-  // v9 final: Archive is a top-level shortcut for "no response —
-  // close" which is the most common close-out reason. The full
-  // Stop-outreach submenu below still covers the other reasons
-  // (not interested / wrong contact / do not contact).
-  items.push({
-    label: "Archive",
-    onClick: () => void cb.onStopOutreach("no_response_closed"),
-  });
   return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
 }
 
@@ -644,12 +601,8 @@ export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): R
 }
 
 function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v9 final: footnote answers "what does admin need to do?" not
-  // "what state is this row in?". Two cases:
-  //   researched → row has the data to launch; nudge toward the
-  //                review step that precedes launch.
-  //   prospect   → row is still missing operational info; tell
-  //                admin to fill it before launching.
+  // Footnote answers "what does the admin need to do?". The card opens the
+  // drawer on click — that's where research + launch happen.
   const subStateText =
     row.status === "researched"
       ? "Review contact info, then launch outreach"
@@ -658,27 +611,16 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     footnote: (
       <p className="mt-0.5 text-[11px] text-gray-500">{subStateText}</p>
     ),
-    cta: (
-      <PrimaryAction
-        onClick={cb.onOpenDrawer}
-        title="Open the drawer to review research + email cadence, then start outreach."
-      >
-        Log
-      </PrimaryAction>
-    ),
-    overflowMenu: buildUniversalOverflow(cb, { row }),
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v9 final: the Calls tab emits one TabRow per pending call task.
-  // v10 Bullet 7 (2026-06-04): per-row purpose hint (varies by cadence
-  // day) + "Clicked" pill when engagement sub-state is
-  // clicked_not_activated (they're warm — close the loop). The hint
-  // primes the admin on what to say without opening the drawer.
+  // The Calls tab emits one TabRow per pending call task. Footnote primes the
+  // admin on the call's intent; the phone link dials; clicking the card opens
+  // the drawer (script + Interested / Not interested / Couldn't reach).
   const cadenceDay = row.due_call_task?.cadence_day ?? null;
   const purposeHint = purposeHintForCadenceDay(cadenceDay);
-  const isClicked = row.engagement_substate === "clicked_not_activated";
   const footnoteLines: ReactNode[] = [];
   if (purposeHint) {
     footnoteLines.push(
@@ -696,37 +638,17 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   }
   return {
     footnote: footnoteLines.length > 0 ? <>{footnoteLines}</> : null,
-    headlineAccessory: (
-      <span className="flex shrink-0 items-center gap-2">
-        {isClicked && (
-          <span
-            title="Recently clicked an email link — they're warm. Close the loop."
-            className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700"
-          >
-            🖱 Clicked
-          </span>
-        )}
-        {row.primary_contact_phone && (
-          <a
-            href={`tel:${row.primary_contact_phone}`}
-            onClick={(e) => e.stopPropagation()}
-            title="Tap to dial (mobile) — opens the default phone app."
-            className="text-xs text-primary-700 underline hover:no-underline"
-          >
-            📞 {row.primary_contact_phone}
-          </a>
-        )}
-      </span>
-    ),
-    cta: (
-      <PrimaryAction
-        onClick={cb.onLogCallOutcome}
-        title="Log the outcome of this phone call."
+    headlineAccessory: row.primary_contact_phone ? (
+      <a
+        href={`tel:${row.primary_contact_phone}`}
+        onClick={(e) => e.stopPropagation()}
+        title="Tap to dial (mobile) — opens the default phone app."
+        className="shrink-0 text-xs text-primary-700 underline hover:no-underline"
       >
-        Log
-      </PrimaryAction>
-    ),
-    overflowMenu: buildUniversalOverflow(cb, { row }),
+        📞 {row.primary_contact_phone}
+      </a>
+    ) : undefined,
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
@@ -774,49 +696,21 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   const inboxLink = renderSmartleadInboxLink(row.smartlead_linkage);
   switch (state) {
     case "mid_cadence":
-      // v9 final: drop the "Awaiting reply" prefix — the Replies tab
-      // already implies it. Keep the "last activity Xd ago" signal
-      // (criterion #4 — what changed recently) so admin sees how
-      // long the row has been quiet.
       return {
         footnote: buildFootnote(null),
-        cta: (
-          <PrimaryAction
-            onClick={() => cb.onClassifyReply("email_reply")}
-            title="Saw a reply in Gmail? Click to record what they said."
-          >
-            Log
-          </PrimaryAction>
-        ),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "engaged":
       return {
-        footnote: buildFootnote("Reply received — review and log outcome"),
+        footnote: buildFootnote("Reply received — open to review"),
         headlineAccessory: inboxLink,
-        cta: (
-          <PrimaryAction
-            onClick={() => cb.onClassifyReply("email_reply")}
-            title="Log the reply contents and pick the next step."
-          >
-            Log
-          </PrimaryAction>
-        ),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "wants_meeting":
       return {
-        footnote: buildFootnote("Wants to meet — book or coordinate time"),
+        footnote: buildFootnote("Wants to meet"),
         headlineAccessory: inboxLink,
-        cta: (
-          <PrimaryAction
-            onClick={() => cb.onClassifyReply("email_reply")}
-            title="Log the reply contents and book or coordinate the meeting."
-          >
-            Log
-          </PrimaryAction>
-        ),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "booked":
       return {
@@ -825,7 +719,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Booked · {formatLongDate(row.meeting_at)}
           </p>
         ) : buildFootnote("Booked"),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "needs_followup":
       return {
@@ -833,15 +727,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
           <ExpandableNote text={row.followup_notes} />
         ) : buildFootnote("Meeting completed — follow-up needed"),
         headlineAccessory: inboxLink,
-        cta: (
-          <PrimaryAction
-            onClick={() => cb.onClassifyReply("email_reply")}
-            title="Log the follow-up reply or schedule the next step."
-          >
-            Log
-          </PrimaryAction>
-        ),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     case "awaiting_callback": {
       const kindLabel =
@@ -852,15 +738,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       const prefix = callbackWhen ? `${kindLabel} · ${callbackWhen}` : kindLabel;
       return {
         footnote: buildFootnote(prefix),
-        cta: (
-          <PrimaryAction
-            onClick={() => cb.onClassifyReply("callback")}
-            title="Log the callback or voicemail outcome."
-          >
-            Log
-          </PrimaryAction>
-        ),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
     }
     case "stale":
@@ -870,7 +748,7 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
             Stale{row.stale_days != null ? ` · ${row.stale_days}d cold` : ""}
           </p>
         ),
-        overflowMenu: buildUniversalOverflow(cb, { row }),
+        overflowMenu: buildUniversalOverflow(cb),
       };
   }
 }
@@ -882,20 +760,12 @@ function meetingsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   const footnoteText =
     row.meeting_state === "scheduled" && row.meeting_at
       ? `Booked · ${formatLongDate(row.meeting_at)}`
-      : "Finding a time";
+      : "On the calendar";
   return {
     footnote: (
       <p className="mt-0.5 text-[11px] text-gray-500">{footnoteText}</p>
     ),
-    cta: (
-      <PrimaryAction
-        onClick={cb.onLogMeeting}
-        title="Log the meeting status — finding a time, booked, done, or follow-up needed."
-      >
-        Log
-      </PrimaryAction>
-    ),
-    overflowMenu: buildUniversalOverflow(cb, { row }),
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
@@ -906,21 +776,13 @@ function partnersSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    cta: (
-      <PrimaryAction
-        onClick={cb.onOpenDrawer}
-        title="Open the drawer to log the next partner step (task board posting, materials, follow-ups)."
-      >
-        Log
-      </PrimaryAction>
-    ),
-    overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: true }),
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
 function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // Stage pill (Closed / Outreach for stale-but-active rows) carries
-  // terminal state; footnote carries the cold-days operational detail.
+  // Stale / closed rows. Footnote carries the cold-days detail; a reply
+  // (ingested by the Smartlead webhook) re-routes them to Replies on its own.
   const isClosed = row.status === "no_response_closed";
   const reasonText = isClosed ? "No response" : "Stale";
   const coldSuffix = row.stale_days != null ? ` · ${row.stale_days}d cold` : "";
@@ -928,39 +790,26 @@ function archiveSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     footnote: (
       <p
         className="mt-0.5 text-[11px] text-gray-500"
-        title="Cadence ran without engagement. Logging a reply or callback re-routes them to Replies."
+        title="Cadence ran without engagement. A reply re-routes them to Replies."
       >
         {reasonText}
         {coldSuffix}
       </p>
     ),
-    cta: (
-      <PrimaryAction
-        onClick={() => cb.onClassifyReply("email_reply")}
-        title="They replied or called back. Log it to re-route this row to Replies."
-      >
-        Log
-      </PrimaryAction>
-    ),
-    overflowMenu: buildUniversalOverflow(cb, {
-      extraItems: [{ label: "Log callback", onClick: () => cb.onClassifyReply("callback") }],
-    }),
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 
 function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // v9: dedicated entity pages' All view. Stage pill carries the
-  // canonical state; STATUS_LABELS-derived pills retired (replaced by
-  // the universal stage pill in buildRowSlots). Footnote keeps the
-  // last-activity timestamp for chronological scanning.
-  const isAlreadyPartner = row.status === "active_partner";
+  // Dedicated entity pages' All view. Footnote keeps the last-activity
+  // timestamp for chronological scanning; click the card to act.
   return {
     footnote: row.last_activity_at ? (
       <p className="mt-0.5 text-[11px] text-gray-400">
         Last activity {formatRelative(row.last_activity_at)}
       </p>
     ) : null,
-    overflowMenu: buildUniversalOverflow(cb, { row, excludeMakePartner: isAlreadyPartner }),
+    overflowMenu: buildUniversalOverflow(cb),
   };
 }
 

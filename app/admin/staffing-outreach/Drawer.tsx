@@ -479,7 +479,7 @@ function generateInitialEmailText(universityName: string, serviceArea: string) {
 
 I am hoping to reach the person who handles hiring to share more information on a pilot ${universityName} Student Caregiver Program.
 
-My name is Dr. Logan DuBose. I am a physician-researcher working with the National Institute of Aging, a small business owner, and affiliate faculty at ${universityName}. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.
+My name is Dr. Logan DuBose. I am a physician-researcher funded by the National Institutes of Health (NIH) Small Business Innovation Research (SBIR) Program and Chief Research Officer at Olera. I am currently working on a pilot program to match pre-nursing and pre-medical students with care agency jobs so they can help improve community care worker turnover and shortages, while gaining critical experience for their future careers as doctors and nurses.
 
 Would you be interested in hearing more about this program? In pilot testing in the ${serviceArea}, I have seen potential for it to be an evergreen pipeline delivering vetted pre-health ${universityName} students seeking employment in caregiver roles.
 

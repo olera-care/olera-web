@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { PROVIDER_NEEDS_CALL_THRESHOLD_DAYS } from "@/lib/connection-engagement";
 
 /**
  * POST /api/admin/cleanup-needs-call
  *
  * Cleans up corrupted connection metadata where needs_call=true
- * was incorrectly set on connections less than 24 days old.
+ * was incorrectly set on connections less than the threshold (14 days).
  *
  * Query params:
  *   - dry_run=true: Preview mode, shows what would be cleaned without changing data
@@ -27,7 +28,6 @@ export async function POST(request: NextRequest) {
 
   const db = getServiceClient();
   const now = Date.now();
-  const NEEDS_CALL_THRESHOLD_DAYS = 24;
 
   const counts = {
     total_checked: 0,
@@ -59,13 +59,15 @@ export async function POST(request: NextRequest) {
       if (meta.needs_call === true || meta.followup_stopped_reason === "needs_call") {
         counts.total_checked++;
 
-        // Calculate days since creation
+        // Calculate days since sequence started (email_sent_at if present, otherwise created_at)
+        // This handles providers who got email added later - they start fresh from that date
+        const sequenceStartDate = (meta.email_sent_at as string) || conn.created_at;
         const daysSince = Math.floor(
-          (now - new Date(conn.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          (now - new Date(sequenceStartDate).getTime()) / (1000 * 60 * 60 * 24)
         );
 
-        // If less than 24 days, this is incorrect
-        if (daysSince < NEEDS_CALL_THRESHOLD_DAYS) {
+        // If less than threshold days, this is incorrect
+        if (daysSince < PROVIDER_NEEDS_CALL_THRESHOLD_DAYS) {
           counts.incorrectly_flagged++;
           toClean.push({ id: conn.id, daysSince });
         }

@@ -27,7 +27,14 @@ export type TemplateKey =
   // hiring managers, not university stakeholders.
   | "provider_intro"
   | "provider_followup"
-  | "provider_final";
+  | "provider_final"
+  // Activation cadence — launched from a warm signal (reply / call /
+  // meeting) to drive an interested provider to click the magic link
+  // and accept Terms. Every body carries the link AND the meeting
+  // option; the cadence stops on Trial Active or a booked meeting.
+  | "activation_intro"
+  | "activation_nudge"
+  | "activation_final";
 
 /**
  * Cadence lookup key. Stakeholder rows use their StakeholderType;
@@ -35,7 +42,7 @@ export type TemplateKey =
  * Keeps one cadence registry serving both surfaces — the universal
  * launch path goes through schedule_sequence regardless of kind.
  */
-export type CadenceKey = StakeholderType | "provider";
+export type CadenceKey = StakeholderType | "provider" | "activation";
 
 export interface OutreachStep {
   id: StepId;
@@ -237,6 +244,45 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       day: 7,
       title: "Day 7 · final follow-up",
       steps: [{ id: "email", channel: "email", required: true, template: "provider_final" }],
+    },
+  ],
+  // Activation cadence (Phase 1, 2026-06-09). Launched from a warm signal
+  // — an interested email reply, an interested call, or a meeting — to
+  // nudge the provider to click their magic link and accept Terms. Offers
+  // the link AND a meeting option in every touch. 3 emails + 1 call over
+  // 7 days. The call step queues only if a phone number exists. The cadence
+  // is stopped by the activation auto-stop (Trial Active) or a booked
+  // meeting. The Day 0 opener varies by source — the launch screen seeds
+  // activation_intro (reply/call) or activation_postmeeting_intro and the
+  // admin edits it before launch.
+  activation: [
+    {
+      day: 0,
+      title: "Now · activation link + meeting offer",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "activation_intro" },
+      ],
+    },
+    {
+      day: 2,
+      title: "Day 2 · nudge",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "activation_nudge" },
+      ],
+    },
+    {
+      day: 4,
+      title: "Day 4 · check-in call",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Activation check-in call" },
+      ],
+    },
+    {
+      day: 7,
+      title: "Day 7 · soft final",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "activation_final" },
+      ],
     },
   ],
 };

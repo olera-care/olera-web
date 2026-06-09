@@ -85,6 +85,10 @@ const PLACEHOLDER = {
    *  via buildWelcomeUrl() in welcome-token.ts. Falls back to the
    *  PROGRAM_URL when the welcome URL isn't available (preview / legacy). */
   welcomeUrl: "{welcome_url}",
+  /** Campus-specific program PDF (/api/medjobs/program-pdf?university=<slug>).
+   *  Filled per-campaign in toSmartleadHtml from the campus slug; falls back to
+   *  PROGRAM_URL on the Resend/preview path (no slug there). */
+  programPdf: "{program_pdf}",
 };
 
 /**
@@ -102,31 +106,14 @@ const PLACEHOLDER = {
  * one outbound link — the Calendly CTA. Recipients don't get
  * link-overloaded; the signature carries the rest.
  */
-const SCHEDULE_LINK_FULL = `[schedule a quick informational call with Dr. Logan DuBose directly](${PLACEHOLDER.calendlyUrl})`;
+// Stakeholder follow-ups use this short, conversational call link inline.
 const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendlyUrl})`;
 
 /**
- * Graize self-introduction line used at the top of every body. The
- * email always opens with greeting → Graize self-intro (which now
- * carries Dr. DuBose's headline credentials inline) → grounding /
- * invitation → program explanation → CTA. Folding the credentials
- * into the intro removes a separate "The program is directed by..."
- * sentence later in the body — one introduction, not two.
+ * Graize self-introduction line used by the stakeholder (academic-audience)
+ * templates. Provider templates now use their own simpler intro inline.
  */
 const GRAIZE_INTRO = `My name is Graize Belandres, and I'm a research assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
-
-/**
- * Standard closing for intro emails. v9.1 Graize 05.13 audit
- * (Item 4C): CTA crispened with an explicit "next step" framing
- * so the recipient knows exactly what action moves things forward.
- * Followups borrow the reply/call line without the invitation
- * preamble.
- */
-const INTRO_CTA_LINES = [
-  `We hope you'll accept this invitation. The next step is to reply directly to this email expressing interest, or ${SCHEDULE_LINK_FULL}.`,
-  ``,
-  `The attached information packet has the program details.`,
-];
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -141,6 +128,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "provider_intro": return providerIntroEmail(ctx, ctx.contacts);
     case "provider_followup": return providerFollowupEmail(ctx, ctx.contacts);
     case "provider_final": return providerFinalEmail(ctx, ctx.contacts);
+    case "activation_intro": return activationIntroEmail(ctx);
+    case "activation_nudge": return activationNudgeEmail(ctx);
+    case "activation_final": return activationFinalEmail(ctx);
   }
 }
 
@@ -204,9 +194,12 @@ export function substituteVars(
     program_url?: string;
     /** v10 Phase 2+3 Bullet 6: per-recipient magic-link URL. */
     welcome_url?: string;
+    /** Campus program PDF URL. */
+    program_pdf?: string;
   },
 ): string {
   return text
+    .replace(/\{program_pdf\}/g, vars.program_pdf ?? PROGRAM_URL)
     .replace(/\{salutation\}/g, vars.salutation ?? vars.first_name ?? "{salutation}")
     .replace(/\{first_name\}/g, vars.first_name ?? "{first_name}")
     .replace(/\{organization_name\}/g, vars.organization_name ?? "{organization_name}")
@@ -486,33 +479,21 @@ export function providerIntroEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} student caregivers · Olera`;
+  const subject = `${PLACEHOLDER.campus} student caregivers for ${PLACEHOLDER.orgName}`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
-  const leadershipPhrase =
-    variant === "general"
-      ? providerLeadershipInvitationPhrase(contacts)
-      : null;
-  const groundingAndInvitation =
-    leadershipPhrase
-      ? `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. ${leadershipPhrase}, to invite ${PLACEHOLDER.orgName} into our ${PLACEHOLDER.campus} student caregiver pilot.`
-      : `I came across ${PLACEHOLDER.orgName} through your website while identifying home care agencies near ${PLACEHOLDER.campus}. I'd like to invite ${PLACEHOLDER.orgName} into our ${PLACEHOLDER.campus} student caregiver pilot.`;
   return {
     subject,
     body: [
       greeting,
       ``,
-      GRAIZE_INTRO,
-      ``,
-      groundingAndInvitation,
-      ``,
-      `We've been recruiting and vetting ${PLACEHOLDER.campus} pre-nursing and pre-medical students who are looking for caregiver shifts — and ${PLACEHOLDER.orgName} stood out as a great fit. The pilot is free for three months and you can review students before contacting anyone.`,
-      ``,
-      `Take a look at the students near you:`,
+      `My name is Graize Belandres, and I'm a research assistant working with Dr. Logan DuBose, who leads a program connecting ${PLACEHOLDER.campus} pre-med and nursing students with home care agencies that are hiring. We'd like to invite ${PLACEHOLDER.orgName} to review ${PLACEHOLDER.campus} students near campus who want to be hired as caregivers — **an easy way to hire quality staff to help fill your PRN, evening, weekend, and night shifts.**`,
       ``,
       `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
       ``,
-      `The link will land you on olera.care, our main platform. A short background on the pilot is attached. If you'd rather chat first, you can ${SCHEDULE_LINK_FULL} — no pressure either way.`,
+      `More information about what to expect from the program: [program overview](${PLACEHOLDER.programPdf})`,
+      ``,
+      `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to hear more about the program and how ${PLACEHOLDER.campus} student caregivers can help fill your PRN, evening, weekend, and night shifts.`,
     ].join("\n"),
   };
 }
@@ -528,7 +509,7 @@ export function providerFollowupEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} student caregivers · Olera`;
+  const subject = `${PLACEHOLDER.campus} student caregivers for ${PLACEHOLDER.orgName}`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -536,13 +517,11 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `Just following up on my note from Monday, in case it got buried.`,
-      ``,
-      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students to help fill caregiver roles, PRN shifts, and support staffing needs, here's the candidate board:`,
+      `Following up in case my note got buried. ${PLACEHOLDER.orgName} can review vetted ${PLACEHOLDER.campus} pre-med and nursing students looking for caregiver shifts — an easy way to fill PRN, evening, weekend, and night coverage with quality help.`,
       ``,
       `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
       ``,
-      `Lands on olera.care. The first three months are free; reply or ${SCHEDULE_LINK_SHORT} if it'd help to walk through it.`,
+      `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
     ].join("\n"),
   };
 }
@@ -559,29 +538,86 @@ export function providerFinalEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} student caregivers · Olera`;
+  const subject = `${PLACEHOLDER.campus} student caregivers for ${PLACEHOLDER.orgName}`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
-  const thanksLine =
-    variant === "named"
-      ? `Thanks for your time, ${PLACEHOLDER.firstName}.`
-      : `Thanks for your time.`;
   return {
     subject,
     body: [
       greeting,
       ``,
-      `Wanted to circle back one more time on the ${PLACEHOLDER.campus} student caregiver pilot.`,
-      ``,
-      `If ${PLACEHOLDER.orgName} could use vetted ${PLACEHOLDER.campus} pre-nursing and pre-medical students for caregiver roles, PRN shifts, and staffing needs, the candidate board is at:`,
+      `Circling back one last time. If ${PLACEHOLDER.orgName} could use a simple way to bring on quality ${PLACEHOLDER.campus} students for PRN, evening, weekend, and night shifts, here is the candidate board:`,
       ``,
       `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
       ``,
-      `Lands on olera.care. Reply or ${SCHEDULE_LINK_SHORT} if it'd help.`,
+      `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
       ``,
-      `If now isn't the right time, no worries — we'll check back next term. And if there's a better person at ${PLACEHOLDER.orgName} for us to reach about caregiver hiring, we'd appreciate a quick redirect.`,
+      `If now isn't the right time, no problem — we'll check back next term. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Thanks for your time.`,
+    ].join("\n"),
+  };
+}
+
+// ── Activation cadence ──────────────────────────────────────────────────
+//
+// Launched from a warm signal (interested reply, interested call, or a
+// meeting). Goal: get the provider to click their magic link ({welcome_url})
+// and accept Terms. Every body offers BOTH the link and a meeting option so
+// the provider self-selects. Tone: simple, warm, human, low-pressure — a note
+// from the research assistant, not a marketing blast. No em-dashes.
+//
+// Greeting follows the provider pattern: named variant -> "Hi {first_name},";
+// general -> "Hello,". Activation usually targets the one person who engaged,
+// so named is the common case.
+
+export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
+  const variant = ctx.variant ?? "named";
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  return {
+    subject: `Your ${PLACEHOLDER.campus} students + getting set up`,
+    body: [
+      greeting,
       ``,
-      thanksLine,
+      `Great to connect. Two easy ways forward:`,
+      ``,
+      `**[Review your ${PLACEHOLDER.campus} students and get set up →](${PLACEHOLDER.welcomeUrl})** It takes about two minutes, and you'll be able to message students directly.`,
+      ``,
+      `Or if you'd rather talk it through first, [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}), or just reply with a couple of windows this week or next and I'll set it up.`,
+      ``,
+      `Either way, happy to help.`,
+    ].join("\n"),
+  };
+}
+
+export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
+  const variant = ctx.variant ?? "named";
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  return {
+    subject: `Your ${PLACEHOLDER.campus} students are ready`,
+    body: [
+      greeting,
+      ``,
+      `Just making sure this didn't get buried. You can jump in anytime here:`,
+      ``,
+      `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `Or grab a time with Dr. DuBose if it's easier to talk first: [Dr. DuBose's calendar](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
+  const variant = ctx.variant ?? "named";
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  return {
+    subject: `Still here when you're ready`,
+    body: [
+      greeting,
+      ``,
+      `No rush at all. Whenever you're ready, your link to view the ${PLACEHOLDER.campus} students and get set up is here:`,
+      ``,
+      `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
+      ``,
+      `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
     ].join("\n"),
   };
 }

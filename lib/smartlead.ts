@@ -123,13 +123,25 @@ async function smartleadRequest<T>(
     }
 
     if (!res.ok) {
-      const message =
-        (parsed && typeof parsed === "object" && "message" in parsed
-          ? String((parsed as { message: unknown }).message)
-          : typeof parsed === "string"
-            ? parsed
-            : `HTTP ${res.status}`) || `HTTP ${res.status}`;
-      console.error(`[smartlead] ${method} ${path} → HTTP ${res.status}: ${message}`);
+      // Surface as much of Smartlead's error body as we can — different
+      // endpoints return {message}, {error}, {errors:[...]}, or a bare string.
+      // Falling back to the raw JSON keeps the real reason visible instead of
+      // a useless "HTTP 400".
+      let message: string;
+      if (parsed && typeof parsed === "object") {
+        const o = parsed as Record<string, unknown>;
+        message =
+          (typeof o.message === "string" && o.message) ||
+          (typeof o.error === "string" && o.error) ||
+          (Array.isArray(o.errors) ? o.errors.map(String).join("; ") : "") ||
+          JSON.stringify(o);
+      } else if (typeof parsed === "string" && parsed.trim()) {
+        message = parsed;
+      } else {
+        message = `HTTP ${res.status}`;
+      }
+      message = `HTTP ${res.status}: ${message}`;
+      console.error(`[smartlead] ${method} ${path} → ${message}`);
       return { ok: false, error: message, status: res.status };
     }
 
@@ -177,6 +189,26 @@ export async function attachEmailAccounts(
 ): Promise<SmartleadResult<{ ok?: boolean }>> {
   return smartleadRequest("POST", `/campaigns/${campaignId}/email-accounts`, {
     email_account_ids: emailAccountIds,
+  });
+}
+
+/**
+ * Register a webhook on a campaign so Smartlead POSTs lifecycle events
+ * (reply / open / click / bounce / unsubscribe) to our edge function. Called
+ * once per campus campaign by the admin "Connect Smartlead replies" button.
+ * Endpoint/shape follows Smartlead's documented create-webhook API — verify
+ * against current docs before go-live (this module is dormant until the key
+ * is set, so shape drift is harmless until then).
+ */
+export async function createCampaignWebhook(
+  campaignId: number,
+  webhook: { name: string; webhookUrl: string; eventTypes: string[] },
+): Promise<SmartleadResult<{ id?: number }>> {
+  return smartleadRequest("POST", `/campaigns/${campaignId}/webhooks`, {
+    id: null,
+    name: webhook.name,
+    webhook_url: webhook.webhookUrl,
+    event_types: webhook.eventTypes,
   });
 }
 

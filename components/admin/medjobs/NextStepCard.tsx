@@ -42,6 +42,7 @@ import {
 } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
+import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
@@ -234,6 +235,9 @@ function InOutreachBody({
         </>
       )}
       <ActivationActions ctx={ctx} action={action} setError={setError} source="reply" />
+      <div>
+        <BookMeetingLink ctx={ctx} />
+      </div>
     </>
   );
 }
@@ -329,6 +333,9 @@ function CallDueBody({
         </details>
       )}
       <ActivationActions ctx={ctx} action={action} setError={setError} source="phone" />
+      <div>
+        <BookMeetingLink ctx={ctx} />
+      </div>
       <div className="mt-2">
         <button
           onClick={couldntReach}
@@ -571,6 +578,54 @@ function ReplyPreview({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * Build THIS provider's personalized Calendly link — the same
+ * `utm_content=<outreach_id>` the outreach emails carry. When an admin books on
+ * the provider's behalf (a reply came in with times, or they're on a call),
+ * using this link instead of a generic one means the resulting Calendly booking
+ * auto-files to THIS exact row in the webhook — no orphaned/unmatched meetings.
+ * Prefills the invitee name + email when known so there's nothing to retype.
+ */
+function bookingUrlFor(ctx: DrawerContext): string {
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const gc = ctx.outreach.research_data?.general_contact;
+  const primary =
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
+  const email =
+    (dm && !dm.unavailable && dm.email ? dm.email : null) ??
+    primary?.email ??
+    gc?.email ??
+    null;
+  const name = primary
+    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() ||
+      primary.name
+    : dm?.name ?? null;
+  const params = new URLSearchParams();
+  params.set("utm_content", ctx.outreach.id);
+  if (name) params.set("name", name);
+  if (email) params.set("email", email);
+  return `${CALENDLY_URL}?${params.toString()}`;
+}
+
+/** "Book a meeting" — opens this provider's tagged Calendly link in a new tab.
+ *  Surfaced on the reply + call faces, the two moments an admin naturally books
+ *  on a provider's behalf. */
+function BookMeetingLink({ ctx }: { ctx: DrawerContext }) {
+  return (
+    <a
+      href={bookingUrlFor(ctx)}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Opens this provider's Calendly link (tagged to this row) so the booking files here automatically."
+      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+    >
+      📅 Book a meeting
+    </a>
   );
 }
 

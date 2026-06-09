@@ -1,6 +1,76 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail } from "@/lib/email-templates";
+import { resolveFromAddress } from "@/lib/email";
+
+/** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
+function extractPreheader(html: string): string | null {
+  const m = html.match(/<div style="display:none[^"]*">([\s\S]*?)<\/div>/);
+  if (!m) return null;
+  let t = m[1];
+  const z = t.indexOf("&zwnj;");
+  if (z >= 0) t = t.slice(0, z); // drop the trailing spacer run
+  t = t
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .trim();
+  return t || null;
+}
+
+// Representative sample of each weekly-digest variant, rendered from the live templates with canned
+// (PII-free) data — so every variant is viewable in the admin even before its first real send.
+const SAMPLE_BASE = {
+  providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care", tier: "low" as const,
+  viewsPriorWeek: 6, deltaPct: 33, localDemand: 140, areaDemand: 210, city: "Austin", category: "home_care",
+  topSource: "Google search",
+};
+const SAMPLE_LINK = "https://olera.care/provider/evergreen-home-care/onboard";
+function digestVariantSample(variant: string): { subject: string; html: string } | null {
+  switch (variant) {
+    case "family_question":
+      return {
+        subject: "A family has a question about Evergreen Home Care",
+        html: providerWeeklyDigestEmail({
+          ...SAMPLE_BASE, viewsThisWeek: 9, ctaClicks: 2, leadsReceived: 0, questionsReceived: 1,
+          unansweredQuestion: { id: "sample", question: "Do you accept Medicaid, and is weekend care available for my mother?", totalCount: 1 },
+          answerUrl: `${SAMPLE_LINK}?action=question`, marketRank: null,
+        }),
+      };
+    case "weekly_digest_rank":
+      return {
+        subject: "You're #3 of 21 home care agencies in Austin",
+        html: providerWeeklyDigestEmail({
+          ...SAMPLE_BASE, viewsThisWeek: 12, ctaClicks: 3, leadsReceived: 1, questionsReceived: 0,
+          marketRank: { rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care", flattering: true },
+        }),
+      };
+    case "weekly_digest_plain":
+      return {
+        subject: "9 families viewed your page this week",
+        html: providerWeeklyDigestEmail({
+          ...SAMPLE_BASE, viewsThisWeek: 9, ctaClicks: 2, leadsReceived: 0, questionsReceived: 0, marketRank: null,
+        }),
+      };
+    case "completion":
+      return {
+        subject: "See what families see on Evergreen Home Care",
+        html: providerProfileCompletionEmail({
+          providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care", ctaUrl: SAMPLE_LINK,
+        }),
+      };
+    case "cold_rank":
+      return {
+        subject: "Families in Austin rank you #3 of 21",
+        html: coldProviderRankEmail({
+          rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care",
+          ctaUrl: SAMPLE_LINK, manageUrl: SAMPLE_LINK, removeUrl: `${SAMPLE_LINK}/remove`, unsubscribeUrl: `${SAMPLE_LINK}/unsubscribe`,
+        }),
+      };
+    default:
+      return null;
+  }
+}
 
 /**
  * GET /api/admin/automations/[id]/preview?type=<email_type>[&raw=1]
@@ -25,9 +95,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (job.emailTypes.length === 0) return NextResponse.json({ error: "This automation does not send email" }, { status: 400 });
 
   const { searchParams } = new URL(req.url);
+  const raw = searchParams.get("raw") === "1";
+
+  // Variant sample mode: render a representative sample of a digest variant from the live template.
+  const variant = searchParams.get("variant");
+  if (variant) {
+    const sample = digestVariantSample(variant);
+    if (!sample) return NextResponse.json({ error: `Unknown variant "${variant}"` }, { status: 404 });
+    if (raw) return new NextResponse(sample.html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    return NextResponse.json({
+      variant,
+      html: sample.html,
+      subject: sample.subject,
+      sample: true,
+      from: resolveFromAddress(undefined, job.emailTypes[0]),
+      preheader: extractPreheader(sample.html),
+    });
+  }
+
   const requested = searchParams.get("type");
   const type = requested && job.emailTypes.includes(requested) ? requested : job.emailTypes[0];
-  const raw = searchParams.get("raw") === "1";
 
   const db = getServiceClient();
   const { data } = await db
@@ -53,5 +140,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     subject: data.subject,
     sentAt: data.created_at,
     metadata: data.metadata ?? null,
+    from: resolveFromAddress(undefined, type),
+    preheader: extractPreheader(data.html_body),
   });
 }

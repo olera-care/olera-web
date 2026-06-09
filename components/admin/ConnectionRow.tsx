@@ -1077,10 +1077,31 @@ export default function ConnectionRow({
                             </div>
                             {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
                             {emailSource && (
-                              <p className="text-xs text-gray-500">
-                                Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
-                                {foundEmails.length > 1 && ` · ${foundEmails.length} candidates found`}
-                              </p>
+                              <div className="space-y-1">
+                                <p className="text-xs text-gray-500">
+                                  Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                                  {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                                </p>
+                                {foundEmails.length > 1 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {foundEmails.map((email) => (
+                                      <button
+                                        key={email}
+                                        type="button"
+                                        onClick={() => setEditEmailInput(email)}
+                                        className={`px-2 py-0.5 text-xs rounded border transition-colors ${
+                                          editEmailInput === email
+                                            ? "bg-amber-100 border-amber-300 text-amber-800"
+                                            : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                        disabled={editingEmailLoading || findingEmail}
+                                      >
+                                        {email}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             )}
                             {editEmailError && <p className="text-xs text-red-600">{editEmailError}</p>}
                             {editEmailSuccess && (
@@ -1129,10 +1150,31 @@ export default function ConnectionRow({
                         </div>
                         {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
                         {emailSource && (
-                          <p className="text-xs text-gray-500">
-                            Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
-                            {foundEmails.length > 1 && ` · ${foundEmails.length} candidates found`}
-                          </p>
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-500">
+                              Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                              {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                            </p>
+                            {foundEmails.length > 1 && (
+                              <div className="flex flex-wrap gap-1">
+                                {foundEmails.map((email) => (
+                                  <button
+                                    key={email}
+                                    type="button"
+                                    onClick={() => setEmailInput(email)}
+                                    className={`px-2 py-0.5 text-xs rounded border transition-colors ${
+                                      emailInput === email
+                                        ? "bg-amber-100 border-amber-300 text-amber-800"
+                                        : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                    disabled={addingEmail || findingEmail}
+                                  >
+                                    {email}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         )}
                         {emailError && (
                           <p className="text-xs text-red-600">{emailError}</p>

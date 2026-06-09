@@ -194,10 +194,13 @@ export default function FamilyViewPreview({
   const heroImage = profile.image_url || images[0] || null;
   const claimed = profile.claim_state === "claimed";
 
+  // Mobile: no card chrome — content goes full-width on the flat page bg,
+  // separated by horizontal dividers (Robinhood/Wise mobile). The card
+  // (border + rounded + centered narrow column) returns only at sm+.
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white">
+    <div className="sm:overflow-hidden sm:rounded-2xl sm:border sm:border-gray-200/80 sm:bg-white">
       {/* Frame: this is the "as families see it" framing */}
-      <div className="flex items-center gap-2 border-b border-gray-200/80 bg-vanilla-50 px-6 py-3.5">
+      <div className="flex items-center gap-2 border-b border-gray-200/80 py-3 sm:bg-vanilla-50 sm:px-6 sm:py-3.5">
         <svg className="h-4 w-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path
@@ -213,7 +216,7 @@ export default function FamilyViewPreview({
         </p>
       </div>
 
-      <div className="mx-auto max-w-2xl px-6 py-8">
+      <div className="mx-auto max-w-2xl py-4 sm:px-6 sm:py-8">
         {/* Identity */}
         <div className="mb-2 flex items-start gap-3 sm:gap-4">
           {heroImage ? (
@@ -243,7 +246,7 @@ export default function FamilyViewPreview({
         </div>
 
         {/* Photos */}
-        <section className="border-t border-gray-200 py-6">
+        <section className="border-t border-gray-200 py-7">
           <SectionHeader title="Photos" onEdit={() => onEdit("gallery")} />
           {images.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
@@ -271,13 +274,13 @@ export default function FamilyViewPreview({
         </section>
 
         {/* Facility manager — centerpiece */}
-        <section className="border-t border-gray-200 py-6">
+        <section className="border-t border-gray-200 py-7">
           <SectionHeader title="Facility manager" onEdit={() => onEdit("owner")} />
           {staff?.name ? <RealOwner staff={staff} claimed={claimed} /> : <GhostOwner onClick={() => onEdit("owner")} />}
         </section>
 
         {/* About */}
-        <section className="border-t border-gray-200 py-6">
+        <section className="border-t border-gray-200 py-7">
           <SectionHeader title="About" onEdit={() => onEdit("about")} />
           {profile.description?.trim() ? (
             <ExpandableText text={profile.description} maxLength={300} />
@@ -291,7 +294,7 @@ export default function FamilyViewPreview({
         </section>
 
         {/* Care services */}
-        <section className="border-t border-gray-200 py-6">
+        <section className="border-t border-gray-200 py-7">
           <SectionHeader title="Care services" onEdit={() => onEdit("services")} />
           {careTypes.length > 0 ? (
             <CareServicesList services={careTypes} initialCount={6} />

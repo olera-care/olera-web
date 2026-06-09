@@ -349,10 +349,14 @@ function DashboardContent({
         ) : null;
       })()}
 
-      <MobileProgressBanner
-        completeness={completeness}
-        onTap={() => setShowCompletenessSheet(true)}
-      />
+      {/* Hidden in preview mode — the family view is space-premium on mobile,
+          and the completeness banner is editing chrome, not "what families see." */}
+      {!previewMode && (
+        <MobileProgressBanner
+          completeness={completeness}
+          onTap={() => setShowCompletenessSheet(true)}
+        />
+      )}
 
       <MobileCompletenessSheet
         isOpen={showCompletenessSheet}

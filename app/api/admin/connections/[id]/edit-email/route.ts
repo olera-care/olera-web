@@ -215,6 +215,14 @@ export async function POST(
       // Email was sent but metadata update failed - log warning but don't fail
       // Admin can manually check sequence status
       console.warn(`[edit-email] Connection ${connectionId} email sent to ${newEmail} but metadata not updated`);
+
+      return NextResponse.json({
+        success: true,
+        warning: "Email updated but sequence state may be inconsistent. Check connection status.",
+        emailVersion,
+        oldEmail,
+        newEmail,
+      });
     }
 
     console.log(

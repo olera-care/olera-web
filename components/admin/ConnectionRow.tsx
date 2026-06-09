@@ -538,6 +538,7 @@ export default function ConnectionRow({
     }
 
     // Show confirmation modal
+    setEditEmailError(null); // Clear any previous errors
     setPendingEmailEdit({ oldEmail, newEmail });
   }
 
@@ -562,6 +563,11 @@ export default function ConnectionRow({
         setEditEmailSuccess(true);
         setEditEmailInput("");
 
+        // Show warning if metadata update failed
+        if (data.warning) {
+          setEditEmailError(data.warning);
+        }
+
         // Update local detail state to show new email
         if (detail) {
           setDetail({
@@ -573,12 +579,13 @@ export default function ConnectionRow({
         // Notify parent to refresh list
         onNudgeSuccess?.();
 
-        // Close form after showing success message
+        // Close form after showing success message (longer timeout if warning)
         editEmailTimeoutRef.current = setTimeout(() => {
           setEditingEmail(false);
           setEditEmailSuccess(false);
+          setEditEmailError(null);
           editEmailTimeoutRef.current = null;
-        }, 3000);
+        }, data.warning ? 5000 : 3000);
       } else {
         setEditEmailError(data.error || "Failed to update email");
       }

@@ -365,36 +365,43 @@ function DashboardContent({
         lastUpdated={profile.updated_at}
       />
 
-      {/* Page header - outside grid so both columns align */}
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
-            Your profile
-          </h1>
-          <p className="text-sm lg:text-[15px] text-gray-500">
-            Manage your profile and how families find you
-          </p>
+      {/* Page header — actions live in a utility bar ABOVE the title (never beside
+          it), so the H1 is a full-width block and can't ladder one-word-per-line.
+          In preview mode the editing header is hidden: the provider's name inside
+          the preview is the de-facto title (it's their page). */}
+      <div className="mb-6">
+        <div className={previewMode ? "flex justify-start" : "flex justify-end"}>
+          <button
+            onClick={() => setPreviewMode((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 lg:px-4 py-2.5 text-sm font-medium text-gray-600 shadow-xs transition-all hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100"
+          >
+            {previewMode ? (
+              <>
+                <span aria-hidden>&larr;</span>
+                <span>Back to editing</span>
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="hidden sm:inline">Preview as families</span>
+                <span className="sm:hidden">Preview</span>
+              </>
+            )}
+          </button>
         </div>
-        <button
-          onClick={() => setPreviewMode((v) => !v)}
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-gray-200 px-3 lg:px-4 py-2.5 text-sm font-medium text-gray-600 shadow-xs transition-all hover:bg-gray-50 hover:text-gray-900"
-        >
-          {previewMode ? (
-            <>
-              <span aria-hidden>&larr;</span>
-              <span>Back to editing</span>
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <span className="hidden sm:inline">Preview as families</span>
-              <span className="sm:hidden">Preview</span>
-            </>
-          )}
-        </button>
+        {!previewMode && (
+          <div className="mt-4">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
+              Your profile
+            </h1>
+            <p className="text-sm lg:text-[15px] text-gray-500">
+              Manage your profile and how families find you
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════

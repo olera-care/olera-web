@@ -199,25 +199,16 @@ export default function FamilyViewPreview({
   // (border + rounded + centered narrow column) returns only at sm+.
   return (
     <div className="sm:overflow-hidden sm:rounded-2xl sm:border sm:border-gray-200/80 sm:bg-white">
-      {/* Frame: this is the "as families see it" framing */}
-      <div className="flex items-center gap-2 border-b border-gray-200/80 py-3 sm:bg-vanilla-50 sm:px-6 sm:py-3.5">
-        <svg className="h-4 w-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-        <p className="text-sm text-gray-600">
-          This is your page as <span className="font-semibold text-gray-900">families</span> see it.
-          Tap any section to edit it.
+      <div className="mx-auto max-w-2xl py-5 sm:px-6 sm:py-8">
+        {/* Framing: one muted line — no box, no eyeball, no "tap to edit"
+            instruction (the per-section Edit pencils make that discoverable). */}
+        <p className="mb-5 text-[13px] text-gray-400">
+          This is your page as <span className="font-medium text-gray-500">families</span> see it.
         </p>
-      </div>
 
-      <div className="mx-auto max-w-2xl py-4 sm:px-6 sm:py-8">
-        {/* Identity */}
+        {/* Identity — the provider's name is the hero title here, so it must be a
+            block-level element with NO flex sibling (it ladders one-word-per-line
+            otherwise). The Edit rides the short location line, never the name. */}
         <div className="mb-2 flex items-start gap-3 sm:gap-4">
           {heroImage ? (
             <Image
@@ -225,24 +216,23 @@ export default function FamilyViewPreview({
               alt={profile.display_name}
               width={72}
               height={72}
-              className="h-[72px] w-[72px] flex-shrink-0 rounded-2xl object-cover"
+              className="h-14 w-14 flex-shrink-0 rounded-2xl object-cover sm:h-[72px] sm:w-[72px]"
             />
           ) : (
             <button
               onClick={() => onEdit("overview")}
-              className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-50/40 active:bg-primary-50/60"
+              className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 text-[11px] font-medium text-primary-700 transition-colors hover:bg-primary-50/40 active:bg-primary-50/60 sm:h-[72px] sm:w-[72px] sm:text-xs"
             >
               Add logo
             </button>
           )}
-          {/* Name is a plain block (no truncate) so it wraps full-width instead
-              of collapsing to "A..." on mobile; EditLink is shrink-0 and never
-              steals its measure. */}
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-2xl font-bold leading-tight text-gray-900">{profile.display_name}</h1>
-            <p className="mt-1 text-sm text-gray-500">{location || "Add your location"}</p>
+            <div className="mt-1.5 flex items-center justify-between gap-3">
+              <p className="min-w-0 truncate text-sm text-gray-500">{location || "Add your location"}</p>
+              <EditLink onClick={() => onEdit("overview")} />
+            </div>
           </div>
-          <EditLink onClick={() => onEdit("overview")} />
         </div>
 
         {/* Photos */}

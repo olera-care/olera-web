@@ -15,6 +15,7 @@ import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
 import Pagination from "@/components/ui/Pagination";
+import ArchiveLeadModal from "@/components/provider/ArchiveLeadModal";
 
 // ── Lead types (previously from mock file) ──
 
@@ -100,7 +101,6 @@ function LeadDetailDrawer({
   lead,
   isOpen,
   onClose,
-  onArchive,
   onRestore,
   onDelete,
   onContactReveal,
@@ -114,7 +114,6 @@ function LeadDetailDrawer({
   lead: LeadDetail | null;
   isOpen: boolean;
   onClose: () => void;
-  onArchive: (leadId: string, reason: string) => void;
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
   onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
@@ -126,10 +125,6 @@ function LeadDetailDrawer({
   onVerifyClick?: () => void;
 }) {
   const router = useRouter();
-  const [showArchive, setShowArchive] = useState(false);
-  const [archiveReason, setArchiveReason] = useState<string | null>(null);
-  const [archiveOtherText, setArchiveOtherText] = useState("");
-  const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
@@ -156,10 +151,6 @@ function LeadDetailDrawer({
   // Reset state when drawer closes or lead changes
   useEffect(() => {
     if (!isOpen) {
-      setShowArchive(false);
-      setArchiveReason(null);
-      setArchiveOtherText("");
-      setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
       setCopiedField(null);
@@ -168,10 +159,6 @@ function LeadDetailDrawer({
 
   useEffect(() => {
     if (lead) {
-      setShowArchive(false);
-      setArchiveReason(null);
-      setArchiveOtherText("");
-      setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
       setCopiedField(null);
@@ -182,11 +169,7 @@ function LeadDetailDrawer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (showArchive) {
-          setShowArchive(false);
-          setArchiveReason(null);
-          setArchiveOtherText("");
-        } else if (showDeleteConfirm) {
+        if (showDeleteConfirm) {
           setShowDeleteConfirm(false);
         } else {
           onClose();
@@ -201,7 +184,7 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose, showArchive, showDeleteConfirm]);
+  }, [isOpen, onClose, showDeleteConfirm]);
 
   // Navigate to inbox to continue conversation
   const handleContinueInInbox = () => {
@@ -209,27 +192,6 @@ function LeadDetailDrawer({
     onContinueInInbox?.(lead.id);
     router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`);
     onClose();
-  };
-
-  const handleArchive = async () => {
-    if (!lead || !archiveReason) return;
-    setArchived(true);
-
-    // If "already_connected", auto-mark as replied before archiving
-    // (they've communicated outside Olera, so it's effectively replied)
-    // Await to prevent race condition with archive metadata update
-    if (archiveReason === "already_connected" && lead.status === "new") {
-      await onMarkAsReplied?.(lead.id);
-    }
-
-    onArchive(lead.id, archiveReason);
-    setTimeout(() => {
-      setArchived(false);
-      setShowArchive(false);
-      setArchiveReason(null);
-      setArchiveOtherText("");
-      onClose();
-    }, 1500);
   };
 
   const handleRestore = () => {
@@ -248,14 +210,6 @@ function LeadDetailDrawer({
     onDelete(lead.id);
     onClose();
   };
-
-  const ARCHIVE_REASONS = [
-    { value: "already_connected", label: "Already connected", description: "We\u2019ve been in touch outside Olera" },
-    { value: "not_a_fit", label: "Not a good fit", description: "Care needs, location, or budget don\u2019t match" },
-    { value: "not_accepting", label: "Not accepting new clients", description: "We\u2019re at capacity right now" },
-    { value: "unable_to_reach", label: "Unable to reach", description: "Tried contacting but no response" },
-    { value: "other", label: "Other" },
-  ];
 
   if (!lead) return null;
 
@@ -320,7 +274,7 @@ function LeadDetailDrawer({
                 className={`p-2 rounded-lg border transition-all shrink-0 ${
                   copiedField === "phone"
                     ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
-                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
                 }`}
                 aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
               >
@@ -348,7 +302,7 @@ function LeadDetailDrawer({
                 className={`p-2 rounded-lg border transition-all shrink-0 ${
                   copiedField === "email"
                     ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
-                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
                 }`}
                 aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
               >
@@ -607,82 +561,10 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // ── Archive Flow Footer ──
-  const ArchiveFlowFooter = archived ? (
-    <div className="flex flex-col items-center justify-center gap-3 py-2">
-      <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-        </svg>
-      </div>
-      <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
-    </div>
-  ) : (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
-        <button
-          type="button"
-          onClick={() => { setShowArchive(false); setArchiveReason(null); setArchiveOtherText(""); }}
-          className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
-        >
-          Cancel
-        </button>
-      </div>
-      <div className="space-y-2.5">
-        {ARCHIVE_REASONS.map((reason) => (
-          <button
-            key={reason.value}
-            type="button"
-            onClick={() => setArchiveReason(reason.value)}
-            className={`w-full flex items-start gap-3.5 px-4 py-3.5 rounded-xl border text-left transition-all duration-150 ${
-              archiveReason === reason.value
-                ? "border-primary-200 bg-primary-50/30"
-                : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
-            }`}
-          >
-            <div className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-150 ${
-              archiveReason === reason.value ? "border-primary-500" : "border-gray-300"
-            }`}>
-              {archiveReason === reason.value && (
-                <div className="w-2 h-2 rounded-full bg-primary-500" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[15px] font-medium text-gray-800">{reason.label}</p>
-              {reason.description && (
-                <p className="text-[13px] text-gray-400 mt-0.5">{reason.description}</p>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
-      {archiveReason === "other" && (
-        <textarea
-          value={archiveOtherText}
-          onChange={(e) => setArchiveOtherText(e.target.value)}
-          placeholder="Tell us more (optional)"
-          rows={2}
-          className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
-        />
-      )}
-      {archiveReason && (
-        <button
-          type="button"
-          onClick={handleArchive}
-          className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white hover:bg-gray-800 transition-colors"
-        >
-          Archive Lead
-        </button>
-      )}
-    </div>
-  );
 
   // Determine which footer to show
   const StickyFooter = lead.status === "archived"
     ? ArchivedFooter
-    : showArchive
-    ? ArchiveFlowFooter
     : ActiveFooter;
 
   return (
@@ -979,7 +861,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const archiveReasonLabel = archiveReason ? ({
     already_connected: "Already connected",
     not_a_fit: "Not a good fit",
-    not_accepting: "Not accepting new clients",
+    not_accepting_clients: "Not accepting new clients",
     unable_to_reach: "Unable to reach",
     other: "Other",
   }[archiveReason] || archiveReason) : undefined;
@@ -1071,6 +953,8 @@ export default function ProviderLeadsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   // Track which lead's drawer should reopen after verification
   const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
+  // Track which lead to archive (for modal)
+  const [leadIdToArchive, setLeadIdToArchive] = useState<string | null>(null);
   const fetchedRef = useRef(false);
   const [whatsappBannerDismissed, setWhatsappBannerDismissed] = useState(false);
   const [whatsappOptingIn, setWhatsappOptingIn] = useState(false);
@@ -1240,19 +1124,54 @@ export default function ProviderLeadsPage() {
     setIsDrawerOpen(false);
   }, []);
 
-  const handleArchiveLead = useCallback(async (leadId: string, reason: string) => {
+  const handleArchiveFromModal = useCallback(async (reason: string, message: string) => {
+    if (!leadIdToArchive) return;
+
+    // Capture the lead ID at submission time to detect interruption
+    const submittingLeadId = leadIdToArchive;
+
+    // Verify lead exists before archiving
+    const lead = leads.find((l) => l.id === submittingLeadId);
+    if (!lead) {
+      console.error(`[archive] Lead ${submittingLeadId} not found in state`);
+      throw new Error("Lead not found");
+    }
+
+    await handleArchiveLead(submittingLeadId, reason, message);
+
+    // Close drawer if archiving the currently selected lead
+    if (selectedLeadId === submittingLeadId) {
+      setIsDrawerOpen(false);
+    }
+
+    // Only close modal if leadIdToArchive hasn't changed (no interruption)
+    // This prevents closing a different modal that was opened during submission
+    setLeadIdToArchive((current) => current === submittingLeadId ? null : current);
+  }, [leadIdToArchive, handleArchiveLead, selectedLeadId, leads]);
+
+  const handleArchiveLead = useCallback(async (leadId: string, reason: string, message?: string) => {
     const reasonLabel = {
       already_connected: "Already connected",
       not_a_fit: "Not a good fit",
-      not_accepting: "Not accepting new clients",
+      not_accepting_clients: "Not accepting new clients",
       unable_to_reach: "Unable to reach",
       other: "Other",
     }[reason] || reason;
 
     // Find the lead to get connectionId and preserve previous status
     const lead = leads.find((l) => l.id === leadId);
-    const connectionId = lead?.connectionId || leadId;
-    const previousStatus = lead?.status || "new";
+    if (!lead) {
+      console.error(`[archive] Lead ${leadId} not found in state`);
+      return;
+    }
+    const connectionId = lead.connectionId || leadId;
+    const previousStatus = lead.status || "new";
+
+    // If "already_connected", auto-mark as replied before archiving
+    // (they've communicated outside Olera, so it's effectively replied)
+    if (reason === "already_connected" && lead?.status === "new") {
+      await handleMarkAsReplied(leadId);
+    }
 
     // Optimistic UI update
     setLeads((prev) =>
@@ -1279,6 +1198,7 @@ export default function ProviderLeadsPage() {
           connectionId,
           action: "archive",
           archiveReason: reason,
+          archiveMessage: message || undefined,
         }),
       });
 
@@ -1304,7 +1224,7 @@ export default function ProviderLeadsPage() {
         )
       );
     }
-  }, [leads]);
+  }, [leads, handleMarkAsReplied]);
 
   const handleRestoreLead = useCallback(async (leadId: string) => {
     // Find the lead to get connectionId and previous status
@@ -1654,8 +1574,25 @@ export default function ProviderLeadsPage() {
             <div
               key={lead.id}
               onClick={() => openDrawer(lead)}
-              className="group bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors duration-150 cursor-pointer"
+              className="group relative bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors duration-150 cursor-pointer"
             >
+              {/* Archive button - shown on hover for active leads only */}
+              {lead.status !== "archived" && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLeadIdToArchive(lead.id);
+                  }}
+                  className="absolute top-3 right-3 z-10 p-1.5 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                  aria-label="Archive lead"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  </svg>
+                </button>
+              )}
+
               {/* Mobile card layout */}
               <div className="lg:hidden px-4 py-4 active:bg-vanilla-50/60">
                 <div className="flex items-start gap-3">
@@ -1813,7 +1750,6 @@ export default function ProviderLeadsPage() {
         lead={selectedLead}
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
-        onArchive={handleArchiveLead}
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
         onMarkAsReplied={handleMarkAsReplied}
@@ -1882,6 +1818,15 @@ export default function ProviderLeadsPage() {
         businessName={providerProfile?.display_name || "your business"}
         profileId={providerProfile?.id}
       />
+
+      {/* ── Archive Lead Modal ── */}
+      {leadIdToArchive && (
+        <ArchiveLeadModal
+          leadName={leads.find((l) => l.id === leadIdToArchive)?.name || "this lead"}
+          onClose={() => setLeadIdToArchive(null)}
+          onSubmit={handleArchiveFromModal}
+        />
+      )}
     </div>
   );
 }

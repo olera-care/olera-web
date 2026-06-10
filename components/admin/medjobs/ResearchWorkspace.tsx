@@ -740,8 +740,9 @@ function WorkStep({
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600">
-        Work each page: reopen it, check the contacts we pulled, fix or add, assign each to an office,
-        then confirm. New pages you find extract right here.
+        Work each page: open it ↗, then paste its contacts into the box on that link — that&apos;s the
+        reliable way to capture them. The AI also takes a first pass automatically to save you some of
+        the copy/paste. Fix anything, assign to an office, then confirm the page.
       </p>
 
       {ws.links.map((link) => {
@@ -783,11 +784,13 @@ function WorkStep({
                 ))}
                 {contacts.length === 0 && !isExtracting && (
                   <p className="text-[11px] text-gray-500">
-                    AI found no contacts here. Open the page ↗, copy the contact block, and paste it below — or add by hand.
+                    Nothing pulled automatically yet — open the page ↗, copy the contacts, and paste them below.
                   </p>
                 )}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                  <button onClick={() => onAddContact(link.id)} className="text-xs font-medium text-primary-600 hover:underline">+ Add a contact you see on this page</button>
+                {/* Paste is the primary way to add contacts — always available. */}
+                <PasteContacts linkId={link.id} busy={isExtracting} onParse={onParseText} />
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                  <button onClick={() => onAddContact(link.id)} className="text-[11px] text-gray-500 hover:underline">or add a single contact by hand</button>
                   {unassigned > 0 && (
                     <label className="flex items-center gap-1 text-[11px] text-gray-500">
                       assign all unassigned →
@@ -800,7 +803,6 @@ function WorkStep({
                     </label>
                   )}
                 </div>
-                <PasteContacts linkId={link.id} busy={isExtracting} onParse={onParseText} startOpen={contacts.length === 0 && !!link.extracted} />
                 <label
                   className={`mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
                     unassigned > 0 ? "border-gray-100 text-gray-400" : "border-gray-200 text-gray-800"
@@ -940,45 +942,41 @@ function ContactCard({
   );
 }
 
-/** Paste-to-organize: drop a block of text copied off the page and AI
- *  structures it into this link's contacts. Fast path while you're reopening a
- *  page to confirm it — highlight the contacts, paste, done. */
+/** Paste-to-organize: the PRIMARY way to add contacts. Always present on every
+ *  link — open the page, copy the contact block, paste it here, and AI
+ *  structures it into this link's contacts (auto-assigned to its office). The
+ *  automatic extraction is just a head start that saves some of this paste work. */
 function PasteContacts({
   linkId,
   busy,
   onParse,
-  startOpen = false,
 }: {
   linkId: string;
   busy: boolean;
   onParse: (id: string, text: string) => void;
-  startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(startOpen);
   const [text, setText] = useState("");
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="text-xs font-medium text-primary-600 hover:underline">
-        + Paste contacts from this page
-      </button>
-    );
-  }
   return (
-    <div className="rounded-md border border-gray-200 bg-gray-50 p-2">
-      <p className="mb-1 text-[11px] text-gray-600">
-        Paste the contact text you copied (names, titles, emails, phones) — we&apos;ll organize it.
+    <div className="rounded-md border border-primary-200 bg-primary-50/40 p-2">
+      <p className="text-[11px] font-semibold text-primary-800">
+        Paste contacts from this page — the fastest way to add them
+      </p>
+      <p className="mb-1.5 text-[11px] text-gray-500">
+        Open the page ↗, copy the names / titles / emails / phones, paste here, and we&apos;ll organize them.
       </p>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        rows={4}
+        rows={3}
         placeholder={"Dr. Sierra Miller\nBiology Pre-Medical Advisor\nEmail: snmiller@wtamu.edu\nPhone: (806) 651-2574"}
-        className="w-full rounded border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+        className="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
       />
       <div className="mt-1 flex items-center justify-end gap-2">
-        <button onClick={() => { setOpen(false); setText(""); }} className="text-xs text-gray-500 hover:underline">Cancel</button>
+        {text.trim() && (
+          <button onClick={() => setText("")} className="text-[11px] text-gray-500 hover:underline">clear</button>
+        )}
         <button
-          onClick={() => { if (text.trim()) { onParse(linkId, text.trim()); setText(""); setOpen(false); } }}
+          onClick={() => { if (text.trim()) { onParse(linkId, text.trim()); setText(""); } }}
           disabled={busy || !text.trim()}
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
         >

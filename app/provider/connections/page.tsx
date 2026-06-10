@@ -275,7 +275,7 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => copyToClipboard(lead.phone!, "phone")}
-                className={`p-1.5 rounded-md transition-all shrink-0 ${
+                className={`p-2 md:p-1.5 rounded-md transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
                   copiedField === "phone"
                     ? "bg-primary-100 text-primary-700"
                     : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
@@ -306,7 +306,7 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => copyToClipboard(lead.email!, "email")}
-                className={`p-1.5 rounded-md transition-all shrink-0 ${
+                className={`p-2 md:p-1.5 rounded-md transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
                   copiedField === "email"
                     ? "bg-primary-100 text-primary-700"
                     : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
@@ -1591,7 +1591,7 @@ export default function ProviderLeadsPage() {
                     e.stopPropagation();
                     setLeadIdToArchive(lead.id);
                   }}
-                  className="absolute top-1/2 -translate-y-1/2 right-3 z-10 p-1.5 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                  className="absolute top-4 lg:top-1/2 lg:-translate-y-1/2 right-3 z-10 p-1.5 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
                   aria-label="Archive lead"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

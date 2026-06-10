@@ -183,6 +183,11 @@ interface BannerLeaderboardRow {
   banner: string;
   impressions: number;
   clicks: number;
+  /** Distinct providers who did the banner's intended action within 3d of seeing
+   *  it. null = the banner has no action (view_spike → reinforcement only). */
+  converted: number | null;
+  /** Verb for the conversion ("Answered", "Lead opened", …). "" when no action. */
+  convLabel: string;
 }
 
 interface SummaryResponse {
@@ -2095,21 +2100,46 @@ function bannerLabel(banner: string): string {
   return map[banner] ?? banner;
 }
 
+/** Who each banner reaches. Shown as a muted sub-line so conversion rates are
+ *  read within-cohort — never as a cross-banner ranking (the cascade routes by
+ *  provider state, so the audiences aren't comparable). */
+function bannerCohort(banner: string): string {
+  if (banner.startsWith("completion:")) return "incomplete profiles";
+  const map: Record<string, string> = {
+    leads: "engaged — has new inquiries",
+    questions: "has open questions",
+    find_families_live: "no inbound — live family nearby",
+    find_families_intel: "quiet — complete profile, no leads",
+    view_spike: "rising views — reinforcement",
+  };
+  return map[banner] ?? "";
+}
+
 function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) {
   const rows = summary?.windowed.banner_leaderboard ?? [];
   const totalImpressions = rows.reduce((sum, r) => sum + r.impressions, 0);
+  const totalClicks = rows.reduce((sum, r) => sum + r.clicks, 0);
+  const totalConverted = rows.reduce((sum, r) => sum + (r.converted ?? 0), 0);
+
+  const tiles: Array<{ label: string; value: number; hint: string }> = [
+    { label: "Shown to", value: totalImpressions, hint: "distinct providers" },
+    { label: "Clicked through", value: totalClicks, hint: "tapped the CTA" },
+    { label: "Converted", value: totalConverted, hint: "did the action ≤3d" },
+  ];
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200/70 p-5 sm:p-6">
       <p className="text-[13px] text-gray-500 leading-relaxed mb-1">
-        Which dashboard hero banners providers see, and how many click through.
-        Counts are <span className="font-medium text-gray-700">distinct providers</span> per
-        banner in this window.
+        Which dashboard hero banners providers see, how many click through, and how many go on to
+        do the action the banner nudged. Counts are{" "}
+        <span className="font-medium text-gray-700">distinct providers</span> per banner in this window.
       </p>
       <p className="text-[11px] text-gray-400 mb-4">
         Contextual nudges, not a controlled A/B test — each provider sees one banner chosen by
-        their own state, so banners reach different audiences. Read CTR as &ldquo;which banners get
-        traction,&rdquo; not &ldquo;which banner is best.&rdquo;
+        their own state, so banners reach different audiences (the cohort is noted under each row).
+        Read these <span className="italic">within</span> a banner, not as a ranking across banners.
+        Converted = did the action within 3 days of seeing the banner; it&rsquo;s a last-touch signal,
+        not proof the banner caused it.
       </p>
 
       {totalImpressions === 0 ? (
@@ -2118,33 +2148,70 @@ function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) 
           dashboard and a provider_picker_impression fires.
         </p>
       ) : (
-        <div className="overflow-x-auto -mx-1">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                <th className="px-3 py-2 font-medium">Banner</th>
-                <th className="px-3 py-2 font-medium tabular-nums text-right">Shown to</th>
-                <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
-                <th className="px-3 py-2 font-medium tabular-nums text-right">CTR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => {
-                const ctr = r.impressions > 0 ? Math.round((r.clicks / r.impressions) * 100) : 0;
-                return (
-                  <tr key={r.banner} className="border-b border-gray-50 last:border-0">
-                    <td className="px-3 py-2.5 text-gray-900">{bannerLabel(r.banner)}</td>
-                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">{r.impressions}</td>
-                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-700">{r.clicks}</td>
-                    <td className="px-3 py-2.5 tabular-nums text-right font-medium text-gray-900">
-                      {r.impressions > 0 ? `${ctr}%` : "—"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            {tiles.map((t) => (
+              <div key={t.label} className="rounded-xl border border-gray-100 bg-gray-50/50 px-4 py-3">
+                <div className="text-2xl font-semibold tabular-nums text-gray-900">{t.value}</div>
+                <div className="text-[12px] text-gray-600 mt-0.5">{t.label}</div>
+                <div className="text-[10px] text-gray-400">{t.hint}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="overflow-x-auto -mx-1">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                  <th className="px-3 py-2 font-medium">Banner</th>
+                  <th className="px-3 py-2 font-medium tabular-nums text-right">Shown to</th>
+                  <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
+                  <th className="px-3 py-2 font-medium tabular-nums text-right">CTR</th>
+                  <th className="px-3 py-2 font-medium tabular-nums text-right">Converted</th>
+                  <th className="px-3 py-2 font-medium tabular-nums text-right">Conv. rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => {
+                  const ctr = r.impressions > 0 ? Math.round((r.clicks / r.impressions) * 100) : 0;
+                  const hasConv = r.converted !== null;
+                  const convRate =
+                    hasConv && r.impressions > 0
+                      ? Math.round(((r.converted as number) / r.impressions) * 100)
+                      : null;
+                  return (
+                    <tr key={r.banner} className="border-b border-gray-50 last:border-0">
+                      <td className="px-3 py-2.5">
+                        <div className="text-gray-900">{bannerLabel(r.banner)}</div>
+                        <div className="text-[11px] text-gray-400">{bannerCohort(r.banner)}</div>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700 align-top">{r.impressions}</td>
+                      <td className="px-3 py-2.5 tabular-nums text-right text-gray-700 align-top">{r.clicks}</td>
+                      <td className="px-3 py-2.5 tabular-nums text-right font-medium text-gray-900 align-top">
+                        {r.impressions > 0 ? `${ctr}%` : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-right align-top">
+                        {hasConv ? (
+                          <div>
+                            <span className="tabular-nums font-medium text-emerald-700">{r.converted}</span>
+                            {r.convLabel && (
+                              <div className="text-[11px] text-emerald-600/80">{r.convLabel.toLowerCase()}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-300" title="No CTA — reinforcement only">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-right font-medium text-gray-900 align-top">
+                        {convRate !== null ? `${convRate}%` : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

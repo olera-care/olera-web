@@ -140,6 +140,25 @@ export function buildWelcomeUrl(
   return params.activate ? `${base}?a=1` : base;
 }
 
+/** Build the Recruitment Partner Portal URL (Chunk 3.1). Same signed token as
+ *  the provider welcome link, but the token IS the access credential for the
+ *  portal — partners are stakeholder rows with no business_profile/account, so
+ *  we don't route them through the provider auth/session flow. 30-day TTL. */
+export function buildPartnerPortalUrl(
+  params: { outreach_id: string; email: string; site_url?: string },
+  secret: string,
+): string {
+  const siteUrl = (params.site_url ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://olera.care").replace(/\/+$/, "");
+  const payload: WelcomePayload = {
+    outreach_id: params.outreach_id,
+    email: params.email.trim().toLowerCase(),
+    expires_at: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    jti: freshJti(),
+  };
+  const token = signWelcomeToken(payload, secret);
+  return `${siteUrl}/medjobs/partner/${encodeURIComponent(token)}`;
+}
+
 // ── Base64url helpers ───────────────────────────────────────────────────
 
 function base64UrlEncode(buf: Buffer): string {

@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
-import { isUndeliverable } from "./email-verification";
+import { isUndeliverable, verifyAndCache } from "./email-verification";
 import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge } from "./email-governance";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
@@ -327,7 +327,19 @@ export async function sendEmail(
     let suppressReason: string | null = null;
     if (await isSuppressedRecipient(soleRecipient)) {
       suppressReason = "prior bounce/complaint on record";
-    } else if (await isUndeliverable(soleRecipient)) {
+    } else if (
+      // Cold provider-directed mail (the high-bounce lane sent to scraped /
+      // team-fetched directory addresses) verifies ON THE SPOT: verifyAndCache
+      // returns a fresh cached verdict, or on a miss/stale calls ZeroBounce,
+      // caches it, and returns it. This closes the gap where a freshly-added
+      // address would send blind on its first auto-notification and bounce.
+      // Every other email_type stays cache-only (isUndeliverable) so the
+      // transactional path never makes a network call. Both fail OPEN: a
+      // verification error → 'unknown' → not suppressed → still sent.
+      PROVIDER_NOTIFY_FROM_TYPES.has(emailType)
+        ? (await verifyAndCache(soleRecipient)).status === "invalid"
+        : await isUndeliverable(soleRecipient)
+    ) {
       suppressReason = "verified undeliverable";
     }
     if (suppressReason) {

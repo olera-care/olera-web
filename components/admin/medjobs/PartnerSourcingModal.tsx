@@ -30,6 +30,16 @@ const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
   { key: "dept_head", label: "Department heads" },
 ];
 
+function bodyError(body: unknown, fallback: string): string {
+  const e = (body as { error?: unknown } | null)?.error;
+  if (typeof e === "string" && e.trim()) return e;
+  if (e && typeof e === "object") {
+    const m = (e as { message?: unknown }).message;
+    if (typeof m === "string" && m.trim()) return m;
+  }
+  return fallback;
+}
+
 type Step = "config" | "sourcemap" | "review";
 
 interface Props {
@@ -111,7 +121,7 @@ export function PartnerSourcingModal({
         }),
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to find sources");
+      if (!res.ok) throw new Error(bodyError(d, "Couldn\u2019t find sources \u2014 try again, or check sources by hand."));
       const src = (d.sources ?? []) as SourceLink[];
       setSources(src);
       setChosenSources(new Set(src.map((_, i) => (src[i].tier !== "worth_a_look" ? i : -1)).filter((i) => i >= 0)));
@@ -141,7 +151,7 @@ export function PartnerSourcingModal({
         }),
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to extract candidates");
+      if (!res.ok) throw new Error(bodyError(d, "Extraction took too long or failed \u2014 try again, or add prospects by hand."));
       const cands = (d.candidates ?? []) as PartnerCandidate[];
       setCandidates(cands);
       // Pre-select everything not already a prospect.

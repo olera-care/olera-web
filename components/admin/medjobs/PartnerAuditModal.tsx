@@ -38,6 +38,19 @@ const SUBTYPE_LABEL: Record<PartnerSubtype, string> = {
 function googleUrl(q: string): string {
   return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 }
+
+/** Pull a human string out of an API error body. Guards against rendering
+ *  "[object Object]" when the error envelope (e.g. a Vercel timeout) nests the
+ *  error as an object instead of a string. */
+function bodyError(body: unknown, fallback: string): string {
+  const e = (body as { error?: unknown } | null)?.error;
+  if (typeof e === "string" && e.trim()) return e;
+  if (e && typeof e === "object") {
+    const m = (e as { message?: unknown }).message;
+    if (typeof m === "string" && m.trim()) return m;
+  }
+  return fallback;
+}
 function linkedinUrl(q: string): string {
   return `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(q)}`;
 }
@@ -124,7 +137,7 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ partner_audit: { subtype, steps, complete } }),
         });
-        if (!res.ok) throw new Error((await res.json()).error || "Save failed");
+        if (!res.ok) throw new Error(bodyError(await res.json().catch(() => null), "Save failed"));
         if (complete) onComplete();
         else onClose();
       } catch (e) {
@@ -151,12 +164,21 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ campus_slug: campusSlug, subtype, stage: "extract_url", url: pageUrl.trim() }),
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Couldn't read that page");
-      setUrlCandidates((d.candidates ?? []) as PartnerCandidate[]);
-      if ((d.candidates ?? []).length === 0) setUrlError("No contacts found on that page.");
+      const d = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          bodyError(
+            d,
+            res.status === 504 || res.status === 408
+              ? "That page took too long to read — try a more specific page, or add contacts by hand."
+              : "Couldn't read that page",
+          ),
+        );
+      }
+      setUrlCandidates((d?.candidates ?? []) as PartnerCandidate[]);
+      if ((d?.candidates ?? []).length === 0) setUrlError("No contacts found on that page.");
     } catch (e) {
-      setUrlError(e instanceof Error ? e.message : "Failed");
+      setUrlError(e instanceof Error ? e.message : "Couldn't read that page");
     } finally {
       setUrlBusy(false);
     }
@@ -185,7 +207,7 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
           body: JSON.stringify(stakeholderBodyFromCandidate(campusSlug, c)),
         });
       }
-      if (!res.ok) throw new Error((await res.json()).error || "Add failed");
+      if (!res.ok) throw new Error(bodyError(await res.json().catch(() => null), "Add failed"));
       setAddedIdx((s) => new Set(s).add(i));
       setSteps((s) => ({ ...s, added_missed: true })); // adding satisfies step 3
     } catch (e) {

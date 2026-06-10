@@ -234,24 +234,21 @@ function LeadDetailDrawer({
   );
 
   const StickyHeader = (
-    <div className="flex items-center gap-3">
+    <div className="flex items-start gap-3">
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center text-base font-semibold text-white shrink-0`}>
         {lead.initials}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
           {statusTag}
         </div>
-        {lead.location && (
-          <p className="text-sm text-gray-600 truncate">{lead.location}</p>
-        )}
-      </div>
-      <div className="text-right shrink-0">
-        <p className="text-sm">
-          <span className="text-gray-500">Received</span>{" "}
-          <span className="font-semibold text-gray-700">{lead.date}</span>
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          {lead.location && (
+            <p className="text-sm text-gray-600 truncate">{lead.location}</p>
+          )}
+          <p className="text-sm text-gray-500 shrink-0">{lead.date}</p>
+        </div>
       </div>
     </div>
   );

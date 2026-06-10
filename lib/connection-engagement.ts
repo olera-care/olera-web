@@ -37,6 +37,54 @@ export type FamilyEngagementLevel =
   | "stuck"
   | "needs_call";
 
+/**
+ * Admin override structure for manually marking connection status.
+ * Used when admins verify off-platform activity (phone calls, in-person, etc.)
+ */
+export interface AdminOverride {
+  status: "viewed" | "connected";
+  marked_at: string;
+  marked_by: string;
+  marked_by_email?: string;
+  reason: string;
+  notes?: string | null;
+}
+
+/**
+ * Type-safe parser for admin_override metadata.
+ * Returns null if the data doesn't match the expected structure.
+ */
+export function parseAdminOverride(value: unknown): AdminOverride | null {
+  if (!value || typeof value !== "object") return null;
+
+  const obj = value as Record<string, unknown>;
+
+  // Validate required fields
+  if (typeof obj.status !== "string" || (obj.status !== "viewed" && obj.status !== "connected")) {
+    return null;
+  }
+  if (typeof obj.marked_at !== "string") return null;
+  if (typeof obj.marked_by !== "string") return null;
+  if (typeof obj.reason !== "string") return null;
+
+  // Validate optional fields
+  if (obj.marked_by_email !== undefined && typeof obj.marked_by_email !== "string") {
+    return null;
+  }
+  if (obj.notes !== undefined && obj.notes !== null && typeof obj.notes !== "string") {
+    return null;
+  }
+
+  return {
+    status: obj.status as "viewed" | "connected",
+    marked_at: obj.marked_at,
+    marked_by: obj.marked_by,
+    marked_by_email: obj.marked_by_email as string | undefined,
+    reason: obj.reason,
+    notes: (obj.notes as string | null | undefined) ?? null,
+  };
+}
+
 export interface EngagementData {
   emailClicked: boolean;
   leadOpened: boolean;
@@ -49,6 +97,10 @@ export interface EngagementData {
   markedReplied: boolean;
   /** Provider archived with reason "already_connected" */
   alreadyConnected: boolean;
+  /** Admin manually marked this connection as "viewed" (verified off-platform activity) */
+  adminMarkedViewed: boolean;
+  /** Admin manually marked this connection as "connected" (verified off-platform activity) */
+  adminMarkedConnected: boolean;
   lastActivityAt: string | null;
   /** Set by cron when all automated outreach is exhausted */
   needsCall?: boolean;
@@ -245,16 +297,25 @@ export function getEngagementLevel(
   const needsCallByTime = daysSinceActivity >= PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 
   // Determine base level first (before applying time-based rules)
+  // PRIORITY: Admin override > Automatic tracking
   let baseLevel: EngagementLevel;
 
-  if (
+  if (engagement.adminMarkedConnected) {
+    // Admin manually verified this connection (off-platform activity)
+    // Takes highest priority - admin has confirmed provider connected
+    baseLevel = "connected";
+  } else if (engagement.adminMarkedViewed) {
+    // Admin manually verified provider viewed the lead (off-platform confirmation)
+    // Takes priority over automatic tracking
+    baseLevel = "viewed";
+  } else if (
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked ||
     engagement.markedReplied ||    // Provider explicitly marked as "Replied"
     engagement.alreadyConnected    // Provider archived with "Already connected" reason
   ) {
-    // Provider reached out - this is success
+    // Provider reached out - this is success (automatic tracking)
     baseLevel = "connected";
   } else if (
     engagement.leadOpened ||
@@ -262,7 +323,7 @@ export function getEngagementLevel(
     engagement.continueInInbox
   ) {
     // Provider viewed the lead or showed interest (revealed contact, clicked to inbox)
-    // Treat all passive interest signals as "viewed"
+    // Treat all passive interest signals as "viewed" (automatic tracking)
     baseLevel = "viewed";
   } else {
     // No engagement yet
@@ -272,15 +333,24 @@ export function getEngagementLevel(
   // Determine final engagement level (purely time-based for UI tabs)
   // - Connected: provider reached out (success) - never becomes stuck/needs_call
   // - Viewed: provider showed interest, keep in their tab and continue sequence
+  // - Admin-marked viewed: can still escalate if very stale (prevents zombie records)
   // - Needs Call: 14+ days with NO engagement (only for "new" connections)
   // - Stuck: 10+ days with NO engagement (only for "new" connections)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
   } else if (baseLevel === "viewed") {
-    // Provider showed interest - keep them in viewed tab and continue sequence
-    // Even if it's 14+ days old, if they viewed or revealed contact, they stay in viewed tab
-    level = baseLevel;
+    // Check if this is admin-marked viewed vs automatic tracking
+    const isAdminMarkedViewed = engagement.adminMarkedViewed && !engagement.leadOpened && !engagement.contactRevealed;
+
+    if (isAdminMarkedViewed && needsCallByTime) {
+      // Admin verified they viewed, but it's been 14+ days with no actual activity
+      // Escalate to needs_call to prevent zombie records stuck in viewed forever
+      level = "needs_call";
+    } else {
+      // Automatic viewed OR admin-marked but not yet stale - keep in viewed tab
+      level = baseLevel;
+    }
   } else if (needsCallByTime) {
     // Only NEW connections (never viewed) that are 14+ days old need manual call
     level = "needs_call";
@@ -301,10 +371,11 @@ export function getEngagementLevel(
 
 /**
  * Check if a connection is considered successful.
- * Connected = provider took action to reach the family.
+ * Connected = provider took action to reach the family (automatically tracked or admin-verified).
  */
 export function isConnected(engagement: EngagementData): boolean {
   return (
+    engagement.adminMarkedConnected ||
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked ||

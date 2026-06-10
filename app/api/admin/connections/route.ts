@@ -12,6 +12,7 @@ import {
 import {
   getEngagementLevel,
   getFamilyEngagementLevel,
+  parseAdminOverride,
   type EngagementLevel,
   type FamilyEngagementLevel,
   type EngagementData,
@@ -886,6 +887,11 @@ export async function GET(request: NextRequest) {
         combinedLastActivity = engagementLastActivity || messageLastActivity;
       }
 
+      // Extract admin override from metadata
+      const adminOverride = c.metadata?.admin_override ? parseAdminOverride(c.metadata.admin_override) : null;
+      const adminMarkedViewed = adminOverride?.status === "viewed";
+      const adminMarkedConnected = adminOverride?.status === "connected";
+
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
         leadOpened: eng?.lead_opened ?? false,
@@ -896,6 +902,8 @@ export async function GET(request: NextRequest) {
         providerMessaged: c.responded,
         markedReplied: c.markedReplied,
         alreadyConnected: c.alreadyConnected,
+        adminMarkedViewed,
+        adminMarkedConnected,
         lastActivityAt: combinedLastActivity,
         needsCall: c.needsCall,
         // When Day 0 email was sent - providers who got email added later start fresh
@@ -1041,11 +1049,16 @@ export async function GET(request: NextRequest) {
 
     // Add engagement level to each connection in the page
     // Include both provider and family engagement levels so UI can display appropriately
-    const page = pageRaw.map((c) => ({
-      ...c,
-      engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
-      familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
-    }));
+    const page = pageRaw.map((c) => {
+      const adminOverride = c.metadata?.admin_override ? parseAdminOverride(c.metadata.admin_override) : null;
+
+      return {
+        ...c,
+        engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
+        familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
+        adminOverride,
+      };
+    });
 
     // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
     // This shows engagement specific to each connection, not aggregated across all provider's connections.

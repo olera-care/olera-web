@@ -12,6 +12,7 @@ import {
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
+import { parseAdminOverride } from "@/lib/connection-engagement";
 
 /**
  * GET /api/cron/lead-followup-sequence
@@ -66,7 +67,7 @@ interface FollowupMetadata {
   followup_sent_at?: string | null;
   followup_sent_by?: string;
   followup_stopped_at?: string | null;
-  followup_stopped_reason?: "connected" | "responded" | "stuck" | "needs_call" | null;
+  followup_stopped_reason?: "connected" | "responded" | "stuck" | "needs_call" | "admin_marked_connected" | null;
   needs_call?: boolean;
   thread?: ThreadMessage[];
 }
@@ -201,6 +202,7 @@ export async function GET(request: NextRequest) {
         send_failed: 0,
         nudge_cap: 0, // Frequency gate held this stage — provider over the weekly nudge budget
         not_stuck: 0, // For force_stuck_reengagement mode
+        admin_marked_connected: 0, // Admin verified provider connected off-platform
       },
       dry_run: dryRun,
       force_stuck_reengagement: forceStuckReengagement,
@@ -332,12 +334,21 @@ export async function GET(request: NextRequest) {
         // Don't skip "stuck" — allow progression to stages 6/7
         // Don't skip old "engaged" — those were just views, provider should still get emails
         const stopReason = meta.followup_stopped_reason;
-        const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "needs_call";
+        const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "needs_call" || stopReason === "admin_marked_connected";
         if (meta.followup_stopped_at && isRealStop) {
           counts.skipped++;
           counts.skipReasons.sequence_stopped++;
           continue;
         }
+      }
+
+      // Check if admin manually marked this connection (verified off-platform activity)
+      const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
+      if (adminOverride?.status === "connected") {
+        // Admin verified provider connected - stop sequence
+        counts.skipped++;
+        counts.skipReasons.admin_marked_connected = (counts.skipReasons.admin_marked_connected || 0) + 1;
+        continue;
       }
 
       // Check if provider has connected via phone/email click

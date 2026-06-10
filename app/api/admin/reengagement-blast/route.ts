@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { providerFollowupDay17Email } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
@@ -201,6 +202,7 @@ export async function POST(request: NextRequest) {
       providerEmail: string;
       providerName: string;
       providerSlug: string;
+      providerKey: string; // canonical olera-providers.slug for email_log.provider_id (frequency gate + dashboard)
       leads: Array<{
         connectionId: string;
         familyName: string;
@@ -252,11 +254,17 @@ export async function POST(request: NextRequest) {
         : null;
 
       if (!providerGroups.has(providerId)) {
+        const providerKey =
+          (await resolveCanonicalProviderId(db, {
+            sourceProviderId: (toProfile?.source_provider_id as string) || null,
+            profileSlug: providerSlug,
+          })) ?? providerSlug;
         providerGroups.set(providerId, {
           providerId,
           providerEmail,
           providerName,
           providerSlug,
+          providerKey,
           leads: [],
         });
       }
@@ -325,7 +333,7 @@ export async function POST(request: NextRequest) {
         subject,
         emailType: "provider_followup_day17",
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerKey,
       });
 
       // Build view URL
@@ -377,7 +385,7 @@ export async function POST(request: NextRequest) {
         html,
         emailType: "provider_followup_day17",
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerKey,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: 6,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmailForFamily, newMessageEmailForProvider } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
@@ -132,10 +133,14 @@ export async function GET(request: NextRequest) {
 
       const senderName = sender?.display_name || "Someone";
       const isFamily = recipient.type === "family";
-      // Canonical provider key (slug space) so the frequency gate can count this send.
+      // Canonical provider key (olera-providers.slug, via shared resolver) so this cron's nudges
+      // aggregate with the digest + dashboard rather than fragmenting under bp.slug / a UUID.
       const providerKey = isFamily
         ? undefined
-        : recipient.slug || recipient.source_provider_id || recipientProfileId;
+        : (await resolveCanonicalProviderId(db, {
+            sourceProviderId: recipient.source_provider_id,
+            profileSlug: recipient.slug,
+          })) ?? recipientProfileId;
       const urSubject = `New message from ${senderName}`;
       const urLogId = await reserveEmailLogId({
         to: recipient.email,

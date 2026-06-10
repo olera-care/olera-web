@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   providerFollowupDay1Email,
@@ -94,6 +95,7 @@ interface ProviderGroup {
   providerEmail: string;
   providerName: string;
   providerSlug: string;
+  providerKey: string; // canonical olera-providers.slug for email_log.provider_id (frequency gate + dashboard)
   leads: EligibleLead[];
 }
 
@@ -432,9 +434,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const providerId = conn.to_profile_id;
-      // Use slug, then source_provider_id, then id as fallback for token generation
-      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || "";
+      // providerId: UUID — used only to GROUP a provider's leads in this run (dedup key).
+      // providerSlug: slug/source_provider_id/id — for URL / claim-token generation.
+      // providerKey (below): the canonical olera-providers.slug stamped on email_log.provider_id, so
+      // this sender's rows aggregate with the digest + dashboard instead of fragmenting. (Reconciled
+      // with #1000 — UUID can't be canonical: unclaimed providers have none. See lib/provider-identity.)
+      const providerId = conn.to_profile_id; // UUID - grouping key only
+      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || ""; // For URLs
       const providerName = toProfile?.display_name || "Your Organization";
 
       // Extract family info with fallbacks
@@ -462,11 +468,17 @@ export async function GET(request: NextRequest) {
 
       // Add to provider group
       if (!providerGroups.has(providerId)) {
+        const providerKey =
+          (await resolveCanonicalProviderId(db, {
+            sourceProviderId: toProfile?.source_provider_id,
+            profileSlug: providerSlug,
+          })) ?? providerSlug;
         providerGroups.set(providerId, {
           providerId,
           providerEmail,
           providerName,
           providerSlug,
+          providerKey,
           leads: [],
         });
       }
@@ -557,13 +569,13 @@ export async function GET(request: NextRequest) {
       const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount);
       const emailType = getEmailTypeForStage(templateStage);
 
-      // Reserve email log ID
+      // Reserve email log ID (canonical slug — see providerKey)
       const emailLogId = await reserveEmailLogId({
         to: group.providerEmail,
         subject,
         emailType,
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerKey,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: templateStage,
@@ -646,7 +658,7 @@ export async function GET(request: NextRequest) {
         html,
         emailType,
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerKey,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: templateStage,

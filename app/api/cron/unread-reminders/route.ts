@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmailForProvider, unreadReminderEmail, firstName } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
@@ -229,11 +230,15 @@ export async function GET(request: NextRequest) {
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       const isFamily = recipient.type === "family";
-      // Canonical provider key (slug space) for email_log.provider_id — mirrors lead-followup's
-      // chain. All sampled provider profiles have a slug, so the fallbacks are belt-and-suspenders.
+      // Canonical provider key (olera-providers.slug) for email_log.provider_id — resolved through
+      // the shared resolver so this cron aggregates with the digest + dashboard. NOT bp.slug, which
+      // holds a stale legacy id for ~16% of claimed providers.
       const providerKey = isFamily
         ? undefined
-        : recipient.slug || recipient.source_provider_id || recipientProfileId;
+        : (await resolveCanonicalProviderId(db, {
+            sourceProviderId: recipient.source_provider_id,
+            profileSlug: recipient.slug,
+          })) ?? recipientProfileId;
 
       // Different subject and template for families vs providers
       const senderFirstName = firstName(sender?.display_name || "", isFamily ? "A provider" : "Someone");

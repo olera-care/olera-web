@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   formatAge,
   type ConnectionTemperature,
@@ -100,6 +100,7 @@ interface EmailTrailEntry {
   first_clicked_at: string | null;
   bounced_at: string | null;
   complained_at: string | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 interface Detail {
@@ -267,6 +268,89 @@ export default function ConnectionRow({
   const [emailInput, setEmailInput] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState(false);
+
+  // Edit email state
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editEmailInput, setEditEmailInput] = useState("");
+  const [editEmailError, setEditEmailError] = useState<string | null>(null);
+  const [editEmailSuccess, setEditEmailSuccess] = useState(false);
+  const [editingEmailLoading, setEditingEmailLoading] = useState(false);
+  const [pendingEmailEdit, setPendingEmailEdit] = useState<{ oldEmail: string; newEmail: string } | null>(null);
+  const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Find email state
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [foundEmails, setFoundEmails] = useState<string[]>([]);
+  const [findEmailError, setFindEmailError] = useState<string | null>(null);
+  const [emailSource, setEmailSource] = useState<"scrape" | "perplexity" | null>(null);
+  const [isCachedResult, setIsCachedResult] = useState(false);
+  const [autoSuggestAttempted, setAutoSuggestAttempted] = useState(false);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (editEmailTimeoutRef.current) {
+        clearTimeout(editEmailTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-suggest email when drawer opens and provider has no email
+  useEffect(() => {
+    if (open && detail && !detail.provider.email && !autoSuggestAttempted && c.provider.id) {
+      setAutoSuggestAttempted(true);
+
+      // Automatically find email
+      (async () => {
+        setFindingEmail(true);
+        setFindEmailError(null);
+        setEmailSource(null);
+        setFoundEmails([]);
+        setIsCachedResult(false);
+
+        try {
+          const res = await fetch("/api/admin/connections/find-provider-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ providerId: c.provider.id }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.email) {
+            setEmailInput(data.email);
+            setEmailSource(data.source);
+            setIsCachedResult(data.cached || false);
+            if (data.candidates && data.candidates.length > 0) {
+              setFoundEmails(data.candidates);
+            }
+          } else if (res.ok && !data.email) {
+            // No email found or insufficient data
+            const errorMsg = data.error || ("No email found" + (data.cached ? " (cached)" : ""));
+            setFindEmailError(errorMsg);
+            setIsCachedResult(data.cached || false);
+          } else {
+            // API error
+            setFindEmailError(data.error || "Failed to find email");
+          }
+        } catch {
+          // Network error
+          setFindEmailError("Network error");
+        } finally {
+          setFindingEmail(false);
+        }
+      })();
+    }
+
+    // Reset auto-suggest flag when drawer closes
+    if (!open) {
+      setAutoSuggestAttempted(false);
+      setFindEmailError(null);
+      setEmailSource(null);
+      setIsCachedResult(false);
+      setFoundEmails([]);
+    }
+  }, [open, detail, autoSuggestAttempted, c.provider.id]);
 
   // Fact sheet modal state
   const [showFactSheet, setShowFactSheet] = useState(false);
@@ -483,6 +567,13 @@ export default function ConnectionRow({
       if (res.ok) {
         setEmailSuccess(true);
         setEmailInput("");
+
+        // Clear find email state
+        setEmailSource(null);
+        setIsCachedResult(false);
+        setFoundEmails([]);
+        setFindEmailError(null);
+
         // Update local detail state to show new email
         if (detail) {
           setDetail({
@@ -503,6 +594,133 @@ export default function ConnectionRow({
       setEmailError("Network error");
     } finally {
       setAddingEmail(false);
+    }
+  }
+
+  function handleEditEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editEmailInput.trim()) return;
+
+    const oldEmail = detail?.provider.email || "(none)";
+    const newEmail = editEmailInput.trim();
+
+    if (oldEmail === newEmail) {
+      setEditEmailError("New email is the same as current email");
+      return;
+    }
+
+    // Show confirmation modal
+    setEditEmailError(null); // Clear any previous errors
+    setPendingEmailEdit({ oldEmail, newEmail });
+  }
+
+  async function confirmEditEmail() {
+    if (!pendingEmailEdit) return;
+
+    setEditingEmailLoading(true);
+    setEditEmailError(null);
+    setEditEmailSuccess(false);
+    setPendingEmailEdit(null); // Close modal
+
+    try {
+      const res = await fetch(`/api/admin/connections/${c.id}/edit-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail: pendingEmailEdit.newEmail }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setEditEmailSuccess(true);
+        setEditEmailInput("");
+
+        // Show warning if metadata update failed
+        if (data.warning) {
+          setEditEmailError(data.warning);
+        }
+
+        // Update local detail state to show new email
+        if (detail) {
+          setDetail({
+            ...detail,
+            provider: { ...detail.provider, email: data.newEmail || pendingEmailEdit.newEmail, hasEmail: true },
+          });
+        }
+
+        // Notify parent to refresh list
+        onNudgeSuccess?.();
+
+        // Close form after showing success message (longer timeout if warning)
+        editEmailTimeoutRef.current = setTimeout(() => {
+          setEditingEmail(false);
+          setEditEmailSuccess(false);
+          setEditEmailError(null);
+          editEmailTimeoutRef.current = null;
+        }, data.warning ? 5000 : 3000);
+      } else {
+        setEditEmailError(data.error || "Failed to update email");
+      }
+    } catch {
+      setEditEmailError("Network error");
+    } finally {
+      setEditingEmailLoading(false);
+    }
+  }
+
+  async function handleFindEmail(mode: "edit" | "add" = "edit", forceRefresh = false) {
+    if (!c.provider.id) return;
+
+    setFindingEmail(true);
+    setFindEmailError(null);
+    setFoundEmails([]);
+    setEmailSource(null);
+    setIsCachedResult(false);
+
+    try {
+      const res = await fetch("/api/admin/connections/find-provider-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: c.provider.id,
+          forceRefresh,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.email) {
+        // Set the best match as the input value
+        if (mode === "edit") {
+          setEditEmailInput(data.email);
+          setEditEmailError(null);
+        } else {
+          setEmailInput(data.email);
+          setEmailError(null);
+        }
+
+        setEmailSource(data.source);
+        setIsCachedResult(data.cached || false);
+
+        // Store all candidates for potential dropdown
+        if (data.candidates && data.candidates.length > 0) {
+          setFoundEmails(data.candidates);
+        }
+      } else if (res.ok && !data.email) {
+        // No email found or insufficient data
+        const errorMsg = data.error || ("No email found for this provider" + (data.cached ? " (cached)" : ""));
+        setFindEmailError(errorMsg);
+        setIsCachedResult(data.cached || false);
+      } else {
+        // API error
+        const errorMsg = data.error || "Failed to find email";
+        setFindEmailError(errorMsg);
+      }
+    } catch {
+      // Network error
+      setFindEmailError("Network error. Please check your connection and try again.");
+    } finally {
+      setFindingEmail(false);
     }
   }
 
@@ -804,26 +1022,214 @@ export default function ConnectionRow({
                   <p className="font-medium text-gray-900 text-sm truncate">{detail.provider.display_name || "Unknown"}</p>
                   <div className="mt-1 space-y-1 text-sm">
                     {detail.provider.email ? (
-                      <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate">{detail.provider.email}</a>
+                      <div className="space-y-1">
+                        {!editingEmail ? (
+                          <div className="flex items-center justify-between gap-2">
+                            <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
+                            <button
+                              onClick={() => {
+                                if (editEmailTimeoutRef.current) {
+                                  clearTimeout(editEmailTimeoutRef.current);
+                                  editEmailTimeoutRef.current = null;
+                                }
+                                setEditingEmail(true);
+                                setEditEmailInput(detail.provider.email || "");
+                                setEditEmailError(null);
+                                setEditEmailSuccess(false);
+                                // Clear previous find email state
+                                setFindEmailError(null);
+                                setEmailSource(null);
+                                setIsCachedResult(false);
+                                setFoundEmails([]);
+                              }}
+                              className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        ) : (
+                          <form onSubmit={handleEditEmail} className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 flex items-center gap-1">
+                                <input
+                                  type="email"
+                                  value={editEmailInput}
+                                  onChange={(e) => {
+                                    setEditEmailInput(e.target.value);
+                                    // Clear source indicator if user manually edits away from found emails
+                                    if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
+                                      setEmailSource(null);
+                                      setIsCachedResult(false);
+                                    }
+                                  }}
+                                  placeholder="New provider email..."
+                                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                  disabled={editingEmailLoading || findingEmail}
+                                  autoFocus
+                                />
+                                {!isCachedResult ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleFindEmail("edit")}
+                                    disabled={editingEmailLoading || findingEmail}
+                                    className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                    title="Find provider email using web scraping + AI"
+                                  >
+                                    {findingEmail ? "Searching..." : "✦ Find"}
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleFindEmail("edit", true)}
+                                    disabled={editingEmailLoading || findingEmail}
+                                    className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                    title="Force refresh - bypass cache and search again"
+                                  >
+                                    {findingEmail ? "Searching..." : "↻ Refresh"}
+                                  </button>
+                                )}
+                              </div>
+                              <button
+                                type="submit"
+                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email}
+                                className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {editingEmailLoading ? "Saving..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (editEmailTimeoutRef.current) {
+                                    clearTimeout(editEmailTimeoutRef.current);
+                                    editEmailTimeoutRef.current = null;
+                                  }
+                                  setEditingEmail(false);
+                                  setEditEmailInput("");
+                                  setEditEmailError(null);
+                                  setEditEmailSuccess(false);
+                                  setFindEmailError(null);
+                                  setFoundEmails([]);
+                                  setEmailSource(null);
+                                  setIsCachedResult(false);
+                                }}
+                                disabled={editingEmailLoading || findingEmail}
+                                className="px-2 py-1 text-sm text-gray-500 hover:text-gray-700"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
+                            {emailSource && (
+                              <p className="text-xs text-gray-500">
+                                Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                                {isCachedResult && " (cached)"}
+                                {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                              </p>
+                            )}
+                            {foundEmails.length > 1 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {[...new Set(foundEmails)].map((email) => (
+                                  <button
+                                    key={email}
+                                    type="button"
+                                    onClick={() => setEditEmailInput(email)}
+                                    className={`px-2 py-0.5 text-xs rounded border transition-colors ${
+                                      editEmailInput === email
+                                        ? "bg-amber-100 border-amber-300 text-amber-800"
+                                        : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                    disabled={editingEmailLoading || findingEmail}
+                                  >
+                                    {email}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                            {editEmailError && <p className="text-xs text-red-600">{editEmailError}</p>}
+                            {editEmailSuccess && (
+                              <p className="text-xs text-emerald-600">
+                                Email updated! Day 0 notification sent. Sequence restarted.
+                              </p>
+                            )}
+                          </form>
+                        )}
+                      </div>
                     ) : c.provider.id ? (
                       <form onSubmit={(e) => handleAddEmail(e, c.provider.id!)} className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <input
-                            type="email"
-                            value={emailInput}
-                            onChange={(e) => setEmailInput(e.target.value)}
-                            placeholder="Add provider email..."
-                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                            disabled={addingEmail}
-                          />
+                          <div className="flex-1 flex items-center gap-1">
+                            <input
+                              type="email"
+                              value={emailInput}
+                              onChange={(e) => {
+                                setEmailInput(e.target.value);
+                                // Clear source indicator if user manually edits away from found emails
+                                if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
+                                  setEmailSource(null);
+                                  setIsCachedResult(false);
+                                }
+                              }}
+                              placeholder={findingEmail ? "Searching..." : "Add provider email..."}
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                              disabled={addingEmail || findingEmail}
+                            />
+                            {!isCachedResult ? (
+                              <button
+                                type="button"
+                                onClick={() => handleFindEmail("add")}
+                                disabled={addingEmail || findingEmail}
+                                className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                title="Find provider email using web scraping + AI"
+                              >
+                                {findingEmail ? "Searching..." : "✦ Find"}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleFindEmail("add", true)}
+                                disabled={addingEmail || findingEmail}
+                                className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                title="Force refresh - bypass cache and search again"
+                              >
+                                {findingEmail ? "Searching..." : "↻ Refresh"}
+                              </button>
+                            )}
+                          </div>
                           <button
                             type="submit"
-                            disabled={addingEmail || !emailInput.trim()}
+                            disabled={addingEmail || findingEmail || !emailInput.trim()}
                             className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {addingEmail ? "Adding..." : "Add"}
                           </button>
                         </div>
+                        {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
+                        {emailSource && (
+                          <p className="text-xs text-gray-500">
+                            Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+                            {isCachedResult && " (cached)"}
+                            {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                          </p>
+                        )}
+                        {foundEmails.length > 1 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {[...new Set(foundEmails)].map((email) => (
+                              <button
+                                key={email}
+                                type="button"
+                                onClick={() => setEmailInput(email)}
+                                className={`px-2 py-0.5 text-xs rounded border transition-colors ${
+                                  emailInput === email
+                                    ? "bg-amber-100 border-amber-300 text-amber-800"
+                                    : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                }`}
+                                disabled={addingEmail || findingEmail}
+                              >
+                                {email}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                         {emailError && (
                           <p className="text-xs text-red-600">{emailError}</p>
                         )}
@@ -919,6 +1325,11 @@ export default function ConnectionRow({
                                   : "bg-purple-50 text-purple-600"
                               }`}>
                                 {e.recipient_type === "family" ? "To Family" : "To Provider"}
+                                {(() => {
+                                  if (e.recipient_type === "family") return "";
+                                  const version = (e.metadata as Record<string, unknown> | null)?.email_version;
+                                  return version && typeof version === "number" && version > 1 ? ` (V${version})` : "";
+                                })()}
                               </span>
                               <span className="text-gray-300">·</span>
                               <span className="text-sm text-gray-500">{fmtDateTime(e.created_at)}</span>
@@ -990,6 +1401,65 @@ export default function ConnectionRow({
           providerId={c.provider.slug || c.provider.source_provider_id || c.provider.id || ""}
           providerName={c.provider.display_name || "Provider"}
         />
+      )}
+
+      {/* Email edit confirmation modal */}
+      {pendingEmailEdit && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-email-title"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 id="edit-email-title" className="text-base font-semibold text-gray-900 mb-3">
+              Update provider email?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{c.provider.display_name || "Unknown"}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-gray-400">Current email</dt>
+                <dd className="text-gray-900">{pendingEmailEdit.oldEmail}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-gray-400">New email</dt>
+                <dd className="font-medium text-teal-700">{pendingEmailEdit.newEmail}</dd>
+              </div>
+            </dl>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+              <p className="text-[12px] text-amber-900 leading-relaxed space-y-1">
+                <span className="block font-medium">⚠️ This will:</span>
+                <span className="block">• Update this provider&apos;s email globally (directory, all connections)</span>
+                <span className="block">• Send a new Day 0 email immediately to the new address</span>
+                <span className="block">• Restart the email sequence from Day 0</span>
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingEmailEdit(null);
+                  setEditEmailError(null);
+                }}
+                disabled={editingEmailLoading}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmEditEmail}
+                disabled={editingEmailLoading}
+                className="text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {editingEmailLoading ? "Updating..." : "Confirm Update"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

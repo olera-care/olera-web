@@ -932,6 +932,7 @@ function ResearchModePanel({
 }) {
   const status = ctx.outreach.status;
   const type = ctx.outreach.stakeholder_type;
+  const isOffice = type === "advisor";
   const [showPreFlight, setShowPreFlight] = useState(false);
 
   // Readiness gating per stage.
@@ -942,28 +943,43 @@ function ResearchModePanel({
     (c) => c.status === "active" && c.email,
   ).length;
 
+  // Office readiness (R: ready = at least one email — office OR a member;
+  // phone/name optional). Offices have no "programs" requirement.
+  const rd = (ctx.outreach.research_data ?? {}) as Record<string, unknown>;
+  const officeEmail = ((rd.general_contact ?? {}) as { email?: string }).email;
+  const members = (Array.isArray(rd.office_members) ? rd.office_members : []) as { email?: string }[];
+  const hasOfficeEmail = Boolean(officeEmail) || members.some((m) => m?.email) || eligibleEmail > 0;
+
   const isProspect = status === "prospect";
-  const ready = isProspect ? haveContact && havePrograms && haveDept : eligibleEmail > 0;
+  const ready = isOffice
+    ? hasOfficeEmail
+    : isProspect
+      ? haveContact && havePrograms && haveDept
+      : eligibleEmail > 0;
 
   // v8.10.11: orientation copy trimmed — the section h3 ("RESEARCH")
   // already says what the section is for, so the prefix sentence
   // ("Research this stakeholder." / "Ready to email.") was redundant.
   // What's left is the actionable bit only.
-  const orientation = isProspect ? (
-    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
-  ) : (
+  const orientation = !isProspect ? (
     <>
       Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.
     </>
+  ) : isOffice ? (
+    <>Fill the office contact info and add the people you found, then click <em>Research complete</em>.</>
+  ) : (
+    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   );
 
-  const checklist = isProspect
-    ? [
-        { done: haveContact, label: "At least one active contact added" },
-        { done: havePrograms, label: "Programs selected" },
-        ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
-      ]
-    : [{ done: eligibleEmail > 0, label: `Active contact with email (${eligibleEmail} found)` }];
+  const checklist = !isProspect
+    ? [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }]
+    : isOffice
+      ? [{ done: hasOfficeEmail, label: "At least one email — the office or a person" }]
+      : [
+          { done: haveContact, label: "At least one active contact added" },
+          { done: havePrograms, label: "Programs selected" },
+          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
+        ];
 
   const ctaLabel = isProspect
     ? ready
@@ -1091,6 +1107,35 @@ function ResearchSection({
   const [email, setEmail] = useState(primary?.email ?? "");
   const [phone, setPhone] = useState(primary?.phone ?? "");
 
+  // Office-shaped advisor rows: an advising OFFICE has org-level contact info
+  // (general email/phone/website in research_data.general_contact) + a people
+  // roster (office_members) — not a single person. No person form, no programs.
+  const isOffice = type === "advisor";
+  const gc0 = ((ctx.outreach.research_data as Record<string, unknown>).general_contact ?? {}) as {
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
+  };
+  const [officeEmail, setOfficeEmail] = useState(gc0.email ?? "");
+  const [officePhone, setOfficePhone] = useState(gc0.phone ?? "");
+  const [officeWebsite, setOfficeWebsite] = useState(gc0.website ?? "");
+  const saveOfficeContact = async () => {
+    try {
+      await action("update_research", {
+        research: {
+          general_contact: {
+            ...gc0,
+            email: officeEmail.trim() || null,
+            phone: officePhone.trim() || null,
+            website: officeWebsite.trim() || null,
+          },
+        },
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  };
+
   const saveResearch = async () => {
     try {
       await action("update_research", {
@@ -1153,7 +1198,7 @@ function ResearchSection({
   };
 
   const showDepartment = type === "dept_head" || type === "professor";
-  const showOrgName = type === "student_org"; // others auto-derive
+  const showOrgName = type === "student_org" || isOffice; // offices need a name
 
   return (
     <section>
@@ -1165,7 +1210,16 @@ function ResearchSection({
           <Guidance>{research.orientation}</Guidance>
         )}
         {showOrgName && (
-          <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+          <Field label={isOffice ? "Office name" : "Organization name"} value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+        )}
+
+        {/* Office-level contact (the outreach target). People go in the roster. */}
+        {isOffice && (
+          <div className="grid grid-cols-2 gap-2">
+            <Field type="email" label="General email" value={officeEmail} onChange={setOfficeEmail} onBlur={saveOfficeContact} placeholder="hpo@uni.edu" />
+            <Field label="General phone" value={officePhone} onChange={setOfficePhone} onBlur={saveOfficeContact} />
+            <Field label="Website" value={officeWebsite} onChange={setOfficeWebsite} onBlur={saveOfficeContact} placeholder="https://…" />
+          </div>
         )}
 
         {showDepartment && (
@@ -1187,8 +1241,9 @@ function ResearchSection({
           </>
         )}
 
-        {/* v8.7: primary contact embedded for single-contact types */}
-        {!isMultiContact && (
+        {/* v8.7: primary contact embedded for single-contact types (not offices —
+            offices use the general-contact fields above + the people roster). */}
+        {!isMultiContact && !isOffice && (
           <>
             {showTitleField && (
               <Field
@@ -1208,8 +1263,8 @@ function ResearchSection({
           </>
         )}
 
-        {/* Programs */}
-        {singleProgram(type) ? (
+        {/* Programs — not shown for advising offices. */}
+        {isOffice ? null : singleProgram(type) ? (
           <Select
             label="Program"
             value={programs[0] ?? ""}

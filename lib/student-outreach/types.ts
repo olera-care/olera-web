@@ -497,6 +497,10 @@ export interface ResearchCampusCard {
   /** v9.0 Phase 2: count of clients currently in the campus's catchment.
    *  Used to label the research-needed banner. */
   client_count?: number;
+  /** Per-category prospecting completion (from partner_research.audit). The
+   *  research card persists until all three are complete; the card shows which
+   *  categories are done (Advising ✓ · Orgs ◻ · Dept heads ◻). */
+  partner_audit?: { advisor: boolean; student_org: boolean; dept_head: boolean };
 }
 
 /** v7 tab counts — one number per tab in the new workflow.

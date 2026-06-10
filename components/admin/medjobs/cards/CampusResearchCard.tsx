@@ -18,6 +18,7 @@ import { formatRelative } from "@/lib/student-outreach/formatters";
 import type { ResearchCampusCard as ResearchCampusCardRow } from "@/lib/student-outreach/types";
 import { MedjobsCard } from "./MedjobsCard";
 import { Pill } from "./StakeholderCard";
+import { PartnerCategoryStatus } from "./PartnerCategoryStatus";
 
 export function CampusResearchCard({
   row,
@@ -59,7 +60,12 @@ export function CampusResearchCard({
       title={row.name}
       subtitle={subtitle}
       footnote={footnote}
-      pill={<Pill>{pillText}</Pill>}
+      pill={
+        <>
+          <Pill>{pillText}</Pill>
+          <PartnerCategoryStatus audit={row.partner_audit} className="ml-1" />
+        </>
+      }
       cta={
         <div className="flex items-center gap-2">
           <button

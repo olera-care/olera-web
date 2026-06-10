@@ -20,6 +20,7 @@
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
 import { MedjobsCard } from "./MedjobsCard";
 import { Pill } from "./StakeholderCard";
+import { PartnerCategoryStatus } from "./PartnerCategoryStatus";
 
 export function SiteCard({
   row,
@@ -47,8 +48,13 @@ export function SiteCard({
   const footnote = [addedLabel, stakeholderLabel].filter(Boolean).join(" · ");
 
   // Consistent partner-prospecting status (matches the In-Basket research card).
+  // Show the per-category audit line until research is complete, so the admin
+  // can see which partner categories remain.
   const researchPill = row.research_complete ? null : (
-    <Pill>{stakeholderCount > 0 ? "Research in progress" : "Research needed"}</Pill>
+    <>
+      <Pill>{stakeholderCount > 0 ? "Research in progress" : "Research needed"}</Pill>
+      <PartnerCategoryStatus audit={row.partner_audit} className="ml-1" />
+    </>
   );
 
   const card = (

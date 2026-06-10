@@ -279,6 +279,8 @@ export interface CampusRow {
   unread?: boolean;
   /** Persisted AI partner-research source links (all subtypes, deduped). */
   partner_sources?: { title: string; url: string }[];
+  /** Per-category prospecting completion (from partner_research.audit). */
+  partner_audit?: { advisor: boolean; student_org: boolean; dept_head: boolean };
 }
 
 /**

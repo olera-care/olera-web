@@ -179,6 +179,18 @@ export async function GET(_request: NextRequest) {
         }
       }
 
+      // Per-category prospecting completion (partner_research.audit), so the
+      // Site card mirrors the In-Basket research card's per-category status.
+      const audit = (
+        (c as { partner_research?: { audit?: Record<string, { complete_at?: string }> } })
+          .partner_research?.audit ?? {}
+      ) as Record<string, { complete_at?: string }>;
+      const partnerAudit = {
+        advisor: Boolean(audit.advisor?.complete_at),
+        student_org: Boolean(audit.student_org?.complete_at),
+        dept_head: Boolean(audit.dept_head?.complete_at),
+      };
+
       return {
         id: c.id,
         slug: c.slug,
@@ -197,6 +209,8 @@ export async function GET(_request: NextRequest) {
         unread,
         // Persisted AI research source links (all subtypes, deduped).
         partner_sources: partnerSources,
+        // Per-category audit completion (Advising / Orgs / Dept heads).
+        partner_audit: partnerAudit,
       };
     });
 

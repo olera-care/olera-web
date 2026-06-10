@@ -100,11 +100,11 @@ interface TabConfig {
 // Provider perspective tabs
 const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
-  { key: "viewed", label: "Viewed", description: "Provider opened or showed interest in the lead", emptyMessage: "No leads have been viewed yet." },
+  { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "stuck", label: "Stuck", description: "No activity for 10+ days", emptyMessage: "No stuck connections." },
   { key: "needs_call", label: "Needs Call", description: "14+ days, requires manual intervention", emptyMessage: "No providers need calling." },
-  { key: "declined", label: "Declined", description: "Provider archived lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
+  { key: "declined", label: "Passed", description: "Provider passed on lead (not a fit, not accepting clients, etc.)", emptyMessage: "No passed leads." },
   { key: "no_email", label: "No Email", description: "Providers without email addresses", emptyMessage: "All providers have emails." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];

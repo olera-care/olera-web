@@ -103,7 +103,6 @@ function LeadDetailDrawer({
   onClose,
   onRestore,
   onDelete,
-  onContactReveal,
   onPhoneClick,
   onEmailClick,
   onContinueInInbox,
@@ -117,7 +116,6 @@ function LeadDetailDrawer({
   onClose: () => void;
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
-  onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
@@ -139,14 +137,13 @@ function LeadDetailDrawer({
     navigator.clipboard.writeText(text);
     setCopiedField(field);
 
-    // Preserve tracking callbacks from removed tel:/mailto: buttons
+    // Track copy action (marks as connected)
     if (field === "phone") {
       onPhoneClick?.(lead?.id || "");
     } else {
       onEmailClick?.(lead?.id || "");
     }
 
-    onContactReveal?.(lead?.id || "", field);
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -1763,19 +1760,6 @@ export default function ProviderLeadsPage() {
         onDelete={handleDeleteLead}
         onMarkAsReplied={handleMarkAsReplied}
         onArchiveClick={setLeadIdToArchive}
-        onContactReveal={(leadId, contactType) => {
-          if (!providerProfile) return;
-          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
-          fetch("/api/activity/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              provider_id: providerKey,
-              event_type: "contact_revealed",
-              metadata: { lead_id: leadId, contact_type: contactType },
-            }),
-          }).catch(() => {});
-        }}
         onPhoneClick={(leadId) => {
           if (!providerProfile) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;

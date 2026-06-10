@@ -818,20 +818,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Query provider actions with metadata for detailed breakdown
-    // This gives us granular counts: viewed, copied phone, copied email, clicked phone, clicked email, continued to inbox
+    // Simplified: viewed (opened drawer), copied phone (connected), copied email (connected)
     let actionViewedCount = 0;
     let actionCopiedPhoneCount = 0;
     let actionCopiedEmailCount = 0;
-    let actionClickedPhoneCount = 0;
-    let actionClickedEmailCount = 0;
-    let actionContinuedToInboxCount = 0;
 
     if (allProviderKeys.length > 0) {
       let actionQuery = db
         .from("provider_activity")
         .select("event_type, metadata")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
+        .in("event_type", ["lead_opened", "phone_clicked", "email_link_clicked", "contact_revealed"]);
 
       // Apply date filters to match the connections date range
       if (dateFrom) actionQuery = actionQuery.gte("created_at", dateFrom);
@@ -842,22 +839,20 @@ export async function GET(request: NextRequest) {
       for (const ev of actionEvents ?? []) {
         if (ev.event_type === "lead_opened") {
           actionViewedCount++;
+        } else if (ev.event_type === "phone_clicked") {
+          // Copying phone = connecting
+          actionCopiedPhoneCount++;
+        } else if (ev.event_type === "email_link_clicked") {
+          // Copying email = connecting
+          actionCopiedEmailCount++;
         } else if (ev.event_type === "contact_revealed") {
+          // Legacy event (pre-simplification): still count for historical data
           const meta = ev.metadata as Record<string, unknown> | null;
           if (meta?.contact_type === "phone") {
             actionCopiedPhoneCount++;
-          } else if (meta?.contact_type === "email") {
-            actionCopiedEmailCount++;
           } else {
-            // Default to email if contact_type not specified
             actionCopiedEmailCount++;
           }
-        } else if (ev.event_type === "phone_clicked") {
-          actionClickedPhoneCount++;
-        } else if (ev.event_type === "email_link_clicked") {
-          actionClickedEmailCount++;
-        } else if (ev.event_type === "continue_in_inbox") {
-          actionContinuedToInboxCount++;
         }
       }
     }
@@ -993,8 +988,8 @@ export async function GET(request: NextRequest) {
         familyEngagementCounts[familyEngResult.level]++;
 
         // Funnel stats (based on provider engagement)
-        // Viewed now includes: opened lead, revealed contact, or clicked to inbox
-        if (eng?.lead_opened || eng?.contact_revealed || eng?.continue_in_inbox) providerViewedCount++;
+        // Viewed = opened lead drawer
+        if (eng?.lead_opened) providerViewedCount++;
         // Count as responded if: sent message, marked as replied, or already connected
         if (c.responded || c.markedReplied || c.alreadyConnected) respondedCount++;
         if (c.familyRepliedAfterProvider) connectedCount++;
@@ -1018,20 +1013,20 @@ export async function GET(request: NextRequest) {
       viewed: actionViewedCount,
       copiedPhone: actionCopiedPhoneCount,
       copiedEmail: actionCopiedEmailCount,
-      clickedPhone: actionClickedPhoneCount,
-      clickedEmail: actionClickedEmailCount,
-      continuedToInbox: actionContinuedToInboxCount,
+      clickedPhone: actionCopiedPhoneCount, // Same as copied (simplified)
+      clickedEmail: actionCopiedEmailCount, // Same as copied (simplified)
+      continuedToInbox: 0, // No longer tracked
       copiedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
       copiedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
-      clickedPhoneRate: actionViewedCount > 0 ? Math.round((actionClickedPhoneCount / actionViewedCount) * 100) : 0,
-      clickedEmailRate: actionViewedCount > 0 ? Math.round((actionClickedEmailCount / actionViewedCount) * 100) : 0,
-      continuedToInboxRate: actionViewedCount > 0 ? Math.round((actionContinuedToInboxCount / actionViewedCount) * 100) : 0,
+      clickedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
+      clickedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
+      continuedToInboxRate: 0, // No longer tracked
     };
 
     // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
-    // For "all" tab: exclude archived connections (they go to "Declined" tab)
+    // For "all" tab: exclude archived connections (they go to "Passed" tab)
     // Exceptions:
     // - "already_connected" archives appear in "Connected" tab instead
     // - Corrupted archives (archived=true but archiveReason=null) appear in "All" tab so admins can see/fix them

@@ -39,14 +39,14 @@ function parseArchiveReason(value: unknown): ArchiveReason | null {
  * - Day 11: Re-engagement email — "One more try" (stage 6)
  * - Day 14: Mark as "Needs Call" — no email, requires manual call (stage 7)
  *
- * STOP CONDITION: Sequence stops only when provider CONNECTS (not just views/engages):
- *   - Clicks phone number (phone_clicked)
- *   - Clicks email link (email_link_clicked)
+ * STOP CONDITION: Sequence stops only when provider CONNECTS (not just views):
+ *   - Copies phone number (phone_clicked)
+ *   - Copies email (email_link_clicked)
  *   - Sends a message to family
  *   - Marks lead as "Replied"
  *   - Archives with "Already connected" reason
  *
- * Viewing or engaging (revealing contact info) does NOT stop the sequence.
+ * Viewing alone (opening drawer) does NOT stop the sequence.
  */
 
 // Connection events from provider_activity that indicate provider reached out

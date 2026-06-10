@@ -318,12 +318,9 @@ export function getEngagementLevel(
     // Provider reached out - this is success (automatic tracking)
     baseLevel = "connected";
   } else if (
-    engagement.leadOpened ||
-    engagement.contactRevealed ||
-    engagement.continueInInbox
+    engagement.leadOpened
   ) {
-    // Provider viewed the lead or showed interest (revealed contact, clicked to inbox)
-    // Treat all passive interest signals as "viewed" (automatic tracking)
+    // Provider opened the lead drawer
     baseLevel = "viewed";
   } else {
     // No engagement yet

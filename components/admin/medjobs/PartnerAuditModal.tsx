@@ -163,12 +163,28 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
   };
 
   const addCandidate = async (i: number) => {
+    const c = urlCandidates[i];
     try {
-      const res = await fetch("/api/admin/student-outreach/stakeholders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(stakeholderBodyFromCandidate(campusSlug, urlCandidates[i])),
-      });
+      let res: Response;
+      if (subtype === "advisor") {
+        // Advising offices: attach the people to the Site's office roster
+        // (find-or-create), not as a standalone prospect card.
+        const members =
+          c.officers && c.officers.length > 0
+            ? c.officers.map((o) => ({ name: o.name, role: o.role, email: o.email, source_url: o.source_url }))
+            : [{ name: c.name, email: c.org_email ?? c.email, source_url: c.source_url }];
+        res = await fetch("/api/admin/medjobs/office-member", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ campus_slug: campusSlug, office_name: c.name, members }),
+        });
+      } else {
+        res = await fetch("/api/admin/student-outreach/stakeholders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(stakeholderBodyFromCandidate(campusSlug, c)),
+        });
+      }
       if (!res.ok) throw new Error((await res.json()).error || "Add failed");
       setAddedIdx((s) => new Set(s).add(i));
       setSteps((s) => ({ ...s, added_missed: true })); // adding satisfies step 3

@@ -116,6 +116,33 @@ export interface ExtractResult {
   cost: number;
 }
 
+/** Office-centric extraction (the MVP). The office is the prospect; advisors are
+ *  the rare high-bar bonus (own email/phone); ask_for is personalization only. */
+export type ExtractedOfficeTag = "advising_office" | "student_org" | "department";
+
+export interface ExtractedAdvisor {
+  name: string | null;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface ExtractedOffice {
+  name: string;
+  tag: ExtractedOfficeTag;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  ask_for: string[];
+  advisors: ExtractedAdvisor[];
+  source_url: string | null;
+}
+
+export interface OfficeExtractResult {
+  offices: ExtractedOffice[];
+  cost: number;
+}
+
 // ---------------------------------------------------------------------------
 // Defensive parsing helpers — the model output is untrusted.
 // ---------------------------------------------------------------------------
@@ -155,33 +182,45 @@ function url(v: unknown): string | null {
 
 function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): string {
   const where = [ctx.university, ctx.city, ctx.state].filter(Boolean).join(", ");
-  const pageTypes: Record<PartnerSubtype, string> = {
-    advisor:
-      "official pre-health / pre-med / pre-nursing / health-professions advising office pages, " +
-      "advising staff/team directories, and college-of-science advising pages. " +
-      "ONLY flagship official university (.edu) web pages — do NOT include LinkedIn, " +
-      "Instagram, Facebook, or other social-media pages",
+  if (subtype === "advisor") {
+    return [
+      `Find the BEST official web pages to identify and CONTACT the advising`,
+      `office(s) that serve health-profession students at ${where}.`,
+      ``,
+      `Prioritize, in this order:`,
+      ` 1. Pre-health / health-professions advising office (landing or "Contact" page)`,
+      ` 2. Pre-nursing / allied-health advising office`,
+      ` 3. General career services / career center (contact page)`,
+      ` 4. A college advising office that covers pre-health (e.g. College of Natural Sciences)`,
+      ``,
+      `For each office, prefer the page MOST LIKELY to show the office's GENERAL`,
+      `EMAIL and PHONE — a "Contact", "Contact Us", "About", or office landing page`,
+      `— NOT a long staff roster.`,
+      `ONLY official university (.edu) pages. No LinkedIn / Instagram / Facebook.`,
+      `Quality over quantity: 4-7 links. For each give "why" (worth opening) and`,
+      `"likely" (what data you expect, e.g. "office email + phone").`,
+      ``,
+      `Return ONLY valid JSON shaped exactly:`,
+      `{"sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+      `"primary" = most likely to show an office name + email + phone.`,
+    ].join("\n");
+  }
+  const pageTypes: Record<Exclude<PartnerSubtype, "advisor">, string> = {
     student_org:
       "student-organization directories, pre-health / pre-med / pre-nursing / allied-health club pages, " +
-      "student affairs org listings, and the clubs' own websites / Instagram / Discord pages",
+      "and student affairs org listings (prefer pages with a club contact email)",
     dept_head:
-      "department home pages and faculty/staff directories for biology, chemistry, psychology, " +
-      "public health, kinesiology, nursing, and allied-health departments (chair / department-head pages)",
+      "department home pages and 'Contact' pages for biology, chemistry, public health, " +
+      "kinesiology, nursing, and allied-health departments (chair / department contact info)",
   };
   return [
     `Find the BEST real web pages to research ${subtype.replace("_", " ")} contacts at ${where}.`,
-    `Focus on: ${pageTypes[subtype]}.`,
-    `Prefer official .edu pages. Quality over quantity — do NOT pad the list.`,
-    `Return at most 3-4 "primary" flagship pages (the single best places to find named`,
-    `contacts), plus up to ~5 "secondary" / "worth_a_look" directory or listing pages an`,
-    `admin should mine by hand. Aim for ~6-9 links total, not 15.`,
-    `Skip duplicates, dead links, and generic homepages with no path to contacts.`,
-    `For each link give a short "why" (why it's worth opening) and "likely"`,
-    `(what data you expect to find there, e.g. "advisor names + office email").`,
+    `Focus on: ${pageTypes[subtype as "student_org" | "dept_head"]}.`,
+    `Prefer official .edu pages. 4-7 links, quality over quantity.`,
+    `For each give "why" and "likely" (e.g. "org contact email").`,
     ``,
     `Return ONLY valid JSON shaped exactly:`,
     `{"sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
-    `"primary" = most likely to directly yield named contacts; "worth_a_look" = broad pages to mine by hand.`,
   ].join("\n");
 }
 
@@ -386,159 +425,144 @@ export async function extractPartners(
   return { candidates: parseCandidates(out, subtype), cost: cost.cost };
 }
 
-/** Flat-people output schema — the model just lists EVERY person; WE build the
- *  offices from each person's "team". Far more robust than asking the model to
- *  nest people inside an "office" object, which broke on both single-person
- *  profile pages (no office name) and large directories. */
-function peopleSchema(): string {
-  return [
-    `Return a FLAT list — one object per PERSON:`,
-    `{"people":[`,
-    `  { "name":"<full name>", "role":"<title/role>", "email":"<email or null>",`,
-    `    "phone":"<phone or null>", "team":"<the section heading this person sits`,
-    `    under, e.g. 'Career Advising' / 'Graduate & Professional School Advising',`,
-    `    or null if there are no section headings>" }`,
-    `]}`,
-  ].join("\n");
+// ---------------------------------------------------------------------------
+// Office-centric extraction (the MVP). Output is OFFICES, not a people roster.
+// ---------------------------------------------------------------------------
+
+function officeTag(v: unknown): ExtractedOfficeTag {
+  const s = str(v)?.toLowerCase().replace(/[\s-]+/g, "_");
+  if (s === "student_org" || s === "student_organization") return "student_org";
+  if (s === "department" || s === "dept" || s === "dept_head") return "department";
+  return "advising_office";
 }
 
-function peopleRules(): string[] {
-  return [
-    `- Include EVERY person — even if there is only ONE on the page, and even if a`,
-    `  directory has 40+. Return ALL of them; never summarize, sample, or stop early.`,
-    `- It is NORMAL for many people to share the SAME email (a shared office alias).`,
-    `  Include each person anyway — NEVER merge or drop people because emails match.`,
-    `- Use ONLY what is literally in the content. NEVER invent, guess, or construct a`,
-    `  name, email, or phone (no "first.last@domain"); if a field is absent use null.`,
-    `- IGNORE image-caption lines like "Headshot of <name>" or "<name> headshot", and`,
-    `  generic site nav / legal links (Title IX, Accessibility, Privacy).`,
-  ];
-}
-
-interface FlatPerson {
-  name: string | null;
-  role: string | null;
-  email: string | null;
-  phone: string | null;
-  team: string | null;
-}
-
-function parsePeople(raw: Record<string, unknown> | null): FlatPerson[] {
-  const out: FlatPerson[] = [];
-  for (const item of arr(raw?.people)) {
-    const o = item as Record<string, unknown>;
+function parseAdvisors(v: unknown): ExtractedAdvisor[] {
+  const out: ExtractedAdvisor[] = [];
+  for (const raw of arr(v)) {
+    const o = raw as Record<string, unknown>;
     const name = str(o.name);
     const email = str(o.email);
-    if (!name && !email) continue;
-    out.push({ name, role: str(o.role), email, phone: str(o.phone), team: str(o.team) });
+    const phone = str(o.phone);
+    // High bar: a latched advisor must have their OWN reachable contact.
+    if (!(email || phone)) continue;
+    if (!name) continue;
+    out.push({ name, role: str(o.role), email, phone });
   }
   return out;
 }
 
-/** Build candidates from a flat people list. advisor/student_org group people
- *  by their "team" into office candidates (teamless people fall under one
- *  default office); dept_head returns one person-shaped candidate each. */
-function peopleToCandidates(
-  raw: Record<string, unknown> | null,
-  subtype: PartnerSubtype,
-  sourceUrl: string,
-): PartnerCandidate[] {
-  const people = parsePeople(raw);
-  if (people.length === 0) return [];
-
-  if (subtype === "dept_head") {
-    return people.map((p) => ({
-      subtype,
-      name: p.name,
-      title: p.role,
-      department: p.team,
-      email: p.email,
-      phone: p.phone,
-      source_url: sourceUrl,
-      confidence: null,
-    }));
+function parseAskFor(v: unknown): string[] {
+  const out: string[] = [];
+  for (const raw of arr(v)) {
+    const s = str(raw) ?? str((raw as Record<string, unknown>)?.name);
+    if (s) out.push(s);
   }
-
-  const fallback = subtype === "advisor" ? "Advising office" : "Student organization";
-  const byTeam = new Map<string, FlatPerson[]>();
-  for (const p of people) {
-    const key = p.team?.trim() || fallback;
-    const list = byTeam.get(key) ?? [];
-    list.push(p);
-    byTeam.set(key, list);
-  }
-  const candidates: PartnerCandidate[] = [];
-  for (const [team, members] of byTeam) {
-    candidates.push({
-      subtype,
-      name: team,
-      source_url: sourceUrl,
-      confidence: null,
-      officers: members.map((m) => ({
-        name: m.name,
-        role: m.role,
-        email: m.email,
-        phone: m.phone,
-        source_url: sourceUrl,
-      })),
-    });
-  }
-  return candidates;
+  return out.slice(0, 3);
 }
 
-/** Extract contacts by having the AI BROWSE a page. Fallback for when the page
+/** Parse the model's `{offices:[...]}` into typed offices. The office's email is
+ *  the GENERAL office address; advisors are only those with their own contact. */
+function parseOffices(raw: Record<string, unknown> | null, sourceUrl: string): ExtractedOffice[] {
+  const out: ExtractedOffice[] = [];
+  for (const item of arr(raw?.offices)) {
+    const o = item as Record<string, unknown>;
+    const name = str(o.name);
+    if (!name) continue;
+    out.push({
+      name,
+      tag: officeTag(o.tag ?? o.type),
+      email: str(o.email),
+      phone: str(o.phone),
+      website: url(o.website),
+      ask_for: parseAskFor(o.ask_for),
+      advisors: parseAdvisors(o.advisors),
+      source_url: url(o.source_url) ?? sourceUrl,
+    });
+  }
+  return out;
+}
+
+function officeSchema(sourceUrl: string): string {
+  return [
+    `For EACH office return:`,
+    ` - "name": the office name (e.g. "Health Professions Advising Office")`,
+    ` - "tag": one of "advising_office" | "student_org" | "department"`,
+    ` - "email": the office's GENERAL email (a shared office address, e.g.`,
+    `   hpo@uni.edu) — NOT a single staffer's personal address; null if none shown`,
+    ` - "phone": the office's general phone, or null`,
+    ` - "website": the office URL if shown, or null`,
+    ` - "advisors": ONLY people who have their OWN email or phone (distinct from`,
+    `   the office) AND a name and role → [{ "name","role","email","phone" }].`,
+    `   Return [] if nobody qualifies. NEVER include staff who only share the`,
+    `   general office email.`,
+    ` - "ask_for": up to 3 names clearly tied to this office and relevant to`,
+    `   pre-health (e.g. "An-Janet Smith — Pre-Health Advisor") who DON'T have`,
+    `   their own contact — for email personalization only. [] if none.`,
+    ` - "source_url": "${sourceUrl}"`,
+  ].join("\n");
+}
+
+function officeRules(): string[] {
+  return [
+    `- The OFFICE is the target. Capture its general contact info first.`,
+    `- Use ONLY what is literally present; NEVER invent or construct an email/phone`,
+    `  (no "first.last@domain"); if a field is absent use null.`,
+    `- Do NOT turn a staff roster into prospects — a person becomes an "advisor"`,
+    `  ONLY with their own email/phone; otherwise at most an "ask_for" name.`,
+    `- IGNORE generic site nav / legal links (Title IX, Accessibility, Privacy).`,
+  ];
+}
+
+/** Extract OFFICES by having the AI browse a page. Fallback for when the page
  *  can't be fetched server-side (see the source-partners route). */
 export async function extractFromUrl(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
   pageUrl: string,
-): Promise<ExtractResult> {
+): Promise<OfficeExtractResult> {
   const cost = new CostTracker();
   const prompt = [
-    `Carefully read ALL of the visible content on this web page: ${pageUrl}`,
-    `(University: ${ctx.university}.)`,
-    `Scan the ENTIRE page — header, body, sidebars, "Contact"/"Advising team"/`,
-    `"Meet the team" sections, and the footer/contact block — and list every`,
-    `${subtype.replace("_", " ")} person shown.`,
+    `Read the web page at ${pageUrl} (University: ${ctx.university}).`,
+    `Identify the advising OFFICE(s) relevant to health-profession students and`,
+    `capture each office's CONTACT info.`,
     ``,
-    ...peopleRules(),
-    `- If you cannot actually read the page content, return {"people":[]} rather`,
-    `  than guessing. A made-up contact is far worse than none.`,
+    ...officeRules(),
+    `- If you cannot actually read the page, return {"offices":[]} — never guess.`,
     ``,
-    peopleSchema(),
+    officeSchema(pageUrl),
     ``,
-    `Return ONLY valid JSON: {"people":[ ... ]}`,
+    `If no relevant advising office is present, return {"offices":[]}.`,
+    `Return ONLY valid JSON: {"offices":[ ... ]}`,
   ].join("\n");
   const out = await perplexityJson(prompt, cost, 4000);
-  return { candidates: peopleToCandidates(out, subtype, pageUrl), cost: cost.cost };
+  return { offices: parseOffices(out, pageUrl), cost: cost.cost };
 }
 
-/** Organize raw text the admin copy/pasted (a profile or a staff directory) into
- *  contacts. The PRIMARY capture path — must get EVERYONE, from a single person
- *  to a 40-person directory where many share one office email. */
+/** Organize text the admin copy/pasted (an office page / contact block) into
+ *  office records. The primary capture path when a page can't be fetched. */
 export async function extractFromText(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
   text: string,
   sourceUrl: string,
-): Promise<ExtractResult> {
+): Promise<OfficeExtractResult> {
   const cost = new CostTracker();
   const prompt = [
-    `Below is text copied from a ${ctx.university} web page — it could be ONE`,
-    `person's profile or a whole staff/advisor directory with section headings.`,
-    `List every ${subtype.replace("_", " ")} person it contains.`,
+    `Below is text copied from a ${ctx.university} web page. Identify the advising`,
+    `OFFICE(s) it describes and capture each office's CONTACT info.`,
     ``,
-    ...peopleRules(),
+    ...officeRules(),
     ``,
-    peopleSchema(),
+    officeSchema(sourceUrl || "the page"),
     ``,
-    `Return ONLY valid JSON: {"people":[ ... ]}`,
+    `If the text describes no advising office, return {"offices":[]}.`,
+    `Return ONLY valid JSON: {"offices":[ ... ]}`,
     ``,
     `--- PAGE TEXT ---`,
     text.slice(0, 18000),
   ].join("\n");
   const out = await perplexityJson(prompt, cost, 4000);
-  return { candidates: peopleToCandidates(out, subtype, sourceUrl), cost: cost.cost };
+  return { offices: parseOffices(out, sourceUrl), cost: cost.cost };
 }
 
 /**

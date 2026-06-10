@@ -1,21 +1,26 @@
 /**
  * Research workspace — the Site-record "research layer" for partner prospecting.
  *
- * The spine is the LIST OF LINKS. For each link the admin extracts contacts,
- * assigns each to an office (or marks it an individual), and confirms the page.
- * Everything lives on student_outreach_campuses.partner_research.workspace
- * [subtype] (no student_outreach rows until Generate). Model:
- *
- *   links[]    — the approved link set, each with extracted/confirmed flags
- *   searches[] — predefined searches the admin checks off
- *   contacts[] — flat list; each carries the link it came from + its office
- *                assignment ("" unassigned, "individual", or an office id)
- *   offices[]  — named buckets contacts get grouped into
- *
- * No new table: this nests inside the existing partner_research JSONB column.
+ * Office-centric MVP: the ADVISING OFFICE is the prospect. We capture the
+ * office's name, contact channel (email — required for outreach), phone,
+ * website, a required type tag, and its source links. Individual advisors are a
+ * rare, high-bar bonus: only people with their OWN email/phone get latched under
+ * an office; names without contact info become an "ask for" personalization
+ * note. Everything lives on student_outreach_campuses.partner_research.workspace
+ * [subtype] (no student_outreach rows until Generate).
  */
 
-import type { PartnerSubtype, PartnerCandidate } from "@/lib/medjobs/partner-sourcing";
+import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
+
+/** Required type tag on every office prospect. Orgs only — individuals (advisor
+ *  / professor) are latched under an org and derive their kind from it. */
+export type OfficeTag = "advising_office" | "student_org" | "department";
+
+export const OFFICE_TAGS: { key: OfficeTag; label: string }[] = [
+  { key: "advising_office", label: "Advising office" },
+  { key: "student_org", label: "Student org" },
+  { key: "department", label: "Department" },
+];
 
 export interface WorkspaceLink {
   id: string;
@@ -25,38 +30,38 @@ export interface WorkspaceLink {
   why?: string | null;
   likely?: string | null;
   source: "ai" | "manual";
-  /** AI has run an extraction pass on this page. */
+  /** Extraction has been run over this link. */
   extracted?: boolean;
-  /** Admin reopened the page and confirmed nothing's missing. */
-  confirmed?: boolean;
 }
 
-/** Sentinel assignment values. Anything else is an office id. */
-export const UNASSIGNED = "";
-export const INDIVIDUAL = "individual";
-
-export interface WorkspaceContact {
+/** A latched individual — only created when they clear the bar (own email/phone
+ *  + name + role). Lives UNDER an office; never a standalone prospect card. */
+export interface WorkspaceAdvisor {
   id: string;
-  /** Link this contact was extracted from; null = added by hand. */
-  source_link_id: string | null;
+  office_id: string;
   name?: string | null;
   role?: string | null;
   email?: string | null;
   phone?: string | null;
-  notes?: string | null;
   source_url?: string | null;
-  /** "" = unassigned (forces a conscious choice), "individual", or an office id. */
-  assignment: string;
 }
 
 export interface WorkspaceOffice {
   id: string;
   name: string;
-  /** What kind of partner this bucket is. Defaults to the workspace subtype,
-   *  but can be recategorized — e.g. a pre-med STUDENT ORG that showed up while
-   *  researching advisors, so its people aren't mistaken for advisors. Drives
-   *  the stakeholder_type when the office is generated into a prospect. */
-  type?: PartnerSubtype;
+  tag: OfficeTag;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  /** Verified names tied to this office but without their own contact — used to
+   *  personalize the office email ("ask for X"), NOT prospects. */
+  ask_for: string[];
+  notes?: string | null;
+  /** Kept links that support this office record. */
+  source_link_ids: string[];
+  verified?: boolean;
+  /** No email found — kept as a phone "call" lead, out of the email funnel. */
+  call_only?: boolean;
 }
 
 export interface SearchState {
@@ -69,17 +74,15 @@ export interface SearchState {
 export interface WorkspaceState {
   links: WorkspaceLink[];
   searches: SearchState[];
-  contacts: WorkspaceContact[];
   offices: WorkspaceOffice[];
-  /** Set when prospects were materialized from this workspace. */
+  advisors: WorkspaceAdvisor[];
   generated_at: string | null;
 }
 
 export function emptyWorkspace(): WorkspaceState {
-  return { links: [], searches: [], contacts: [], offices: [], generated_at: null };
+  return { links: [], searches: [], offices: [], advisors: [], generated_at: null };
 }
 
-/** Crypto-id that works in both the browser and the Node route. */
 export function wsId(): string {
   try {
     return crypto.randomUUID();
@@ -88,7 +91,16 @@ export function wsId(): string {
   }
 }
 
-/** Read one subtype's workspace out of a campus partner_research blob. */
+/** Normalize an office name for reconciliation across links. */
+export function normOffice(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]+$/g, "")
+    .trim();
+}
+
 export function readWorkspace(partnerResearch: unknown, subtype: PartnerSubtype): WorkspaceState {
   const pr = (partnerResearch ?? {}) as Record<string, unknown>;
   const ws = (pr.workspace ?? {}) as Record<string, unknown>;
@@ -96,13 +108,12 @@ export function readWorkspace(partnerResearch: unknown, subtype: PartnerSubtype)
   return {
     links: Array.isArray(cur.links) ? (cur.links as WorkspaceLink[]) : [],
     searches: Array.isArray(cur.searches) ? (cur.searches as SearchState[]) : [],
-    contacts: Array.isArray(cur.contacts) ? (cur.contacts as WorkspaceContact[]) : [],
     offices: Array.isArray(cur.offices) ? (cur.offices as WorkspaceOffice[]) : [],
+    advisors: Array.isArray(cur.advisors) ? (cur.advisors as WorkspaceAdvisor[]) : [],
     generated_at: typeof cur.generated_at === "string" ? cur.generated_at : null,
   };
 }
 
-/** Merge a workspace patch back into the partner_research blob (immutable). */
 export function writeWorkspace(
   partnerResearch: unknown,
   subtype: PartnerSubtype,
@@ -116,109 +127,33 @@ export function writeWorkspace(
   return pr;
 }
 
-/** Predefined searches per subtype. Advising = flagship advising web pages only
- *  (no LinkedIn / social — those come later for student orgs). */
+/** Predefined searches per subtype. Advising = office CONTACT pages (the
+ *  general email/phone), ranked pre-health → nursing/allied → career services. */
 export function predefinedSearches(subtype: PartnerSubtype, uni: string): SearchState[] {
   const g = (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
   if (subtype === "advisor") {
     return [
-      { key: "advisor_office", label: `Google: ${uni} pre-health advising office`, url: g(`${uni} pre-health advising office`), ran: false },
-      { key: "advisor_staff", label: `Google: ${uni} health professions advising staff`, url: g(`${uni} health professions advising staff`), ran: false },
-      { key: "advisor_premed", label: `Google: ${uni} pre-med advisor`, url: g(`${uni} pre-med advisor`), ran: false },
-      { key: "advisor_cns", label: `Google: ${uni} college of natural sciences health professions advising`, url: g(`${uni} college of natural sciences health professions advising`), ran: false },
+      { key: "office_contact", label: `Google: ${uni} pre-health advising office contact`, url: g(`${uni} pre-health advising office contact`), ran: false },
+      { key: "hp_email", label: `Google: ${uni} health professions advising email`, url: g(`${uni} health professions advising email`), ran: false },
+      { key: "nursing_allied", label: `Google: ${uni} pre-nursing OR allied health advising office`, url: g(`${uni} pre-nursing OR allied health advising office`), ran: false },
+      { key: "career_contact", label: `Google: ${uni} career services contact email phone`, url: g(`${uni} career services contact email phone`), ran: false },
+      { key: "prehealth_landing", label: `Google: ${uni} pre-health advising`, url: g(`${uni} pre-health advising`), ran: false },
     ];
   }
   if (subtype === "dept_head") {
     return [
-      { key: "dept_bio", label: `Google: ${uni} biology department chair`, url: g(`${uni} biology department chair`), ran: false },
-      { key: "dept_chem", label: `Google: ${uni} chemistry department chair`, url: g(`${uni} chemistry department chair`), ran: false },
-      { key: "dept_health", label: `Google: ${uni} public health / kinesiology department head`, url: g(`${uni} public health kinesiology department head`), ran: false },
-      { key: "dept_dir", label: `Google: ${uni} department chairs directory`, url: g(`${uni} department chairs directory`), ran: false },
+      { key: "dept_bio", label: `Google: ${uni} biology department contact`, url: g(`${uni} biology department contact`), ran: false },
+      { key: "dept_chem", label: `Google: ${uni} chemistry department contact`, url: g(`${uni} chemistry department contact`), ran: false },
+      { key: "dept_health", label: `Google: ${uni} public health / kinesiology department contact`, url: g(`${uni} public health kinesiology department contact`), ran: false },
     ];
   }
   return [
-    { key: "org_premed", label: `Google: ${uni} pre-med society`, url: g(`${uni} pre-med society`), ran: false },
+    { key: "org_premed", label: `Google: ${uni} pre-med society contact`, url: g(`${uni} pre-med society contact`), ran: false },
     { key: "org_dir", label: `Google: ${uni} student organizations directory pre-health`, url: g(`${uni} student organizations directory pre-health`), ran: false },
-    { key: "org_advisor", label: `Google: ${uni} pre-med society faculty advisor`, url: g(`${uni} pre-med society faculty advisor`), ran: false },
   ];
 }
 
-/** Merge predefined searches with any saved "ran" state. */
 export function mergeSearches(saved: SearchState[], defaults: SearchState[]): SearchState[] {
   const ranByKey = new Map(saved.map((s) => [s.key, s.ran]));
   return defaults.map((d) => ({ ...d, ran: ranByKey.get(d.key) ?? false }));
-}
-
-/**
- * Flatten one AI candidate into workspace contacts (a general-office contact +
- * each named person). Contacts come back UNASSIGNED — the admin makes the
- * office choice consciously. Returns the candidate's office name so the caller
- * can seed an office bucket for the dropdown.
- */
-export function contactsFromCandidate(
-  c: PartnerCandidate,
-  sourceLinkId: string | null,
-): { contacts: WorkspaceContact[]; officeName: string | null } {
-  const contacts: WorkspaceContact[] = [];
-  const officeName =
-    c.subtype === "dept_head" && c.department ? `${c.department} Department` : c.name ?? null;
-
-  // General office contact (an org email with no personal name).
-  const orgEmail = c.org_email ?? (c.subtype === "dept_head" ? null : null);
-  if (orgEmail) {
-    contacts.push({
-      id: wsId(),
-      source_link_id: sourceLinkId,
-      name: null,
-      role: "General contact",
-      email: orgEmail,
-      phone: c.phone ?? null,
-      source_url: c.source_url ?? null,
-      assignment: UNASSIGNED,
-    });
-  }
-  for (const o of c.officers ?? []) {
-    if (!o.name && !o.email) continue;
-    contacts.push({
-      id: wsId(),
-      source_link_id: sourceLinkId,
-      name: o.name ?? null,
-      role: o.role ?? null,
-      email: o.email ?? null,
-      phone: o.phone ?? null,
-      source_url: o.source_url ?? null,
-      assignment: UNASSIGNED,
-    });
-  }
-  if (c.faculty_advisor?.name || c.faculty_advisor?.email) {
-    contacts.push({
-      id: wsId(),
-      source_link_id: sourceLinkId,
-      name: c.faculty_advisor.name ?? null,
-      role: "Faculty advisor",
-      email: c.faculty_advisor.email ?? null,
-      source_url: c.faculty_advisor.source_url ?? null,
-      assignment: UNASSIGNED,
-    });
-  }
-  // dept_head is person-shaped — the chair is a single person contact.
-  if (c.subtype === "dept_head" && (c.name || c.email)) {
-    contacts.push({
-      id: wsId(),
-      source_link_id: sourceLinkId,
-      name: c.name ?? null,
-      role: c.title ?? "Department chair",
-      email: c.email ?? null,
-      phone: c.phone ?? null,
-      source_url: c.source_url ?? null,
-      assignment: UNASSIGNED,
-    });
-  }
-  return { contacts, officeName };
-}
-
-/** True when a contact is the office's general contact (org email, no person). */
-export function isGeneralContact(c: WorkspaceContact): boolean {
-  if (c.role && /general/i.test(c.role)) return true;
-  return !c.name?.trim() && Boolean(c.email?.trim());
 }

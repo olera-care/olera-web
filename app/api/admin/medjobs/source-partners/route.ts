@@ -228,20 +228,20 @@ export async function POST(request: NextRequest) {
       // blocked, etc.), in which case the admin can also use the paste tool.
       const pageText = await fetchPageText(pageUrl);
       const usedText = pageText.length > 200;
-      const { candidates, cost } = usedText
+      const { offices, cost } = usedText
         ? await extractFromText(ctx, subtype, pageText, pageUrl)
         : await extractFromUrl(ctx, subtype, pageUrl);
-      return NextResponse.json({ candidates, cost, source: usedText ? "page_text" : "browse" });
+      return NextResponse.json({ offices, cost, source: usedText ? "page_text" : "browse" });
     }
 
     if (stage === "parse_text") {
       const text = String((body as { text?: unknown }).text ?? "").trim();
       if (text.length < 3) {
-        return NextResponse.json({ error: "Paste some contact text first." }, { status: 400 });
+        return NextResponse.json({ error: "Paste some office text first." }, { status: 400 });
       }
       const sourceUrl = String((body as { url?: unknown }).url ?? "").trim();
-      const { candidates, cost } = await extractFromText(ctx, subtype, text, sourceUrl);
-      return NextResponse.json({ candidates, cost });
+      const { offices, cost } = await extractFromText(ctx, subtype, text, sourceUrl);
+      return NextResponse.json({ offices, cost });
     }
 
     // stage === "extract" — accept an optional prior source map to prioritize.

@@ -202,6 +202,32 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     setWs((w) => ({ ...w, searches: w.searches.map((s) => (s.key === key ? { ...s, ran: !s.ran } : s)) }));
 
   // ── step 2: extract & verify ──────────────────────────────────────────
+  // Merge AI candidates into a link's section: seed office buckets from office
+  // names (unassigned — conscious choice), append contacts deduped by email.
+  const mergeCandidates = useCallback((linkId: string, cands: PartnerCandidate[]) => {
+    setWs((w) => {
+      const offices = [...w.offices];
+      const emails = new Set(w.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      const add: WorkspaceContact[] = [];
+      for (const c of cands) {
+        const { contacts, officeName } = contactsFromCandidate(c, linkId);
+        if (officeName) {
+          const key = officeName.trim().toLowerCase();
+          if (!offices.some((o) => o.name.trim().toLowerCase() === key)) {
+            offices.push({ id: wsId(), name: officeName });
+          }
+        }
+        for (const ct of contacts) {
+          const em = ct.email?.toLowerCase();
+          if (em && emails.has(em)) continue;
+          if (em) emails.add(em);
+          add.push(ct);
+        }
+      }
+      return { ...w, offices, contacts: [...w.contacts, ...add] };
+    });
+  }, []);
+
   const extractLink = useCallback(
     async (linkId: string) => {
       const link = wsRef.current.links.find((l) => l.id === linkId);
@@ -215,39 +241,42 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         });
         const d = await res.json().catch(() => null);
         if (!res.ok) throw new Error(bodyError(d, "Couldn't read that page"));
-        const cands = (d?.candidates ?? []) as PartnerCandidate[];
-        setWs((w) => {
-          const offices = [...w.offices];
-          const emails = new Set(
-            w.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[],
-          );
-          const add: WorkspaceContact[] = [];
-          for (const c of cands) {
-            const { contacts, officeName } = contactsFromCandidate(c, linkId);
-            if (officeName) {
-              const key = officeName.trim().toLowerCase();
-              if (!offices.some((o) => o.name.trim().toLowerCase() === key)) {
-                offices.push({ id: wsId(), name: officeName });
-              }
-            }
-            for (const ct of contacts) {
-              const em = ct.email?.toLowerCase();
-              if (em && emails.has(em)) continue;
-              if (em) emails.add(em);
-              add.push(ct);
-            }
-          }
-          return {
-            ...w,
-            offices,
-            contacts: [...w.contacts, ...add],
-            links: w.links.map((l) => (l.id === linkId ? { ...l, extracted: true } : l)),
-          };
-        });
+        mergeCandidates(linkId, (d?.candidates ?? []) as PartnerCandidate[]);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Extract failed");
-        // Still mark extracted so auto-extract doesn't loop on a bad page.
+      } finally {
+        // Mark extracted either way so auto-extract doesn't loop on a bad page.
         setWs((w) => ({ ...w, links: w.links.map((l) => (l.id === linkId ? { ...l, extracted: true } : l)) }));
+        setExtracting((s) => {
+          const next = new Set(s);
+          next.delete(linkId);
+          return next;
+        });
+      }
+    },
+    [campusSlug, subtype, mergeCandidates],
+  );
+
+  // Organize a pasted block of text into this link's contacts.
+  const parseTextForLink = useCallback(
+    async (linkId: string, text: string) => {
+      const link = wsRef.current.links.find((l) => l.id === linkId);
+      if (!link) return;
+      setExtracting((s) => new Set(s).add(linkId));
+      setError(null);
+      try {
+        const res = await fetch("/api/admin/medjobs/source-partners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ campus_slug: campusSlug, subtype, stage: "parse_text", text, url: link.url }),
+        });
+        const d = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(bodyError(d, "Couldn't organize that text"));
+        const cands = (d?.candidates ?? []) as PartnerCandidate[];
+        if (cands.length === 0) throw new Error("No contacts found in that text.");
+        mergeCandidates(linkId, cands);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Couldn't organize that text");
       } finally {
         setExtracting((s) => {
           const next = new Set(s);
@@ -256,7 +285,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         });
       }
     },
-    [campusSlug, subtype],
+    [campusSlug, subtype, mergeCandidates],
   );
 
   // Auto-extract any not-yet-extracted link whenever Step 2 opens (idempotent —
@@ -462,6 +491,8 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               setExpanded={setExpanded}
               allConfirmed={allConfirmed}
               onExtractLink={extractLink}
+              onRemoveLink={removeLink}
+              onParseText={parseTextForLink}
               onAddContact={addContact}
               onPatchContact={patchContact}
               onRemoveContact={removeContact}
@@ -610,6 +641,8 @@ function WorkStep({
   setExpanded,
   allConfirmed,
   onExtractLink,
+  onRemoveLink,
+  onParseText,
   onAddContact,
   onPatchContact,
   onRemoveContact,
@@ -625,6 +658,8 @@ function WorkStep({
   setExpanded: (fn: (s: Set<string>) => Set<string>) => void;
   allConfirmed: boolean;
   onExtractLink: (id: string) => void;
+  onRemoveLink: (id: string) => void;
+  onParseText: (id: string, text: string) => void;
   onAddContact: (linkId: string | null) => void;
   onPatchContact: (id: string, patch: Partial<WorkspaceContact>) => void;
   onRemoveContact: (id: string) => void;
@@ -675,6 +710,15 @@ function WorkStep({
               <div className="flex shrink-0 items-center gap-2">
                 <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:underline">open ↗</a>
                 <button onClick={() => onExtractLink(link.id)} disabled={isExtracting} className="text-xs text-gray-500 hover:underline disabled:opacity-50">✦ re-extract</button>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Remove this link and its ${contacts.length} contact${contacts.length === 1 ? "" : "s"}?\n\n${link.title}`)) onRemoveLink(link.id);
+                  }}
+                  className="text-xs text-gray-400 hover:text-red-600"
+                  title="Remove this link (e.g. wrong university) and any contacts pulled from it."
+                >
+                  remove link
+                </button>
               </div>
             </div>
 
@@ -700,6 +744,7 @@ function WorkStep({
                     </label>
                   )}
                 </div>
+                <PasteContacts linkId={link.id} busy={isExtracting} onParse={onParseText} />
                 <label
                   className={`mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
                     unassigned > 0 ? "border-gray-100 text-gray-400" : "border-gray-200 text-gray-800"
@@ -788,6 +833,53 @@ function ContactCard({
         </label>
         {c.source_url && <a href={c.source_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">src ↗</a>}
         <button onClick={() => onRemove(c.id)} className="ml-auto text-[11px] text-gray-400 hover:text-red-600">remove</button>
+      </div>
+    </div>
+  );
+}
+
+/** Paste-to-organize: drop a block of text copied off the page and AI
+ *  structures it into this link's contacts. Fast path while you're reopening a
+ *  page to confirm it — highlight the contacts, paste, done. */
+function PasteContacts({
+  linkId,
+  busy,
+  onParse,
+}: {
+  linkId: string;
+  busy: boolean;
+  onParse: (id: string, text: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="text-xs font-medium text-primary-600 hover:underline">
+        + Paste contacts from this page
+      </button>
+    );
+  }
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 p-2">
+      <p className="mb-1 text-[11px] text-gray-600">
+        Paste the contact text you copied (names, titles, emails, phones) — we&apos;ll organize it.
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={4}
+        placeholder={"Dr. Sierra Miller\nBiology Pre-Medical Advisor\nEmail: snmiller@wtamu.edu\nPhone: (806) 651-2574"}
+        className="w-full rounded border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+      />
+      <div className="mt-1 flex items-center justify-end gap-2">
+        <button onClick={() => { setOpen(false); setText(""); }} className="text-xs text-gray-500 hover:underline">Cancel</button>
+        <button
+          onClick={() => { if (text.trim()) { onParse(linkId, text.trim()); setText(""); setOpen(false); } }}
+          disabled={busy || !text.trim()}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+        >
+          {busy ? "Organizing…" : "Organize into contacts"}
+        </button>
       </div>
     </div>
   );

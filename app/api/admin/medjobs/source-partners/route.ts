@@ -4,6 +4,7 @@ import {
   buildSourceMap,
   extractPartners,
   extractFromUrl,
+  extractFromText,
   PARTNER_SUBTYPES,
   type PartnerSubtype,
   type SourceLink,
@@ -36,7 +37,7 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const VALID_STAGES = new Set(["source_map", "extract", "extract_url"]);
+const VALID_STAGES = new Set(["source_map", "extract", "extract_url", "parse_text"]);
 const STAKEHOLDER_KINDS = ["advisor", "student_org", "dept_head", "professor"];
 
 /**
@@ -176,6 +177,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Paste a valid http(s) URL" }, { status: 400 });
       }
       const { candidates, cost } = await extractFromUrl(ctx, subtype, pageUrl);
+      return NextResponse.json({ candidates, cost });
+    }
+
+    if (stage === "parse_text") {
+      const text = String((body as { text?: unknown }).text ?? "").trim();
+      if (text.length < 3) {
+        return NextResponse.json({ error: "Paste some contact text first." }, { status: 400 });
+      }
+      const sourceUrl = String((body as { url?: unknown }).url ?? "").trim();
+      const { candidates, cost } = await extractFromText(ctx, subtype, text, sourceUrl);
       return NextResponse.json({ candidates, cost });
     }
 

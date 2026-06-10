@@ -386,62 +386,97 @@ export async function extractPartners(
   return { candidates: parseCandidates(out, subtype), cost: cost.cost };
 }
 
-/** Extract contacts from ONE admin-pasted web page (audit step 3). Lets the
- *  admin point the AI at a page it missed and pull the relevant contacts. */
-export async function extractFromUrl(
-  ctx: UniversityContext,
-  subtype: PartnerSubtype,
-  pageUrl: string,
-): Promise<ExtractResult> {
-  const cost = new CostTracker();
-
-  // CRITICAL: the output shape must match parseCandidates() per subtype.
-  //  - advisor / student_org are ORG-SHAPED: one candidate with an `officers`
-  //    array (one entry per person). Returning flat person objects here would
-  //    be silently dropped by the parser.
-  //  - dept_head is PERSON-SHAPED: one candidate per chair.
-  let shape: string;
+/** The required JSON output shape per subtype. MUST match parseCandidates():
+ *   - advisor / student_org are ORG-SHAPED: one candidate with an `officers`
+ *     array (one entry per person). Flat person objects would be dropped.
+ *   - dept_head is PERSON-SHAPED: one candidate per chair.
+ *  Shared by the page-read and paste-text extractors. */
+function candidateShape(subtype: PartnerSubtype, sourceUrl: string): string {
   if (subtype === "advisor") {
-    shape = [
-      `Treat this page as ONE advising office/program. Return EXACTLY ONE candidate object:`,
+    return [
+      `Treat this as ONE advising office/program. Return EXACTLY ONE candidate object:`,
       `{`,
-      `  "name": "<the office/program/page name, e.g. 'Pre-Medicine Specialization Advising'>",`,
+      `  "name": "<the office/program name, e.g. 'Pre-Medicine Specialization Advising'>",`,
       `  "org_email": "<a general office email if one is shown, else null>",`,
       `  "website": null, "directory_url": null,`,
       `  "officers": [`,
       `     { "name": "<full name>", "role": "<their title, e.g. 'Pre-Medical Advisor'>",`,
-      `       "email": "<email>", "phone": "<phone>", "source_url": "${pageUrl}" }`,
-      `     // ONE ENTRY PER PERSON named anywhere on the page`,
+      `       "email": "<email>", "phone": "<phone>", "source_url": "${sourceUrl}" }`,
+      `     // ONE ENTRY PER PERSON named`,
       `  ],`,
       `  "notes": null, "confidence": "high|medium|low"`,
       `}`,
       `Put EVERY named advisor / coordinator / director / staff person into "officers" —`,
       `even if some of them have no email shown.`,
     ].join("\n");
-  } else if (subtype === "dept_head") {
-    shape = `Return one candidate per department chair/head: {"department","name","title","email","phone","profile_url","source_url":"${pageUrl}","notes","confidence"}.`;
-  } else {
-    shape = [
-      `Return one candidate per student organization:`,
-      `{ "name": "<org name>", "org_email", "website", "directory_url",`,
-      `  "socials": [{"platform","url"}],`,
-      `  "officers": [{ "name","role","email","phone","source_url":"${pageUrl}" }],  // every officer listed`,
-      `  "faculty_advisor": { "name","email","profile_url","source_url" },`,
-      `  "notes", "confidence" }`,
-    ].join("\n");
   }
+  if (subtype === "dept_head") {
+    return `Return one candidate per department chair/head: {"department","name","title","email","phone","profile_url","source_url":"${sourceUrl}","notes","confidence"}.`;
+  }
+  return [
+    `Return one candidate per student organization:`,
+    `{ "name": "<org name>", "org_email", "website", "directory_url",`,
+    `  "socials": [{"platform","url"}],`,
+    `  "officers": [{ "name","role","email","phone","source_url":"${sourceUrl}" }],  // every officer listed`,
+    `  "faculty_advisor": { "name","email","profile_url","source_url" },`,
+    `  "notes", "confidence" }`,
+  ].join("\n");
+}
 
+/** Extract contacts from ONE admin-pasted web page. Lets the admin point the AI
+ *  at a page it missed and pull the relevant contacts. */
+export async function extractFromUrl(
+  ctx: UniversityContext,
+  subtype: PartnerSubtype,
+  pageUrl: string,
+): Promise<ExtractResult> {
+  const cost = new CostTracker();
   const prompt = [
     `Carefully read ALL of the visible content on this web page: ${pageUrl}`,
     `(University: ${ctx.university}.)`,
-    `Extract EVERY ${subtype.replace("_", " ")} contact actually shown on the page.`,
-    `Capture each person's full name, title/role, email, and phone EXACTLY as written.`,
-    `Do not skip anyone who is listed; do not invent anyone who is not.`,
+    `Scan the ENTIRE page top to bottom — including the header, body, sidebars,`,
+    `"Contact"/"Advising team"/"Meet the advisors" sections, AND the page FOOTER`,
+    `or contact-info blocks — for ${subtype.replace("_", " ")} contacts.`,
+    `Extract EVERY relevant contact actually shown. Capture each person's full name,`,
+    `title/role, email, and phone EXACTLY as written. Do not skip anyone who is listed.`,
+    `IGNORE generic site-wide footer navigation and legal links (e.g. Title IX,`,
+    `Accessibility, Privacy, University Directory) — those are not advising contacts.`,
+    `Do not invent anyone who is not on the page.`,
     ``,
-    shape,
+    candidateShape(subtype, pageUrl),
     ``,
     `If the page genuinely lists no relevant contacts, return {"candidates":[]}.`,
     `Return ONLY valid JSON: {"candidates":[ ... ]}`,
+  ].join("\n");
+  const out = await perplexityJson(prompt, cost);
+  return { candidates: parseCandidates(out, subtype), cost: cost.cost };
+}
+
+/** Organize raw text the admin copy/pasted (e.g. a block they highlighted on a
+ *  page) into the standardized contact shape, attached to the given source URL.
+ *  Deterministic structuring task — no web search needed. */
+export async function extractFromText(
+  ctx: UniversityContext,
+  subtype: PartnerSubtype,
+  text: string,
+  sourceUrl: string,
+): Promise<ExtractResult> {
+  const cost = new CostTracker();
+  const prompt = [
+    `Below is text a person copied from a ${ctx.university} web page. It may be`,
+    `messy (line breaks, labels like "Email:"/"Phone:", multiple people run together).`,
+    `Organize it into structured ${subtype.replace("_", " ")} contacts.`,
+    `Use ONLY information present in the text — do not invent or look anything up.`,
+    `Capture each person's full name, title/role, email, and phone as given.`,
+    `If multiple people are present, include each one.`,
+    ``,
+    candidateShape(subtype, sourceUrl),
+    ``,
+    `If the text has no usable contact, return {"candidates":[]}.`,
+    `Return ONLY valid JSON: {"candidates":[ ... ]}`,
+    ``,
+    `--- PASTED TEXT ---`,
+    text.slice(0, 6000),
   ].join("\n");
   const out = await perplexityJson(prompt, cost);
   return { candidates: parseCandidates(out, subtype), cost: cost.cost };

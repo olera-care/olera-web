@@ -180,6 +180,32 @@ export function PartnerSourcingModal({
     setCandidates((prev) => prev.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
   }
 
+  // Inline edit of the office/org roster (officers → office_members on accept).
+  function patchOfficer(ci: number, oi: number, patch: Partial<NonNullable<PartnerCandidate["officers"]>[number]>) {
+    setCandidates((prev) =>
+      prev.map((c, idx) => {
+        if (idx !== ci) return c;
+        const officers = [...(c.officers ?? [])];
+        officers[oi] = { ...officers[oi], ...patch };
+        return { ...c, officers };
+      }),
+    );
+  }
+  function addOfficer(ci: number) {
+    setCandidates((prev) =>
+      prev.map((c, idx) =>
+        idx === ci ? { ...c, officers: [...(c.officers ?? []), { name: "", role: "", email: "" }] } : c,
+      ),
+    );
+  }
+  function removeOfficer(ci: number, oi: number) {
+    setCandidates((prev) =>
+      prev.map((c, idx) =>
+        idx === ci ? { ...c, officers: (c.officers ?? []).filter((_, k) => k !== oi) } : c,
+      ),
+    );
+  }
+
   function toggle(set: Set<number>, i: number, setter: (s: Set<number>) => void) {
     const next = new Set(set);
     if (next.has(i)) next.delete(i);
@@ -416,6 +442,52 @@ export function PartnerSourcingModal({
                             : "★ Advisor: not found"}
                           {c.officers?.length ? ` · ${c.officers.length} officer(s)` : ""}
                         </p>
+                      )}
+                      {(c.subtype === "advisor" || c.subtype === "student_org") && (
+                        <div className="mt-1 rounded border border-gray-100 bg-gray-50/60 p-2">
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                            {c.subtype === "advisor" ? "Office members" : "Officers"} ({c.officers?.length ?? 0})
+                          </p>
+                          <div className="space-y-1">
+                            {(c.officers ?? []).map((o, oi) => (
+                              <div key={oi} className="flex flex-wrap items-center gap-1">
+                                <input
+                                  value={o.name ?? ""}
+                                  onChange={(e) => patchOfficer(i, oi, { name: e.target.value })}
+                                  className="w-28 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] focus:border-gray-400 focus:outline-none"
+                                  placeholder="Name"
+                                />
+                                <input
+                                  value={o.role ?? ""}
+                                  onChange={(e) => patchOfficer(i, oi, { role: e.target.value })}
+                                  className="w-28 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] focus:border-gray-400 focus:outline-none"
+                                  placeholder="Role"
+                                />
+                                <input
+                                  value={o.email ?? ""}
+                                  onChange={(e) => patchOfficer(i, oi, { email: e.target.value })}
+                                  className="w-40 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] focus:border-gray-400 focus:outline-none"
+                                  placeholder="Email"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeOfficer(i, oi)}
+                                  className="px-1 text-[11px] text-gray-400 hover:text-red-600"
+                                  title="Remove this person"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => addOfficer(i)}
+                            className="mt-1 text-[11px] font-medium text-primary-600 hover:underline"
+                          >
+                            + Add person
+                          </button>
+                        </div>
                       )}
                       <div className="flex flex-wrap gap-2 text-[11px]">
                         {c.source_url && (

@@ -1225,6 +1225,13 @@ function ResearchSection({
 
         <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
 
+        {/* Office model: an advising office is a general contact + a roster of
+            people. Members live in research_data (NOT outreach contacts) so cold
+            outreach stays on the general contact and never fans out to them. */}
+        {type === "advisor" && (
+          <OfficeMembersSection ctx={ctx} action={action} setError={setError} />
+        )}
+
         {research && (
           <>
             <ChecklistInline items={research.checklist} />
@@ -1233,6 +1240,167 @@ function ResearchSection({
         )}
       </div>
     </section>
+  );
+}
+
+// ── Office members (advising-office roster) ───────────────────────────
+//
+// People associated with an advising office, stored in
+// research_data.office_members — NOT student_outreach_contacts — so cold
+// outreach (which fans out to contacts) stays on the general office contact.
+// Members can have partial info (name-only is fine) and can be PROMOTED into
+// their own advisor prospect (reusing the stakeholders endpoint, linked back).
+
+interface OfficeMember {
+  name?: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  source_url?: string;
+  notes?: string;
+  /** Set once promoted to its own prospect row. */
+  promoted_outreach_id?: string;
+}
+
+function OfficeMembersSection({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (e: string | null) => void;
+}) {
+  const members =
+    ((ctx.outreach.research_data as Record<string, unknown>).office_members as
+      | OfficeMember[]
+      | undefined) ?? [];
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState<OfficeMember>({});
+  const [busy, setBusy] = useState(false);
+
+  const persist = async (next: OfficeMember[]) => {
+    try {
+      await action("update_research", { research: { office_members: next } });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  };
+
+  const addMember = async () => {
+    if (!draft.name?.trim() && !draft.email?.trim()) {
+      setError("Add a name or an email for the member");
+      return;
+    }
+    await persist([...members, { ...draft }]);
+    setDraft({});
+    setAdding(false);
+  };
+
+  const removeMember = (i: number) => persist(members.filter((_, idx) => idx !== i));
+
+  const promote = async (i: number) => {
+    const m = members[i];
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/student-outreach/stakeholders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campus_slug: ctx.campus.slug,
+          stakeholder_type: "advisor",
+          organization_name: m.name || m.email || "Advisor",
+          notes: m.notes ?? null,
+          research_data: {
+            general_contact: { email: m.email ?? null, phone: m.phone ?? null },
+            source_url: m.source_url ?? null,
+            referred_from_office: ctx.outreach.id,
+            source: "office_member_promotion",
+          },
+          initial_contact: {
+            name: m.name ?? null,
+            title: m.title ?? null,
+            email: m.email ?? null,
+            phone: m.phone ?? null,
+          },
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Promote failed");
+      const newId = (d.outreach as { id?: string } | undefined)?.id;
+      await persist(
+        members.map((mm, idx) => (idx === i ? { ...mm, promoted_outreach_id: newId } : mm)),
+      );
+      refreshMedJobs();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Promote failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const input =
+    "w-full rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-gray-400 focus:outline-none";
+
+  return (
+    <div className="rounded-md border border-gray-100 bg-gray-50 p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Office members ({members.length})
+        </p>
+        <SmallButton onClick={() => setAdding((s) => !s)}>
+          {adding ? "Cancel" : "+ Add member"}
+        </SmallButton>
+      </div>
+      <p className="mt-0.5 text-[11px] text-gray-500">
+        Advisors at this office. Logged for reference — outreach stays on the general contact.
+        Name-only is fine; promote to their own prospect when ready.
+      </p>
+
+      {members.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {members.map((m, i) => (
+            <li key={i} className="flex items-center justify-between gap-2 rounded border border-gray-100 bg-white px-2 py-1.5 text-xs">
+              <span className="min-w-0">
+                <span className="font-medium text-gray-800">{m.name || m.email || "(unnamed)"}</span>
+                {m.title ? <span className="text-gray-500"> · {m.title}</span> : null}
+                {m.email && m.name ? <span className="text-gray-500"> · {m.email}</span> : null}
+                {m.source_url ? (
+                  <>
+                    {" "}
+                    <a href={m.source_url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">src ↗</a>
+                  </>
+                ) : null}
+              </span>
+              <span className="flex shrink-0 items-center gap-2">
+                {m.promoted_outreach_id ? (
+                  <span className="text-primary-700">Promoted ✓</span>
+                ) : (
+                  <button onClick={() => promote(i)} disabled={busy} className="rounded border border-gray-200 px-2 py-0.5 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                    Promote
+                  </button>
+                )}
+                <button onClick={() => removeMember(i)} className="text-gray-400 hover:text-red-600" title="Remove">×</button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {adding && (
+        <div className="mt-2 space-y-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
+            <input className={input} placeholder="Name" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+            <input className={input} placeholder="Title (optional)" value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+            <input className={input} placeholder="Email (optional)" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+            <input className={input} placeholder="Phone (optional)" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+          </div>
+          <input className={input} placeholder="Source link (optional)" value={draft.source_url ?? ""} onChange={(e) => setDraft({ ...draft, source_url: e.target.value })} />
+          <SmallButton onClick={addMember}>Add member</SmallButton>
+        </div>
+      )}
+    </div>
   );
 }
 

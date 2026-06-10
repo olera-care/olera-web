@@ -40,7 +40,7 @@ import {
   formatLongDate,
   formatRelative,
 } from "@/lib/student-outreach/formatters";
-import type { DrawerContext } from "@/lib/student-outreach/types";
+import type { DistributionEvidence, DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
@@ -656,6 +656,30 @@ function ActivationActions({
   const [showLaunch, setShowLaunch] = useState(false);
   const [closing, setClosing] = useState(false);
 
+  // Partner activation (Chunk 2.3) — stakeholder rows can be activated directly
+  // by the admin on a clear commitment, without waiting on the portal. Maps the
+  // 4-way confirmation onto the existing distribution_evidence enum (no new
+  // enum/action; reuses mark_partner). Providers never see this.
+  const isPartner = ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
+  const [showActivate, setShowActivate] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [confirmMethod, setConfirmMethod] = useState<
+    "email" | "verbal" | "meeting" | "other"
+  >("email");
+  const [confirmNote, setConfirmNote] = useState("");
+  const ACTIVATE_EVIDENCE: Record<typeof confirmMethod, DistributionEvidence> = {
+    email: "explicit_email",
+    verbal: "explicit_verbal",
+    meeting: "explicit_verbal",
+    other: "self_reported",
+  };
+  const ACTIVATE_LABEL: Record<typeof confirmMethod, string> = {
+    email: "Email confirmation",
+    verbal: "Verbal (call) confirmation",
+    meeting: "Confirmed in a meeting",
+    other: "Other confirmation",
+  };
+
   const primary =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
     ctx.contacts.find((c) => c.status === "active") ??
@@ -718,6 +742,25 @@ function ActivationActions({
     }
   };
 
+  const activatePartner = async () => {
+    setActivating(true);
+    setError(null);
+    try {
+      const note = [ACTIVATE_LABEL[confirmMethod], confirmNote.trim()]
+        .filter(Boolean)
+        .join(" — ");
+      await action("mark_partner", {
+        evidence: ACTIVATE_EVIDENCE[confirmMethod],
+        evidence_notes: note,
+      });
+      setShowActivate(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to activate");
+    } finally {
+      setActivating(false);
+    }
+  };
+
   const stopActivation = async () => {
     setStopping(true);
     setError(null);
@@ -762,6 +805,15 @@ function ActivationActions({
         >
           Interested
         </button>
+        {isPartner && (
+          <button
+            onClick={() => setShowActivate((s) => !s)}
+            title="They clearly agreed to help — activate them as a Recruitment Partner."
+            className="rounded-md border border-primary-300 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100"
+          >
+            Activate partner ★
+          </button>
+        )}
         <button
           onClick={markNotInterested}
           disabled={closing}
@@ -771,6 +823,48 @@ function ActivationActions({
           Not interested
         </button>
       </div>
+      {isPartner && showActivate && (
+        <div className="mt-2 rounded-md border border-primary-200 bg-primary-50/50 px-3 py-2.5">
+          <p className="text-xs font-semibold text-primary-800">
+            Activate {ctx.outreach.organization_name} as a Recruitment Partner
+          </p>
+          <p className="mt-0.5 text-[11px] text-gray-600">How did they confirm?</p>
+          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
+            {(["email", "verbal", "meeting", "other"] as const).map((m) => (
+              <label key={m} className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name="confirm-method"
+                  checked={confirmMethod === m}
+                  onChange={() => setConfirmMethod(m)}
+                />
+                {m === "email" ? "Email" : m === "verbal" ? "Verbal (call)" : m === "meeting" ? "In a meeting" : "Other"}
+              </label>
+            ))}
+          </div>
+          <input
+            value={confirmNote}
+            onChange={(e) => setConfirmNote(e.target.value)}
+            placeholder="Optional note (e.g. said yes on the Oct 3 call)"
+            className="mt-2 w-full rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-gray-400 focus:outline-none"
+          />
+          <div className="mt-2 flex justify-end gap-2">
+            <button
+              onClick={() => setShowActivate(false)}
+              className="rounded-md px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={activatePartner}
+              disabled={activating}
+              className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+            >
+              {activating ? "Activating…" : "Activate →"}
+            </button>
+          </div>
+        </div>
+      )}
       {showLaunch && (
         <CadenceLaunchModal
           cadenceKey="activation"

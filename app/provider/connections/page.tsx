@@ -395,11 +395,11 @@ function LeadDetailDrawer({
   const CareDetailsSection = (
     <div>
       <p className="text-lg font-semibold text-gray-900 mb-3">Care details</p>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {(lead.timeline || (lead.careType && lead.careType.length > 0)) && (
-          <div>
-            <p className="text-sm text-gray-500">Needs</p>
-            <p className="text-base font-medium text-gray-700">
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Needs:</span>{" "}
+            <span className="font-medium text-gray-900">
               {lead.careType?.[0] || "Care"}{lead.timeline ? ` in ${
                 lead.timeline === "asap" || lead.timeline === "immediate" ? "immediately" :
                 lead.timeline === "within_month" || lead.timeline === "within_1_month" ? "~1 month" :
@@ -407,44 +407,44 @@ function LeadDetailDrawer({
                 lead.timeline === "exploring" || lead.timeline === "researching" ? "(exploring)" :
                 lead.timeline
               }` : ""}
-            </p>
-          </div>
+            </span>
+          </p>
         )}
         {lead.careNeeds && lead.careNeeds.length > 0 && (
-          <div>
-            <p className="text-sm text-gray-500">Help with</p>
-            <p className="text-base font-medium text-gray-700">{lead.careNeeds.join(", ")}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Help with:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.careNeeds.join(", ")}</span>
+          </p>
         )}
         {whoNeedsCareDisplay && (
-          <div>
-            <p className="text-sm text-gray-500">Who needs care</p>
-            <p className="text-base font-medium text-gray-700">{whoNeedsCareDisplay}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Who needs care:</span>{" "}
+            <span className="font-medium text-gray-900">{whoNeedsCareDisplay}</span>
+          </p>
         )}
         {preferencesDisplay && (
-          <div>
-            <p className="text-sm text-gray-500">Preferences</p>
-            <p className="text-base font-medium text-gray-700">{preferencesDisplay}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Preferences:</span>{" "}
+            <span className="font-medium text-gray-900">{preferencesDisplay}</span>
+          </p>
         )}
         {lead.paymentMethods && lead.paymentMethods.length > 0 && (
-          <div>
-            <p className="text-sm text-gray-500">Can pay via</p>
-            <p className="text-base font-medium text-gray-700">{lead.paymentMethods.join(", ")}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Can pay via:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.paymentMethods.join(", ")}</span>
+          </p>
         )}
         {lead.profileCompleteness !== undefined && (
-          <div>
-            <p className="text-sm text-gray-500">Profile</p>
-            <p className="text-base font-medium text-gray-700">{lead.profileCompleteness}% complete</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Profile:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.profileCompleteness}% complete</span>
+          </p>
         )}
         {lead.memberSince && (
-          <div>
-            <p className="text-sm text-gray-500">Member since</p>
-            <p className="text-base font-medium text-gray-700">{lead.memberSince}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Member since:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.memberSince}</span>
+          </p>
         )}
       </div>
     </div>

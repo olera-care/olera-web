@@ -272,6 +272,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
   // reads to operators and faculty alike.
   const programExplanation = `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiver roles that fit alongside coursework.** Students gain hands-on experience working with clients, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`;
   const packetLine = `The attached information packet has the program details.`;
+  // Portal magic-link CTA (#5): lets a partner self-serve from email one —
+  // learn more, share the flyer, add colleagues/events, or confirm partnership.
+  const portalLine = `You can also open our partner portal to see the program, share the flyer with students, and tell us how you'd like to help: [open the partner portal]({welcome_url}).`;
 
   switch (stakeholder_type) {
     case "student_org":
@@ -287,6 +290,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           programExplanation,
           ``,
           `We hope you'll consider sharing the program with your members. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          ``,
+          portalLine,
           ``,
           packetLine,
         ].join("\n"),
@@ -305,6 +310,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `We hope you'll consider passing this along to your advisees. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
           ``,
+          portalLine,
+          ``,
           packetLine,
         ].join("\n"),
       };
@@ -322,6 +329,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `With your approval, we'd love to share this with your department. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT} at your convenience.`,
           ``,
+          portalLine,
+          ``,
           packetLine,
         ].join("\n"),
       };
@@ -338,6 +347,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           programExplanation,
           ``,
           `If you'd be open to forwarding this to interested students, we'd be grateful. For more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          ``,
+          portalLine,
           ``,
           packetLine,
         ].join("\n"),

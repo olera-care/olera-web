@@ -233,10 +233,12 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
   const buildWelcomeFor = (email: string): string => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {
-      return buildWelcomeUrl(
-        { outreach_id: row.outreach_id, email },
-        magicLinkSecret,
-      );
+      // Partners (stakeholder rows) get the Recruitment Partner Portal link in
+      // their cold email so they can learn more, share the flyer, add
+      // colleagues, and self-activate. Providers get the provider magic link.
+      return row.kind === "provider"
+        ? buildWelcomeUrl({ outreach_id: row.outreach_id, email }, magicLinkSecret)
+        : buildPartnerPortalUrl({ outreach_id: row.outreach_id, email }, magicLinkSecret);
     } catch (e) {
       console.error(
         "[smartlead-bridge] buildWelcomeUrl failed:",

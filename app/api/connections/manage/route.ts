@@ -253,7 +253,9 @@ export async function POST(request: Request) {
 
           let systemText = `This provider has passed on this inquiry. Reason: ${archiveReason}`;
           if (archiveMessage) {
-            systemText += `\n"${archiveMessage}"`;
+            // Escape quotes to prevent parsing issues on frontend
+            const escapedMessage = archiveMessage.replace(/"/g, '\\"');
+            systemText += `\n"${escapedMessage}"`;
           }
 
           archiveMeta.thread = [

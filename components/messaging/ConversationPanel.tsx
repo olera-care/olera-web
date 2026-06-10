@@ -231,8 +231,8 @@ function ProviderPassedCard({
     browseUrl = `/browse?${params.toString()}`;
   }
 
-  // Provider name fallback
-  const displayProviderName = providerName && providerName !== "Unknown" ? providerName : "Provider";
+  // Provider name (providers always have names, no need for complex fallback)
+  const displayProviderName = providerName || "Provider";
 
   return (
     <div className="flex justify-center">
@@ -841,7 +841,9 @@ export default function ConversationPanel({
                 const reasonMatch = msg.text.match(/Reason:\s*(\w+)/);
                 const messageMatch = msg.text.match(/\n"([\s\S]+)"/);
                 const archiveReason = reasonMatch?.[1] || "other";
-                const archiveMessage = messageMatch?.[1] || null;
+                // Unescape quotes that were escaped in backend
+                const rawMessage = messageMatch?.[1] || null;
+                const archiveMessage = rawMessage ? rawMessage.replace(/\\"/g, '"') : null;
 
                 return (
                   <div key={i}>

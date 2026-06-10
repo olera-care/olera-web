@@ -277,6 +277,8 @@ export interface CampusRow {
   /** v9.0 Phase 7 Commit O: unified unread flag — true when there's
    *  a pending site_task created after the campus's viewed_at. */
   unread?: boolean;
+  /** Persisted AI partner-research source links (all subtypes, deduped). */
+  partner_sources?: { title: string; url: string }[];
 }
 
 /**

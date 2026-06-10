@@ -14,7 +14,13 @@
  * gating (partners launch on email alone); this panel just reflects it.
  */
 
+import { useEffect, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+
+interface SiteSource {
+  title: string;
+  url: string;
+}
 
 interface Officer {
   name?: string | null;
@@ -42,6 +48,40 @@ export function PartnerPreFlightPanel({ ctx }: { ctx: DrawerContext }) {
 
   const isOrg = kind === "student_org";
   const isProfessor = kind === "professor";
+
+  // All the AI source links found for this Site (every subtype), so the admin
+  // can check any page while filling in research — not just this prospect's
+  // source. Persisted on the Site in partner_research.sources (Chunk 1.3).
+  const [siteSources, setSiteSources] = useState<SiteSource[]>([]);
+  const campusSlug = ctx.campus?.slug ?? null;
+  useEffect(() => {
+    if (!campusSlug) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/medjobs/source-partners?campus_slug=${encodeURIComponent(campusSlug)}`);
+        if (!res.ok) return;
+        const d = await res.json();
+        const byType = (d.partner_research?.sources ?? {}) as Record<string, SiteSource[]>;
+        const seen = new Set<string>();
+        const flat: SiteSource[] = [];
+        for (const list of Object.values(byType)) {
+          for (const s of list ?? []) {
+            if (s?.url && !seen.has(s.url)) {
+              seen.add(s.url);
+              flat.push({ title: s.title ?? s.url, url: s.url });
+            }
+          }
+        }
+        if (!cancelled) setSiteSources(flat);
+      } catch {
+        /* best-effort */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [campusSlug]);
 
   const gcPhone = str((rd.general_contact as Record<string, unknown> | undefined)?.phone);
 
@@ -118,6 +158,26 @@ export function PartnerPreFlightPanel({ ctx }: { ctx: DrawerContext }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* All source links found for this Site — handy for checking pages while
+          filling in research (e.g. confirming the general inbox on an advising
+          page). */}
+      {siteSources.length > 0 && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-[11px] font-medium text-gray-700">
+            Site research sources ({siteSources.length}) — check while researching
+          </summary>
+          <ul className="mt-1 space-y-0.5">
+            {siteSources.map((s) => (
+              <li key={s.url}>
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className={linkCls}>
+                  {s.title} ↗
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
     </section>
   );

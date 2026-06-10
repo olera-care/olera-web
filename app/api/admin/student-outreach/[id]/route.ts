@@ -2590,11 +2590,16 @@ async function handleAddContact(
   // legacy `name` column.
   const first = (body.first_name ?? "").trim();
   const last = (body.last_name ?? "").trim();
-  const fullName =
+  let fullName =
     body.name?.trim() ||
     [first, last].filter(Boolean).join(" ") ||
     "";
-  if (!fullName) throw new Error("Contact first name required");
+  // Partners often share one general inbox (e.g. hpo@…) with no named person —
+  // allow an email-only contact, using the email as the display name.
+  if (!fullName) {
+    if (body.email?.trim()) fullName = body.email.trim();
+    else throw new Error("Contact needs a name or an email");
+  }
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
     throw new Error("Invalid email");
   }

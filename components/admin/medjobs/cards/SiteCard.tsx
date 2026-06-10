@@ -45,7 +45,7 @@ export function SiteCard({
       : null;
   const footnote = [addedLabel, stakeholderLabel].filter(Boolean).join(" · ");
 
-  return (
+  const card = (
     <MedjobsCard
       title={row.name}
       subtitle={subtitle}
@@ -78,5 +78,36 @@ export function SiteCard({
       onClick={onView}
       hoverTitle="Open the site's stakeholder list."
     />
+  );
+
+  const sources = row.partner_sources ?? [];
+  if (sources.length === 0) return card;
+
+  // Persisted AI research source links — kept on the Site so they're reusable
+  // for manual research without re-running (and re-paying for) the AI.
+  return (
+    <div>
+      {card}
+      <details className="mt-1 px-1">
+        <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-700">
+          Research sources ({sources.length})
+        </summary>
+        <ul className="mt-1 space-y-0.5 pl-2">
+          {sources.map((s) => (
+            <li key={s.url}>
+              <a
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[11px] text-primary-600 hover:underline"
+              >
+                {s.title} ↗
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </div>
   );
 }

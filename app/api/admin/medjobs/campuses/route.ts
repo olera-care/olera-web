@@ -38,7 +38,7 @@ export async function GET(_request: NextRequest) {
     ] = await Promise.all([
       db
         .from("student_outreach_campuses")
-        .select("id, slug, name, state, city, research_complete, is_active, created_at, viewed_at")
+        .select("id, slug, name, state, city, research_complete, is_active, created_at, viewed_at, partner_research")
         .eq("is_active", true)
         .order("name", { ascending: true }),
       db
@@ -160,6 +160,25 @@ export async function GET(_request: NextRequest) {
         latestTaskCreated != null &&
         (!c.viewed_at || latestTaskCreated > c.viewed_at);
 
+      // Flatten the persisted AI source maps (all subtypes) into one deduped
+      // list so the Site card can surface "Research sources" for quick access.
+      const partnerSources: { title: string; url: string }[] = [];
+      {
+        const byType = (
+          (c as { partner_research?: { sources?: Record<string, { title?: string; url?: string }[]> } })
+            .partner_research?.sources ?? {}
+        ) as Record<string, { title?: string; url?: string }[]>;
+        const seen = new Set<string>();
+        for (const list of Object.values(byType)) {
+          for (const s of list ?? []) {
+            if (s?.url && !seen.has(s.url)) {
+              seen.add(s.url);
+              partnerSources.push({ title: s.title ?? s.url, url: s.url });
+            }
+          }
+        }
+      }
+
       return {
         id: c.id,
         slug: c.slug,
@@ -176,6 +195,8 @@ export async function GET(_request: NextRequest) {
         queue_age_days: queueAgeDays,
         // v9.0 Phase 7 Commit O: unified unread flag.
         unread,
+        // Persisted AI research source links (all subtypes, deduped).
+        partner_sources: partnerSources,
       };
     });
 

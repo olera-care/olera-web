@@ -1106,13 +1106,15 @@ function ResearchSection({
 
   const savePrimaryContact = async () => {
     if (!primary) {
-      // No contact exists yet; create one. Only fire when there's at least a first name.
-      if (!firstName.trim()) return;
+      // No contact exists yet; create one. Partners often have only a shared
+      // general email (e.g. hpo@…) with no named person — so an email alone is
+      // enough; we don't require a name.
+      if (!firstName.trim() && !email.trim()) return;
       try {
         await action("add_contact", {
           title: title.trim() || null,
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
           email: email.trim() || null,
           phone: phone.trim() || null,
           is_primary: true,
@@ -1331,7 +1333,7 @@ function AddContactInline({
   return (
     <div className="space-y-2 rounded-md border border-dashed border-gray-200 p-3">
       <div className="grid grid-cols-2 gap-2">
-        <Field label="First name *" value={firstName} onChange={setFirstName} />
+        <Field label="First name" value={firstName} onChange={setFirstName} />
         <Field label="Last name" value={lastName} onChange={setLastName} />
       </div>
       <Select
@@ -1350,11 +1352,12 @@ function AddContactInline({
         Primary contact
       </label>
       <PrimaryButton onClick={async () => {
-        if (!firstName.trim()) { setError("First name required"); return; }
+        // A name OR an email is enough — partners may share one general inbox.
+        if (!firstName.trim() && !email.trim()) { setError("Add a name or an email"); return; }
         try {
           await action("add_contact", {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
+            first_name: firstName.trim() || null,
+            last_name: lastName.trim() || null,
             role: role === OTHER ? roleOther : role,
             email,
             phone,

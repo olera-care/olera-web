@@ -137,6 +137,15 @@ export async function PATCH(
         complete_at: pa.complete ? new Date().toISOString() : null,
       };
       patch.partner_research = { ...pr, audit };
+
+      // Task B: once the audit is complete for ALL partner subtypes, the
+      // Site's partner prospecting is done — set research_complete so the
+      // campus research card leaves the In-Basket/Prospects queue. (The Site
+      // card persists in Sites regardless.)
+      const allSubtypesDone = validSubtypes.every(
+        (st) => (audit[st] as { complete_at?: string | null } | undefined)?.complete_at,
+      );
+      if (allSubtypesDone) patch.research_complete = true;
     }
   }
 

@@ -21,12 +21,12 @@ import { Pill } from "./StakeholderCard";
 
 export function CampusResearchCard({
   row,
-  onOpenResearch,
-  overflowMenu,
+  onFindPartners,
+  onSeeStakeholders,
 }: {
   row: ResearchCampusCardRow;
-  onOpenResearch: () => void;
-  overflowMenu?: React.ReactNode;
+  onFindPartners: () => void;
+  onSeeStakeholders: () => void;
 }) {
   const hasStakeholders = row.research_stakeholder_count > 0;
   const stageReady =
@@ -61,20 +61,30 @@ export function CampusResearchCard({
       footnote={footnote}
       pill={<Pill>{pillText}</Pill>}
       cta={
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenResearch();
-          }}
-          title="Open the research module to add advisors, dept heads, professors, and student orgs."
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
-        >
-          Log
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFindPartners();
+            }}
+            title="Find partners with AI for this university, then complete the research audit."
+            className="rounded-md border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100"
+          >
+            Find partners ✦
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSeeStakeholders();
+            }}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            See stakeholders →
+          </button>
+        </div>
       }
-      overflowMenu={overflowMenu}
-      onClick={onOpenResearch}
-      hoverTitle="Open the research module for this university."
+      onClick={onFindPartners}
+      hoverTitle="Partner research for this university — find partners, then complete the audit."
     />
   );
 }

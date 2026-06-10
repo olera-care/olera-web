@@ -39,8 +39,13 @@ import { useMemo, useState, type ReactNode } from "react";
 import type { ResearchCampusCard, TabRow } from "@/lib/student-outreach/types";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { ProviderProspectCard } from "../cards/ProviderProspectCard";
+import { useRouter } from "next/navigation";
 import { CampusResearchCard } from "../cards/CampusResearchCard";
 import { CardOverflowMenu } from "../cards/CardOverflowMenu";
+import { PartnerSourcingModal } from "../PartnerSourcingModal";
+import { PartnerAuditModal } from "../PartnerAuditModal";
+import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
+import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 
 export function ResearchTabContent({
   rows,
@@ -48,8 +53,6 @@ export function ResearchTabContent({
   researchCampuses,
   renderRow,
   onStartProviderOutreach,
-  onOpenCampusResearch,
-  onMarkResearchComplete,
   tabCountsAll,
 }: {
   rows: TabRow[];
@@ -57,10 +60,16 @@ export function ResearchTabContent({
   researchCampuses: ResearchCampusCard[];
   renderRow: (row: TabRow) => ReactNode;
   onStartProviderOutreach: (row: ProviderProspectRow) => void;
-  onOpenCampusResearch: (campus: ResearchCampusCard) => void;
-  onMarkResearchComplete: (campus: ResearchCampusCard) => void;
+  /** Legacy props — partner research now runs through the sourcing + audit
+   *  modals mounted here, not the BulkResearchModal. Kept optional so existing
+   *  parents compile without change. */
+  onOpenCampusResearch?: (campus: ResearchCampusCard) => void;
+  onMarkResearchComplete?: (campus: ResearchCampusCard) => void;
   tabCountsAll: number;
 }) {
+  const router = useRouter();
+  const [sourcingCampus, setSourcingCampus] = useState<ResearchCampusCard | null>(null);
+  const [auditState, setAuditState] = useState<{ campus: ResearchCampusCard; subtype: PartnerSubtype } | null>(null);
   // Split materialized rows by kind. Provider-kind rows belong with the
   // virtual provider catchment cards; everything else is a stakeholder
   // (advisor / professor / dept_head / student_org) that lives under
@@ -226,26 +235,9 @@ export function ResearchTabContent({
         <li key={`research-${c.id}`}>
           <CampusResearchCard
             row={c}
-            onOpenResearch={() => onOpenCampusResearch(c)}
-            overflowMenu={
-              <CardOverflowMenu
-                items={[
-                  {
-                    label: "Mark research complete",
-                    onClick: () => onMarkResearchComplete(c),
-                  },
-                  {
-                    label: "Open site management page",
-                    onClick: () => {
-                      window.open(
-                        `/admin/student-outreach/campus/${c.slug}`,
-                        "_blank",
-                        "noopener,noreferrer",
-                      );
-                    },
-                  },
-                ]}
-              />
+            onFindPartners={() => setSourcingCampus(c)}
+            onSeeStakeholders={() =>
+              router.push(`/admin/student-outreach/campus/${c.slug}`)
             }
           />
         </li>
@@ -256,11 +248,49 @@ export function ResearchTabContent({
     </ul>
   ) : null;
 
+  // Partner research runs through the AI sourcing widget + the required audit
+  // gate (which carries the attestation and, on completion of all subtypes,
+  // sets research_complete so this card leaves the queue).
+  const modals = (
+    <>
+      {sourcingCampus && (
+        <PartnerSourcingModal
+          campusSlug={sourcingCampus.slug}
+          universityName={sourcingCampus.name}
+          onClose={() => setSourcingCampus(null)}
+          onAccepted={() => refreshMedJobs()}
+          onOpenAudit={(subtype) => {
+            const campus = sourcingCampus;
+            setSourcingCampus(null);
+            setAuditState({ campus, subtype });
+          }}
+        />
+      )}
+      {auditState && (
+        <PartnerAuditModal
+          campusSlug={auditState.campus.slug}
+          universityName={auditState.campus.name}
+          subtype={auditState.subtype}
+          onClose={() => setAuditState(null)}
+          onComplete={() => {
+            setAuditState(null);
+            refreshMedJobs();
+          }}
+        />
+      )}
+    </>
+  );
+
   // Single-type queue: render the surviving cards flat. No section
   // header, no chevron — the grouping UI exists to differentiate two
   // queues, and there's nothing to differentiate against here.
   if (!showSections) {
-    return <div className="space-y-3">{providerCardList ?? partnerCardList}</div>;
+    return (
+      <div className="space-y-3">
+        {providerCardList ?? partnerCardList}
+        {modals}
+      </div>
+    );
   }
 
   return (
@@ -283,6 +313,7 @@ export function ResearchTabContent({
       >
         {partnerCardList}
       </Section>
+      {modals}
     </div>
   );
 }

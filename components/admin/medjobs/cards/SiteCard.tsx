@@ -19,6 +19,7 @@
 
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
 import { MedjobsCard } from "./MedjobsCard";
+import { Pill } from "./StakeholderCard";
 
 export function SiteCard({
   row,
@@ -45,11 +46,17 @@ export function SiteCard({
       : null;
   const footnote = [addedLabel, stakeholderLabel].filter(Boolean).join(" · ");
 
+  // Consistent partner-prospecting status (matches the In-Basket research card).
+  const researchPill = row.research_complete ? null : (
+    <Pill>{stakeholderCount > 0 ? "Research in progress" : "Research needed"}</Pill>
+  );
+
   const card = (
     <MedjobsCard
       title={row.name}
       subtitle={subtitle}
       footnote={footnote}
+      pill={researchPill ?? undefined}
       cta={
         <div className="flex items-center gap-2">
           {onFindPartners && (

@@ -469,7 +469,7 @@ function LeadDetailDrawer({
 
   // ── Scrollable Content ──
   const ScrollableContent = (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {ArchivedBanner}
       {ContactInfoSection}
       {AboutSituationSection}

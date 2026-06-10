@@ -36,6 +36,7 @@ import {
   type Status,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import { cleanOrgName } from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
   OTHER,
@@ -241,9 +242,10 @@ function StakeholderDrawer({
                 .join(" ")
                 .trim() || primary.name || null
             : null;
-          const headline = contactDisplay || ctx.outreach.organization_name;
+          const orgDisplay = cleanOrgName(ctx.outreach.organization_name);
+          const headline = contactDisplay || orgDisplay;
           const showOrgInSubline =
-            !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+            !!contactDisplay && contactDisplay !== orgDisplay;
           // v8.10.37: surface a small "★ Partner since {date}" indicator
           // for active partners. NextStepPanel is suppressed for partners,
           // so without this header cue the drawer wouldn't show their
@@ -260,7 +262,7 @@ function StakeholderDrawer({
               <p className="truncate text-sm text-gray-500">
                 {showOrgInSubline && (
                   <>
-                    {ctx.outreach.organization_name}
+                    {orgDisplay}
                     {ctx.outreach.department &&
                       ctx.outreach.department !== ctx.outreach.organization_name &&
                       ` · ${ctx.outreach.department}`}

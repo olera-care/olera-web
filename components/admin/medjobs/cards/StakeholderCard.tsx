@@ -27,6 +27,7 @@ import {
   type TabRow,
 } from "@/lib/student-outreach/types";
 import {
+  cleanOrgName,
   formatDueDate,
   formatLongDate,
   formatRelative,
@@ -188,10 +189,11 @@ export function StakeholderCard({
   //                       this case.
   const isGeneralCard = row.recipient_kind === "general";
   const isSpecificCard = row.recipient_kind === "specific";
-  const titleText =
-    isGeneralCard
-      ? row.organization_name
-      : row.primary_contact_name || row.organization_name;
+  // Display-only cleanup of AI name artifacts (e.g. "(not a named person)").
+  const orgDisplay = cleanOrgName(row.organization_name);
+  const titleText = isGeneralCard
+    ? orgDisplay
+    : row.primary_contact_name || orgDisplay;
 
   return (
     <div
@@ -214,10 +216,10 @@ export function StakeholderCard({
             {isSpecificCard ? (
               <p className="truncate text-sm text-gray-900">
                 <span className={unread ? "font-semibold" : "font-medium"}>
-                  {row.primary_contact_name || row.organization_name}
+                  {row.primary_contact_name || orgDisplay}
                 </span>
                 {row.primary_contact_name &&
-                  row.primary_contact_name !== row.organization_name && (
+                  row.primary_contact_name !== orgDisplay && (
                     <>
                       <span className="font-normal text-gray-500"> · </span>
                       <span
@@ -225,7 +227,7 @@ export function StakeholderCard({
                           unread ? "font-semibold" : "font-semibold text-gray-900"
                         }
                       >
-                        {row.organization_name}
+                        {orgDisplay}
                       </span>
                     </>
                   )}
@@ -255,9 +257,9 @@ export function StakeholderCard({
             ) : (
               <>
                 {row.primary_contact_name &&
-                  row.primary_contact_name !== row.organization_name && (
+                  row.primary_contact_name !== orgDisplay && (
                     <>
-                      {row.organization_name}
+                      {orgDisplay}
                       {row.department &&
                         row.department !== row.organization_name &&
                         ` · ${row.department}`}

@@ -141,6 +141,12 @@ interface Detail {
   engagement: DetailEngagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
+  // Archive information (when provider passed on lead)
+  archived: boolean;
+  archiveReason: string | null;
+  archiveMessage: string | null;
+  archivedBy: string | null;
+  archivedAt: string | null;
 }
 
 const EMAIL_TYPE_LABELS: Record<string, string> = {

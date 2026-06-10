@@ -7,6 +7,47 @@
 
 ## Current Focus
 
+### 2026-06-10 — Editorial freshness: /caregiver-support/ decay audit + byline refresh-date emphasis (branch `modest-nobel`)
+
+Worked through the "Olera Action Items" Notion board. Two items shipped, one archived.
+
+**1. Freshness audit across /caregiver-support/ (Notion P2 → Done).** Built `olera-hq/scripts/audit_caregiver_support_decay.py` — extends the old 2-URL `diagnose_editorial_decay.py` into a full content-group audit: 6mo daily GSC per article, first-half/second-half Declining/Flat/Growing classification, ranked by clicks-lost-per-day. Output: `olera-hq/strategy/seo/caregiver-support-decay-audit-2026-06-07.md` (committed locally to olera-hq, `b69882e`, not pushed).
+- **Sanity check PASSED:** VA page ranked #1/Declining; BCBS independently classified Flat (-10%) — reproduced both known diagnoses.
+- **Headline:** 82 of 89 articles are Negligible (sub-0.3 clicks/day). Real refresh queue is ~3, not 83. The one clean NEW candidate for Logan: `how-to-prove-primary-caregiver-custody` (-34%, 146 clk, pos 4.0→5.6).
+- **Gotcha (durable):** GSC service-account calls were stalling ~75s each via an IPv6 happy-eyeballs black-hole on googleapis.com. Fix baked into the script: monkeypatch `socket.getaddrinfo` to AF_INET only → <1min full run. Reuse this for any GSC script on this machine.
+
+**2. Byline refresh-date emphasis (commit `f4a4ea7d`, this branch).** TJ spotted that `how-to-prove-primary-caregiver-custody` — which Logan refreshed May 1 2026 — still showed the 2024 publish date prominently with "Verified May 1, 2026" as an equally-subtle tail, burying the refresh for readers AND Google's freshness crawl. Fixed in `app/caregiver-support/[slug]/page.tsx`: when an article was re-verified >1 day after publish (`REFRESH_MIN_GAP_MS` guard), byline now leads with prominent **"Updated {date}"** (gray-700/medium) and demotes original to subtle "originally {date}" (gray-400). The 83 never-refreshed articles unchanged; standalone VA/Texas pages have no byline date so untouched. Verified rendering in-browser + screenshot; `/pre-test` review clean (0 bugs, tsc 0 errors).
+
+**3. Archived moot 410 ticket** — "Provider page returns 410 Gone" Notion P5 → Archive (deleted providers already 301-redirect; PR #983 was built+closed for the same reason; the 410 bucket is empty).
+
+**Local-env note (not a code bug):** the anon key in `~/Desktop/olera-web/.env.local` is INVALID ("Invalid API key") — local dev can't read Supabase via the normal client path until refreshed. Production is fine. I temporarily aliased anon→service-role in a disposable worktree `.env.local` to render the page, then deleted it.
+
+**Next up:** TJ's call on whether to PR the byline change to staging (this quicksave does it). Other board items remaining are TJ's manual provider follow-ups + P2/P3 SEO investigations (`anytime-home-care-il`, Always Best Care WA).
+### 2026-06-10 — Provider-comms system SHIPPED end-to-end (decay → governance → cadence) + automations next-run forecast
+
+The arc TJ set out on — distribute provider emails through the week + learn rapidly — is built, with the governance layer it needed underneath it. Most of it is in production.
+
+**SHIPPED TO PRODUCTION (main):**
+- **Question recency decay** (#997 → #998). Digest was 99.7% `family_question` (the audience is *defined by* open questions — 3,450, 64% of them >30d old). Now a question only LEADS the digest when fresh (≤30d) or on a ~quarterly resurface; stale → demoted, the provider cascades to other rungs (completion / rank / leads) or goes quiet. Stateless (question-age based). Recipients sorted **send-worthy-first** so the 2,000 cap reaches the activity/rank audience, not just question-holders. `app/api/cron/weekly-provider-digest/route.ts`. → memory `project_question_recency_decay`.
+- **Frequency gate (Phase 1) + canonical provider identity** (#1001 → #1002). Caps PROACTIVE NUDGES at **3 per provider per rolling 7d** inside `sendEmail` (the universal chokepoint; **fails open**; transactional/real-time mail always sends + never counts). `lib/email-governance.ts` + `lib/email.ts` (new `skipReason`). Reconciled a same-day collision with Esther's #1000 (both fixed `email_log.provider_id` fragmentation — she → UUID, us → slug): canonical = **`olera-providers.slug`** (only id spanning claimed+unclaimed AND matching `provider_activity` / the conversion dashboard; `bp.slug` is a legacy id for ~16% of claimed). Shared resolver `lib/provider-identity.ts`; reverted her UUID + fixed my `bp.slug` in unread-reminders / matches-unread / reengagement-blast. `send-deferred-notifications` left on UUID (transactional → dashboard-attribution fast-follow). → memory `project_provider_comms_governance`. Messaged Esther (#ai-product-development).
+- **Through-the-week cadence** (#1003 → #1004). Digest Monday-only → **Mon–Fri** (`vercel.json` + `lib/crons/registry.ts` synced). Each provider on a fixed weekday (hash of id); ~1/5 audience/day; each provider still ≤1 digest/week so the decay math is unchanged. `?all_days` override + `dayBucket` stamped in the run summary. Pre-test caught a rank-eligible double-send (legacy-id key vs slug key → two buckets) — fixed with a hybrid key.
+
+**ON STAGING (pending promote):**
+- **#967** "cold mail off olera.care" — rebased (was 62 behind, conflicting with the gate in `lib/email.ts`) + merged. Removes `weekly_analytics_digest` from the off-domain set: keep the healthy, brand-recognized digest on olera.care (its weekly burst shouldn't land on the warming oleracare.com). Coexists cleanly with the gate.
+- **#1005** `/slack-notes` command updated with this session's ship-note learnings (lead with the quantified change; tag most-involved first; don't read TJ-hq SCRATCHPAD for Slack tone — it's documentation voice). Merged.
+
+**OPEN PR #1006 — automations "next run" forecast + header refresh:**
+- New forward-looking line on `/admin/automations/[id]`: next-run time (dependency-free cron parse, UTC→ET, weekday-aware) + **~anticipated sends** + ~duration. Display-only, zero backend/cost — estimates from recent post-cadence weekday runs (current daily; cold-start bootstrap = last sent ÷5). Pre-test caught + fixed a too-short cron scan cap (quarterly cron returned null). `app/admin/automations/[id]/page.tsx`.
+- Header visual refresh from a `/ui-critique` (grounded in TJ's Design Inspirations folder — Perena/Robinhood/Wise): elevated the Next-run block into a calm surface with the send count as a confident **teal** number; trimmed the schedule meta (full schedule → Details); description recedes. **Awaiting TJ's visual QA on the preview.**
+
+**Learnings → memories created this session:** `feedback_cron_schedule_registry_sync` (vercel.json cron change needs a `lib/crons/registry.ts` edit or the build fails on a prebuild guard — tsc/eslint stay clean; pull the real log via `vercel inspect --logs --scope olera`), `project_question_recency_decay`, `project_provider_comms_governance` (incl. Esther = GitHub `Efuanyamekye`).
+
+**Next up:**
+- QA + merge #1006 (visual). Held two optional touches: a recent-sends sparkline + live-ticking time.
+- Promote staging → main (carries #967, #1005, and #1006 once merged — note: `vercel.json` already promoted with the cadence, so the cron is live Mon–Fri).
+- `send-deferred-notifications` → canonical slug (fixes conversion-dashboard attribution for question/lead emails).
+- **WATCH the first weekday cron runs:** even daily send counts, `family_question` share drops, `nudge_cap` skips appear in skipReasons, and the forecast flips from the ÷5 bootstrap to real weekday data. (Cap runs ~7 days lenient until old-key rows age out.) Side note surfaced: some past Monday digest runs stuck `status="running"` (timeouts on the big batch) — the weekday cadence should largely fix it.
+
 ### 2026-06-09 (late) — T1 deliverability SHIPPED + VERIFIED: provider notifications now send from `oleracare.com`
 
 **Supersedes the "T1 ops never done (the real blocker)" note further below — T1 is now DONE and live in production.**

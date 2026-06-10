@@ -23,6 +23,11 @@ The target: one sentence naming the problem, one sentence on what shipped, one s
 **Hard rules (TJ, learned the hard way):**
 - **No PR links or numbers in the note.** "Shipped via #844 → promoted to main in #846" means nothing to the team — it reads like a changelog. State that it's live in prod; drop the PR trail entirely. (PR refs belong in the Notion report, not Slack.)
 - **No internal/engineer metaphors, no tying pieces together with cause analogies.** Phrases like "same root shape", "same kind of bug as X", "ghost record", "strangler-fig" are jargon nobody outside the work cares about. Don't explain *why* two things are related. If a second piece of work is worth mentioning, state plainly what the user can now do: e.g. "Also fixed: deleting a provider in the admin panel now actually removes it from olera.care (before, it could still show up on the site)." Outcome the user sees — nothing about tables, root causes, or shared patterns.
+- **Lead with the concrete, quantified change. Demote what the team already knows.** Open on the specific operational thing that changed — a number, a frequency, a timing shift ("capped at 3 a week per provider", "spread across the week instead of one big Monday blast"). The conceptual / "smart" angle the team has already heard about (e.g. "meets each provider where they are") gets ONE passing clause at most, never the lede. If TJ has to tell you to emphasize the number and de-emphasize the known part, the draft led with the wrong thing.
+- **Tag order = most-involved first.** Don't default to a fixed `@Logan @Esther`. Tag whoever's work this ship most directly touches first (e.g. Esther first when it reconciled with / built on her area), then the others.
+- **One clause to stop a tagged teammate misreading the change.** If the headline ("capped at 3 a week") could make a tagged person think their own feature got hit when it didn't, add a short clarifying clause ("real-time stuff like new leads still always sends"). One clause — not a paragraph.
+
+**Voice reference (don't go fetch it):** TJ's voice = terse, direct, concrete, problem-focused — and the ✅ examples in this file ARE the calibration. Do NOT go read `~/Desktop/TJ-hq/SCRATCHPAD.md` or other TJ-hq docs "to get a sense of his voice" — those are long-form, Claude-written session logs (documentation voice, not Slack voice) and will only pull the draft toward verbose. The step-4 cues + the examples below are the source of truth.
 
 ## Steps
 
@@ -36,7 +41,7 @@ The target: one sentence naming the problem, one sentence on what shipped, one s
    - Other channels: try `slack_search_channels`; fall back to `slack_read_channel` with the channel name on miss (per memory `feedback_slack_private_channels.md`)
 
 3. **Find the right people to tag**
-   - For provider/MedJobs/caregiver work: `@Logan @Esther`
+   - For provider/MedJobs/caregiver work: Logan + Esther — but order by who this ship most directly touches (most-involved first; see Hard rules), not a fixed order.
    - Scan the recent channel history for who's been working on adjacent pieces and tag them
 
 4. **Draft the message in TJ's voice — TIGHT**

@@ -157,6 +157,19 @@ export default async function ResourceArticlePage({
   const reviewerAvatar = knownReviewer?.avatar ?? null;
   const authorSlug = knownAuthor?.slug;
   const byline = getBylineRules({ authorName, reviewerName });
+
+  // Freshness date: when the article was re-verified meaningfully after its
+  // original publish (i.e. an editorial refresh), lead the byline with that
+  // date and demote the original publish date. This puts the fresh signal
+  // first for both readers and Google's freshness crawl — a stale-looking
+  // publish date was burying refreshes that had already happened.
+  const REFRESH_MIN_GAP_MS = 24 * 60 * 60 * 1000; // >1 day after publish = a real refresh, not same-day QA
+  const refreshedAt =
+    article?.reviewed_at &&
+    publishedAt &&
+    new Date(article.reviewed_at).getTime() - new Date(publishedAt).getTime() > REFRESH_MIN_GAP_MS
+      ? article.reviewed_at
+      : null;
   // Fall back to static author avatar when DB value is missing
   if (!authorAvatar && knownAuthor?.avatar) {
     authorAvatar = knownAuthor.avatar;
@@ -324,17 +337,26 @@ export default async function ResourceArticlePage({
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
               )}
-              {publishedAt && (
+              {refreshedAt ? (
                 <>
-                  <span>{formatDate(publishedAt)}</span>
+                  {/* Refresh date leads, prominent */}
+                  <span className="text-gray-700 font-medium">Updated {formatDate(refreshedAt)}</span>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
+                  {/* Original publish date, demoted */}
+                  {publishedAt && (
+                    <>
+                      <span className="text-gray-400">originally {formatDate(publishedAt)}</span>
+                      <span className="text-gray-300 mx-1.5">&middot;</span>
+                    </>
+                  )}
                 </>
-              )}
-              {article?.reviewed_at && (
-                <>
-                  <span>Verified {formatDate(article.reviewed_at)}</span>
-                  <span className="text-gray-300 mx-1.5">&middot;</span>
-                </>
+              ) : (
+                publishedAt && (
+                  <>
+                    <span>{formatDate(publishedAt)}</span>
+                    <span className="text-gray-300 mx-1.5">&middot;</span>
+                  </>
+                )
               )}
               <span>{readingTime}</span>
             </div>

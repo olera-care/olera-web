@@ -292,38 +292,30 @@ function parseFacultyAdvisor(v: unknown): FacultyAdvisor | null {
   };
 }
 
-export async function extractPartners(
-  ctx: UniversityContext,
-  subtype: PartnerSubtype,
-  sources?: SourceLink[],
-): Promise<ExtractResult> {
-  const cost = new CostTracker();
-  const out = await perplexityJson(extractPrompt(ctx, subtype, sources), cost);
+/** Parse the model's `{candidates:[...]}` output into typed candidates. Shared
+ *  by the search-based extract and the paste-a-URL extract. */
+function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSubtype): PartnerCandidate[] {
   const candidates: PartnerCandidate[] = [];
-
-  for (const raw of arr(out?.candidates)) {
-    const o = raw as Record<string, unknown>;
+  for (const item of arr(raw?.candidates)) {
+    const o = item as Record<string, unknown>;
 
     if (subtype === "student_org") {
       const name = str(o.name);
-      const orgEmail = str(o.org_email);
-      const officers = parseOfficers(o.officers);
-      const advisor = parseFacultyAdvisor(o.faculty_advisor);
-      // Need at least an org name to be useful.
       if (!name) continue;
+      const orgEmail = str(o.org_email);
       candidates.push({
         subtype,
         name,
         org_email: orgEmail,
-        email: orgEmail, // convenience: primary email for the row
+        email: orgEmail,
         website: url(o.website),
         directory_url: url(o.directory_url),
         source_url: url(o.source_url),
         confidence: confidence(o.confidence),
         notes: str(o.notes),
         socials: parseSocials(o.socials),
-        officers,
-        faculty_advisor: advisor,
+        officers: parseOfficers(o.officers),
+        faculty_advisor: parseFacultyAdvisor(o.faculty_advisor),
       });
       continue;
     }
@@ -345,6 +337,104 @@ export async function extractPartners(
       notes: str(o.notes),
     });
   }
+  return candidates;
+}
 
-  return { candidates, cost: cost.cost };
+export async function extractPartners(
+  ctx: UniversityContext,
+  subtype: PartnerSubtype,
+  sources?: SourceLink[],
+): Promise<ExtractResult> {
+  const cost = new CostTracker();
+  const out = await perplexityJson(extractPrompt(ctx, subtype, sources), cost);
+  return { candidates: parseCandidates(out, subtype), cost: cost.cost };
+}
+
+/** Extract contacts from ONE admin-pasted web page (audit step 3). Lets the
+ *  admin point the AI at a page it missed and pull the relevant contacts. */
+export async function extractFromUrl(
+  ctx: UniversityContext,
+  subtype: PartnerSubtype,
+  pageUrl: string,
+): Promise<ExtractResult> {
+  const cost = new CostTracker();
+  const fieldHint =
+    subtype === "student_org"
+      ? "name (org), org_email, website, directory_url, socials [{platform,url}], officers [{name,role,email,source_url}], faculty_advisor {name,email,profile_url,source_url}, notes, confidence"
+      : subtype === "dept_head"
+        ? "department, name, title, email, phone, profile_url, notes, confidence"
+        : "name, title, email, phone, profile_url, notes, confidence";
+  const prompt = [
+    `From the web page at ${pageUrl} (for ${ctx.university}), extract EVERY relevant`,
+    `${subtype.replace("_", " ")} contact listed on that page.`,
+    `For each, include: ${fieldHint}. Set source_url to "${pageUrl}".`,
+    `Only include real contacts actually present on that page. If the page has none, return an empty list.`,
+    ``,
+    `Return ONLY valid JSON: {"candidates":[ ... ]}`,
+  ].join("\n");
+  const out = await perplexityJson(prompt, cost);
+  return { candidates: parseCandidates(out, subtype), cost: cost.cost };
+}
+
+/**
+ * Map an accepted candidate to the POST body for the existing
+ * /api/admin/student-outreach/stakeholders endpoint. Shared by the sourcing
+ * widget and the audit's paste-a-URL tool so accept behavior stays identical.
+ */
+export function stakeholderBodyFromCandidate(
+  campusSlug: string,
+  c: PartnerCandidate,
+): Record<string, unknown> {
+  const sharedResearch: Record<string, unknown> = {
+    ai_sourced: true,
+    source_url: c.source_url ?? null,
+    profile_url: c.profile_url ?? null,
+    notes: c.notes ?? null,
+  };
+  if (c.subtype === "student_org") {
+    const advisor = c.faculty_advisor;
+    const firstOfficer = c.officers?.find((o) => o.name || o.email) ?? null;
+    const primary = advisor?.name || advisor?.email ? advisor : firstOfficer;
+    return {
+      campus_slug: campusSlug,
+      stakeholder_type: "student_org",
+      organization_name: c.name,
+      notes: c.notes ?? null,
+      research_data: {
+        ...sharedResearch,
+        general_contact: { email: c.org_email ?? null },
+        org_email: c.org_email ?? null,
+        website: c.website ?? null,
+        directory_url: c.directory_url ?? null,
+        socials: c.socials ?? [],
+        officers: c.officers ?? [],
+        faculty_advisor: c.faculty_advisor ?? null,
+      },
+      initial_contact: primary
+        ? {
+            name: primary.name ?? null,
+            email: primary.email ?? null,
+            role: advisor && primary === advisor ? "faculty_advisor" : (firstOfficer?.role ?? null),
+          }
+        : null,
+    };
+  }
+  return {
+    campus_slug: campusSlug,
+    stakeholder_type: c.subtype,
+    department: c.subtype === "dept_head" ? (c.department ?? null) : null,
+    organization_name:
+      c.subtype === "dept_head" && c.department ? `${c.department} Department` : c.name,
+    notes: c.notes ?? null,
+    research_data: {
+      ...sharedResearch,
+      general_contact: { email: c.email ?? null, phone: c.phone ?? null },
+    },
+    initial_contact: {
+      name: c.name ?? null,
+      title: c.title ?? null,
+      email: c.email ?? null,
+      phone: c.phone ?? null,
+    },
+  };
 }

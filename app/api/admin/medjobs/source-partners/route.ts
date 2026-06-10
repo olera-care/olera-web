@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   buildSourceMap,
   extractPartners,
+  extractFromUrl,
   PARTNER_SUBTYPES,
   type PartnerSubtype,
   type SourceLink,
@@ -35,7 +36,7 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const VALID_STAGES = new Set(["source_map", "extract"]);
+const VALID_STAGES = new Set(["source_map", "extract", "extract_url"]);
 const STAKEHOLDER_KINDS = ["advisor", "student_org", "dept_head", "professor"];
 
 /**
@@ -158,6 +159,15 @@ export async function POST(request: NextRequest) {
         .update({ partner_research: { ...pr, sources: { ...prSources, [subtype]: sources } } })
         .eq("id", (campus as { id: string }).id);
       return NextResponse.json({ sources, cost });
+    }
+
+    if (stage === "extract_url") {
+      const pageUrl = String((body as { url?: unknown }).url ?? "").trim();
+      if (!/^https?:\/\//i.test(pageUrl)) {
+        return NextResponse.json({ error: "Paste a valid http(s) URL" }, { status: 400 });
+      }
+      const { candidates, cost } = await extractFromUrl(ctx, subtype, pageUrl);
+      return NextResponse.json({ candidates, cost });
     }
 
     // stage === "extract" — accept an optional prior source map to prioritize.

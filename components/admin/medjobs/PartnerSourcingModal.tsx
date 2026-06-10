@@ -17,10 +17,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import type {
-  PartnerCandidate,
-  PartnerSubtype,
-  SourceLink,
+import {
+  stakeholderBodyFromCandidate,
+  type PartnerCandidate,
+  type PartnerSubtype,
+  type SourceLink,
 } from "@/lib/medjobs/partner-sourcing";
 
 const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
@@ -175,69 +176,13 @@ export function PartnerSourcingModal({
     setter(next);
   }
 
-  function buildStakeholderBody(c: PartnerCandidate) {
-    const sharedResearch: Record<string, unknown> = {
-      ai_sourced: true,
-      source_url: c.source_url ?? null,
-      profile_url: c.profile_url ?? null,
-      notes: c.notes ?? null,
-    };
-    if (c.subtype === "student_org") {
-      const advisor = c.faculty_advisor;
-      const firstOfficer = c.officers?.find((o) => o.name || o.email) ?? null;
-      const primary = advisor?.name || advisor?.email ? advisor : firstOfficer;
-      return {
-        campus_slug: campusSlug,
-        stakeholder_type: "student_org",
-        organization_name: c.name,
-        notes: c.notes ?? null,
-        research_data: {
-          ...sharedResearch,
-          general_contact: { email: c.org_email ?? null },
-          org_email: c.org_email ?? null,
-          website: c.website ?? null,
-          directory_url: c.directory_url ?? null,
-          socials: c.socials ?? [],
-          officers: c.officers ?? [],
-          faculty_advisor: c.faculty_advisor ?? null,
-        },
-        initial_contact: primary
-          ? {
-              name: primary.name ?? null,
-              email: primary.email ?? null,
-              role: advisor && primary === advisor ? "faculty_advisor" : (firstOfficer?.role ?? null),
-            }
-          : null,
-      };
-    }
-    // advisor / dept_head
-    return {
-      campus_slug: campusSlug,
-      stakeholder_type: c.subtype,
-      department: c.subtype === "dept_head" ? (c.department ?? null) : null,
-      organization_name:
-        c.subtype === "dept_head" && c.department ? `${c.department} Department` : c.name,
-      notes: c.notes ?? null,
-      research_data: {
-        ...sharedResearch,
-        general_contact: { email: c.email ?? null, phone: c.phone ?? null },
-      },
-      initial_contact: {
-        name: c.name ?? null,
-        title: c.title ?? null,
-        email: c.email ?? null,
-        phone: c.phone ?? null,
-      },
-    };
-  }
-
   const acceptSelected = useCallback(async () => {
     setAccepting(true);
     setError(null);
     let ok = 0;
     try {
       for (const i of selected) {
-        const body = buildStakeholderBody(candidates[i]);
+        const body = stakeholderBodyFromCandidate(campusSlug, candidates[i]);
         const res = await fetch("/api/admin/student-outreach/stakeholders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -14,7 +14,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import type { PartnerSubtype, SourceLink } from "@/lib/medjobs/partner-sourcing";
+import {
+  stakeholderBodyFromCandidate,
+  type PartnerCandidate,
+  type PartnerSubtype,
+  type SourceLink,
+} from "@/lib/medjobs/partner-sourcing";
 
 interface Props {
   campusSlug: string;
@@ -70,6 +75,13 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Step 3 paste-a-URL tool.
+  const [pageUrl, setPageUrl] = useState("");
+  const [urlBusy, setUrlBusy] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [urlCandidates, setUrlCandidates] = useState<PartnerCandidate[]>([]);
+  const [addedIdx, setAddedIdx] = useState<Set<number>>(new Set());
+
   const searches = manualSearches(subtype, universityName);
   // Required: review AI links + every manual search + added-missed + exhausted.
   const requiredKeys = ["reviewed_ai", ...searches.map((s) => s.key), "added_missed", "exhausted"];
@@ -123,6 +135,47 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
     },
     [campusSlug, subtype, steps], // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  const extractUrl = async () => {
+    if (!/^https?:\/\//i.test(pageUrl.trim())) {
+      setUrlError("Paste a valid http(s) link.");
+      return;
+    }
+    setUrlBusy(true);
+    setUrlError(null);
+    setUrlCandidates([]);
+    setAddedIdx(new Set());
+    try {
+      const res = await fetch("/api/admin/medjobs/source-partners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campus_slug: campusSlug, subtype, stage: "extract_url", url: pageUrl.trim() }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Couldn't read that page");
+      setUrlCandidates((d.candidates ?? []) as PartnerCandidate[]);
+      if ((d.candidates ?? []).length === 0) setUrlError("No contacts found on that page.");
+    } catch (e) {
+      setUrlError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setUrlBusy(false);
+    }
+  };
+
+  const addCandidate = async (i: number) => {
+    try {
+      const res = await fetch("/api/admin/student-outreach/stakeholders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(stakeholderBodyFromCandidate(campusSlug, urlCandidates[i])),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Add failed");
+      setAddedIdx((s) => new Set(s).add(i));
+      setSteps((s) => ({ ...s, added_missed: true })); // adding satisfies step 3
+    } catch (e) {
+      setUrlError(e instanceof Error ? e.message : "Add failed");
+    }
+  };
 
   const Check = ({ k, children }: { k: string; children: React.ReactNode }) => (
     <label className="flex items-start gap-2 text-sm text-gray-800">
@@ -194,8 +247,58 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
           <section>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">3 · Add anyone the AI missed</p>
             <Check k="added_missed">
-              Added any missed prospects by hand (via “Find partners” → add, or the Site’s stakeholder page) — or confirmed there were none
+              Added any missed prospects by hand — or confirmed there were none
             </Check>
+
+            {/* Paste-a-page tool: point the AI at a page it missed and pull contacts. */}
+            <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+              <p className="text-[11px] font-medium text-gray-700">
+                Add a web page the AI should consider
+              </p>
+              <p className="text-[11px] text-gray-500">
+                Paste a link (advising page, org roster, faculty directory) and we&apos;ll pull the contacts.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={pageUrl}
+                  onChange={(e) => setPageUrl(e.target.value)}
+                  placeholder="https://…"
+                  className="flex-1 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+                />
+                <button
+                  onClick={extractUrl}
+                  disabled={urlBusy}
+                  className="shrink-0 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {urlBusy ? "Reading…" : "Find contacts"}
+                </button>
+              </div>
+              {urlError && <p className="mt-1 text-xs text-red-600">{urlError}</p>}
+
+              {urlCandidates.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {urlCandidates.map((c, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2 rounded border border-gray-100 bg-white px-2 py-1.5 text-xs">
+                      <span className="min-w-0">
+                        <span className="font-medium text-gray-800">{c.name ?? "(no name)"}</span>
+                        {c.title ? <span className="text-gray-500"> · {c.title}</span> : null}
+                        {(c.email ?? c.org_email) ? <span className="text-gray-500"> · {c.email ?? c.org_email}</span> : null}
+                      </span>
+                      {addedIdx.has(i) ? (
+                        <span className="shrink-0 text-primary-700">Added ✓</span>
+                      ) : (
+                        <button
+                          onClick={() => addCandidate(i)}
+                          className="shrink-0 rounded border border-gray-200 px-2 py-0.5 font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                          Add
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </section>
 
           <section>

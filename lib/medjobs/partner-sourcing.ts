@@ -565,6 +565,41 @@ export async function extractFromText(
   return { offices: parseOffices(out, sourceUrl), cost: cost.cost };
 }
 
+export interface AdvisorExtractResult {
+  advisors: ExtractedAdvisor[];
+  cost: number;
+}
+
+/** Organize pasted text about ONE (or a few) advisor(s) into structured records
+ *  to latch under an office. Lenient — name required, contact optional (the
+ *  admin chose to add them) — but never invents. */
+export async function extractAdvisorsFromText(
+  ctx: UniversityContext,
+  text: string,
+): Promise<AdvisorExtractResult> {
+  const cost = new CostTracker();
+  const prompt = [
+    `Below is text about advising staff at ${ctx.university}. Extract each PERSON`,
+    `as a contact: name, role/title, email, phone.`,
+    `Use ONLY what is literally present; NEVER invent or construct an email/phone`,
+    `(no "first.last@domain"); if a field is absent use null. IGNORE caption lines`,
+    `like "Headshot of <name>".`,
+    `Return ONLY valid JSON: {"advisors":[{"name","role","email","phone"}]}`,
+    ``,
+    `--- TEXT ---`,
+    text.slice(0, 8000),
+  ].join("\n");
+  const out = await perplexityJson(prompt, cost, 2000);
+  const advisors: ExtractedAdvisor[] = [];
+  for (const raw of arr(out?.advisors)) {
+    const o = raw as Record<string, unknown>;
+    const name = str(o.name);
+    if (!name) continue;
+    advisors.push({ name, role: str(o.role), email: str(o.email), phone: str(o.phone) });
+  }
+  return { advisors, cost: cost.cost };
+}
+
 /**
  * Map an accepted candidate to the POST body for the existing
  * /api/admin/student-outreach/stakeholders endpoint. Shared by the sourcing

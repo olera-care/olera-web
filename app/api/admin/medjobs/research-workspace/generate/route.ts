@@ -35,6 +35,23 @@ const TAG_TO_TYPE: Record<OfficeTag, "advisor" | "student_org" | "dept_head"> = 
   department: "dept_head",
 };
 
+const TAG_LABEL: Record<OfficeTag, string> = {
+  advising_office: "advising office",
+  student_org: "student organization",
+  department: "department",
+};
+
+/** A one-sentence provenance note describing how this prospect was generated. */
+function provenanceNote(office: WorkspaceOffice, sources: { title: string; url: string }[]): string {
+  const from = sources[0]?.title ? ` from ${sources[0].title}` : "";
+  const contact = office.email
+    ? `office email ${office.email}`
+    : office.phone
+      ? `office phone ${office.phone}`
+      : "no direct contact";
+  return `AI-sourced ${TAG_LABEL[office.tag]}${from}; ${contact} captured for outreach. Confirm by phone before sending.`;
+}
+
 interface Selection {
   office_id: string;
   advisor_ids?: string[];
@@ -157,6 +174,7 @@ async function createOfficeRow(
 ): Promise<string | null> {
   const { campusId, office, advisors, sources, userId } = args;
   const rowType = TAG_TO_TYPE[office.tag];
+  const note = provenanceNote(office, sources);
   const { data, error } = await db
     .from("student_outreach")
     .insert({
@@ -164,14 +182,17 @@ async function createOfficeRow(
       stakeholder_type: rowType,
       kind: rowType,
       organization_name: office.name,
-      notes: office.notes ?? null,
+      notes: office.notes?.trim() || note,
       status: "prospect",
       research_data: {
         ai_sourced: true,
         from_research_workspace: true,
         office_tag: office.tag,
         channel: office.email ? "email" : "call",
-        general_contact: { email: office.email ?? null, phone: office.phone ?? null },
+        // research_data.notes is what the drawer's Research notes field reads.
+        notes: note,
+        // website stored where the drawer reads it (general_contact) + top-level.
+        general_contact: { email: office.email ?? null, phone: office.phone ?? null, website: office.website ?? null },
         website: office.website ?? null,
         ask_for: office.ask_for ?? [],
         research_links: sources,

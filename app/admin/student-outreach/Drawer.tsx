@@ -19,7 +19,6 @@ import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
-import { PartnerPreFlightPanel } from "@/components/admin/medjobs/PartnerPreFlightPanel";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
@@ -817,12 +816,10 @@ function DrawerBody({
           convey state for active-partner / closed states. The banner
           was repeating those signals one row above them. */}
       {isResearch ? (
-        <>
-          {/* Order: Research Card first (edit the data), then the Partner
-              Pre-Flight readiness box reflects it. */}
-          <ResearchModePanel ctx={ctx} action={action} setError={setError} />
-          <PartnerPreFlightPanel ctx={ctx} />
-        </>
+        // The Research Card is the source of truth — website, notes, and the
+        // sources collapsible live inside it. (The separate Partner Pre-Flight
+        // card was redundant and was removed.)
+        <ResearchModePanel ctx={ctx} action={action} setError={setError} />
       ) : (
         // v9: unified NextStepCard replaces the Partner-specific
         // NextStepPanel. Same modal launchers, stage-driven content,
@@ -1285,6 +1282,29 @@ function ResearchSection({
         )}
 
         <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
+
+        {/* Where this prospect came from — moved here from the old pre-flight
+            card, directly under the notes that describe it. */}
+        {(() => {
+          const links = (((r as Record<string, unknown>).research_links ?? []) as Array<{ title?: string; url?: string }>).filter((s) => s?.url);
+          if (links.length === 0) return null;
+          return (
+            <details className="rounded-md border border-gray-100 px-3 py-2">
+              <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-700">
+                Research sources ({links.length}) — where this came from
+              </summary>
+              <ul className="mt-1 space-y-0.5 pl-2">
+                {links.map((s, i) => (
+                  <li key={i}>
+                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">
+                      {s.title || s.url} ↗
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          );
+        })()}
 
         {/* Office model: an advising office is a general contact + a roster of
             people. Members live in research_data (NOT outreach contacts) so cold

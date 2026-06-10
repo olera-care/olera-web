@@ -11,7 +11,8 @@
  * State lives on student_outreach_campuses.partner_research.workspace[subtype].
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import type { PartnerSubtype, ExtractedOffice } from "@/lib/medjobs/partner-sourcing";
@@ -62,6 +63,8 @@ interface Props {
 }
 
 export function ResearchWorkspace({ campusSlug, universityName, onClose, onChanged }: Props) {
+  const router = useRouter();
+  const [done, setDone] = useState<{ created: number } | null>(null);
   const [subtype, setSubtype] = useState<PartnerSubtype>("advisor");
   const [step, setStep] = useState<Step>("links");
   const [ws, setWs] = useState<WorkspaceState>(emptyWorkspace());
@@ -322,19 +325,39 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       ...w,
       offices: [...w.offices, { id: wsId(), name: "", tag: "advising_office", ask_for: [], source_link_ids: [] }],
     }));
-  const addAskFor = (officeId: string, name: string) =>
-    setWs((w) => ({
-      ...w,
-      offices: w.offices.map((o) => (o.id === officeId ? { ...o, ask_for: [...new Set([...o.ask_for, name])].slice(0, 3) } : o)),
-    }));
-  const removeAskFor = (officeId: string, idx: number) =>
-    setWs((w) => ({ ...w, offices: w.offices.map((o) => (o.id === officeId ? { ...o, ask_for: o.ask_for.filter((_, i) => i !== idx) } : o)) }));
   const addAdvisor = (officeId: string) =>
     setWs((w) => ({ ...w, advisors: [...w.advisors, { id: wsId(), office_id: officeId, name: "", role: "", email: "", phone: "" }] }));
   const patchAdvisor = (id: string, patch: Partial<WorkspaceAdvisor>) =>
     setWs((w) => ({ ...w, advisors: w.advisors.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
   const removeAdvisor = (id: string) =>
     setWs((w) => ({ ...w, advisors: w.advisors.filter((a) => a.id !== id) }));
+  // Paste raw text about an advisor → AI structures it → latch under the office.
+  const parseAdvisor = async (officeId: string, text: string) => {
+    setReading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/medjobs/source-partners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campus_slug: campusSlug, subtype, stage: "parse_advisor", text }),
+      });
+      const d = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(bodyError(d, "Couldn't read that text"));
+      const found = (d?.advisors ?? []) as { name?: string; role?: string; email?: string; phone?: string }[];
+      if (found.length === 0) throw new Error("No advisor found in that text.");
+      setWs((w) => ({
+        ...w,
+        advisors: [
+          ...w.advisors,
+          ...found.map((a) => ({ id: wsId(), office_id: officeId, name: a.name ?? null, role: a.role ?? null, email: a.email ?? null, phone: a.phone ?? null })),
+        ],
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't read that text");
+    } finally {
+      setReading(false);
+    }
+  };
 
   const verifiedOffices = ws.offices.filter((o) => o.verified);
   const canGenerate = verifiedOffices.length > 0;
@@ -378,12 +401,18 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       });
       setWs((w) => ({ ...w, generated_at: new Date().toISOString() }));
       onChanged();
+      setDone({ created: (d?.created as number) ?? offices.length });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Generate failed");
     } finally {
       setBusy(false);
     }
   }, [campusSlug, subtype, verifiedOffices, genSel, save, onChanged]);
+
+  const finish = useCallback(() => {
+    onClose();
+    router.push(`/admin/student-outreach/campus/${campusSlug}`);
+  }, [onClose, router, campusSlug]);
 
   const stepIndex = STEPS.findIndex((s) => s.key === step);
 
@@ -432,7 +461,22 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
 
       {error && <p className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
-      {loading ? (
+      {done ? (
+        <div className="py-16 text-center">
+          <p className="text-4xl">✓</p>
+          <p className="mt-3 text-lg font-semibold text-gray-900">
+            {done.created} office prospect{done.created === 1 ? "" : "s"} created
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            They&apos;re in your In-Basket for {universityName}. Next: confirm each office by a quick call,
+            then launch outreach.
+          </p>
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <Button size="sm" onClick={finish}>View {universityName} prospects →</Button>
+            <button onClick={() => setDone(null)} className="text-xs text-gray-500 hover:underline">Keep researching</button>
+          </div>
+        </div>
+      ) : loading ? (
         <p className="py-12 text-center text-sm text-gray-400">Loading workspace…</p>
       ) : (
         <div className="pb-6">
@@ -449,11 +493,10 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               onAddOffice={addOffice}
               onPatchOffice={patchOffice}
               onRemoveOffice={removeOffice}
-              onAddAskFor={addAskFor}
-              onRemoveAskFor={removeAskFor}
               onAddAdvisor={addAdvisor}
               onPatchAdvisor={patchAdvisor}
               onRemoveAdvisor={removeAdvisor}
+              onParseAdvisor={parseAdvisor}
               onNext={() => setStep("generate")}
             />
           )}
@@ -580,11 +623,10 @@ function OfficesStep({
   onAddOffice,
   onPatchOffice,
   onRemoveOffice,
-  onAddAskFor,
-  onRemoveAskFor,
   onAddAdvisor,
   onPatchAdvisor,
   onRemoveAdvisor,
+  onParseAdvisor,
   onNext,
 }: {
   ws: WorkspaceState;
@@ -595,14 +637,16 @@ function OfficesStep({
   onAddOffice: () => void;
   onPatchOffice: (id: string, patch: Partial<WorkspaceOffice>) => void;
   onRemoveOffice: (id: string) => void;
-  onAddAskFor: (officeId: string, name: string) => void;
-  onRemoveAskFor: (officeId: string, idx: number) => void;
   onAddAdvisor: (officeId: string) => void;
   onPatchAdvisor: (id: string, patch: Partial<WorkspaceAdvisor>) => void;
   onRemoveAdvisor: (id: string) => void;
+  onParseAdvisor: (officeId: string, text: string) => void;
   onNext: () => void;
 }) {
   const linkById = new Map(ws.links.map((l) => [l.id, l]));
+  // Verified offices collapse to a one-line summary for a sense of completion;
+  // expand to edit again.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -619,21 +663,39 @@ function OfficesStep({
         </p>
       )}
 
-      {ws.offices.map((o) => (
-        <OfficeCard
-          key={o.id}
-          office={o}
-          advisors={ws.advisors.filter((a) => a.office_id === o.id)}
-          sources={o.source_link_ids.map((id) => linkById.get(id)).filter(Boolean) as WorkspaceLink[]}
-          onPatch={onPatchOffice}
-          onRemove={onRemoveOffice}
-          onAddAskFor={onAddAskFor}
-          onRemoveAskFor={onRemoveAskFor}
-          onAddAdvisor={onAddAdvisor}
-          onPatchAdvisor={onPatchAdvisor}
-          onRemoveAdvisor={onRemoveAdvisor}
-        />
-      ))}
+      {ws.offices.map((o) => {
+        const collapsed = o.verified && !expanded.has(o.id);
+        if (collapsed) {
+          return (
+            <div key={o.id} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/40 px-3 py-2">
+              <span className="flex min-w-0 items-center gap-2 text-sm">
+                <span className="text-emerald-600">✓</span>
+                <span className="truncate font-medium text-gray-900">{o.name || "(unnamed office)"}</span>
+                <span className="shrink-0 text-[11px] text-gray-500">{o.email || (o.call_only ? "☎ call-only" : "")}</span>
+              </span>
+              <button onClick={() => setExpanded((s) => new Set(s).add(o.id))} className="shrink-0 text-xs text-primary-600 hover:underline">edit</button>
+            </div>
+          );
+        }
+        return (
+          <OfficeCard
+            key={o.id}
+            office={o}
+            advisors={ws.advisors.filter((a) => a.office_id === o.id)}
+            sources={o.source_link_ids.map((id) => linkById.get(id)).filter(Boolean) as WorkspaceLink[]}
+            reading={reading}
+            onPatch={(id, patch) => {
+              onPatchOffice(id, patch);
+              if (patch.verified) setExpanded((s) => { const n = new Set(s); n.delete(id); return n; });
+            }}
+            onRemove={onRemoveOffice}
+            onAddAdvisor={onAddAdvisor}
+            onPatchAdvisor={onPatchAdvisor}
+            onRemoveAdvisor={onRemoveAdvisor}
+            onParseAdvisor={onParseAdvisor}
+          />
+        );
+      })}
 
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant="ghost" onClick={onAddOffice}>+ Add office by hand</Button>
@@ -652,26 +714,25 @@ function OfficeCard({
   office: o,
   advisors,
   sources,
+  reading,
   onPatch,
   onRemove,
-  onAddAskFor,
-  onRemoveAskFor,
   onAddAdvisor,
   onPatchAdvisor,
   onRemoveAdvisor,
+  onParseAdvisor,
 }: {
   office: WorkspaceOffice;
   advisors: WorkspaceAdvisor[];
   sources: WorkspaceLink[];
+  reading: boolean;
   onPatch: (id: string, patch: Partial<WorkspaceOffice>) => void;
   onRemove: (id: string) => void;
-  onAddAskFor: (officeId: string, name: string) => void;
-  onRemoveAskFor: (officeId: string, idx: number) => void;
   onAddAdvisor: (officeId: string) => void;
   onPatchAdvisor: (id: string, patch: Partial<WorkspaceAdvisor>) => void;
   onRemoveAdvisor: (id: string) => void;
+  onParseAdvisor: (officeId: string, text: string) => void;
 }) {
-  const [askName, setAskName] = useState("");
   const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
   const reachable = Boolean(o.email) || Boolean(o.call_only);
   return (
@@ -707,29 +768,10 @@ function OfficeCard({
         </p>
       )}
 
-      {/* Ask-for personalization names */}
-      <div className="mb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Ask for (personalization — not a prospect)</p>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          {o.ask_for.map((name, i) => (
-            <span key={i} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700">
-              {name}
-              <button onClick={() => onRemoveAskFor(o.id, i)} className="text-gray-400 hover:text-red-600">×</button>
-            </span>
-          ))}
-          {o.ask_for.length < 3 && (
-            <span className="inline-flex items-center gap-1">
-              <input value={askName} onChange={(e) => setAskName(e.target.value)} placeholder="e.g. An-Janet Smith — Pre-Health" className="w-56 rounded border border-gray-200 px-2 py-0.5 text-[11px] focus:border-gray-400 focus:outline-none" />
-              <button onClick={() => { if (askName.trim()) { onAddAskFor(o.id, askName.trim()); setAskName(""); } }} className="text-[11px] font-medium text-primary-600 hover:underline">+ add</button>
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Latched advisors (own contact) */}
+      {/* Latched advisors — optional, only when they have their own contact */}
       <div className="mb-2">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Advisors ({advisors.length}) — only with their own email/phone</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Advisors ({advisors.length}) — optional, with their own email/phone</p>
           <button onClick={() => onAddAdvisor(o.id)} className="text-[11px] font-medium text-primary-600 hover:underline">+ add advisor</button>
         </div>
         {advisors.map((a) => (
@@ -741,12 +783,33 @@ function OfficeCard({
             <button onClick={() => onRemoveAdvisor(a.id)} className="text-[11px] text-gray-400 hover:text-red-600">remove</button>
           </div>
         ))}
+        <PasteAdvisor officeId={o.id} reading={reading} onParse={onParseAdvisor} />
       </div>
 
       <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${reachable ? "border-gray-200 text-gray-800" : "border-gray-100 text-gray-400"}`} title={reachable ? undefined : "Add an email or mark Call-only first."}>
         <input type="checkbox" checked={!!o.verified} disabled={!reachable} onChange={(e) => onPatch(o.id, { verified: e.target.checked })} />
         Verified — this office is correct and ready
       </label>
+    </div>
+  );
+}
+
+function PasteAdvisor({ officeId, reading, onParse }: { officeId: string; reading: boolean; onParse: (officeId: string, text: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  if (!open) {
+    return <button onClick={() => setOpen(true)} className="mt-1 text-[11px] font-medium text-primary-600 hover:underline">or paste an advisor’s info →</button>;
+  }
+  return (
+    <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 p-2">
+      <p className="mb-1 text-[11px] text-gray-600">Paste an advisor’s details (name, title, email, phone) — we’ll organize it.</p>
+      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} placeholder={"An-Janet Smith — Pre-Health Advisor · ajsmith@uni.edu · (512) 555-1212"} className="w-full rounded border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
+      <div className="mt-1 flex justify-end gap-2">
+        <button onClick={() => { setOpen(false); setText(""); }} className="text-[11px] text-gray-500 hover:underline">Cancel</button>
+        <button onClick={() => { if (text.trim()) { onParse(officeId, text.trim()); setText(""); setOpen(false); } }} disabled={reading || !text.trim()} className="rounded-md bg-primary-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-primary-700 disabled:opacity-50">
+          {reading ? "Reading…" : "Organize advisor"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -839,7 +902,6 @@ function GenerateStep({
               <input value={o.email ?? ""} onChange={(e) => onPatchOffice(o.id, { email: e.target.value })} placeholder="✉ Office email" className={input} />
               <input value={o.phone ?? ""} onChange={(e) => onPatchOffice(o.id, { phone: e.target.value })} placeholder="☎ Phone" className={input} />
             </div>
-            {o.ask_for.length > 0 && <p className="mt-1 pl-6 text-[11px] text-gray-500">ask for: {o.ask_for.join(" · ")}</p>}
             {advisors.map((a) => (
               <label key={a.id} className="mt-1 flex items-center gap-2 pl-6 text-sm text-gray-700">
                 <input type="checkbox" checked={genSel[o.id]?.advisors?.has(a.id) ?? false} disabled={!a.email} onChange={() => toggleAdvisor(o.id, a.id)} />

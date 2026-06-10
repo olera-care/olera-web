@@ -5,6 +5,7 @@ import {
   extractPartners,
   extractFromUrl,
   extractFromText,
+  extractAdvisorsFromText,
   PARTNER_SUBTYPES,
   type PartnerSubtype,
   type SourceLink,
@@ -37,7 +38,7 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const VALID_STAGES = new Set(["source_map", "extract", "extract_url", "parse_text"]);
+const VALID_STAGES = new Set(["source_map", "extract", "extract_url", "parse_text", "parse_advisor"]);
 const STAKEHOLDER_KINDS = ["advisor", "student_org", "dept_head", "professor"];
 
 /**
@@ -242,6 +243,15 @@ export async function POST(request: NextRequest) {
       const sourceUrl = String((body as { url?: unknown }).url ?? "").trim();
       const { offices, cost } = await extractFromText(ctx, subtype, text, sourceUrl);
       return NextResponse.json({ offices, cost });
+    }
+
+    if (stage === "parse_advisor") {
+      const text = String((body as { text?: unknown }).text ?? "").trim();
+      if (text.length < 3) {
+        return NextResponse.json({ error: "Paste the advisor's info first." }, { status: 400 });
+      }
+      const { advisors, cost } = await extractAdvisorsFromText(ctx, text);
+      return NextResponse.json({ advisors, cost });
     }
 
     // stage === "extract" — accept an optional prior source map to prioritize.

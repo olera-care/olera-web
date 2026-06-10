@@ -196,12 +196,15 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
       `For each office, prefer the page MOST LIKELY to show the office's GENERAL`,
       `EMAIL and PHONE — a "Contact", "Contact Us", "About", or office landing page`,
       `— NOT a long staff roster.`,
-      `ONLY official university (.edu) pages. No LinkedIn / Instagram / Facebook.`,
+      ``,
+      ...institutionConstraint(ctx),
+      ``,
       `Quality over quantity: 4-7 links. For each give "why" (worth opening) and`,
       `"likely" (what data you expect, e.g. "office email + phone").`,
       ``,
       `Return ONLY valid JSON shaped exactly:`,
-      `{"sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+      `{"domain":"<this university's primary website domain, e.g. tamu.edu>",`,
+      ` "sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
       `"primary" = most likely to show an office name + email + phone.`,
     ].join("\n");
   }
@@ -219,9 +222,37 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
     `Prefer official .edu pages. 4-7 links, quality over quantity.`,
     `For each give "why" and "likely" (e.g. "org contact email").`,
     ``,
+    ...institutionConstraint(ctx),
+    ``,
     `Return ONLY valid JSON shaped exactly:`,
-    `{"sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+    `{"domain":"<this university's primary website domain>",`,
+    ` "sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
   ].join("\n");
+}
+
+/** Hard same-institution guardrail — the model kept returning "comparable"
+ *  pages from OTHER universities and other campuses of the same system. */
+function institutionConstraint(ctx: UniversityContext): string[] {
+  const loc = [ctx.city, ctx.state].filter(Boolean).join(", ");
+  return [
+    `CRITICAL — every page MUST belong to ${ctx.university}${loc ? ` in ${loc}` : ""} ITSELF,`,
+    `on its OWN official website only. Do NOT return pages from any OTHER`,
+    `university. Do NOT return pages from a DIFFERENT campus or branch of the same`,
+    `system (e.g. a "Kingsville", "Galveston", "Commerce", or "Corpus Christi"`,
+    `campus is a DIFFERENT school — exclude it). If you are not certain a page`,
+    `belongs to this EXACT institution, leave it out.`,
+  ];
+}
+
+/** Does a URL's host belong to the given registrable domain (or a subdomain)? */
+function hostInDomain(u: string, domain: string): boolean {
+  try {
+    const host = new URL(u).hostname.toLowerCase().replace(/^www\./, "");
+    const d = domain.toLowerCase().replace(/^www\./, "");
+    return host === d || host.endsWith(`.${d}`);
+  } catch {
+    return false;
+  }
 }
 
 export async function buildSourceMap(
@@ -230,12 +261,18 @@ export async function buildSourceMap(
 ): Promise<SourceMapResult> {
   const cost = new CostTracker();
   const out = await perplexityJson(sourceMapPrompt(ctx, subtype), cost);
+  // Mechanical guardrail: the model returns the university's primary domain;
+  // drop any link not on that domain (or a subdomain), so off-institution
+  // pages physically can't surface even if the prompt is ignored.
+  const domainRaw = str(out?.domain)?.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "") ?? null;
+  const domain = domainRaw && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(domainRaw) ? domainRaw : null;
   const sources: SourceLink[] = [];
   const seen = new Set<string>();
   for (const raw of arr(out?.sources)) {
     const o = raw as Record<string, unknown>;
     const u = url(o.url);
     if (!u || seen.has(u)) continue;
+    if (domain && !hostInDomain(u, domain)) continue; // off-institution — drop
     seen.add(u);
     sources.push({
       title: str(o.title) ?? u,

@@ -1591,7 +1591,7 @@ export default function ProviderLeadsPage() {
                     e.stopPropagation();
                     setLeadIdToArchive(lead.id);
                   }}
-                  className="absolute top-3 right-3 z-10 p-1.5 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                  className="absolute top-1/2 -translate-y-1/2 right-3 z-10 p-1.5 rounded-lg bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
                   aria-label="Archive lead"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

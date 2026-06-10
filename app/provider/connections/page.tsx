@@ -243,11 +243,11 @@ function LeadDetailDrawer({
           <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
           {statusTag}
         </div>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           {lead.location && (
             <p className="text-sm text-gray-600 truncate">{lead.location}</p>
           )}
-          <p className="text-sm text-gray-500 shrink-0">{lead.date}</p>
+          <p className="text-sm text-gray-500 shrink-0 ml-auto">{lead.date}</p>
         </div>
       </div>
     </div>

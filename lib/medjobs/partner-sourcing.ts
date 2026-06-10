@@ -156,9 +156,10 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
   const where = [ctx.university, ctx.city, ctx.state].filter(Boolean).join(", ");
   const pageTypes: Record<PartnerSubtype, string> = {
     advisor:
-      "pre-health / pre-med / pre-nursing / health-professions advising office pages, " +
-      "advising staff directories, college-of-science advising pages, career center health tracks, " +
-      "and relevant LinkedIn search pages",
+      "official pre-health / pre-med / pre-nursing / health-professions advising office pages, " +
+      "advising staff/team directories, and college-of-science advising pages. " +
+      "ONLY flagship official university (.edu) web pages — do NOT include LinkedIn, " +
+      "Instagram, Facebook, or other social-media pages",
     student_org:
       "student-organization directories, pre-health / pre-med / pre-nursing / allied-health club pages, " +
       "student affairs org listings, and the clubs' own websites / Instagram / Discord pages",

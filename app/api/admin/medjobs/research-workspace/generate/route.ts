@@ -1,20 +1,16 @@
 /**
  * POST /api/admin/medjobs/research-workspace/generate
  *
- * Materialize verified research into prospects (the action layer). For each
- * selected office in the Site's workspace[subtype], create ONE student_outreach
- * row (office-shaped: all people kept in research_data.office_members, so cold
- * fan-out never blasts them) and attach the chosen outreach contacts:
- *   - the office general email (default), and/or
- *   - specific "promoted" members the admin chose to email directly.
+ * Materialize verified research into prospects (the action layer). Reads the
+ * Site's saved workspace[subtype] and the admin's outreach selection, then:
+ *   - For each office bucket with a selected outreach contact → ONE office-shaped
+ *     student_outreach row (all assigned people kept in research_data
+ *     .office_members, so cold fan-out never blasts them); selected contacts
+ *     become student_outreach_contacts (the cold targets).
+ *   - For each selected INDIVIDUAL contact → one person-shaped row.
+ * The full roster + links stay on the Site record as the source of truth.
  *
- * Only contacts attached as student_outreach_contacts get cold outreach. The
- * full office + roster + links + notes stay on the Site record as the permanent
- * source of truth. Reuses the same insert shape as the stakeholders route.
- *
- * Body:
- *   { campus_slug, subtype,
- *     selections: [{ office_id, include_office: bool, member_ids: string[] }] }
+ * Body: { campus_slug, subtype, outreach_contact_ids: string[] }
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -24,15 +20,12 @@ import { PARTNER_SUBTYPES, type PartnerSubtype } from "@/lib/medjobs/partner-sou
 import {
   readWorkspace,
   writeWorkspace,
-  type WorkspaceMember,
-  type WorkspaceOffice,
+  isGeneralContact,
+  INDIVIDUAL,
+  type WorkspaceContact,
 } from "@/lib/medjobs/research-workspace";
 
-interface Selection {
-  office_id: string;
-  include_office?: boolean;
-  member_ids?: string[];
-}
+type DB = ReturnType<typeof getServiceClient>;
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
@@ -40,7 +33,7 @@ export async function POST(request: NextRequest) {
   const admin = await getAdminUser(user.id);
   if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-  let body: { campus_slug?: string; subtype?: string; selections?: Selection[] };
+  let body: { campus_slug?: string; subtype?: string; outreach_contact_ids?: string[] };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -53,9 +46,9 @@ export async function POST(request: NextRequest) {
   if (!subtype || !(PARTNER_SUBTYPES as string[]).includes(subtype)) {
     return NextResponse.json({ error: "Invalid subtype" }, { status: 400 });
   }
-  const selections = Array.isArray(body.selections) ? body.selections : [];
-  if (selections.length === 0) {
-    return NextResponse.json({ error: "No offices selected" }, { status: 400 });
+  const outreachIds = new Set(Array.isArray(body.outreach_contact_ids) ? body.outreach_contact_ids : []);
+  if (outreachIds.size === 0) {
+    return NextResponse.json({ error: "Pick at least one outreach contact." }, { status: 400 });
   }
 
   const db = getServiceClient();
@@ -68,86 +61,70 @@ export async function POST(request: NextRequest) {
   const campusId = (campus as { id: string }).id;
 
   const ws = readWorkspace((campus as { partner_research?: unknown }).partner_research, subtype);
-  const officeById = new Map(ws.offices.map((o) => [o.id, o]));
   const linkUrls = ws.links.map((l) => ({ title: l.title, url: l.url }));
+  const officeName = new Map(ws.offices.map((o) => [o.id, o.name]));
 
-  let createdCount = 0;
-  let contactCount = 0;
-  const createdIds: string[] = [];
+  let created = 0;
+  const ids: string[] = [];
 
-  for (const sel of selections) {
-    const office = officeById.get(sel.office_id);
-    if (!office) continue;
+  // Offices: group assigned contacts; create a row per office with a selection.
+  const byOffice = new Map<string, WorkspaceContact[]>();
+  const individuals: WorkspaceContact[] = [];
+  for (const c of ws.contacts) {
+    if (c.assignment === INDIVIDUAL) individuals.push(c);
+    else if (c.assignment) {
+      const list = byOffice.get(c.assignment) ?? [];
+      list.push(c);
+      byOffice.set(c.assignment, list);
+    }
+  }
 
-    // Resolve the outreach contacts: office general email + promoted members.
-    const promoted = (office.members ?? []).filter(
-      (m) => (sel.member_ids ?? []).includes(m.id) && (m.email || m.name),
-    );
-    const includeOffice = sel.include_office !== false && Boolean(office.general_email);
-    if (!includeOffice && promoted.length === 0) continue; // nothing to email
-
-    const row = await createOfficeRow(db, {
+  for (const [oid, members] of byOffice) {
+    const selected = members.filter((m) => outreachIds.has(m.id));
+    if (selected.length === 0) continue; // office not outreach-ready
+    const general = members.find(isGeneralContact) ?? null;
+    const people = members.filter((m) => !isGeneralContact(m));
+    const id = await createRow(db, {
       campusId,
       subtype,
-      office,
-      linkUrls,
       userId: user.id,
+      organizationName: officeName.get(oid) ?? "Advising office",
+      generalEmail: general?.email ?? null,
+      generalPhone: general?.phone ?? null,
+      members: people,
+      linkUrls,
     });
-    if (!row) continue;
-    createdIds.push(row);
-    createdCount += 1;
-
-    // Primary contact = the office general email (when chosen). Otherwise the
-    // first promoted member becomes primary so the row has an outreach target.
-    const contacts: Array<{ member?: WorkspaceMember; primary: boolean; officeEmail?: boolean }> = [];
-    if (includeOffice) contacts.push({ primary: true, officeEmail: true });
-    promoted.forEach((m, i) =>
-      contacts.push({ member: m, primary: !includeOffice && i === 0 }),
-    );
-
-    for (const c of contacts) {
-      const email = c.officeEmail ? office.general_email : c.member?.email;
-      const name = c.officeEmail ? office.name : c.member?.name ?? null;
-      if (!email && !name) continue;
-      await db.from("student_outreach_contacts").insert({
-        outreach_id: row,
-        name: name,
-        role: c.member?.role ?? null,
-        email: email ?? null,
-        phone: c.officeEmail ? office.general_phone ?? null : c.member?.phone ?? null,
-        is_primary: c.primary,
-        created_by: user.id,
-      });
-      contactCount += 1;
-    }
-
-    await db.from("student_outreach_touchpoints").insert({
-      outreach_id: row,
-      touchpoint_type: "contact_added",
-      created_by: user.id,
-      payload: { initial: true, source: "research_workspace" },
-    });
-
-    // Queue the Day-0 prospect task per state machine.
-    const effects = onStageEnter("prospect", { stakeholderType: subtype });
-    if (effects.taskToQueue) {
-      await db.from("student_outreach_tasks").insert({
-        outreach_id: row,
-        task_type: effects.taskToQueue.task_type,
-        due_at: effects.taskToQueue.due_at.toISOString(),
-        created_by: user.id,
-      });
-    }
+    if (!id) continue;
+    ids.push(id);
+    created += 1;
+    await attachContacts(db, id, selected, general, user.id);
+    await queueAndLog(db, id, subtype, user.id);
   }
 
-  if (createdCount === 0) {
-    return NextResponse.json(
-      { error: "No outreach contact selected on any office — pick at least one." },
-      { status: 400 },
-    );
+  // Individuals: one person-shaped row each.
+  for (const c of individuals) {
+    if (!outreachIds.has(c.id)) continue;
+    const id = await createRow(db, {
+      campusId,
+      subtype,
+      userId: user.id,
+      organizationName: c.name?.trim() || c.email || "Individual",
+      generalEmail: null,
+      generalPhone: null,
+      members: [],
+      linkUrls,
+    });
+    if (!id) continue;
+    ids.push(id);
+    created += 1;
+    await attachContacts(db, id, [c], null, user.id);
+    await queueAndLog(db, id, subtype, user.id);
   }
 
-  // Stamp generated_at so the workspace knows prospects were materialized.
+  if (created === 0) {
+    return NextResponse.json({ error: "Nothing outreach-ready was selected." }, { status: 400 });
+  }
+
   const nextPr = writeWorkspace(
     (campus as { partner_research?: unknown }).partner_research,
     subtype,
@@ -158,36 +135,37 @@ export async function POST(request: NextRequest) {
     .update({ partner_research: nextPr, updated_at: new Date().toISOString() })
     .eq("id", campusId);
 
-  return NextResponse.json({ ok: true, created: createdCount, contacts: contactCount, ids: createdIds });
+  return NextResponse.json({ ok: true, created, ids });
 }
 
-async function createOfficeRow(
-  db: ReturnType<typeof getServiceClient>,
+async function createRow(
+  db: DB,
   args: {
     campusId: string;
     subtype: PartnerSubtype;
-    office: WorkspaceOffice;
-    linkUrls: { title: string; url: string }[];
     userId: string;
+    organizationName: string;
+    generalEmail: string | null;
+    generalPhone: string | null;
+    members: WorkspaceContact[];
+    linkUrls: { title: string; url: string }[];
   },
 ): Promise<string | null> {
-  const { campusId, subtype, office, linkUrls, userId } = args;
+  const { campusId, subtype, userId, organizationName, generalEmail, generalPhone, members, linkUrls } = args;
   const { data, error } = await db
     .from("student_outreach")
     .insert({
       campus_id: campusId,
       stakeholder_type: subtype,
       kind: subtype,
-      organization_name: office.name,
-      notes: office.notes ?? null,
+      organization_name: organizationName,
       status: "prospect",
       research_data: {
         ai_sourced: true,
         from_research_workspace: true,
-        general_contact: { email: office.general_email ?? null, phone: office.general_phone ?? null },
-        website: office.website ?? null,
+        general_contact: { email: generalEmail, phone: generalPhone },
         research_links: linkUrls,
-        office_members: (office.members ?? []).map((m) => ({
+        office_members: members.map((m) => ({
           name: m.name ?? null,
           role: m.role ?? null,
           email: m.email ?? null,
@@ -203,4 +181,47 @@ async function createOfficeRow(
     .single();
   if (error || !data) return null;
   return (data as { id: string }).id;
+}
+
+async function attachContacts(
+  db: DB,
+  rowId: string,
+  selected: WorkspaceContact[],
+  general: WorkspaceContact | null,
+  userId: string,
+) {
+  // The office general contact (when selected) is primary; otherwise the first
+  // selected person is primary so the row always has an outreach target.
+  let primaryAssigned = false;
+  for (const c of selected) {
+    const isPrimary = general ? c.id === general.id : !primaryAssigned;
+    if (isPrimary) primaryAssigned = true;
+    await db.from("student_outreach_contacts").insert({
+      outreach_id: rowId,
+      name: c.name ?? null,
+      role: c.role ?? null,
+      email: c.email ?? null,
+      phone: c.phone ?? null,
+      is_primary: isPrimary,
+      created_by: userId,
+    });
+  }
+  await db.from("student_outreach_touchpoints").insert({
+    outreach_id: rowId,
+    touchpoint_type: "contact_added",
+    created_by: userId,
+    payload: { initial: true, source: "research_workspace" },
+  });
+}
+
+async function queueAndLog(db: DB, rowId: string, subtype: PartnerSubtype, userId: string) {
+  const effects = onStageEnter("prospect", { stakeholderType: subtype });
+  if (effects.taskToQueue) {
+    await db.from("student_outreach_tasks").insert({
+      outreach_id: rowId,
+      task_type: effects.taskToQueue.task_type,
+      due_at: effects.taskToQueue.due_at.toISOString(),
+      created_by: userId,
+    });
+  }
 }

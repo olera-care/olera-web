@@ -77,10 +77,11 @@ export async function PATCH(request: NextRequest) {
 
   // Only persist the workspace fields we own — never trust generated_at from the
   // client (that's set by the /generate route).
-  const { links, searches, offices } = body.workspace;
+  const { links, searches, contacts, offices } = body.workspace;
   const patch: Partial<WorkspaceState> = {};
   if (Array.isArray(links)) patch.links = links;
   if (Array.isArray(searches)) patch.searches = searches;
+  if (Array.isArray(contacts)) patch.contacts = contacts;
   if (Array.isArray(offices)) patch.offices = offices;
 
   const nextPr = writeWorkspace(

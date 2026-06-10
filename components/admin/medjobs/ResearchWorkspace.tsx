@@ -3,17 +3,14 @@
 /**
  * ResearchWorkspace — the single surface for partner prospecting.
  *
- * Replaces the old PartnerSourcingModal + PartnerAuditModal split. One drawer,
- * one sequence, one source of truth (the Site record):
+ *   ① Links            Confirm the approved link set (flagship advising pages).
+ *   ② Extract & Verify The per-link microscope: each link is a section, its
+ *                      contacts sit under it, and a "confirmed nothing's missing"
+ *                      sign-off sits below those cards. Auto-extracts on open;
+ *                      re-extract a page or add a new one inline.
+ *   ③ Generate         Final prospect cards (Edit + source link) → In-Basket.
  *
- *   ① Links    Build the approved research link set (AI suggest + manual + searches)
- *   ② Extract  AI reads the kept links → draft offices + people
- *   ③ Verify   Fully edit offices/members; move people; create offices
- *   ④ Review   Read-only summary — the source of truth before outreach
- *   ⑤ Attest   Confirm the research is done → mark this category complete
- *   ⑥ Generate Materialize outreach-ready contacts into prospects
- *
- * State persists on student_outreach_campuses.partner_research.workspace[subtype]
+ * State lives on student_outreach_campuses.partner_research.workspace[subtype]
  * (no student_outreach rows until Generate). See lib/medjobs/research-workspace.ts.
  */
 
@@ -22,25 +19,26 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import type { PartnerSubtype, PartnerCandidate } from "@/lib/medjobs/partner-sourcing";
 import {
+  contactsFromCandidate,
   emptyWorkspace,
+  isGeneralContact,
   mergeSearches,
   predefinedSearches,
   wsId,
+  INDIVIDUAL,
+  UNASSIGNED,
   type SearchState,
+  type WorkspaceContact,
   type WorkspaceLink,
-  type WorkspaceMember,
   type WorkspaceOffice,
   type WorkspaceState,
 } from "@/lib/medjobs/research-workspace";
 
-type Step = "links" | "extract" | "verify" | "review" | "attest" | "generate";
+type Step = "links" | "work" | "generate";
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "links", label: "Links" },
-  { key: "extract", label: "Extract" },
-  { key: "verify", label: "Verify" },
-  { key: "review", label: "Review" },
-  { key: "attest", label: "Attest" },
+  { key: "work", label: "Extract & Verify" },
   { key: "generate", label: "Generate" },
 ];
 
@@ -49,6 +47,8 @@ const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
   { key: "student_org", label: "Student orgs" },
   { key: "dept_head", label: "Department heads" },
 ];
+
+const NEW_OFFICE = "__new__";
 
 function bodyError(body: unknown, fallback: string): string {
   const e = (body as { error?: unknown } | null)?.error;
@@ -60,42 +60,10 @@ function bodyError(body: unknown, fallback: string): string {
   return fallback;
 }
 
-/** Convert one AI candidate into a workspace office (org-shaped). */
-function candidateToOffice(c: PartnerCandidate): WorkspaceOffice {
-  const members: WorkspaceMember[] = [];
-  for (const o of c.officers ?? []) {
-    if (!o.name && !o.email) continue;
-    members.push({ id: wsId(), name: o.name ?? null, role: o.role ?? null, email: o.email ?? null, source_url: o.source_url ?? null });
-  }
-  if (c.faculty_advisor?.name || c.faculty_advisor?.email) {
-    members.push({
-      id: wsId(),
-      name: c.faculty_advisor.name ?? null,
-      role: "Faculty advisor",
-      email: c.faculty_advisor.email ?? null,
-      source_url: c.faculty_advisor.source_url ?? null,
-    });
-  }
-  // dept_head is person-shaped — fold the chair in as the single member.
-  if (c.subtype === "dept_head" && (c.name || c.email)) {
-    members.push({ id: wsId(), name: c.name ?? null, role: c.title ?? "Department chair", email: c.email ?? null, phone: c.phone ?? null, source_url: c.source_url ?? null });
-  }
-  return {
-    id: wsId(),
-    name: c.subtype === "dept_head" && c.department ? `${c.department} Department` : c.name ?? "Untitled office",
-    general_email: c.org_email ?? (c.subtype === "dept_head" ? c.email : null) ?? null,
-    general_phone: c.phone ?? null,
-    website: c.website ?? null,
-    notes: c.notes ?? null,
-    members,
-  };
-}
-
 interface Props {
   campusSlug: string;
   universityName: string;
   onClose: () => void;
-  /** Refetch the parent lists (counts, cards). */
   onChanged: () => void;
 }
 
@@ -108,15 +76,10 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
-  // AI link suggestions awaiting keep/remove (not yet in the kept set).
   const [suggested, setSuggested] = useState<WorkspaceLink[]>([]);
-
-  // Attestation checklist.
-  const [attest, setAttest] = useState<Record<string, boolean>>({});
-  const [attestComplete, setAttestComplete] = useState(false);
-
-  // Generate selections: office_id → { include_office, member_ids:Set }
-  const [gen, setGen] = useState<Record<string, { office: boolean; members: Set<string> }>>({});
+  const [extracting, setExtracting] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [outreach, setOutreach] = useState<Set<string>>(new Set());
 
   // ── load on subtype change ────────────────────────────────────────────
   useEffect(() => {
@@ -135,9 +98,6 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         const loaded = (d.workspace ?? emptyWorkspace()) as WorkspaceState;
         loaded.searches = mergeSearches(loaded.searches ?? [], predefinedSearches(subtype, universityName));
         setWs(loaded);
-        const audit = d.audit as { steps?: Record<string, boolean>; complete_at?: string | null } | null;
-        setAttest(audit?.steps ?? {});
-        setAttestComplete(Boolean(audit?.complete_at));
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Load failed");
       } finally {
@@ -152,29 +112,25 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   // ── persistence ───────────────────────────────────────────────────────
   const wsRef = useRef(ws);
   wsRef.current = ws;
-  const save = useCallback(
-    async (override?: WorkspaceState) => {
-      const cur = override ?? wsRef.current;
-      try {
-        const res = await fetch("/api/admin/medjobs/research-workspace", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            campus_slug: campusSlug,
-            subtype,
-            workspace: { links: cur.links, searches: cur.searches, offices: cur.offices },
-          }),
-        });
-        if (!res.ok) throw new Error(bodyError(await res.json().catch(() => null), "Save failed"));
-        setSavedAt(new Date().toLocaleTimeString());
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Save failed");
-      }
-    },
-    [campusSlug, subtype],
-  );
+  const save = useCallback(async () => {
+    const cur = wsRef.current;
+    try {
+      const res = await fetch("/api/admin/medjobs/research-workspace", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campus_slug: campusSlug,
+          subtype,
+          workspace: { links: cur.links, searches: cur.searches, contacts: cur.contacts, offices: cur.offices },
+        }),
+      });
+      if (!res.ok) throw new Error(bodyError(await res.json().catch(() => null), "Save failed"));
+      setSavedAt(new Date().toLocaleTimeString());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  }, [campusSlug, subtype]);
 
-  // Debounced autosave on any workspace mutation (after initial load).
   const didLoad = useRef(false);
   useEffect(() => {
     if (loading) {
@@ -201,19 +157,20 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       });
       const d = await res.json();
       if (!res.ok) throw new Error(bodyError(d, "Couldn't suggest links"));
-      const keptUrls = new Set(ws.links.map((l) => l.url));
-      const next: WorkspaceLink[] = (d.sources ?? [])
-        .filter((s: { url?: string }) => s.url && !keptUrls.has(s.url))
-        .map((s: { title?: string; url: string; tier?: WorkspaceLink["tier"]; why?: string; likely?: string }) => ({
-          id: wsId(),
-          title: s.title ?? s.url,
-          url: s.url,
-          tier: s.tier ?? null,
-          why: s.why ?? null,
-          likely: s.likely ?? null,
-          source: "ai" as const,
-        }));
-      setSuggested(next);
+      const kept = new Set(ws.links.map((l) => l.url));
+      setSuggested(
+        (d.sources ?? [])
+          .filter((s: { url?: string }) => s.url && !kept.has(s.url))
+          .map((s: { title?: string; url: string; tier?: WorkspaceLink["tier"]; why?: string; likely?: string }) => ({
+            id: wsId(),
+            title: s.title ?? s.url,
+            url: s.url,
+            tier: s.tier ?? null,
+            why: s.why ?? null,
+            likely: s.likely ?? null,
+            source: "ai" as const,
+          })),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -226,215 +183,209 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     setSuggested((s) => s.filter((l) => l.id !== link.id));
   };
   const removeLink = (id: string) =>
-    setWs((w) => ({ ...w, links: w.links.filter((l) => l.id !== id) }));
-  const addManualLink = (url: string, title: string) => {
+    setWs((w) => ({
+      ...w,
+      links: w.links.filter((l) => l.id !== id),
+      contacts: w.contacts.filter((c) => c.source_link_id !== id),
+    }));
+  const addManualLink = (url: string, title: string): WorkspaceLink | null => {
     const clean = url.trim();
     if (!/^https?:\/\//i.test(clean)) {
       setError("Paste a valid http(s) link.");
-      return;
+      return null;
     }
-    setWs((w) => ({
-      ...w,
-      links: [...w.links, { id: wsId(), url: clean, title: title.trim() || clean, source: "manual", tier: null }],
-    }));
+    const link: WorkspaceLink = { id: wsId(), url: clean, title: title.trim() || clean, source: "manual", tier: null };
+    setWs((w) => ({ ...w, links: [...w.links, link] }));
+    return link;
   };
   const toggleSearch = (key: string) =>
-    setWs((w) => ({
-      ...w,
-      searches: w.searches.map((s) => (s.key === key ? { ...s, ran: !s.ran } : s)),
-    }));
+    setWs((w) => ({ ...w, searches: w.searches.map((s) => (s.key === key ? { ...s, ran: !s.ran } : s)) }));
 
-  // ── step 2: extract ───────────────────────────────────────────────────
-  const extract = useCallback(async () => {
-    if (ws.links.length === 0) {
-      setError("Keep at least one link first.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/medjobs/source-partners", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campus_slug: campusSlug,
-          subtype,
-          stage: "extract",
-          sources: ws.links.map((l) => ({ title: l.title, url: l.url })),
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(bodyError(d, "Extraction failed — try again or add by hand in Verify."));
-      const cands = (d.candidates ?? []) as PartnerCandidate[];
-      // Merge into existing offices, dedupe by lowercased name.
-      setWs((w) => {
-        const byName = new Map(w.offices.map((o) => [o.name.trim().toLowerCase(), o]));
-        for (const c of cands) {
-          const office = candidateToOffice(c);
-          const key = office.name.trim().toLowerCase();
-          const existing = byName.get(key);
-          if (existing) {
-            const seen = new Set(existing.members.map((m) => (m.email ?? m.name ?? "").toLowerCase()));
-            for (const m of office.members) {
-              const mk = (m.email ?? m.name ?? "").toLowerCase();
-              if (mk && seen.has(mk)) continue;
-              existing.members.push(m);
-            }
-            existing.general_email = existing.general_email ?? office.general_email;
-            existing.general_phone = existing.general_phone ?? office.general_phone;
-            existing.website = existing.website ?? office.website;
-          } else {
-            byName.set(key, office);
-          }
-        }
-        return { ...w, offices: [...byName.values()] };
-      });
-      setStep("verify");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
-    } finally {
-      setBusy(false);
-    }
-  }, [campusSlug, subtype, ws.links]);
-
-  // ── step 3: verify — office/member mutation helpers ───────────────────
-  const patchOffice = (oid: string, patch: Partial<WorkspaceOffice>) =>
-    setWs((w) => ({ ...w, offices: w.offices.map((o) => (o.id === oid ? { ...o, ...patch } : o)) }));
-  const addOffice = () =>
-    setWs((w) => ({
-      ...w,
-      offices: [...w.offices, { id: wsId(), name: "New office", members: [] }],
-    }));
-  const removeOffice = (oid: string) =>
-    setWs((w) => ({ ...w, offices: w.offices.filter((o) => o.id !== oid) }));
-  const addMember = (oid: string) =>
-    setWs((w) => ({
-      ...w,
-      offices: w.offices.map((o) =>
-        o.id === oid ? { ...o, members: [...o.members, { id: wsId(), name: "" }] } : o,
-      ),
-    }));
-  const patchMember = (oid: string, mid: string, patch: Partial<WorkspaceMember>) =>
-    setWs((w) => ({
-      ...w,
-      offices: w.offices.map((o) =>
-        o.id === oid
-          ? { ...o, members: o.members.map((m) => (m.id === mid ? { ...m, ...patch } : m)) }
-          : o,
-      ),
-    }));
-  const removeMember = (oid: string, mid: string) =>
-    setWs((w) => ({
-      ...w,
-      offices: w.offices.map((o) =>
-        o.id === oid ? { ...o, members: o.members.filter((m) => m.id !== mid) } : o,
-      ),
-    }));
-  const moveMember = (fromOid: string, mid: string, toOid: string) =>
-    setWs((w) => {
-      const from = w.offices.find((o) => o.id === fromOid);
-      const member = from?.members.find((m) => m.id === mid);
-      if (!member) return w;
-      return {
-        ...w,
-        offices: w.offices.map((o) => {
-          if (o.id === fromOid) return { ...o, members: o.members.filter((m) => m.id !== mid) };
-          if (o.id === toOid) return { ...o, members: [...o.members, member] };
-          return o;
-        }),
-      };
-    });
-
-  // ── step 5: attest ────────────────────────────────────────────────────
-  const ATTEST_ITEMS = [
-    { key: "reviewed_links", label: "Reviewed AI links and kept the good ones" },
-    { key: "ran_searches", label: "Ran the predefined searches" },
-    { key: "added_links", label: "Added the links I found by hand" },
-    { key: "verified_contacts", label: "Verified each contact (name / role / email)" },
-    { key: "added_missed", label: "Added anyone the AI missed" },
-    { key: "organized", label: "Offices organized correctly" },
-  ];
-  const attestAllDone = ATTEST_ITEMS.every((i) => attest[i.key]);
-  const markComplete = useCallback(
-    async (complete: boolean) => {
-      setBusy(true);
-      setError(null);
+  // ── step 2: extract & verify ──────────────────────────────────────────
+  const extractLink = useCallback(
+    async (linkId: string) => {
+      const link = wsRef.current.links.find((l) => l.id === linkId);
+      if (!link) return;
+      setExtracting((s) => new Set(s).add(linkId));
       try {
-        await save();
-        const res = await fetch(`/api/admin/student-outreach/campuses/${campusSlug}`, {
-          method: "PATCH",
+        const res = await fetch("/api/admin/medjobs/source-partners", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ partner_audit: { subtype, steps: attest, complete } }),
+          body: JSON.stringify({ campus_slug: campusSlug, subtype, stage: "extract_url", url: link.url }),
         });
-        if (!res.ok) throw new Error(bodyError(await res.json().catch(() => null), "Save failed"));
-        setAttestComplete(complete);
-        onChanged();
-        if (complete) setStep("generate");
+        const d = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(bodyError(d, "Couldn't read that page"));
+        const cands = (d?.candidates ?? []) as PartnerCandidate[];
+        setWs((w) => {
+          const offices = [...w.offices];
+          const emails = new Set(
+            w.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[],
+          );
+          const add: WorkspaceContact[] = [];
+          for (const c of cands) {
+            const { contacts, officeName } = contactsFromCandidate(c, linkId);
+            if (officeName) {
+              const key = officeName.trim().toLowerCase();
+              if (!offices.some((o) => o.name.trim().toLowerCase() === key)) {
+                offices.push({ id: wsId(), name: officeName });
+              }
+            }
+            for (const ct of contacts) {
+              const em = ct.email?.toLowerCase();
+              if (em && emails.has(em)) continue;
+              if (em) emails.add(em);
+              add.push(ct);
+            }
+          }
+          return {
+            ...w,
+            offices,
+            contacts: [...w.contacts, ...add],
+            links: w.links.map((l) => (l.id === linkId ? { ...l, extracted: true } : l)),
+          };
+        });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Save failed");
+        setError(e instanceof Error ? e.message : "Extract failed");
+        // Still mark extracted so auto-extract doesn't loop on a bad page.
+        setWs((w) => ({ ...w, links: w.links.map((l) => (l.id === linkId ? { ...l, extracted: true } : l)) }));
       } finally {
-        setBusy(false);
+        setExtracting((s) => {
+          const next = new Set(s);
+          next.delete(linkId);
+          return next;
+        });
       }
     },
-    [campusSlug, subtype, attest, save, onChanged],
+    [campusSlug, subtype],
   );
 
-  // ── step 6: generate ──────────────────────────────────────────────────
-  // Default selection: include office when it has an email.
+  // Auto-extract any not-yet-extracted link whenever Step 2 opens (idempotent —
+  // already-extracted links are skipped, so re-entering or adding a link in
+  // Step 1 then returning picks up only the new pages).
+  const autoPass = useRef(false);
+  useEffect(() => {
+    if (step !== "work") {
+      autoPass.current = false;
+      return;
+    }
+    if (loading || autoPass.current) return;
+    autoPass.current = true;
+    (async () => {
+      for (const l of wsRef.current.links) {
+        if (!l.extracted) await extractLink(l.id);
+      }
+    })();
+  }, [step, loading, extractLink]);
+
+  const addLinkAndExtract = async (url: string, title: string) => {
+    const link = addManualLink(url, title);
+    if (link) await extractLink(link.id);
+  };
+
+  // contact + office mutations
+  const patchContact = (id: string, patch: Partial<WorkspaceContact>) =>
+    setWs((w) => ({ ...w, contacts: w.contacts.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+  const removeContact = (id: string) =>
+    setWs((w) => ({ ...w, contacts: w.contacts.filter((c) => c.id !== id) }));
+  const addContact = (linkId: string | null) =>
+    setWs((w) => ({
+      ...w,
+      contacts: [...w.contacts, { id: wsId(), source_link_id: linkId, name: "", assignment: UNASSIGNED }],
+    }));
+  const createOfficeAnd = (name: string, assignIds: string[]): string => {
+    const office: WorkspaceOffice = { id: wsId(), name: name.trim() };
+    setWs((w) => ({
+      ...w,
+      offices: [...w.offices, office],
+      contacts: w.contacts.map((c) => (assignIds.includes(c.id) ? { ...c, assignment: office.id } : c)),
+    }));
+    return office.id;
+  };
+  const assignContact = (id: string, value: string) => {
+    if (value === NEW_OFFICE) {
+      const name = window.prompt("New office name");
+      if (name?.trim()) createOfficeAnd(name, [id]);
+      return;
+    }
+    patchContact(id, { assignment: value });
+  };
+  const bulkAssign = (linkId: string, value: string) => {
+    const ids = ws.contacts.filter((c) => c.source_link_id === linkId && !c.assignment).map((c) => c.id);
+    if (ids.length === 0) return;
+    if (value === NEW_OFFICE) {
+      const name = window.prompt("New office name");
+      if (name?.trim()) createOfficeAnd(name, ids);
+      return;
+    }
+    setWs((w) => ({ ...w, contacts: w.contacts.map((c) => (ids.includes(c.id) ? { ...c, assignment: value } : c)) }));
+  };
+  const setConfirmed = (linkId: string, confirmed: boolean) => {
+    setWs((w) => ({ ...w, links: w.links.map((l) => (l.id === linkId ? { ...l, confirmed } : l)) }));
+    if (confirmed) setExpanded((s) => { const n = new Set(s); n.delete(linkId); return n; });
+    else setExpanded((s) => new Set(s).add(linkId));
+  };
+
+  const allConfirmed = ws.links.length > 0 && ws.links.every((l) => l.confirmed);
+
+  // ── step 3: generate ──────────────────────────────────────────────────
+  const officeGroups = useMemo(() => {
+    const byOffice = new Map<string, WorkspaceContact[]>();
+    const individuals: WorkspaceContact[] = [];
+    for (const c of ws.contacts) {
+      if (c.assignment === INDIVIDUAL) individuals.push(c);
+      else if (c.assignment) {
+        const list = byOffice.get(c.assignment) ?? [];
+        list.push(c);
+        byOffice.set(c.assignment, list);
+      }
+    }
+    return { byOffice, individuals };
+  }, [ws.contacts]);
+
+  // Default outreach selection on entering generate: each office's general
+  // contact (or its first contact if no general).
   useEffect(() => {
     if (step !== "generate") return;
-    setGen((cur) => {
-      const next = { ...cur };
-      for (const o of ws.offices) {
-        if (!next[o.id]) next[o.id] = { office: Boolean(o.general_email), members: new Set() };
+    setOutreach((cur) => {
+      if (cur.size > 0) return cur;
+      const next = new Set<string>();
+      for (const [, members] of officeGroups.byOffice) {
+        const general = members.find(isGeneralContact) ?? members[0];
+        if (general) next.add(general.id);
       }
       return next;
     });
-  }, [step, ws.offices]);
+  }, [step, officeGroups]);
 
   const generate = useCallback(async () => {
     setBusy(true);
     setError(null);
     try {
       await save();
-      const selections = ws.offices
-        .map((o) => ({
-          office_id: o.id,
-          include_office: gen[o.id]?.office ?? false,
-          member_ids: [...(gen[o.id]?.members ?? new Set<string>())],
-        }))
-        .filter((s) => s.include_office || s.member_ids.length > 0);
-      if (selections.length === 0) {
-        setError("Pick at least one outreach contact.");
-        setBusy(false);
-        return;
-      }
+      const ids = [...outreach];
       const res = await fetch("/api/admin/medjobs/research-workspace/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ campus_slug: campusSlug, subtype, selections }),
+        body: JSON.stringify({ campus_slug: campusSlug, subtype, outreach_contact_ids: ids }),
       });
       const d = await res.json().catch(() => null);
       if (!res.ok) throw new Error(bodyError(d, "Generate failed"));
-      onChanged();
+      // Mark this category complete (sets research_complete when all 3 done).
+      await fetch(`/api/admin/student-outreach/campuses/${campusSlug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ partner_audit: { subtype, steps: { generated: true }, complete: true } }),
+      });
       setWs((w) => ({ ...w, generated_at: new Date().toISOString() }));
+      onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Generate failed");
     } finally {
       setBusy(false);
     }
-  }, [campusSlug, subtype, ws.offices, gen, save, onChanged]);
-
-  const totalPeople = useMemo(
-    () => ws.offices.reduce((n, o) => n + o.members.length, 0),
-    [ws.offices],
-  );
+  }, [campusSlug, subtype, outreach, save, onChanged]);
 
   const stepIndex = STEPS.findIndex((s) => s.key === step);
-  const goNext = () => {
-    const next = STEPS[stepIndex + 1];
-    if (next) setStep(next.key);
-  };
 
   // ── render ────────────────────────────────────────────────────────────
   const header = (
@@ -445,6 +396,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
           <button
             key={s.key}
             onClick={() => {
+              autoPass.current = false;
               setStep("links");
               setSubtype(s.key);
             }}
@@ -461,9 +413,8 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
 
   return (
     <Modal isOpen onClose={onClose} size="fullscreen" title={header}>
-      {/* Step rail */}
       <div className="sticky top-0 z-10 -mx-5 mb-4 border-b border-gray-100 bg-white px-5 py-2 sm:-mx-7 sm:px-7">
-        <div className="flex items-center gap-1 overflow-x-auto text-xs">
+        <div className="flex items-center gap-1 text-xs">
           {STEPS.map((s, i) => (
             <button
               key={s.key}
@@ -478,9 +429,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               {s.label}
             </button>
           ))}
-          <span className="ml-auto shrink-0 text-[11px] text-gray-400">
-            {savedAt ? `Saved ${savedAt}` : "Autosaves"}
-          </span>
+          <span className="ml-auto shrink-0 text-[11px] text-gray-400">{savedAt ? `Saved ${savedAt}` : "Autosaves"}</span>
         </div>
       </div>
 
@@ -502,48 +451,37 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               onRemove={removeLink}
               onAddManual={addManualLink}
               onToggleSearch={toggleSearch}
-              onNext={goNext}
+              onNext={() => setStep("work")}
             />
           )}
-          {step === "extract" && (
-            <ExtractStep ws={ws} busy={busy} onExtract={extract} onBack={() => setStep("links")} />
-          )}
-          {step === "verify" && (
-            <VerifyStep
+          {step === "work" && (
+            <WorkStep
               ws={ws}
-              subtype={subtype}
-              onAddOffice={addOffice}
-              onRemoveOffice={removeOffice}
-              onPatchOffice={patchOffice}
-              onAddMember={addMember}
-              onPatchMember={patchMember}
-              onRemoveMember={removeMember}
-              onMoveMember={moveMember}
-              onNext={goNext}
-            />
-          )}
-          {step === "review" && (
-            <ReviewStep ws={ws} totalPeople={totalPeople} onNext={goNext} />
-          )}
-          {step === "attest" && (
-            <AttestStep
-              items={ATTEST_ITEMS}
-              attest={attest}
-              setAttest={setAttest}
-              allDone={attestAllDone}
-              complete={attestComplete}
-              busy={busy}
-              onSave={() => void markComplete(false)}
-              onComplete={() => void markComplete(true)}
+              extracting={extracting}
+              expanded={expanded}
+              setExpanded={setExpanded}
+              allConfirmed={allConfirmed}
+              onExtractLink={extractLink}
+              onAddContact={addContact}
+              onPatchContact={patchContact}
+              onRemoveContact={removeContact}
+              onAssign={assignContact}
+              onBulkAssign={bulkAssign}
+              onSetConfirmed={setConfirmed}
+              onAddLinkAndExtract={addLinkAndExtract}
+              onNext={() => setStep("generate")}
             />
           )}
           {step === "generate" && (
             <GenerateStep
               ws={ws}
-              gen={gen}
-              setGen={setGen}
+              groups={officeGroups}
+              outreach={outreach}
+              setOutreach={setOutreach}
               busy={busy}
+              onPatchContact={patchContact}
               onGenerate={generate}
+              onReview={() => setStep("work")}
             />
           )}
         </div>
@@ -572,7 +510,7 @@ function LinksStep({
   onSuggest: () => void;
   onKeep: (l: WorkspaceLink) => void;
   onRemove: (id: string) => void;
-  onAddManual: (url: string, title: string) => void;
+  onAddManual: (url: string, title: string) => WorkspaceLink | null;
   onToggleSearch: (key: string) => void;
   onNext: () => void;
 }) {
@@ -581,47 +519,30 @@ function LinksStep({
   return (
     <div className="space-y-5">
       <p className="text-sm text-gray-600">
-        Build the best set of source links. Nothing is saved to the Site until you <b>Keep</b> it —
-        the kept set is your approved research record.
+        Build the best set of source pages. Nothing is saved to the Site until you <b>Keep</b> it.
       </p>
 
       <section>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Suggested by AI</p>
-          <Button size="sm" variant="ghost" onClick={onSuggest} loading={busy}>
-            ✦ Suggest links
-          </Button>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Suggested by AI — flagship advising pages</p>
+          <Button size="sm" variant="ghost" onClick={onSuggest} loading={busy}>✦ Suggest links</Button>
         </div>
         {suggested.length === 0 ? (
-          <p className="text-xs text-gray-400">Click “Suggest links” for a few flagship pages — then keep the good ones.</p>
+          <p className="text-xs text-gray-400">Click “Suggest links” for a few flagship advising pages, then keep the good ones.</p>
         ) : (
           <ul className="space-y-1.5">
             {suggested.map((l) => (
               <li key={l.id} className="flex items-start gap-2 rounded-md border border-gray-100 px-3 py-2 text-sm">
                 <div className="min-w-0 flex-1">
                   <span className="text-gray-800">{l.title}</span>
-                  {l.tier && (
-                    <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500">
-                      {l.tier.replace("_", " ")}
-                    </span>
-                  )}
                   {(l.why || l.likely) && (
                     <span className="block text-[11px] text-gray-500">
-                      {l.why}
-                      {l.why && l.likely ? " · " : ""}
-                      {l.likely ? <span className="text-gray-400">likely: {l.likely}</span> : null}
+                      {l.why}{l.why && l.likely ? " · " : ""}{l.likely ? <span className="text-gray-400">likely: {l.likely}</span> : null}
                     </span>
                   )}
-                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:underline">
-                    {l.url} ↗
-                  </a>
+                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:underline">{l.url} ↗</a>
                 </div>
-                <button
-                  onClick={() => onKeep(l)}
-                  className="shrink-0 rounded border border-primary-200 bg-primary-50 px-2 py-1 text-xs font-semibold text-primary-700 hover:bg-primary-100"
-                >
-                  Keep
-                </button>
+                <button onClick={() => onKeep(l)} className="shrink-0 rounded border border-primary-200 bg-primary-50 px-2 py-1 text-xs font-semibold text-primary-700 hover:bg-primary-100">Keep</button>
               </li>
             ))}
           </ul>
@@ -629,9 +550,7 @@ function LinksStep({
       </section>
 
       <section>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Predefined searches (check off as you run them)
-        </p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Predefined searches — check off as you run them</p>
         <div className="space-y-1.5">
           {ws.searches.map((s: SearchState) => (
             <div key={s.key} className="flex items-center justify-between gap-2">
@@ -639,18 +558,23 @@ function LinksStep({
                 <input type="checkbox" checked={s.ran} onChange={() => onToggleSearch(s.key)} />
                 {s.label}
               </label>
-              <a href={s.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary-600 hover:underline">
-                open ↗
-              </a>
+              <a href={s.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary-600 hover:underline">open ↗</a>
             </div>
           ))}
+        </div>
+        {/* Add-a-link sits right under the searches — run a search, find a page, paste it. */}
+        <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+          <p className="mb-1 text-[11px] font-medium text-gray-700">Add a link you found by hand</p>
+          <div className="flex flex-wrap gap-2">
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="min-w-[200px] flex-1 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional)" className="w-40 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
+            <button onClick={() => { if (onAddManual(url, title)) { setUrl(""); setTitle(""); } }} className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">Add</button>
+          </div>
         </div>
       </section>
 
       <section>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Kept link set ({ws.links.length}) — saved to the Site
-        </p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Kept link set ({ws.links.length}) — saved to the Site</p>
         {ws.links.length === 0 ? (
           <p className="text-xs text-gray-400">No links kept yet.</p>
         ) : (
@@ -660,375 +584,278 @@ function LinksStep({
                 <div className="min-w-0 flex-1">
                   <span className="text-gray-800">{l.title}</span>
                   <span className="ml-2 text-[10px] uppercase text-gray-400">{l.source}</span>
-                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="block text-xs text-primary-600 hover:underline">
-                    {l.url} ↗
-                  </a>
+                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="block text-xs text-primary-600 hover:underline">{l.url} ↗</a>
                 </div>
-                <button onClick={() => onRemove(l.id)} className="shrink-0 text-xs text-gray-400 hover:text-red-600">
-                  remove
-                </button>
+                <button onClick={() => onRemove(l.id)} className="shrink-0 text-xs text-gray-400 hover:text-red-600">remove</button>
               </li>
             ))}
           </ul>
         )}
-        <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
-          <p className="mb-1 text-[11px] font-medium text-gray-700">Add a link you found by hand</p>
-          <div className="flex flex-wrap gap-2">
-            <input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://…"
-              className="min-w-[200px] flex-1 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-            />
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title (optional)"
-              className="w-40 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
-            />
-            <button
-              onClick={() => {
-                onAddManual(url, title);
-                setUrl("");
-                setTitle("");
-              }}
-              className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
-            >
-              Add
-            </button>
-          </div>
-        </div>
       </section>
 
       <div className="flex justify-end">
-        <Button size="sm" onClick={onNext} disabled={ws.links.length === 0}>
-          Next: Extract contacts →
-        </Button>
+        <Button size="sm" onClick={onNext} disabled={ws.links.length === 0}>Next: Extract &amp; verify →</Button>
       </div>
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Step 2 — Extract
+// Step 2 — Extract & Verify (the per-link microscope)
 // ───────────────────────────────────────────────────────────────────────────
-function ExtractStep({
+function WorkStep({
   ws,
-  busy,
-  onExtract,
-  onBack,
-}: {
-  ws: WorkspaceState;
-  busy: boolean;
-  onExtract: () => void;
-  onBack: () => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-600">
-        AI reads your <b>{ws.links.length}</b> kept link{ws.links.length === 1 ? "" : "s"} and drafts offices + people.
-        Nothing becomes a prospect — this just fills the workspace. Re-run any time; people merge by name.
-      </p>
-      <ul className="space-y-1 text-xs text-gray-500">
-        {ws.links.map((l) => (
-          <li key={l.id} className="truncate">• {l.url}</li>
-        ))}
-      </ul>
-      <div className="flex items-center justify-between">
-        <Button size="sm" variant="ghost" onClick={onBack}>← Back to links</Button>
-        <Button size="sm" onClick={onExtract} loading={busy} disabled={ws.links.length === 0}>
-          ✦ Extract contacts from kept links
-        </Button>
-      </div>
-      {ws.offices.length > 0 && (
-        <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500">
-          Workspace currently has {ws.offices.length} office{ws.offices.length === 1 ? "" : "s"} —
-          go to <b>Verify</b> to edit them.
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// Step 3 — Verify
-// ───────────────────────────────────────────────────────────────────────────
-function VerifyStep({
-  ws,
-  subtype,
-  onAddOffice,
-  onRemoveOffice,
-  onPatchOffice,
-  onAddMember,
-  onPatchMember,
-  onRemoveMember,
-  onMoveMember,
+  extracting,
+  expanded,
+  setExpanded,
+  allConfirmed,
+  onExtractLink,
+  onAddContact,
+  onPatchContact,
+  onRemoveContact,
+  onAssign,
+  onBulkAssign,
+  onSetConfirmed,
+  onAddLinkAndExtract,
   onNext,
 }: {
   ws: WorkspaceState;
-  subtype: PartnerSubtype;
-  onAddOffice: () => void;
-  onRemoveOffice: (oid: string) => void;
-  onPatchOffice: (oid: string, patch: Partial<WorkspaceOffice>) => void;
-  onAddMember: (oid: string) => void;
-  onPatchMember: (oid: string, mid: string, patch: Partial<WorkspaceMember>) => void;
-  onRemoveMember: (oid: string, mid: string) => void;
-  onMoveMember: (fromOid: string, mid: string, toOid: string) => void;
+  extracting: Set<string>;
+  expanded: Set<string>;
+  setExpanded: (fn: (s: Set<string>) => Set<string>) => void;
+  allConfirmed: boolean;
+  onExtractLink: (id: string) => void;
+  onAddContact: (linkId: string | null) => void;
+  onPatchContact: (id: string, patch: Partial<WorkspaceContact>) => void;
+  onRemoveContact: (id: string) => void;
+  onAssign: (id: string, value: string) => void;
+  onBulkAssign: (linkId: string, value: string) => void;
+  onSetConfirmed: (linkId: string, confirmed: boolean) => void;
+  onAddLinkAndExtract: (url: string, title: string) => void;
   onNext: () => void;
 }) {
-  const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
-  const noun = subtype === "student_org" ? "organization" : subtype === "dept_head" ? "department" : "office";
+  const [newUrl, setNewUrl] = useState("");
+  const confirmedCount = ws.links.filter((l) => l.confirmed).length;
+  const byHand = ws.contacts.filter((c) => c.source_link_id === null);
+
+  // Office roll-up.
+  const officeCounts = new Map<string, number>();
+  let individualCount = 0;
+  let unassignedCount = 0;
+  for (const c of ws.contacts) {
+    if (c.assignment === INDIVIDUAL) individualCount += 1;
+    else if (c.assignment) officeCounts.set(c.assignment, (officeCounts.get(c.assignment) ?? 0) + 1);
+    else unassignedCount += 1;
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          Edit everything here — this is the source of truth. Move people between {noun}s, create new ones, fix every field.
-        </p>
-        <Button size="sm" variant="ghost" onClick={onAddOffice}>+ New {noun}</Button>
-      </div>
+      <p className="text-sm text-gray-600">
+        Work each page: reopen it, check the contacts we pulled, fix or add, assign each to an office,
+        then confirm. New pages you find extract right here.
+      </p>
 
-      {ws.offices.length === 0 ? (
-        <p className="rounded-md border border-dashed border-gray-200 py-8 text-center text-sm text-gray-400">
-          No {noun}s yet. Run Extract, or add one by hand.
-        </p>
-      ) : (
-        ws.offices.map((o) => (
-          <div key={o.id} className="rounded-lg border border-gray-200 p-3">
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <input
-                value={o.name}
-                onChange={(e) => onPatchOffice(o.id, { name: e.target.value })}
-                className={`${input} flex-1 font-medium`}
-                placeholder={`${noun} name`}
-              />
-              <button onClick={() => onRemoveOffice(o.id)} className="text-xs text-gray-400 hover:text-red-600">
-                remove {noun}
-              </button>
-            </div>
-            <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <input
-                value={o.general_email ?? ""}
-                onChange={(e) => onPatchOffice(o.id, { general_email: e.target.value })}
-                className={input}
-                placeholder="General email"
-              />
-              <input
-                value={o.general_phone ?? ""}
-                onChange={(e) => onPatchOffice(o.id, { general_phone: e.target.value })}
-                className={input}
-                placeholder="General phone"
-              />
-              <input
-                value={o.website ?? ""}
-                onChange={(e) => onPatchOffice(o.id, { website: e.target.value })}
-                className={input}
-                placeholder="Website"
-              />
-            </div>
-            <input
-              value={o.notes ?? ""}
-              onChange={(e) => onPatchOffice(o.id, { notes: e.target.value })}
-              className={`${input} mb-3 w-full`}
-              placeholder="Notes"
-            />
-
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                People ({o.members.length})
-              </p>
-              <button onClick={() => onAddMember(o.id)} className="text-xs font-medium text-primary-600 hover:underline">
-                + Add person
-              </button>
-            </div>
-            <div className="mt-1 space-y-2">
-              {o.members.map((m) => (
-                <div key={m.id} className="rounded border border-gray-100 bg-gray-50/60 p-2">
-                  <div className="flex flex-wrap gap-1.5">
-                    <input value={m.name ?? ""} onChange={(e) => onPatchMember(o.id, m.id, { name: e.target.value })} className={`${input} w-32`} placeholder="Name" />
-                    <input value={m.role ?? ""} onChange={(e) => onPatchMember(o.id, m.id, { role: e.target.value })} className={`${input} w-32`} placeholder="Role" />
-                    <input value={m.email ?? ""} onChange={(e) => onPatchMember(o.id, m.id, { email: e.target.value })} className={`${input} w-44`} placeholder="Email" />
-                    <input value={m.phone ?? ""} onChange={(e) => onPatchMember(o.id, m.id, { phone: e.target.value })} className={`${input} w-32`} placeholder="Phone" />
-                  </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <input
-                      value={m.notes ?? ""}
-                      onChange={(e) => onPatchMember(o.id, m.id, { notes: e.target.value })}
-                      className={`${input} min-w-[160px] flex-1`}
-                      placeholder="Notes"
-                    />
-                    {m.source_url && (
-                      <a href={m.source_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">
-                        src ↗
-                      </a>
-                    )}
-                    {ws.offices.length > 1 && (
-                      <select
-                        value=""
-                        onChange={(e) => e.target.value && onMoveMember(o.id, m.id, e.target.value)}
-                        className="rounded border border-gray-200 bg-white px-1 py-1 text-[11px] text-gray-600"
-                        title="Move to another office"
-                      >
-                        <option value="">Move to…</option>
-                        {ws.offices.filter((x) => x.id !== o.id).map((x) => (
-                          <option key={x.id} value={x.id}>{x.name}</option>
-                        ))}
-                      </select>
-                    )}
-                    <button onClick={() => onRemoveMember(o.id, m.id)} className="text-[11px] text-gray-400 hover:text-red-600">
-                      remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {o.members.length === 0 && (
-                <p className="text-[11px] text-gray-400">No people yet — add the advisors/staff you found.</p>
-              )}
-            </div>
-          </div>
-        ))
-      )}
-
-      <div className="flex justify-end">
-        <Button size="sm" onClick={onNext}>Next: Final review →</Button>
-      </div>
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// Step 4 — Review
-// ───────────────────────────────────────────────────────────────────────────
-function ReviewStep({ ws, totalPeople, onNext }: { ws: WorkspaceState; totalPeople: number; onNext: () => void }) {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-600">This is the source of truth before outreach.</p>
-      {ws.offices.map((o) => {
-        const noEmail = o.members.filter((m) => !m.email).length;
+      {ws.links.map((link) => {
+        const contacts = ws.contacts.filter((c) => c.source_link_id === link.id);
+        const isExtracting = extracting.has(link.id);
+        const open = !link.confirmed || expanded.has(link.id);
+        const unassigned = contacts.filter((c) => !c.assignment).length;
         return (
-          <div key={o.id} className="rounded-lg border border-gray-200 p-3">
-            <p className="font-medium text-gray-900">{o.name}</p>
-            <p className="text-xs text-gray-500">
-              {o.general_email ? `✉ ${o.general_email}` : "no general email"}
-              {o.general_phone ? `   ☎ ${o.general_phone}` : ""}
-            </p>
-            <p className="mt-1 text-xs text-gray-600">
-              People: {o.members.length === 0 ? "none" : o.members.map((m) => m.name || m.email || "—").join(", ")}
-            </p>
-            {noEmail > 0 && (
-              <p className="mt-0.5 text-[11px] text-amber-600">⚠ {noEmail} {noEmail === 1 ? "person has" : "people have"} no email — fine, kept for reference.</p>
+          <div key={link.id} className="rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between gap-2 px-3 py-2">
+              <button
+                onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(link.id)) n.delete(link.id); else n.add(link.id); return n; })}
+                className="flex min-w-0 items-center gap-2 text-left"
+              >
+                <span className="text-gray-400">{open ? "▼" : "▸"}</span>
+                <span className="truncate text-sm font-medium text-gray-900">{link.title}</span>
+                {link.confirmed && <span className="shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700">confirmed ✓</span>}
+                <span className="shrink-0 text-[11px] text-gray-400">{isExtracting ? "extracting…" : `${contacts.length} contact${contacts.length === 1 ? "" : "s"}`}</span>
+              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:underline">open ↗</a>
+                <button onClick={() => onExtractLink(link.id)} disabled={isExtracting} className="text-xs text-gray-500 hover:underline disabled:opacity-50">✦ re-extract</button>
+              </div>
+            </div>
+
+            {open && (
+              <div className="space-y-2 border-t border-gray-100 px-3 py-2">
+                {contacts.map((c) => (
+                  <ContactCard key={c.id} contact={c} offices={ws.offices} onPatch={onPatchContact} onRemove={onRemoveContact} onAssign={onAssign} />
+                ))}
+                {contacts.length === 0 && !isExtracting && (
+                  <p className="text-[11px] text-gray-400">No contacts found on this page — add by hand, or it had none.</p>
+                )}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <button onClick={() => onAddContact(link.id)} className="text-xs font-medium text-primary-600 hover:underline">+ Add a contact you see on this page</button>
+                  {unassigned > 0 && (
+                    <label className="flex items-center gap-1 text-[11px] text-gray-500">
+                      assign all unassigned →
+                      <select defaultValue="" onChange={(e) => { onBulkAssign(link.id, e.target.value); e.target.value = ""; }} className="rounded border border-gray-200 bg-white px-1 py-0.5">
+                        <option value="" disabled>office…</option>
+                        {ws.offices.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                        <option value={INDIVIDUAL}>Individual</option>
+                        <option value={NEW_OFFICE}>+ New office…</option>
+                      </select>
+                    </label>
+                  )}
+                </div>
+                <label
+                  className={`mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
+                    unassigned > 0 ? "border-gray-100 text-gray-400" : "border-gray-200 text-gray-800"
+                  }`}
+                  title={unassigned > 0 ? "Assign every contact to an office or individual first." : undefined}
+                >
+                  <input type="checkbox" checked={!!link.confirmed} disabled={unassigned > 0} onChange={(e) => onSetConfirmed(link.id, e.target.checked)} />
+                  I reopened this page and confirmed nothing&apos;s missing
+                  {unassigned > 0 && <span className="text-[11px]">— assign {unassigned} contact{unassigned === 1 ? "" : "s"} first</span>}
+                </label>
+              </div>
             )}
           </div>
         );
       })}
-      <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs text-gray-600">
-        <p className="font-medium text-gray-700">Research links ({ws.links.length})</p>
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-          {ws.links.map((l) => (
-            <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-              {l.title} ↗
-            </a>
-          ))}
+
+      {byHand.length > 0 && (
+        <div className="rounded-lg border border-gray-200 px-3 py-2">
+          <p className="mb-2 text-sm font-medium text-gray-900">Added by hand</p>
+          <div className="space-y-2">
+            {byHand.map((c) => (
+              <ContactCard key={c.id} contact={c} offices={ws.offices} onPatch={onPatchContact} onRemove={onRemoveContact} onAssign={onAssign} />
+            ))}
+          </div>
         </div>
-        <p className="mt-2 text-gray-500">{ws.offices.length} office(s) · {totalPeople} people</p>
-      </div>
-      <div className="flex justify-end">
-        <Button size="sm" onClick={onNext}>Looks right → attest</Button>
-      </div>
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// Step 5 — Attest
-// ───────────────────────────────────────────────────────────────────────────
-function AttestStep({
-  items,
-  attest,
-  setAttest,
-  allDone,
-  complete,
-  busy,
-  onSave,
-  onComplete,
-}: {
-  items: { key: string; label: string }[];
-  attest: Record<string, boolean>;
-  setAttest: (fn: (s: Record<string, boolean>) => Record<string, boolean>) => void;
-  allDone: boolean;
-  complete: boolean;
-  busy: boolean;
-  onSave: () => void;
-  onComplete: () => void;
-}) {
-  return (
-    <div className="space-y-4">
-      {complete && (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          ✓ This category is marked complete. You can still edit and re-save.
-        </p>
       )}
-      <div className="space-y-2">
-        {items.map((i) => (
-          <label key={i.key} className="flex items-start gap-2 text-sm text-gray-800">
-            <input
-              type="checkbox"
-              checked={!!attest[i.key]}
-              onChange={(e) => setAttest((s) => ({ ...s, [i.key]: e.target.checked }))}
-              className="mt-1"
-            />
-            {i.label}
-          </label>
-        ))}
+
+      <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 px-3 py-2">
+        <p className="mb-1 text-[11px] font-medium text-gray-700">Add a link you found while verifying</p>
+        <div className="flex flex-wrap gap-2">
+          <input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="https://…" className="min-w-[220px] flex-1 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
+          <button onClick={() => { if (newUrl.trim()) { onAddLinkAndExtract(newUrl, ""); setNewUrl(""); } }} className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">Extract →</button>
+        </div>
       </div>
-      <p className="text-[11px] text-gray-400">
-        The Site card clears the In-Basket only when Advising + Orgs + Dept heads are all complete.
-      </p>
-      <div className="flex items-center justify-end gap-2">
-        <Button size="sm" variant="ghost" onClick={onSave} loading={busy}>Save progress</Button>
-        <Button size="sm" onClick={onComplete} loading={busy} disabled={!allDone}>
-          Mark category complete →
-        </Button>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
+        <span className="text-xs text-gray-500">
+          Offices so far: {ws.offices.filter((o) => (officeCounts.get(o.id) ?? 0) > 0).map((o) => `${o.name} (${officeCounts.get(o.id)})`).join(" · ") || "none"}
+          {individualCount > 0 ? ` · Individuals (${individualCount})` : ""}
+          {unassignedCount > 0 ? ` · ${unassignedCount} unassigned` : ""}
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400">{confirmedCount} of {ws.links.length} pages confirmed</span>
+          <Button size="sm" onClick={onNext} disabled={!allConfirmed}>Next: Generate →</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ContactCard({
+  contact: c,
+  offices,
+  onPatch,
+  onRemove,
+  onAssign,
+}: {
+  contact: WorkspaceContact;
+  offices: WorkspaceOffice[];
+  onPatch: (id: string, patch: Partial<WorkspaceContact>) => void;
+  onRemove: (id: string) => void;
+  onAssign: (id: string, value: string) => void;
+}) {
+  const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
+  return (
+    <div className="rounded border border-gray-100 bg-gray-50/60 p-2">
+      <div className="flex flex-wrap gap-1.5">
+        <input value={c.name ?? ""} onChange={(e) => onPatch(c.id, { name: e.target.value })} className={`${input} w-32`} placeholder="Name" />
+        <input value={c.role ?? ""} onChange={(e) => onPatch(c.id, { role: e.target.value })} className={`${input} w-32`} placeholder="Role" />
+        <input value={c.email ?? ""} onChange={(e) => onPatch(c.id, { email: e.target.value })} className={`${input} w-44`} placeholder="Email" />
+        <input value={c.phone ?? ""} onChange={(e) => onPatch(c.id, { phone: e.target.value })} className={`${input} w-28`} placeholder="Phone" />
+      </div>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        <label className="flex items-center gap-1 text-[11px] text-gray-600">
+          assign →
+          <select
+            value={c.assignment === INDIVIDUAL || offices.some((o) => o.id === c.assignment) ? c.assignment : ""}
+            onChange={(e) => onAssign(c.id, e.target.value)}
+            className={`rounded border px-1 py-0.5 ${c.assignment ? "border-gray-200 text-gray-700" : "border-amber-300 bg-amber-50 text-amber-700"}`}
+          >
+            <option value="">Choose office…</option>
+            {offices.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            <option value={INDIVIDUAL}>Individual (no office)</option>
+            <option value={NEW_OFFICE}>+ New office…</option>
+          </select>
+        </label>
+        {c.source_url && <a href={c.source_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">src ↗</a>}
+        <button onClick={() => onRemove(c.id)} className="ml-auto text-[11px] text-gray-400 hover:text-red-600">remove</button>
       </div>
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Step 6 — Generate
+// Step 3 — Generate
 // ───────────────────────────────────────────────────────────────────────────
 function GenerateStep({
   ws,
-  gen,
-  setGen,
+  groups,
+  outreach,
+  setOutreach,
   busy,
+  onPatchContact,
   onGenerate,
+  onReview,
 }: {
   ws: WorkspaceState;
-  gen: Record<string, { office: boolean; members: Set<string> }>;
-  setGen: (fn: (s: Record<string, { office: boolean; members: Set<string> }>) => Record<string, { office: boolean; members: Set<string> }>) => void;
+  groups: { byOffice: Map<string, WorkspaceContact[]>; individuals: WorkspaceContact[] };
+  outreach: Set<string>;
+  setOutreach: (fn: (s: Set<string>) => Set<string>) => void;
   busy: boolean;
+  onPatchContact: (id: string, patch: Partial<WorkspaceContact>) => void;
   onGenerate: () => void;
+  onReview: () => void;
 }) {
-  const toggleOffice = (oid: string) =>
-    setGen((s) => ({ ...s, [oid]: { office: !(s[oid]?.office ?? false), members: s[oid]?.members ?? new Set() } }));
-  const toggleMember = (oid: string, mid: string) =>
-    setGen((s) => {
-      const cur = s[oid] ?? { office: false, members: new Set<string>() };
-      const members = new Set(cur.members);
-      if (members.has(mid)) members.delete(mid);
-      else members.add(mid);
-      return { ...s, [oid]: { ...cur, members } };
-    });
+  const [editing, setEditing] = useState<Set<string>>(new Set());
+  const officeName = new Map(ws.offices.map((o) => [o.id, o.name]));
+  const toggle = (id: string) =>
+    setOutreach((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const toggleEdit = (id: string) =>
+    setEditing((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
-  const prospectCount = ws.offices.filter(
-    (o) => gen[o.id]?.office || (gen[o.id]?.members?.size ?? 0) > 0,
-  ).length;
+  const linkById = new Map(ws.links.map((l) => [l.id, l]));
+  const sourcesFor = (members: WorkspaceContact[]) => {
+    const seen = new Set<string>();
+    const out: WorkspaceLink[] = [];
+    for (const m of members) {
+      if (m.source_link_id && !seen.has(m.source_link_id)) {
+        seen.add(m.source_link_id);
+        const l = linkById.get(m.source_link_id);
+        if (l) out.push(l);
+      }
+    }
+    return out;
+  };
+
+  const prospectCount =
+    [...groups.byOffice.values()].filter((ms) => ms.some((m) => outreach.has(m.id))).length +
+    groups.individuals.filter((c) => outreach.has(c.id)).length;
+
+  const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
+  const editFields = (c: WorkspaceContact) => (
+    <div className="mt-1 flex flex-wrap gap-1.5 pl-6">
+      <input value={c.name ?? ""} onChange={(e) => onPatchContact(c.id, { name: e.target.value })} className={`${input} w-32`} placeholder="Name" />
+      <input value={c.role ?? ""} onChange={(e) => onPatchContact(c.id, { role: e.target.value })} className={`${input} w-32`} placeholder="Role" />
+      <input value={c.email ?? ""} onChange={(e) => onPatchContact(c.id, { email: e.target.value })} className={`${input} w-44`} placeholder="Email" />
+      <input value={c.phone ?? ""} onChange={(e) => onPatchContact(c.id, { phone: e.target.value })} className={`${input} w-28`} placeholder="Phone" />
+    </div>
+  );
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600">
-        Pick who outreach goes to. The office general contact is the default; promote specific people
-        only when you mean to email them directly. Everyone else stays on the Site record for reference.
+        These become prospects you can start outreach to. Edit anything, peek at the source once more,
+        then generate. The office general contact is the default; promote specific people only when you
+        mean to email them directly.
       </p>
 
       {ws.generated_at && (
@@ -1037,41 +864,78 @@ function GenerateStep({
         </p>
       )}
 
-      {ws.offices.map((o) => (
-        <div key={o.id} className="rounded-lg border border-gray-200 p-3">
-          <p className="font-medium text-gray-900">{o.name}</p>
-          <label className="mt-1 flex items-center gap-2 text-sm text-gray-800">
-            <input
-              type="checkbox"
-              checked={gen[o.id]?.office ?? false}
-              disabled={!o.general_email}
-              onChange={() => toggleOffice(o.id)}
-            />
-            Office general contact
-            {o.general_email ? <span className="text-gray-500"> → {o.general_email}</span> : <span className="text-gray-400"> (no email)</span>}
-          </label>
-          {o.members.map((m) => (
-            <label key={m.id} className="mt-1 flex items-center gap-2 pl-5 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={gen[o.id]?.members?.has(m.id) ?? false}
-                disabled={!m.email}
-                onChange={() => toggleMember(o.id, m.id)}
-              />
-              {m.name || "(unnamed)"}{m.role ? ` (${m.role})` : ""}
-              {m.email ? <span className="text-gray-500"> → {m.email}</span> : <span className="text-gray-400"> (no email)</span>}
-            </label>
-          ))}
-        </div>
-      ))}
+      {[...groups.byOffice.entries()].map(([oid, members]) => {
+        const general = members.find(isGeneralContact);
+        const people = members.filter((m) => !isGeneralContact(m));
+        const isEditing = editing.has(oid);
+        return (
+          <div key={oid} className="rounded-lg border border-gray-200 p-3">
+            <div className="flex items-center justify-between">
+              <p className="font-medium text-gray-900">{officeName.get(oid) ?? "Office"}</p>
+              <button onClick={() => toggleEdit(oid)} className="text-xs text-primary-600 hover:underline">{isEditing ? "Done" : "Edit ▾"}</button>
+            </div>
+            {general && (
+              <div>
+                <label className="mt-1 flex items-center gap-2 text-sm text-gray-800">
+                  <input type="checkbox" checked={outreach.has(general.id)} disabled={!general.email} onChange={() => toggle(general.id)} />
+                  Office general contact{general.email ? <span className="text-gray-500"> → {general.email}</span> : <span className="text-gray-400"> (no email)</span>}
+                </label>
+                {isEditing && editFields(general)}
+              </div>
+            )}
+            {people.map((m) => (
+              <div key={m.id}>
+                <label className="mt-1 flex items-center gap-2 pl-5 text-sm text-gray-700">
+                  <input type="checkbox" checked={outreach.has(m.id)} disabled={!m.email} onChange={() => toggle(m.id)} />
+                  {m.name || "(unnamed)"}{m.role ? ` (${m.role})` : ""}{m.email ? <span className="text-gray-500"> → {m.email}</span> : <span className="text-gray-400"> (no email)</span>}
+                </label>
+                {isEditing && editFields(m)}
+              </div>
+            ))}
+            <p className="mt-2 text-[11px] text-gray-400">
+              sources: {sourcesFor(members).map((l) => (
+                <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline"> {l.title} ↗ </a>
+              )) || "—"}
+            </p>
+          </div>
+        );
+      })}
 
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">
-          {prospectCount} prospect{prospectCount === 1 ? "" : "s"} will be created.
-        </span>
-        <Button size="sm" onClick={onGenerate} loading={busy} disabled={prospectCount === 0}>
-          Generate {prospectCount} prospect{prospectCount === 1 ? "" : "s"} →
-        </Button>
+      {groups.individuals.length > 0 && (
+        <div className="rounded-lg border border-gray-200 p-3">
+          <p className="font-medium text-gray-900">Individuals</p>
+          {groups.individuals.map((c) => {
+            const isEditing = editing.has(c.id);
+            return (
+              <div key={c.id}>
+                <div className="flex items-center justify-between">
+                  <label className="mt-1 flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" checked={outreach.has(c.id)} disabled={!c.email} onChange={() => toggle(c.id)} />
+                    {c.name || "(unnamed)"}{c.role ? ` (${c.role})` : ""}{c.email ? <span className="text-gray-500"> → {c.email}</span> : <span className="text-gray-400"> (no email)</span>}
+                  </label>
+                  <button onClick={() => toggleEdit(c.id)} className="text-xs text-primary-600 hover:underline">{isEditing ? "Done" : "Edit ▾"}</button>
+                </div>
+                {isEditing && editFields(c)}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {groups.byOffice.size === 0 && groups.individuals.length === 0 && (
+        <p className="rounded-md border border-dashed border-gray-200 py-8 text-center text-sm text-gray-400">
+          No contacts assigned yet. <button onClick={onReview} className="text-primary-600 hover:underline">Back to Extract &amp; Verify</button> to assign them.
+        </p>
+      )}
+
+      <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+        <button onClick={onReview} className="text-xs text-gray-500 hover:underline">← Back to Extract &amp; Verify</button>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500">{prospectCount} prospect{prospectCount === 1 ? "" : "s"} → In-Basket</span>
+          <Button size="sm" onClick={onGenerate} loading={busy} disabled={prospectCount === 0}>
+            Generate {prospectCount} → In-Basket
+          </Button>
+        </div>
       </div>
     </div>
   );

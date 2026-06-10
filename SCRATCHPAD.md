@@ -7,6 +7,31 @@
 
 ## Current Focus
 
+### 2026-06-10 — Provider-comms system SHIPPED end-to-end (decay → governance → cadence) + automations next-run forecast
+
+The arc TJ set out on — distribute provider emails through the week + learn rapidly — is built, with the governance layer it needed underneath it. Most of it is in production.
+
+**SHIPPED TO PRODUCTION (main):**
+- **Question recency decay** (#997 → #998). Digest was 99.7% `family_question` (the audience is *defined by* open questions — 3,450, 64% of them >30d old). Now a question only LEADS the digest when fresh (≤30d) or on a ~quarterly resurface; stale → demoted, the provider cascades to other rungs (completion / rank / leads) or goes quiet. Stateless (question-age based). Recipients sorted **send-worthy-first** so the 2,000 cap reaches the activity/rank audience, not just question-holders. `app/api/cron/weekly-provider-digest/route.ts`. → memory `project_question_recency_decay`.
+- **Frequency gate (Phase 1) + canonical provider identity** (#1001 → #1002). Caps PROACTIVE NUDGES at **3 per provider per rolling 7d** inside `sendEmail` (the universal chokepoint; **fails open**; transactional/real-time mail always sends + never counts). `lib/email-governance.ts` + `lib/email.ts` (new `skipReason`). Reconciled a same-day collision with Esther's #1000 (both fixed `email_log.provider_id` fragmentation — she → UUID, us → slug): canonical = **`olera-providers.slug`** (only id spanning claimed+unclaimed AND matching `provider_activity` / the conversion dashboard; `bp.slug` is a legacy id for ~16% of claimed). Shared resolver `lib/provider-identity.ts`; reverted her UUID + fixed my `bp.slug` in unread-reminders / matches-unread / reengagement-blast. `send-deferred-notifications` left on UUID (transactional → dashboard-attribution fast-follow). → memory `project_provider_comms_governance`. Messaged Esther (#ai-product-development).
+- **Through-the-week cadence** (#1003 → #1004). Digest Monday-only → **Mon–Fri** (`vercel.json` + `lib/crons/registry.ts` synced). Each provider on a fixed weekday (hash of id); ~1/5 audience/day; each provider still ≤1 digest/week so the decay math is unchanged. `?all_days` override + `dayBucket` stamped in the run summary. Pre-test caught a rank-eligible double-send (legacy-id key vs slug key → two buckets) — fixed with a hybrid key.
+
+**ON STAGING (pending promote):**
+- **#967** "cold mail off olera.care" — rebased (was 62 behind, conflicting with the gate in `lib/email.ts`) + merged. Removes `weekly_analytics_digest` from the off-domain set: keep the healthy, brand-recognized digest on olera.care (its weekly burst shouldn't land on the warming oleracare.com). Coexists cleanly with the gate.
+- **#1005** `/slack-notes` command updated with this session's ship-note learnings (lead with the quantified change; tag most-involved first; don't read TJ-hq SCRATCHPAD for Slack tone — it's documentation voice). Merged.
+
+**OPEN PR #1006 — automations "next run" forecast + header refresh:**
+- New forward-looking line on `/admin/automations/[id]`: next-run time (dependency-free cron parse, UTC→ET, weekday-aware) + **~anticipated sends** + ~duration. Display-only, zero backend/cost — estimates from recent post-cadence weekday runs (current daily; cold-start bootstrap = last sent ÷5). Pre-test caught + fixed a too-short cron scan cap (quarterly cron returned null). `app/admin/automations/[id]/page.tsx`.
+- Header visual refresh from a `/ui-critique` (grounded in TJ's Design Inspirations folder — Perena/Robinhood/Wise): elevated the Next-run block into a calm surface with the send count as a confident **teal** number; trimmed the schedule meta (full schedule → Details); description recedes. **Awaiting TJ's visual QA on the preview.**
+
+**Learnings → memories created this session:** `feedback_cron_schedule_registry_sync` (vercel.json cron change needs a `lib/crons/registry.ts` edit or the build fails on a prebuild guard — tsc/eslint stay clean; pull the real log via `vercel inspect --logs --scope olera`), `project_question_recency_decay`, `project_provider_comms_governance` (incl. Esther = GitHub `Efuanyamekye`).
+
+**Next up:**
+- QA + merge #1006 (visual). Held two optional touches: a recent-sends sparkline + live-ticking time.
+- Promote staging → main (carries #967, #1005, and #1006 once merged — note: `vercel.json` already promoted with the cadence, so the cron is live Mon–Fri).
+- `send-deferred-notifications` → canonical slug (fixes conversion-dashboard attribution for question/lead emails).
+- **WATCH the first weekday cron runs:** even daily send counts, `family_question` share drops, `nudge_cap` skips appear in skipReasons, and the forecast flips from the ÷5 bootstrap to real weekday data. (Cap runs ~7 days lenient until old-key rows age out.) Side note surfaced: some past Monday digest runs stuck `status="running"` (timeouts on the big batch) — the weekday cadence should largely fix it.
+
 ### 2026-06-09 (late) — T1 deliverability SHIPPED + VERIFIED: provider notifications now send from `oleracare.com`
 
 **Supersedes the "T1 ops never done (the real blocker)" note further below — T1 is now DONE and live in production.**

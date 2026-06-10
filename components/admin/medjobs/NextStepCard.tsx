@@ -483,7 +483,49 @@ function ConvertedBody({
   const sinceText = acceptedAt
     ? `Since ${formatLongDate(acceptedAt)}`
     : `Marked ${stageLabel.toLowerCase()}`;
-  return <p className="text-sm text-primary-800">✓ {sinceText}</p>;
+  const isPartner = ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
+  return (
+    <>
+      <p className="text-sm text-primary-800">✓ {sinceText}</p>
+      {isPartner && <PartnerPortalLinkButton outreachId={ctx.outreach.id} />}
+    </>
+  );
+}
+
+/** DF-3: mint + copy this partner's portal link so the admin can send it
+ *  (the token is the access credential; the portal is reachable via this link). */
+function PartnerPortalLinkButton({ outreachId }: { outreachId: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "copied" | "error">("idle");
+  const copy = async () => {
+    setState("loading");
+    try {
+      const res = await fetch(`/api/admin/medjobs/partner-portal-link?outreach_id=${outreachId}`);
+      const d = await res.json();
+      if (!res.ok || !d.url) throw new Error(d.error || "Failed");
+      await navigator.clipboard.writeText(d.url);
+      setState("copied");
+      setTimeout(() => setState("idle"), 2000);
+    } catch {
+      setState("error");
+      setTimeout(() => setState("idle"), 2500);
+    }
+  };
+  return (
+    <button
+      onClick={copy}
+      disabled={state === "loading"}
+      title="Copy this partner's portal link to send them."
+      className="mt-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+    >
+      {state === "loading"
+        ? "Generating…"
+        : state === "copied"
+          ? "Portal link copied ✓"
+          : state === "error"
+            ? "Couldn't generate"
+            : "🔗 Copy partner portal link"}
+    </button>
+  );
 }
 
 // ── closed ───────────────────────────────────────────────────────────────

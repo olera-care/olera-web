@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { Profile, BusinessProfile } from "@/lib/types";
+import type { Profile, BusinessProfile, Connection } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
@@ -201,7 +201,7 @@ function ProviderPassedCard({
   archiveMessage?: string | null;
   time: string;
   dateStr: string;
-  connection: Connection;
+  connection: ConnectionWithProfile;
 }) {
   // Map reason codes to user-friendly labels (keep already_connected for old messages)
   const reasonLabels: Record<string, string> = {
@@ -215,7 +215,7 @@ function ProviderPassedCard({
   const reasonLabel = reasonLabels[archiveReason] || archiveReason;
 
   // Build contextual browse URL from connection
-  const familyProfile = connection.from_profile as { city?: string; state?: string; care_types?: string[] } | null;
+  const familyProfile = connection.fromProfile;
   const city = familyProfile?.city;
   const state = familyProfile?.state;
   const careTypes = familyProfile?.care_types as string[] | undefined;
@@ -839,7 +839,7 @@ export default function ConversationPanel({
                 // Parse reason and message from text
                 // Format: "This provider has passed on this inquiry. Reason: not_a_fit\n\"message\""
                 const reasonMatch = msg.text.match(/Reason:\s*(\w+)/);
-                const messageMatch = msg.text.match(/\n"(.+)"/s);
+                const messageMatch = msg.text.match(/\n"([\s\S]+)"/);
                 const archiveReason = reasonMatch?.[1] || "other";
                 const archiveMessage = messageMatch?.[1] || null;
 

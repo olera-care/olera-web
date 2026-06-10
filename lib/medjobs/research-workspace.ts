@@ -180,6 +180,7 @@ export function contactsFromCandidate(
       name: o.name ?? null,
       role: o.role ?? null,
       email: o.email ?? null,
+      phone: o.phone ?? null,
       source_url: o.source_url ?? null,
       assignment: UNASSIGNED,
     });

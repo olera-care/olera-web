@@ -64,6 +64,7 @@ export interface OrgOfficer {
   name?: string | null;
   role?: string | null;
   email?: string | null;
+  phone?: string | null;
   source_url?: string | null;
 }
 
@@ -232,11 +233,11 @@ function extractPrompt(
       `name (the office name, e.g. "Health Professions Advising Office"), org_email (general office email),`,
       `phone (general office phone), website, directory_url, source_url, confidence (high/medium/low), notes,`,
       `and officers: an array of the people at that office — {name, role (e.g. "Pre-Health Advisor",`,
-      `"Director"), email, source_url}. Include advisors listed by name even when their direct email`,
-      `is not shown. Do NOT create a separate office per person — group people under their office.`,
+      `"Director"), email, phone, source_url}. Include advisors listed by name even when their direct`,
+      `email is not shown. Do NOT create a separate office per person — group people under their office.`,
       ``,
       `Return ONLY valid JSON shaped exactly:`,
-      `{"candidates":[{"name":"...","org_email":"...","phone":"...","website":"...","directory_url":"...","source_url":"...","confidence":"...","notes":"...","officers":[{"name":"...","role":"...","email":"...","source_url":"..."}]}]}`,
+      `{"candidates":[{"name":"...","org_email":"...","phone":"...","website":"...","directory_url":"...","source_url":"...","confidence":"...","notes":"...","officers":[{"name":"...","role":"...","email":"...","phone":"...","source_url":"..."}]}]}`,
     ].join("\n");
   }
 
@@ -290,6 +291,7 @@ function parseOfficers(v: unknown): OrgOfficer[] {
       name,
       role: str(o.role),
       email,
+      phone: str(o.phone),
       source_url: url(o.source_url),
     });
   }
@@ -321,9 +323,21 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
     // roster of people (officers/members). dept_head is the only person-shaped
     // subtype (the chair).
     if (subtype === "student_org" || subtype === "advisor") {
-      const name = str(o.name);
-      if (!name) continue;
+      const officers = parseOfficers(o.officers);
       const orgEmail = str(o.org_email);
+      const facultyAdvisor =
+        subtype === "student_org" ? parseFacultyAdvisor(o.faculty_advisor) : null;
+      // Don't drop a candidate just because the model omitted an office name —
+      // if it found officers / a general email, keep it with a fallback name so
+      // those contacts survive (the admin renames/assigns in the workspace).
+      const name =
+        str(o.name) ??
+        (officers.length || orgEmail || facultyAdvisor
+          ? subtype === "advisor"
+            ? "Advising office"
+            : "Student organization"
+          : null);
+      if (!name) continue;
       candidates.push({
         subtype,
         name,
@@ -336,8 +350,8 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
         confidence: confidence(o.confidence),
         notes: str(o.notes),
         socials: parseSocials(o.socials),
-        officers: parseOfficers(o.officers),
-        faculty_advisor: subtype === "student_org" ? parseFacultyAdvisor(o.faculty_advisor) : null,
+        officers,
+        faculty_advisor: facultyAdvisor,
       });
       continue;
     }
@@ -380,18 +394,53 @@ export async function extractFromUrl(
   pageUrl: string,
 ): Promise<ExtractResult> {
   const cost = new CostTracker();
-  const fieldHint =
-    subtype === "student_org"
-      ? "name (org), org_email, website, directory_url, socials [{platform,url}], officers [{name,role,email,source_url}], faculty_advisor {name,email,profile_url,source_url}, notes, confidence"
-      : subtype === "dept_head"
-        ? "department, name, title, email, phone, profile_url, notes, confidence"
-        : "name, title, email, phone, profile_url, notes, confidence";
+
+  // CRITICAL: the output shape must match parseCandidates() per subtype.
+  //  - advisor / student_org are ORG-SHAPED: one candidate with an `officers`
+  //    array (one entry per person). Returning flat person objects here would
+  //    be silently dropped by the parser.
+  //  - dept_head is PERSON-SHAPED: one candidate per chair.
+  let shape: string;
+  if (subtype === "advisor") {
+    shape = [
+      `Treat this page as ONE advising office/program. Return EXACTLY ONE candidate object:`,
+      `{`,
+      `  "name": "<the office/program/page name, e.g. 'Pre-Medicine Specialization Advising'>",`,
+      `  "org_email": "<a general office email if one is shown, else null>",`,
+      `  "website": null, "directory_url": null,`,
+      `  "officers": [`,
+      `     { "name": "<full name>", "role": "<their title, e.g. 'Pre-Medical Advisor'>",`,
+      `       "email": "<email>", "phone": "<phone>", "source_url": "${pageUrl}" }`,
+      `     // ONE ENTRY PER PERSON named anywhere on the page`,
+      `  ],`,
+      `  "notes": null, "confidence": "high|medium|low"`,
+      `}`,
+      `Put EVERY named advisor / coordinator / director / staff person into "officers" —`,
+      `even if some of them have no email shown.`,
+    ].join("\n");
+  } else if (subtype === "dept_head") {
+    shape = `Return one candidate per department chair/head: {"department","name","title","email","phone","profile_url","source_url":"${pageUrl}","notes","confidence"}.`;
+  } else {
+    shape = [
+      `Return one candidate per student organization:`,
+      `{ "name": "<org name>", "org_email", "website", "directory_url",`,
+      `  "socials": [{"platform","url"}],`,
+      `  "officers": [{ "name","role","email","phone","source_url":"${pageUrl}" }],  // every officer listed`,
+      `  "faculty_advisor": { "name","email","profile_url","source_url" },`,
+      `  "notes", "confidence" }`,
+    ].join("\n");
+  }
+
   const prompt = [
-    `From the web page at ${pageUrl} (for ${ctx.university}), extract EVERY relevant`,
-    `${subtype.replace("_", " ")} contact listed on that page.`,
-    `For each, include: ${fieldHint}. Set source_url to "${pageUrl}".`,
-    `Only include real contacts actually present on that page. If the page has none, return an empty list.`,
+    `Carefully read ALL of the visible content on this web page: ${pageUrl}`,
+    `(University: ${ctx.university}.)`,
+    `Extract EVERY ${subtype.replace("_", " ")} contact actually shown on the page.`,
+    `Capture each person's full name, title/role, email, and phone EXACTLY as written.`,
+    `Do not skip anyone who is listed; do not invent anyone who is not.`,
     ``,
+    shape,
+    ``,
+    `If the page genuinely lists no relevant contacts, return {"candidates":[]}.`,
     `Return ONLY valid JSON: {"candidates":[ ... ]}`,
   ].join("\n");
   const out = await perplexityJson(prompt, cost);

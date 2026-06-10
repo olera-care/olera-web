@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 const ARCHIVE_REASONS = [
-  { value: "already_connected", label: "Already connected off-platform" },
   { value: "not_a_fit", label: "Not a good fit" },
   { value: "not_accepting_clients", label: "Not accepting new clients" },
   { value: "unable_to_reach", label: "Unable to reach" },

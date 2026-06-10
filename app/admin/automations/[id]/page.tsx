@@ -461,23 +461,29 @@ export default function AutomationDetailPage() {
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
                 )}
               </div>
-              <div className="mt-1 text-sm text-gray-500">
-                {data.job.audience}
-                <span className="mx-1.5 text-gray-300">·</span>
-                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{data.job.fn}</span>
-                <span className="mx-1.5 text-gray-300">·</span>
-                {data.job.humanSchedule}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm text-gray-500">
+                <span>{data.job.audience}</span>
+                <span className="text-gray-300">·</span>
+                <span className="rounded-md bg-gray-100/70 px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-inset ring-gray-200/60">{data.job.fn}</span>
+                <span className="text-gray-300">·</span>
+                {/* Keep the meta line scannable — just the cadence; the verbose schedule lives in Details. */}
+                <span>{data.job.humanSchedule.split(",")[0]}</span>
               </div>
               {!data.paused && forecast && (() => {
                 const f = forecast;
                 return (
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm text-gray-500">
-                    <span className="font-medium text-gray-700">Next run</span>
-                    <span className="text-gray-300">·</span>
-                    <span>{f.rel}</span>
-                    <span className="text-gray-400">({f.clock})</span>
-                    {f.sends != null && (<><span className="text-gray-300">·</span><span><span className="font-medium text-gray-700">~{f.sends.toLocaleString()}</span> sends</span></>)}
-                    {f.durMin != null && (<><span className="text-gray-300">·</span><span>~{f.durMin} min</span></>)}
+                  <div className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-gray-50/80 px-3 py-2 ring-1 ring-inset ring-gray-100">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Next run</span>
+                    <span className="text-sm text-gray-600">{f.rel}</span>
+                    <span className="text-xs text-gray-400">{f.clock}</span>
+                    {f.sends != null && (
+                      <>
+                        <span className="text-gray-300">·</span>
+                        <span className="flex items-baseline gap-1"><span className="text-base font-semibold text-teal-700">~{f.sends.toLocaleString()}</span><span className="text-xs text-gray-400">sends</span></span>
+                      </>
+                    )}
+                    {f.durMin != null && (<><span className="text-gray-300">·</span><span className="text-xs text-gray-400">~{f.durMin} min</span></>)}
                   </div>
                 );
               })()}
@@ -490,7 +496,7 @@ export default function AutomationDetailPage() {
             </div>
           </div>
 
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-600">{data.job.description}</p>
+          <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-gray-400">{data.job.description}</p>
 
           {data.paused && data.pause && (
             <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 ring-1 ring-inset ring-amber-200">
@@ -513,6 +519,7 @@ export default function AutomationDetailPage() {
                   {data.job.emailTypes.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
                 </div>
               )}
+              <div className="text-gray-600"><span className="text-gray-400">Schedule</span><br />{data.job.humanSchedule}</div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 pt-1 text-xs text-gray-400">
                 <span>Route <code className="text-gray-500">{data.job.path}</code></span>
                 <span>Cron <code className="text-gray-500">{data.job.schedule}</code></span>

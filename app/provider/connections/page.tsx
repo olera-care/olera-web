@@ -257,72 +257,75 @@ function LeadDetailDrawer({
   );
 
   // ── Contact Information Section ──
-  // Clean design with icons - horizontal on desktop, vertical on mobile
+  // Apple-minimal design: section header + clean rows, no borders
   const ContactInfoSection = isVerified ? (
     (lead.email || lead.phone) ? (
-      <div className="flex flex-col md:flex-row gap-3">
-        {lead.phone && (
-          <div className="group flex items-center gap-3 px-4 py-3.5 border border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50/50 transition-all flex-1">
-            {/* Phone icon */}
-            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-            </svg>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-medium text-gray-900 truncate">{lead.phone}</p>
+      <div>
+        <p className="text-lg font-semibold text-gray-900 mb-2">Contact information</p>
+        <div className="space-y-3">
+          {lead.phone && (
+            <div className="group flex items-center gap-3 py-2">
+              {/* Phone icon */}
+              <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+              </svg>
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-medium text-gray-900 truncate">{lead.phone}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(lead.phone!, "phone")}
+                className={`p-2 rounded-lg border transition-all shrink-0 ${
+                  copiedField === "phone"
+                    ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
+                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                }`}
+                aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
+              >
+                {copiedField === "phone" ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                  </svg>
+                )}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(lead.phone!, "phone")}
-              className={`p-2 rounded-lg border transition-all shrink-0 ${
-                copiedField === "phone"
-                  ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
-                  : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
-              }`}
-              aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
-            >
-              {copiedField === "phone" ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                </svg>
-              )}
-            </button>
-          </div>
-        )}
-        {lead.email && (
-          <div className="group flex items-center gap-3 px-4 py-3.5 border border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50/50 transition-all flex-1">
-            {/* Email icon */}
-            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-            </svg>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-medium text-gray-900 truncate">{lead.email}</p>
+          )}
+          {lead.email && (
+            <div className="group flex items-center gap-3 py-2">
+              {/* Email icon */}
+              <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-medium text-gray-900 truncate">{lead.email}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(lead.email!, "email")}
+                className={`p-2 rounded-lg border transition-all shrink-0 ${
+                  copiedField === "email"
+                    ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
+                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                }`}
+                aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
+              >
+                {copiedField === "email" ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                  </svg>
+                )}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(lead.email!, "email")}
-              className={`p-2 rounded-lg border transition-all shrink-0 ${
-                copiedField === "email"
-                  ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
-                  : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
-              }`}
-              aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
-            >
-              {copiedField === "email" ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                </svg>
-              )}
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     ) : (
       <div className="px-3.5 py-3 border border-gray-200 rounded-lg bg-gray-50">

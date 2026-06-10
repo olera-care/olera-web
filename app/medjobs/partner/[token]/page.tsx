@@ -14,11 +14,12 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
-import { PROGRAM_URL } from "@/lib/student-outreach/templates";
+import { PROGRAM_URL, CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { PartnerPortalActivate } from "@/components/medjobs/PartnerPortalActivate";
 import { PartnerFlyerShare } from "@/components/medjobs/PartnerFlyerShare";
 import { PartnerAddColleague } from "@/components/medjobs/PartnerAddColleague";
 import { PartnerAddEvent } from "@/components/medjobs/PartnerAddEvent";
+import { PartnerNeedHelp } from "@/components/medjobs/PartnerNeedHelp";
 
 export const dynamic = "force-dynamic";
 
@@ -84,10 +85,16 @@ export default async function PartnerPortalPage({
 
   return (
     <Shell>
-      <header className="mb-8">
-        <p className="text-sm font-medium text-primary-700">Recruitment Partner</p>
-        <h1 className="font-display text-3xl text-gray-900">{orgName}</h1>
-        {university && <p className="mt-1 text-sm text-gray-500">{university}</p>}
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-primary-700">Recruitment Partner</p>
+          <h1 className="font-display text-3xl text-gray-900">{orgName}</h1>
+          {university && <p className="mt-1 text-sm text-gray-500">{university}</p>}
+        </div>
+        <PartnerNeedHelp
+          token={token}
+          calendlyUrl={`${CALENDLY_URL}?utm_content=${verified.payload.outreach_id}`}
+        />
       </header>
 
       {/* Hero — impact. Live metrics wire in later (outcomes data source);

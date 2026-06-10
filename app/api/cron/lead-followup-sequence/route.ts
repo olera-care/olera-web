@@ -203,6 +203,7 @@ export async function GET(request: NextRequest) {
         nudge_cap: 0, // Frequency gate held this stage — provider over the weekly nudge budget
         not_stuck: 0, // For force_stuck_reengagement mode
         admin_marked_connected: 0, // Admin verified provider connected off-platform
+        provider_archived: 0, // Provider archived lead in their portal (not a fit, not taking clients, etc.)
       },
       dry_run: dryRun,
       force_stuck_reengagement: forceStuckReengagement,
@@ -348,6 +349,16 @@ export async function GET(request: NextRequest) {
         // Admin verified provider connected - stop sequence
         counts.skipped++;
         counts.skipReasons.admin_marked_connected = (counts.skipReasons.admin_marked_connected || 0) + 1;
+        continue;
+      }
+
+      // Check if provider archived this lead in their portal
+      const isArchived = meta.archived === true;
+      const archiveReason = meta.archive_reason as string | undefined;
+      if (isArchived || archiveReason) {
+        // Provider explicitly archived - respect their decision and stop sequence
+        counts.skipped++;
+        counts.skipReasons.provider_archived = (counts.skipReasons.provider_archived || 0) + 1;
         continue;
       }
 

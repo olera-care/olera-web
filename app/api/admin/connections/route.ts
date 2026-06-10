@@ -100,7 +100,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "no_email";
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "no_email" | "declined";
 
 // Stuck threshold: 3+ nudges with no response
 const STUCK_NUDGE_THRESHOLD = 3;
@@ -465,7 +465,9 @@ export async function GET(request: NextRequest) {
 
       // Check metadata for explicit connection signals from provider
       const markedReplied = meta.marked_replied === true;
+      const archived = meta.archived === true;
       const archiveReason = meta.archive_reason as string | undefined;
+      const archivedAt = meta.archived_at as string | undefined;
       const alreadyConnected = archiveReason === "already_connected";
 
       // Extract admin override (manually marked status)
@@ -646,6 +648,10 @@ export async function GET(request: NextRequest) {
         // Explicit connection signals from provider metadata
         markedReplied,
         alreadyConnected,
+        // Archive state (provider archived in their portal)
+        archived,
+        archiveReason,
+        archivedAt,
         // Admin override for manual status marking
         adminOverride,
         // For engagement-based "Needs Call" tab
@@ -1004,6 +1010,13 @@ export async function GET(request: NextRequest) {
       // Special filter: no_email (provider perspective only - cross-cutting filter)
       if (responseFilter === "no_email" && perspective === "provider") {
         list = list.filter((c) => !c.provider.email?.trim());
+      }
+      // Special filter: declined (provider archived with decline reasons)
+      else if (responseFilter === "declined" && perspective === "provider") {
+        list = list.filter((c) => {
+          // Provider archived with a decline reason (not "already_connected")
+          return c.archived && c.archiveReason && c.archiveReason !== "already_connected";
+        });
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
@@ -1020,20 +1033,34 @@ export async function GET(request: NextRequest) {
           if (responseFilter === "needs_call") {
             // Needs Call: only include providers WITH email
             // Providers without email should be in "No Email" tab instead
+            // Exclude archived (those go to "Declined" tab)
             list = list.filter((c) =>
               connectionEngagementLevels.get(c.id) === "needs_call" &&
-              c.provider.email?.trim()
+              c.provider.email?.trim() &&
+              !c.archived
             );
           } else if (responseFilter === "stuck") {
             // Stuck: only include providers WITH email
             // Providers without email should be in "No Email" tab instead
             // (Can't be "stuck" in a sequence if they never received an email)
+            // Exclude archived (those go to "Declined" tab)
             list = list.filter((c) =>
               connectionEngagementLevels.get(c.id) === "stuck" &&
-              c.provider.email?.trim()
+              c.provider.email?.trim() &&
+              !c.archived
+            );
+          } else if (responseFilter === "connected") {
+            // Connected: Include both active connections AND "already_connected" archives
+            list = list.filter((c) =>
+              connectionEngagementLevels.get(c.id) === "connected" ||
+              (c.archived && c.archiveReason === "already_connected")
             );
           } else {
-            list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+            // Other engagement levels (new, viewed): exclude archived
+            list = list.filter((c) =>
+              connectionEngagementLevels.get(c.id) === responseFilter &&
+              !c.archived
+            );
           }
         } else {
           // Filter by workflow state (legacy)

@@ -113,6 +113,33 @@ export async function PATCH(
   if (typeof body.research_complete === "boolean") patch.research_complete = body.research_complete;
 
   const db = getServiceClient();
+
+  // Partner manual-audit gate (Chunk 1.3): merge per-subtype checklist state
+  // into partner_research.audit[subtype]. Body shape:
+  //   { partner_audit: { subtype, steps: {key:bool}, complete: bool } }
+  if (body.partner_audit && typeof body.partner_audit === "object") {
+    const pa = body.partner_audit as {
+      subtype?: string;
+      steps?: Record<string, boolean>;
+      complete?: boolean;
+    };
+    const validSubtypes = ["advisor", "student_org", "dept_head"];
+    if (pa.subtype && validSubtypes.includes(pa.subtype)) {
+      const { data: cur } = await db
+        .from("student_outreach_campuses")
+        .select("partner_research")
+        .eq("slug", slug)
+        .maybeSingle();
+      const pr = ((cur?.partner_research as Record<string, unknown> | null) ?? {}) as Record<string, unknown>;
+      const audit = (pr.audit ?? {}) as Record<string, unknown>;
+      audit[pa.subtype] = {
+        steps: pa.steps ?? {},
+        complete_at: pa.complete ? new Date().toISOString() : null,
+      };
+      patch.partner_research = { ...pr, audit };
+    }
+  }
+
   const { data, error } = await db
     .from("student_outreach_campuses")
     .update(patch)

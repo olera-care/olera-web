@@ -37,6 +37,8 @@ interface Props {
   onClose: () => void;
   /** Called after at least one candidate is accepted (parent refetches). */
   onAccepted: () => void;
+  /** Hand off to the required manual-audit gate for the chosen subtype. */
+  onOpenAudit?: (subtype: PartnerSubtype) => void;
 }
 
 export function PartnerSourcingModal({
@@ -44,6 +46,7 @@ export function PartnerSourcingModal({
   universityName,
   onClose,
   onAccepted,
+  onOpenAudit,
 }: Props) {
   const [step, setStep] = useState<Step>("config");
   const [subtype, setSubtype] = useState<PartnerSubtype>("advisor");
@@ -244,7 +247,9 @@ export function PartnerSourcingModal({
         setAccepted(ok);
       }
       if (ok > 0) onAccepted();
-      onClose();
+      // Push the admin straight into the required manual audit for this subtype.
+      if (onOpenAudit) onOpenAudit(subtype);
+      else onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Accept failed");
     } finally {
@@ -255,7 +260,18 @@ export function PartnerSourcingModal({
   // ── render ────────────────────────────────────────────────────────────
   const footer =
     step === "config" ? (
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        {onOpenAudit ? (
+          <button
+            type="button"
+            onClick={() => onOpenAudit(subtype)}
+            className="text-xs text-gray-500 hover:underline"
+          >
+            Skip to manual audit checklist →
+          </button>
+        ) : (
+          <span />
+        )}
         <Button size="sm" onClick={findSources} loading={loading}>
           Find sources →
         </Button>

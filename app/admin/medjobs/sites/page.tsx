@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation";
 import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
 import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
 import { PartnerSourcingModal } from "@/components/admin/medjobs/PartnerSourcingModal";
+import { PartnerAuditModal } from "@/components/admin/medjobs/PartnerAuditModal";
+import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
@@ -34,6 +36,7 @@ export default function SitesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [sourcingSite, setSourcingSite] = useState<CampusRow | null>(null);
+  const [auditState, setAuditState] = useState<{ site: CampusRow; subtype: PartnerSubtype } | null>(null);
   const [range, setRange] = useState<DateRangeValue>({
     preset: "30d",
     customFrom: "",
@@ -138,6 +141,24 @@ export default function SitesPage() {
           universityName={sourcingSite.name}
           onClose={() => setSourcingSite(null)}
           onAccepted={() => void refetch()}
+          onOpenAudit={(subtype) => {
+            const site = sourcingSite;
+            setSourcingSite(null);
+            setAuditState({ site, subtype });
+          }}
+        />
+      )}
+
+      {auditState && (
+        <PartnerAuditModal
+          campusSlug={auditState.site.slug}
+          universityName={auditState.site.name}
+          subtype={auditState.subtype}
+          onClose={() => setAuditState(null)}
+          onComplete={() => {
+            setAuditState(null);
+            void refetch();
+          }}
         />
       )}
     </div>

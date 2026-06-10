@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
   const db = getServiceClient();
   const { data: campus } = await db
     .from("student_outreach_campuses")
-    .select("id")
+    .select("id, partner_research")
     .eq("slug", campusSlug)
     .maybeSingle();
   if (!campus) return NextResponse.json({ error: "Site not found" }, { status: 404 });
@@ -83,7 +83,12 @@ export async function GET(request: NextRequest) {
       if (typeof e === "string" && e.trim()) emails.add(e.trim().toLowerCase());
     }
   }
-  return NextResponse.json({ names: [...names], emails: [...emails] });
+  const pr = ((campus as { partner_research?: Record<string, unknown> }).partner_research ?? {}) as Record<string, unknown>;
+  return NextResponse.json({
+    names: [...names],
+    emails: [...emails],
+    partner_research: { sources: pr.sources ?? {}, audit: pr.audit ?? {} },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -124,7 +129,7 @@ export async function POST(request: NextRequest) {
     const db = getServiceClient();
     const { data: campus, error } = await db
       .from("student_outreach_campuses")
-      .select("name, city, state")
+      .select("id, name, city, state, partner_research")
       .eq("slug", campusSlug)
       .maybeSingle();
     if (error || !campus) {
@@ -144,6 +149,14 @@ export async function POST(request: NextRequest) {
 
     if (stage === "source_map") {
       const { sources, cost } = await buildSourceMap(ctx, subtype);
+      // Persist the source map on the Site (R4) so it's reusable for the
+      // manual audit + later research without re-paying for it.
+      const pr = ((campus as { partner_research?: Record<string, unknown> }).partner_research ?? {}) as Record<string, unknown>;
+      const prSources = (pr.sources ?? {}) as Record<string, unknown>;
+      await db
+        .from("student_outreach_campuses")
+        .update({ partner_research: { ...pr, sources: { ...prSources, [subtype]: sources } } })
+        .eq("id", (campus as { id: string }).id);
       return NextResponse.json({ sources, cost });
     }
 

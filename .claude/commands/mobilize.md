@@ -1,8 +1,8 @@
 # Mobilize — Mobile-First Refinement for Olera Webpages
 
-Take a page that's fine on desktop and make it feel **native, calm, and confident** on mobile. Not a redesign. Not copy-punching (that's `/punch`). Not state-transition smoothing (that's `/dejank`). This is the *mobile-specific* pass: thumb economics, viewport reality, native flows, mobile typography, mobile motion, mobile density.
+Take a page that's fine on desktop and make it feel **native, calm, and confident** on mobile. Not a redesign. Not copy-punching (that's `/punch`). Not state-transition smoothing (that's `/dejank`). This is the *mobile-specific* pass: thumb economics, viewport reality, native flows, mobile typography, mobile motion, mobile density, container discipline.
 
-**Bar:** Airbnb's bottom-anchored Reserve button. Apple's one-thing-per-screen restraint. Telegram's instant gestures. Luma's full-bleed event hero. Linear's tight vertical rhythm. Instagram's gesture-first media. Robinhood's confident numbers + bottom nav. Wispr Flow's black pill CTA. Perena's atmospheric calm.
+**Bar:** Airbnb's bottom-anchored Reserve button. Apple's one-thing-per-screen restraint. Telegram's instant gestures. Luma's full-bleed event hero. Linear's tight vertical rhythm. Instagram's gesture-first media. Robinhood's confident numbers + bottom nav. Wispr Flow's black pill CTA. Perena's atmospheric calm. Apple Settings' and Airbnb's flat, hairline-divided sections — no box per row.
 
 **Sacred rule:** Think before code. Restate the problem. Surface blindspots. Ask clarifying questions. **Wait for confirmation before editing.**
 
@@ -79,7 +79,7 @@ If you can't yet name three concrete mobile problems, you haven't looked hard en
 
 ---
 
-## Phase 3 — Critique through the six mobile lenses
+## Phase 3 — Critique through the seven mobile lenses
 
 Every critique must touch each lens. Skip a lens only if you can explain why it doesn't apply to this page.
 
@@ -142,6 +142,21 @@ Mobile users are often on 4G in a Starbucks. The page must paint fast.
 - Avoid CLS (cumulative layout shift): reserve image dimensions, use skeleton placeholders for async content.
 - Don't ship desktop-only JavaScript to mobile (e.g., complex hover interactions, large carousel libs) — code-split or conditionally import.
 
+### Lens 7 — Container Discipline (the box budget)
+
+Mobile containers are **often unnecessary**, and nesting them is the most common way an Olera page looks amateur on a phone. **The narrow viewport already separates content** — a 375px column is its own visual boundary, so wrapping every section in a card just adds borders, padding, and noise that fight the content. TJ's rule, validated on the provider dashboard rework (2026-06-10): *"Containers are not needed on mobile — at least, often unneeded. This is really important."*
+
+The law, lifted straight from the inspirations — Airbnb's trip page (Check-in / Getting there / House manual are flat sections split by hairlines + a label, none boxed), Apple Settings (flat hairline-divided rows), Notion, and Perena (holdings are a flat table, not row cards): **one hero surface, everything else flat.** Sections are delineated by whitespace + a thin horizontal hairline, not by a box each.
+
+- **Count your box depth. More than one level of nesting on mobile is a bug.** The worst offender we shipped and then killed: a section card (border + bg + rounded) containing an empty-state placeholder (another border + bg + rounded + decorative rings) containing an icon chip (a third box). Three boxes deep on a 375px screen reads as ridiculous. Collapse it.
+- **De-box section wrappers on mobile, keep them carded on desktop.** Chromeless section = `py-7 lg:p-6 lg:bg-white lg:border lg:border-gray-200/80 lg:rounded-2xl`. Dividers come from the *parent*: `divide-y divide-gray-100 lg:divide-y-0 lg:space-y-6` — a hairline between flat sections on mobile, gapped cards on desktop. (Tailwind preflight gives `divide-y` its solid border-style for free.)
+- **Empty states are a quiet line, not a placeholder box.** One muted sentence + an inline text CTA (`Add pricing →`). Kill the bordered box, the decorative rings, and the centered icon chip on mobile; keep the richer boxed version behind `lg:` if the desktop column has room.
+- **Secondary affordances are text, not chips.** An "Edit" text link beats a bordered circular pencil button on a flat mobile layout — one less box. Reserve the chip/button for desktop.
+- **What still earns a box on mobile:** the *one* focal surface — a hero, a proud-numbers card, a single primary CTA (Wise's calculator, Perena's position card, Robinhood's balance). One. If you're drawing a second elevated surface, justify it out loud.
+- **Watch the breakpoint mismatch.** If a child component switches its own layout at `sm` while the page de-boxes at `lg`, the affordances diverge in the 640–1024 band (e.g. a card stays carded while its neighbors went flat). Align the breakpoints or accept the tablet edge knowingly.
+
+This is a *first-class* lens — when in doubt on mobile, **remove the box.**
+
 ---
 
 ## Phase 4 — Surface blindspots (Olera-specific gotchas)
@@ -162,6 +177,8 @@ These are mistakes that have happened or could happen on Olera webpages specific
 | Animation on `width` / `height` / `top` | Janky on mobile GPUs | Migrate to `transform: translate/scale` + `opacity` |
 | Senior-user tap target < 48px | Misses + double-taps + frustration | Audit every interactive element |
 | H1 sharing `flex justify-between` with action buttons | Title collapses to longest-word width, ladders one-word-per-line; `flex-1 min-w-0` often doesn't rescue it; multiple speculative CSS tweaks fail in sequence | Restructure: actions move to a utility bar above; title wrapper `sm:flex` only (block on mobile); H1 is a block-level child with no flex sibling |
+| Containers nested within containers on mobile | Section card → empty-state box → icon chip = 3 boxes deep; looks amateur on a 375px screen | De-box wrappers (`py-7 lg:p-6 lg:border lg:rounded-2xl`); dividers via parent `divide-y divide-gray-100 lg:divide-y-0`; empty states → muted line + inline CTA. See Lens 7. |
+| A card around every section on mobile | The narrow screen already separates content; per-section boxes just add noise | Flatten: one hero surface, everything else hairline-divided whitespace |
 
 ---
 
@@ -195,7 +212,7 @@ Once TJ confirms direction:
 After implementing, give a short summary:
 
 - **What changed** (3-6 bullets, file paths included)
-- **Which lens each change addressed** (thumb / viewport / native / type / motion / performance)
+- **Which lens each change addressed** (thumb / viewport / native / type / motion / performance / container)
 - **What to verify on Vercel** — specific things to check on a real iPhone, not generic "looks good"
 
 ---
@@ -237,6 +254,7 @@ When TJ shares back-from-Vercel screenshots:
 - **Don't redesign.** This is surgical mobile refinement, not a from-scratch rebuild. Three lenses fixed > all six attempted shallowly.
 - **Don't break desktop to fix mobile.** Use Tailwind responsive prefixes; default to mobile-first.
 - **Don't add features.** Mobile optimization is not the place for new sections, new CTAs, new data.
+- **Don't box every section on mobile.** The narrow screen *is* the container. One hero surface; everything else flat, divided by whitespace + a hairline. Containers-within-containers (card → box → chip) is the #1 amateur tell on a phone. See Lens 7 — TJ flagged this as "really important."
 - **Don't trust devtools mobile emulation.** Chrome's iPhone emulator lies about: safe-area-insets, real keyboard behavior, real touch latency, real `100vh` quirks. Vercel + a real phone is the only source of truth.
 - **Don't fix what TJ didn't flag.** If the screenshot shows the FAQ, don't critique the footer.
 - **Don't skip the inspirations folder.** Ten seconds of `ls` and a glance at a Wispr Flow screen recalibrates your taste before every critique. Skipping it leads to generic recommendations.
@@ -266,3 +284,7 @@ When TJ shares back-from-Vercel screenshots:
 | Layout shift on async content | Skeleton placeholders reserving space | Performance |
 | Long H1 ladders one-word-per-line on mobile | Title sharing flex row with action buttons — restructure: actions to utility bar above, title wrapper `sm:flex` only | Native |
 | `flex-1` "should" expand but doesn't | Don't keep tweaking — restructure so the element has no flex sibling at that breakpoint (`block` on mobile, `sm:flex`) | Native |
+| Every section wrapped in its own card | De-box on mobile; hairline dividers via parent `divide-y divide-gray-100 lg:divide-y-0 lg:space-y-6` | Container |
+| Empty state is a boxed placeholder w/ icon chip | Collapse to a muted line + inline `Add X →` CTA; box only at `lg:` | Container |
+| Bordered pencil/chip for a secondary action | Plain "Edit" text link on mobile, chip on desktop | Container |
+| Containers nested 3 deep (card → box → chip) | Count box depth; >1 nesting level on mobile is a bug — flatten | Container |

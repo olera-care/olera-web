@@ -38,7 +38,7 @@ interface MarkStatusRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthUser();
@@ -51,7 +51,7 @@ export async function POST(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const connectionId = params.id;
+    const { id: connectionId } = await params;
     const body: MarkStatusRequest = await request.json();
     const { status, reason, notes } = body;
 
@@ -99,7 +99,7 @@ export async function POST(
     };
 
     // Update metadata with admin override
-    const updatedMetadata = {
+    const updatedMetadata: Record<string, unknown> = {
       ...currentMetadata,
       admin_override: adminOverride,
     };

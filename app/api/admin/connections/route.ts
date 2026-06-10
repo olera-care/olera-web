@@ -468,6 +468,9 @@ export async function GET(request: NextRequest) {
       const archiveReason = meta.archive_reason as string | undefined;
       const alreadyConnected = archiveReason === "already_connected";
 
+      // Extract admin override (manually marked status)
+      const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
+
       // Check if family has replied AFTER provider's response
       // This determines if we need to nudge the family
       // Only counts REAL replies (non-auto, non-system, with actual text)
@@ -643,6 +646,8 @@ export async function GET(request: NextRequest) {
         // Explicit connection signals from provider metadata
         markedReplied,
         alreadyConnected,
+        // Admin override for manual status marking
+        adminOverride,
         // For engagement-based "Needs Call" tab
         needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
         // When Day 0 email was sent (for staleness calculation)
@@ -887,10 +892,9 @@ export async function GET(request: NextRequest) {
         combinedLastActivity = engagementLastActivity || messageLastActivity;
       }
 
-      // Extract admin override from metadata
-      const adminOverride = c.metadata?.admin_override ? parseAdminOverride(c.metadata.admin_override) : null;
-      const adminMarkedViewed = adminOverride?.status === "viewed";
-      const adminMarkedConnected = adminOverride?.status === "connected";
+      // Use admin override from connection object (already parsed earlier)
+      const adminMarkedViewed = c.adminOverride?.status === "viewed";
+      const adminMarkedConnected = c.adminOverride?.status === "connected";
 
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
@@ -1050,13 +1054,11 @@ export async function GET(request: NextRequest) {
     // Add engagement level to each connection in the page
     // Include both provider and family engagement levels so UI can display appropriately
     const page = pageRaw.map((c) => {
-      const adminOverride = c.metadata?.admin_override ? parseAdminOverride(c.metadata.admin_override) : null;
-
       return {
         ...c,
         engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
         familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
-        adminOverride,
+        // adminOverride is already included in c from earlier mapping
       };
     });
 

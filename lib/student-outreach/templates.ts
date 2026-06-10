@@ -297,6 +297,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         ].join("\n"),
       };
     case "advisor":
+      // Office-first: we reach the advising OFFICE and ask it to point us to
+      // the right person, rather than guessing an individual advisor.
       return {
         subject,
         body: [
@@ -304,11 +306,13 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find Olera's ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
+          `I'm reaching out to your office while connecting with the pre-health and career advising offices at ${PLACEHOLDER.campus} about Olera's ${PLACEHOLDER.campus} Student Caregiver Program for their students.`,
           ``,
           programExplanation,
           ``,
-          `We hope you'll consider passing this along to your advisees. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          `Is there a specific advisor, director, or coordinator in your office who would be the best person to review this for your students? I'd be glad to send the details their way — and your office is welcome to share it with advisees directly.`,
+          ``,
+          `If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
           ``,
           portalLine,
           ``,

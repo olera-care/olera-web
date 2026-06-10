@@ -357,7 +357,13 @@ export function PartnerSourcingModal({
                   <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500">
                     {s.tier.replace("_", " ")}
                   </span>
-                  <br />
+                  {(s.why || s.likely) && (
+                    <span className="mt-0.5 block text-[11px] text-gray-500">
+                      {s.why}
+                      {s.why && s.likely ? " · " : ""}
+                      {s.likely ? <span className="text-gray-400">likely: {s.likely}</span> : null}
+                    </span>
+                  )}
                   <a
                     href={s.url}
                     target="_blank"

@@ -260,6 +260,13 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
                     <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:underline">
                       {s.title} ↗
                     </a>
+                    {(s.why || s.likely) && (
+                      <span className="block text-[11px] text-gray-400">
+                        {s.why}
+                        {s.why && s.likely ? " · " : ""}
+                        {s.likely ? `likely: ${s.likely}` : ""}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

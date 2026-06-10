@@ -54,6 +54,10 @@ export interface SourceLink {
   title: string;
   url: string;
   tier: SourceTier;
+  /** Why this page is worth opening (one short phrase). */
+  why?: string | null;
+  /** What data the admin is likely to find there (e.g. "advisor names + emails"). */
+  likely?: string | null;
 }
 
 export interface OrgOfficer {
@@ -163,15 +167,19 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
       "public health, kinesiology, nursing, and allied-health departments (chair / department-head pages)",
   };
   return [
-    `List as MANY relevant, real web pages as possible to research ${subtype.replace("_", " ")} contacts`,
-    `at ${where}.`,
+    `Find the BEST real web pages to research ${subtype.replace("_", " ")} contacts at ${where}.`,
     `Focus on: ${pageTypes[subtype]}.`,
-    `Prefer official .edu pages. Include directory and listing pages even when they don't name a person —`,
-    `they are valuable for manual research. Be comprehensive (aim for 8-15 links).`,
+    `Prefer official .edu pages. Quality over quantity — do NOT pad the list.`,
+    `Return at most 3-4 "primary" flagship pages (the single best places to find named`,
+    `contacts), plus up to ~5 "secondary" / "worth_a_look" directory or listing pages an`,
+    `admin should mine by hand. Aim for ~6-9 links total, not 15.`,
+    `Skip duplicates, dead links, and generic homepages with no path to contacts.`,
+    `For each link give a short "why" (why it's worth opening) and "likely"`,
+    `(what data you expect to find there, e.g. "advisor names + office email").`,
     ``,
     `Return ONLY valid JSON shaped exactly:`,
-    `{"sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look"}]}`,
-    `"primary" = most likely to directly yield contacts; "worth_a_look" = broad pages an admin should mine by hand.`,
+    `{"sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+    `"primary" = most likely to directly yield named contacts; "worth_a_look" = broad pages to mine by hand.`,
   ].join("\n");
 }
 
@@ -188,7 +196,13 @@ export async function buildSourceMap(
     const u = url(o.url);
     if (!u || seen.has(u)) continue;
     seen.add(u);
-    sources.push({ title: str(o.title) ?? u, url: u, tier: tier(o.tier) });
+    sources.push({
+      title: str(o.title) ?? u,
+      url: u,
+      tier: tier(o.tier),
+      why: str(o.why),
+      likely: str(o.likely),
+    });
   }
   return { sources, cost: cost.cost };
 }

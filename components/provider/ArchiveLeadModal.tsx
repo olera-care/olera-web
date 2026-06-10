@@ -52,7 +52,7 @@ export default function ArchiveLeadModal({
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Archive Lead</h2>
+            <h2 className="text-lg font-bold text-gray-900">Pass on this inquiry</h2>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -64,7 +64,7 @@ export default function ArchiveLeadModal({
             </button>
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Archive inquiry from <span className="font-medium text-gray-700">{leadName}</span>
+            We'll let <span className="font-medium text-gray-700">{leadName}</span> know you've passed and suggest other providers who might be a better fit.
           </p>
         </div>
 
@@ -100,13 +100,13 @@ export default function ArchiveLeadModal({
           {selectedReason && (
             <div className="pt-2">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Optional message
-                <span className="text-gray-400 font-normal ml-1">(will appear in conversation history)</span>
+                Optional message for the care seeker
+                <span className="text-gray-400 font-normal ml-1">(helps them find a better fit)</span>
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Add a note about why you're archiving this lead..."
+                placeholder="Add a note to help them understand why this isn't the right match..."
                 rows={3}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base text-gray-900 placeholder:text-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200 resize-none transition-all"
               />
@@ -128,7 +128,7 @@ export default function ArchiveLeadModal({
             disabled={!selectedReason || submitting}
             className="px-5 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
           >
-            {submitting ? "Archiving..." : "Archive Lead"}
+            {submitting ? "Passing on lead..." : "Pass on lead"}
           </button>
         </div>
       </div>

@@ -28,6 +28,7 @@ import { getVerificationState } from "@/lib/student-outreach/verification-state"
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
+import { PartnerPreFlightPanel } from "@/components/admin/medjobs/PartnerPreFlightPanel";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 
 interface Props {
@@ -89,10 +90,16 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     preFlightOverridden,
   );
 
-  const launchEnabled = hasEmail && verificationState.can_launch;
+  // R5: partners (stakeholder rows) often have no phone, so they can't do a
+  // confirm call — email alone is enough to launch. Providers keep the full
+  // gate (email + verified-on-call / override).
+  const isPartner = outreach.kind != null && outreach.kind !== "provider";
+  const launchEnabled = isPartner
+    ? hasEmail
+    : hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
     ? "Add an email — General Contact or Decision Maker."
-    : !verificationState.can_launch
+    : !isPartner && !verificationState.can_launch
       ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
       : undefined;
 
@@ -109,6 +116,11 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           surface (checklist + Visit Website + Call to Confirm +
           Launch Outreach) lives in the Research Card below. */}
       <NextStepCard ctx={ctx} action={action} setError={setError} />
+
+      {/* Partner pre-flight (Chunk 1.4): stakeholder-only, additive to the
+          SnapshotCard — source links, org contacts + faculty advisor, and the
+          professor permission lock. Self-gates to non-provider rows. */}
+      {isPreLaunch && isPartner && <PartnerPreFlightPanel ctx={ctx} />}
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
           General Contact + Specific Contacts + research notes the

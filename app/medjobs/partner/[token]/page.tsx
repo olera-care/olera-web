@@ -85,7 +85,8 @@ export default async function PartnerPortalPage({
         {university && <p className="mt-1 text-sm text-gray-500">{university}</p>}
       </header>
 
-      {/* Hero — impact (coming soon until outcomes data wires in, Chunk 3.2). */}
+      {/* Hero — impact. Live metrics wire in later (outcomes data source);
+          everything shows as "coming soon" for now to signal what we measure. */}
       <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your impact</p>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -96,8 +97,13 @@ export default async function PartnerPortalPage({
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xs text-gray-400">
-          Outcomes coming soon — we track student success, not just sign-ups.
+        <p className="mt-3 text-xs text-gray-500">
+          Also coming soon: students accepted to professional school · letters of
+          recommendation · references provided · clinical/caregiving hours ·
+          outcomes by semester.
+        </p>
+        <p className="mt-1 text-xs text-gray-400">
+          We track student success, not just sign-ups.
         </p>
       </section>
 
@@ -140,6 +146,54 @@ export default async function PartnerPortalPage({
           </div>
         </section>
       )}
+
+      {/* Why this exists — trust block. */}
+      <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Why this exists</p>
+        <div className="mt-3 flex gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://olera.care/images/for-providers/team/logan.jpg"
+            alt="Dr. Logan DuBose"
+            width={72}
+            height={72}
+            className="h-18 w-18 shrink-0 rounded-lg object-cover"
+            style={{ height: 72, width: 72 }}
+          />
+          <div className="text-sm text-gray-700">
+            <p className="font-semibold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
+            <p className="text-xs text-gray-500">
+              NIH-funded researcher · Chief Research Officer, Olera
+            </p>
+            <p className="mt-2">
+              Olera connects pre-health students with paid, mentored caregiving
+              experience for local seniors — building the next generation of
+              healthcare workers while strengthening care in the community. Your
+              help sharing it with students is what makes it reach them.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ — anticipates partner concerns (S27). */}
+      <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">FAQ</p>
+        <div className="mt-2 divide-y divide-gray-100">
+          {[
+            { q: "What's in it for students?", a: "Paid, mentored caregiving experience, real patient-facing hours, and recommendation letters toward medical, PA, and nursing school." },
+            { q: "What does this cost you?", a: "Nothing — you're simply sharing an opportunity with students." },
+            { q: "What's the benefit to the community?", a: "More trained, motivated caregivers supporting local seniors." },
+            { q: "What's your role / what are you committing to?", a: "Helping share the program with students. That's it — and you can stop anytime." },
+            { q: "Are you responsible for hiring or screening?", a: "No. Olera handles all applications, screening, and hiring decisions." },
+            { q: "How much effort is expected?", a: "Minutes — share a flyer, and optionally suggest colleagues or campus events." },
+          ].map((f) => (
+            <details key={f.q} className="py-2">
+              <summary className="cursor-pointer text-sm font-medium text-gray-800">{f.q}</summary>
+              <p className="mt-1 text-sm text-gray-600">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
     </Shell>
   );
 }

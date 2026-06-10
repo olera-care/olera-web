@@ -1826,6 +1826,7 @@ export async function GET(request: NextRequest) {
         counts: windowedRes.counts,
         unique_sessions_page_view: windowedRes.unique_sessions_page_view,
         provider_distinct_counts: windowedRes.provider_distinct_counts,
+        banner_leaderboard: windowedRes.banner_leaderboard,
         qa_funnel: windowedRes.qa_funnel,
         qa_funnel_by_variant: windowedRes.qa_funnel_by_variant,
         qa_email_issues: windowedRes.qa_email_issues,

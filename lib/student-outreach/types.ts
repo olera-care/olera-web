@@ -680,9 +680,12 @@ export interface SmartleadPreviewSnapshot {
   sender_pool: string[];
 }
 
+// Semantic convention: an "advisor" row is the advising OFFICE (the org
+// prospect). Individual advisors live as office members inside it, not as their
+// own rows — so the row-level label is "Advising Office", not "Advisor".
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
   student_org: "Student Org",
-  advisor: "Advisor",
+  advisor: "Advising Office",
   professor: "Professor",
   dept_head: "Dept Head",
 };
@@ -694,7 +697,7 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
  */
 export const KIND_LABELS: Record<StakeholderType | "provider", string> = {
   student_org: "Student Org",
-  advisor: "Advisor",
+  advisor: "Advising Office",
   professor: "Professor",
   dept_head: "Dept Head",
   provider: "Provider",

@@ -523,7 +523,10 @@ function officeSchema(sourceUrl: string): string {
   return [
     `For EACH office return:`,
     ` - "name": the office name (e.g. "Health Professions Advising Office")`,
-    ` - "tag": one of "advising_office" | "student_org" | "department"`,
+    ` - "tag": "advising_office" for ANY advising / career / academic-services /`,
+    `   student-services office (this is the DEFAULT — use it unless clearly`,
+    `   otherwise); "student_org" only for a student-run club; "department" ONLY`,
+    `   for an actual academic department's own page (e.g. "Department of Biology")`,
     ` - "email": the office's GENERAL email (a shared office address, e.g.`,
     `   hpo@uni.edu) — NOT a single staffer's personal address; null if none shown`,
     ` - "phone": the office's general phone, or null`,

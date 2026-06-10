@@ -198,6 +198,11 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     setWs((w) => ({ ...w, searches: w.searches.map((s) => (s.key === key ? { ...s, ran: !s.ran } : s)) }));
 
   // ── step 2: extract offices ───────────────────────────────────────────
+  // Default the office tag from the WORKFLOW subtype, not the AI's guess —
+  // the model sometimes tags an advising office as "department", which then
+  // generated a department-head prospect. The admin can recategorize in the card.
+  const defaultTag: OfficeTag =
+    subtype === "student_org" ? "student_org" : subtype === "dept_head" ? "department" : "advising_office";
   const mergeExtracted = useCallback((extracted: ExtractedOffice[], linkId: string | null) => {
     setWs((w) => {
       const offices = w.offices.map((o) => ({ ...o, source_link_ids: [...o.source_link_ids], ask_for: [...o.ask_for] }));
@@ -209,7 +214,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
           office = {
             id: wsId(),
             name: eo.name,
-            tag: eo.tag,
+            tag: defaultTag,
             email: eo.email ?? null,
             phone: eo.phone ?? null,
             website: eo.website ?? null,
@@ -237,7 +242,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       }
       return { ...w, offices, advisors };
     });
-  }, []);
+  }, [defaultTag]);
 
   const extractLink = useCallback(
     async (linkId: string) => {

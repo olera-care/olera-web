@@ -108,6 +108,7 @@ function LeadDetailDrawer({
   onEmailClick,
   onContinueInInbox,
   onMarkAsReplied,
+  onArchiveClick,
   isVerified = true,
   onVerifyClick,
 }: {
@@ -121,6 +122,7 @@ function LeadDetailDrawer({
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
   onMarkAsReplied?: (leadId: string) => void;
+  onArchiveClick?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
 }) {
@@ -492,7 +494,7 @@ function LeadDetailDrawer({
       {/* Secondary action - subtle text link */}
       <button
         type="button"
-        onClick={() => setLeadIdToArchive(lead.id)}
+        onClick={() => onArchiveClick?.(lead.id)}
         className="text-[13px] text-gray-500 hover:text-gray-900 hover:underline transition-colors py-3 px-4"
       >
         Pass on lead
@@ -1769,6 +1771,7 @@ export default function ProviderLeadsPage() {
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
         onMarkAsReplied={handleMarkAsReplied}
+        onArchiveClick={setLeadIdToArchive}
         onContactReveal={(leadId, contactType) => {
           if (!providerProfile) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;

@@ -40,7 +40,7 @@ export default function ArchiveLeadModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -48,14 +48,15 @@ export default function ArchiveLeadModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden z-[90]">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900">Pass on this inquiry</h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              disabled={submitting}
+              className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Close"
             >
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -3351,7 +3351,12 @@ function loganHeavySignature(): string {
  * Day 1 Follow-up: "In case it got buried"
  * Light signature. Sent 1 day after initial email.
  */
-export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+/**
+ * Day 1 Follow-up: Scenario A - Provider has NOT viewed the lead yet
+ * Subject: "[Name] picked your team"
+ * Gentle reminder that the request is waiting.
+ */
+export function providerFollowupDay1NotViewedEmail(opts: FollowupEmailOpts): string {
   const lead = opts.leads[0];
   const leadCount = opts.leads.length;
   const isMultiple = leadCount > 1;
@@ -3364,22 +3369,33 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build preheader
+  // Build pronoun contractions ("She's", "He's", "They're" - NOT "They's")
+  const pronounContraction = pronouns.pronoun === "They"
+    ? "They're"
+    : `${pronouns.pronoun}'s`;
+
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
+
+  // Build preheader - factual, informative (same pattern as existing)
   let preheader: string;
   if (isMultiple) {
     preheader = `${leadCount} families are looking for care.`;
+  } else if (hasCareType && lead.careRecipient && hasCity) {
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()} for ${lead.careRecipient} in ${lead.city}.`;
   } else if (hasCareType && hasCity) {
-    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
   } else if (hasCareType) {
-    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()}.`;
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()}.`;
   } else {
-    preheader = `${pronouns.pronoun}'s looking for care in your area.`;
+    preheader = `${pronounContraction} looking for care in your area.`;
   }
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
-  // Build body for single lead
+  // Build body
   let bodyHtml: string;
   if (isMultiple) {
     // Multiple leads
@@ -3392,16 +3408,13 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        Just making sure these didn't get buried — ${leadCount} families reached out yesterday looking for care, and chose your team.
+        ${leadCount} families reached out in the past day looking for care, and out of every option nearby, they chose your team. Their requests are waiting for you.
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Their requests are still open. You can see their details and message them directly:
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead
+    // Single lead - new copy
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
@@ -3409,10 +3422,7 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        Just making sure this didn't get buried — ${escapeHtml(familyRef)} reached out yesterday looking for ${careTypeRef}${recipientRef}${cityRef}, and chose your team.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is still open. You can see ${pronouns.possessive} details and message ${pronouns.object} directly:
+        ${escapeHtml(familyRef)} reached out yesterday — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}, and out of every option nearby, ${pronouns.pronounLower} chose you. ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is waiting for you.
       </p>`;
   }
 
@@ -3431,6 +3441,116 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 }
 
 /**
+ * Day 1 Follow-up: Scenario B - Provider HAS viewed the lead
+ * Subject: "Still deciding on [Name]?"
+ * Pushes for binary decision: MESSAGE or PASS ON.
+ *
+ * Note: viewedCount can be passed via metadata to adjust copy for partial viewing.
+ * If not provided, assumes all leads were viewed.
+ */
+export function providerFollowupDay1ViewedEmail(
+  opts: FollowupEmailOpts & { viewedCount?: number }
+): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+  const viewedCount = opts.viewedCount ?? leadCount; // Default: assume all viewed
+
+  // Extract first name, fallback for placeholder names
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction for body text ("she's", "he's", "they're" - NOT "they's")
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
+
+  // Build preheader - action-oriented, decision push
+  const preheader = isMultiple
+    ? "Message them, or pass — either one takes a second."
+    : `Message ${pronouns.object}, or pass — either one takes a second.`;
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
+
+  // Build body
+  let bodyHtml: string;
+  if (isMultiple) {
+    // Multiple leads - viewed scenario
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
+      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+    }).join("");
+
+    // Adjust copy based on how many were actually viewed
+    const openedText = viewedCount === leadCount
+      ? "You opened these requests earlier"
+      : viewedCount === 1
+        ? "You opened one of these requests earlier"
+        : `You opened ${viewedCount} of these requests earlier`;
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        ${openedText} — ${leadCount} families are looking for care. From here it's one of two clicks:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Message them if they're a good fit. And if they're not, a quick pass lets them know to keep looking — so they're not left waiting and wondering.
+      </p>`;
+  } else {
+    // Single lead - viewed scenario with decision push
+    const familyRef = hasName ? safeFamilyName : "the family";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        You opened ${escapeHtml(familyRef)}'s request earlier — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}. From here it's one of two clicks:
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Message ${pronouns.object} if ${pronounContractionLower} a good fit. And if ${pronounContractionLower} not, a quick pass lets ${pronouns.object} know to keep looking — so ${pronounContractionLower} not left waiting and wondering.
+      </p>`;
+  }
+
+  // Build buttons - both route to same URL, different labels
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
+
+  const passButtonText = isMultiple
+    ? "Pass on these leads →"
+    : "Pass on this lead →";
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+    ${bodyHtml}
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(passButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
+    ${loganLightSignature()}
+    ${followupFooterBlock(opts)}
+  `, preheader);
+}
+
+/** @deprecated Use providerFollowupDay1NotViewedEmail or providerFollowupDay1ViewedEmail instead */
+export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+  // Default to not-viewed variant for backward compatibility
+  return providerFollowupDay1NotViewedEmail(opts);
+}
+
+/**
  * Day 3 Follow-up: "Still waiting, replying is effortless"
  * Light signature. Sent 3 days after initial email.
  */
@@ -3445,6 +3565,11 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
   const hasCareType = !!lead.careType;
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction ("She's", "He's", "They're" - NOT "They's")
+  const pronounContraction = pronouns.pronoun === "They"
+    ? "They're"
+    : `${pronouns.pronoun}'s`;
 
   // Build preheader
   const preheader = "A quick reply is all it takes.";
@@ -3481,7 +3606,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
         A few days ago, ${escapeHtml(familyRef)} reached out looking for ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun} hasn't heard back yet.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Getting in touch is quick — open ${pronouns.possessive} request and you can message ${pronouns.object} directly from your dashboard in under a minute. No forms, no fees. ${pronouns.pronoun}'s a real family hoping someone gets back to ${pronouns.object}.
+        Getting in touch is quick — open ${pronouns.possessive} request and you can message ${pronouns.object} directly from your dashboard in under a minute. No forms, no fees. ${pronounContraction} a real family hoping someone gets back to ${pronouns.object}.
       </p>`;
   }
 
@@ -3513,6 +3638,11 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
   const hasCareType = !!lead.careType;
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction ("she's", "he's", "they're" - NOT "they's")
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
 
   // Build preheader
   const preheader = isMultiple
@@ -3552,7 +3682,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        It's been about a week since ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}. Families usually settle on a provider within a week or two, and ${pronouns.pronounLower}'s likely speaking with a few others by now.
+        It's been about a week since ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}. Families usually settle on a provider within a week or two, and ${pronounContractionLower} likely speaking with a few others by now.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
         If this is still something you're taking, a short reply could be the reason ${pronouns.pronounLower} chooses you. And if it's not the right fit, that's completely okay — there's nothing you need to do.

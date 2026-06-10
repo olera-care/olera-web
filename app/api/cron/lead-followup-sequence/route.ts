@@ -4,6 +4,8 @@ import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   providerFollowupDay1Email,
+  providerFollowupDay1NotViewedEmail,
+  providerFollowupDay1ViewedEmail,
   providerFollowupDay3Email,
   providerFollowupDay6Email,
   providerFollowupDay10Email,
@@ -139,14 +141,25 @@ function getEmailTypeForStage(stage: FollowupStage): string {
 
 /**
  * Get subject line for stage with fallback for missing family name.
+ * For stage 1, requires hasViewed parameter to determine variant.
  */
-function getSubjectForStage(stage: FollowupStage, familyName: string | null, leadCount: number): string {
+function getSubjectForStage(
+  stage: FollowupStage,
+  familyName: string | null,
+  leadCount: number,
+  hasViewed?: boolean
+): string {
   const hasName = familyName && familyName.length > 0 && familyName.toLowerCase() !== "a family";
 
   if (leadCount > 1) {
     // Multiple leads — use generic subjects
     switch (stage) {
-      case 1: return `Did you see these ${leadCount} care requests?`;
+      case 1:
+        // Day 1 variants based on viewing status
+        if (hasViewed) {
+          return `Still deciding on these ${leadCount} requests?`;
+        }
+        return `${leadCount} families picked your team`;
       case 2: return `${leadCount} families are still hoping to hear from you`;
       case 3: return `These families may be choosing a provider soon`;
       case 4: return "We'll close these introductions soon";
@@ -158,7 +171,11 @@ function getSubjectForStage(stage: FollowupStage, familyName: string | null, lea
   // Single lead
   switch (stage) {
     case 1:
-      return hasName ? `Did you see ${familyName}'s request?` : "Did you see this care request?";
+      // Day 1 variants based on viewing status
+      if (hasViewed) {
+        return hasName ? `Still deciding on ${familyName}?` : "Still deciding on this request?";
+      }
+      return hasName ? `${familyName} picked your team` : "A family picked your team";
     case 2:
       return hasName ? `${familyName} is still hoping to hear from you` : "A family is still hoping to hear from you";
     case 3:
@@ -309,6 +326,38 @@ export async function GET(request: NextRequest) {
       // Match by connection_id if available
       if (connId && connectionIdSet.has(connId)) {
         connectedConnectionIds.add(connId);
+      }
+    }
+
+    // Query for lead_opened events to determine Day 1 email variant
+    // This determines whether provider has VIEWED the lead (not connected, just opened)
+    const { data: viewedEvents, error: viewedError } = await db
+      .from("provider_activity")
+      .select("provider_id, event_type, metadata")
+      .eq("event_type", "lead_opened")
+      .limit(CONNECTION_QUERY_LIMIT);
+
+    if (viewedEvents && viewedEvents.length >= CONNECTION_QUERY_LIMIT) {
+      console.warn(
+        `[cron/lead-followup-sequence] Hit lead_opened query limit (${CONNECTION_QUERY_LIMIT}). ` +
+        "Some viewing events may be missed. Day 1 emails may incorrectly use not-viewed variant."
+      );
+    }
+
+    if (viewedError) {
+      console.error("[cron/lead-followup-sequence] lead_opened query failed:", viewedError);
+      // Non-fatal: fall back to not-viewed variant if query fails
+      // This is a fail-safe to ensure nudges are sent rather than completely failing
+    }
+
+    // Build a Set of connection IDs where provider has viewed the lead
+    const viewedConnectionIds = new Set<string>();
+    for (const event of viewedEvents || []) {
+      const meta = event.metadata as Record<string, unknown>;
+      const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+
+      if (connId && connectionIdSet.has(connId)) {
+        viewedConnectionIds.add(connId);
       }
     }
 
@@ -599,9 +648,21 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // For Day 1 emails, check if provider has viewed ANY of the leads in this batch
+      // This determines which variant to send (viewed vs not-viewed)
+      // Also track HOW MANY were viewed for accurate copy
+      let hasViewedAnyLead: boolean | undefined = undefined;
+      let viewedCount = 0;
+      if (templateStage === 1) {
+        viewedCount = group.leads.filter((lead) =>
+          viewedConnectionIds.has(lead.connectionId)
+        ).length;
+        hasViewedAnyLead = viewedCount > 0;
+      }
+
       // Build subject line
       const primaryFamilyName = oldestLead.familyName;
-      const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount);
+      const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount, hasViewedAnyLead);
       const emailType = getEmailTypeForStage(templateStage);
 
       // Reserve email log ID (canonical slug — see providerKey)
@@ -667,7 +728,15 @@ export async function GET(request: NextRequest) {
 
       switch (templateStage) {
         case 1:
-          html = providerFollowupDay1Email(templateOpts);
+          // Route to appropriate Day 1 variant based on viewing status
+          if (hasViewedAnyLead) {
+            html = providerFollowupDay1ViewedEmail({
+              ...templateOpts,
+              viewedCount, // Pass count for accurate "opened X of these requests" copy
+            });
+          } else {
+            html = providerFollowupDay1NotViewedEmail(templateOpts);
+          }
           break;
         case 2:
           html = providerFollowupDay3Email(templateOpts);

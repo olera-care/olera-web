@@ -483,49 +483,7 @@ function ConvertedBody({
   const sinceText = acceptedAt
     ? `Since ${formatLongDate(acceptedAt)}`
     : `Marked ${stageLabel.toLowerCase()}`;
-  const isPartner = ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
-  return (
-    <>
-      <p className="text-sm text-primary-800">✓ {sinceText}</p>
-      {isPartner && <PartnerPortalLinkButton outreachId={ctx.outreach.id} />}
-    </>
-  );
-}
-
-/** DF-3: mint + copy this partner's portal link so the admin can send it
- *  (the token is the access credential; the portal is reachable via this link). */
-function PartnerPortalLinkButton({ outreachId }: { outreachId: string }) {
-  const [state, setState] = useState<"idle" | "loading" | "copied" | "error">("idle");
-  const copy = async () => {
-    setState("loading");
-    try {
-      const res = await fetch(`/api/admin/medjobs/partner-portal-link?outreach_id=${outreachId}`);
-      const d = await res.json();
-      if (!res.ok || !d.url) throw new Error(d.error || "Failed");
-      await navigator.clipboard.writeText(d.url);
-      setState("copied");
-      setTimeout(() => setState("idle"), 2000);
-    } catch {
-      setState("error");
-      setTimeout(() => setState("idle"), 2500);
-    }
-  };
-  return (
-    <button
-      onClick={copy}
-      disabled={state === "loading"}
-      title="Copy this partner's portal link to send them."
-      className="mt-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-    >
-      {state === "loading"
-        ? "Generating…"
-        : state === "copied"
-          ? "Portal link copied ✓"
-          : state === "error"
-            ? "Couldn't generate"
-            : "🔗 Copy partner portal link"}
-    </button>
-  );
+  return <p className="text-sm text-primary-800">✓ {sinceText}</p>;
 }
 
 // ── closed ───────────────────────────────────────────────────────────────
@@ -704,6 +662,18 @@ function ActivationActions({
   // enum/action; reuses mark_partner). Providers never see this.
   const isPartner = ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
   const [showActivate, setShowActivate] = useState(false);
+  const [portalLink, setPortalLink] = useState<string | null>(null);
+  const openActivate = async () => {
+    setShowActivate(true);
+    if (portalLink) return;
+    try {
+      const res = await fetch(`/api/admin/medjobs/partner-portal-link?outreach_id=${ctx.outreach.id}`);
+      const d = await res.json();
+      if (res.ok && d.url) setPortalLink(d.url as string);
+    } catch {
+      /* preview link is best-effort */
+    }
+  };
   const [activating, setActivating] = useState(false);
   const [confirmMethod, setConfirmMethod] = useState<
     "email" | "verbal" | "meeting" | "other"
@@ -849,7 +819,7 @@ function ActivationActions({
         </button>
         {isPartner && (
           <button
-            onClick={() => setShowActivate((s) => !s)}
+            onClick={() => (showActivate ? setShowActivate(false) : openActivate())}
             title="They clearly agreed to help — activate them as a Recruitment Partner."
             className="rounded-md border border-primary-300 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100"
           >
@@ -870,7 +840,31 @@ function ActivationActions({
           <p className="text-xs font-semibold text-primary-800">
             Activate {ctx.outreach.organization_name} as a Recruitment Partner
           </p>
-          <p className="mt-0.5 text-[11px] text-gray-600">How did they confirm?</p>
+          <p className="mt-0.5 text-[11px] text-gray-600">
+            They&apos;ll become an active Recruitment Partner with portal access. Here&apos;s what they receive:
+          </p>
+
+          {/* Preview of what the partner gets (transparency, like our outreach
+              review). The portal link is delivered in their outreach/activation
+              emails. */}
+          <div className="mt-1.5 rounded border border-gray-200 bg-white px-2.5 py-2 text-[11px] text-gray-700">
+            <p><span className="text-gray-400">Subject:</span> You&apos;re a Recruitment Partner for {ctx.campus.name} students</p>
+            <p><span className="text-gray-400">From:</span> Graize, on behalf of Dr. Logan DuBose</p>
+            <p className="mt-1">
+              Thanks for partnering with us! Your portal is where you can share the flyer with students,
+              add colleagues, tell us about events, and see your impact.
+            </p>
+            <p className="mt-1">
+              <span className="text-gray-400">Portal link:</span>{" "}
+              {portalLink ? (
+                <a href={portalLink} target="_blank" rel="noopener noreferrer" className="break-all text-primary-600 hover:underline">{portalLink}</a>
+              ) : (
+                <span className="text-gray-400">generating…</span>
+              )}
+            </p>
+          </div>
+
+          <p className="mt-2 text-[11px] text-gray-600">How did they confirm?</p>
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
             {(["email", "verbal", "meeting", "other"] as const).map((m) => (
               <label key={m} className="flex items-center gap-1.5">

@@ -36,6 +36,55 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const VALID_STAGES = new Set(["source_map", "extract"]);
+const STAKEHOLDER_KINDS = ["advisor", "student_org", "dept_head", "professor"];
+
+/**
+ * GET /api/admin/medjobs/source-partners?campus_slug=...
+ *
+ * Dedup helper for the sourcing widget — returns the existing partner rows'
+ * names + emails for a Site so the review table can flag "already a prospect."
+ */
+export async function GET(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+  const campusSlug = request.nextUrl.searchParams.get("campus_slug")?.trim();
+  if (!campusSlug) {
+    return NextResponse.json({ error: "campus_slug is required" }, { status: 400 });
+  }
+
+  const db = getServiceClient();
+  const { data: campus } = await db
+    .from("student_outreach_campuses")
+    .select("id")
+    .eq("slug", campusSlug)
+    .maybeSingle();
+  if (!campus) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+
+  const { data: rows } = await db
+    .from("student_outreach")
+    .select("organization_name, research_data")
+    .eq("campus_id", (campus as { id: string }).id)
+    .in("kind", STAKEHOLDER_KINDS);
+
+  const names = new Set<string>();
+  const emails = new Set<string>();
+  for (const r of (rows ?? []) as Array<{
+    organization_name: string | null;
+    research_data: Record<string, unknown> | null;
+  }>) {
+    if (r.organization_name) names.add(r.organization_name.trim().toLowerCase());
+    const rd = (r.research_data ?? {}) as Record<string, unknown>;
+    const gc = (rd.general_contact ?? {}) as Record<string, unknown>;
+    const sl = (rd.smartlead ?? {}) as Record<string, unknown>;
+    for (const e of [gc.email, rd.org_email, sl.lead_email]) {
+      if (typeof e === "string" && e.trim()) emails.add(e.trim().toLowerCase());
+    }
+  }
+  return NextResponse.json({ names: [...names], emails: [...emails] });
+}
 
 export async function POST(request: NextRequest) {
   try {

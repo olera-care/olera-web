@@ -23,10 +23,13 @@ import { MedjobsCard } from "./MedjobsCard";
 export function SiteCard({
   row,
   onView,
+  onFindPartners,
 }: {
   row: CampusRow;
   /** Navigate to the site's stakeholder page. */
   onView: () => void;
+  /** Open the AI partner-sourcing widget scoped to this site. */
+  onFindPartners?: () => void;
 }) {
   const loc = [row.city, row.state].filter(Boolean).join(", ") || null;
   const subtitle = loc;
@@ -48,15 +51,29 @@ export function SiteCard({
       subtitle={subtitle}
       footnote={footnote}
       cta={
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onView();
-          }}
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-        >
-          See stakeholders →
-        </button>
+        <div className="flex items-center gap-2">
+          {onFindPartners && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onFindPartners();
+              }}
+              className="rounded-md border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100"
+              title="Find partners with AI for this university."
+            >
+              Find partners ✦
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView();
+            }}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            See stakeholders →
+          </button>
+        </div>
       }
       onClick={onView}
       hoverTitle="Open the site's stakeholder list."

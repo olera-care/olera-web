@@ -21,6 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
 import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
+import { PartnerSourcingModal } from "@/components/admin/medjobs/PartnerSourcingModal";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
@@ -32,6 +33,7 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [sourcingSite, setSourcingSite] = useState<CampusRow | null>(null);
   const [range, setRange] = useState<DateRangeValue>({
     preset: "30d",
     customFrom: "",
@@ -109,7 +111,11 @@ export default function SitesPage() {
         <ul className="space-y-2">
           {rows.map((r) => (
             <li key={r.id}>
-              <SiteCard row={r} onView={() => openSitePage(r.slug)} />
+              <SiteCard
+                row={r}
+                onView={() => openSitePage(r.slug)}
+                onFindPartners={() => setSourcingSite(r)}
+              />
             </li>
           ))}
         </ul>
@@ -123,6 +129,15 @@ export default function SitesPage() {
             setShowAdd(false);
             void refetch();
           }}
+        />
+      )}
+
+      {sourcingSite && (
+        <PartnerSourcingModal
+          campusSlug={sourcingSite.slug}
+          universityName={sourcingSite.name}
+          onClose={() => setSourcingSite(null)}
+          onAccepted={() => void refetch()}
         />
       )}
     </div>

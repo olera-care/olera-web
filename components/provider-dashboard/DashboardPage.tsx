@@ -351,7 +351,12 @@ function DashboardContent({
           In preview mode the editing header is hidden: the provider's name inside
           the preview is the de-facto title (it's their page). */}
       <div className="mb-6">
-        <div className={previewMode ? "flex justify-start" : "flex justify-end"}>
+        {/* Preview-as-families is desktop-only: on mobile the "View public
+            profile" link in the overview card opens the real live page — a
+            better, more honest preview than the in-app ghost — so this button
+            is redundant chrome stealing prime top space. hidden lg:flex keeps
+            it off phones and collapses the row so the title leads cleanly. */}
+        <div className={previewMode ? "hidden lg:flex lg:justify-start" : "hidden lg:flex lg:justify-end"}>
           <button
             onClick={() => setPreviewMode((v) => !v)}
             className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 lg:px-4 py-2.5 text-sm font-medium text-gray-600 shadow-xs transition-all hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100"
@@ -374,7 +379,7 @@ function DashboardContent({
           </button>
         </div>
         {!previewMode && (
-          <div className="mt-4">
+          <div className="lg:mt-4">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
               Your profile
             </h1>

@@ -23,6 +23,17 @@ const QUESTION_RESURFACE_DAYS = 90; // demoted questions resurface ~once per qua
 const RUN_INTERVAL_DAYS = 7; // weekly cadence — the look-back for the resurface-boundary crossing
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Through-the-week cadence: each provider is assigned a fixed weekday (Mon–Fri) by hashing their id,
+// so the digest distributes across the work-week instead of a single Monday blast. Deterministic +
+// stateless — the same provider always lands on the same day, which keeps the per-provider cadence
+// weekly (preserving the decay/resurface math) while spreading send volume to protect deliverability.
+const SEND_WEEKDAYS = 5; // Mon–Fri
+function providerSendBucket(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return Math.abs(h) % SEND_WEEKDAYS; // 0 = Mon … 4 = Fri
+}
+
 /**
  * Should this run lead with the provider's open question?
  * True when the question is fresh (≤ QUESTION_FRESH_DAYS), or when its age crosses a
@@ -40,7 +51,11 @@ function shouldLeadWithQuestion(ageDays: number): boolean {
 /**
  * GET /api/cron/weekly-provider-digest
  *
- * Runs Mondays 8 AM ET / 13:00 UTC. The provider-side return-path email.
+ * Runs weekdays (Mon–Fri) 8 AM ET / 13:00 UTC. Each provider is assigned a fixed weekday by a hash
+ * of their id, and a normal run only processes that day's bucket — so the audience is distributed
+ * across the work-week (~1/5 per day) rather than one Monday blast, while each provider still gets at
+ * most one digest per week. `?all_days=true` processes the full audience (manual catch-up).
+ * The provider-side return-path email.
  *
  * Audience (2026-05-11 expansion): two recipient sources, unioned and
  * de-duped by email:
@@ -104,6 +119,9 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const dryRun = searchParams.get("dry_run") === "true";
+  // Through-the-week cadence: by default only today's weekday bucket is processed (see below).
+  // `?all_days=true` bypasses bucketing to process the full audience — for a manual catch-up run.
+  const allDays = searchParams.get("all_days") === "true";
   const maxProviders = Math.min(
     Math.max(parseInt(searchParams.get("limit") || "2000", 10) || 2000, 1),
     5000,
@@ -344,8 +362,19 @@ export async function GET(request: NextRequest) {
       if (b && (b.viewsThisWeek > 0 || b.ctaClicks > 0 || b.leads > 0 || b.questions > 0)) return true;
       return rankEligible.has(id);
     };
+    // Through-the-week cadence: each provider has a deterministic weekday (Mon–Fri) from a hash of
+    // their id, and a normal run only processes TODAY's bucket — so ~1/5 of the audience goes out
+    // each weekday instead of one Monday blast. Each provider still gets at most one digest per week
+    // (their day), so the decay/resurface math (which assumes a weekly per-provider interval) is
+    // unchanged, the per-day slice is smaller (eases the maxProviders cap), and olera.care's send
+    // volume is smoothed. `?all_days=true` processes everyone (manual catch-up). On a weekend run
+    // (no weekday bucket) the filter yields nobody — the Vercel cron is Mon–Fri, so this only affects
+    // off-hours manual triggers, which should pass `?all_days=true`.
+    const dow = now.getUTCDay(); // 0=Sun … 6=Sat
+    const todayBucket = dow >= 1 && dow <= 5 ? dow - 1 : -1; // Mon→0 … Fri→4; weekend → -1
     const allIds = [...buckets.keys()];
-    allIds.sort((a, b) => {
+    const candidateIds = allDays ? allIds : allIds.filter((id) => providerSendBucket(id) === todayBucket);
+    candidateIds.sort((a, b) => {
       const sa = sendWorthy(a) ? 0 : 1;
       const sb = sendWorthy(b) ? 0 : 1;
       if (sa !== sb) return sa - sb;
@@ -356,10 +385,11 @@ export async function GET(request: NextRequest) {
       const vb = buckets.get(b)?.viewsThisWeek ?? 0;
       return vb - va;
     });
-    const providerIds = allIds.slice(0, maxProviders);
+    const providerIds = candidateIds.slice(0, maxProviders);
 
     if (providerIds.length === 0) {
-      return { ok: true, processed: 0, sent: 0, skipped: 0, reason: "no_active_providers" };
+      const reason = !allDays && todayBucket === -1 ? "off_day_weekend" : "no_active_providers";
+      return { ok: true, processed: 0, sent: 0, skipped: 0, dayBucket: todayBucket, reason };
     }
 
     // ── 2. Resolve business_profiles for these slugs ──
@@ -871,11 +901,13 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
         ok: true,
+        // Which weekday bucket ran (0=Mon … 4=Fri), or "all" for a ?all_days catch-up run.
+        dayBucket: allDays ? "all" : todayBucket,
         processed: providerIds.length,
         sent,
         marketHeroSent: marketHeroCount,

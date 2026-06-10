@@ -28,6 +28,8 @@ interface EngagementCounts {
   connected: number;
   stuck: number;
   needs_call: number;
+  // Note: declined is calculated client-side, not returned by backend
+  declined?: number;
 }
 
 interface FamilyEngagementCounts {
@@ -84,7 +86,7 @@ type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "no_email";
+type ProviderFilterKey = "all" | EngagementLevel | "no_email" | "declined";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -102,6 +104,7 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "stuck", label: "Stuck", description: "No activity for 10+ days", emptyMessage: "No stuck connections." },
   { key: "needs_call", label: "Needs Call", description: "14+ days, requires manual intervention", emptyMessage: "No providers need calling." },
+  { key: "declined", label: "Declined", description: "Provider archived lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
   { key: "no_email", label: "No Email", description: "Providers without email addresses", emptyMessage: "All providers have emails." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
@@ -648,7 +651,15 @@ export default function ConnectionsTrackerPage() {
       }
       return 0;
     } else {
+      // Provider perspective
       if (!list?.engagementCounts) return 0;
+
+      // Declined count is not calculated by backend and is hidden in UI
+      // When backend support is added, remove this special case
+      if (key === "declined") {
+        return 0; // Count not shown in UI
+      }
+
       const counts = list.engagementCounts;
       if (key in counts) {
         return counts[key as keyof EngagementCounts] ?? 0;
@@ -977,6 +988,8 @@ export default function ConnectionsTrackerPage() {
           INBOUND_TABS.map((tab) => {
             const count = getInboundTabCount(tab.key);
             const isActive = activeFilter === tab.key;
+            // Hide count for declined tab (backend doesn't calculate it, frontend workaround is inaccurate)
+            const showCount = tab.key !== "declined";
             return (
               <button
                 key={tab.key}
@@ -990,9 +1003,11 @@ export default function ConnectionsTrackerPage() {
                 }`}
               >
                 {tab.label}
-                <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
-                  {count}
-                </span>
+                {showCount && (
+                  <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })

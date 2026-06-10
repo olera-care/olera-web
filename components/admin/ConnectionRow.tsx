@@ -69,6 +69,10 @@ export interface ConnectionRowData {
     reason: string;
     notes?: string;
   } | null;
+  /** Provider archived this lead in their portal */
+  archived?: boolean;
+  archiveReason?: "already_connected" | "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
+  archivedAt?: string;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -175,6 +179,37 @@ function fmtDate(iso: string | null): string {
   } catch {
     return "";
   }
+}
+
+// Map archive reason codes to display labels
+function getArchiveReasonLabel(reason: string | null | undefined): string {
+  if (!reason) return "Archived";
+  switch (reason) {
+    case "already_connected":
+      return "Already connected";
+    case "not_a_fit":
+      return "Not a good fit";
+    case "not_accepting_clients":
+      return "Not accepting new clients";
+    case "unable_to_reach":
+      return "Unable to reach";
+    case "other":
+      return "Other";
+    default:
+      return "Archived";
+  }
+}
+
+// Calculate days since archived
+function daysAgo(isoDate: string | undefined): string {
+  if (!isoDate) return "";
+  const date = new Date(isoDate);
+  // Guard against invalid date strings
+  if (isNaN(date.getTime())) return "";
+  const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (days === 0) return "today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
 }
 
 // Engagement badges component
@@ -801,10 +836,16 @@ export default function ConnectionRow({
     }
   }
 
+  const isDeclined = c.archived && c.archiveReason && c.archiveReason !== "already_connected";
+
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
-      <div className="flex w-full items-center gap-3 px-4 py-4 hover:bg-stone-50/60 transition-colors">
+      <div className={`flex w-full items-center gap-3 px-4 py-4 transition-colors ${
+        isDeclined
+          ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
+          : "hover:bg-stone-50/60"
+      }`}>
         <button
           onClick={toggle}
           className="flex-1 min-w-0 text-left"
@@ -817,7 +858,7 @@ export default function ConnectionRow({
             <span className="font-medium text-gray-900 truncate">{provider}</span>
             <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>
-          {/* Secondary line: care type + timeline | waiting status | nudge info | no email badge */}
+          {/* Secondary line: care type + timeline | waiting status | nudge info | archive badge | no email badge */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
             {(careType || timeline) && (
               <>
@@ -838,6 +879,15 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
+            {/* Archive badge - show when archived with decline reason (not already_connected) */}
+            {c.archived && c.archiveReason && c.archiveReason !== "already_connected" && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600" title={c.archivedAt ? `Archived ${daysAgo(c.archivedAt)}` : "Archived"}>
+                  🚫 {getArchiveReasonLabel(c.archiveReason)}
+                </span>
+              </>
+            )}
             {/* Show "No email" badge when provider has no email (both perspectives) */}
             {/* Hide badge immediately when email is successfully added (optimistic UI) */}
             {/* Use .trim() to defensively catch empty/whitespace emails */}
@@ -853,7 +903,15 @@ export default function ConnectionRow({
         </button>
 
         {/* Timestamp - vertically centered with other controls */}
-        <span className="text-sm text-gray-400 shrink-0">{age} ago</span>
+        <span className="text-sm text-gray-400 shrink-0">
+          {(() => {
+            if (isDeclined && c.archivedAt) {
+              const archiveAge = daysAgo(c.archivedAt);
+              return archiveAge ? `Archived ${archiveAge}` : "Archived";
+            }
+            return `${age} ago`;
+          })()}
+        </span>
 
         {/* Delete button - hover reveal */}
         {onDelete && (

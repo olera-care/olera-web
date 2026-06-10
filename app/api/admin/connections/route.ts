@@ -965,7 +965,12 @@ export async function GET(request: NextRequest) {
         workflowCounts[c.workflowState]++;
 
         // Count engagement levels (provider perspective)
-        engagementCounts.all++;
+        // Exclude declined archives from "all" count (they go to "Declined" tab)
+        // Exception: "already_connected" archives are included (they appear in "Connected" tab)
+        const isDeclinedArchive = c.archived && c.archiveReason && c.archiveReason !== "already_connected";
+        if (!isDeclinedArchive) {
+          engagementCounts.all++;
+        }
 
         // For needs_call: only count if provider HAS email
         // Providers without email should only appear in no_email tab
@@ -981,7 +986,10 @@ export async function GET(request: NextRequest) {
         }
 
         // Count family engagement levels
-        familyEngagementCounts.all++;
+        // Exclude declined archives from "all" count (consistent with provider perspective)
+        if (!isDeclinedArchive) {
+          familyEngagementCounts.all++;
+        }
         familyEngagementCounts[familyEngResult.level]++;
 
         // Funnel stats (based on provider engagement)
@@ -1024,9 +1032,11 @@ export async function GET(request: NextRequest) {
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
     // For "all" tab: exclude archived connections (they go to "Declined" tab)
-    // Exception: "already_connected" archives appear in "Connected" tab instead
+    // Exceptions:
+    // - "already_connected" archives appear in "Connected" tab instead
+    // - Corrupted archives (archived=true but archiveReason=null) appear in "All" tab so admins can see/fix them
     if (responseFilter === "all") {
-      list = list.filter(c => !c.archived || c.archiveReason === "already_connected");
+      list = list.filter(c => !c.archived || c.archiveReason === "already_connected" || !c.archiveReason);
     }
 
     // Check if filter is an engagement level (provider or family)
@@ -1105,8 +1115,11 @@ export async function GET(request: NextRequest) {
     // For other tabs: sort by creation date (most recent inquiry first)
     list.sort((a, b) => {
       if (responseFilter === "declined") {
-        const aTime = a.archivedAt ? new Date(a.archivedAt).getTime() : 0;
-        const bTime = b.archivedAt ? new Date(b.archivedAt).getTime() : 0;
+        // Guard against invalid date strings (corrupted data)
+        const aDate = a.archivedAt ? new Date(a.archivedAt) : null;
+        const bDate = b.archivedAt ? new Date(b.archivedAt) : null;
+        const aTime = aDate && !isNaN(aDate.getTime()) ? aDate.getTime() : 0;
+        const bTime = bDate && !isNaN(bDate.getTime()) ? bDate.getTime() : 0;
         return bTime - aTime; // Most recently archived first
       } else {
         const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;

@@ -818,11 +818,10 @@ function DrawerBody({
           was repeating those signals one row above them. */}
       {isResearch ? (
         <>
-          {/* Partner pre-flight: source links (incl. the Site's full source
-              map), professor permission lock, phone-conditional note. Shown
-              for stakeholder rows, where the research surface lives. */}
-          <PartnerPreFlightPanel ctx={ctx} />
+          {/* Order: Research Card first (edit the data), then the Partner
+              Pre-Flight readiness box reflects it. */}
           <ResearchModePanel ctx={ctx} action={action} setError={setError} />
+          <PartnerPreFlightPanel ctx={ctx} />
         </>
       ) : (
         // v9: unified NextStepCard replaces the Partner-specific

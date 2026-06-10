@@ -211,17 +211,17 @@ function extractPrompt(
 
   if (subtype === "advisor") {
     return [
-      `Find pre-health / health-professions ACADEMIC OR CAREER ADVISORS at ${where}.`,
+      `Find the pre-health / health-professions ADVISING OFFICE(S) at ${where}.`,
       sourceHint,
-      `For each advisor return: name, title, email, phone, profile_url (LinkedIn or staff page),`,
-      `source_url (the page the info came from), confidence (high/medium/low), notes.`,
-      `For an advising OFFICE with no named advisor, use the office's real name as "name"`,
-      `(e.g. "Health Professions Advising Office") and put the general email/phone — do NOT`,
-      `write "(not a named person)" or similar placeholders in the name.`,
-      `Only include real, named people or clearly-labeled advising contacts. Skip pure guesses.`,
+      `Treat each office as ONE organization with a roster of people. For each office return:`,
+      `name (the office name, e.g. "Health Professions Advising Office"), org_email (general office email),`,
+      `phone (general office phone), website, directory_url, source_url, confidence (high/medium/low), notes,`,
+      `and officers: an array of the people at that office — {name, role (e.g. "Pre-Health Advisor",`,
+      `"Director"), email, source_url}. Include advisors listed by name even when their direct email`,
+      `is not shown. Do NOT create a separate office per person — group people under their office.`,
       ``,
       `Return ONLY valid JSON shaped exactly:`,
-      `{"candidates":[{"name":"...","title":"...","email":"...","phone":"...","profile_url":"...","source_url":"...","confidence":"...","notes":"..."}]}`,
+      `{"candidates":[{"name":"...","org_email":"...","phone":"...","website":"...","directory_url":"...","source_url":"...","confidence":"...","notes":"...","officers":[{"name":"...","role":"...","email":"...","source_url":"..."}]}]}`,
     ].join("\n");
   }
 
@@ -302,7 +302,10 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
   for (const item of arr(raw?.candidates)) {
     const o = item as Record<string, unknown>;
 
-    if (subtype === "student_org") {
+    // Org-shaped: student orgs AND advising offices — one organization with a
+    // roster of people (officers/members). dept_head is the only person-shaped
+    // subtype (the chair).
+    if (subtype === "student_org" || subtype === "advisor") {
       const name = str(o.name);
       if (!name) continue;
       const orgEmail = str(o.org_email);
@@ -311,6 +314,7 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
         name,
         org_email: orgEmail,
         email: orgEmail,
+        phone: str(o.phone),
         website: url(o.website),
         directory_url: url(o.directory_url),
         source_url: url(o.source_url),
@@ -318,12 +322,12 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
         notes: str(o.notes),
         socials: parseSocials(o.socials),
         officers: parseOfficers(o.officers),
-        faculty_advisor: parseFacultyAdvisor(o.faculty_advisor),
+        faculty_advisor: subtype === "student_org" ? parseFacultyAdvisor(o.faculty_advisor) : null,
       });
       continue;
     }
 
-    // advisor / dept_head — person-shaped.
+    // dept_head — person-shaped (the department chair).
     const name = str(o.name);
     const email = str(o.email);
     if (!name && !email) continue;
@@ -331,7 +335,7 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
       subtype,
       name,
       title: str(o.title),
-      department: subtype === "dept_head" ? str(o.department) : null,
+      department: str(o.department),
       email,
       phone: str(o.phone),
       profile_url: url(o.profile_url),
@@ -422,6 +426,36 @@ export function stakeholderBodyFromCandidate(
         : null,
     };
   }
+
+  // Advising office — org-shaped: one office row, general office contact for
+  // outreach, advisors stored as office_members (NOT outreach contacts, so no
+  // fan-out). Mirrors the student-org model.
+  if (c.subtype === "advisor") {
+    return {
+      campus_slug: campusSlug,
+      stakeholder_type: "advisor",
+      organization_name: c.name,
+      notes: c.notes ?? null,
+      research_data: {
+        ...sharedResearch,
+        general_contact: { email: c.org_email ?? null, phone: c.phone ?? null },
+        org_email: c.org_email ?? null,
+        website: c.website ?? null,
+        directory_url: c.directory_url ?? null,
+        office_members: (c.officers ?? []).map((o) => ({
+          name: o.name ?? null,
+          role: o.role ?? null,
+          email: o.email ?? null,
+          source_url: o.source_url ?? null,
+        })),
+      },
+      // Outreach targets the general office contact (email only). Members are
+      // logged in research_data and promoted individually when appropriate.
+      initial_contact: c.org_email ? { name: null, email: c.org_email, role: null } : null,
+    };
+  }
+
+  // dept_head — person-shaped (the chair).
   return {
     campus_slug: campusSlug,
     stakeholder_type: c.subtype,

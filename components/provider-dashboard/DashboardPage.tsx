@@ -402,17 +402,6 @@ function DashboardContent({
 
         {/* ─── LEFT COLUMN: scrollable profile content ─── */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Mobile proud-numbers strip (lg:hidden) — restores the "dashboard"
-              half on phones, where the sticky desktop sidebar (views/reviews) is
-              hidden. Leads the column Wise/Robinhood-style: stable numbers up
-              top, then the one dynamic action below. Reuses StatsOnlyCard so
-              share + reviews actions stay identical to desktop. */}
-          {v2Data && (
-            <div className="lg:hidden rounded-2xl border border-gray-200/80 bg-white p-5 shadow-xs">
-              <StatsOnlyCard data={v2Data} profileSlug={profile.slug} />
-            </div>
-          )}
-
           {/* Hero banner — single dynamic moment per surface. Picks one
               headline + CTA across engagement signals (leads, Qs, view
               spikes) and completion gaps (highest-impact incomplete section
@@ -474,7 +463,11 @@ function DashboardContent({
             </div>
           )}
 
-          {/* Profile cards - all scrollable */}
+          {/* Profile sections. On mobile they're a flat list: chromeless
+              sections separated by hairlines (divide-y) + whitespace — the
+              narrow screen is the container. On desktop they're carded with
+              space-y-6 gaps. */}
+          <div className="divide-y divide-gray-100 lg:divide-y-0 lg:space-y-6">
           {[
             <ProfileOverviewCard
               key="overview"
@@ -538,6 +531,7 @@ function DashboardContent({
               {card}
             </div>
           ))}
+          </div>
         </div>
 
         {/* ─── RIGHT COLUMN: Sticky stats & completeness ─── */}
@@ -685,7 +679,7 @@ function MobileProgressBanner({
     <button
       type="button"
       onClick={onTap}
-      className="lg:hidden w-full bg-white rounded-xl border border-gray-200 px-4 py-3 text-left active:bg-gray-50 transition-colors"
+      className="lg:hidden w-full bg-vanilla-50/70 rounded-2xl px-4 py-3.5 text-left active:bg-vanilla-100 transition-colors"
     >
       <div className="flex items-center gap-3">
         {/* Progress ring */}
@@ -729,7 +723,7 @@ function MobileBadgeRequestCard({
   wasRejected?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className={`rounded-2xl p-4 ${wasRejected ? "bg-amber-50/60" : "bg-primary-50/50"}`}>
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${wasRejected ? "bg-amber-100" : "bg-primary-100"}`}>

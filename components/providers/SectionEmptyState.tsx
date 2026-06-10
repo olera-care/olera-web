@@ -39,32 +39,57 @@ export default function SectionEmptyState({
   onCtaClick,
 }: SectionEmptyStateProps) {
   return (
-    <div className="relative bg-gradient-to-br from-vanilla-50 via-white to-warm-25 rounded-2xl py-12 px-8 flex flex-col items-center text-center border border-warm-100/40 overflow-hidden">
-      {/* Decorative background rings */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-48 h-48 rounded-full border border-primary-100/20" />
-        <div className="absolute w-32 h-32 rounded-full border border-warm-100/30" />
+    <>
+      {/* Mobile: a quiet inline prompt — no box, no rings, no icon chip. On a
+          narrow screen the section already reads as its own zone (whitespace +
+          hairline), so a boxed placeholder just nests a container inside a
+          container. One muted line + an inline CTA is all it needs. */}
+      <div className="lg:hidden">
+        <p className="text-[15px] text-gray-500">{message}</p>
+        {subMessage && (
+          <p className="text-sm text-gray-400 mt-1 leading-relaxed">{subMessage}</p>
+        )}
+        {ctaLabel && onCtaClick && (
+          <button
+            onClick={onCtaClick}
+            className="mt-2.5 inline-flex items-center gap-1 text-sm font-semibold text-primary-600 active:opacity-70 transition-opacity"
+          >
+            {ctaLabel}
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {/* Icon with layered depth */}
-      <div className="relative mb-5">
-        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-primary-100/40 shadow-sm">
-          {icons[icon]}
+      {/* Desktop: the carded layout has room for a richer empty state. */}
+      <div className="relative hidden lg:flex bg-gradient-to-br from-vanilla-50 via-white to-warm-25 rounded-2xl py-12 px-8 flex-col items-center text-center border border-warm-100/40 overflow-hidden">
+        {/* Decorative background rings */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-48 h-48 rounded-full border border-primary-100/20" />
+          <div className="absolute w-32 h-32 rounded-full border border-warm-100/30" />
         </div>
-      </div>
 
-      <p className="relative text-[15px] font-semibold text-gray-800">{message}</p>
-      {subMessage && (
-        <p className="relative text-sm text-gray-500 mt-1.5 leading-relaxed max-w-xs">{subMessage}</p>
-      )}
-      {ctaLabel && onCtaClick && (
-        <button
-          onClick={onCtaClick}
-          className="relative mt-5 px-5 py-2.5 text-sm font-semibold text-primary-600 bg-white border border-primary-200/60 rounded-xl hover:bg-primary-50 hover:border-primary-300 shadow-xs transition-all duration-200"
-        >
-          {ctaLabel}
-        </button>
-      )}
-    </div>
+        {/* Icon with layered depth */}
+        <div className="relative mb-5">
+          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-primary-100/40 shadow-sm">
+            {icons[icon]}
+          </div>
+        </div>
+
+        <p className="relative text-[15px] font-semibold text-gray-800">{message}</p>
+        {subMessage && (
+          <p className="relative text-sm text-gray-500 mt-1.5 leading-relaxed max-w-xs">{subMessage}</p>
+        )}
+        {ctaLabel && onCtaClick && (
+          <button
+            onClick={onCtaClick}
+            className="relative mt-5 px-5 py-2.5 text-sm font-semibold text-primary-600 bg-white border border-primary-200/60 rounded-xl hover:bg-primary-50 hover:border-primary-300 shadow-xs transition-all duration-200"
+          >
+            {ctaLabel}
+          </button>
+        )}
+      </div>
+    </>
   );
 }

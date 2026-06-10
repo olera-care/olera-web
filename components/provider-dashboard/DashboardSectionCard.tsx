@@ -18,22 +18,29 @@ export default function DashboardSectionCard({
   return (
     <section
       id={id}
-      className="bg-white rounded-2xl border border-gray-200/80 p-6 hover:border-gray-300 transition-all duration-300"
+      // Mobile: chromeless — no box, no border, no rounding. Sections are
+      // delineated by whitespace + a hairline (the parent's divide-y), the way
+      // a narrow screen already separates content (Airbnb trip / Apple Settings
+      // / Notion). py gives each section its breathing room. Desktop keeps the
+      // carded surface where the two-column layout has room for it.
+      className="py-7 lg:p-6 lg:bg-white lg:rounded-2xl lg:border lg:border-gray-200/80 lg:hover:border-gray-300 lg:transition-all lg:duration-300"
     >
       {/* Header row — hidden when no title (e.g. ProfileOverviewCard) */}
       {title && (
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-[24px] font-display font-bold text-gray-900 truncate min-w-0">{title}</h3>
+        <div className="flex items-center justify-between mb-4 lg:mb-5">
+          <h3 className="text-[22px] lg:text-[24px] font-display font-bold text-gray-900 truncate min-w-0">{title}</h3>
           <div className="flex items-center gap-2.5 shrink-0">
-            {/* Edit icon */}
+            {/* Edit — a quiet "Edit" text link on mobile (one less box), the
+                circular pencil button on desktop. */}
             <button
               type="button"
               onClick={onEdit}
-              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+              className="flex items-center justify-center text-gray-900 transition-all min-h-[44px] px-1.5 active:opacity-70 lg:min-h-0 lg:px-0 lg:w-8 lg:h-8 lg:rounded-full lg:border lg:border-gray-200 lg:hover:text-primary-600 lg:hover:border-primary-300 lg:hover:bg-primary-50"
               aria-label={`Edit ${title}`}
             >
+              <span className="lg:hidden text-sm font-semibold text-primary-600">Edit</span>
               <svg
-                className="w-4 h-4"
+                className="hidden lg:block w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

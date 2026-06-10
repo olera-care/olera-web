@@ -197,6 +197,7 @@ export async function GET(request: NextRequest) {
         already_at_stage: 0,
         sequence_stopped: 0,
         send_failed: 0,
+        nudge_cap: 0, // Frequency gate held this stage — provider over the weekly nudge budget
         not_stuck: 0, // For force_stuck_reengagement mode
       },
       dry_run: dryRun,
@@ -639,7 +640,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Send email
-      const { success, error: sendError } = await sendEmail({
+      const { success, skipped, skipReason, error: sendError } = await sendEmail({
         to: group.providerEmail,
         subject,
         html,
@@ -662,6 +663,16 @@ export async function GET(request: NextRequest) {
         );
         counts.skipped += leadCount;
         counts.skipReasons.send_failed += leadCount;
+        continue;
+      }
+
+      // Frequency gate held this nudge: do NOT advance followup_stage, so the sequence resumes from
+      // the same stage on a later run once the provider's nudge budget frees up. (Other skips — bounce
+      // suppression, preference — fall through and advance, matching prior behavior, so a dead address
+      // isn't retried forever.)
+      if (skipped && skipReason === "nudge_cap") {
+        counts.skipped += leadCount;
+        counts.skipReasons.nudge_cap += leadCount;
         continue;
       }
 

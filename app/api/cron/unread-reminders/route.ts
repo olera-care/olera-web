@@ -183,7 +183,10 @@ export async function GET(request: NextRequest) {
       const [{ data: recipient }, { data: sender }] = await Promise.all([
         db
           .from("business_profiles")
-          .select("display_name, email, type, account_id")
+          // slug / source_provider_id: stamp email_log.provider_id in the canonical slug space
+          // (== provider_activity.provider_id) so the frequency gate counts this provider's nudges
+          // alongside the digest's and lead-followup's — not under a disjoint profile-UUID key.
+          .select("display_name, email, type, account_id, slug, source_provider_id")
           .eq("id", recipientProfileId)
           .single(),
         db
@@ -226,6 +229,11 @@ export async function GET(request: NextRequest) {
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       const isFamily = recipient.type === "family";
+      // Canonical provider key (slug space) for email_log.provider_id — mirrors lead-followup's
+      // chain. All sampled provider profiles have a slug, so the fallbacks are belt-and-suspenders.
+      const providerKey = isFamily
+        ? undefined
+        : recipient.slug || recipient.source_provider_id || recipientProfileId;
 
       // Different subject and template for families vs providers
       const senderFirstName = firstName(sender?.display_name || "", isFamily ? "A provider" : "Someone");
@@ -245,7 +253,7 @@ export async function GET(request: NextRequest) {
         subject: urSubject,
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
-        providerId: isFamily ? undefined : recipientProfileId,
+        providerId: providerKey,
         metadata: {
           connection_id: mostRecentUnread.connectionId,
           unread_count: unreadCount,
@@ -345,14 +353,23 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      await sendEmail({
+      const { skipped, skipReason } = await sendEmail({
         to: recipientEmail,
         subject: urSubject,
         html: emailHtml,
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
+        providerId: providerKey,
         emailLogId: urLogId ?? undefined,
       });
+
+      // Frequency gate suppressed this nudge: do NOT advance reminder state — leave the connections
+      // eligible so they retry once the provider's nudge budget frees up. Other skips (bounce
+      // suppression, preference-disabled) fall through and mark reminded as before, so a dead address
+      // isn't re-evaluated forever.
+      if (skipped && skipReason === "nudge_cap") {
+        continue;
+      }
 
       // Mark ONLY ELIGIBLE connections as reminded (not those already at limit)
       // This prevents connections from getting count = 3, 4, 5... due to other unread connections

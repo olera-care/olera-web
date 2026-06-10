@@ -108,7 +108,9 @@ export async function GET(request: NextRequest) {
       const [{ data: recipient }, { data: sender }] = await Promise.all([
         db
           .from("business_profiles")
-          .select("display_name, email, type")
+          // slug / source_provider_id → stamp email_log.provider_id in the canonical slug space so
+          // this cron's nudges count against the same per-provider budget as the digest / unread cron.
+          .select("display_name, email, type, slug, source_provider_id")
           .eq("id", recipientProfileId)
           .single(),
         db
@@ -130,12 +132,17 @@ export async function GET(request: NextRequest) {
 
       const senderName = sender?.display_name || "Someone";
       const isFamily = recipient.type === "family";
+      // Canonical provider key (slug space) so the frequency gate can count this send.
+      const providerKey = isFamily
+        ? undefined
+        : recipient.slug || recipient.source_provider_id || recipientProfileId;
       const urSubject = `New message from ${senderName}`;
       const urLogId = await reserveEmailLogId({
         to: recipient.email,
         subject: urSubject,
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
+        providerId: providerKey,
       });
 
       // Route based on recipient type
@@ -143,7 +150,7 @@ export async function GET(request: NextRequest) {
         ? appendTrackingParams(`${siteUrl}/portal/inbox`, urLogId)
         : appendTrackingParams(`${siteUrl}/provider/connections`, urLogId);
 
-      await sendEmail({
+      const { skipped, skipReason } = await sendEmail({
         to: recipient.email,
         subject: urSubject,
         html: isFamily
@@ -161,8 +168,15 @@ export async function GET(request: NextRequest) {
             }),
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
+        providerId: providerKey,
         emailLogId: urLogId ?? undefined,
       });
+
+      // Frequency gate held this nudge: don't stamp the reminder timestamp, so the provider is
+      // re-evaluated next run once their nudge budget frees up. Other skips fall through as before.
+      if (skipped && skipReason === "nudge_cap") {
+        continue;
+      }
 
       // Mark as reminded
       await db

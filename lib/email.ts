@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
 import { isUndeliverable } from "./email-verification";
+import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge } from "./email-governance";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
@@ -258,7 +259,7 @@ export async function reserveEmailLogId(options: {
  */
 export async function sendEmail(
   options: SendEmailOptions
-): Promise<{ success: boolean; error?: string; emailLogId?: string; skipped?: boolean }> {
+): Promise<{ success: boolean; error?: string; emailLogId?: string; skipped?: boolean; skipReason?: string }> {
   const resend = getResend();
   if (!resend) {
     console.error("[email] RESEND_API_KEY not configured");
@@ -296,7 +297,7 @@ export async function sendEmail(
         if (existingLogId) {
           updateEmailLog(existingLogId, { status: "failed", errorMessage: "Skipped: user notification preference disabled" });
         }
-        return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+        return { success: true, skipped: true, skipReason: "preference_disabled", emailLogId: existingLogId ?? undefined };
       }
     }
   }
@@ -331,7 +332,38 @@ export async function sendEmail(
           errorMessage: `Suppressed: ${suppressReason}`,
         });
       }
-      return { success: true, skipped: true, emailLogId: existingLogId ?? undefined };
+      return { success: true, skipped: true, skipReason: "suppressed", emailLogId: existingLogId ?? undefined };
+    }
+  }
+
+  // Provider-comms frequency gate: cap PROACTIVE NUDGES (digest / reminders / re-engagement) per
+  // provider over a rolling window, so the ~27 independent provider-email senders can't collectively
+  // over-mail one provider (reputation risk). Transactional / real-time mail isn't a governed nudge,
+  // so it's never gated here. Counts only status='sent' nudge rows — reserved rows are 'pending' (so
+  // the in-flight send's own row can't self-count) and suppressed sends are 'failed'. Fails OPEN on
+  // any query error (a missed cap is far better than wrongly dropping a provider's mail). The cap is
+  // keyed on providerId, which every nudge sender now stamps in the canonical slug space. See
+  // lib/email-governance.ts + plans/provider-comms-gate.md.
+  if (recipientType === "provider" && providerId && isGovernedNudge(emailType)) {
+    const db = getServiceDb();
+    if (db) {
+      const windowStart = new Date(Date.now() - NUDGE_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      const { count, error: capErr } = await db
+        .from("email_log")
+        .select("id", { count: "exact", head: true })
+        .eq("provider_id", providerId)
+        .eq("status", "sent")
+        .in("email_type", [...NUDGE_EMAIL_TYPES])
+        .gte("created_at", windowStart);
+      if (!capErr && typeof count === "number" && count >= NUDGE_WEEKLY_CAP) {
+        console.log(
+          `[email] Nudge cap reached for provider ${providerId} (${count} in ${NUDGE_WINDOW_DAYS}d) — skipping ${emailType}`,
+        );
+        if (existingLogId) {
+          updateEmailLog(existingLogId, { status: "failed", errorMessage: "nudge_cap" });
+        }
+        return { success: true, skipped: true, skipReason: "nudge_cap", emailLogId: existingLogId ?? undefined };
+      }
     }
   }
 

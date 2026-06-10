@@ -38,10 +38,17 @@ After the existing bounce/complaint suppression block: `if (recipientType === "p
 - **`status = 'sent'` filter is mandatory:** `reserveEmailLogId` writes a `pending` row BEFORE the send (so the in-flight send's own row must not self-count), and suppressed sends are `failed` (must not count). Confirmed lifecycle: pending → sent/failed.
 - One indexed query per nudge send (`idx_email_log_provider_id`). Single-recipient only (matches existing suppression scope).
 
-## Task 3 — Stateful senders honor `skipped`
-- `lead-followup-sequence`: on `skipped`, do NOT advance `followup_stage`/`followup_sent_at` — retry next run.
-- `unread-reminders`: on `skipped`, don't bump `unread_reminder_count`/`last_reminder_sent_at`.
-- `weekly-digest`: count as skipped, not sent (run-summary cosmetic).
+## Task 3 — Stateful senders honor `skipped` (only on `skipReason === "nudge_cap"`)
+`sendEmail` now returns `skipReason` ("nudge_cap" | "suppressed" | "preference_disabled"). Crons hold state ONLY for `nudge_cap` (retry when budget frees); other skips fall through and advance as before (so a dead address isn't retried forever).
+- `lead-followup-sequence`: on nudge_cap, don't advance `followup_stage`; count under `skipReasons.nudge_cap`.
+- `unread-reminders`: on nudge_cap, don't bump `unread_reminder_count`/`last_reminder_sent_at`.
+- `matches-unread`: **added (4th sender)** — it ALSO emits `unread_reminder` to providers (a known collision), so without it the cap on that type would leak. Now stamps the canonical slug + honors nudge_cap.
+- `weekly-digest`: stateless per run; `sent` counter may cosmetically over-count a capped send (email_log is the truth). Left as-is.
+
+### Pre-test notes — other senders of gated types (documented, out of Phase 1)
+- `reengagement-blast` (admin, one-shot) emits `provider_followup_day17`+`provider` → gated, correctly keyed. Targets dormant providers (under cap), no recurring state → negligible impact; doesn't honor skip (harden later if needed).
+- Admin manual sends (`connections/[id]`, `admin/emails`) can emit `unread_reminder` → also subject to the gate by design. Rare; no recurring state.
+- `student-outreach` / `medjobs`: `provider_followup` is a cadence/template name there; those paths do NOT route through `sendEmail` → NOT gated. Verified.
 
 ## Rollout & rollback
 Ship with the 3-type nudge set; watch per-provider `email_log` volume. Expand the set in follow-ups. No env killswitch (slow-leak rule) — code revert is the rollback; transactional-always-send default means a misclassification can't suppress a real lead.

@@ -2255,6 +2255,7 @@ async function enrollRowIntoActivationCampaign(
     campaignName: `MedJobs Activation — ${campusName} — ${yyyymm}`,
     existingCampaignId,
     recipient,
+    is_partner: row.kind !== "provider",
   });
 
   if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };

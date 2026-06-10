@@ -31,7 +31,7 @@ import {
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
-import { buildWelcomeUrl } from "@/lib/medjobs/welcome-token";
+import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import type { Status } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
@@ -1080,6 +1080,9 @@ export interface ActivationEnrollInput {
    *  research_data.smartlead_activation.campaign_id). Append to it when set;
    *  provision a new PAUSED activation campaign when absent. */
   existingCampaignId?: number;
+  /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
+   *  their welcome_url; providers get the provider magic link (DF-3b). */
+  is_partner?: boolean;
   /** The ONE engaged contact the activation cadence targets (not a fan-out). */
   recipient: {
     email: string;
@@ -1124,10 +1127,14 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
   const welcomeUrl = (() => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {
-      return buildWelcomeUrl(
-        { outreach_id: input.outreach_id, email, activate: true },
-        magicLinkSecret,
-      );
+      // Partners → Recruitment Partner Portal (token self-activates there).
+      // Providers → provider magic link with the activate flag (opens Terms).
+      return input.is_partner
+        ? buildPartnerPortalUrl({ outreach_id: input.outreach_id, email }, magicLinkSecret)
+        : buildWelcomeUrl(
+            { outreach_id: input.outreach_id, email, activate: true },
+            magicLinkSecret,
+          );
     } catch {
       return PROGRAM_URL;
     }

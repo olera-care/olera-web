@@ -17,6 +17,8 @@ import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
 import { PROGRAM_URL } from "@/lib/student-outreach/templates";
 import { PartnerPortalActivate } from "@/components/medjobs/PartnerPortalActivate";
 import { PartnerFlyerShare } from "@/components/medjobs/PartnerFlyerShare";
+import { PartnerAddColleague } from "@/components/medjobs/PartnerAddColleague";
+import { PartnerAddEvent } from "@/components/medjobs/PartnerAddEvent";
 
 export const dynamic = "force-dynamic";
 
@@ -140,18 +142,9 @@ export default async function PartnerPortalPage({
             programUrl={PROGRAM_URL}
           />
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              { t: "Add a colleague", d: "Suggest who else we should talk to." },
-              { t: "Tell us about an event", d: "Career fairs, org meetings, class visits." },
-              { t: "Need help?", d: "Message the team or book a call." },
-            ].map((c) => (
-              <div key={c.t} className="rounded-xl border border-gray-200 bg-white p-5">
-                <p className="text-sm font-semibold text-gray-900">{c.t}</p>
-                <p className="mt-1 text-xs text-gray-500">{c.d}</p>
-                <p className="mt-2 text-[11px] text-gray-400">Coming soon</p>
-              </div>
-            ))}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <PartnerAddColleague token={token} />
+            <PartnerAddEvent token={token} />
           </div>
         </section>
       )}

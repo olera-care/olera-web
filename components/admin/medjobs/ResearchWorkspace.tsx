@@ -50,6 +50,18 @@ const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
 
 const NEW_OFFICE = "__new__";
 
+/** Normalize an office name for reconciliation — so "Health Professions Office",
+ *  "health professions office.", and "Health  Professions  Office" collapse to
+ *  one bucket instead of three. */
+function normOffice(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]+$/g, "")
+    .trim();
+}
+
 function bodyError(body: unknown, fallback: string): string {
   const e = (body as { error?: unknown } | null)?.error;
   if (typeof e === "string" && e.trim()) return e;
@@ -202,26 +214,30 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     setWs((w) => ({ ...w, searches: w.searches.map((s) => (s.key === key ? { ...s, ran: !s.ran } : s)) }));
 
   // ── step 2: extract & verify ──────────────────────────────────────────
-  // Merge AI candidates into a link's section: seed office buckets from office
-  // names (unassigned — conscious choice), append contacts deduped by email.
+  // Merge AI candidates into a link's section: find-or-create the AI's office
+  // (reconciled by normalized name), AUTO-ASSIGN the contacts to it so the admin
+  // doesn't hand-assign every one, and append deduped by email.
   const mergeCandidates = useCallback((linkId: string, cands: PartnerCandidate[]) => {
     setWs((w) => {
       const offices = [...w.offices];
       const emails = new Set(w.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      const findOrCreateOffice = (name: string): string => {
+        const key = normOffice(name);
+        const hit = offices.find((o) => normOffice(o.name) === key);
+        if (hit) return hit.id;
+        const office: WorkspaceOffice = { id: wsId(), name: name.trim() };
+        offices.push(office);
+        return office.id;
+      };
       const add: WorkspaceContact[] = [];
       for (const c of cands) {
         const { contacts, officeName } = contactsFromCandidate(c, linkId);
-        if (officeName) {
-          const key = officeName.trim().toLowerCase();
-          if (!offices.some((o) => o.name.trim().toLowerCase() === key)) {
-            offices.push({ id: wsId(), name: officeName });
-          }
-        }
+        const officeId = officeName ? findOrCreateOffice(officeName) : "";
         for (const ct of contacts) {
           const em = ct.email?.toLowerCase();
-          if (em && emails.has(em)) continue;
+          if (em && emails.has(em)) continue; // same person seen on another link
           if (em) emails.add(em);
-          add.push(ct);
+          add.push({ ...ct, assignment: officeId || ct.assignment });
         }
       }
       return { ...w, offices, contacts: [...w.contacts, ...add] };
@@ -317,22 +333,31 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   const removeContact = (id: string) =>
     setWs((w) => ({ ...w, contacts: w.contacts.filter((c) => c.id !== id) }));
   const addContact = (linkId: string | null) =>
-    setWs((w) => ({
-      ...w,
-      contacts: [...w.contacts, { id: wsId(), source_link_id: linkId, name: "", assignment: UNASSIGNED }],
-    }));
-  const createOfficeAnd = (name: string, assignIds: string[]): string => {
-    const office: WorkspaceOffice = { id: wsId(), name: name.trim() };
-    setWs((w) => ({
-      ...w,
-      offices: [...w.offices, office],
-      contacts: w.contacts.map((c) => (assignIds.includes(c.id) ? { ...c, assignment: office.id } : c)),
-    }));
-    return office.id;
-  };
+    setWs((w) => {
+      // Default a hand-added contact to the office its page-mates already use,
+      // so the common "same office" case needs no extra click.
+      const sibling = linkId
+        ? w.contacts.find((c) => c.source_link_id === linkId && c.assignment && c.assignment !== INDIVIDUAL)
+        : null;
+      return {
+        ...w,
+        contacts: [...w.contacts, { id: wsId(), source_link_id: linkId, name: "", assignment: sibling?.assignment ?? UNASSIGNED }],
+      };
+    });
+  // Find-or-create an office by normalized name, then assign the given contacts.
+  const createOfficeAnd = (name: string, assignIds: string[]) =>
+    setWs((w) => {
+      const key = normOffice(name);
+      let office = w.offices.find((o) => normOffice(o.name) === key);
+      const offices = office ? w.offices : [...w.offices, (office = { id: wsId(), name: name.trim() })];
+      const oid = office.id;
+      return { ...w, offices, contacts: w.contacts.map((c) => (assignIds.includes(c.id) ? { ...c, assignment: oid } : c)) };
+    });
+  const linkTitle = (linkId: string | null) => ws.links.find((l) => l.id === linkId)?.title ?? "";
   const assignContact = (id: string, value: string) => {
     if (value === NEW_OFFICE) {
-      const name = window.prompt("New office name");
+      const c = ws.contacts.find((x) => x.id === id);
+      const name = window.prompt("New office name", linkTitle(c?.source_link_id ?? null));
       if (name?.trim()) createOfficeAnd(name, [id]);
       return;
     }
@@ -342,12 +367,27 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     const ids = ws.contacts.filter((c) => c.source_link_id === linkId && !c.assignment).map((c) => c.id);
     if (ids.length === 0) return;
     if (value === NEW_OFFICE) {
-      const name = window.prompt("New office name");
+      const name = window.prompt("New office name", linkTitle(linkId));
       if (name?.trim()) createOfficeAnd(name, ids);
       return;
     }
     setWs((w) => ({ ...w, contacts: w.contacts.map((c) => (ids.includes(c.id) ? { ...c, assignment: value } : c)) }));
   };
+  // Office reconciliation: rename, merge one bucket into another, delete empties.
+  const renameOffice = (id: string, name: string) =>
+    setWs((w) => ({ ...w, offices: w.offices.map((o) => (o.id === id ? { ...o, name } : o)) }));
+  const mergeOffice = (fromId: string, toId: string) =>
+    setWs((w) => ({
+      ...w,
+      offices: w.offices.filter((o) => o.id !== fromId),
+      contacts: w.contacts.map((c) => (c.assignment === fromId ? { ...c, assignment: toId } : c)),
+    }));
+  const deleteOffice = (id: string) =>
+    setWs((w) => ({
+      ...w,
+      offices: w.offices.filter((o) => o.id !== id),
+      contacts: w.contacts.map((c) => (c.assignment === id ? { ...c, assignment: UNASSIGNED } : c)),
+    }));
   const setConfirmed = (linkId: string, confirmed: boolean) => {
     setWs((w) => ({ ...w, links: w.links.map((l) => (l.id === linkId ? { ...l, confirmed } : l)) }));
     if (confirmed) setExpanded((s) => { const n = new Set(s); n.delete(linkId); return n; });
@@ -498,6 +538,9 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               onRemoveContact={removeContact}
               onAssign={assignContact}
               onBulkAssign={bulkAssign}
+              onRenameOffice={renameOffice}
+              onMergeOffice={mergeOffice}
+              onDeleteOffice={deleteOffice}
               onSetConfirmed={setConfirmed}
               onAddLinkAndExtract={addLinkAndExtract}
               onNext={() => setStep("generate")}
@@ -648,6 +691,9 @@ function WorkStep({
   onRemoveContact,
   onAssign,
   onBulkAssign,
+  onRenameOffice,
+  onMergeOffice,
+  onDeleteOffice,
   onSetConfirmed,
   onAddLinkAndExtract,
   onNext,
@@ -665,6 +711,9 @@ function WorkStep({
   onRemoveContact: (id: string) => void;
   onAssign: (id: string, value: string) => void;
   onBulkAssign: (linkId: string, value: string) => void;
+  onRenameOffice: (id: string, name: string) => void;
+  onMergeOffice: (fromId: string, toId: string) => void;
+  onDeleteOffice: (id: string) => void;
   onSetConfirmed: (linkId: string, confirmed: boolean) => void;
   onAddLinkAndExtract: (url: string, title: string) => void;
   onNext: () => void;
@@ -779,6 +828,42 @@ function WorkStep({
           <button onClick={() => { if (newUrl.trim()) { onAddLinkAndExtract(newUrl, ""); setNewUrl(""); } }} className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">Extract →</button>
         </div>
       </div>
+
+      {ws.offices.length > 0 && (
+        <details className="rounded-md border border-gray-100 px-3 py-2">
+          <summary className="cursor-pointer text-xs font-medium text-gray-600">Manage offices ({ws.offices.length}) — rename or merge duplicates</summary>
+          <div className="mt-2 space-y-2">
+            {ws.offices.map((o) => {
+              const count = officeCounts.get(o.id) ?? 0;
+              const others = ws.offices.filter((x) => x.id !== o.id);
+              return (
+                <div key={o.id} className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={o.name}
+                    onChange={(e) => onRenameOffice(o.id, e.target.value)}
+                    className="min-w-[180px] flex-1 rounded border border-gray-200 px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
+                  />
+                  <span className="text-[11px] text-gray-400">{count} {count === 1 ? "person" : "people"}</span>
+                  {others.length > 0 && (
+                    <select
+                      defaultValue=""
+                      onChange={(e) => { if (e.target.value) onMergeOffice(o.id, e.target.value); e.target.value = ""; }}
+                      className="rounded border border-gray-200 bg-white px-1 py-1 text-[11px] text-gray-600"
+                      title="Merge this office into another (moves its people)."
+                    >
+                      <option value="" disabled>merge into…</option>
+                      {others.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                    </select>
+                  )}
+                  {count === 0 && (
+                    <button onClick={() => onDeleteOffice(o.id)} className="text-[11px] text-gray-400 hover:text-red-600">delete</button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
         <span className="text-xs text-gray-500">

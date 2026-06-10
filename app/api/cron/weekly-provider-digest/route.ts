@@ -322,18 +322,27 @@ export async function GET(request: NextRequest) {
         const chunk = placeIdList.slice(i, i + RANK_CHUNK);
         const { data: provs, error: provErr } = await db
           .from("olera-providers")
-          .select("provider_id, place_id, email")
+          .select("provider_id, slug, place_id, email")
           .in("place_id", chunk)
           .not("deleted", "is", true);
         if (provErr) {
           console.error("[weekly-provider-digest] rank-eligible provider query failed:", provErr);
           continue;
         }
-        for (const p of (provs ?? []) as Array<{ provider_id: string; place_id: string | null; email: string | null }>) {
+        for (const p of (provs ?? []) as Array<{ provider_id: string; slug: string | null; place_id: string | null; email: string | null }>) {
           if (!p.email || !p.place_id) continue;
           const rank = placeRank.get(p.place_id);
           if (!rank) continue;
-          const id = String(p.provider_id);
+          // Merge onto the provider's SLUG key when they're ALREADY in the audience via activity or a
+          // question (this block runs after §1/§1b). Otherwise a rank-eligible provider who also has
+          // activity would sit in `buckets` under TWO keys (slug + legacy provider_id) → two different
+          // send-day buckets → two digests/week, since the per-run sentEmails dedup only catches it when
+          // both keys run together (no longer the case under weekday cadence). Pure rank-eligible
+          // providers (no other signal) keep the legacy provider_id key, which §2 resolves to their
+          // business_profiles row via source_provider_id — preserving correct claimed-vs-cold treatment
+          // (slug-keying them would mis-resolve the ~16% whose bp.slug holds a legacy id).
+          const slugKey = p.slug ? String(p.slug) : null;
+          const id = slugKey && buckets.has(slugKey) ? slugKey : String(p.provider_id);
           ensureBucket(id);
           rankEligible.add(id);
           preRank.set(id, rank);

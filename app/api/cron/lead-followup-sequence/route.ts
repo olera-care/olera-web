@@ -14,6 +14,15 @@ import { getSiteUrl } from "@/lib/site-url";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 import { parseAdminOverride } from "@/lib/connection-engagement";
 
+// Valid archive reasons from provider portal
+const VALID_ARCHIVE_REASONS = ["already_connected", "not_a_fit", "not_accepting_clients", "unable_to_reach", "other"] as const;
+type ArchiveReason = typeof VALID_ARCHIVE_REASONS[number];
+
+function parseArchiveReason(value: unknown): ArchiveReason | null {
+  if (typeof value !== "string") return null;
+  return VALID_ARCHIVE_REASONS.includes(value as ArchiveReason) ? (value as ArchiveReason) : null;
+}
+
 /**
  * GET /api/cron/lead-followup-sequence
  *
@@ -354,9 +363,10 @@ export async function GET(request: NextRequest) {
 
       // Check if provider archived this lead in their portal
       const isArchived = meta.archived === true;
-      const archiveReason = meta.archive_reason as string | undefined;
-      if (isArchived || archiveReason) {
+      const archiveReason = parseArchiveReason(meta.archive_reason);
+      if (isArchived && archiveReason) {
         // Provider explicitly archived - respect their decision and stop sequence
+        // Both checks ensure clean state (archived + valid reason)
         counts.skipped++;
         counts.skipReasons.provider_archived = (counts.skipReasons.provider_archived || 0) + 1;
         continue;

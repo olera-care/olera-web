@@ -281,10 +281,14 @@ export async function POST(request: Request) {
 
       case "unarchive": {
         const restoreStatus = (existingMeta.archived_from_status as string) || "accepted";
-        // Remove archived flags from metadata, status never changed so nothing to restore
+        // Remove ALL archived flags from metadata, status never changed so nothing to restore
         const cleanMeta: Record<string, unknown> = { ...existingMeta };
         delete cleanMeta.archived;
         delete cleanMeta.archived_from_status;
+        delete cleanMeta.archive_reason;
+        delete cleanMeta.archive_message;
+        delete cleanMeta.archived_by;
+        delete cleanMeta.archived_at;
 
         const { error: updateError } = await admin
           .from("connections")

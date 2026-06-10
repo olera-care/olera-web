@@ -19,6 +19,26 @@ import {
   type FamilyEngagementData,
 } from "@/lib/connection-engagement";
 
+// Valid archive reasons from provider portal
+const VALID_ARCHIVE_REASONS = [
+  "already_connected",
+  "not_a_fit",
+  "not_accepting_clients",
+  "unable_to_reach",
+  "other",
+] as const;
+
+type ArchiveReason = typeof VALID_ARCHIVE_REASONS[number];
+
+/**
+ * Type-safe parser for archive_reason metadata.
+ * Returns null if the value isn't a valid archive reason.
+ */
+function parseArchiveReason(value: unknown): ArchiveReason | null {
+  if (typeof value !== "string") return null;
+  return VALID_ARCHIVE_REASONS.includes(value as ArchiveReason) ? (value as ArchiveReason) : null;
+}
+
 /**
  * GET /api/admin/connections — rows for the connections tracker's
  * intervention queue, each tagged with its temperature (whose-turn + staleness)
@@ -466,9 +486,10 @@ export async function GET(request: NextRequest) {
       // Check metadata for explicit connection signals from provider
       const markedReplied = meta.marked_replied === true;
       const archived = meta.archived === true;
-      const archiveReason = meta.archive_reason as string | undefined;
+      const archiveReason = parseArchiveReason(meta.archive_reason);
       const archivedAt = meta.archived_at as string | undefined;
-      const alreadyConnected = archiveReason === "already_connected";
+      // Only treat as "already_connected" if CURRENTLY archived with that reason
+      const alreadyConnected = archived && archiveReason === "already_connected";
 
       // Extract admin override (manually marked status)
       const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
@@ -1002,6 +1023,12 @@ export async function GET(request: NextRequest) {
     // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
+    // For "all" tab: exclude archived connections (they go to "Declined" tab)
+    // Exception: "already_connected" archives appear in "Connected" tab instead
+    if (responseFilter === "all") {
+      list = list.filter(c => !c.archived || c.archiveReason === "already_connected");
+    }
+
     // Check if filter is an engagement level (provider or family)
     const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "stuck", "needs_call"];
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
@@ -1015,7 +1042,11 @@ export async function GET(request: NextRequest) {
       else if (responseFilter === "declined" && perspective === "provider") {
         list = list.filter((c) => {
           // Provider archived with a decline reason (not "already_connected")
-          return c.archived && c.archiveReason && c.archiveReason !== "already_connected";
+          // BUT: exclude if admin manually verified as connected (admin override > provider archive)
+          return c.archived &&
+                 c.archiveReason &&
+                 c.archiveReason !== "already_connected" &&
+                 c.adminOverride?.status !== "connected";
         });
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
@@ -1069,11 +1100,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort by most recent first (matches Leads page behavior)
+    // Sort by most recent first
+    // For "declined" tab: sort by archive date (most recently declined first)
+    // For other tabs: sort by creation date (most recent inquiry first)
     list.sort((a, b) => {
-      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return bTime - aTime;
+      if (responseFilter === "declined") {
+        const aTime = a.archivedAt ? new Date(a.archivedAt).getTime() : 0;
+        const bTime = b.archivedAt ? new Date(b.archivedAt).getTime() : 0;
+        return bTime - aTime; // Most recently archived first
+      } else {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime; // Most recent inquiry first
+      }
     });
 
     const pageRaw = list.slice(offset, offset + limit);

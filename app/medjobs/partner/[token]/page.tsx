@@ -14,7 +14,9 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
+import { PROGRAM_URL } from "@/lib/student-outreach/templates";
 import { PartnerPortalActivate } from "@/components/medjobs/PartnerPortalActivate";
+import { PartnerFlyerShare } from "@/components/medjobs/PartnerFlyerShare";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +78,7 @@ export default async function PartnerPortalPage({
   const orgName = row.organization_name ?? "Partner";
   const university = row.campuses?.name ?? null;
   const isActive = row.status === "active_partner";
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://olera.care").replace(/\/+$/, "");
 
   return (
     <Shell>
@@ -130,9 +133,15 @@ export default async function PartnerPortalPage({
             <p className="text-sm font-semibold text-primary-800">★ You&apos;re an active Recruitment Partner</p>
             <p className="mt-1 text-sm text-gray-600">Thanks for helping! Here&apos;s how you can help share the program:</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+
+          <PartnerFlyerShare
+            university={university}
+            applyUrl={`${siteUrl}/medjobs/apply`}
+            programUrl={PROGRAM_URL}
+          />
+
+          <div className="grid gap-3 sm:grid-cols-3">
             {[
-              { t: "Share the flyer", d: "Download and share with students." },
               { t: "Add a colleague", d: "Suggest who else we should talk to." },
               { t: "Tell us about an event", d: "Career fairs, org meetings, class visits." },
               { t: "Need help?", d: "Message the team or book a call." },

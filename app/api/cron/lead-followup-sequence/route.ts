@@ -161,7 +161,7 @@ function getSubjectForStage(
         }
         return `${leadCount} families picked your team`;
       case 2: return `${leadCount} families are still hoping to hear from you`;
-      case 3: return `These families may be choosing a provider soon`;
+      case 3: return "One last note about these requests";
       case 4: return "We'll close these introductions soon";
       case 6: return "One last note about these requests";
       default: return "Families are waiting for your response";
@@ -179,7 +179,7 @@ function getSubjectForStage(
     case 2:
       return hasName ? `${familyName} is still hoping to hear from you` : "A family is still hoping to hear from you";
     case 3:
-      return hasName ? `${familyName} may be choosing a provider soon` : "A family may be choosing a provider soon";
+      return hasName ? `One last note about ${familyName}` : "One last note about the family";
     case 4:
       return "We'll close this introduction soon";
     case 6:

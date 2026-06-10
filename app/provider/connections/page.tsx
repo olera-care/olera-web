@@ -261,7 +261,7 @@ function LeadDetailDrawer({
   const ContactInfoSection = isVerified ? (
     (lead.email || lead.phone) ? (
       <div>
-        <p className="text-lg font-semibold text-gray-900 mb-3">Contact information</p>
+        <p className="text-lg font-semibold text-gray-900 mb-2.5">Contact information</p>
         <div className="space-y-2">
           {lead.phone && (
             <div className="group flex items-center gap-3">
@@ -345,7 +345,7 @@ function LeadDetailDrawer({
   // ── About Situation Section ──
   const AboutSituationSection = lead.aboutSituation ? (
     <div>
-      <p className="text-lg font-semibold text-gray-900 mb-3">About their situation</p>
+      <p className="text-lg font-semibold text-gray-900 mb-2.5">About their situation</p>
       <p className="text-base font-medium text-gray-900 leading-relaxed">
         &ldquo;{lead.aboutSituation}&rdquo;
       </p>
@@ -394,7 +394,7 @@ function LeadDetailDrawer({
 
   const CareDetailsSection = (
     <div>
-      <p className="text-lg font-semibold text-gray-900 mb-3">Care details</p>
+      <p className="text-lg font-semibold text-gray-900 mb-2.5">Care details</p>
       <div className="space-y-3">
         {(lead.timeline || (lead.careType && lead.careType.length > 0)) && (
           <p className="text-base text-gray-700">

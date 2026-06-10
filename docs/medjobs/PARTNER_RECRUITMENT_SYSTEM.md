@@ -201,4 +201,152 @@ Each phase ships as independently revertable commits (G6), typecheck-clean, stag
 
 ---
 
+## 13. Design-review refinements (locked, 2026-06-10)
+
+Outcome of two UI-sketch review rounds with Logan. These augment/supersede the high-level sections above; they are the decisions we build to.
+
+**R1 · Branding (hard rule).** Never imply university ownership. Copy is **"Olera's Student Caregiver Program for {University} students"** — never "{University}'s program." Enforced in the template layer.
+
+**R2 · Salutation resolver.** Greeting picked per contact: title present → "Dr./Professor X"; name only → "Hi {first}" (or "Hi Ms./Mr. {last}" for dept_head/professor); generic office / no name → "Hello". Reuses existing `{salutation}` merge mechanics.
+
+**R3 · Required manual-audit gate (new surface).** AI sourcing is never sufficient by itself. Before a Site's partner prospecting can be marked complete **per subtype**, the admin must complete an audit checklist (review all AI source links, run a pre-filled set of manual Google/LinkedIn/directory searches, add missed prospects by hand, confirm research exhausted). Gates the **existing** `student_outreach_campuses.research_complete` flag; checklist state stored in campus `research_data`. No new table.
+
+**R4 · Source map persists.** AI source links are saved on the Site (per subtype) and per-field source URLs on each prospect — reusable for the manual audit and later research. In `research_data`.
+
+**R5 · Partner pre-flight is phone-conditional.** Phone present → confirm call strongly encouraged (not blocking). No phone → email-only launch allowed. Never block partner outreach for a missing phone. Required to launch: usable email + confirmed role/type + Site association.
+
+**R6 · Student orgs are org-shaped, multi-contact.** One org row carries org-level fields + a contact list (President / VP / Recruitment Chair / **Faculty Advisor**), each with its own email, all on the one row (reuses `student_outreach_contacts`). **AI always attempts the faculty advisor even when officers are found** (year-to-year continuity = highest long-term value). Org data fields: org name, org email, officer names/roles/emails, social links, website, directory link, faculty advisor name/email/profile, notes.
+
+**R7 · Lightweight activation (no formal T&C).** Two routes to **Recruitment Partner Active**, both → existing `mark_partner`:
+- **Admin activates** with a recorded confirmation method — **email / verbal / meeting / other** (+ optional note) → fires confirmation email + portal magic link.
+- **Partner self-activates** in the portal (soft "Agree & continue" acknowledgment, not a Terms gate).
+
+**R8 · Drawer outcomes for partners.** Interested (start nurture cadence) · **Activate partner** (direct convert, 4-way confirm) · Not interested · Couldn't reach (calls) · 📅 Book a meeting. **Interested ≠ Activated:** Interested = shown interest, not committed (send info, answer questions, invite to activate); Activated = clearly agreed (portal link + tools).
+
+**R9 · Portal = design-consistent, not a one-off.** Built from the existing design system: `components/caregiver-portal/cards/*` (section cards), the `PulseHeader`/stat-card pattern for the impact metrics, `components/ui/EmptyState` for "coming soon", and shared buttons/typography/spacing/container width.
+
+**R10 · Portal content (lightweight but useful).** Home shows: **impact stat cards** (hero), **flyer sharing as the central action**, a right-column of secondary actions (add colleague / tell us about an event / meet with Dr. DuBose), a "Why this exists" trust block (Dr. DuBose photo + credentials + short mission), an **FAQ**, and a top-right **"Need help?"** chat. Partner can: understand the program, share the flyer, add colleagues, tell us about events, ask for help, see impact.
+
+**R11 · Impact metrics.** Live where available, `EmptyState` "coming soon" otherwise: students applied · hired · hours of experience completed · student ratings/feedback · **(coming soon)** accepted to professional school · letters of recommendation · references provided · clinical/caregiving hours · outcomes by semester.
+
+**R12 · Add-colleague safety copy.** Explicit transparency: respectful outreach, no spam, we mention the referrer only if they allow it, optional context note. Colleagues become new Partner Prospects via the existing referral primitive.
+
+**R13 · Events are a signal, not instant scheduling.** Two buckets: existing events (career fairs, org meetings, dept events, pre-health nights, tabling) vs. new events we could help create (virtual info session, classroom visit, org presentation, recruitment event). Fields: name, date if known, approximate timing, in-person/virtual + location, who to contact, notes, "other". Signals the team to follow up ≥1 month ahead. MVP storage = `note_added` timeline touchpoint (structured table deferred, P-D5).
+
+**R14 · Need-help chat.** Top-right `?` button → small message box; states "Graize / Dr. DuBose's team replies within a few business days"; or book a call. Routes to the Activity Center inbox for MVP (Slack fast-follow).
+
+**R15 · Notifications.** Activity Center line in MVP (lightweight); Slack notifications (added colleague / event / meeting / question / became active) as a fast-follow.
+
+**R16 · Flyer.** Ship against a **placeholder** UT-Austin student flyer now; campus-specific designed PDFs are a fast-follow. Audience = students (what's in it for them, easy apply) but credible/safe enough that a partner is comfortable sharing it; includes simple FAQ + benefits + the honest "not university-run" line (R1).
+
+---
+
+## 14. UI surface inventory (S1–S27)
+
+| # | Surface | Phase |
+|---|---|---|
+| S1 | Sites page · "Find partners ✦" entry | 1 |
+| S2 | Sourcing modal · choose subtype + scope | 1 |
+| S3 | Sourcing modal · persistent tiered source map | 1 |
+| S4 | Sourcing modal · candidate review (accept/edit/reject, per-field sources) | 1 |
+| S5 | Candidate edit · click-into-source before deciding | 1 |
+| S6 | Partner Prospects list (In Basket → Prospects) | 1 |
+| S7 | Partner pre-flight drawer (phone-conditional; person variant) | 1 |
+| S8 | Dept-head professor-permission control + professor lock banner | 1 |
+| S11 | Student-org drawer · multi-contact + faculty-advisor star | 1 |
+| S25 | **Required manual-audit gate** (per Site + subtype) | 1 |
+| S9 | Outreach launch module · subtype copy + salutation + branding | 2 |
+| S10 | In Basket tabs (Calls/Emails/Meetings/Replies), partners mixed in | 2 |
+| S12 | Partner drawer · call face (subtype script) | 2 |
+| S13 | Partner drawer · reply face + outcomes (incl. Activate, 4-way confirm) | 2 |
+| S14 | Terminal · Recruitment Partner Active | 2 |
+| S15 | Magic-link landing · soft agree / self-activate | 3 |
+| S16 | Portal home (impact hero + flyer center + right column + Why + FAQ) | 3 |
+| S17 | Flyer sharing (download/copy/social/link; per-channel for orgs) | 3 |
+| S18 | Add a colleague (safety copy) | 3 |
+| S19 | Tell us about an event (two buckets) | 3 |
+| S20 | Impact dashboard (stat cards + coming-soon) | 3 |
+| S26 | Need-help chat (top-right) | 3 |
+| S27 | "Why this exists" + FAQ | 3 |
+| S22 | Admin: portal-referred colleagues → Partner Prospects | 3 |
+| S23 | Admin: portal activity on partner drawer timeline | 3 |
+| S24 | Admin: Activity Center line for portal activity | 3 |
+
+---
+
+## 15. Build plan — chronological development chunks
+
+Each chunk = one or a few independently revertable commits (G6), typecheck-clean, PR to staging. Ordered so each leaves the system shippable. "First usable slice" is marked.
+
+### PHASE 1 — Partner Prospecting
+
+**Chunk 1.1 — Sourcing engine (backend, read-only)**
+- Delivers: AI source-map + per-subtype extract; faculty-advisor-always for orgs (R6).
+- New: `lib/medjobs/partner-sourcing.ts`; route `app/api/admin/medjobs/source-partners/route.ts` (admin-gated, `runtime=nodejs`, `maxDuration=120`).
+- Modified: `lib/medjobs/outreach-enrichment.ts` (export `perplexityJson` + `CostTracker`).
+- Reuses: Perplexity infra. Discipline: writes nothing to `student_outreach` (G1–G4 safe); may persist the source map to campus `research_data` (tool metadata, not CRM state).
+- Accept: `POST {campus_slug, subtype, stage}` returns tiered sources + candidates with per-field source URLs + cost.
+
+**Chunk 1.2 — Sourcing widget UI** *(first usable slice — AI-assisted prospecting works end to end)*
+- Delivers: S1–S5. Subtype select → source map → extract → review/edit/accept.
+- New: `components/admin/medjobs/PartnerSourcingModal.tsx`. Modified: `app/admin/medjobs/sites/page.tsx` (entry button).
+- Reuses: `POST /api/admin/student-outreach/stakeholders` for accept (no new write path); dedup check against the Site's rows.
+- Accept: accepted candidates become Partner Prospects (correct `kind`) with sources saved; source map persists on the Site.
+
+**Chunk 1.3 — Required manual-audit gate (S25, R3)**
+- Delivers: per-subtype audit checklist with pre-filled manual searches; gates "Mark research complete."
+- New: `components/admin/medjobs/PartnerAuditModal.tsx`. Modified: `app/api/admin/student-outreach/campuses/[slug]/route.ts` (accept audit state + per-subtype `research_complete`), Sites/Partner-Prospects header indicator.
+- Accept: cannot mark a subtype's prospecting complete until required boxes + the exhausted-confirm are checked; state persists.
+
+**Chunk 1.4 — Partner pre-flight adaptations (S7, S8, S11; R5, R6)**
+- Delivers: phone-conditional launch; org multi-contact + faculty-advisor star; source links in drawer; professor-permission control (reuses existing approval/`permission_dependency`).
+- Modified: `SnapshotCard.tsx` (+ drawer pre-flight) for `kind ∈ stakeholder`.
+- Accept: email-only launch allowed when no phone; org shows officer list w/ faculty advisor; professor rows show locked banner until dept-head permission.
+
+### PHASE 2 — Partner Outreach
+
+**Chunk 2.1 — Subtype copy + salutation + branding (R1, R2)**
+- Delivers: partner "ask" copy per subtype (RA-voiced, on behalf of Dr. DuBose, program + call links), salutation resolver, branding rule.
+- Modified: `lib/student-outreach/templates.ts`; verify `lib/medjobs/smartlead-bridge.ts` flows them.
+- Accept: launch previews show correct per-subtype copy; no "University's program" phrasing anywhere.
+
+**Chunk 2.2 — Partner outreach launch (S9, S10; R5)**
+- Delivers: stakeholder rows launch through the existing cadence/sequencer; email-only path; partners flow into Calls/Emails/Meetings/Replies.
+- Reuses: `schedule_sequence`, queue. Accept: launching a phone-less advisor queues email cadence; rows appear in the right tabs.
+
+**Chunk 2.3 — Partner drawer outcomes + activation (S12–S14; R7, R8)**
+- Delivers: Interested / **Activate partner** (4-way confirm → `mark_partner` + confirmation email + magic link) / Not interested / Couldn't reach / Book a meeting; "Recruitment Partner Active" terminal face.
+- Modified: `NextStepCard.tsx` (partner faces + Activate confirm sub-UI). Reuses: `mark_partner` (G2 ✅), activation cadence, Book-a-meeting link, welcome-token.
+- Accept: admin can activate on verbal/email/meeting/other; partner receives welcome email + portal link.
+
+### PHASE 3 — Recruitment Partner Portal
+
+**Chunk 3.1 — Portal scaffold + magic-link + self-activate (S15; R7, R9)**
+- Delivers: magic-link entry, design-system shell, "Agree & continue" self-activation → `mark_partner` + portal access.
+- New: partner portal route (under `app/medjobs/...`) + token handling reusing `welcome-token` / `m/[token]`.
+- Accept: a valid link opens the portal; agreeing flips the row to active.
+
+**Chunk 3.2 — Portal home: impact + Why + FAQ (S16, S20, S27; R10, R11)** *(first partner-facing usable slice)*
+- Delivers: impact stat cards (live + `EmptyState` coming-soon), "Why this exists" trust block, FAQ.
+- Reuses: `caregiver-portal` cards, `PulseHeader`/stat pattern, `EmptyState`.
+- Dependency: outcomes data source for live metrics (applied/hired/hours) — ships coming-soon until wired.
+- Accept: polished, design-consistent home renders with correct metrics/empty states.
+
+**Chunk 3.3 — Flyer sharing (S17; R16)**
+- Delivers: placeholder UT flyer asset + download / copy email / copy social / copy link / per-channel guidance / request-updated.
+- New: placeholder flyer asset + program-info URL wiring. Accept: partner can share via every listed channel in ≤1 action.
+
+**Chunk 3.4 — Add colleague + events (S18, S19, S22, S23; R12, R13)**
+- Delivers: colleague form (safety copy) → new Partner Prospects via referral; event form (two buckets) → `note_added` on the partner row; both surface to admin (drawer timeline + Partner Prospects).
+- New: portal action endpoints (colleague reuses stakeholders endpoint; event writes a touchpoint). Accept: a portal-added colleague appears as a referred Partner Prospect; an event appears on the timeline.
+
+**Chunk 3.5 — Need help + Activity Center (S26, S24; R14, R15)**
+- Delivers: top-right `?` chat (message → admin, "few business days" expectation) or book-a-call; Activity Center line for portal activity.
+- Accept: a partner message reaches the Activity Center; portal actions show there. (Slack = post-MVP fast-follow.)
+
+### Cross-cutting / fast-follow (post-MVP)
+Professors outreach (P-D1) · Slack notifications · campus-specific designed flyers · structured events table (P-D5) · listserv/CSV flyer-send · incentives/recurring engagement/advanced analytics.
+
+---
+
 **End of document.** Companion: `docs/medjobs/OPERATIONAL_BRIEF.md` (CRM canon) and the activation-system spec.

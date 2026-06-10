@@ -62,6 +62,26 @@ function normOffice(s: string): string {
     .trim();
 }
 
+/** Normalize a person's name for de-duplication — strip class years ('85) and
+ *  trailing credentials (", PMP") so the same person listed twice collapses,
+ *  while DIFFERENT people who share an office email stay separate. */
+function normPerson(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[''‛`]\s?\d{2}\b/g, "")
+    .replace(/,.*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+/** De-dup key: a named person is keyed by name (NOT email — many staff share a
+ *  single office alias); an unnamed general contact is keyed by its email. */
+function personKey(c: { name?: string | null; email?: string | null }): string {
+  const n = c.name?.trim();
+  if (n) return `n:${normPerson(n)}`;
+  const e = c.email?.trim().toLowerCase();
+  return e ? `e:${e}` : "";
+}
+
 function bodyError(body: unknown, fallback: string): string {
   const e = (body as { error?: unknown } | null)?.error;
   if (typeof e === "string" && e.trim()) return e;
@@ -220,7 +240,9 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   const mergeCandidates = useCallback((linkId: string, cands: PartnerCandidate[]) => {
     setWs((w) => {
       const offices = [...w.offices];
-      const emails = new Set(w.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      // De-dup by PERSON, not email — staff directories share one office alias
+      // across dozens of people, and email-keying would collapse them all.
+      const seen = new Set(w.contacts.map(personKey).filter(Boolean));
       const findOrCreateOffice = (name: string): string => {
         const key = normOffice(name);
         const hit = offices.find((o) => normOffice(o.name) === key);
@@ -234,9 +256,9 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         const { contacts, officeName } = contactsFromCandidate(c, linkId);
         const officeId = officeName ? findOrCreateOffice(officeName) : "";
         for (const ct of contacts) {
-          const em = ct.email?.toLowerCase();
-          if (em && emails.has(em)) continue; // same person seen on another link
-          if (em) emails.add(em);
+          const key = personKey(ct);
+          if (key && seen.has(key)) continue; // exact person already present
+          if (key) seen.add(key);
           add.push({ ...ct, assignment: officeId || ct.assignment });
         }
       }

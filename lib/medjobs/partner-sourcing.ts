@@ -454,13 +454,14 @@ export async function extractFromUrl(
     `If the page genuinely lists no relevant contacts, return {"candidates":[]}.`,
     `Return ONLY valid JSON: {"candidates":[ ... ]}`,
   ].join("\n");
-  const out = await perplexityJson(prompt, cost);
+  const out = await perplexityJson(prompt, cost, 4000);
   return { candidates: parseCandidates(out, subtype), cost: cost.cost };
 }
 
-/** Organize raw text the admin copy/pasted (e.g. a block they highlighted on a
- *  page) into the standardized contact shape, attached to the given source URL.
- *  Deterministic structuring task — no web search needed. */
+/** Organize raw text the admin copy/pasted (e.g. a staff directory they
+ *  highlighted) into the standardized contact shape, attached to the given
+ *  source URL. This is the primary capture path, so it must get EVERYONE —
+ *  including the very common case where many people share one office email. */
 export async function extractFromText(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
@@ -468,27 +469,48 @@ export async function extractFromText(
   sourceUrl: string,
 ): Promise<ExtractResult> {
   const cost = new CostTracker();
+
+  let shape: string;
+  if (subtype === "dept_head") {
+    shape = `Return one candidate per department chair/head: {"department","name","title","email","phone","source_url":"${sourceUrl}","notes"}.`;
+  } else {
+    const kind = subtype === "student_org" ? "organization" : "office/team";
+    shape = [
+      `The text often contains MULTIPLE ${kind}s under section headings (e.g.`,
+      `"Directors", "Career Advising", "Graduate & Professional School Advising",`,
+      `"Employer Services", "Mentoring & Operations").`,
+      `Return ONE candidate object PER section heading you find. If there are no`,
+      `headings, return a single candidate covering everyone. Each candidate:`,
+      `{ "name": "<the section / team / ${kind} name>", "org_email": null,`,
+      `  "officers": [ {"name","role","email","phone","source_url":"${sourceUrl}"}, ... ] }`,
+      `Put each person under the section they appear in. If the SAME person appears`,
+      `under several sections, include them ONLY ONCE (under the first section).`,
+    ].join("\n");
+  }
+
   const prompt = [
-    `Below is text from a ${ctx.university} web page (it may be messy — navigation,`,
-    `labels like "Email:"/"Phone:", multiple people run together).`,
-    `Organize the ${subtype.replace("_", " ")} contacts it contains into JSON.`,
+    `Below is text copied from a ${ctx.university} web page (a staff/advisor`,
+    `directory). Organize the ${subtype.replace("_", " ")} contacts into JSON.`,
     ``,
-    `STRICT RULES — accuracy matters more than completeness:`,
-    `- Use ONLY information literally present in the text below.`,
-    `- NEVER invent, guess, or infer a name, email, or phone number.`,
-    `- NEVER construct an email (e.g. "first.last@domain"). Only use email addresses`,
-    `  that appear verbatim. If a person has no email in the text, set "email" to null.`,
-    `- Ignore site navigation, menus, footers, and unrelated links.`,
-    `- If the text contains no real named contacts, return {"candidates":[]}.`,
+    `EXTRACT EVERY SINGLE PERSON listed. Do NOT summarize, sample, or stop early —`,
+    `a directory may have 40+ people and you must return ALL of them.`,
+    `It is NORMAL for many people to share the SAME email (a shared office alias);`,
+    `include every person anyway — do NOT de-duplicate by email or merge people.`,
     ``,
-    candidateShape(subtype, sourceUrl),
+    `STRICT — accuracy over everything:`,
+    `- Use ONLY information literally present in the text. NEVER invent or guess a`,
+    `  name, email, or phone; NEVER construct an email. If a field is absent, use null.`,
+    `- IGNORE image-caption lines like "Headshot of <name>" or "<name> headshot".`,
+    `- Keep each person's name, title/role, email, and phone as written.`,
+    ``,
+    shape,
     ``,
     `Return ONLY valid JSON: {"candidates":[ ... ]}`,
     ``,
     `--- PAGE TEXT ---`,
-    text.slice(0, 15000),
+    text.slice(0, 18000),
   ].join("\n");
-  const out = await perplexityJson(prompt, cost);
+  const out = await perplexityJson(prompt, cost, 4000);
   return { candidates: parseCandidates(out, subtype), cost: cost.cost };
 }
 

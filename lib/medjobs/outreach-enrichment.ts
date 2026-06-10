@@ -651,7 +651,7 @@ async function perplexityAddress(
 // Perplexity Sonar — shared JSON helper (mirrors enrich-city.js call shape).
 // ---------------------------------------------------------------------------
 
-async function perplexityJson(
+export async function perplexityJson(
   prompt: string,
   cost?: CostTracker,
 ): Promise<Record<string, unknown> | null> {

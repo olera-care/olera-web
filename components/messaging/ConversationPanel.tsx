@@ -194,14 +194,16 @@ function ProviderPassedCard({
   archiveMessage,
   time,
   dateStr,
+  connection,
 }: {
   providerName: string;
   archiveReason: string;
   archiveMessage?: string | null;
   time: string;
   dateStr: string;
+  connection: Connection;
 }) {
-  // Map reason codes to user-friendly labels
+  // Map reason codes to user-friendly labels (keep already_connected for old messages)
   const reasonLabels: Record<string, string> = {
     already_connected: "Already connected off-platform",
     not_a_fit: "Not a good fit",
@@ -212,19 +214,39 @@ function ProviderPassedCard({
 
   const reasonLabel = reasonLabels[archiveReason] || archiveReason;
 
+  // Build contextual browse URL from connection
+  const familyProfile = connection.from_profile as { city?: string; state?: string; care_types?: string[] } | null;
+  const city = familyProfile?.city;
+  const state = familyProfile?.state;
+  const careTypes = familyProfile?.care_types as string[] | undefined;
+  const primaryCareType = careTypes?.[0] || "senior-care";
+
+  let browseUrl = "/browse";
+  if (city && state) {
+    const params = new URLSearchParams({
+      care_type: primaryCareType,
+      city,
+      state,
+    });
+    browseUrl = `/browse?${params.toString()}`;
+  }
+
+  // Provider name fallback
+  const displayProviderName = providerName && providerName !== "Unknown" ? providerName : "Provider";
+
   return (
     <div className="flex justify-center">
       <div className="max-w-[420px] w-full">
         <div className="rounded-2xl overflow-hidden shadow-sm border border-gray-200">
-          {/* Orange/amber header for "passed" */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3">
+          {/* Subtle gray header - minimal color */}
+          <div className="bg-gradient-to-r from-gray-600 to-gray-500 px-5 py-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span className="text-sm font-bold text-white">Update from {providerName}</span>
+              <span className="text-sm font-bold text-white">Update from {displayProviderName}</span>
             </div>
           </div>
 
@@ -253,10 +275,10 @@ function ProviderPassedCard({
               </div>
             )}
 
-            {/* CTA to browse other providers */}
+            {/* CTA to browse other providers - contextual URL */}
             <div className="mt-4 pt-3 border-t border-gray-100">
               <a
-                href="/browse"
+                href={browseUrl}
                 className="inline-flex items-center gap-2 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Browse other providers
@@ -836,6 +858,7 @@ export default function ConversationPanel({
                       archiveMessage={archiveMessage}
                       time={formatTime(msg.created_at)}
                       dateStr={formatDateSeparator(msg.created_at)}
+                      connection={connection}
                     />
                   </div>
                 );

@@ -386,45 +386,108 @@ export async function extractPartners(
   return { candidates: parseCandidates(out, subtype), cost: cost.cost };
 }
 
-/** The required JSON output shape per subtype. MUST match parseCandidates():
- *   - advisor / student_org are ORG-SHAPED: one candidate with an `officers`
- *     array (one entry per person). Flat person objects would be dropped.
- *   - dept_head is PERSON-SHAPED: one candidate per chair.
- *  Shared by the page-read and paste-text extractors. */
-function candidateShape(subtype: PartnerSubtype, sourceUrl: string): string {
-  if (subtype === "advisor") {
-    return [
-      `Treat this as ONE advising office/program. Return EXACTLY ONE candidate object:`,
-      `{`,
-      `  "name": "<the office/program name, e.g. 'Pre-Medicine Specialization Advising'>",`,
-      `  "org_email": "<a general office email if one is shown, else null>",`,
-      `  "website": null, "directory_url": null,`,
-      `  "officers": [`,
-      `     { "name": "<full name>", "role": "<their title, e.g. 'Pre-Medical Advisor'>",`,
-      `       "email": "<email>", "phone": "<phone>", "source_url": "${sourceUrl}" }`,
-      `     // ONE ENTRY PER PERSON named`,
-      `  ],`,
-      `  "notes": null, "confidence": "high|medium|low"`,
-      `}`,
-      `Put EVERY named advisor / coordinator / director / staff person into "officers" —`,
-      `even if some of them have no email shown.`,
-    ].join("\n");
-  }
-  if (subtype === "dept_head") {
-    return `Return one candidate per department chair/head: {"department","name","title","email","phone","profile_url","source_url":"${sourceUrl}","notes","confidence"}.`;
-  }
+/** Flat-people output schema — the model just lists EVERY person; WE build the
+ *  offices from each person's "team". Far more robust than asking the model to
+ *  nest people inside an "office" object, which broke on both single-person
+ *  profile pages (no office name) and large directories. */
+function peopleSchema(): string {
   return [
-    `Return one candidate per student organization:`,
-    `{ "name": "<org name>", "org_email", "website", "directory_url",`,
-    `  "socials": [{"platform","url"}],`,
-    `  "officers": [{ "name","role","email","phone","source_url":"${sourceUrl}" }],  // every officer listed`,
-    `  "faculty_advisor": { "name","email","profile_url","source_url" },`,
-    `  "notes", "confidence" }`,
+    `Return a FLAT list — one object per PERSON:`,
+    `{"people":[`,
+    `  { "name":"<full name>", "role":"<title/role>", "email":"<email or null>",`,
+    `    "phone":"<phone or null>", "team":"<the section heading this person sits`,
+    `    under, e.g. 'Career Advising' / 'Graduate & Professional School Advising',`,
+    `    or null if there are no section headings>" }`,
+    `]}`,
   ].join("\n");
 }
 
-/** Extract contacts from ONE admin-pasted web page. Lets the admin point the AI
- *  at a page it missed and pull the relevant contacts. */
+function peopleRules(): string[] {
+  return [
+    `- Include EVERY person — even if there is only ONE on the page, and even if a`,
+    `  directory has 40+. Return ALL of them; never summarize, sample, or stop early.`,
+    `- It is NORMAL for many people to share the SAME email (a shared office alias).`,
+    `  Include each person anyway — NEVER merge or drop people because emails match.`,
+    `- Use ONLY what is literally in the content. NEVER invent, guess, or construct a`,
+    `  name, email, or phone (no "first.last@domain"); if a field is absent use null.`,
+    `- IGNORE image-caption lines like "Headshot of <name>" or "<name> headshot", and`,
+    `  generic site nav / legal links (Title IX, Accessibility, Privacy).`,
+  ];
+}
+
+interface FlatPerson {
+  name: string | null;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+  team: string | null;
+}
+
+function parsePeople(raw: Record<string, unknown> | null): FlatPerson[] {
+  const out: FlatPerson[] = [];
+  for (const item of arr(raw?.people)) {
+    const o = item as Record<string, unknown>;
+    const name = str(o.name);
+    const email = str(o.email);
+    if (!name && !email) continue;
+    out.push({ name, role: str(o.role), email, phone: str(o.phone), team: str(o.team) });
+  }
+  return out;
+}
+
+/** Build candidates from a flat people list. advisor/student_org group people
+ *  by their "team" into office candidates (teamless people fall under one
+ *  default office); dept_head returns one person-shaped candidate each. */
+function peopleToCandidates(
+  raw: Record<string, unknown> | null,
+  subtype: PartnerSubtype,
+  sourceUrl: string,
+): PartnerCandidate[] {
+  const people = parsePeople(raw);
+  if (people.length === 0) return [];
+
+  if (subtype === "dept_head") {
+    return people.map((p) => ({
+      subtype,
+      name: p.name,
+      title: p.role,
+      department: p.team,
+      email: p.email,
+      phone: p.phone,
+      source_url: sourceUrl,
+      confidence: null,
+    }));
+  }
+
+  const fallback = subtype === "advisor" ? "Advising office" : "Student organization";
+  const byTeam = new Map<string, FlatPerson[]>();
+  for (const p of people) {
+    const key = p.team?.trim() || fallback;
+    const list = byTeam.get(key) ?? [];
+    list.push(p);
+    byTeam.set(key, list);
+  }
+  const candidates: PartnerCandidate[] = [];
+  for (const [team, members] of byTeam) {
+    candidates.push({
+      subtype,
+      name: team,
+      source_url: sourceUrl,
+      confidence: null,
+      officers: members.map((m) => ({
+        name: m.name,
+        role: m.role,
+        email: m.email,
+        phone: m.phone,
+        source_url: sourceUrl,
+      })),
+    });
+  }
+  return candidates;
+}
+
+/** Extract contacts by having the AI BROWSE a page. Fallback for when the page
+ *  can't be fetched server-side (see the source-partners route). */
 export async function extractFromUrl(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
@@ -434,34 +497,25 @@ export async function extractFromUrl(
   const prompt = [
     `Carefully read ALL of the visible content on this web page: ${pageUrl}`,
     `(University: ${ctx.university}.)`,
-    `Scan the ENTIRE page top to bottom — including the header, body, sidebars,`,
-    `"Contact"/"Advising team"/"Meet the advisors" sections, AND the page FOOTER`,
-    `or contact-info blocks — for ${subtype.replace("_", " ")} contacts.`,
-    `Extract EVERY relevant contact actually shown. Capture each person's full name,`,
-    `title/role, email, and phone EXACTLY as written. Do not skip anyone who is listed.`,
-    `IGNORE generic site-wide footer navigation and legal links (e.g. Title IX,`,
-    `Accessibility, Privacy, University Directory) — those are not advising contacts.`,
+    `Scan the ENTIRE page — header, body, sidebars, "Contact"/"Advising team"/`,
+    `"Meet the team" sections, and the footer/contact block — and list every`,
+    `${subtype.replace("_", " ")} person shown.`,
     ``,
-    `STRICT — accuracy matters more than completeness:`,
-    `- Use ONLY contacts actually present on the page. NEVER invent, guess, or infer`,
-    `  a name, email, or phone. NEVER construct an email like "first.last@domain" —`,
-    `  only use addresses shown verbatim. If a person has no email shown, set it null.`,
-    `- If you cannot actually access/read the page content, return {"candidates":[]}`,
-    `  instead of guessing. A wrong or made-up contact is far worse than none.`,
+    ...peopleRules(),
+    `- If you cannot actually read the page content, return {"people":[]} rather`,
+    `  than guessing. A made-up contact is far worse than none.`,
     ``,
-    candidateShape(subtype, pageUrl),
+    peopleSchema(),
     ``,
-    `If the page genuinely lists no relevant contacts, return {"candidates":[]}.`,
-    `Return ONLY valid JSON: {"candidates":[ ... ]}`,
+    `Return ONLY valid JSON: {"people":[ ... ]}`,
   ].join("\n");
   const out = await perplexityJson(prompt, cost, 4000);
-  return { candidates: parseCandidates(out, subtype), cost: cost.cost };
+  return { candidates: peopleToCandidates(out, subtype, pageUrl), cost: cost.cost };
 }
 
-/** Organize raw text the admin copy/pasted (e.g. a staff directory they
- *  highlighted) into the standardized contact shape, attached to the given
- *  source URL. This is the primary capture path, so it must get EVERYONE —
- *  including the very common case where many people share one office email. */
+/** Organize raw text the admin copy/pasted (a profile or a staff directory) into
+ *  contacts. The PRIMARY capture path — must get EVERYONE, from a single person
+ *  to a 40-person directory where many share one office email. */
 export async function extractFromText(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
@@ -469,49 +523,22 @@ export async function extractFromText(
   sourceUrl: string,
 ): Promise<ExtractResult> {
   const cost = new CostTracker();
-
-  let shape: string;
-  if (subtype === "dept_head") {
-    shape = `Return one candidate per department chair/head: {"department","name","title","email","phone","source_url":"${sourceUrl}","notes"}.`;
-  } else {
-    const kind = subtype === "student_org" ? "organization" : "office/team";
-    shape = [
-      `The text often contains MULTIPLE ${kind}s under section headings (e.g.`,
-      `"Directors", "Career Advising", "Graduate & Professional School Advising",`,
-      `"Employer Services", "Mentoring & Operations").`,
-      `Return ONE candidate object PER section heading you find. If there are no`,
-      `headings, return a single candidate covering everyone. Each candidate:`,
-      `{ "name": "<the section / team / ${kind} name>", "org_email": null,`,
-      `  "officers": [ {"name","role","email","phone","source_url":"${sourceUrl}"}, ... ] }`,
-      `Put each person under the section they appear in. If the SAME person appears`,
-      `under several sections, include them ONLY ONCE (under the first section).`,
-    ].join("\n");
-  }
-
   const prompt = [
-    `Below is text copied from a ${ctx.university} web page (a staff/advisor`,
-    `directory). Organize the ${subtype.replace("_", " ")} contacts into JSON.`,
+    `Below is text copied from a ${ctx.university} web page — it could be ONE`,
+    `person's profile or a whole staff/advisor directory with section headings.`,
+    `List every ${subtype.replace("_", " ")} person it contains.`,
     ``,
-    `EXTRACT EVERY SINGLE PERSON listed. Do NOT summarize, sample, or stop early —`,
-    `a directory may have 40+ people and you must return ALL of them.`,
-    `It is NORMAL for many people to share the SAME email (a shared office alias);`,
-    `include every person anyway — do NOT de-duplicate by email or merge people.`,
+    ...peopleRules(),
     ``,
-    `STRICT — accuracy over everything:`,
-    `- Use ONLY information literally present in the text. NEVER invent or guess a`,
-    `  name, email, or phone; NEVER construct an email. If a field is absent, use null.`,
-    `- IGNORE image-caption lines like "Headshot of <name>" or "<name> headshot".`,
-    `- Keep each person's name, title/role, email, and phone as written.`,
+    peopleSchema(),
     ``,
-    shape,
-    ``,
-    `Return ONLY valid JSON: {"candidates":[ ... ]}`,
+    `Return ONLY valid JSON: {"people":[ ... ]}`,
     ``,
     `--- PAGE TEXT ---`,
     text.slice(0, 18000),
   ].join("\n");
   const out = await perplexityJson(prompt, cost, 4000);
-  return { candidates: parseCandidates(out, subtype), cost: cost.cost };
+  return { candidates: peopleToCandidates(out, subtype, sourceUrl), cost: cost.cost };
 }
 
 /**

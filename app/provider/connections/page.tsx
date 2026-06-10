@@ -1128,31 +1128,47 @@ export default function ProviderLeadsPage() {
     setIsDrawerOpen(false);
   }, []);
 
-  const handleArchiveFromModal = useCallback(async (reason: string, message: string) => {
-    if (!leadIdToArchive) return;
+  const handleMarkAsReplied = useCallback(async (leadId: string) => {
+    // Update local state immediately
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId ? { ...l, status: "replied" as LeadStatus } : l
+      )
+    );
 
-    // Capture the lead ID at submission time to detect interruption
-    const submittingLeadId = leadIdToArchive;
+    // Persist to backend (update connection metadata)
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        // Find the connection ID for this lead
+        const lead = leads.find((l) => l.id === leadId);
+        const connectionId = lead?.connectionId || leadId;
 
-    // Verify lead exists before archiving
-    const lead = leads.find((l) => l.id === submittingLeadId);
-    if (!lead) {
-      console.error(`[archive] Lead ${submittingLeadId} not found in state`);
-      throw new Error("Lead not found");
+        // Get current connection to preserve metadata
+        const { data: conn } = await supabase
+          .from("connections")
+          .select("metadata")
+          .eq("id", connectionId)
+          .single();
+
+        if (conn) {
+          const existingMeta = (conn.metadata || {}) as Record<string, unknown>;
+          await supabase
+            .from("connections")
+            .update({
+              metadata: {
+                ...existingMeta,
+                marked_replied: true,
+                marked_replied_at: new Date().toISOString(),
+              },
+            })
+            .eq("id", connectionId);
+        }
+      } catch (err) {
+        console.error("[markAsReplied] Failed:", err);
+      }
     }
-
-    await handleArchiveLead(submittingLeadId, reason, message);
-
-    // Close drawer if archiving the currently selected lead
-    if (selectedLeadId === submittingLeadId) {
-      setIsDrawerOpen(false);
-    }
-
-    // Only close modal if leadIdToArchive hasn't changed (no interruption)
-    // This prevents closing a different modal that was opened during submission
-    setLeadIdToArchive((current) => current === submittingLeadId ? null : current);
-  }, [leadIdToArchive, handleArchiveLead, selectedLeadId, leads]);
-
+  }, [leads]);
   const handleArchiveLead = useCallback(async (leadId: string, reason: string, message?: string) => {
     const reasonLabel = {
       already_connected: "Already connected",
@@ -1229,6 +1245,31 @@ export default function ProviderLeadsPage() {
       );
     }
   }, [leads, handleMarkAsReplied]);
+
+  const handleArchiveFromModal = useCallback(async (reason: string, message: string) => {
+    if (!leadIdToArchive) return;
+
+    // Capture the lead ID at submission time to detect interruption
+    const submittingLeadId = leadIdToArchive;
+
+    // Verify lead exists before archiving
+    const lead = leads.find((l) => l.id === submittingLeadId);
+    if (!lead) {
+      console.error(`[archive] Lead ${submittingLeadId} not found in state`);
+      throw new Error("Lead not found");
+    }
+
+    await handleArchiveLead(submittingLeadId, reason, message);
+
+    // Close drawer if archiving the currently selected lead
+    if (selectedLeadId === submittingLeadId) {
+      setIsDrawerOpen(false);
+    }
+
+    // Only close modal if leadIdToArchive hasn't changed (no interruption)
+    // This prevents closing a different modal that was opened during submission
+    setLeadIdToArchive((current) => current === submittingLeadId ? null : current);
+  }, [leadIdToArchive, handleArchiveLead, selectedLeadId, leads]);
 
   const handleRestoreLead = useCallback(async (leadId: string) => {
     // Find the lead to get connectionId and previous status
@@ -1313,47 +1354,6 @@ export default function ProviderLeadsPage() {
     }
   }, [leads, fetchLeads]);
 
-  const handleMarkAsReplied = useCallback(async (leadId: string) => {
-    // Update local state immediately
-    setLeads((prev) =>
-      prev.map((l) =>
-        l.id === leadId ? { ...l, status: "replied" as LeadStatus } : l
-      )
-    );
-
-    // Persist to backend (update connection metadata)
-    if (isSupabaseConfigured()) {
-      try {
-        const supabase = createClient();
-        // Find the connection ID for this lead
-        const lead = leads.find((l) => l.id === leadId);
-        const connectionId = lead?.connectionId || leadId;
-
-        // Get current connection to preserve metadata
-        const { data: conn } = await supabase
-          .from("connections")
-          .select("metadata")
-          .eq("id", connectionId)
-          .single();
-
-        if (conn) {
-          const existingMeta = (conn.metadata || {}) as Record<string, unknown>;
-          await supabase
-            .from("connections")
-            .update({
-              metadata: {
-                ...existingMeta,
-                marked_replied: true,
-                marked_replied_at: new Date().toISOString(),
-              },
-            })
-            .eq("id", connectionId);
-        }
-      } catch (err) {
-        console.error("[markAsReplied] Failed:", err);
-      }
-    }
-  }, [leads]);
 
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;

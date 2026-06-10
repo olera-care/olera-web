@@ -23,6 +23,7 @@ import {
   type PartnerSubtype,
   type SourceLink,
 } from "@/lib/medjobs/partner-sourcing";
+import { PartnerManualAdd } from "./PartnerManualAdd";
 
 const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
   { key: "advisor", label: "Pre-health advisors" },
@@ -442,6 +443,10 @@ export function PartnerSourcingModal({
               );
             })
           )}
+          {/* Manual add: type in anyone the AI missed, no extra trip needed. */}
+          <div className="mt-3 border-t border-gray-100 pt-3">
+            <PartnerManualAdd campusSlug={campusSlug} subtype={subtype} onAdded={onAccepted} />
+          </div>
           <button
             type="button"
             onClick={() => setStep("sourcemap")}

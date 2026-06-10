@@ -20,6 +20,7 @@ import {
   type PartnerSubtype,
   type SourceLink,
 } from "@/lib/medjobs/partner-sourcing";
+import { PartnerManualAdd } from "./PartnerManualAdd";
 
 interface Props {
   campusSlug: string;
@@ -287,6 +288,15 @@ export function PartnerAuditModal({ campusSlug, universityName, subtype, onClose
             <Check k="added_missed">
               Added any missed prospects by hand — or confirmed there were none
             </Check>
+
+            {/* Manual add: type a contact in directly (no AI / no URL needed). */}
+            <div className="mt-3">
+              <PartnerManualAdd
+                campusSlug={campusSlug}
+                subtype={subtype}
+                onAdded={() => setSteps((s) => ({ ...s, added_missed: true }))}
+              />
+            </div>
 
             {/* Paste-a-page tool: point the AI at a page it missed and pull contacts. */}
             <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">

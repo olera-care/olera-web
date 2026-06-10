@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-10 — Editorial freshness: /caregiver-support/ decay audit + byline refresh-date emphasis (branch `modest-nobel`)
+
+Worked through the "Olera Action Items" Notion board. Two items shipped, one archived.
+
+**1. Freshness audit across /caregiver-support/ (Notion P2 → Done).** Built `olera-hq/scripts/audit_caregiver_support_decay.py` — extends the old 2-URL `diagnose_editorial_decay.py` into a full content-group audit: 6mo daily GSC per article, first-half/second-half Declining/Flat/Growing classification, ranked by clicks-lost-per-day. Output: `olera-hq/strategy/seo/caregiver-support-decay-audit-2026-06-07.md` (committed locally to olera-hq, `b69882e`, not pushed).
+- **Sanity check PASSED:** VA page ranked #1/Declining; BCBS independently classified Flat (-10%) — reproduced both known diagnoses.
+- **Headline:** 82 of 89 articles are Negligible (sub-0.3 clicks/day). Real refresh queue is ~3, not 83. The one clean NEW candidate for Logan: `how-to-prove-primary-caregiver-custody` (-34%, 146 clk, pos 4.0→5.6).
+- **Gotcha (durable):** GSC service-account calls were stalling ~75s each via an IPv6 happy-eyeballs black-hole on googleapis.com. Fix baked into the script: monkeypatch `socket.getaddrinfo` to AF_INET only → <1min full run. Reuse this for any GSC script on this machine.
+
+**2. Byline refresh-date emphasis (commit `f4a4ea7d`, this branch).** TJ spotted that `how-to-prove-primary-caregiver-custody` — which Logan refreshed May 1 2026 — still showed the 2024 publish date prominently with "Verified May 1, 2026" as an equally-subtle tail, burying the refresh for readers AND Google's freshness crawl. Fixed in `app/caregiver-support/[slug]/page.tsx`: when an article was re-verified >1 day after publish (`REFRESH_MIN_GAP_MS` guard), byline now leads with prominent **"Updated {date}"** (gray-700/medium) and demotes original to subtle "originally {date}" (gray-400). The 83 never-refreshed articles unchanged; standalone VA/Texas pages have no byline date so untouched. Verified rendering in-browser + screenshot; `/pre-test` review clean (0 bugs, tsc 0 errors).
+
+**3. Archived moot 410 ticket** — "Provider page returns 410 Gone" Notion P5 → Archive (deleted providers already 301-redirect; PR #983 was built+closed for the same reason; the 410 bucket is empty).
+
+**Local-env note (not a code bug):** the anon key in `~/Desktop/olera-web/.env.local` is INVALID ("Invalid API key") — local dev can't read Supabase via the normal client path until refreshed. Production is fine. I temporarily aliased anon→service-role in a disposable worktree `.env.local` to render the page, then deleted it.
+
+**Next up:** TJ's call on whether to PR the byline change to staging (this quicksave does it). Other board items remaining are TJ's manual provider follow-ups + P2/P3 SEO investigations (`anytime-home-care-il`, Always Best Care WA).
 ### 2026-06-10 — Provider-comms system SHIPPED end-to-end (decay → governance → cadence) + automations next-run forecast
 
 The arc TJ set out on — distribute provider emails through the week + learn rapidly — is built, with the governance layer it needed underneath it. Most of it is in production.

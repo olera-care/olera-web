@@ -46,15 +46,22 @@ export default function DashboardSectionCard({
                 />
               </svg>
             </button>
-            {/* Completion percentage */}
+            {/* Completion status — a "Done" check reads as progress while
+                scrolling the card stack; incomplete sections keep the teal % so
+                the eye lands on what's left to do. */}
             {completionPercent != null && (
-              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                completionPercent >= 100
-                  ? "bg-success-50 text-success-700"
-                  : "bg-primary-50 text-primary-700"
-              }`}>
-                {completionPercent}%
-              </span>
+              completionPercent >= 100 ? (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-success-50 text-success-700">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Done
+                </span>
+              ) : (
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700">
+                  {completionPercent}%
+                </span>
+              )
             )}
           </div>
         </div>

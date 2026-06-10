@@ -132,6 +132,19 @@ interface Props {
   onOpenSection: (sectionId: NudgeSectionId) => void;
   /** Slug used as provider_id for fire-and-forget activity events. */
   providerSlug: string;
+  /** Reports the hero's resolved actionable CTA so the mobile sticky action
+   *  bar can mirror exactly what the hero shows (same rotation, same tier).
+   *  Null when the current tier carries no CTA (e.g. the view-spike moment). */
+  onHeroAction?: (action: HeroAction | null) => void;
+}
+
+/** The hero's chosen action, flattened for the mobile sticky bar to mirror. */
+export interface HeroAction {
+  label: string;
+  /** "section" opens an edit modal in place; "nav" navigates to href. */
+  kind: "section" | "nav";
+  sectionId?: NudgeSectionId;
+  href?: string;
 }
 
 /** Engagement-tier CTA tags (Tiers 1, 2). Used for tracking clicks so the
@@ -175,6 +188,7 @@ export default function DashboardHero({
   category,
   onOpenSection,
   providerSlug,
+  onHeroAction,
 }: Props) {
   // Per-browser visit counter, read once per mount (lazy init runs a single
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
@@ -190,6 +204,11 @@ export default function DashboardHero({
   // Total preload payload is ~1.6MB, fired off the critical path.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // The hero background is `hidden md:block` — it never paints on phones, so
+    // preloading ~1.6MB of tier imagery on mobile is pure waste on 4G. Warm the
+    // cache only where the image actually renders (md+). Tier swaps mid-session
+    // are a desktop concern; mobile shows the solid warm-950 card regardless.
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
     for (const url of ALL_HERO_IMAGES) {
       const img = new window.Image();
       img.src = url;
@@ -216,6 +235,27 @@ export default function DashboardHero({
       ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
   }, [bannerId, sectionId, sectionWeight, providerSlug]);
+
+  // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
+  // the bar mirrors EXACTLY the tier the hero landed on this visit — no
+  // duplicated picker logic, no separate rotation roll. Null for no-CTA tiers.
+  const heroActionLabel = hook.cta?.label ?? null;
+  const heroActionHref =
+    hook.cta && !isSectionCta(hook.cta) ? hook.cta.href : null;
+  useEffect(() => {
+    if (!onHeroAction) return;
+    if (!hook.cta) {
+      onHeroAction(null);
+      return;
+    }
+    onHeroAction(
+      isSectionCta(hook.cta)
+        ? { label: hook.cta.label, kind: "section", sectionId: hook.cta.sectionId }
+        : { label: hook.cta.label, kind: "nav", href: hook.cta.href }
+    );
+    // hook.cta is recomputed each render; key the effect on its primitives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onHeroAction, sectionId, heroActionLabel, heroActionHref]);
 
   const handleSectionClick = (cta: SectionCta) => {
     track("provider_picker_clicked", providerSlug, {

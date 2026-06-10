@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   providerFollowupDay1Email,
@@ -94,6 +95,7 @@ interface ProviderGroup {
   providerEmail: string;
   providerName: string;
   providerSlug: string;
+  providerKey: string; // canonical olera-providers.slug for email_log.provider_id (frequency gate + dashboard)
   leads: EligibleLead[];
 }
 
@@ -197,6 +199,7 @@ export async function GET(request: NextRequest) {
         already_at_stage: 0,
         sequence_stopped: 0,
         send_failed: 0,
+        nudge_cap: 0, // Frequency gate held this stage — provider over the weekly nudge budget
         not_stuck: 0, // For force_stuck_reengagement mode
       },
       dry_run: dryRun,
@@ -431,9 +434,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const providerId = conn.to_profile_id;
-      // Use slug, then source_provider_id, then id as fallback for token generation
-      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || "";
+      // providerId: UUID — used only to GROUP a provider's leads in this run (dedup key).
+      // providerSlug: slug/source_provider_id/id — for URL / claim-token generation.
+      // providerKey (below): the canonical olera-providers.slug stamped on email_log.provider_id, so
+      // this sender's rows aggregate with the digest + dashboard instead of fragmenting. (Reconciled
+      // with #1000 — UUID can't be canonical: unclaimed providers have none. See lib/provider-identity.)
+      const providerId = conn.to_profile_id; // UUID - grouping key only
+      const providerSlug = toProfile?.slug || toProfile?.source_provider_id || toProfile?.id || ""; // For URLs
       const providerName = toProfile?.display_name || "Your Organization";
 
       // Extract family info with fallbacks
@@ -461,11 +468,17 @@ export async function GET(request: NextRequest) {
 
       // Add to provider group
       if (!providerGroups.has(providerId)) {
+        const providerKey =
+          (await resolveCanonicalProviderId(db, {
+            sourceProviderId: toProfile?.source_provider_id,
+            profileSlug: providerSlug,
+          })) ?? providerSlug;
         providerGroups.set(providerId, {
           providerId,
           providerEmail,
           providerName,
           providerSlug,
+          providerKey,
           leads: [],
         });
       }
@@ -556,13 +569,13 @@ export async function GET(request: NextRequest) {
       const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount);
       const emailType = getEmailTypeForStage(templateStage);
 
-      // Reserve email log ID
+      // Reserve email log ID (canonical slug — see providerKey)
       const emailLogId = await reserveEmailLogId({
         to: group.providerEmail,
         subject,
         emailType,
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerKey,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: templateStage,
@@ -639,13 +652,13 @@ export async function GET(request: NextRequest) {
       }
 
       // Send email
-      const { success, error: sendError } = await sendEmail({
+      const { success, skipped, skipReason, error: sendError } = await sendEmail({
         to: group.providerEmail,
         subject,
         html,
         emailType,
         recipientType: "provider",
-        providerId: group.providerSlug,
+        providerId: group.providerKey,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
           followup_stage: templateStage,
@@ -662,6 +675,16 @@ export async function GET(request: NextRequest) {
         );
         counts.skipped += leadCount;
         counts.skipReasons.send_failed += leadCount;
+        continue;
+      }
+
+      // Frequency gate held this nudge: do NOT advance followup_stage, so the sequence resumes from
+      // the same stage on a later run once the provider's nudge budget frees up. (Other skips — bounce
+      // suppression, preference — fall through and advance, matching prior behavior, so a dead address
+      // isn't retried forever.)
+      if (skipped && skipReason === "nudge_cap") {
+        counts.skipped += leadCount;
+        counts.skipReasons.nudge_cap += leadCount;
         continue;
       }
 

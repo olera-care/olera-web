@@ -5,8 +5,7 @@
  * this module categorizes connections by provider engagement level:
  *
  *   New        → Lead sent, provider hasn't viewed it yet
- *   Viewed     → Provider opened the lead page
- *   Engaged    → Provider revealed contact info (opened drawer)
+ *   Viewed     → Provider opened lead or showed interest (revealed contact, clicked inbox)
  *   Connected  → Provider reached out (called, emailed, or messaged)
  *   Stuck      → No provider activity for 10+ days, awaiting re-engagement
  *   Needs Call → Re-engagement email sent, still no response (14+ days)
@@ -18,7 +17,6 @@
 export type EngagementLevel =
   | "new"
   | "viewed"
-  | "engaged"
   | "connected"
   | "stuck"
   | "needs_call";
@@ -126,7 +124,6 @@ export const NEEDS_CALL_THRESHOLD_DAYS = PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 export const ENGAGEMENT_LABELS: Record<EngagementLevel, string> = {
   new: "New",
   viewed: "Viewed",
-  engaged: "Engaged",
   connected: "Connected",
   stuck: "Stuck",
   needs_call: "Needs Call",
@@ -154,13 +151,7 @@ export const ENGAGEMENT_CONFIG: Record<
     label: "Viewed",
     dot: "bg-amber-400",
     text: "text-amber-700",
-    description: "Provider opened the lead",
-  },
-  engaged: {
-    label: "Engaged",
-    dot: "bg-orange-400",
-    text: "text-orange-700",
-    description: "Provider revealed contact info",
+    description: "Provider opened or showed interest in the lead",
   },
   connected: {
     label: "Connected",
@@ -265,11 +256,13 @@ export function getEngagementLevel(
   ) {
     // Provider reached out - this is success
     baseLevel = "connected";
-  } else if (engagement.contactRevealed || engagement.continueInInbox) {
-    // Provider revealed contact info or clicked to continue in inbox - actively interested
-    baseLevel = "engaged";
-  } else if (engagement.leadOpened) {
-    // Provider viewed the lead - passive interest
+  } else if (
+    engagement.leadOpened ||
+    engagement.contactRevealed ||
+    engagement.continueInInbox
+  ) {
+    // Provider viewed the lead or showed interest (revealed contact, clicked to inbox)
+    // Treat all passive interest signals as "viewed"
     baseLevel = "viewed";
   } else {
     // No engagement yet
@@ -278,18 +271,18 @@ export function getEngagementLevel(
 
   // Determine final engagement level (purely time-based for UI tabs)
   // - Connected: provider reached out (success) - never becomes stuck/needs_call
-  // - Viewed/Engaged: provider showed interest, keep in their tab and continue sequence
+  // - Viewed: provider showed interest, keep in their tab and continue sequence
   // - Needs Call: 14+ days with NO engagement (only for "new" connections)
   // - Stuck: 10+ days with NO engagement (only for "new" connections)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
-  } else if (baseLevel === "viewed" || baseLevel === "engaged") {
-    // Provider showed interest - keep them in their tab and continue sequence
-    // Even if it's 14+ days old, if they viewed/engaged, they stay in that tab
+  } else if (baseLevel === "viewed") {
+    // Provider showed interest - keep them in viewed tab and continue sequence
+    // Even if it's 14+ days old, if they viewed or revealed contact, they stay in viewed tab
     level = baseLevel;
   } else if (needsCallByTime) {
-    // Only NEW connections (never viewed/engaged) that are 14+ days old need manual call
+    // Only NEW connections (never viewed) that are 14+ days old need manual call
     level = "needs_call";
   } else if (isStale) {
     // 10+ days with NO engagement → stuck (awaiting re-engagement email)
@@ -326,19 +319,17 @@ export function isConnected(engagement: EngagementData): boolean {
  *
  * Priority:
  *   1. Needs Call (requires immediate manual intervention)
- *   2. Engaged (hot leads - provider interested but hasn't reached out)
- *   3. Viewed (warm - they looked)
- *   4. New (cold - need to nudge)
- *   5. Stuck (stale - awaiting re-engagement)
- *   6. Connected (success - just monitoring)
+ *   2. Viewed (warm - they looked or showed interest)
+ *   3. New (cold - need to nudge)
+ *   4. Stuck (stale - awaiting re-engagement)
+ *   5. Connected (success - just monitoring)
  */
 export const ENGAGEMENT_PRIORITY: Record<EngagementLevel, number> = {
   needs_call: 0, // Urgent - requires manual call
-  engaged: 1,    // Hot - prioritize these
-  viewed: 2,     // Warm
-  new: 3,        // Cold
-  stuck: 4,      // Stale - awaiting re-engagement
-  connected: 5,  // Success - lowest priority (good problem to have)
+  viewed: 1,     // Warm - they looked or showed interest
+  new: 2,        // Cold
+  stuck: 3,      // Stale - awaiting re-engagement
+  connected: 4,  // Success - lowest priority (good problem to have)
 };
 
 /**

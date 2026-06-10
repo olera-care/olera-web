@@ -16,7 +16,7 @@ interface ProfileCompleteness {
 }
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-export type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
+export type EngagementLevel = "new" | "viewed" | "connected" | "stuck" | "needs_call";
 export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
 export type Perspective = "provider" | "family";
 
@@ -426,8 +426,6 @@ export default function ConnectionRow({
       switch (engLevel) {
         case "connected":
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
-        case "engaged":
-          return { status: `Engaged${waitingOnText}`, color: "text-orange-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
         case "viewed":
           return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
         case "stuck":

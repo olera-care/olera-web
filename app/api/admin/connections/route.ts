@@ -118,7 +118,6 @@ interface EngagementCounts {
   all: number;
   new: number;
   viewed: number;
-  engaged: number;
   connected: number;
   stuck: number;
   needs_call: number;
@@ -143,8 +142,6 @@ interface FunnelStats {
   total: number;
   providerViewed: number;
   providerViewedRate: number;
-  providerEngaged: number;
-  providerEngagedRate: number;
   responded: number;
   respondedRate: number;
   connected: number;
@@ -847,7 +844,6 @@ export async function GET(request: NextRequest) {
       all: 0,
       new: 0,
       viewed: 0,
-      engaged: 0,
       connected: 0,
       stuck: 0,
       needs_call: 0,
@@ -866,7 +862,6 @@ export async function GET(request: NextRequest) {
 
     // Funnel stats
     let providerViewedCount = 0;
-    let providerEngagedCount = 0;
     let respondedCount = 0;
     let connectedCount = 0;
 
@@ -951,8 +946,8 @@ export async function GET(request: NextRequest) {
         familyEngagementCounts[familyEngResult.level]++;
 
         // Funnel stats (based on provider engagement)
-        if (eng?.lead_opened) providerViewedCount++;
-        if (eng?.contact_revealed || eng?.phone_clicked || eng?.email_link_clicked || eng?.continue_in_inbox) providerEngagedCount++;
+        // Viewed now includes: opened lead, revealed contact, or clicked to inbox
+        if (eng?.lead_opened || eng?.contact_revealed || eng?.continue_in_inbox) providerViewedCount++;
         // Count as responded if: sent message, marked as replied, or already connected
         if (c.responded || c.markedReplied || c.alreadyConnected) respondedCount++;
         if (c.familyRepliedAfterProvider) connectedCount++;
@@ -965,8 +960,6 @@ export async function GET(request: NextRequest) {
       total: totalActive,
       providerViewed: providerViewedCount,
       providerViewedRate: totalActive > 0 ? Math.round((providerViewedCount / totalActive) * 100) : 0,
-      providerEngaged: providerEngagedCount,
-      providerEngagedRate: totalActive > 0 ? Math.round((providerEngagedCount / totalActive) * 100) : 0,
       responded: respondedCount,
       respondedRate: totalActive > 0 ? Math.round((respondedCount / totalActive) * 100) : 0,
       connected: connectedCount,
@@ -992,7 +985,7 @@ export async function GET(request: NextRequest) {
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
     // Check if filter is an engagement level (provider or family)
-    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
+    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "stuck", "needs_call"];
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {

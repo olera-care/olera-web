@@ -135,9 +135,9 @@ export async function GET(request: NextRequest) {
     const connectionIds = (connections ?? []).map((c) => c.id);
 
     // Build per-connection engagement map
-    const connectionEngagement = new Map<string, { viewed: boolean; engaged: boolean }>();
+    const connectionEngagement = new Map<string, { viewed: boolean }>();
     for (const id of connectionIds) {
-      connectionEngagement.set(id, { viewed: false, engaged: false });
+      connectionEngagement.set(id, { viewed: false });
     }
 
     if (providerActivityKeys.length > 0 && connectionIds.length > 0) {
@@ -153,10 +153,9 @@ export async function GET(request: NextRequest) {
 
         if (eventConnectionId && connectionEngagement.has(eventConnectionId)) {
           const current = connectionEngagement.get(eventConnectionId)!;
-          if (event.event_type === "lead_opened") {
+          // Both lead_opened and contact_revealed count as "viewed" (passive interest)
+          if (event.event_type === "lead_opened" || event.event_type === "contact_revealed") {
             current.viewed = true;
-          } else if (event.event_type === "contact_revealed") {
-            current.engaged = true;
           }
         }
       }
@@ -181,7 +180,7 @@ export async function GET(request: NextRequest) {
         careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
       }
 
-      // Determine engagement level from thread (connected) and provider_activity (viewed/engaged)
+      // Determine engagement level from thread (connected) and provider_activity (viewed)
       let engagementLevel = "new";
       const thread = (meta.thread as Array<{ from_profile_id?: string; text?: string; is_auto_reply?: boolean }>) || [];
       const providerMessaged = thread.some(
@@ -191,8 +190,6 @@ export async function GET(request: NextRequest) {
       const engagement = connectionEngagement.get(c.id);
       if (providerMessaged) {
         engagementLevel = "connected";
-      } else if (engagement?.engaged) {
-        engagementLevel = "engaged";
       } else if (engagement?.viewed) {
         engagementLevel = "viewed";
       }

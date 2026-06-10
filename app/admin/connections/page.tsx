@@ -25,7 +25,6 @@ interface EngagementCounts {
   all: number;
   new: number;
   viewed: number;
-  engaged: number;
   connected: number;
   stuck: number;
   needs_call: number;
@@ -44,8 +43,6 @@ interface FunnelStats {
   total: number;
   providerViewed: number;
   providerViewedRate: number;
-  providerEngaged: number;
-  providerEngagedRate: number;
   responded: number;
   respondedRate: number;
   connected: number;
@@ -80,7 +77,7 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
+type EngagementLevel = "new" | "viewed" | "connected" | "stuck" | "needs_call";
 type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
 
 // Perspective type
@@ -101,8 +98,7 @@ interface TabConfig {
 // Provider perspective tabs
 const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
-  { key: "viewed", label: "Viewed", description: "Provider opened the lead", emptyMessage: "No leads have been viewed yet." },
-  { key: "engaged", label: "Engaged", description: "Provider revealed contact info", emptyMessage: "No engaged leads yet." },
+  { key: "viewed", label: "Viewed", description: "Provider opened or showed interest in the lead", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "stuck", label: "Stuck", description: "No activity for 10+ days", emptyMessage: "No stuck connections." },
   { key: "needs_call", label: "Needs Call", description: "14+ days, requires manual intervention", emptyMessage: "No providers need calling." },
@@ -804,19 +800,13 @@ export default function ConnectionsTrackerPage() {
           </button>
 
           {statsExpanded && list?.funnelStats && (
-            <div className="mt-4 grid grid-cols-5 gap-3">
+            <div className="mt-4 grid grid-cols-4 gap-3">
               <FunnelStat label="Total Leads" value={list.funnelStats.total} />
               <FunnelStat
                 label="Provider Viewed"
                 value={list.funnelStats.providerViewedRate}
                 format="percent"
                 subtitle={`${list.funnelStats.providerViewed} ${list.funnelStats.providerViewed === 1 ? "lead" : "leads"}`}
-              />
-              <FunnelStat
-                label="Provider Engaged"
-                value={list.funnelStats.providerEngagedRate}
-                format="percent"
-                subtitle={`${list.funnelStats.providerEngaged} ${list.funnelStats.providerEngaged === 1 ? "lead" : "leads"}`}
               />
               <FunnelStat
                 label="Responded"

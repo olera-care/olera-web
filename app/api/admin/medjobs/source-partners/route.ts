@@ -41,6 +41,45 @@ const VALID_STAGES = new Set(["source_map", "extract", "extract_url", "parse_tex
 const STAKEHOLDER_KINDS = ["advisor", "student_org", "dept_head", "professor"];
 
 /**
+ * Fetch a page server-side and reduce it to plain text. Far more reliable than
+ * asking the model to "browse" a URL — and because the model then only sees
+ * REAL page text, it can't hallucinate contacts. Returns "" on failure (e.g.
+ * JS-rendered SPA, 403, timeout) so the caller can fall back to model browsing
+ * or the paste tool. mailto:/tel: hrefs are surfaced since the visible text
+ * sometimes hides the address behind an icon.
+ */
+async function fetchPageText(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; OleraResearchBot/1.0)" },
+      signal: AbortSignal.timeout(15000),
+      redirect: "follow",
+    });
+    if (!res.ok) return "";
+    const ct = res.headers.get("content-type") ?? "";
+    if (!/text\/html|text\/plain|application\/xhtml/i.test(ct)) return "";
+    const html = await res.text();
+    const emails = [...html.matchAll(/mailto:([^"'>\s?]+)/gi)].map((m) => {
+      try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+    });
+    const tels = [...html.matchAll(/tel:([^"'>\s]+)/gi)].map((m) => m[1]);
+    const text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&#\d+;/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const extras = [...new Set([...emails, ...tels])];
+    return extras.length ? `${text}\n\nContact links on page: ${extras.join(", ")}` : text;
+  } catch {
+    return "";
+  }
+}
+
+/**
  * GET /api/admin/medjobs/source-partners?campus_slug=...
  *
  * Dedup helper for the sourcing widget — returns the existing partner rows'
@@ -176,8 +215,16 @@ export async function POST(request: NextRequest) {
       if (!/^https?:\/\//i.test(pageUrl)) {
         return NextResponse.json({ error: "Paste a valid http(s) URL" }, { status: 400 });
       }
-      const { candidates, cost } = await extractFromUrl(ctx, subtype, pageUrl);
-      return NextResponse.json({ candidates, cost });
+      // Prefer reading the ACTUAL page text server-side — reliable and the model
+      // can only structure real text (no hallucinated contacts). Fall back to
+      // model browsing only when we couldn't fetch usable content (JS-rendered,
+      // blocked, etc.), in which case the admin can also use the paste tool.
+      const pageText = await fetchPageText(pageUrl);
+      const usedText = pageText.length > 200;
+      const { candidates, cost } = usedText
+        ? await extractFromText(ctx, subtype, pageText, pageUrl)
+        : await extractFromUrl(ctx, subtype, pageUrl);
+      return NextResponse.json({ candidates, cost, source: usedText ? "page_text" : "browse" });
     }
 
     if (stage === "parse_text") {

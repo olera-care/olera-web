@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   const ws = readWorkspace((campus as { partner_research?: unknown }).partner_research, subtype);
   const linkUrls = ws.links.map((l) => ({ title: l.title, url: l.url }));
-  const officeName = new Map(ws.offices.map((o) => [o.id, o.name]));
+  const officeById = new Map(ws.offices.map((o) => [o.id, o]));
 
   let created = 0;
   const ids: string[] = [];
@@ -84,11 +84,15 @@ export async function POST(request: NextRequest) {
     if (selected.length === 0) continue; // office not outreach-ready
     const general = members.find(isGeneralContact) ?? null;
     const people = members.filter((m) => !isGeneralContact(m));
+    const office = officeById.get(oid);
+    // An office can be recategorized (e.g. a pre-med student org found while
+    // researching advisors) — generate it as its own kind.
+    const rowType = office?.type ?? subtype;
     const id = await createRow(db, {
       campusId,
-      subtype,
+      rowType,
       userId: user.id,
-      organizationName: officeName.get(oid) ?? "Advising office",
+      organizationName: office?.name ?? "Advising office",
       generalEmail: general?.email ?? null,
       generalPhone: general?.phone ?? null,
       members: people,
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
     ids.push(id);
     created += 1;
     await attachContacts(db, id, selected, general, user.id);
-    await queueAndLog(db, id, subtype, user.id);
+    await queueAndLog(db, id, rowType, user.id);
   }
 
   // Individuals: one person-shaped row each.
@@ -106,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (!outreachIds.has(c.id)) continue;
     const id = await createRow(db, {
       campusId,
-      subtype,
+      rowType: subtype,
       userId: user.id,
       organizationName: c.name?.trim() || c.email || "Individual",
       generalEmail: null,
@@ -142,7 +146,7 @@ async function createRow(
   db: DB,
   args: {
     campusId: string;
-    subtype: PartnerSubtype;
+    rowType: PartnerSubtype;
     userId: string;
     organizationName: string;
     generalEmail: string | null;
@@ -151,13 +155,13 @@ async function createRow(
     linkUrls: { title: string; url: string }[];
   },
 ): Promise<string | null> {
-  const { campusId, subtype, userId, organizationName, generalEmail, generalPhone, members, linkUrls } = args;
+  const { campusId, rowType, userId, organizationName, generalEmail, generalPhone, members, linkUrls } = args;
   const { data, error } = await db
     .from("student_outreach")
     .insert({
       campus_id: campusId,
-      stakeholder_type: subtype,
-      kind: subtype,
+      stakeholder_type: rowType,
+      kind: rowType,
       organization_name: organizationName,
       status: "prospect",
       research_data: {

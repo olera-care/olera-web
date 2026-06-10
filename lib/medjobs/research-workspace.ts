@@ -52,6 +52,11 @@ export interface WorkspaceContact {
 export interface WorkspaceOffice {
   id: string;
   name: string;
+  /** What kind of partner this bucket is. Defaults to the workspace subtype,
+   *  but can be recategorized — e.g. a pre-med STUDENT ORG that showed up while
+   *  researching advisors, so its people aren't mistaken for advisors. Drives
+   *  the stakeholder_type when the office is generated into a prospect. */
+  type?: PartnerSubtype;
 }
 
 export interface SearchState {

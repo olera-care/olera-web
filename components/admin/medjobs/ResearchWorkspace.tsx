@@ -225,7 +225,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         const key = normOffice(name);
         const hit = offices.find((o) => normOffice(o.name) === key);
         if (hit) return hit.id;
-        const office: WorkspaceOffice = { id: wsId(), name: name.trim() };
+        const office: WorkspaceOffice = { id: wsId(), name: name.trim(), type: subtype };
         offices.push(office);
         return office.id;
       };
@@ -242,7 +242,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       }
       return { ...w, offices, contacts: [...w.contacts, ...add] };
     });
-  }, []);
+  }, [subtype]);
 
   const extractLink = useCallback(
     async (linkId: string) => {
@@ -376,6 +376,8 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   // Office reconciliation: rename, merge one bucket into another, delete empties.
   const renameOffice = (id: string, name: string) =>
     setWs((w) => ({ ...w, offices: w.offices.map((o) => (o.id === id ? { ...o, name } : o)) }));
+  const setOfficeType = (id: string, type: PartnerSubtype) =>
+    setWs((w) => ({ ...w, offices: w.offices.map((o) => (o.id === id ? { ...o, type } : o)) }));
   const mergeOffice = (fromId: string, toId: string) =>
     setWs((w) => ({
       ...w,
@@ -539,6 +541,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               onAssign={assignContact}
               onBulkAssign={bulkAssign}
               onRenameOffice={renameOffice}
+              onSetOfficeType={setOfficeType}
               onMergeOffice={mergeOffice}
               onDeleteOffice={deleteOffice}
               onSetConfirmed={setConfirmed}
@@ -692,6 +695,7 @@ function WorkStep({
   onAssign,
   onBulkAssign,
   onRenameOffice,
+  onSetOfficeType,
   onMergeOffice,
   onDeleteOffice,
   onSetConfirmed,
@@ -712,6 +716,7 @@ function WorkStep({
   onAssign: (id: string, value: string) => void;
   onBulkAssign: (linkId: string, value: string) => void;
   onRenameOffice: (id: string, name: string) => void;
+  onSetOfficeType: (id: string, type: PartnerSubtype) => void;
   onMergeOffice: (fromId: string, toId: string) => void;
   onDeleteOffice: (id: string) => void;
   onSetConfirmed: (linkId: string, confirmed: boolean) => void;
@@ -777,7 +782,9 @@ function WorkStep({
                   <ContactCard key={c.id} contact={c} offices={ws.offices} onPatch={onPatchContact} onRemove={onRemoveContact} onAssign={onAssign} />
                 ))}
                 {contacts.length === 0 && !isExtracting && (
-                  <p className="text-[11px] text-gray-400">No contacts found on this page — add by hand, or it had none.</p>
+                  <p className="text-[11px] text-gray-500">
+                    AI found no contacts here. Open the page ↗, copy the contact block, and paste it below — or add by hand.
+                  </p>
                 )}
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                   <button onClick={() => onAddContact(link.id)} className="text-xs font-medium text-primary-600 hover:underline">+ Add a contact you see on this page</button>
@@ -793,7 +800,7 @@ function WorkStep({
                     </label>
                   )}
                 </div>
-                <PasteContacts linkId={link.id} busy={isExtracting} onParse={onParseText} />
+                <PasteContacts linkId={link.id} busy={isExtracting} onParse={onParseText} startOpen={contacts.length === 0 && !!link.extracted} />
                 <label
                   className={`mt-1 flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
                     unassigned > 0 ? "border-gray-100 text-gray-400" : "border-gray-200 text-gray-800"
@@ -831,7 +838,7 @@ function WorkStep({
 
       {ws.offices.length > 0 && (
         <details className="rounded-md border border-gray-100 px-3 py-2">
-          <summary className="cursor-pointer text-xs font-medium text-gray-600">Manage offices ({ws.offices.length}) — rename or merge duplicates</summary>
+          <summary className="cursor-pointer text-xs font-medium text-gray-600">Manage offices ({ws.offices.length}) — rename, recategorize, or merge</summary>
           <div className="mt-2 space-y-2">
             {ws.offices.map((o) => {
               const count = officeCounts.get(o.id) ?? 0;
@@ -843,6 +850,16 @@ function WorkStep({
                     onChange={(e) => onRenameOffice(o.id, e.target.value)}
                     className="min-w-[180px] flex-1 rounded border border-gray-200 px-2 py-1 text-sm focus:border-gray-400 focus:outline-none"
                   />
+                  <select
+                    value={o.type ?? "advisor"}
+                    onChange={(e) => onSetOfficeType(o.id, e.target.value as PartnerSubtype)}
+                    className="rounded border border-gray-200 bg-white px-1 py-1 text-[11px] text-gray-600"
+                    title="What kind of partner this is — drives how it's generated."
+                  >
+                    <option value="advisor">Advising office</option>
+                    <option value="student_org">Student org</option>
+                    <option value="dept_head">Department</option>
+                  </select>
                   <span className="text-[11px] text-gray-400">{count} {count === 1 ? "person" : "people"}</span>
                   {others.length > 0 && (
                     <select
@@ -930,12 +947,14 @@ function PasteContacts({
   linkId,
   busy,
   onParse,
+  startOpen = false,
 }: {
   linkId: string;
   busy: boolean;
   onParse: (id: string, text: string) => void;
+  startOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [text, setText] = useState("");
   if (!open) {
     return (

@@ -1395,6 +1395,34 @@ export default function ConnectionRow({
                 </div>
               </div>
 
+              {/* Archive information - show when provider passed on lead */}
+              {detail.archived && detail.archiveReason && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🚫</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                        Provider Passed on Lead
+                      </h3>
+                      <p className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Reason:</span> {getArchiveReasonLabel(detail.archiveReason)}
+                      </p>
+                      {detail.archiveMessage && (
+                        <div className="mt-2 p-3 bg-white border border-gray-200 rounded">
+                          <p className="text-xs font-medium text-gray-500 uppercase mb-1">Message for Family</p>
+                          <p className="text-sm text-gray-700">{detail.archiveMessage}</p>
+                        </div>
+                      )}
+                      {detail.archivedAt && (
+                        <p className="text-xs text-gray-400 mt-2">
+                          Passed {daysAgo(detail.archivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Section 3: Conversation thread (collapsible, default open) */}
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">

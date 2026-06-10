@@ -364,6 +364,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
     }
 
+    // Extract archive information if provider passed on the lead
+    const archived = meta.archived === true;
+    const archiveReason = archived ? (meta.archive_reason as string | null) : null;
+    const archiveMessage = archived ? (meta.archive_message as string | null) : null;
+    const archivedBy = archived ? (meta.archived_by as string | null) : null;
+    const archivedAt = archived ? (meta.archived_at as string | null) : null;
+
     return NextResponse.json({
       id: c.id,
       type: c.type,
@@ -397,6 +404,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       engagement,
       temperature,
       nextStep,
+      // Archive information (when provider passed on lead)
+      archived,
+      archiveReason,
+      archiveMessage,
+      archivedBy,
+      archivedAt,
     });
   } catch (err) {
     console.error("[connections/:id] fatal:", err);

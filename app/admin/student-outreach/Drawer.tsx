@@ -19,6 +19,7 @@ import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
+import { PartnerPreFlightPanel } from "@/components/admin/medjobs/PartnerPreFlightPanel";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
@@ -816,7 +817,13 @@ function DrawerBody({
           convey state for active-partner / closed states. The banner
           was repeating those signals one row above them. */}
       {isResearch ? (
-        <ResearchModePanel ctx={ctx} action={action} setError={setError} />
+        <>
+          {/* Partner pre-flight: source links (incl. the Site's full source
+              map), professor permission lock, phone-conditional note. Shown
+              for stakeholder rows, where the research surface lives. */}
+          <PartnerPreFlightPanel ctx={ctx} />
+          <ResearchModePanel ctx={ctx} action={action} setError={setError} />
+        </>
       ) : (
         // v9: unified NextStepCard replaces the Partner-specific
         // NextStepPanel. Same modal launchers, stage-driven content,

@@ -918,6 +918,62 @@ function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
 // changes by status: prospect → "Research complete", researched →
 // opens PreFlightReviewModal.
 
+/**
+ * Confirmation-call gate — like provider prospecting, an advising-office
+ * prospect must be confirmed by a quick call before any cold email goes out:
+ * confirm the general email is right, and learn who should receive the program
+ * info. Records the call on research_data.confirm_call so the launcher unlocks.
+ */
+function ConfirmCallGate({
+  action,
+  email,
+  phone,
+  setError,
+}: {
+  action: ActionFn;
+  email: string | null;
+  phone: string | null;
+  setError: (e: string | null) => void;
+}) {
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const confirm = async () => {
+    setBusy(true);
+    try {
+      await action("update_research", {
+        research: { confirm_call: { done: true, at: new Date().toISOString(), note: note.trim() || null } },
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't save");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+      <p className="text-sm font-semibold text-amber-900">Confirm by call before outreach</p>
+      <p className="mt-1 text-xs text-amber-800">
+        Call {phone ? <a href={`tel:${phone}`} className="font-medium underline">{phone}</a> : "the office"} to confirm{" "}
+        {email ? <span className="font-medium">{email}</span> : "the general email"} is the right address for program
+        info — and ask who should review it.
+      </p>
+      <input
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Who to send to / who to ask for (optional)"
+        className="mt-2 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-sm focus:border-amber-400 focus:outline-none"
+      />
+      <button
+        onClick={confirm}
+        disabled={busy}
+        className="mt-2 w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+      >
+        {busy ? "Saving…" : "✓ Confirmation call done — set up outreach next"}
+      </button>
+    </div>
+  );
+}
+
 function ResearchModePanel({
   ctx,
   action,
@@ -958,61 +1014,84 @@ function ResearchModePanel({
   // already says what the section is for, so the prefix sentence
   // ("Research this stakeholder." / "Ready to email.") was redundant.
   // What's left is the actionable bit only.
-  const orientation = !isProspect ? (
-    <>
-      Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.
-    </>
-  ) : isOffice ? (
-    <>Fill the office contact info and add the people you found, then click <em>Research complete</em>.</>
+  // Office prospects get a confirmation-call gate between "research complete"
+  // and launching email: confirm the general email + learn who to send to.
+  const callObj = (rd.confirm_call ?? {}) as { done?: boolean; note?: string };
+  const callDone = Boolean(callObj.done);
+  const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
+  const officeNeedsCall = isOffice && !isProspect && !callDone;
+
+  const orientation = isProspect ? (
+    isOffice ? (
+      <>Fill the office contact info and add any advisors, then click <em>Research complete</em>.</>
+    ) : (
+      <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
+    )
+  ) : officeNeedsCall ? (
+    <>Before any email goes out, make a quick confirmation call: confirm the general email is the right place to send program info, and ask who should review it.</>
   ) : (
-    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
+    <>Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.</>
   );
 
-  const checklist = !isProspect
-    ? [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }]
-    : isOffice
+  const checklist = isProspect
+    ? isOffice
       ? [{ done: hasOfficeEmail, label: "At least one email — the office or a person" }]
       : [
           { done: haveContact, label: "At least one active contact added" },
           { done: havePrograms, label: "Programs selected" },
           ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
-        ];
+        ]
+    : isOffice
+      ? [
+          { done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" },
+          { done: callDone, label: "Confirmation call made — email confirmed" },
+        ]
+      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
-  const ctaLabel = isProspect
-    ? ready
-      ? "✓ Research complete — review email sequence"
-      : "Add a contact + programs to continue"
-    : ready
-      ? "Start email sequence →"
-      : "Add a contact with email to continue";
-
-  // v8.10.5: prospect's CTA chains mark_research_complete with opening
-  // PreFlight. Removes the previous "two clicks to schedule" friction
-  // — admin transitions to researched AND lands on the email-review
-  // modal in one action. ctx re-renders to the researched-stage label
-  // behind the modal, but admin doesn't have to click again.
-  const onCtaClick = isProspect
-    ? async () => {
-        try {
-          await action("mark_research_complete");
-          setShowPreFlight(true);
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "Action failed");
-        }
-      }
-    : () => setShowPreFlight(true);
-
-  const cta = (
-    <button
-      onClick={onCtaClick}
-      disabled={!ready}
-      className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-        ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-      }`}
-    >
-      {ctaLabel}
-    </button>
-  );
+  // CTA: office research → mark complete only (no PreFlight); office researched
+  // but un-confirmed → the call gate; otherwise the email-sequence launcher.
+  let cta: React.ReactNode;
+  if (isProspect) {
+    const label = ready
+      ? isOffice
+        ? "✓ Research complete →"
+        : "✓ Research complete — review email sequence"
+      : isOffice
+        ? "Add the office email to continue"
+        : "Add a contact + programs to continue";
+    cta = (
+      <button
+        onClick={async () => {
+          try {
+            await action("mark_research_complete");
+            if (!isOffice) setShowPreFlight(true);
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Action failed");
+          }
+        }}
+        disabled={!ready}
+        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        {label}
+      </button>
+    );
+  } else if (officeNeedsCall) {
+    cta = <ConfirmCallGate action={action} email={officeEmail ?? null} phone={officePhone} setError={setError} />;
+  } else {
+    cta = (
+      <button
+        onClick={() => setShowPreFlight(true)}
+        disabled={!ready}
+        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        {ready ? "Start email sequence →" : "Add a contact with email to continue"}
+      </button>
+    );
+  }
 
   return (
     <>

@@ -604,11 +604,24 @@ export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): R
 
 function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   // Footnote answers "what does the admin need to do?". The card opens the
-  // drawer on click — that's where research + launch happen.
+  // drawer on click — that's where research + launch happen. Office prospects
+  // are generated WITH a general email, so "needs contact info" was wrong; the
+  // real next step is the confirmation call.
+  const rd = (row.research_data ?? {}) as Record<string, unknown>;
+  const gc = (rd.general_contact ?? {}) as { email?: string };
+  const members = (Array.isArray(rd.office_members) ? rd.office_members : []) as Array<{ email?: string }>;
+  const hasEmail = Boolean(gc.email) || members.some((m) => Boolean(m?.email));
+  const callDone = Boolean((rd.confirm_call as { done?: boolean } | undefined)?.done);
   const subStateText =
     row.status === "researched"
-      ? "Review contact info, then launch outreach"
-      : "Needs contact info before outreach";
+      ? callDone
+        ? "Ready — launch outreach"
+        : hasEmail
+          ? "Confirm by call, then launch outreach"
+          : "Review contact info, then launch outreach"
+      : hasEmail
+        ? "Has contact — confirm and launch outreach"
+        : "Needs contact info before outreach";
   return {
     footnote: (
       <p className="mt-0.5 text-[11px] text-gray-500">{subStateText}</p>

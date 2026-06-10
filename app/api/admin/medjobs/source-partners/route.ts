@@ -85,9 +85,23 @@ export async function GET(request: NextRequest) {
     }
   }
   const pr = ((campus as { partner_research?: Record<string, unknown> }).partner_research ?? {}) as Record<string, unknown>;
+  // Flatten the admin's KEPT research links (all subtypes) — the approved
+  // research record. Only links the admin kept in the workspace appear here.
+  const workspace = (pr.workspace ?? {}) as Record<string, { links?: { title?: string; url?: string }[] }>;
+  const seenLink = new Set<string>();
+  const links: { title: string; url: string }[] = [];
+  for (const subtypeWs of Object.values(workspace)) {
+    for (const l of subtypeWs?.links ?? []) {
+      if (l?.url && !seenLink.has(l.url)) {
+        seenLink.add(l.url);
+        links.push({ title: l.title ?? l.url, url: l.url });
+      }
+    }
+  }
   return NextResponse.json({
     names: [...names],
     emails: [...emails],
+    links,
     partner_research: { sources: pr.sources ?? {}, audit: pr.audit ?? {} },
   });
 }
@@ -150,14 +164,9 @@ export async function POST(request: NextRequest) {
 
     if (stage === "source_map") {
       const { sources, cost } = await buildSourceMap(ctx, subtype);
-      // Persist the source map on the Site (R4) so it's reusable for the
-      // manual audit + later research without re-paying for it.
-      const pr = ((campus as { partner_research?: Record<string, unknown> }).partner_research ?? {}) as Record<string, unknown>;
-      const prSources = (pr.sources ?? {}) as Record<string, unknown>;
-      await db
-        .from("student_outreach_campuses")
-        .update({ partner_research: { ...pr, sources: { ...prSources, [subtype]: sources } } })
-        .eq("id", (campus as { id: string }).id);
+      // Do NOT persist here. Discovery is just a suggestion — only links the
+      // admin explicitly KEEPS in the workspace Link Set get saved to the Site
+      // (via /research-workspace PATCH). This keeps "saved == approved".
       return NextResponse.json({ sources, cost });
     }
 

@@ -21,9 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteCard } from "@/components/admin/medjobs/cards/SiteCard";
 import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
-import { PartnerSourcingModal } from "@/components/admin/medjobs/PartnerSourcingModal";
-import { PartnerAuditModal } from "@/components/admin/medjobs/PartnerAuditModal";
-import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
+import { ResearchWorkspace } from "@/components/admin/medjobs/ResearchWorkspace";
 import PulseHeader from "@/components/admin/PulseHeader";
 import type { DateRangeValue } from "@/components/admin/DateRangePopover";
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
@@ -35,8 +33,7 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [sourcingSite, setSourcingSite] = useState<CampusRow | null>(null);
-  const [auditState, setAuditState] = useState<{ site: CampusRow; subtype: PartnerSubtype } | null>(null);
+  const [researchSite, setResearchSite] = useState<CampusRow | null>(null);
   const [range, setRange] = useState<DateRangeValue>({
     preset: "30d",
     customFrom: "",
@@ -117,7 +114,7 @@ export default function SitesPage() {
               <SiteCard
                 row={r}
                 onView={() => openSitePage(r.slug)}
-                onFindPartners={() => setSourcingSite(r)}
+                onFindPartners={() => setResearchSite(r)}
               />
             </li>
           ))}
@@ -135,30 +132,12 @@ export default function SitesPage() {
         />
       )}
 
-      {sourcingSite && (
-        <PartnerSourcingModal
-          campusSlug={sourcingSite.slug}
-          universityName={sourcingSite.name}
-          onClose={() => setSourcingSite(null)}
-          onAccepted={() => void refetch()}
-          onOpenAudit={(subtype) => {
-            const site = sourcingSite;
-            setSourcingSite(null);
-            setAuditState({ site, subtype });
-          }}
-        />
-      )}
-
-      {auditState && (
-        <PartnerAuditModal
-          campusSlug={auditState.site.slug}
-          universityName={auditState.site.name}
-          subtype={auditState.subtype}
-          onClose={() => setAuditState(null)}
-          onComplete={() => {
-            setAuditState(null);
-            void refetch();
-          }}
+      {researchSite && (
+        <ResearchWorkspace
+          campusSlug={researchSite.slug}
+          universityName={researchSite.name}
+          onClose={() => setResearchSite(null)}
+          onChanged={() => void refetch()}
         />
       )}
     </div>

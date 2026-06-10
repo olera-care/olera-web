@@ -49,9 +49,9 @@ export function PartnerPreFlightPanel({ ctx }: { ctx: DrawerContext }) {
   const isOrg = kind === "student_org";
   const isProfessor = kind === "professor";
 
-  // All the AI source links found for this Site (every subtype), so the admin
-  // can check any page while filling in research — not just this prospect's
-  // source. Persisted on the Site in partner_research.sources (Chunk 1.3).
+  // The admin's KEPT research links for this Site (every subtype), so they can
+  // check any approved page while filling in research — not just this prospect's
+  // own source. Comes from the Site's research workspace (kept link set).
   const [siteSources, setSiteSources] = useState<SiteSource[]>([]);
   const campusSlug = ctx.campus?.slug ?? null;
   useEffect(() => {
@@ -62,18 +62,8 @@ export function PartnerPreFlightPanel({ ctx }: { ctx: DrawerContext }) {
         const res = await fetch(`/api/admin/medjobs/source-partners?campus_slug=${encodeURIComponent(campusSlug)}`);
         if (!res.ok) return;
         const d = await res.json();
-        const byType = (d.partner_research?.sources ?? {}) as Record<string, SiteSource[]>;
-        const seen = new Set<string>();
-        const flat: SiteSource[] = [];
-        for (const list of Object.values(byType)) {
-          for (const s of list ?? []) {
-            if (s?.url && !seen.has(s.url)) {
-              seen.add(s.url);
-              flat.push({ title: s.title ?? s.url, url: s.url });
-            }
-          }
-        }
-        if (!cancelled) setSiteSources(flat);
+        const flat = (Array.isArray(d.links) ? d.links : []) as SiteSource[];
+        if (!cancelled) setSiteSources(flat.filter((s) => s?.url));
       } catch {
         /* best-effort */
       }

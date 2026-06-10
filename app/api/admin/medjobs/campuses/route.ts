@@ -160,17 +160,19 @@ export async function GET(_request: NextRequest) {
         latestTaskCreated != null &&
         (!c.viewed_at || latestTaskCreated > c.viewed_at);
 
-      // Flatten the persisted AI source maps (all subtypes) into one deduped
-      // list so the Site card can surface "Research sources" for quick access.
+      // Flatten the admin's KEPT research links (all subtypes) into one deduped
+      // list so the Site card surfaces the approved research record. Only links
+      // the admin explicitly kept in the workspace appear here — never raw AI
+      // suggestions.
       const partnerSources: { title: string; url: string }[] = [];
       {
-        const byType = (
-          (c as { partner_research?: { sources?: Record<string, { title?: string; url?: string }[]> } })
-            .partner_research?.sources ?? {}
-        ) as Record<string, { title?: string; url?: string }[]>;
+        const workspace = (
+          (c as { partner_research?: { workspace?: Record<string, { links?: { title?: string; url?: string }[] }> } })
+            .partner_research?.workspace ?? {}
+        ) as Record<string, { links?: { title?: string; url?: string }[] }>;
         const seen = new Set<string>();
-        for (const list of Object.values(byType)) {
-          for (const s of list ?? []) {
+        for (const subtypeWs of Object.values(workspace)) {
+          for (const s of subtypeWs?.links ?? []) {
             if (s?.url && !seen.has(s.url)) {
               seen.add(s.url);
               partnerSources.push({ title: s.title ?? s.url, url: s.url });

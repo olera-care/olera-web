@@ -262,7 +262,7 @@ function LeadDetailDrawer({
     (lead.email || lead.phone) ? (
       <div>
         <p className="text-lg font-semibold text-gray-900 mb-3">Contact information</p>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {lead.phone && (
             <div className="group flex items-center gap-3">
               {/* Phone icon */}
@@ -275,10 +275,10 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => copyToClipboard(lead.phone!, "phone")}
-                className={`p-2 rounded-lg border transition-all shrink-0 ${
+                className={`p-1.5 rounded-md transition-all shrink-0 ${
                   copiedField === "phone"
-                    ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
-                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
                 }`}
                 aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
               >
@@ -306,10 +306,10 @@ function LeadDetailDrawer({
               <button
                 type="button"
                 onClick={() => copyToClipboard(lead.email!, "email")}
-                className={`p-2 rounded-lg border transition-all shrink-0 ${
+                className={`p-1.5 rounded-md transition-all shrink-0 ${
                   copiedField === "email"
-                    ? "bg-primary-100 border-primary-200 text-primary-700 opacity-100"
-                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
                 }`}
                 aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
               >

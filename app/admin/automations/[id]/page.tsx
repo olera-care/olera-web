@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
@@ -163,6 +163,77 @@ function duration(start: string, end: string | null): string {
 function pct(n: number, of: number): string {
   return of <= 0 ? "—" : `${Math.round((n / of) * 100)}%`;
 }
+// ── Next-run forecast (display-only; derived entirely from data already loaded — no backend) ──
+// Parse one cron field into the set of allowed values, or null for `*` (matches anything).
+// Supports `*`, lists (`1,2,3`), steps (`*/6`, `a/n`), and ranges (`a-b`) — the forms used in vercel.json.
+function parseCronField(field: string, min: number, max: number): Set<number> | null {
+  if (field === "*") return null;
+  const out = new Set<number>();
+  for (const part of field.split(",")) {
+    if (part.includes("/")) {
+      const [range, stepStr] = part.split("/");
+      const step = parseInt(stepStr, 10) || 1;
+      let lo = min, hi = max;
+      if (range !== "*") {
+        if (range.includes("-")) { const [a, b] = range.split("-"); lo = parseInt(a, 10); hi = parseInt(b, 10); }
+        else { lo = parseInt(range, 10); }
+      }
+      for (let v = lo; v <= hi; v += step) out.add(v);
+    } else if (part.includes("-")) {
+      const [a, b] = part.split("-"); for (let v = parseInt(a, 10); v <= parseInt(b, 10); v++) out.add(v);
+    } else {
+      out.add(parseInt(part, 10));
+    }
+  }
+  return out;
+}
+/** Next UTC fire time for a 5-field cron, found by forward iteration (capped at 8 days). UTC-based. */
+function nextCronRun(schedule: string, from: Date): Date | null {
+  const f = schedule.trim().split(/\s+/);
+  if (f.length !== 5) return null;
+  const min = parseCronField(f[0], 0, 59), hour = parseCronField(f[1], 0, 23);
+  const dom = parseCronField(f[2], 1, 31), mon = parseCronField(f[3], 1, 12), dow = parseCronField(f[4], 0, 6);
+  const t = new Date(from.getTime());
+  t.setUTCSeconds(0, 0);
+  t.setUTCMinutes(t.getUTCMinutes() + 1);
+  for (let i = 0; i < 216_000; i++) { // up to ~150 days — covers the quarterly cron; null beyond
+    const okDom = !dom || dom.has(t.getUTCDate()), okDow = !dow || dow.has(t.getUTCDay());
+    // Standard cron: when BOTH day-of-month and day-of-week are restricted, a match on either fires.
+    const okDay = dom && dow ? okDom || okDow : okDom && okDow;
+    if ((!min || min.has(t.getUTCMinutes())) && (!hour || hour.has(t.getUTCHours())) && (!mon || mon.has(t.getUTCMonth() + 1)) && okDay) {
+      return new Date(t.getTime());
+    }
+    t.setUTCMinutes(t.getUTCMinutes() + 1);
+  }
+  return null;
+}
+/**
+ * Rough forecast for the next run: when it fires, ~how many it'll send, ~how long it takes.
+ * Sends/duration are the trailing average of recent post-cadence runs (those carrying a numeric
+ * `dayBucket` in their summary — set once the digest moved to per-weekday cadence), which is current
+ * (a fresh run lands every weekday) and free (already-loaded data). Cold-start: if no weekday run
+ * exists yet, bootstrap sends from the last run's count ÷ 5. Returns null if the schedule can't parse.
+ */
+function nextRunForecast(schedule: string, runs: RunRow[]): { rel: string; clock: string; sends: number | null; durMin: number | null } | null {
+  const next = nextCronRun(schedule, new Date());
+  if (!next) return null;
+  const hrs = (next.getTime() - Date.now()) / 3_600_000;
+  const rel = hrs < 1 ? "soon" : hrs < 24 ? `in ${Math.round(hrs)}h` : `in ${Math.round(hrs / 24)}d`;
+  const clock = next.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }) + " ET";
+  const recent = runs.filter((r) => typeof r.summary?.dayBucket === "number" && r.status !== "error").slice(0, 3);
+  let sends: number | null = null;
+  if (recent.length > 0) {
+    sends = Math.round(recent.reduce((a, r) => a + (Number(r.summary?.sent) || 0), 0) / recent.length);
+  } else {
+    const last = runs.find((r) => typeof r.summary?.sent === "number");
+    if (last) sends = Math.round((Number(last.summary?.sent) || 0) / 5); // bootstrap from pre-cadence run
+  }
+  const durRuns = recent.filter((r) => r.finished_at);
+  const durMin = durRuns.length > 0
+    ? Math.max(1, Math.round(durRuns.reduce((a, r) => a + (new Date(r.finished_at as string).getTime() - new Date(r.started_at).getTime()) / 60_000, 0) / durRuns.length))
+    : null;
+  return { rel, clock, sends, durMin };
+}
 /** Readable one-liner for a run's result — sends/skips first, noise (skipReasons) goes to the title. */
 function runResult(s: Record<string, unknown> | null): string {
   if (!s) return "";
@@ -262,6 +333,8 @@ export default function AutomationDetailPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<Tab>("overview");
+  // Next-run forecast — computed once per data load (the cron scan can be long for infrequent jobs).
+  const forecast = useMemo(() => (data ? nextRunForecast(data.job.schedule, data.runs) : null), [data]);
   const [previewType, setPreviewType] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewResponse | "loading" | "none" | null>(null);
   const [previewExpanded, setPreviewExpanded] = useState(false);
@@ -388,13 +461,32 @@ export default function AutomationDetailPage() {
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
                 )}
               </div>
-              <div className="mt-1 text-sm text-gray-500">
-                {data.job.audience}
-                <span className="mx-1.5 text-gray-300">·</span>
-                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{data.job.fn}</span>
-                <span className="mx-1.5 text-gray-300">·</span>
-                {data.job.humanSchedule}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm text-gray-500">
+                <span>{data.job.audience}</span>
+                <span className="text-gray-300">·</span>
+                <span className="rounded-md bg-gray-100/70 px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-inset ring-gray-200/60">{data.job.fn}</span>
+                <span className="text-gray-300">·</span>
+                {/* Keep the meta line scannable — just the cadence; the verbose schedule lives in Details. */}
+                <span>{data.job.humanSchedule.split(",")[0]}</span>
               </div>
+              {!data.paused && forecast && (() => {
+                const f = forecast;
+                return (
+                  <div className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-gray-50/80 px-3 py-2 ring-1 ring-inset ring-gray-100">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Next run</span>
+                    <span className="text-sm text-gray-600">{f.rel}</span>
+                    <span className="text-xs text-gray-400">{f.clock}</span>
+                    {f.sends != null && (
+                      <>
+                        <span className="text-gray-300">·</span>
+                        <span className="flex items-baseline gap-1"><span className="text-base font-semibold text-teal-700">~{f.sends.toLocaleString()}</span><span className="text-xs text-gray-400">sends</span></span>
+                      </>
+                    )}
+                    {f.durMin != null && (<><span className="text-gray-300">·</span><span className="text-xs text-gray-400">~{f.durMin} min</span></>)}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {data.job.relatedAdminPath && <Link href={data.job.relatedAdminPath} className={ghostBtn}>Related queue →</Link>}
@@ -404,7 +496,7 @@ export default function AutomationDetailPage() {
             </div>
           </div>
 
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-600">{data.job.description}</p>
+          <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-gray-400">{data.job.description}</p>
 
           {data.paused && data.pause && (
             <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 ring-1 ring-inset ring-amber-200">
@@ -427,6 +519,7 @@ export default function AutomationDetailPage() {
                   {data.job.emailTypes.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
                 </div>
               )}
+              <div className="text-gray-600"><span className="text-gray-400">Schedule</span><br />{data.job.humanSchedule}</div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 pt-1 text-xs text-gray-400">
                 <span>Route <code className="text-gray-500">{data.job.path}</code></span>
                 <span>Cron <code className="text-gray-500">{data.job.schedule}</code></span>

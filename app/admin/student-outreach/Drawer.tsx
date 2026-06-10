@@ -1093,13 +1093,23 @@ function ResearchSection({
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
-  const saveOutreach = async () => {
+  // Accepts explicit overrides so dropdown onChange handlers persist the NEW
+  // value instead of the stale render-closure state (the prior setTimeout
+  // pattern saved the previous selection — e.g. the first program pick saved
+  // an empty list, leaving "Programs selected" stuck unchecked).
+  const saveOutreach = async (overrides?: { programs?: string[]; department?: string | null }) => {
     try {
-      const departmentValue = department === OTHER ? departmentOther.trim() || null : department || null;
+      const departmentValue =
+        overrides?.department !== undefined
+          ? overrides.department
+          : department === OTHER
+            ? departmentOther.trim() || null
+            : department || null;
+      const programsValue = overrides?.programs ?? programs;
       await action("update_outreach", {
         organization_name: orgName,
         department: departmentValue,
-        programs,
+        programs: programsValue,
       });
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
@@ -1155,7 +1165,7 @@ function ResearchSection({
             <Select
               label="Department"
               value={department}
-              onChange={(v) => { setDepartment(v); setTimeout(saveOutreach, 0); }}
+              onChange={(v) => { setDepartment(v); saveOutreach({ department: v === OTHER ? null : v || null }); }}
               options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
             />
             {department === OTHER && (
@@ -1195,7 +1205,7 @@ function ResearchSection({
           <Select
             label="Program"
             value={programs[0] ?? ""}
-            onChange={(v) => { setPrograms(v ? [v] : []); setTimeout(saveOutreach, 0); }}
+            onChange={(v) => { const next = v ? [v] : []; setPrograms(next); saveOutreach({ programs: next }); }}
             options={programOptions.map((p) => ({ value: p, label: p }))}
           />
         ) : (
@@ -1206,7 +1216,7 @@ function ResearchSection({
             onToggle={(v) => {
               const next = programs.includes(v) ? programs.filter((p) => p !== v) : [...programs, v];
               setPrograms(next);
-              setTimeout(saveOutreach, 0);
+              saveOutreach({ programs: next });
             }}
           />
         )}

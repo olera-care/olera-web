@@ -363,10 +363,13 @@ export async function GET(request: NextRequest) {
 
       // Check if provider archived this lead in their portal
       const isArchived = meta.archived === true;
-      const archiveReason = parseArchiveReason(meta.archive_reason);
-      if (isArchived && archiveReason) {
+      if (isArchived) {
         // Provider explicitly archived - respect their decision and stop sequence
-        // Both checks ensure clean state (archived + valid reason)
+        // Archive state alone is sufficient (don't require valid reason for robustness)
+        const archiveReason = parseArchiveReason(meta.archive_reason);
+        if (!archiveReason) {
+          console.warn(`[sequence] Archived connection ${conn.id} missing valid archive_reason`);
+        }
         counts.skipped++;
         counts.skipReasons.provider_archived = (counts.skipReasons.provider_archived || 0) + 1;
         continue;

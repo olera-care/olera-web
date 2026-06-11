@@ -839,11 +839,11 @@ export async function GET(request: NextRequest) {
               ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
               : `Your week on Olera`;
 
-      // Tag the email_log row with which digest variant this send is, plus whether it opened with
-      // the market-rank hero. Lets the admin automations view break down opens / clicks per variant
-      // instead of lumping them under one emailType. Order mirrors the html render priority above
-      // (question > cold-first-contact > completion > analytics), so the tag matches the email sent.
-      // `ledWithRank` only applies to the analytics weekly_digest (false everywhere else).
+      // Tag the email_log row with which digest variant this send is. Market-rank
+      // digest is separated from the plain weekly digest so the automation view
+      // can attribute its conversion to call-sheet work, not just portal revisits.
+      // Order mirrors the html render priority above (question > cold-first-contact
+      // > completion > analytics), so the tag matches the email sent.
       const variant = unansweredQuestion
         ? "family_question"
         : leadsUrl
@@ -852,7 +852,9 @@ export async function GET(request: NextRequest) {
             ? "cold_rank"
             : completionUrl
               ? "completion"
-              : "weekly_digest";
+              : marketRank
+                ? "market_rank"
+                : "weekly_digest";
       const variantMeta = { variant, ledWithRank: !!marketRank };
 
       if (dryRun) {

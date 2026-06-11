@@ -117,6 +117,7 @@ function providerEmailTypeLabel(type: string | null): string {
     lead_opened: "Lead Opened",
     page_view: "Page View",
     market_diagnostic_viewed_no_leads: "Market View (No Leads)",
+    market_outreach_status_updated: "Market Outreach",
   };
   return map[type] || type;
 }
@@ -155,6 +156,7 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     lead_opened: "bg-sky-50 text-sky-700",
     page_view: "bg-gray-50 text-gray-500",
     market_diagnostic_viewed_no_leads: "bg-indigo-50 text-indigo-700",
+    market_outreach_status_updated: "bg-emerald-50 text-emerald-700",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -726,6 +728,7 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "one_click_access", label: "Auto sign-ins" },
   { value: "analytics_teaser_cta_clicked", label: "Analytics CTA clicks" },
   { value: "market_diagnostic_viewed_no_leads", label: "Market views (no leads)" },
+  { value: "market_outreach_status_updated", label: "Market outreach" },
 ];
 
 const FAMILY_EVENT_FILTER_OPTIONS = [
@@ -741,15 +744,52 @@ const FAMILY_EVENT_FILTER_OPTIONS = [
   { value: "save_nudge_converted", label: "Save conversions" },
 ];
 
+function isActor(value: string | null): value is Actor {
+  return value === "providers" || value === "families";
+}
+
+function isSubView(value: string | null): value is SubView {
+  return value === "feed" || value === "people";
+}
+
+function isTimeWindow(value: string | null): value is TimeWindow {
+  return value === "7" || value === "30" || value === "90";
+}
+
+function eventFilterOptionsForActor(actor: Actor) {
+  return actor === "families" ? FAMILY_EVENT_FILTER_OPTIONS : PROVIDER_EVENT_FILTER_OPTIONS;
+}
+
+function actorForEventFilter(value: string | null): Actor | null {
+  if (!value) return null;
+  if (PROVIDER_EVENT_FILTER_OPTIONS.some((opt) => opt.value === value)) return "providers";
+  if (FAMILY_EVENT_FILTER_OPTIONS.some((opt) => opt.value === value)) return "families";
+  return null;
+}
+
+function isValidEventFilterForActor(actor: Actor, value: string): boolean {
+  if (!value) return true;
+  return eventFilterOptionsForActor(actor).some((opt) => opt.value === value);
+}
+
 export default function ActivityCenterPage() {
   const urlParams = useSearchParams();
-  const initialActor = (urlParams.get("actor") as Actor) || "families";
+  const urlActor = urlParams.get("actor");
+  const urlView = urlParams.get("view");
+  const urlDays = urlParams.get("days");
+  const urlEventFilter = urlParams.get("event_type") || urlParams.get("email_type") || "";
+  const initialActor = isActor(urlActor)
+    ? urlActor
+    : actorForEventFilter(urlEventFilter) ?? "families";
+  const initialSubView = isSubView(urlView) ? urlView : "feed";
+  const initialTimeWindow = isTimeWindow(urlDays) ? urlDays : "30";
+  const initialEventFilter = isValidEventFilterForActor(initialActor, urlEventFilter) ? urlEventFilter : "";
 
   const [actor, setActor] = useState<Actor>(initialActor);
-  const [subView, setSubView] = useState<SubView>("feed");
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>("30");
-  const [eventFilter, setEventFilter] = useState("");
-  const [search, setSearch] = useState("");
+  const [subView, setSubView] = useState<SubView>(initialSubView);
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>(initialTimeWindow);
+  const [eventFilter, setEventFilter] = useState(initialEventFilter);
+  const [search, setSearch] = useState(urlParams.get("search") || "");
   const [page, setPage] = useState(0);
 
   // Provider data
@@ -776,10 +816,11 @@ export default function ActivityCenterPage() {
     open: boolean; message: string; onConfirm: () => void;
   }>({ open: false, message: "", onConfirm: () => {} });
 
-  // Reset page, event filter, and selection when actor or subView changes
+  // Reset page/selection when actor or view changes. Keep URL-provided filters
+  // and only clear filters that do not belong to the active actor.
   useEffect(() => {
     setPage(0);
-    setEventFilter("");
+    setEventFilter((current) => (isValidEventFilterForActor(actor, current) ? current : ""));
     setSelectedIds(new Set());
     setDeleteError(null);
   }, [actor, subView]);
@@ -955,7 +996,7 @@ export default function ActivityCenterPage() {
     }
   }, [selectedIds, subView, actor, executeDelete, fetchData, refreshTotalCount]);
 
-  const filterOptions = actor === "families" ? FAMILY_EVENT_FILTER_OPTIONS : PROVIDER_EVENT_FILTER_OPTIONS;
+  const filterOptions = eventFilterOptionsForActor(actor);
 
   return (
     <div className="space-y-6">

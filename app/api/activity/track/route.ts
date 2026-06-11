@@ -32,6 +32,7 @@ const PROVIDER_EVENT_TYPES = [
   "matches_message_generated", // Provider clicks AI generate button
   "matches_outreach_sent",    // Provider sends outreach message
   "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw "Your Market"
+  "market_outreach_status_updated", // Provider updated a referral target in "Your Market"
 ] as const;
 
 const FAMILY_EVENT_TYPES = [

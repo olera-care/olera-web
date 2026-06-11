@@ -229,26 +229,37 @@ function InOutreachBody({
 
   return (
     <>
-      {latestReply ? (
-        <ReplyPreview reply={latestReply} />
-      ) : (
-        <>
-          <p className="text-sm text-gray-700">Awaiting reply.</p>
-          <p className="mt-1 text-xs text-gray-500">{subline}</p>
-        </>
-      )}
-      {/* Manual-reply escape hatch — jump into the Smartlead inbox to answer
-          this thread by hand instead of waiting on the cadence. */}
-      <p className="mt-1.5">
-        <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
-      </p>
-      <ActivationActions ctx={ctx} action={action} setError={setError} source="reply" />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <BookMeetingLink ctx={ctx} inline />
-        {isPartnerRow(ctx) && (
-          <PartnerActivate ctx={ctx} action={action} setError={setError} />
-        )}
+      {/* Headline on the left; the manual-reply Smartlead escape hatch pinned
+          to the card's top-right corner. */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {latestReply ? (
+            <ReplyPreview reply={latestReply} />
+          ) : (
+            <>
+              <p className="text-sm text-gray-700">Awaiting reply.</p>
+              <p className="mt-1 text-xs text-gray-500">{subline}</p>
+            </>
+          )}
+        </div>
+        <span className="shrink-0">
+          <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
+        </span>
       </div>
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="reply"
+        trailing={
+          <>
+            <BookMeetingLink ctx={ctx} inline />
+            {isPartnerRow(ctx) && (
+              <PartnerActivate ctx={ctx} action={action} setError={setError} />
+            )}
+          </>
+        }
+      />
     </>
   );
 }
@@ -348,13 +359,20 @@ function CallDueBody({
           </pre>
         </details>
       )}
-      <ActivationActions ctx={ctx} action={action} setError={setError} source="phone" />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <BookMeetingLink ctx={ctx} inline />
-        {isPartnerRow(ctx) && (
-          <PartnerActivate ctx={ctx} action={action} setError={setError} />
-        )}
-      </div>
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="phone"
+        trailing={
+          <>
+            <BookMeetingLink ctx={ctx} inline />
+            {isPartnerRow(ctx) && (
+              <PartnerActivate ctx={ctx} action={action} setError={setError} />
+            )}
+          </>
+        }
+      />
       <div className="mt-2">
         <button
           onClick={couldntReach}
@@ -388,12 +406,17 @@ function MeetingSetBody({
   return (
     <>
       <p className="text-sm font-medium text-gray-900">{sublineCopy}</p>
-      <ActivationActions ctx={ctx} action={action} setError={setError} source="meeting" />
-      {isPartnerRow(ctx) && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <PartnerActivate ctx={ctx} action={action} setError={setError} />
-        </div>
-      )}
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="meeting"
+        trailing={
+          isPartnerRow(ctx) ? (
+            <PartnerActivate ctx={ctx} action={action} setError={setError} />
+          ) : null
+        }
+      />
     </>
   );
 }
@@ -671,11 +694,16 @@ function ActivationActions({
   action,
   setError,
   source,
+  trailing,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (m: string | null) => void;
   source: "reply" | "phone" | "meeting";
+  /** Extra buttons (Book a meeting / Make a partner) rendered in the SAME
+   *  horizontal row as Interested / Not interested, so the whole face shows
+   *  one row of actions rather than a 2x2 stack. */
+  trailing?: React.ReactNode;
 }) {
   const [showLaunch, setShowLaunch] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -761,22 +789,25 @@ function ActivationActions({
 
   if (isRunning) {
     return (
-      <div className="mt-3 rounded-md border border-primary-200 bg-primary-50/60 px-3 py-2.5">
-        <p className="text-sm font-semibold text-primary-800">
-          Activation cadence running
-        </p>
-        <p className="mt-0.5 text-xs text-gray-600">
-          {nextActivationCall
-            ? `Next call ${formatRelative(nextActivationCall.due_at)}.`
-            : "Follow-ups queued."}
-        </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-primary-200 bg-primary-50/60 px-3 py-2.5">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-primary-800">
+            Activation cadence running
+          </p>
+          <p className="mt-0.5 text-xs text-gray-600">
+            {nextActivationCall
+              ? `Next call ${formatRelative(nextActivationCall.due_at)}.`
+              : "Follow-ups queued."}
+          </p>
+        </div>
         <button
           onClick={stopActivation}
           disabled={stopping}
-          className="mt-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
           {stopping ? "Stopping…" : "Stop activation"}
         </button>
+        {trailing}
       </div>
     );
   }
@@ -799,6 +830,7 @@ function ActivationActions({
         >
           Not interested
         </button>
+        {trailing}
       </div>
       {showLaunch && (
         <CadenceLaunchModal

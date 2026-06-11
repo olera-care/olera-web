@@ -859,6 +859,8 @@ export async function GET(request: NextRequest) {
     // Query for connections with failed email delivery to provider
     // This catches: bounced, suppressed (invalid address), or send errors
     // Note: Only finds emails with connection_id in metadata (added June 2026)
+    // IMPORTANT: Only mark as "failed" if the MOST RECENT email failed - a successful
+    // retry after a bounce should clear the failed status
     const connectionIdsInView = new Set(searched.map(c => c.id));
     const connectionsWithDeliveryFailure = new Set<string>();
 
@@ -867,20 +869,38 @@ export async function GET(request: NextRequest) {
       const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       const queryDateFrom = dateFrom || fallbackDate;
 
-      // Query email_log for provider emails that failed/bounced
-      const { data: failedEmails } = await db
+      // Query email_log for ALL provider emails (not just failed) to find most recent status
+      // We need to check if the MOST RECENT email for each connection failed
+      const { data: providerEmails } = await db
         .from("email_log")
-        .select("metadata")
+        .select("metadata, status, bounced_at, created_at")
         .eq("recipient_type", "provider")
-        .or("status.eq.failed,bounced_at.not.is.null")
         .gte("created_at", queryDateFrom)
-        .limit(2000);
+        .order("created_at", { ascending: false })
+        .limit(5000);
 
-      // Extract connection_ids from failed emails (O(1) lookup with Set)
-      for (const email of failedEmails ?? []) {
+      // Track the most recent email per connection
+      // Key: connection_id, Value: { isFailed: boolean, timestamp: string }
+      const mostRecentEmailPerConnection = new Map<string, { isFailed: boolean; timestamp: string }>();
+
+      for (const email of providerEmails ?? []) {
         const meta = email.metadata as Record<string, unknown> | null;
         const connId = meta?.connection_id as string | undefined;
-        if (connId && connectionIdsInView.has(connId)) {
+        if (!connId || !connectionIdsInView.has(connId)) continue;
+
+        const existing = mostRecentEmailPerConnection.get(connId);
+        const emailTime = email.created_at as string;
+
+        // Only process if this is more recent than what we've seen (or first occurrence)
+        if (!existing || emailTime > existing.timestamp) {
+          const isFailed = email.status === "failed" || email.bounced_at != null;
+          mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+        }
+      }
+
+      // Only mark connections where the MOST RECENT email failed
+      for (const [connId, { isFailed }] of mostRecentEmailPerConnection) {
+        if (isFailed) {
           connectionsWithDeliveryFailure.add(connId);
         }
       }

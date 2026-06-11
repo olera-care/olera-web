@@ -56,6 +56,10 @@ export interface TemplateContext {
   /** Provider templates branch on this; stakeholder templates
    *  ignore it. */
   variant?: "general" | "named";
+  /** Activation copy audience: providers (hire students) vs partners /
+   *  advisors (circulate the flyer, meet Dr. DuBose, join the partner network).
+   *  Defaults to provider when omitted. */
+  is_partner?: boolean;
 }
 
 /**
@@ -587,6 +591,22 @@ export function providerFinalEmail(
 export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
   const variant = ctx.variant ?? "named";
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  if (ctx.is_partner) {
+    return {
+      subject: `Supporting your ${PLACEHOLDER.campus} pre-health students`,
+      body: [
+        greeting,
+        ``,
+        `Great to connect! A few easy ways to support the program:`,
+        ``,
+        `• Share our one-page flyer with students who'd benefit: [program flyer](${PLACEHOLDER.programPdf})`,
+        `• Talk it through with Dr. DuBose: [grab a time](${PLACEHOLDER.calendlyUrl})`,
+        `• Join our partner network and manage everything from your recruitment partner portal — share the flyer, add colleagues, and tell us how you'd like to help: [open the partner portal](${PLACEHOLDER.welcomeUrl})`,
+        ``,
+        `Either way, happy to help.`,
+      ].join("\n"),
+    };
+  }
   return {
     subject: `Your ${PLACEHOLDER.campus} students + getting set up`,
     body: [
@@ -606,6 +626,20 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
 export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
   const variant = ctx.variant ?? "named";
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  if (ctx.is_partner) {
+    return {
+      subject: `Your ${PLACEHOLDER.campus} partner portal is ready`,
+      body: [
+        greeting,
+        ``,
+        `Just making sure this didn't get buried. You can support your students anytime:`,
+        ``,
+        `**[Open the partner portal →](${PLACEHOLDER.welcomeUrl})** — share the flyer, add colleagues, and join our partner network.`,
+        ``,
+        `Or grab a time with Dr. DuBose if it's easier to talk first: [Dr. DuBose's calendar](${PLACEHOLDER.calendlyUrl}).`,
+      ].join("\n"),
+    };
+  }
   return {
     subject: `Your ${PLACEHOLDER.campus} students are ready`,
     body: [
@@ -623,6 +657,20 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
 export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
   const variant = ctx.variant ?? "named";
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  if (ctx.is_partner) {
+    return {
+      subject: `Still here when you're ready`,
+      body: [
+        greeting,
+        ``,
+        `No rush at all. Whenever you're ready, here's your recruitment partner portal to share the flyer with students and join our partner network:`,
+        ``,
+        `**[Open the partner portal →](${PLACEHOLDER.welcomeUrl})**`,
+        ``,
+        `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
+      ].join("\n"),
+    };
+  }
   return {
     subject: `Still here when you're ready`,
     body: [

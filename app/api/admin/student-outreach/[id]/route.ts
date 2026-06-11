@@ -2227,18 +2227,24 @@ async function enrollRowIntoActivationCampaign(
   const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
   const campusName = campus?.name ?? "Unknown Campus";
 
-  // Reuse the campus's existing ACTIVATION campaign id (this row's own linkage,
-  // then a sibling's); the first activation in a campus provisions a new one.
+  // Partners (advisors) and providers run SEPARATE activation campaigns — they
+  // get different copy (flyer/portal vs hire-students), so a partner must never
+  // reuse a provider's activation campaign (or vice versa).
+  const thisIsPartner = row.kind !== "provider";
+  // Reuse the campus's existing ACTIVATION campaign id of the SAME audience
+  // (this row's own linkage, then a matching sibling's); the first activation
+  // of each audience in a campus provisions a new one.
   const ownCid = row.research_data?.smartlead_activation?.campaign_id;
   let existingCampaignId: number | undefined =
     typeof ownCid === "number" ? ownCid : undefined;
   if (!existingCampaignId) {
     const { data: siblings } = await db
       .from("student_outreach")
-      .select("research_data")
+      .select("kind, research_data")
       .eq("campus_id", row.campus_id)
       .neq("id", row.id);
-    for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+    for (const s of (siblings ?? []) as Array<{ kind: string | null; research_data: ResearchData | null }>) {
+      if ((s.kind !== "provider") !== thisIsPartner) continue; // keep audiences separate
       const cid = s.research_data?.smartlead_activation?.campaign_id;
       if (typeof cid === "number") {
         existingCampaignId = cid;
@@ -2252,10 +2258,10 @@ async function enrollRowIntoActivationCampaign(
     outreach_id: row.id,
     organizationName: row.organization_name,
     campus: { name: campusName, city: campus?.city ?? null, slug: campus?.slug ?? null },
-    campaignName: `MedJobs Activation — ${campusName} — ${yyyymm}`,
+    campaignName: `MedJobs ${thisIsPartner ? "Partner " : ""}Activation — ${campusName} — ${yyyymm}`,
     existingCampaignId,
     recipient,
-    is_partner: row.kind !== "provider",
+    is_partner: thisIsPartner,
   });
 
   if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };

@@ -372,6 +372,8 @@ export interface SequenceOptions {
    *  link instead. Without a slug, the body's "attached information
    *  packet" phrasing is rewritten to a neutral fallback. */
   campusSlug?: string | null;
+  /** Activation audience — partner (advisor) copy vs provider. */
+  isPartner?: boolean;
 }
 
 /**
@@ -410,6 +412,8 @@ export function buildEmailSequence(
     // body copy itself), so one sequence covers both per-lead salutations
     // without duplicating the campaign.
     variant: "general" as const,
+    // Activation copy audience (partner vs provider). Inert for cold cadences.
+    is_partner: opts.isPartner ?? false,
     contacts: [],
   };
 
@@ -1182,6 +1186,7 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
   const steps = buildEmailSequence("activation", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
+    isPartner: input.is_partner ?? false,
   });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   result.errors.push(...prov.errors);

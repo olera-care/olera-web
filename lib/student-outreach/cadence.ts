@@ -111,12 +111,11 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   ],
   advisor: [
     {
+      // No Day-0 call for advising offices — they're confirmed by a Pre-Flight
+      // call before launch, so a paired Day-0 call would be redundant.
       day: 0,
-      title: "Day 0 · email + paired call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
+      title: "Day 0 · intro email",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 3,

@@ -44,6 +44,8 @@ export interface CadenceLaunchSubmit {
 interface Props {
   /** Which cadence to render (e.g. "activation"). */
   cadenceKey: CadenceKey;
+  /** Partner (advisor/stakeholder) activation copy vs provider. */
+  isPartner?: boolean;
   organizationName: string;
   campusName: string;
   /** The single contact this cadence targets (for preview + first-name). */
@@ -59,6 +61,7 @@ interface Props {
 
 export function CadenceLaunchModal({
   cadenceKey,
+  isPartner = false,
   organizationName,
   campusName,
   recipientName,
@@ -84,6 +87,7 @@ export function CadenceLaunchModal({
           organization_name: organizationName,
           campus_name: campusName,
           variant: "named",
+          is_partner: isPartner,
         });
         result.push({ day: d.day, subject: tpl.subject, body: tpl.body, title: d.title });
       }

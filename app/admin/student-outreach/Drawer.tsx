@@ -21,6 +21,7 @@ import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { DeptHeadIntroCallModal } from "@/components/admin/medjobs/DeptHeadIntroCallModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
@@ -996,9 +997,18 @@ function ResearchModePanel({
   const isOffice = isOfficeType(type);
   const [showPreFlight, setShowPreFlight] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
+  // Dept heads get an optional, NON-blocking pre-launch intro call (when a
+  // phone exists). It never gates launch — purely a courtesy + a logged touch.
+  const [showIntroCall, setShowIntroCall] = useState(false);
 
   // Readiness gating per stage.
   const haveContact = ctx.contacts.some((c) => c.status === "active");
+  const primaryContact = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+  const deptHeadPhone = type === "dept_head" ? (primaryContact?.phone ?? null) : null;
+  const deptHeadContactName =
+    [primaryContact?.title, primaryContact?.first_name, primaryContact?.last_name]
+      .filter(Boolean)
+      .join(" ") || null;
   const havePrograms = ctx.outreach.programs.length > 0;
   const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
   const eligibleEmail = ctx.contacts.filter(
@@ -1099,22 +1109,35 @@ function ResearchModePanel({
       ? "✓ Research complete — review email sequence"
       : "Add a contact + programs to continue";
     cta = (
-      <button
-        onClick={async () => {
-          try {
-            await action("mark_research_complete");
-            setShowPreFlight(true);
-          } catch (e) {
-            setError(e instanceof Error ? e.message : "Action failed");
-          }
-        }}
-        disabled={!ready}
-        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-        }`}
-      >
-        {label}
-      </button>
+      <div className="space-y-2">
+        {/* Dept heads: recommended (non-blocking) intro call when a phone
+            exists. Sits above Launch — placing the courtesy call before the
+            email — but never gates it. */}
+        {type === "dept_head" && deptHeadPhone && (
+          <button
+            onClick={() => setShowIntroCall(true)}
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            📞 Intro call (recommended) — {deptHeadPhone}
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            try {
+              await action("mark_research_complete");
+              setShowPreFlight(true);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
+          disabled={!ready}
+          className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+            ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          {label}
+        </button>
+      </div>
     );
   } else if (isOffice) {
     // Call to Confirm (only when a phone exists), then Launch. With a phone,
@@ -1182,6 +1205,18 @@ function ResearchModePanel({
           action={action}
           onCancel={() => setShowCallConfirm(false)}
           onDone={() => setShowCallConfirm(false)}
+          setError={setError}
+        />
+      )}
+      {showIntroCall && (
+        <DeptHeadIntroCallModal
+          organizationName={ctx.outreach.organization_name}
+          contactName={deptHeadContactName}
+          campusName={ctx.campus.name}
+          phone={deptHeadPhone}
+          action={action}
+          onCancel={() => setShowIntroCall(false)}
+          onDone={() => setShowIntroCall(false)}
           setError={setError}
         />
       )}

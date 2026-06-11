@@ -73,6 +73,8 @@ export interface ConnectionRowData {
   archived?: boolean;
   archiveReason?: "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
   archivedAt?: string;
+  /** Email issue type for "Needs Email" tab */
+  emailIssueType?: "no_email" | "failed" | "invalid" | null;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -930,14 +932,20 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
-            {/* Show "No email" badge when provider has no email (both perspectives) */}
+            {/* Show email issue badge when provider needs email attention */}
             {/* Hide badge immediately when email is successfully added (optimistic UI) */}
-            {/* Use .trim() to defensively catch empty/whitespace emails */}
-            {!c.provider.email?.trim() && !emailSuccess && (
+            {c.emailIssueType && !emailSuccess && (
               <>
                 <span className="text-gray-300">|</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
-                  {addingEmail ? "Adding email..." : "No email"}
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${
+                  c.emailIssueType === "no_email" ? "bg-gray-100 text-gray-500" :
+                  c.emailIssueType === "failed" ? "bg-red-50 text-red-600" :
+                  "bg-amber-50 text-amber-600"
+                }`}>
+                  {addingEmail ? "Adding email..." :
+                   c.emailIssueType === "no_email" ? "No email" :
+                   c.emailIssueType === "failed" ? "Failed" :
+                   "Invalid"}
                 </span>
               </>
             )}
@@ -1215,31 +1223,38 @@ export default function ConnectionRow({
                     {detail.provider.email ? (
                       <div className="space-y-1">
                         {!editingEmail ? (
-                          <div className="flex items-center justify-between gap-2">
-                            <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
-                            <button
-                              onClick={() => {
-                                if (editEmailTimeoutRef.current) {
-                                  clearTimeout(editEmailTimeoutRef.current);
-                                  editEmailTimeoutRef.current = null;
-                                }
-                                setEditingEmail(true);
-                                setEditEmailInput(detail.provider.email || "");
-                                setEditEmailError(null);
-                                setEditEmailSuccess(false);
-                                // Clear previous find email state
-                                setFindEmailError(null);
-                                setEmailSource(null);
-                                setFoundUrl(null);
-                                setIsCachedResult(false);
-                                setFoundEmails([]);
-                                setEmailToUrlMap(new Map());
-                              }}
-                              className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
-                            >
-                              Edit
-                            </button>
-                          </div>
+                          <>
+                            <div className="flex items-center justify-between gap-2">
+                              <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
+                              <button
+                                onClick={() => {
+                                  if (editEmailTimeoutRef.current) {
+                                    clearTimeout(editEmailTimeoutRef.current);
+                                    editEmailTimeoutRef.current = null;
+                                  }
+                                  setEditingEmail(true);
+                                  setEditEmailInput(detail.provider.email || "");
+                                  setEditEmailError(null);
+                                  setEditEmailSuccess(false);
+                                  // Clear previous find email state
+                                  setFindEmailError(null);
+                                  setEmailSource(null);
+                                  setFoundUrl(null);
+                                  setIsCachedResult(false);
+                                  setFoundEmails([]);
+                                  setEmailToUrlMap(new Map());
+                                }}
+                                className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                            {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && (
+                              <p className="text-xs text-amber-600 mt-1">
+                                ⚠️ {c.emailIssueType === "failed" ? "Delivery failed" : "Invalid email"} — needs replacement
+                              </p>
+                            )}
+                          </>
                         ) : (
                           <form onSubmit={handleEditEmail} className="space-y-1">
                             <div className="flex items-center gap-2">

@@ -15,7 +15,7 @@ import {
 } from "@/lib/connection-utils";
 import type { ConnectionWithProfile } from "@/components/portal/ConnectionListItem";
 
-const PASS_REASONS = [
+const DECLINE_REASONS = [
   "Not a good fit for my services",
   "Not accepting new clients right now",
   "Already connected outside of Olera",
@@ -43,11 +43,11 @@ export default function LeadDetailPanel({
   );
   const [loading, setLoading] = useState(!preloadedConnection);
 
-  // Pass-on-lead inline view state
-  const [view, setView] = useState<"profile" | "pass">("profile");
-  const [passReason, setPassReason] = useState("");
-  const [passNote, setPassNote] = useState("");
-  const [passing, setPassing] = useState(false);
+  // Decline lead inline view state
+  const [view, setView] = useState<"profile" | "decline">("profile");
+  const [declineReason, setDeclineReason] = useState("");
+  const [declineNote, setDeclineNote] = useState("");
+  const [declining, setDeclining] = useState(false);
 
   const hasFullAccess = canEngage(
     providerProfile?.type,
@@ -113,10 +113,10 @@ export default function LeadDetailPanel({
     };
   }, [connectionId, preloadedConnection]);
 
-  // Pass handler — sends reason + optional note to the manage API
-  const handlePass = async () => {
-    if (!connection || passing || !passReason) return;
-    setPassing(true);
+  // Decline handler — sends reason + optional note to the manage API
+  const handleDecline = async () => {
+    if (!connection || declining || !declineReason) return;
+    setDeclining(true);
     try {
       const res = await fetch("/api/connections/manage", {
         method: "POST",
@@ -124,8 +124,8 @@ export default function LeadDetailPanel({
         body: JSON.stringify({
           connectionId: connection.id,
           action: "archive",
-          archiveReason: passReason,
-          archiveMessage: passNote.trim() || undefined,
+          archiveReason: declineReason,
+          archiveMessage: declineNote.trim() || undefined,
         }),
       });
       if (res.ok) {
@@ -133,9 +133,9 @@ export default function LeadDetailPanel({
         onClose();
       }
     } catch (err) {
-      console.error("[LeadDetailPanel] pass error:", err);
+      console.error("[LeadDetailPanel] decline error:", err);
     } finally {
-      setPassing(false);
+      setDeclining(false);
     }
   };
 
@@ -186,8 +186,8 @@ export default function LeadDetailPanel({
   const hasEmail =
     !shouldBlur && otherProfile?.email && connection.status === "accepted";
 
-  // ── Pass-on-lead inline view ──
-  if (view === "pass") {
+  // ── Decline lead inline view ──
+  if (view === "decline") {
     return (
       <div className="flex flex-col h-full bg-white">
         {/* Header with back */}
@@ -195,10 +195,10 @@ export default function LeadDetailPanel({
           <button
             type="button"
             onClick={() => {
-              if (!passing) {
+              if (!declining) {
                 setView("profile");
-                setPassReason("");
-                setPassNote("");
+                setDeclineReason("");
+                setDeclineNote("");
               }
             }}
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -208,12 +208,12 @@ export default function LeadDetailPanel({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h2 className="text-[15px] font-semibold text-gray-900">Pass on lead</h2>
+          <h2 className="text-[15px] font-semibold text-gray-900">Decline lead</h2>
         </div>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-6 pb-8">
-          {/* Context — who are we passing on */}
+          {/* Context — who are we declining */}
           <div className="flex items-center gap-3 mb-6 pb-5 border-b border-gray-100">
             {imageUrl && !shouldBlur ? (
               <Image src={imageUrl} alt={otherName} width={40} height={40} className="rounded-full object-cover" />
@@ -241,31 +241,31 @@ export default function LeadDetailPanel({
           </p>
 
           <div className="space-y-2 mb-5">
-            {PASS_REASONS.map((reason) => (
+            {DECLINE_REASONS.map((reason) => (
               <label
                 key={reason}
                 className={`flex items-center gap-3 px-3.5 py-3 rounded-xl border cursor-pointer transition-colors ${
-                  passReason === reason
+                  declineReason === reason
                     ? "border-primary-600 bg-primary-50/60"
                     : "border-gray-150 hover:border-gray-200"
                 }`}
               >
                 <input
                   type="radio"
-                  name="pass-reason"
+                  name="decline-reason"
                   value={reason}
-                  checked={passReason === reason}
-                  onChange={() => setPassReason(reason)}
+                  checked={declineReason === reason}
+                  onChange={() => setDeclineReason(reason)}
                   className="sr-only"
                 />
                 <span
                   className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    passReason === reason
+                    declineReason === reason
                       ? "border-primary-600"
                       : "border-gray-300"
                   }`}
                 >
-                  {passReason === reason && (
+                  {declineReason === reason && (
                     <span className="w-2 h-2 rounded-full bg-primary-600" />
                   )}
                 </span>
@@ -276,8 +276,8 @@ export default function LeadDetailPanel({
 
           {/* Optional note */}
           <textarea
-            value={passNote}
-            onChange={(e) => setPassNote(e.target.value)}
+            value={declineNote}
+            onChange={(e) => setDeclineNote(e.target.value)}
             placeholder="Add a note (optional)"
             rows={3}
             className="w-full text-base border border-gray-200 rounded-xl px-3.5 py-3 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 resize-none mb-6"
@@ -286,22 +286,22 @@ export default function LeadDetailPanel({
           {/* Actions */}
           <button
             type="button"
-            onClick={handlePass}
-            disabled={passing || !passReason}
+            onClick={handleDecline}
+            disabled={declining || !declineReason}
             className="w-full py-3 text-sm font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {passing ? "Sending..." : "Pass on lead"}
+            {declining ? "Sending..." : "Decline lead"}
           </button>
           <button
             type="button"
             onClick={() => {
-              if (!passing) {
+              if (!declining) {
                 setView("profile");
-                setPassReason("");
-                setPassNote("");
+                setDeclineReason("");
+                setDeclineNote("");
               }
             }}
-            disabled={passing}
+            disabled={declining}
             className="w-full mt-2 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
           >
             Cancel
@@ -493,15 +493,15 @@ export default function LeadDetailPanel({
           </svg>
         </Link>
 
-        {/* Pass on lead */}
+        {/* Decline lead */}
         {onArchive && (
           <div className="mt-3 text-center">
             <button
               type="button"
-              onClick={() => setView("pass")}
+              onClick={() => setView("decline")}
               className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
             >
-              Pass on lead
+              Decline lead
             </button>
           </div>
         )}

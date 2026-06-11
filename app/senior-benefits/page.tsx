@@ -8,12 +8,12 @@ import { HeroStateSearch } from "@/components/waiver-library/HeroStateSearch";
 import { MobileStateList } from "@/components/waiver-library/MobileStateList";
 
 export const metadata: Metadata = {
-  title: "Benefits Hub | Olera",
+  title: "Senior Benefit Programs by State | Olera",
   description:
     "Find HCBS and long-term care Medicaid waivers by state. Explore programs, eligibility requirements, and application steps for seniors and adults with disabilities.",
   alternates: { canonical: "/senior-benefits" },
   openGraph: {
-    title: "Benefits Hub | Olera",
+    title: "Senior Benefit Programs by State | Olera",
     description:
       "Find HCBS and long-term care Medicaid waivers by state. Explore programs, eligibility, and application steps.",
     url: "/senior-benefits",
@@ -109,7 +109,7 @@ export default function WaiverLibraryPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-1 text-center">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-              Explore Benefits by State
+              Explore Senior Benefit Programs by State
             </h2>
             <p className="mt-2 text-gray-600 text-sm">
               Your state offers free senior care benefits. Find yours below.

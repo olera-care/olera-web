@@ -24,15 +24,8 @@ interface TooltipProps {
  * - Tap to toggle on mobile (tap outside to close)
  * - Smart positioning (flips if not enough space)
  * - Renders via portal to avoid clipping by parent containers
+ * - Only renders when visible (no hidden elements in DOM)
  * - Smooth fade animation
- * - Apple-inspired design
- *
- * Usage:
- * ```tsx
- * <Tooltip content="This is a helpful explanation">
- *   <button>Hover me</button>
- * </Tooltip>
- * ```
  */
 export function Tooltip({
   content,
@@ -42,117 +35,163 @@ export function Tooltip({
   className = "",
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
-  const [arrowStyle, setArrowStyle] = useState<React.CSSProperties>({});
-  const [actualPosition, setActualPosition] = useState(position);
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    top: number;
+    left: number;
+    arrowLeft: number;
+    actualPosition: "top" | "bottom";
+  } | null>(null);
   const [mounted, setMounted] = useState(false);
+
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isTouchDevice = useRef(false);
+  const isHoveringTooltipRef = useRef(false);
 
   // Only render portal on client
   useEffect(() => {
     setMounted(true);
-    isTouchDevice.current = "ontouchstart" in window || navigator.maxTouchPoints > 0;
   }, []);
 
-  // Calculate position using fixed positioning
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current || !tooltipRef.current) return;
+  // Calculate position
+  const calculatePosition = useCallback(() => {
+    if (!triggerRef.current) return null;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
-    const tooltipRect = tooltipRef.current.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
-    const padding = 12; // Min distance from viewport edge
-    const gap = 8; // Gap between trigger and tooltip
+    const padding = 12;
+    const gap = 8;
+
+    // Estimate tooltip size (will be refined after render)
+    const estimatedTooltipHeight = 60;
+    const estimatedTooltipWidth = Math.min(280, viewportWidth - padding * 2);
 
     // Vertical positioning - flip if needed
-    let verticalPosition = position;
+    let actualPosition = position;
     if (position === "top") {
       const spaceAbove = triggerRect.top;
-      if (spaceAbove < tooltipRect.height + gap + padding) {
-        verticalPosition = "bottom";
+      if (spaceAbove < estimatedTooltipHeight + gap + padding) {
+        actualPosition = "bottom";
       }
     } else {
       const spaceBelow = viewportHeight - triggerRect.bottom;
-      if (spaceBelow < tooltipRect.height + gap + padding) {
-        verticalPosition = "top";
+      if (spaceBelow < estimatedTooltipHeight + gap + padding) {
+        actualPosition = "top";
       }
     }
-    setActualPosition(verticalPosition);
 
     // Calculate vertical position
     let top: number;
-    if (verticalPosition === "top") {
-      top = triggerRect.top - tooltipRect.height - gap;
+    if (actualPosition === "top") {
+      top = triggerRect.top - estimatedTooltipHeight - gap;
     } else {
       top = triggerRect.bottom + gap;
     }
 
     // Horizontal positioning - center on trigger, but clamp to viewport
     const triggerCenter = triggerRect.left + triggerRect.width / 2;
+    let left = triggerCenter - estimatedTooltipWidth / 2;
+
+    if (left < padding) {
+      left = padding;
+    } else if (left + estimatedTooltipWidth > viewportWidth - padding) {
+      left = viewportWidth - padding - estimatedTooltipWidth;
+    }
+
+    const arrowLeft = triggerCenter - left;
+
+    return { top, left, arrowLeft, actualPosition };
+  }, [position]);
+
+  // Refine position after tooltip renders (now we know actual size)
+  const refinePosition = useCallback(() => {
+    if (!triggerRef.current || !tooltipRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const tooltipRect = tooltipRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const padding = 12;
+    const gap = 8;
+
+    // Vertical positioning with actual tooltip height
+    let actualPosition = position;
+    if (position === "top") {
+      const spaceAbove = triggerRect.top;
+      if (spaceAbove < tooltipRect.height + gap + padding) {
+        actualPosition = "bottom";
+      }
+    } else {
+      const spaceBelow = viewportHeight - triggerRect.bottom;
+      if (spaceBelow < tooltipRect.height + gap + padding) {
+        actualPosition = "top";
+      }
+    }
+
+    let top: number;
+    if (actualPosition === "top") {
+      top = triggerRect.top - tooltipRect.height - gap;
+    } else {
+      top = triggerRect.bottom + gap;
+    }
+
+    // Horizontal positioning with actual tooltip width
+    const triggerCenter = triggerRect.left + triggerRect.width / 2;
     let left = triggerCenter - tooltipRect.width / 2;
 
-    // Clamp to viewport edges
     if (left < padding) {
       left = padding;
     } else if (left + tooltipRect.width > viewportWidth - padding) {
       left = viewportWidth - padding - tooltipRect.width;
     }
 
-    // Calculate arrow position (always points to trigger center)
     const arrowLeft = triggerCenter - left;
 
-    setTooltipStyle({
-      position: "fixed",
-      top: `${top}px`,
-      left: `${left}px`,
-      opacity: isVisible ? 1 : 0,
-      transform: isVisible ? "translateY(0)" : "translateY(4px)",
-      pointerEvents: isVisible ? "auto" : "none",
-    });
+    setTooltipPosition({ top, left, arrowLeft, actualPosition });
+  }, [position]);
 
-    setArrowStyle({
-      left: `${arrowLeft}px`,
-    });
-  }, [position, isVisible]);
-
-  // Update position when visible
+  // Refine position once tooltip is rendered and on scroll/resize
   useEffect(() => {
-    if (isVisible) {
-      // Initial position calculation
-      updatePosition();
-      // Recalculate on scroll/resize
-      window.addEventListener("scroll", updatePosition, true);
-      window.addEventListener("resize", updatePosition);
-      return () => {
-        window.removeEventListener("scroll", updatePosition, true);
-        window.removeEventListener("resize", updatePosition);
-      };
-    }
-  }, [isVisible, updatePosition]);
+    if (!isVisible || !tooltipRef.current) return;
 
-  // Handle click outside to close on mobile
+    // Refine position after render
+    refinePosition();
+
+    // Also refine on scroll/resize
+    const handleUpdate = () => refinePosition();
+    window.addEventListener("scroll", handleUpdate, true);
+    window.addEventListener("resize", handleUpdate);
+
+    return () => {
+      window.removeEventListener("scroll", handleUpdate, true);
+      window.removeEventListener("resize", handleUpdate);
+    };
+  }, [isVisible, refinePosition]);
+
+  // Handle click outside to close
   useEffect(() => {
     if (!isVisible) return;
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (
-        triggerRef.current &&
-        !triggerRef.current.contains(e.target as Node) &&
-        tooltipRef.current &&
-        !tooltipRef.current.contains(e.target as Node)
-      ) {
+      const target = e.target as Node;
+      const isOutsideTrigger = triggerRef.current && !triggerRef.current.contains(target);
+      const isOutsideTooltip = tooltipRef.current && !tooltipRef.current.contains(target);
+
+      if (isOutsideTrigger && isOutsideTooltip) {
         setIsVisible(false);
+        setTooltipPosition(null);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
+    // Small delay to avoid closing immediately on the click that opened it
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }, 10);
 
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
@@ -170,50 +209,86 @@ export function Tooltip({
   const showTooltip = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      setIsVisible(true);
+      // Calculate initial position before showing
+      const pos = calculatePosition();
+      if (pos) {
+        setTooltipPosition(pos);
+        setIsVisible(true);
+      }
     }, delay);
-  }, [delay]);
+  }, [delay, calculatePosition]);
 
   const hideTooltip = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsVisible(false);
+    // Small delay to allow moving from trigger to tooltip
+    timeoutRef.current = setTimeout(() => {
+      if (!isHoveringTooltipRef.current) {
+        setIsVisible(false);
+        setTooltipPosition(null);
+      }
+    }, 100);
   }, []);
+
+  const hideTooltipImmediate = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    isHoveringTooltipRef.current = false;
+    setIsVisible(false);
+    setTooltipPosition(null);
+  }, []);
+
+  const handleTooltipMouseEnter = useCallback(() => {
+    isHoveringTooltipRef.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  }, []);
+
+  const handleTooltipMouseLeave = useCallback(() => {
+    isHoveringTooltipRef.current = false;
+    hideTooltipImmediate();
+  }, [hideTooltipImmediate]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // On touch devices, toggle visibility
     e.preventDefault();
-    setIsVisible((prev) => !prev);
-  }, []);
+    e.stopPropagation();
 
-  const arrowClasses = actualPosition === "top"
-    ? "top-full border-t-gray-900"
-    : "bottom-full border-b-gray-900 rotate-180";
+    if (isVisible) {
+      setIsVisible(false);
+      setTooltipPosition(null);
+    } else {
+      const pos = calculatePosition();
+      if (pos) {
+        setTooltipPosition(pos);
+        setIsVisible(true);
+      }
+    }
+  }, [isVisible, calculatePosition]);
 
-  // Tooltip element - rendered via portal to escape clipping containers
-  const tooltipElement = (
+  // Only render tooltip when visible
+  const tooltipElement = isVisible && tooltipPosition && (
     <div
       ref={tooltipRef}
       role="tooltip"
-      style={tooltipStyle}
-      className={`
-        max-w-[280px] w-max px-3 py-2
-        bg-gray-900 text-white text-[13px] leading-relaxed
-        rounded-lg shadow-lg
-        transition-all duration-150 ease-out
-        z-[9999]
-      `}
+      onMouseEnter={handleTooltipMouseEnter}
+      onMouseLeave={handleTooltipMouseLeave}
+      style={{
+        position: "fixed",
+        top: `${tooltipPosition.top}px`,
+        left: `${tooltipPosition.left}px`,
+        zIndex: 9999,
+      }}
+      className="max-w-[280px] w-max px-3 py-2 bg-gray-900 text-white text-[13px] leading-relaxed rounded-lg shadow-lg animate-fade-in"
     >
       {content}
 
       {/* Arrow - positioned to point at trigger */}
       <div
-        style={arrowStyle}
+        style={{ left: `${tooltipPosition.arrowLeft}px` }}
         className={`
-          absolute ${arrowClasses}
-          -translate-x-1/2
-          w-0 h-0
-          border-l-[6px] border-r-[6px] border-t-[6px]
-          border-l-transparent border-r-transparent
+          absolute -translate-x-1/2 w-0 h-0
+          border-l-[6px] border-r-[6px] border-l-transparent border-r-transparent
+          ${tooltipPosition.actualPosition === "top"
+            ? "top-full border-t-[6px] border-t-gray-900"
+            : "bottom-full border-b-[6px] border-b-gray-900"
+          }
         `}
       />
     </div>
@@ -223,14 +298,14 @@ export function Tooltip({
     <div
       ref={triggerRef}
       className={`relative inline-block ${className}`}
-      onMouseEnter={!isTouchDevice.current ? showTooltip : undefined}
-      onMouseLeave={!isTouchDevice.current ? hideTooltip : undefined}
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
       onTouchStart={handleTouchStart}
     >
       {children}
 
-      {/* Render tooltip via portal to document.body */}
-      {mounted && createPortal(tooltipElement, document.body)}
+      {/* Only render portal when tooltip should be visible */}
+      {mounted && tooltipElement && createPortal(tooltipElement, document.body)}
     </div>
   );
 }

@@ -73,4 +73,4 @@ ALTER TABLE provider_activity ADD CONSTRAINT provider_activity_event_type_check 
 );
 
 COMMENT ON CONSTRAINT provider_activity_event_type_check ON provider_activity IS
-'Allowed event types including market_outreach_status_updated (provider updated a Your Market referral target). Last update: migration 102 (market_outreach_status_event).';
+'Allowed event types including market_outreach_status_updated (provider updated a Your Market referral target). Last update: migration 103 (market_outreach_status_event).';

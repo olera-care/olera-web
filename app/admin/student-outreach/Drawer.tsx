@@ -1195,6 +1195,7 @@ function ResearchModePanel({
           generalContact={{ email: officeEmail ?? null, phone: officePhone }}
           smartleadPreview={ctx.smartlead_preview}
           cadenceKey={type}
+          pdfAudience="student"
           smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {

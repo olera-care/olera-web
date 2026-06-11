@@ -28,6 +28,7 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
+import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
 import {
   buildSmartleadPreview,
   enrollRowIntoCampusCampaign,
@@ -2223,6 +2224,9 @@ async function enrollRowIntoActivationCampaign(
   // get different copy (flyer/portal vs hire-students), so a partner must never
   // reuse a provider's activation campaign (or vice versa).
   const thisIsPartner = row.kind !== "provider";
+  // Hard PDF gate (best-effort caller catches this → email simply won't enroll,
+  // so no broken flyer link goes out even though the row stays activated).
+  requireProgramPdf(campus?.slug ?? null, thisIsPartner ? "student" : "provider", campusName);
   // Reuse the campus's existing ACTIVATION campaign id of the SAME audience
   // (this row's own linkage, then a matching sibling's); the first activation
   // of each audience in a campus provisions a new one.
@@ -2324,6 +2328,9 @@ async function enrollRowIntoWelcomeCampaign(
   const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
   const campusName = campus?.name ?? "Unknown Campus";
 
+  // Hard PDF gate — the welcome cadence is always partner-facing (student flyer).
+  requireProgramPdf(campus?.slug ?? null, "student", campusName);
+
   // Reuse the campus's existing WELCOME campaign id (this row's own linkage,
   // then any sibling's); the first partner welcomed in a campus provisions one.
   const ownCid = row.research_data?.smartlead_welcome?.campaign_id;
@@ -2407,6 +2414,28 @@ async function handleStopAllOutreach(db: DB, row: OutreachRow, userId: string) {
 }
 
 /**
+ * Hard PDF gate. The Smartlead email body links the RENDERED program PDF
+ * (/api/medjobs/program-pdf?university=<slug>&audience=<aud>), never the
+ * campus override — so the link only works when a code config exists for this
+ * campus + audience. Without one the "flyer" link 404s (or, with no slug,
+ * silently becomes the marketing page). Refuse to enroll so we never ship a
+ * broken/marketing-page link where the copy promises a flyer/brochure.
+ */
+function requireProgramPdf(
+  campusSlug: string | null,
+  audience: PdfAudience,
+  campusName: string,
+): void {
+  if (campusSlug && getProgramPdfConfig(campusSlug, audience)) return;
+  const what = audience === "student" ? "student flyer" : "provider brochure";
+  throw new Error(
+    `No ${audience} program PDF is configured for ${campusName} — outreach emails ` +
+      `would link a broken page instead of the ${what}. Add the ${audience} PDF ` +
+      `config for this campus, then relaunch.`,
+  );
+}
+
+/**
  * Smartlead engine path for schedule_sequence (G2-approved branch). Enrolls the
  * row's General Contact into its campus Smartlead campaign and records the
  * linkage + a timeline touchpoint. Single-writer: the only CRM mutations here
@@ -2444,6 +2473,10 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
   const campusName = campus?.name ?? "Unknown Campus";
   const campusCity = campus?.city ?? null;
   const campusSlug = campus?.slug ?? null;
+
+  // Hard PDF gate — provider rows link the agency brochure; partner rows link
+  // the student flyer. Block launch when the audience PDF isn't configured.
+  requireProgramPdf(campusSlug, row.kind === "provider" ? "provider" : "student", campusName);
 
   // Approach (b): reuse the campus's existing campaign id from a sibling row's
   // stored linkage (one indexed read; no new engine surface).

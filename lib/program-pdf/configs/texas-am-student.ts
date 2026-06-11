@@ -1,0 +1,63 @@
+/**
+ * Texas A&M — STUDENT-facing program flyer config.
+ *
+ * The partner channel (advising offices + student organizations) shares this
+ * with pre-health students. It reuses the same one-page renderer as the
+ * provider brochure (lib/program-pdf/Template.tsx) but flips every
+ * audience-specific label via the optional fields on ProgramPdfConfig, so the
+ * sections read for a student deciding whether to JOIN — not for an agency
+ * deciding whether to hire (no pricing/vetting/agency framing).
+ *
+ * To add another university's student flyer: copy this file, swap the name +
+ * accent + ctaUrl, and register it in configs/index.ts under the student map.
+ */
+
+import type { ProgramPdfConfig } from "./texas-am";
+
+export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
+  slug: "texas-am",
+  audience: "student",
+  universityName: "Texas A&M University",
+  universityShort: "Texas A&M",
+  localArea: "Bryan/College Station area",
+  universityAccent: "#500000",
+  // Student-facing landing / apply page (the program's student brand).
+  ctaUrl: "https://findmedjobs.co",
+  universityTagLine: "Paid experience for pre-health students",
+  subtitle: "Paid caregiving experience for pre-nursing and pre-medical students",
+  documentSubject: "Student program flyer",
+  sectionHeaders: {
+    benefits: "Why students join",
+    steps: "How to join",
+    vetting: "Who can join",
+    pricing: "What to expect",
+  },
+  heroHeadline: "Get paid for real caregiving experience that counts toward your health career.",
+  heroSubhead:
+    "Olera connects Texas A&M pre-health students with paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience that strengthens your application to nursing, PA, medical, and other health programs — on a schedule that works around your classes.",
+  benefits: [
+    { title: "Get paid", body: "Earn an hourly wage doing meaningful work, not another unpaid internship." },
+    { title: "Real patient-care hours", body: "Direct experience caring for older adults — exactly what health programs look for." },
+    { title: "Flexible around classes", body: "Pick up shifts that fit your course load; scale up over breaks." },
+    { title: "Mentorship + a resume boost", body: "Guidance from Dr. DuBose's team and experience you can speak to in interviews." },
+  ],
+  steps: [
+    "Apply online in a few minutes.",
+    "Quick screening + onboarding.",
+    "Get matched with a local family or agency.",
+    "Start your shifts and start earning.",
+  ],
+  // Repurposed "vetting" section → eligibility for students.
+  vetting: [
+    "Open to any Texas A&M pre-health major — no prior experience required.",
+    "Must be a currently enrolled student.",
+    "Training and support provided before your first shift.",
+    "Background check handled as part of onboarding.",
+  ],
+  // Repurposed "pricing" block → what to expect.
+  pricing: {
+    headline: "Paid hourly · flexible hours · start this semester",
+    body: "You choose how much you work. We provide the training, the match, and ongoing support so you can focus on doing great work and building your health-career story.",
+  },
+  ctaLabel: "Apply or learn more",
+};

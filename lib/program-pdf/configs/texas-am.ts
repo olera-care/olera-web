@@ -58,6 +58,24 @@ export interface ProgramPdfConfig {
   pricing: { headline: string; body: string };
   /** Bottom CTA line ("Schedule a call · Learn more"). */
   ctaLabel: string;
+
+  // ── Audience variants (student-facing flyer vs provider brochure) ──
+  // The renderer reads the fields below with PROVIDER defaults when omitted,
+  // so the existing provider config needs no changes. The student config sets
+  // them to flip every audience-specific label.
+  /** Who this config addresses. Drives the registry lookup + filename; the
+   *  renderer keys off the header/subtitle fields below. Defaults to "provider". */
+  audience?: "provider" | "student";
+  /** Subtitle under the title. Provider default:
+   *  "Pre-nursing and pre-medical student staffing pipeline for home care agencies". */
+  subtitle?: string;
+  /** Top-right university tagline. Provider default: "Pre-health staffing pipeline". */
+  universityTagLine?: string;
+  /** Section headers. Provider defaults: "Why agencies participate" / "How it
+   *  works" / "Student vetting" / "Participation & pricing". */
+  sectionHeaders?: { benefits: string; steps: string; vetting: string; pricing: string };
+  /** PDF metadata subject. Provider default: "Provider outreach packet". */
+  documentSubject?: string;
 }
 
 export const TEXAS_AM: ProgramPdfConfig = {

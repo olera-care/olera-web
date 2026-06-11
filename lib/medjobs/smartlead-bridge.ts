@@ -419,6 +419,15 @@ export function buildEmailSequence(
     contacts: [],
   };
 
+  // Which program PDF this cadence links: provider cadences (cold provider +
+  // non-partner activation) link the agency brochure; everything partner-facing
+  // (stakeholder cold, partner activation, partner welcome) links the student
+  // flyer that partners share with students.
+  const pdfAudience: "provider" | "student" =
+    cadenceKey === "provider" || (cadenceKey === "activation" && !(opts.isPartner ?? false))
+      ? "provider"
+      : "student";
+
   const days = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const steps: SmartleadSequenceStep[] = [];
   let prevEmailDay = 0;
@@ -434,7 +443,7 @@ export function buildEmailSequence(
         seq_number: seq,
         seq_delay_details: { delay_in_days: seq === 1 ? 0 : day.day - prevEmailDay },
         subject: finalizeTokens(draft.subject, adminFirstName),
-        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null),
+        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience),
       });
       prevEmailDay = day.day;
     }
@@ -585,9 +594,12 @@ function toSmartleadHtml(
   body: string,
   adminFirstName: string,
   campusSlug: string | null,
+  pdfAudience: "provider" | "student" = "provider",
 ): string {
+  // Partner/student-org/welcome emails link the STUDENT flyer (what partners
+  // share with students); provider emails link the agency brochure.
   const pdfUrl = campusSlug
-    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}`
+    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}&audience=${pdfAudience}`
     : PROGRAM_URL;
   // Templates that place the program PDF inline use the {program_pdf} token;
   // we fill it here (per-campaign slug). Stakeholder templates still say
@@ -726,6 +738,8 @@ export function buildSmartleadPreview(input: {
   const seq = buildEmailSequence(input.cadenceKey ?? "provider", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
+    // Partner rows (kind != provider) preview the student flyer link.
+    isPartner: input.row.kind !== "provider",
   });
   const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
   const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));

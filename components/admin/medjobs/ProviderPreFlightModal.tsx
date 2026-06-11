@@ -57,7 +57,7 @@ import {
 } from "@/lib/student-outreach/sequencer";
 import type { Contact, SmartleadPreviewSnapshot } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
-import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
+import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 
@@ -100,6 +100,10 @@ interface Props {
   /** Smartlead thread linkage, when known, for the manual-reply inbox link.
    *  Omitted before a campaign exists — the link falls back to the root inbox. */
   smartleadLinkage?: SmartleadLinkage | null;
+  /** Which program PDF this row's emails link — provider brochure (default) or
+   *  the student flyer (partner/student-org rows). Drives the attachment preview
+   *  and the hard no-PDF launch block (mirrors the server gate). */
+  pdfAudience?: PdfAudience;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -158,6 +162,7 @@ export function ProviderPreFlightModal({
   smartleadPreview,
   cadenceKey = PROVIDER_CADENCE_KEY,
   smartleadLinkage,
+  pdfAudience = "provider",
   onCancel,
   onSubmit,
 }: Props) {
@@ -179,14 +184,19 @@ export function ProviderPreFlightModal({
       };
     }
     if (!campusSlug) return null;
-    const config = getProgramPdfConfig(campusSlug);
+    const config = getProgramPdfConfig(campusSlug, pdfAudience);
     if (!config) return null;
     return {
       source: "template" as const,
-      filename: `${config.slug}-student-caregiver-program.pdf`,
-      previewUrl: `/api/medjobs/program-pdf?university=${config.slug}`,
+      filename: `${config.slug}-${pdfAudience === "student" ? "student-program" : "student-caregiver-program"}.pdf`,
+      previewUrl: `/api/medjobs/program-pdf?university=${config.slug}&audience=${pdfAudience}`,
     };
   })();
+
+  // The Smartlead email links the RENDERED config PDF (not the override), so a
+  // launch is only valid when a config exists for this campus + audience. Hard
+  // block (mirrors the server gate) — never ship a broken/marketing flyer link.
+  const pdfConfigured = Boolean(campusSlug && getProgramPdfConfig(campusSlug, pdfAudience));
   // Build the recipient roster. First slot (when present) is the
   // synthetic General Contact row — organization-level fallback
   // (research_data.general_contact || business_profiles fields).
@@ -380,6 +390,14 @@ export function ProviderPreFlightModal({
           {err && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               {err}
+            </p>
+          )}
+
+          {!pdfConfigured && (
+            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              ⚠ No {pdfAudience === "student" ? "student flyer" : "provider brochure"} PDF
+              is configured for {campusName}. The emails promise a {pdfAudience === "student" ? "flyer" : "brochure"} —
+              launching is blocked until the {pdfAudience} program PDF exists for this campus.
             </p>
           )}
 
@@ -615,8 +633,9 @@ export function ProviderPreFlightModal({
             <button
               onClick={submit}
               disabled={
-                submitting || (queuedEmails === 0 && queuedCalls === 0)
+                submitting || !pdfConfigured || (queuedEmails === 0 && queuedCalls === 0)
               }
+              title={!pdfConfigured ? "No program PDF configured for this campus." : undefined}
               className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
             >
               {submitting ? "Starting…" : "Start outreach"}

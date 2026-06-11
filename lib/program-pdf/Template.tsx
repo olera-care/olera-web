@@ -314,11 +314,22 @@ export function ProgramPdfTemplate({
   config: ProgramPdfConfig;
   assets: ProgramPdfAssets;
 }) {
+  // Provider defaults — the student config overrides each of these.
+  const subtitle =
+    config.subtitle ??
+    "Pre-nursing and pre-medical student staffing pipeline for home care agencies";
+  const universityTagLine = config.universityTagLine ?? "Pre-health staffing pipeline";
+  const headers = config.sectionHeaders ?? {
+    benefits: "Why agencies participate",
+    steps: "How it works",
+    vetting: "Student vetting",
+    pricing: "Participation & pricing",
+  };
   return (
     <Document
       title={`${config.universityShort} Student Caregiver Program`}
       author="Olera"
-      subject="Provider outreach packet"
+      subject={config.documentSubject ?? "Provider outreach packet"}
     >
       <Page size="LETTER" style={styles.page}>
         {/* ── Header row */}
@@ -343,7 +354,7 @@ export function ProgramPdfTemplate({
             >
               {config.universityName}
             </Text>
-            <Text style={styles.universityTag}>Pre-health staffing pipeline</Text>
+            <Text style={styles.universityTag}>{universityTagLine}</Text>
           </View>
         </View>
 
@@ -357,9 +368,7 @@ export function ProgramPdfTemplate({
           <Text style={styles.programTitle}>
             Olera&apos;s {config.universityShort} Student Caregiver Program
           </Text>
-          <Text style={styles.programSubtitle}>
-            Pre-nursing and pre-medical student staffing pipeline for home care agencies
-          </Text>
+          <Text style={styles.programSubtitle}>{subtitle}</Text>
         </View>
 
         {/* ── Hero */}
@@ -369,7 +378,7 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Benefits */}
-        <Text style={styles.sectionHeader}>Why agencies participate</Text>
+        <Text style={styles.sectionHeader}>{headers.benefits}</Text>
         <View style={styles.benefitGrid}>
           {config.benefits.map((b, i) => (
             <View key={i} style={styles.benefitCell}>
@@ -382,7 +391,7 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── How it works */}
-        <Text style={styles.sectionHeader}>How it works</Text>
+        <Text style={styles.sectionHeader}>{headers.steps}</Text>
         <View style={styles.stepsRow}>
           {config.steps.map((s, i) => (
             <View key={i} style={styles.stepCell}>
@@ -394,8 +403,8 @@ export function ProgramPdfTemplate({
           ))}
         </View>
 
-        {/* ── Student vetting */}
-        <Text style={styles.sectionHeader}>Student vetting</Text>
+        {/* ── Eligibility / vetting */}
+        <Text style={styles.sectionHeader}>{headers.vetting}</Text>
         <View style={styles.vettingBlock}>
           {config.vetting.map((v, i) => (
             <View key={i} style={styles.vettingRow}>
@@ -405,8 +414,8 @@ export function ProgramPdfTemplate({
           ))}
         </View>
 
-        {/* ── Participation & pricing */}
-        <Text style={styles.sectionHeader}>Participation &amp; pricing</Text>
+        {/* ── Participation / what to expect */}
+        <Text style={styles.sectionHeader}>{headers.pricing}</Text>
         <View style={styles.pricingBlock}>
           <Text style={styles.pricingHeadline}>{config.pricing.headline}</Text>
           <Text style={styles.pricingBody}>{config.pricing.body}</Text>

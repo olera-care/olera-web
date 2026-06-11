@@ -798,30 +798,46 @@ export function providerSilentEmail(opts: {
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const hasDeclineMessage = opts.providerPassed && opts.declineMessage?.trim();
+  const hasRecommendedProviders = opts.recommendedProviders.length > 0;
 
   // Different copy for explicit decline vs silence
-  const openingLine = opts.providerPassed
-    ? `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now${hasDeclineMessage ? " and left you a message:" : " — but you've got plenty of other great options nearby who'd be glad to help:"}`
-    : `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one. Here are a few other providers near you who are ready to help:`;
+  // Adjust based on whether we have recommendations to show
+  let openingLine: string;
+  if (opts.providerPassed) {
+    if (hasDeclineMessage) {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now and left you a message:`;
+    } else if (hasRecommendedProviders) {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`;
+    } else {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area who may be able to help.`;
+    }
+  } else {
+    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you who are ready to help:" : ""}`;
+  }
 
+  // Adjust closing line based on whether we showed recommendations
   const closingLine = opts.providerPassed
-    ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
-    : `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`;
+    ? (hasRecommendedProviders
+        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
+        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls. It's your call.`)
+    : (hasRecommendedProviders
+        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
+        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
 
   // Show provider's decline message if present (similar to message preview style)
+  // Only say "plenty of other options" if we actually have recommendations
   const declineMessageSection = hasDeclineMessage
     ? `<div style="background:#f9fafb;border-left:3px solid #9ca3af;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
         <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.declineMessage!.trim())}"</p>
       </div>
-      <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-        But you've got plenty of other great options nearby who'd be glad to help:
-      </p>`
+      ${hasRecommendedProviders
+        ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">But you've got plenty of other great options nearby who'd be glad to help:</p>`
+        : `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">There are other providers in your area who may be able to help:</p>`
+      }`
     : "";
 
   // Render recommended providers prominently (high up, visible on mobile)
   // Each provider gets a magic link for one-click viewing
-  // Only show the section if we have providers to recommend
-  const hasRecommendedProviders = opts.recommendedProviders.length > 0;
   const providersSection = hasRecommendedProviders
     ? opts.recommendedProviders.map((p) => `
         <div style="margin:0 0 12px;">

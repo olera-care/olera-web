@@ -3279,7 +3279,7 @@ export function providerManualNudgeEmail(opts: {
     </p>
     <div style="margin:0 0 32px;">${button(buttonText, opts.viewUrl)}</div>
     ${loganHeavySignature()}
-    ${providerOffRampBlock(null, null)}
+    ${offRampBlock(opts.providerSlug)}
   `,
     preheader
   );

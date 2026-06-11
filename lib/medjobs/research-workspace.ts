@@ -146,9 +146,13 @@ export function predefinedSearches(subtype: PartnerSubtype, uni: string): Search
   }
   if (subtype === "dept_head") {
     return [
-      { key: "dept_bio", label: `Google: ${uni} biology department contact`, url: g(`${uni} biology department contact`), ran: false },
-      { key: "dept_chem", label: `Google: ${uni} chemistry department contact`, url: g(`${uni} chemistry department contact`), ran: false },
-      { key: "dept_health", label: `Google: ${uni} public health / kinesiology department contact`, url: g(`${uni} public health kinesiology department contact`), ran: false },
+      { key: "dept_bio", label: `Google: ${uni} biology department chair`, url: g(`${uni} biology department chair`), ran: false },
+      { key: "dept_chem", label: `Google: ${uni} chemistry department chair`, url: g(`${uni} chemistry department chair`), ran: false },
+      { key: "dept_kin", label: `Google: ${uni} kinesiology OR exercise science department chair`, url: g(`${uni} kinesiology OR exercise science department chair`), ran: false },
+      { key: "dept_pubh", label: `Google: ${uni} public health department chair`, url: g(`${uni} public health department chair`), ran: false },
+      { key: "dept_nursing", label: `Google: ${uni} nursing dean`, url: g(`${uni} nursing dean`), ran: false },
+      { key: "dept_hsci", label: `Google: ${uni} health sciences dean`, url: g(`${uni} health sciences dean`), ran: false },
+      { key: "dept_biomed", label: `Google: ${uni} biomedical sciences department head`, url: g(`${uni} biomedical sciences department head`), ran: false },
     ];
   }
   return [

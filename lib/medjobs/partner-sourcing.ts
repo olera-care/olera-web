@@ -29,15 +29,25 @@ export type PartnerSubtype = "advisor" | "student_org" | "dept_head";
 export const PARTNER_SUBTYPES: PartnerSubtype[] = ["advisor", "student_org", "dept_head"];
 
 /** Default prerequisite departments to sweep for dept heads when the admin
- *  doesn't scope explicitly. */
+ *  doesn't scope explicitly. Broad on purpose — any undergraduate department
+ *  that commonly serves pre-med / pre-nursing / pre-PA / pre-PT / pre-pharmacy
+ *  / allied-health prerequisite coursework. */
 const DEFAULT_DEPARTMENTS = [
   "biology",
   "chemistry",
+  "biochemistry",
+  "microbiology",
   "psychology",
+  "neuroscience",
   "public health",
-  "kinesiology",
+  "health sciences",
+  "kinesiology / exercise science",
+  "nutrition / dietetics",
+  "biomedical sciences",
+  "human development / family sciences",
   "nursing",
   "allied health",
+  "physiology / anatomy",
 ];
 
 export interface UniversityContext {
@@ -216,8 +226,12 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
       "student-organization directories, pre-health / pre-med / pre-nursing / allied-health club pages, " +
       "and student affairs org listings (prefer pages with a club contact email)",
     dept_head:
-      "department home pages and 'Contact' pages for biology, chemistry, public health, " +
-      "kinesiology, nursing, and allied-health departments (chair / department contact info)",
+      "department / college pages for the undergraduate departments that serve pre-health " +
+      "prerequisite coursework (e.g. biology, chemistry, biochemistry, microbiology, psychology, " +
+      "neuroscience, public health, health sciences, kinesiology / exercise science, nutrition, " +
+      "biomedical sciences, human development / family sciences, nursing, allied health). For each, " +
+      "find the page showing the most senior STUDENT-FACING leader — the department CHAIR / HEAD, or " +
+      "the DEAN for a college of Nursing or Health Sciences — with their name + contact info",
   };
   return [
     `Find the BEST real web pages to research ${subtype.replace("_", " ")} contacts at ${where}.`,
@@ -322,10 +336,16 @@ function extractPrompt(
 
   if (subtype === "dept_head") {
     return [
-      `Find the DEPARTMENT CHAIR / HEAD for these departments at ${where}: ${depts}.`,
+      `Identify the most senior STUDENT-FACING leader for the undergraduate departments at`,
+      `${where} that serve pre-health prerequisite coursework (pre-med, pre-nursing, pre-PA,`,
+      `pre-PT, pre-pharmacy, and allied health). Reason about which of these departments actually`,
+      `exist at this university, then find ONE leader each: the department CHAIR / HEAD, or the`,
+      `DEAN for a college of Nursing or Health Sciences. Departments to consider: ${depts}.`,
       sourceHint,
-      `For each: department, name, title, email, phone, profile_url, source_url, confidence (high/medium/low), notes.`,
-      `Only include real, named chairs/heads with a source. Skip departments you cannot verify.`,
+      `Return ONE person per department (the chair/head/dean — not professors or staff).`,
+      `For each: department, name, title (e.g. "Chair", "Department Head", "Dean", "Dr."),`,
+      `email, phone, profile_url, source_url, confidence (high/medium/low), notes.`,
+      `Only include real, named leaders with a source. Skip departments you cannot verify.`,
       ``,
       `Return ONLY valid JSON shaped exactly:`,
       `{"candidates":[{"department":"...","name":"...","title":"...","email":"...","phone":"...","profile_url":"...","source_url":"...","confidence":"...","notes":"..."}]}`,

@@ -161,21 +161,6 @@ export function ProviderSnapshotCard({
       _effState?.trim() &&
       /^\d{5}(?:-\d{4})?$/.test(_effZip?.trim() ?? ""),
   );
-  const dm = outreach.research_data?.decision_maker ?? {};
-  const _hasDecisionMaker =
-    Boolean(dm.email?.trim() || dm.phone?.trim() || dm.name?.trim()) ||
-    dm.unavailable === true;
-  const _researchFields = [
-    Boolean(_effWebsite?.trim()) || gc.website_unavailable === true,
-    Boolean(_effPhone?.trim()) || gc.phone_unavailable === true,
-    Boolean(_effEmail?.trim()) || gc.email_unavailable === true,
-    _addressComplete || gc.address_unavailable === true,
-    Boolean(gc.fax?.trim()) || gc.fax_unavailable === true,
-    Boolean(gc.contact_form_url?.trim()) || gc.contact_form_unavailable === true,
-    _hasDecisionMaker,
-  ];
-  const researchFilled = _researchFields.filter(Boolean).length;
-  const researchTotal = _researchFields.length;
 
   return (
     <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">
@@ -191,11 +176,6 @@ export function ProviderSnapshotCard({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">
-          {isPreLaunch && (
-            <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-700">
-              Research: <strong className="tabular-nums">{researchFilled} of {researchTotal}</strong>
-            </span>
-          )}
           {livePagePath && (
             <a
               href={livePagePath}

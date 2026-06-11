@@ -66,6 +66,14 @@ export interface WorkspaceOffice {
   verified?: boolean;
   /** No email found — kept as a phone "call" lead, out of the email funnel. */
   call_only?: boolean;
+  // ── Department-head (person-shaped) fields ──────────────────────────────
+  // For the dept_head subtype the "office" IS a department and the prospect is
+  // ONE person (the chair). `name` is the department; these carry the chair,
+  // and email/phone above are the chair's direct contact.
+  /** The department chair/head/dean's full name. */
+  person_name?: string | null;
+  /** The chair's title/role as shown (e.g. "Department Chair", "Dean"). */
+  person_title?: string | null;
 }
 
 export interface SearchState {

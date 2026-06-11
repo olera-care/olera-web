@@ -22,7 +22,6 @@ import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderP
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
-import { VerificationSection } from "@/components/admin/medjobs/SnapshotCard";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
@@ -1004,11 +1003,11 @@ function ResearchModePanel({
   // generated WITH contact info, so they land straight on Pre-Flight (confirm
   // by call, then launch). Only non-office stakeholders keep the prospect step.
   const orientation = isOffice ? (
-    <>Confirm the office&apos;s email, then make a quick confirmation call before any email goes out — outreach unlocks once a call confirms it.</>
+    <>Check the info, call to confirm, then launch outreach.</>
   ) : isProspect ? (
     <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
-    <>Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.</>
+    <>Check the info, call to confirm, then launch outreach.</>
   );
 
   const checklist = isOffice
@@ -1047,34 +1046,28 @@ function ResearchModePanel({
       </button>
     );
   } else if (isOffice) {
-    // Mirror the provider Research Card exactly: a Verification status card +
-    // a Pre-Flight action row (Call to Confirm + Launch outreach). Launch is
-    // disabled until a confirmed call (or override) — no bespoke amber box.
+    // Two actions only — Call to Confirm, then Launch. Launch unlocks once the
+    // call is confirmed (the verification card was removed: the button state
+    // already conveys it).
     cta = (
-      <div className="space-y-3">
-        <VerificationSection state={verificationState} />
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Pre-Flight actions</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setShowCallConfirm(true)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              📞 Call to Confirm
-            </button>
-            <button
-              onClick={() => {
-                if (verificationState.can_launch) void launchOffice();
-                else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
-              }}
-              disabled={!verificationState.can_launch}
-              title={verificationState.can_launch ? "Review recipients and launch outreach." : "Confirm the office on a call first."}
-              className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {verificationState.status === "overridden" ? "Launch outreach (override) →" : "Launch outreach →"}
-            </button>
-          </div>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowCallConfirm(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          📞 Call to Confirm
+        </button>
+        <button
+          onClick={() => {
+            if (verificationState.can_launch) void launchOffice();
+            else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
+          }}
+          disabled={!verificationState.can_launch}
+          title={verificationState.can_launch ? "Review recipients and launch outreach." : "Confirm the office on a call first."}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {verificationState.status === "overridden" ? "Launch outreach (override) →" : "Launch outreach →"}
+        </button>
       </div>
     );
   } else {
@@ -1307,6 +1300,26 @@ function ResearchSection({
   const showDepartment = type === "dept_head" || type === "professor";
   const showOrgName = type === "student_org" || isOffice; // offices need a name
 
+  const researchLinks = (((r as Record<string, unknown>).research_links ?? []) as Array<{ title?: string; url?: string }>).filter((s) => s?.url);
+  const sourcesBlock = researchLinks.length > 0 ? (
+    <details className="rounded-md border border-gray-100 px-3 py-2">
+      <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-700">
+        Research sources ({researchLinks.length}) — where this came from
+      </summary>
+      <ul className="mt-1 space-y-0.5 pl-2">
+        {researchLinks.map((s, i) => (
+          <li key={i}>
+            <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">
+              {s.title || s.url} ↗
+            </a>
+          </li>
+        ))}
+      </ul>
+    </details>
+  ) : null;
+
+  const notesField = <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />;
+
   return (
     <section>
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -1319,6 +1332,8 @@ function ResearchSection({
         {showOrgName && (
           <Field label={isOffice ? "Office name" : "Organization name"} value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
         )}
+        {/* Source links near the top, right under the name (cheap context). */}
+        {sourcesBlock}
 
         {/* Office-level contact (the outreach target). People go in the roster. */}
         {isOffice && (
@@ -1391,31 +1406,6 @@ function ResearchSection({
           />
         )}
 
-        <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
-
-        {/* Where this prospect came from — moved here from the old pre-flight
-            card, directly under the notes that describe it. */}
-        {(() => {
-          const links = (((r as Record<string, unknown>).research_links ?? []) as Array<{ title?: string; url?: string }>).filter((s) => s?.url);
-          if (links.length === 0) return null;
-          return (
-            <details className="rounded-md border border-gray-100 px-3 py-2">
-              <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-700">
-                Research sources ({links.length}) — where this came from
-              </summary>
-              <ul className="mt-1 space-y-0.5 pl-2">
-                {links.map((s, i) => (
-                  <li key={i}>
-                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">
-                      {s.title || s.url} ↗
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          );
-        })()}
-
         {/* Office model: an advising office is a general contact + a roster of
             people. Members live in research_data (NOT outreach contacts) so cold
             outreach stays on the general contact and never fans out to them. */}
@@ -1429,6 +1419,10 @@ function ResearchSection({
             <div className="pt-1">{research.cta}</div>
           </>
         )}
+
+        {/* Research notes sit BELOW the workflow (call to confirm + launch) so
+            they don't interrupt the main path. */}
+        {notesField}
       </div>
     </section>
   );

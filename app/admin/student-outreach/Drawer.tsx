@@ -1012,7 +1012,7 @@ function ResearchModePanel({
   );
 
   const checklist = isOffice
-    ? [{ done: hasOfficeEmail, label: "An email on file to reach out to" }]
+    ? [] // offices: the buttons (Call to Confirm → Launch) carry the workflow; no checklist line
     : isProspect
       ? [
           { done: haveContact, label: "At least one active contact added" },
@@ -1301,23 +1301,10 @@ function ResearchSection({
   const showDepartment = type === "dept_head" || type === "professor";
   const showOrgName = type === "student_org" || isOffice; // offices need a name
 
+  // Source link by the name = the website / first research source where we
+  // found them (replaces the website field + the old sources dropdown).
   const researchLinks = (((r as Record<string, unknown>).research_links ?? []) as Array<{ title?: string; url?: string }>).filter((s) => s?.url);
-  const sourcesBlock = researchLinks.length > 0 ? (
-    <details className="rounded-md border border-gray-100 px-3 py-2">
-      <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-700">
-        Research sources ({researchLinks.length}) — where this came from
-      </summary>
-      <ul className="mt-1 space-y-0.5 pl-2">
-        {researchLinks.map((s, i) => (
-          <li key={i}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">
-              {s.title || s.url} ↗
-            </a>
-          </li>
-        ))}
-      </ul>
-    </details>
-  ) : null;
+  const sourceUrl = (gc0.website?.trim() || researchLinks[0]?.url || "") || null;
 
   const notesField = <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />;
 
@@ -1331,17 +1318,21 @@ function ResearchSection({
           <Guidance>{research.orientation}</Guidance>
         )}
         {showOrgName && (
-          <Field label={isOffice ? "Office name" : "Organization name"} value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+          <NameWithSource
+            label={isOffice ? "Office name" : "Organization name"}
+            value={orgName}
+            onChange={setOrgName}
+            onBlur={saveOutreach}
+            sourceUrl={sourceUrl}
+          />
         )}
-        {/* Source links near the top, right under the name (cheap context). */}
-        {sourcesBlock}
 
-        {/* Office-level contact (the outreach target). People go in the roster. */}
+        {/* Office-level contact (the outreach target). Website lives in the
+            source link by the name; people go in the Advisors section. */}
         {isOffice && (
           <div className="grid grid-cols-2 gap-2">
             <Field type="email" label="General email" value={officeEmail} onChange={setOfficeEmail} onBlur={saveOfficeContact} placeholder="hpo@uni.edu" />
             <Field label="General phone" value={officePhone} onChange={setOfficePhone} onBlur={saveOfficeContact} />
-            <Field label="Website" value={officeWebsite} onChange={setOfficeWebsite} onBlur={saveOfficeContact} placeholder="https://…" />
           </div>
         )}
 
@@ -1425,7 +1416,7 @@ function ResearchSection({
 
         {research && (
           <>
-            <ChecklistInline items={research.checklist} />
+            {research.checklist.length > 0 && <ChecklistInline items={research.checklist} />}
             <div className="pt-1">{research.cta}</div>
           </>
         )}
@@ -2056,6 +2047,44 @@ function SmallButton({ children, onClick }: { children: React.ReactNode; onClick
     >
       {children}
     </button>
+  );
+}
+
+/** Name field with a green "source" link on the right of the label — opens the
+ *  website / research source where we found the record. Shared visual pattern
+ *  with the Provider Research Card. */
+function NameWithSource({
+  label, value, onChange, onBlur, sourceUrl,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  sourceUrl: string | null;
+}) {
+  return (
+    <div className="block">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-gray-600">{label}</span>
+        {sourceUrl && (
+          <a
+            href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+            title="Open the website / research source"
+          >
+            🌐 source ↗
+          </a>
+        )}
+      </div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+      />
+    </div>
   );
 }
 

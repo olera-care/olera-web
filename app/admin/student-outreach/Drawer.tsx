@@ -1404,9 +1404,27 @@ interface OfficeMember {
   email?: string;
   phone?: string;
   source_url?: string;
+  /** How we found them — website (with source_url) or on a call. Preselected to
+   *  avoid spelling/semantic drift in the role + provenance. */
+  source?: "website" | "call";
   notes?: string;
   /** Set once promoted to its own prospect row. */
   promoted_outreach_id?: string;
+}
+
+/** Segmented preselect button — keeps role/source values clean (no drift). */
+function Segment({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+        active ? "bg-primary-600 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+      }`}
+    >
+      {children}
+    </button>
+  );
 }
 
 function OfficeMembersSection({
@@ -1424,7 +1442,15 @@ function OfficeMembersSection({
       | undefined) ?? [];
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<OfficeMember>({});
+  const [roleKind, setRoleKind] = useState<"advisor" | "other">("advisor");
+  const [sourceKind, setSourceKind] = useState<"website" | "call">("website");
   const [busy, setBusy] = useState(false);
+
+  const resetDraft = () => {
+    setDraft({});
+    setRoleKind("advisor");
+    setSourceKind("website");
+  };
 
   const persist = async (next: OfficeMember[]) => {
     try {
@@ -1436,11 +1462,20 @@ function OfficeMembersSection({
 
   const addMember = async () => {
     if (!draft.name?.trim() && !draft.email?.trim()) {
-      setError("Add a name or an email for the member");
+      setError("Add a name or an email for the advisor");
       return;
     }
-    await persist([...members, { ...draft }]);
-    setDraft({});
+    // Role: preselected "Advisor" by default; "Other" lets them type a title —
+    // keeps the data clean (no spelling drift). Source: website (with link) or call.
+    const title = roleKind === "advisor" ? "Advisor" : draft.title?.trim() || "Other";
+    const member: OfficeMember = {
+      ...draft,
+      title,
+      source: sourceKind,
+      source_url: sourceKind === "website" ? draft.source_url?.trim() || undefined : undefined,
+    };
+    await persist([...members, member]);
+    resetDraft();
     setAdding(false);
   };
 
@@ -1494,10 +1529,10 @@ function OfficeMembersSection({
     <div className="rounded-md border border-gray-100 bg-gray-50 p-3">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Office members ({members.length})
+          Advisors ({members.length})
         </p>
-        <SmallButton onClick={() => setAdding((s) => !s)}>
-          {adding ? "Cancel" : "+ Add member"}
+        <SmallButton onClick={() => { if (adding) resetDraft(); setAdding((s) => !s); }}>
+          {adding ? "Cancel" : "+ Add an advisor"}
         </SmallButton>
       </div>
       <p className="mt-0.5 text-[11px] text-gray-500">
@@ -1536,15 +1571,43 @@ function OfficeMembersSection({
       )}
 
       {adding && (
-        <div className="mt-2 space-y-1.5">
+        <div className="mt-2 space-y-2">
           <div className="grid grid-cols-2 gap-1.5">
             <input className={input} placeholder="Name" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-            <input className={input} placeholder="Title (optional)" value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
             <input className={input} placeholder="Email (optional)" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
-            <input className={input} placeholder="Phone (optional)" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
+            <input className={`${input} col-span-2`} placeholder="Phone (optional)" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
           </div>
-          <input className={input} placeholder="Source link (optional)" value={draft.source_url ?? ""} onChange={(e) => setDraft({ ...draft, source_url: e.target.value })} />
-          <SmallButton onClick={addMember}>Add member</SmallButton>
+
+          {/* Role — preselected to avoid spelling drift. */}
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Role</p>
+            <div className="flex gap-1.5">
+              <Segment active={roleKind === "advisor"} onClick={() => setRoleKind("advisor")}>Advisor</Segment>
+              <Segment active={roleKind === "other"} onClick={() => setRoleKind("other")}>Other</Segment>
+              {roleKind === "other" && (
+                <input className={`${input} flex-1`} placeholder="Title (e.g. Director, Coordinator)" value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+              )}
+            </div>
+          </div>
+
+          {/* Source — website (with link) or on a call. */}
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Source</p>
+            <div className="flex gap-1.5">
+              <Segment active={sourceKind === "website"} onClick={() => setSourceKind("website")}>Website</Segment>
+              <Segment active={sourceKind === "call"} onClick={() => setSourceKind("call")}>On a call</Segment>
+            </div>
+            {sourceKind === "website" && (
+              <input className={`${input} mt-1.5`} placeholder="Source link (https://…)" value={draft.source_url ?? ""} onChange={(e) => setDraft({ ...draft, source_url: e.target.value })} />
+            )}
+          </div>
+
+          <button
+            onClick={addMember}
+            className="w-full rounded-md bg-primary-600 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-700"
+          >
+            Save advisor
+          </button>
         </div>
       )}
     </div>

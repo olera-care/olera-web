@@ -95,7 +95,6 @@ export async function POST(req: NextRequest) {
   const isInquiry = connection.type === "inquiry";
   const familyProfile = isInquiry ? fromProfile : toProfile;
   const providerProfile = isInquiry ? toProfile : fromProfile;
-  const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
 
   if (!providerProfile?.email?.trim()) {
     return NextResponse.json(

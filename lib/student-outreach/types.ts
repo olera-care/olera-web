@@ -231,6 +231,15 @@ export interface ResearchData {
     lead_email: string | null;
     enrolled_at: string;
   };
+  /** Partner welcome cadence Smartlead linkage — a SEPARATE per-campus
+   *  campaign enrolling a freshly-activated Recruitment Partner into the
+   *  long welcome/nurture sequence. Set by enrollRowIntoWelcomeCampaign when
+   *  the "Make a partner" button promotes the row. */
+  smartlead_welcome?: {
+    campaign_id: number;
+    lead_email: string | null;
+    enrolled_at: string;
+  };
 }
 
 export interface Campus {

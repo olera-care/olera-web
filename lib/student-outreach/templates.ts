@@ -135,6 +135,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "activation_intro": return activationIntroEmail(ctx);
     case "activation_nudge": return activationNudgeEmail(ctx);
     case "activation_final": return activationFinalEmail(ctx);
+    case "partner_welcome_intro": return partnerWelcomeIntroEmail(ctx);
+    case "partner_welcome_checkin": return partnerWelcomeCheckinEmail(ctx);
+    case "partner_welcome_planning": return partnerWelcomePlanningEmail(ctx);
   }
 }
 
@@ -681,6 +684,72 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
       `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
       ``,
       `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+// ── Partner welcome cadence ─────────────────────────────────────────────
+//
+// Begins when a stakeholder is promoted to an active Recruitment Partner.
+// Audience: an advising office / faculty / student-org contact who has
+// agreed to help get the program in front of pre-health students. Goal:
+// welcome them warmly, hand them the flyer + partner portal, keep the
+// program fresh with periodic check-ins, and pull them into seasonal
+// term-planning meetings with Dr. DuBose. Tone: warm, human, low-pressure.
+// No em-dashes. Greeting follows the partner pattern: named -> "Hi
+// {first_name},"; general -> "Hello,".
+
+function partnerGreeting(ctx: TemplateContext): string {
+  const variant = ctx.variant ?? "named";
+  return variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+}
+
+export function partnerWelcomeIntroEmail(ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Welcome to Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
+    body: [
+      partnerGreeting(ctx),
+      ``,
+      `Thank you for partnering with us. We're glad to have you helping connect ${PLACEHOLDER.campus} pre-health students with paid caregiver roles that fit alongside their coursework.`,
+      ``,
+      `Two things to get you started:`,
+      ``,
+      `• Our one-page flyer to share with students: [program flyer](${PLACEHOLDER.programPdf})`,
+      `• Your partner portal, where you can share the flyer, add colleagues, tell us about events, and see your impact: [open the partner portal](${PLACEHOLDER.welcomeUrl})`,
+      ``,
+      `Here's how we like to work with partners: a quick check-in every couple of months, plus a short planning meeting with Dr. DuBose a few weeks before each term (Fall, Spring, and Summer) to line up events, share updates and results, refresh student-org contacts, and find new ways to reach students.`,
+      ``,
+      `Want to get the first one on the calendar? [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}). And of course, just reply here anytime.`,
+    ].join("\n"),
+  };
+}
+
+export function partnerWelcomeCheckinEmail(ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Checking in: Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
+    body: [
+      partnerGreeting(ctx),
+      ``,
+      `Just a quick check-in. Hope things are going well on your end.`,
+      ``,
+      `If it would help, here's the flyer to pass along to any students who'd benefit: [program flyer](${PLACEHOLDER.programPdf}). And your partner portal is always here if you'd like to add a colleague or tell us about an upcoming event: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+      ``,
+      `Anything we can do to make this easier? Just reply and let me know.`,
+    ].join("\n"),
+  };
+}
+
+export function partnerWelcomePlanningEmail(ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Planning ahead for your ${PLACEHOLDER.campus} students`,
+    body: [
+      partnerGreeting(ctx),
+      ``,
+      `With a new term coming up, it's a good time for a short planning meeting with Dr. DuBose. We usually use it to line up events, share program updates and results, refresh student-org contacts, and find new ways to get in front of students.`,
+      ``,
+      `Find a time that works for you: [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+      ``,
+      `In the meantime, the latest flyer is here to share: [program flyer](${PLACEHOLDER.programPdf}), and you can manage everything from your partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
     ].join("\n"),
   };
 }

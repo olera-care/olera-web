@@ -397,7 +397,9 @@ export function buildEmailSequence(
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
   const ctxStakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
+    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? "student_org"
+      : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
@@ -1089,6 +1091,10 @@ export interface ActivationEnrollInput {
   /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
    *  their welcome_url; providers get the provider magic link (DF-3b). */
   is_partner?: boolean;
+  /** Which single-lead email cadence to enroll into. Defaults to the
+   *  "activation" sequence; the partner-welcome nurture passes
+   *  "partner_welcome". Both are single-lead, separate-per-campus campaigns. */
+  cadenceKey?: CadenceKey;
   /** The ONE engaged contact the activation cadence targets (not a fan-out). */
   recipient: {
     email: string;
@@ -1183,7 +1189,7 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
     return result;
   }
-  const steps = buildEmailSequence("activation", {
+  const steps = buildEmailSequence(input.cadenceKey ?? "activation", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
     isPartner: input.is_partner ?? false,

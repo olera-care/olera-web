@@ -80,7 +80,9 @@ export function CadenceLaunchModal({
 }: Props) {
   const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const templateStakeholderType: StakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
+    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? "student_org"
+      : cadenceKey;
 
   // Email steps — read-only previews of the canonical copy Smartlead will send.
   const emailCards = useMemo<EmailCard[]>(() => {

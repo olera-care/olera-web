@@ -92,6 +92,9 @@ interface Props {
    *  buildSmartleadPreview. Always present unless the row has no usable
    *  recipient (which the pre-flight checklist prevents). */
   smartleadPreview: SmartleadPreviewSnapshot | null;
+  /** Which cadence to render (provider by default). Stakeholder office launch
+   *  passes the row's stakeholder_type so the advisor cadence + copy show. */
+  cadenceKey?: CadenceKey;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -148,6 +151,7 @@ export function ProviderPreFlightModal({
   contacts,
   generalContact,
   smartleadPreview,
+  cadenceKey = PROVIDER_CADENCE_KEY,
   onCancel,
   onSubmit,
 }: Props) {
@@ -245,7 +249,7 @@ export function ProviderPreFlightModal({
   // placeholder — planSequence substitutes per-task at queue time
   // since each call task targets a specific recipient.
   const [callScripts, setCallScripts] = useState<CallScript[]>(() => {
-    const seeds = defaultCallScriptsFor(PROVIDER_CADENCE_KEY);
+    const seeds = defaultCallScriptsFor(cadenceKey);
     return seeds.map((s) => ({
       day: s.day,
       script: substituteStaticVars(s.script, {
@@ -280,7 +284,7 @@ export function ProviderPreFlightModal({
   const emailRows = includedRows.filter((r) => r.hasEmail);
   const callRows = includedRows.filter((r) => r.hasPhone);
 
-  const cadenceDays = OUTREACH_DAYS_BY_TYPE[PROVIDER_CADENCE_KEY];
+  const cadenceDays = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const emailDayCount = cadenceDays.filter((d) =>
     d.steps.some((s) => s.channel === "email"),
   ).length;
@@ -566,7 +570,7 @@ export function ProviderPreFlightModal({
                                 label={`Day ${d.day} script (shared by all callers above)`}
                                 script={script.script}
                                 onChange={(s) => updateScript(d.day, s)}
-                                tips={defaultCallTipsForDay("provider", d.day)}
+                                tips={defaultCallTipsForDay(cadenceKey, d.day)}
                               />
                             </div>
                           </div>

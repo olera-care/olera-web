@@ -261,7 +261,6 @@ export function salutationFor(
  */
 export function introEmail(ctx: TemplateContext): EmailDraft {
   const { stakeholder_type } = ctx;
-  const variant = ctx.variant ?? "general";
   const greeting =
     stakeholder_type === "dept_head" || stakeholder_type === "professor"
       ? `Dear ${PLACEHOLDER.salutation},`
@@ -298,33 +297,10 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         ].join("\n"),
       };
     case "advisor":
-      // Named variant — sent to an INDIVIDUAL advisor (not the office alias).
-      // Advisor-supporter angle: circulate the flyer to students who'd benefit,
-      // meet Dr. DuBose, and engage via the partner portal. Mirrors the
-      // provider intro's structure (flyer + Calendly + portal) with the
-      // advising audience's needs.
-      if (variant === "named") {
-        return {
-          subject,
-          body: [
-            `Hi ${PLACEHOLDER.firstName},`,
-            ``,
-            GRAIZE_INTRO,
-            ``,
-            `I'm reaching out because you advise pre-health students at ${PLACEHOLDER.campus}, and Olera's ${PLACEHOLDER.campus} Student Caregiver Program was built for exactly the students you work with.`,
-            ``,
-            programExplanation,
-            ``,
-            `Would you be open to sharing our one-page flyer with students you think would benefit? It's ready to circulate: [program flyer](${PLACEHOLDER.programPdf}).`,
-            ``,
-            `We'd also love to have you as a supporter of the program. A few easy ways to help: pass the flyer to advisees, [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to hear how it works, and connect with our partner network through your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
-            ``,
-            `If you'd like more information first, just reply to this email.`,
-          ].join("\n"),
-        };
-      }
-      // General variant — we reach the advising OFFICE and ask it to point us
-      // to the right person, rather than guessing an individual advisor.
+      // Option A: ONE advising body that reads correctly whether it lands at
+      // the office alias OR a named advisor (named = greeting only, like
+      // providers). Supporter angle: share the flyer with students, meet
+      // Dr. DuBose, engage via the recruitment partner portal.
       return {
         subject,
         body: [
@@ -332,17 +308,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I'm reaching out to your office while connecting with the pre-health and career advising offices at ${PLACEHOLDER.campus} about Olera's ${PLACEHOLDER.campus} Student Caregiver Program for their students.`,
+          `I'm reaching out about Olera's ${PLACEHOLDER.campus} Student Caregiver Program, which was built for the pre-health students your office works with.`,
           ``,
           programExplanation,
           ``,
-          `Is there a specific advisor, director, or coordinator in your office who would be the best person to review this for your students? I'd be glad to send the details their way — and your office is welcome to share it with advisees directly.`,
+          `If you advise pre-health students, we'd love your help getting this in front of the ones who'd benefit most. Our one-page flyer is ready to share: [program flyer](${PLACEHOLDER.programPdf}).`,
           ``,
-          `If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          `A few easy ways to support the program: circulate the flyer to students, [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to learn more, and connect with our partner network through your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
           ``,
-          portalLine,
-          ``,
-          packetLine,
+          `If there's a specific advisor or coordinator who'd be the best point of contact, I'd be glad to connect with them too — otherwise just reply here with any questions.`,
         ].join("\n"),
       };
     case "dept_head":

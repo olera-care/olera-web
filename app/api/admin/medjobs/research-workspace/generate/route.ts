@@ -113,13 +113,15 @@ export async function POST(request: NextRequest) {
     ids.push(rowId);
     created += 1;
 
-    // Outreach contacts: office general email is primary (when present). A
-    // call-only office still gets a primary phone contact so it surfaces in the
-    // Calls lane (no email means Smartlead never fans out to it).
+    // Outreach contacts. The office GENERAL email lives in
+    // research_data.general_contact and is the "general" lead at fan-out — we do
+    // NOT also create a named contact for it (that would double-count it in the
+    // per-recipient launch modal). Call-only offices (no email) get a phone
+    // contact so they still surface in the Calls lane.
     const promoted = advisors.filter((a) => (sel.advisor_ids ?? []).includes(a.id) && (a.email || a.phone));
     let primaryDone = false;
-    if (office.email || office.phone) {
-      await insertContact(db, rowId, { name: office.name, email: office.email, phone: office.phone, primary: true }, user.id);
+    if (!office.email && office.phone) {
+      await insertContact(db, rowId, { name: office.name, phone: office.phone, primary: true }, user.id);
       primaryDone = true;
     }
     for (const a of promoted) {

@@ -21,6 +21,7 @@ import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { VerificationSection } from "@/components/admin/medjobs/SnapshotCard";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
@@ -971,6 +972,31 @@ function ResearchModePanel({
   const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
   const officeNeedsCall = isOffice && !isProspect && !verificationState.can_launch;
 
+  // Office launch: materialize advisors-with-email as named contacts (so they
+  // become recipients alongside the general office), then open the per-recipient
+  // review modal — the same one providers use.
+  const officeMembersFull = (Array.isArray(rd.office_members) ? rd.office_members : []) as Array<{
+    name?: string;
+    title?: string;
+    email?: string;
+    phone?: string;
+  }>;
+  const launchOffice = async () => {
+    try {
+      const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      const gcLc = officeEmail?.toLowerCase();
+      for (const m of officeMembersFull) {
+        const em = m.email?.trim().toLowerCase();
+        if (!em || em === gcLc || existing.has(em)) continue;
+        existing.add(em);
+        await action("add_contact", { name: m.name, title: m.title ?? null, email: m.email, phone: m.phone });
+      }
+      setShowPreFlight(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't prepare recipients");
+    }
+  };
+
   const orientation = isProspect ? (
     isOffice ? (
       <>Fill the office contact info and add any advisors, then click <em>Research complete</em>.</>
@@ -1040,11 +1066,11 @@ function ResearchModePanel({
             </button>
             <button
               onClick={() => {
-                if (verificationState.can_launch) setShowPreFlight(true);
+                if (verificationState.can_launch) void launchOffice();
                 else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
               }}
               disabled={!verificationState.can_launch}
-              title={verificationState.can_launch ? "Review and launch the email sequence." : "Confirm the office on a call first."}
+              title={verificationState.can_launch ? "Review recipients and launch outreach." : "Confirm the office on a call first."}
               className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {verificationState.status === "overridden" ? "Launch outreach (override) →" : "Launch outreach →"}
@@ -1086,7 +1112,29 @@ function ResearchModePanel({
           setError={setError}
         />
       )}
-      {showPreFlight && (
+      {showPreFlight && isOffice && (
+        <ProviderPreFlightModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
+          contacts={ctx.contacts}
+          generalContact={{ email: officeEmail ?? null, phone: officePhone }}
+          smartleadPreview={ctx.smartlead_preview}
+          cadenceKey={type}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("schedule_sequence", payload);
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showPreFlight && !isOffice && (
         <PreFlightReviewModal
           stakeholderType={type}
           organizationName={ctx.outreach.organization_name}

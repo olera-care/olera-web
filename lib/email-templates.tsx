@@ -3193,6 +3193,99 @@ export function providerNudgeEmail(opts: {
 }
 
 /**
+ * Manual nudge email for "Needs Follow-up" providers
+ *
+ * Hybrid approach: Platform claiming benefits + urgency from waiting families.
+ * Sent by admin for providers in "Needs Follow-up" status who have gone through
+ * the full automated sequence (Day 0, 1, 3, 5) with no response after 10+ days.
+ *
+ * Rationale: If 4+ family-specific nudges failed, problem isn't awareness of leads—
+ * it's lack of platform engagement. This nudge emphasizes claiming benefits while
+ * mentioning waiting families for urgency.
+ */
+export function providerManualNudgeEmail(opts: {
+  providerName: string;
+  familyName: string;
+  city: string | null;
+  leadCount: number; // Total pending leads for this provider
+  viewUrl: string; // HMAC-signed magic link with one-click access
+  providerSlug?: string;
+}): string {
+  // Extract first name with fallback for placeholder names (matches existing pattern)
+  const safeFamilyName = firstName(opts.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!opts.city;
+  const leadCount = opts.leadCount || 1; // Fallback to 1 if not provided
+
+  // Build family mention with proper fallbacks (singular vs plural)
+  let familyMention: string;
+  if (leadCount === 1) {
+    // Single lead
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)}</strong> reached out recently looking for care`
+      : "A family reached out recently looking for care";
+  } else if (leadCount === 2) {
+    // Two leads
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)} and 1 other family</strong> reached out recently`
+      : "2 families reached out recently";
+  } else {
+    // Multiple leads (3+)
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)} and ${leadCount - 1} other families</strong> reached out recently`
+      : `${leadCount} families reached out recently`;
+  }
+
+  // City mention in body ("in San Diego" or just "")
+  const cityText = hasCity ? ` in ${escapeHtml(opts.city!)}` : "";
+
+  // Reminder for CTA line (singular vs plural)
+  const ctaReminder = leadCount === 1
+    ? (hasName ? `where ${escapeHtml(safeFamilyName)} is waiting` : "where they're waiting")
+    : `where ${hasName ? escapeHtml(safeFamilyName) + " and the others are" : "they're"} waiting`;
+
+  // Button text
+  const buttonText = "Claim your free account & respond →";
+
+  // Preheader
+  const preheader = "One click to get in. No password, no sign-up.";
+
+  // Subject line (dynamic based on lead count)
+  const subject = leadCount === 1
+    ? (hasName ? `Quick check-in about ${safeFamilyName}` : "Quick check-in: a family is waiting")
+    : "Quick check-in: your Olera page + families waiting";
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(opts.providerName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      We know you're busy, so we'll get right to it. ${familyMention}${cityText} — and ${leadCount === 1 ? "they're" : "they're all"} still waiting to hear back. But here's the thing: your team already has a page on Olera, and it's ready for you to claim whenever you are.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Here's what's worth knowing: families come to Olera, search their area, and reach out to providers like you directly — no middleman, no agencies in between. And leads are only one piece of it. Once you claim it, you manage everything yourself, right from your account:
+    </p>
+    <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:15px;line-height:1.8;">
+      <li style="margin:0 0 8px;padding:0;"><strong>See families${cityText} looking for care right now</strong> (including the ${leadCount === 1 ? "one" : "ones"} waiting for you)</li>
+      <li style="margin:0 0 8px;padding:0;">Message them directly and answer their questions</li>
+      <li style="margin:0 0 8px;padding:0;">Keep your profile and details up to date so you show up the way you want</li>
+      <li style="margin:0 0 8px;padding:0;">Rank higher${cityText} so more families find you first</li>
+      <li style="margin:0 0 8px;padding:0;">Collect reviews from the families you've helped</li>
+      <li style="margin:0 0 8px;padding:0;">Hire staff for your team</li>
+    </ul>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      It takes one click to get in — no password, no sign-up, nothing to log into. The button below drops you right into your account ${ctaReminder}.
+    </p>
+    <div style="margin:0 0 32px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganHeavySignature()}
+    ${providerOffRampBlock(null, null)}
+  `,
+    preheader
+  );
+}
+
+/**
  * Consolidated nudge email for providers with multiple waiting leads.
  * Lists all families waiting for a response in a single email.
  */

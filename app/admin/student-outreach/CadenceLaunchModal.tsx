@@ -22,6 +22,8 @@ import {
 } from "@/lib/student-outreach/cadence";
 import { defaultCallScriptsFor, type CallScript } from "@/lib/student-outreach/sequencer";
 import { getTemplate, substituteVars, firstNameOf } from "@/lib/student-outreach/templates";
+import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
+import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 import type { StakeholderType } from "@/lib/student-outreach/types";
 
 interface EmailCard {
@@ -44,11 +46,16 @@ export interface CadenceLaunchSubmit {
 interface Props {
   /** Which cadence to render (e.g. "activation"). */
   cadenceKey: CadenceKey;
+  /** Partner (advisor/stakeholder) activation copy vs provider. */
+  isPartner?: boolean;
   organizationName: string;
   campusName: string;
   /** The single contact this cadence targets (for preview + first-name). */
   recipientName?: string | null;
   recipientEmail?: string | null;
+  /** Smartlead thread linkage, when known, for the manual-reply inbox link.
+   *  Omitted before a campaign exists — the link falls back to the root inbox. */
+  smartleadLinkage?: SmartleadLinkage | null;
   /** Header copy. Sensible activation defaults if omitted. */
   title?: string;
   introText?: string;
@@ -59,10 +66,12 @@ interface Props {
 
 export function CadenceLaunchModal({
   cadenceKey,
+  isPartner = false,
   organizationName,
   campusName,
   recipientName,
   recipientEmail,
+  smartleadLinkage,
   title,
   introText,
   submitLabel,
@@ -71,7 +80,9 @@ export function CadenceLaunchModal({
 }: Props) {
   const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const templateStakeholderType: StakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
+    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? "student_org"
+      : cadenceKey;
 
   // Email steps — read-only previews of the canonical copy Smartlead will send.
   const emailCards = useMemo<EmailCard[]>(() => {
@@ -84,12 +95,13 @@ export function CadenceLaunchModal({
           organization_name: organizationName,
           campus_name: campusName,
           variant: "named",
+          is_partner: isPartner,
         });
         result.push({ day: d.day, subject: tpl.subject, body: tpl.body, title: d.title });
       }
     }
     return result;
-  }, [days, templateStakeholderType, organizationName, campusName]);
+  }, [days, templateStakeholderType, organizationName, campusName, isPartner]);
 
   // Call steps — editable (calls are CRM tasks; edits take effect).
   const [callCards, setCallCards] = useState<CallCard[]>(() => {
@@ -164,11 +176,15 @@ export function CadenceLaunchModal({
           {err && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{err}</p>}
 
           {(recipientName || recipientEmail) && (
-            <div className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-              Sends to <strong>{recipientName || recipientEmail}</strong>
-              {recipientName && recipientEmail ? (
-                <span className="text-gray-500"> ({recipientEmail})</span>
-              ) : null}
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+              <span>
+                Sends to <strong>{recipientName || recipientEmail}</strong>
+                {recipientName && recipientEmail ? (
+                  <span className="text-gray-500"> ({recipientEmail})</span>
+                ) : null}
+              </span>
+              {/* Prefer manual? Step into the Smartlead inbox to reply by hand. */}
+              <SmartleadInboxLink linkage={smartleadLinkage} label="Reply manually in Smartlead" />
             </div>
           )}
 

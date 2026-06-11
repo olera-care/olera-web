@@ -18,8 +18,7 @@ import {
   validateTransition,
 } from "@/lib/student-outreach/state-machine";
 import { nextSeasonalDate } from "@/lib/student-outreach/seasonal";
-import { OUTREACH_DAYS_BY_TYPE, type CadenceKey, type TemplateKey } from "@/lib/student-outreach/cadence";
-import { getTemplate } from "@/lib/student-outreach/templates";
+import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import {
   planSequence,
   defaultSnapshotsByVariant,
@@ -1353,36 +1352,29 @@ async function handleMarkPartner(
     payload: { evidence: body.evidence },
   });
 
-  // v4: queue the first seasonal email as an outreach_email_send task
-  // with a snapshot of the seasonal template body. The cron picks it
-  // up, sends, and queues the next seasonal automatically.
-  const { data: campus } = await db
-    .from("student_outreach_campuses")
-    .select("name")
-    .eq("id", row.campus_id)
-    .single();
-  const seasonal = nextSeasonalDate(new Date());
-  const tpl = getTemplate("seasonal", {
-    stakeholder_type: row.stakeholder_type,
-    organization_name: row.organization_name,
-    campus_name: (campus as { name: string } | null)?.name ?? "your campus",
+  // Welcome the new partner: enroll them into the partner-welcome Smartlead
+  // nurture (warm welcome + flyer + portal link + periodic check-ins +
+  // seasonal Dr. DuBose planning invites). This replaces the old single
+  // seasonal email seed. Best-effort — a Smartlead error must not undo the
+  // status transition + evidence already recorded above.
+  let welcomeDelivery = "smartlead_pending";
+  try {
+    const enrolled = await enrollRowIntoWelcomeCampaign(db, row);
+    welcomeDelivery = `smartlead_${enrolled.status}`;
+    if (enrolled.status === "error") {
+      console.error("[mark_partner] welcome enrollment error:", enrolled.detail);
+    }
+  } catch (e) {
+    welcomeDelivery = "smartlead_error";
+    console.error(
+      "[mark_partner] welcome enrollment threw:",
+      e instanceof Error ? e.message : e,
+    );
+  }
+  await insertTouchpoint(db, row.id, "note_added", userId, {
+    channel: "system",
+    payload: { reason: "partner_welcome_launched", email_delivery: welcomeDelivery },
   });
-  await queueTask(
-    db,
-    row.id,
-    {
-      task_type: "outreach_email_send",
-      due_at: seasonal.due_at,
-      payload: {
-        day: -1,
-        template: "seasonal" as TemplateKey,
-        season: seasonal.label,
-        subject: tpl.subject,
-        body: tpl.body,
-      },
-    },
-    userId,
-  );
 
   // Yearly leadership recheck for student orgs (officer turnover).
   if (row.stakeholder_type === "student_org") {
@@ -2227,18 +2219,24 @@ async function enrollRowIntoActivationCampaign(
   const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
   const campusName = campus?.name ?? "Unknown Campus";
 
-  // Reuse the campus's existing ACTIVATION campaign id (this row's own linkage,
-  // then a sibling's); the first activation in a campus provisions a new one.
+  // Partners (advisors) and providers run SEPARATE activation campaigns — they
+  // get different copy (flyer/portal vs hire-students), so a partner must never
+  // reuse a provider's activation campaign (or vice versa).
+  const thisIsPartner = row.kind !== "provider";
+  // Reuse the campus's existing ACTIVATION campaign id of the SAME audience
+  // (this row's own linkage, then a matching sibling's); the first activation
+  // of each audience in a campus provisions a new one.
   const ownCid = row.research_data?.smartlead_activation?.campaign_id;
   let existingCampaignId: number | undefined =
     typeof ownCid === "number" ? ownCid : undefined;
   if (!existingCampaignId) {
     const { data: siblings } = await db
       .from("student_outreach")
-      .select("research_data")
+      .select("kind, research_data")
       .eq("campus_id", row.campus_id)
       .neq("id", row.id);
-    for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+    for (const s of (siblings ?? []) as Array<{ kind: string | null; research_data: ResearchData | null }>) {
+      if ((s.kind !== "provider") !== thisIsPartner) continue; // keep audiences separate
       const cid = s.research_data?.smartlead_activation?.campaign_id;
       if (typeof cid === "number") {
         existingCampaignId = cid;
@@ -2252,9 +2250,10 @@ async function enrollRowIntoActivationCampaign(
     outreach_id: row.id,
     organizationName: row.organization_name,
     campus: { name: campusName, city: campus?.city ?? null, slug: campus?.slug ?? null },
-    campaignName: `MedJobs Activation — ${campusName} — ${yyyymm}`,
+    campaignName: `MedJobs ${thisIsPartner ? "Partner " : ""}Activation — ${campusName} — ${yyyymm}`,
     existingCampaignId,
     recipient,
+    is_partner: thisIsPartner,
   });
 
   if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };
@@ -2269,6 +2268,111 @@ async function enrollRowIntoActivationCampaign(
     smartlead_activation: {
       campaign_id: enroll.campaign_id,
       lead_email: recipient.email,
+      enrolled_at: new Date().toISOString(),
+    },
+  };
+  await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
+
+  return { status: "enrolled" };
+}
+
+/**
+ * Enroll a freshly-activated Recruitment Partner into the campus's partner-
+ * WELCOME Smartlead campaign so the long nurture (welcome + flyer + portal +
+ * periodic check-ins + seasonal Dr. DuBose planning invites) drips. Mirrors
+ * enrollRowIntoActivationCampaign: resolve the best recipient + campus, reuse
+ * the campus's welcome campaign id from a sibling (or this row's own linkage),
+ * else provision a new PAUSED one; persist the linkage on success. Best-effort
+ * — the caller does NOT fail mark_partner on a Smartlead error. Skips (never
+ * throws) when the magic-link secret is unset, so we never enroll welcome
+ * emails whose portal CTA would degrade to the marketing page.
+ */
+async function enrollRowIntoWelcomeCampaign(
+  db: DB,
+  row: OutreachRow,
+): Promise<{ status: "enrolled" | "skipped" | "error"; detail?: string }> {
+  if (!process.env.MEDJOBS_MAGIC_LINK_SECRET) {
+    return { status: "skipped", detail: "MEDJOBS_MAGIC_LINK_SECRET unset" };
+  }
+
+  // Best recipient: a primary active named contact with an email, else any
+  // active contact with an email, else the office general email.
+  const { data: contactRows } = await db
+    .from("student_outreach_contacts")
+    .select("first_name, last_name, email, is_primary")
+    .eq("outreach_id", row.id)
+    .eq("status", "active")
+    .not("email", "is", null)
+    .neq("email", "")
+    .order("is_primary", { ascending: false });
+  const contacts = (contactRows ?? []) as Array<{
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    is_primary: boolean | null;
+  }>;
+  const named = contacts[0] ?? null;
+  const recipientEmail =
+    named?.email ?? row.research_data?.general_contact?.email ?? null;
+  if (!recipientEmail) return { status: "skipped", detail: "no_email" };
+
+  const { data: campusRow } = await db
+    .from("student_outreach_campuses")
+    .select("name, city, slug")
+    .eq("id", row.campus_id)
+    .maybeSingle();
+  const campus = campusRow as { name?: string; city?: string | null; slug?: string | null } | null;
+  const campusName = campus?.name ?? "Unknown Campus";
+
+  // Reuse the campus's existing WELCOME campaign id (this row's own linkage,
+  // then any sibling's); the first partner welcomed in a campus provisions one.
+  const ownCid = row.research_data?.smartlead_welcome?.campaign_id;
+  let existingCampaignId: number | undefined =
+    typeof ownCid === "number" ? ownCid : undefined;
+  if (!existingCampaignId) {
+    const { data: siblings } = await db
+      .from("student_outreach")
+      .select("research_data")
+      .eq("campus_id", row.campus_id)
+      .neq("id", row.id);
+    for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+      const cid = s.research_data?.smartlead_welcome?.campaign_id;
+      if (typeof cid === "number") {
+        existingCampaignId = cid;
+        break;
+      }
+    }
+  }
+
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  const enroll = await enrollActivationLead({
+    outreach_id: row.id,
+    organizationName: row.organization_name,
+    campus: { name: campusName, city: campus?.city ?? null, slug: campus?.slug ?? null },
+    campaignName: `MedJobs Partner Welcome — ${campusName} — ${yyyymm}`,
+    existingCampaignId,
+    recipient: {
+      email: recipientEmail,
+      first_name: named?.first_name ?? null,
+      last_name: named?.last_name ?? null,
+      contact_id: null,
+    },
+    is_partner: true,
+    cadenceKey: "partner_welcome",
+  });
+
+  if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };
+  if (!enroll.ok || !enroll.campaign_id) {
+    const detail =
+      enroll.errors.map((e) => `${e.stage}: ${e.message}`).join("; ") || "unknown";
+    return { status: "error", detail };
+  }
+
+  const nextResearch: ResearchData = {
+    ...row.research_data,
+    smartlead_welcome: {
+      campaign_id: enroll.campaign_id,
+      lead_email: recipientEmail,
       enrolled_at: new Date().toISOString(),
     },
   };
@@ -2589,11 +2693,16 @@ async function handleAddContact(
   // legacy `name` column.
   const first = (body.first_name ?? "").trim();
   const last = (body.last_name ?? "").trim();
-  const fullName =
+  let fullName =
     body.name?.trim() ||
     [first, last].filter(Boolean).join(" ") ||
     "";
-  if (!fullName) throw new Error("Contact first name required");
+  // Partners often share one general inbox (e.g. hpo@…) with no named person —
+  // allow an email-only contact, using the email as the display name.
+  if (!fullName) {
+    if (body.email?.trim()) fullName = body.email.trim();
+    else throw new Error("Contact needs a name or an email");
+  }
   if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
     throw new Error("Invalid email");
   }

@@ -651,9 +651,10 @@ async function perplexityAddress(
 // Perplexity Sonar — shared JSON helper (mirrors enrich-city.js call shape).
 // ---------------------------------------------------------------------------
 
-async function perplexityJson(
+export async function perplexityJson(
   prompt: string,
   cost?: CostTracker,
+  maxTokens?: number,
 ): Promise<Record<string, unknown> | null> {
   const pKey = perplexityKey();
   if (!pKey) return null;
@@ -667,6 +668,9 @@ async function perplexityJson(
       model: "sonar",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.1,
+      // Cap output so long contact lists (e.g. a 50-person staff directory)
+      // don't get truncated mid-JSON and silently drop the tail.
+      ...(maxTokens ? { max_tokens: maxTokens } : {}),
     }),
   });
   cost?.addPerplexity();

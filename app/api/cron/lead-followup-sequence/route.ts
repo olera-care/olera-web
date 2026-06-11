@@ -4,14 +4,24 @@ import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   providerFollowupDay1Email,
+  providerFollowupDay1NotViewedEmail,
+  providerFollowupDay1ViewedEmail,
   providerFollowupDay3Email,
   providerFollowupDay6Email,
-  providerFollowupDay10Email,
-  providerFollowupDay17Email,
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
+import { parseAdminOverride } from "@/lib/connection-engagement";
+
+// Valid archive reasons from provider portal
+const VALID_ARCHIVE_REASONS = ["not_a_fit", "not_accepting_clients", "unable_to_reach", "other"] as const;
+type ArchiveReason = typeof VALID_ARCHIVE_REASONS[number];
+
+function parseArchiveReason(value: unknown): ArchiveReason | null {
+  if (typeof value !== "string") return null;
+  return VALID_ARCHIVE_REASONS.includes(value as ArchiveReason) ? (value as ArchiveReason) : null;
+}
 
 /**
  * GET /api/cron/lead-followup-sequence
@@ -19,24 +29,23 @@ import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tok
  * Runs daily at 14:00 UTC (~9 AM ET). Multi-stage follow-up sequence for
  * provider leads that haven't connected.
  *
- * Sequence (compressed for faster human intervention):
+ * Sequence (compressed — only 3 follow-ups):
  * - Day 0: Initial email (connectionRequestEmail — sent elsewhere)
  * - Day 1: Follow-up #1 — "In case it got buried" (stage 1)
  * - Day 3: Follow-up #2 — "Still waiting, replying is effortless" (stage 2)
- * - Day 5: Follow-up #3 — "She's deciding, may go elsewhere" (stage 3, HEAVY signature)
- * - Day 7: Final message — "Graceful last call" (stage 4)
- * - Day 10: Mark as "Stuck" — no email, awaiting re-engagement (stage 5)
- * - Day 11: Re-engagement email — "One more try" (stage 6)
- * - Day 14: Mark as "Needs Call" — no email, requires manual call (stage 7)
+ * - Day 5: Follow-up #3 — "One last note" (stage 3, FINAL EMAIL)
  *
- * STOP CONDITION: Sequence stops only when provider CONNECTS (not just views/engages):
- *   - Clicks phone number (phone_clicked)
- *   - Clicks email link (email_link_clicked)
+ * After Day 5, no more automated emails are sent. Providers with no activity
+ * for 10+ days show in "Needs Follow-up" tab for manual intervention.
+ *
+ * STOP CONDITION: Sequence stops only when provider CONNECTS (not just views):
+ *   - Copies phone number (phone_clicked)
+ *   - Copies email (email_link_clicked)
  *   - Sends a message to family
  *   - Marks lead as "Replied"
- *   - Archives with "Already connected" reason
+ *   - Archives the lead in their portal
  *
- * Viewing or engaging (revealing contact info) does NOT stop the sequence.
+ * Viewing alone (opening drawer) does NOT stop the sequence.
  */
 
 // Connection events from provider_activity that indicate provider reached out
@@ -48,26 +57,21 @@ const CONNECTION_EVENTS = [
 
 export const maxDuration = 120;
 
-// Stage thresholds in days since inquiry (compressed sequence)
+// Stage thresholds in days since inquiry (compressed sequence — stops at Day 5)
 const STAGE_THRESHOLDS = {
   1: 1,   // Day 1-2 → Stage 1
   2: 3,   // Day 3-4 → Stage 2
-  3: 5,   // Day 5-6 → Stage 3
-  4: 7,   // Day 7-9 → Stage 4
-  5: 10,  // Day 10 → Stage 5 (stuck)
-  6: 11,  // Day 11-13 → Stage 6 (re-engagement email)
-  7: 14,  // Day 14+ → Stage 7 (needs_call — manual intervention)
+  3: 5,   // Day 5+ → Stage 3 (FINAL EMAIL)
 } as const;
 
-type FollowupStage = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type FollowupStage = 0 | 1 | 2 | 3;
 
 interface FollowupMetadata {
   followup_stage?: FollowupStage;
   followup_sent_at?: string | null;
   followup_sent_by?: string;
   followup_stopped_at?: string | null;
-  followup_stopped_reason?: "connected" | "responded" | "stuck" | "needs_call" | null;
-  needs_call?: boolean;
+  followup_stopped_reason?: "connected" | "responded" | "admin_marked_connected" | null;
   thread?: ThreadMessage[];
 }
 
@@ -101,12 +105,9 @@ interface ProviderGroup {
 
 /**
  * Calculate expected stage based on days since inquiry.
+ * Caps at stage 3 (Day 5) — sequence ends after final email.
  */
 function calculateExpectedStage(days: number): FollowupStage {
-  if (days >= STAGE_THRESHOLDS[7]) return 7;
-  if (days >= STAGE_THRESHOLDS[6]) return 6;
-  if (days >= STAGE_THRESHOLDS[5]) return 5;
-  if (days >= STAGE_THRESHOLDS[4]) return 4;
   if (days >= STAGE_THRESHOLDS[3]) return 3;
   if (days >= STAGE_THRESHOLDS[2]) return 2;
   if (days >= STAGE_THRESHOLDS[1]) return 1;
@@ -121,26 +122,33 @@ function getEmailTypeForStage(stage: FollowupStage): string {
     case 1: return "provider_followup_day1";
     case 2: return "provider_followup_day3";
     case 3: return "provider_followup_day6";
-    case 4: return "provider_followup_day10";
-    case 6: return "provider_followup_day17";
     default: return "provider_followup";
   }
 }
 
 /**
  * Get subject line for stage with fallback for missing family name.
+ * For stage 1, requires hasViewed parameter to determine variant.
  */
-function getSubjectForStage(stage: FollowupStage, familyName: string | null, leadCount: number): string {
+function getSubjectForStage(
+  stage: FollowupStage,
+  familyName: string | null,
+  leadCount: number,
+  hasViewed?: boolean
+): string {
   const hasName = familyName && familyName.length > 0 && familyName.toLowerCase() !== "a family";
 
   if (leadCount > 1) {
     // Multiple leads — use generic subjects
     switch (stage) {
-      case 1: return `Did you see these ${leadCount} care requests?`;
+      case 1:
+        // Day 1 variants based on viewing status
+        if (hasViewed) {
+          return `Still deciding on these ${leadCount} requests?`;
+        }
+        return `${leadCount} families picked your team`;
       case 2: return `${leadCount} families are still hoping to hear from you`;
-      case 3: return `These families may be choosing a provider soon`;
-      case 4: return "We'll close these introductions soon";
-      case 6: return "One last note about these requests";
+      case 3: return "One last note about these requests";
       default: return "Families are waiting for your response";
     }
   }
@@ -148,15 +156,15 @@ function getSubjectForStage(stage: FollowupStage, familyName: string | null, lea
   // Single lead
   switch (stage) {
     case 1:
-      return hasName ? `Did you see ${familyName}'s request?` : "Did you see this care request?";
+      // Day 1 variants based on viewing status
+      if (hasViewed) {
+        return hasName ? `Still deciding on ${familyName}?` : "Still deciding on this request?";
+      }
+      return hasName ? `${familyName} picked your team` : "A family picked your team";
     case 2:
       return hasName ? `${familyName} is still hoping to hear from you` : "A family is still hoping to hear from you";
     case 3:
-      return hasName ? `${familyName} may be choosing a provider soon` : "A family may be choosing a provider soon";
-    case 4:
-      return "We'll close this introduction soon";
-    case 6:
-      return hasName ? `One last note about ${familyName}'s request` : "One last note about this family's request";
+      return hasName ? `One last note about ${familyName}` : "One last note about the family";
     default:
       return hasName ? `${familyName} is waiting for a response` : "A family is waiting for a response";
   }
@@ -189,8 +197,6 @@ export async function GET(request: NextRequest) {
       connections_processed: 0,
       providers_emailed: 0,
       leads_included: 0,
-      leads_marked_stuck: 0,
-      leads_marked_needs_call: 0,
       skipped: 0,
       skipReasons: {
         connected: 0,  // Provider clicked phone/email
@@ -200,10 +206,10 @@ export async function GET(request: NextRequest) {
         sequence_stopped: 0,
         send_failed: 0,
         nudge_cap: 0, // Frequency gate held this stage — provider over the weekly nudge budget
-        not_stuck: 0, // For force_stuck_reengagement mode
+        admin_marked_connected: 0, // Admin verified provider connected off-platform
+        provider_archived: 0, // Provider archived lead in their portal (not a fit, not taking clients, etc.)
       },
       dry_run: dryRun,
-      force_stuck_reengagement: forceStuckReengagement,
     };
 
     if (forceStuckReengagement) {
@@ -300,6 +306,38 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Query for lead_opened events to determine Day 1 email variant
+    // This determines whether provider has VIEWED the lead (not connected, just opened)
+    const { data: viewedEvents, error: viewedError } = await db
+      .from("provider_activity")
+      .select("provider_id, event_type, metadata")
+      .eq("event_type", "lead_opened")
+      .limit(CONNECTION_QUERY_LIMIT);
+
+    if (viewedEvents && viewedEvents.length >= CONNECTION_QUERY_LIMIT) {
+      console.warn(
+        `[cron/lead-followup-sequence] Hit lead_opened query limit (${CONNECTION_QUERY_LIMIT}). ` +
+        "Some viewing events may be missed. Day 1 emails may incorrectly use not-viewed variant."
+      );
+    }
+
+    if (viewedError) {
+      console.error("[cron/lead-followup-sequence] lead_opened query failed:", viewedError);
+      // Non-fatal: fall back to not-viewed variant if query fails
+      // This is a fail-safe to ensure nudges are sent rather than completely failing
+    }
+
+    // Build a Set of connection IDs where provider has viewed the lead
+    const viewedConnectionIds = new Set<string>();
+    for (const event of viewedEvents || []) {
+      const meta = event.metadata as Record<string, unknown>;
+      const connId = (meta?.connection_id as string) || (meta?.lead_id as string);
+
+      if (connId && connectionIdSet.has(connId)) {
+        viewedConnectionIds.add(connId);
+      }
+    }
+
     // Group eligible leads by provider
     const providerGroups = new Map<string, ProviderGroup>();
 
@@ -316,28 +354,47 @@ export async function GET(request: NextRequest) {
 
       const meta = (conn.metadata as FollowupMetadata & Record<string, unknown>) ?? {};
 
-      // FORCE STUCK REENGAGEMENT MODE: Only process connections that are currently stuck
-      // This is used for one-time blast to all stuck providers
+      // FORCE STUCK REENGAGEMENT MODE: Obsolete after stuck/needs_call merge
+      // The forceStuckReengagement parameter is no longer functional since "stuck"
+      // was merged into "needs_follow_up" engagement level
       if (forceStuckReengagement) {
-        if (meta.followup_stopped_reason !== "stuck") {
-          counts.skipped++;
-          counts.skipReasons.not_stuck++;
-          continue;
+        // Skip all connections in force mode since "stuck" stop reason no longer exists
+        counts.skipped++;
+        counts.skipReasons.sequence_stopped++;
+        continue;
+      }
+
+      // Check if sequence was already stopped for a REAL connection
+      // Skip if stopped for actual connection ("connected", "responded") or admin verification
+      const stopReason = meta.followup_stopped_reason;
+      const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "admin_marked_connected";
+      if (meta.followup_stopped_at && isRealStop) {
+        counts.skipped++;
+        counts.skipReasons.sequence_stopped++;
+        continue;
+      }
+
+      // Check if admin manually marked this connection (verified off-platform activity)
+      const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
+      if (adminOverride?.status === "connected") {
+        // Admin verified provider connected - stop sequence
+        counts.skipped++;
+        counts.skipReasons.admin_marked_connected = (counts.skipReasons.admin_marked_connected || 0) + 1;
+        continue;
+      }
+
+      // Check if provider archived this lead in their portal
+      const isArchived = meta.archived === true;
+      if (isArchived) {
+        // Provider explicitly archived - respect their decision and stop sequence
+        // Archive state alone is sufficient (don't require valid reason for robustness)
+        const archiveReason = parseArchiveReason(meta.archive_reason);
+        if (!archiveReason) {
+          console.warn(`[sequence] Archived connection ${conn.id} missing valid archive_reason`);
         }
-        // In force mode, we don't skip based on followup_stopped_at
-        // because we explicitly want to re-engage stuck connections
-      } else {
-        // NORMAL MODE: Check if sequence was already stopped for a REAL connection
-        // Only skip if stopped for actual connection ("connected", "responded") or terminal ("needs_call")
-        // Don't skip "stuck" — allow progression to stages 6/7
-        // Don't skip old "engaged" — those were just views, provider should still get emails
-        const stopReason = meta.followup_stopped_reason;
-        const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "needs_call";
-        if (meta.followup_stopped_at && isRealStop) {
-          counts.skipped++;
-          counts.skipReasons.sequence_stopped++;
-          continue;
-        }
+        counts.skipped++;
+        counts.skipReasons.provider_archived = (counts.skipReasons.provider_archived || 0) + 1;
+        continue;
       }
 
       // Check if provider has connected via phone/email click
@@ -412,26 +469,22 @@ export async function GET(request: NextRequest) {
       );
       const currentStage = meta.followup_stage ?? 0;
 
-      // In force mode: always use stage 6 (re-engagement email)
-      // In normal mode: calculate based on days
-      const expectedStage = forceStuckReengagement ? 6 : calculateExpectedStage(daysSinceInquiry);
+      // Calculate expected stage based on days
+      const expectedStage = calculateExpectedStage(daysSinceInquiry);
 
-      // Skip stage progression checks in force mode
-      if (!forceStuckReengagement) {
-        // Cap at stage 7 (terminal) — no resurrection of very old leads
-        // Stage 7 is needs_call, which is the final state
-        if (daysSinceInquiry > 30 && currentStage >= 7) {
-          counts.skipped++;
-          counts.skipReasons.already_at_stage++;
-          continue;
-        }
+      // Cap at stage 3 (terminal) — sequence ends after Day 5 email
+      // No resurrection of very old leads
+      if (daysSinceInquiry > 30 && currentStage >= 3) {
+        counts.skipped++;
+        counts.skipReasons.already_at_stage++;
+        continue;
+      }
 
-        // Skip if already at or past expected stage
-        if (currentStage >= expectedStage) {
-          counts.skipped++;
-          counts.skipReasons.already_at_stage++;
-          continue;
-        }
+      // Skip if already at or past expected stage
+      if (currentStage >= expectedStage) {
+        counts.skipped++;
+        counts.skipReasons.already_at_stage++;
+        continue;
       }
 
       // providerId: UUID — used only to GROUP a provider's leads in this run (dedup key).
@@ -505,56 +558,6 @@ export async function GET(request: NextRequest) {
       const templateStage = oldestLead.expectedStage;
       const leadCount = group.leads.length;
 
-      // Stage 5 = Stuck — no email, just mark stage (sequence continues)
-      if (templateStage === 5) {
-        if (dryRun) {
-          console.log(
-            `[cron/lead-followup-sequence] [DRY RUN] Would mark ${leadCount} lead(s) as stuck (stage 5) for provider ${group.providerEmail}`
-          );
-        } else {
-          for (const lead of group.leads) {
-            const updatedMeta = {
-              ...lead.metadata,
-              followup_stage: 5 as FollowupStage,
-              followup_sent_at: null,
-              // Don't stop sequence — allow progression to stage 6/7
-            };
-            await db
-              .from("connections")
-              .update({ metadata: updatedMeta })
-              .eq("id", lead.connectionId);
-          }
-        }
-        counts.leads_marked_stuck += leadCount;
-        continue;
-      }
-
-      // Stage 7 = Needs Call — no email, mark for manual intervention
-      if (templateStage === 7) {
-        if (dryRun) {
-          console.log(
-            `[cron/lead-followup-sequence] [DRY RUN] Would mark ${leadCount} lead(s) as needs_call (stage 7) for provider ${group.providerEmail}`
-          );
-        } else {
-          for (const lead of group.leads) {
-            const updatedMeta = {
-              ...lead.metadata,
-              followup_stage: 7 as FollowupStage,
-              followup_sent_at: null,
-              followup_stopped_at: new Date().toISOString(),
-              followup_stopped_reason: "needs_call" as const,
-              needs_call: true,
-            };
-            await db
-              .from("connections")
-              .update({ metadata: updatedMeta })
-              .eq("id", lead.connectionId);
-          }
-        }
-        counts.leads_marked_needs_call += leadCount;
-        continue;
-      }
-
       if (dryRun) {
         console.log(
           `[cron/lead-followup-sequence] [DRY RUN] Would send stage ${templateStage} email to ${group.providerEmail} for ${leadCount} lead(s)`
@@ -564,9 +567,21 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // For Day 1 emails, check if provider has viewed ANY of the leads in this batch
+      // This determines which variant to send (viewed vs not-viewed)
+      // Also track HOW MANY were viewed for accurate copy
+      let hasViewedAnyLead: boolean | undefined = undefined;
+      let viewedCount = 0;
+      if (templateStage === 1) {
+        viewedCount = group.leads.filter((lead) =>
+          viewedConnectionIds.has(lead.connectionId)
+        ).length;
+        hasViewedAnyLead = viewedCount > 0;
+      }
+
       // Build subject line
       const primaryFamilyName = oldestLead.familyName;
-      const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount);
+      const subject = getSubjectForStage(templateStage, primaryFamilyName, leadCount, hasViewedAnyLead);
       const emailType = getEmailTypeForStage(templateStage);
 
       // Reserve email log ID (canonical slug — see providerKey)
@@ -632,19 +647,21 @@ export async function GET(request: NextRequest) {
 
       switch (templateStage) {
         case 1:
-          html = providerFollowupDay1Email(templateOpts);
+          // Route to appropriate Day 1 variant based on viewing status
+          if (hasViewedAnyLead) {
+            html = providerFollowupDay1ViewedEmail({
+              ...templateOpts,
+              viewedCount, // Pass count for accurate "opened X of these requests" copy
+            });
+          } else {
+            html = providerFollowupDay1NotViewedEmail(templateOpts);
+          }
           break;
         case 2:
           html = providerFollowupDay3Email(templateOpts);
           break;
         case 3:
           html = providerFollowupDay6Email(templateOpts);
-          break;
-        case 4:
-          html = providerFollowupDay10Email(templateOpts);
-          break;
-        case 6:
-          html = providerFollowupDay17Email(templateOpts);
           break;
         default:
           console.error(`[cron/lead-followup-sequence] Unexpected stage ${templateStage}`);
@@ -700,13 +717,6 @@ export async function GET(request: NextRequest) {
           nudge_count: ((lead.metadata.nudge_count as number) || 0) + 1,
           nudged_at: sentAt,
         };
-
-        // Stage 6 re-engagement: clear stopped fields from stage 5 (stuck)
-        // This indicates the sequence has resumed with a final outreach
-        if (templateStage === 6) {
-          updatedMeta.followup_stopped_at = null;
-          updatedMeta.followup_stopped_reason = null;
-        }
 
         const { error: updateError } = await db
           .from("connections")

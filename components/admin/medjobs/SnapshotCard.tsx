@@ -50,7 +50,9 @@ import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
 type ActionFn = (
@@ -160,39 +162,21 @@ export function ProviderSnapshotCard({
       _effState?.trim() &&
       /^\d{5}(?:-\d{4})?$/.test(_effZip?.trim() ?? ""),
   );
-  const dm = outreach.research_data?.decision_maker ?? {};
-  const _hasDecisionMaker =
-    Boolean(dm.email?.trim() || dm.phone?.trim() || dm.name?.trim()) ||
-    dm.unavailable === true;
-  const _researchFields = [
-    Boolean(_effWebsite?.trim()) || gc.website_unavailable === true,
-    Boolean(_effPhone?.trim()) || gc.phone_unavailable === true,
-    Boolean(_effEmail?.trim()) || gc.email_unavailable === true,
-    _addressComplete || gc.address_unavailable === true,
-    Boolean(gc.fax?.trim()) || gc.fax_unavailable === true,
-    Boolean(gc.contact_form_url?.trim()) || gc.contact_form_unavailable === true,
-    _hasDecisionMaker,
-  ];
-  const researchFilled = _researchFields.filter(Boolean).length;
-  const researchTotal = _researchFields.length;
 
   return (
     <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-4">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Provider Profile
+            Research
           </p>
-          <h3 className="mt-0.5 truncate text-base font-semibold text-gray-900">
-            {orgName}
-          </h3>
+          {isPreLaunch && (
+            <p className="mt-0.5 text-sm text-gray-600">
+              Check the info, call to confirm, then launch outreach.
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">
-          {isPreLaunch && (
-            <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-700">
-              Research: <strong className="tabular-nums">{researchFilled} of {researchTotal}</strong>
-            </span>
-          )}
           {livePagePath && (
             <a
               href={livePagePath}
@@ -266,41 +250,19 @@ export function ProviderSnapshotCard({
           UI for new rows. Stored in research_data.decision_maker;
           surfaces in the Smartlead fan-out as the named recipient
           alongside the General Contact. */}
-      <DecisionMakerSection
+      {/* Decision makers — the SAME shared component the Partner drawer uses
+          for Advisors. Stored in research_data.decision_makers; materialized
+          into recipients at launch (ResearchActionFooter). */}
+      <SpecificContactsSection
         ctx={ctx}
         action={action}
         setError={setError}
-        editable={isPreLaunch}
+        researchKey="decision_makers"
+        title="Decision makers"
+        primaryRoleLabel="Decision maker"
+        addLabel="Add decision maker"
+        helpText="People at this agency. Anyone with an email becomes a selectable recipient at launch, alongside the general contact."
       />
-
-      {/* ── 3. Legacy Specific Contacts ─────────────────────────────
-          Pre-v9.x multi-contact data. Read-only display so existing
-          rows don't lose data; new edits write to the Decision Maker
-          slot above. Hidden when no legacy contacts exist on the row. */}
-      {ctx.contacts.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            Legacy contacts
-            <span className="ml-2 text-[10px] font-normal normal-case text-gray-400">
-              read-only · pre-Decision Maker data
-            </span>
-          </p>
-          <ul className="space-y-2">
-            {[...activeContacts, ...inactiveContacts].map((c) => (
-              <li key={c.id}>
-                <ContactRow
-                  contact={c}
-                  action={action}
-                  setError={setError}
-                  editable={false}
-                  hasCadenceWork={contactHasCadenceWork(c.id, ctx)}
-                  isPostLaunch={!isPreLaunch}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* ── 4. Verification ───────────────────────────────────────
           v9.x Phase 2b: passive Pre-Flight status indicator. The
@@ -308,31 +270,10 @@ export function ProviderSnapshotCard({
           mirrors the resulting state so admin sees whether Launch
           will fire without scrolling back to the Next Step card.
           Pre-launch only; post-launch the status no longer matters
-          (outreach is in flight). */}
-      {verificationState && (
-        <VerificationSection state={verificationState} />
-      )}
+          (outreach is in flight). The separate Verification card was removed —
+          the Launch button enabling after Call to Confirm already conveys it. */}
 
-      {/* ── 5. Research notes ─────────────────────────────────────── */}
-      <div>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Research notes
-        </p>
-        <Input
-          as="textarea"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          onBlur={saveNotes}
-          placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
-          rows={3}
-          size="sm"
-        />
-        <p className="mt-0.5 text-[11px] text-gray-400">
-          {savingNotes ? "Saving…" : "Saved on blur"}
-        </p>
-      </div>
-
-      {/* ── 6. Pre-Flight action footer ────────────────────────────
+      {/* ── 5. Pre-Flight action footer ────────────────────────────
           v9.x Phase 2c: action affordances live inside the Research
           Card so admin can finish Pre-Flight without leaving the
           card. Visit Website opens the provider site for research;
@@ -351,6 +292,25 @@ export function ProviderSnapshotCard({
           beforeLaunch={beforeLaunch}
         />
       )}
+
+      {/* ── 6. Research notes ─────────────────────────────────────── */}
+      {/* Notes sit BELOW the workflow (call to confirm + launch) so they
+          don't interrupt the main path — matches the Partner drawer. */}
+      <div>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Research notes
+        </p>
+        <Input
+          as="textarea"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={saveNotes}
+          placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
+          rows={3}
+          size="sm"
+        />
+        {savingNotes && <p className="mt-0.5 text-[11px] text-gray-400">Saving…</p>}
+      </div>
     </section>
   );
 }
@@ -791,49 +751,8 @@ function GeneralContactSection({
           <SaveStatusBadge saving={saving} savedAt={savedAt} />
         </div>
       </div>
+      {/* Website moved to the green "source" link by the Business Name. */}
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow
-          checked={Boolean(website) || websiteUnavailable}
-          label="Website"
-        >
-          {editable ? (
-            <div className="space-y-1">
-              <Input
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                onBlur={() => saveField("website", website)}
-                placeholder="https://agency.com"
-                disabled={websiteUnavailable}
-                size="sm"
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable("website_unavailable", !websiteUnavailable)
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {websiteUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
-            </div>
-          ) : websiteUnavailable ? (
-            <span className="text-gray-500">Marked not available</span>
-          ) : website ? (
-            <a
-              href={website.startsWith("http") ? website : `https://${website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block truncate text-primary-700 hover:underline"
-            >
-              {website}
-            </a>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
         <CoverageRow
           checked={Boolean(phone) || phoneUnavailable}
           label="Phone"
@@ -851,26 +770,9 @@ function GeneralContactSection({
                   onChange={(e) => setPhone(e.target.value)}
                   onBlur={() => saveField("phone", phone)}
                   placeholder="(555) 123-4567"
-                  disabled={phoneUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!phone && !phoneUnavailable}
-                label="Find phone"
-                busy={finding === "phone" || finding === "all"}
-                disabled={finding !== null}
-                onClick={() => findContact("phone")}
-                note={findNote.phone}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() => toggleUnavailable("phone_unavailable", !phoneUnavailable)}
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {phoneUnavailable ? "Revert (mark available)" : "Mark not available"}
-              </button>
             </div>
           ) : phoneUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -899,26 +801,9 @@ function GeneralContactSection({
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => saveField("email", email)}
                   placeholder="info@agency.com"
-                  disabled={emailUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!email && !emailUnavailable}
-                label="Find email"
-                busy={finding === "email" || finding === "both"}
-                disabled={finding !== null}
-                onClick={() => findContact("email")}
-                note={findNote.email}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() => toggleUnavailable("email_unavailable", !emailUnavailable)}
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {emailUnavailable ? "Revert (mark available)" : "Mark not available"}
-              </button>
             </div>
           ) : emailUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -980,26 +865,6 @@ function GeneralContactSection({
                   />
                 </div>
               </div>
-              <FindRow
-                showButton={!addressComplete && !addressUnavailable}
-                label="Find address"
-                busy={finding === "address" || finding === "all"}
-                disabled={finding !== null}
-                onClick={() => findContact("address")}
-                note={findNote.address}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable("address_unavailable", !addressUnavailable)
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {addressUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
             </div>
           ) : addressUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -1025,26 +890,9 @@ function GeneralContactSection({
                   onChange={(e) => setFax(e.target.value)}
                   onBlur={() => saveField("fax", fax)}
                   placeholder="(555) 123-9999"
-                  disabled={faxUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!fax && !faxUnavailable}
-                label="Find fax"
-                busy={finding === "fax" || finding === "all"}
-                disabled={finding !== null}
-                onClick={() => findContact("fax")}
-                note={findNote.fax}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() => toggleUnavailable("fax_unavailable", !faxUnavailable)}
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {faxUnavailable ? "Revert (mark available)" : "Mark not available"}
-              </button>
             </div>
           ) : faxUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -1071,33 +919,9 @@ function GeneralContactSection({
                   onChange={(e) => setContactFormUrl(e.target.value)}
                   onBlur={() => saveField("contact_form_url", contactFormUrl)}
                   placeholder="https://agency.com/contact"
-                  disabled={contactFormUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!contactFormUrl && !contactFormUnavailable}
-                label="Find contact form"
-                busy={finding === "contact_form" || finding === "both"}
-                disabled={finding !== null}
-                onClick={() => findContact("contact_form")}
-                note={findNote.contact_form}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable(
-                    "contact_form_unavailable",
-                    !contactFormUnavailable,
-                  )
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {contactFormUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
             </div>
           ) : contactFormUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -1214,13 +1038,31 @@ function BusinessNameSection({
     }
   };
 
+  const sourceUrl =
+    ctx.outreach.research_data?.general_contact?.website ||
+    ctx.provider_business_profile?.website ||
+    null;
+
   return (
     <div>
-      <div className="mb-1.5 flex items-baseline justify-between">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           Business Name
         </p>
-        {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
+        <span className="flex items-center gap-2">
+          {sourceUrl && (
+            <a
+              href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+              title="Open the website / research source"
+            >
+              🌐 source ↗
+            </a>
+          )}
+          {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
+        </span>
       </div>
       {editable ? (
         <Input
@@ -1449,7 +1291,7 @@ function DecisionMakerSection({
  * override_pre_flight. This section just mirrors the derived state
  * so admin can see at a glance whether Launch will fire.
  */
-function VerificationSection({ state }: { state: VerificationState }) {
+export function VerificationSection({ state }: { state: VerificationState }) {
   const tone =
     state.status === "verified"
       ? {
@@ -1559,24 +1401,9 @@ function ResearchActionFooter({
 
   return (
     <div className="border-t border-gray-200 pt-4">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-        Pre-Flight actions
-      </p>
+      {/* Two clean actions only — the website lives in the green source link by
+          the Business Name now, so the old "Visit Website" button is gone. */}
       <div className="flex flex-wrap items-center gap-2">
-        {showVisitWebsite && generalContactWebsite && (
-          <a
-            href={
-              generalContactWebsite.startsWith("http")
-                ? generalContactWebsite
-                : `https://${generalContactWebsite}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            🌐 Visit Website
-          </a>
-        )}
         {showCallToConfirm && (
           <button
             onClick={() => setShowCallForEmail(true)}
@@ -1597,6 +1424,21 @@ function ResearchActionFooter({
             }
             try {
               if (beforeLaunch) await beforeLaunch();
+              // Materialize decision makers (research_data.decision_makers) with
+              // an email into named contacts so they're selectable recipients
+              // alongside the general contact — same pattern as the office's
+              // advisors. Deduped against existing contacts + the general email.
+              const dms = (ctx.outreach.research_data as Record<string, unknown>).decision_makers;
+              if (Array.isArray(dms)) {
+                const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+                const gcLc = ctx.outreach.research_data?.general_contact?.email?.toLowerCase();
+                for (const m of dms as Array<{ name?: string; title?: string; email?: string; phone?: string }>) {
+                  const em = m.email?.trim().toLowerCase();
+                  if (!em || em === gcLc || existing.has(em)) continue;
+                  existing.add(em);
+                  await action("add_contact", { name: m.name, title: m.title ?? null, role: m.title ?? null, email: m.email, phone: m.phone });
+                }
+              }
               setShowPreFlight(true);
             } catch (e) {
               setError(
@@ -1634,6 +1476,7 @@ function ResearchActionFooter({
               null,
           }}
           smartleadPreview={ctx.smartlead_preview}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {
             try {

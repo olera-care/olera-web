@@ -3193,6 +3193,99 @@ export function providerNudgeEmail(opts: {
 }
 
 /**
+ * Manual nudge email for "Needs Follow-up" providers
+ *
+ * Hybrid approach: Platform claiming benefits + urgency from waiting families.
+ * Sent by admin for providers in "Needs Follow-up" status who have gone through
+ * the full automated sequence (Day 0, 1, 3, 5) with no response after 10+ days.
+ *
+ * Rationale: If 4+ family-specific nudges failed, problem isn't awareness of leads—
+ * it's lack of platform engagement. This nudge emphasizes claiming benefits while
+ * mentioning waiting families for urgency.
+ */
+export function providerManualNudgeEmail(opts: {
+  providerName: string;
+  familyName: string;
+  city: string | null;
+  leadCount: number; // Total pending leads for this provider
+  viewUrl: string; // HMAC-signed magic link with one-click access
+  providerSlug?: string;
+}): string {
+  // Extract first name with fallback for placeholder names (matches existing pattern)
+  const safeFamilyName = firstName(opts.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!opts.city;
+  const leadCount = opts.leadCount || 1; // Fallback to 1 if not provided
+
+  // Build family mention with proper fallbacks (singular vs plural)
+  let familyMention: string;
+  if (leadCount === 1) {
+    // Single lead
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)}</strong> reached out recently looking for care`
+      : "A family reached out recently looking for care";
+  } else if (leadCount === 2) {
+    // Two leads
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)} and 1 other family</strong> reached out recently`
+      : "2 families reached out recently";
+  } else {
+    // Multiple leads (3+)
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)} and ${leadCount - 1} other families</strong> reached out recently`
+      : `${leadCount} families reached out recently`;
+  }
+
+  // City mention in body ("in San Diego" or just "")
+  const cityText = hasCity ? ` in ${escapeHtml(opts.city!)}` : "";
+
+  // Reminder for CTA line (singular vs plural)
+  const ctaReminder = leadCount === 1
+    ? (hasName ? `where ${escapeHtml(safeFamilyName)} is waiting` : "where they're waiting")
+    : `where ${hasName ? escapeHtml(safeFamilyName) + " and the others are" : "they're"} waiting`;
+
+  // Button text
+  const buttonText = "Claim your free account & respond →";
+
+  // Preheader
+  const preheader = "One click to get in. No password, no sign-up.";
+
+  // Subject line (dynamic based on lead count)
+  const subject = leadCount === 1
+    ? (hasName ? `Quick check-in about ${safeFamilyName}` : "Quick check-in: a family is waiting")
+    : "Quick check-in: your Olera page + families waiting";
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(opts.providerName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      We know you're busy, so we'll get right to it. ${familyMention}${cityText} — and ${leadCount === 1 ? "they're" : "they're all"} still waiting to hear back. But here's the thing: your team already has a page on Olera, and it's ready for you to claim whenever you are.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Here's what's worth knowing: families come to Olera, search their area, and reach out to providers like you directly — no middleman, no agencies in between. And leads are only one piece of it. Once you claim it, you manage everything yourself, right from your account:
+    </p>
+    <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:15px;line-height:1.8;">
+      <li style="margin:0 0 8px;padding:0;"><strong>See families${cityText} looking for care right now</strong> (including the ${leadCount === 1 ? "one" : "ones"} waiting for you)</li>
+      <li style="margin:0 0 8px;padding:0;">Message them directly and answer their questions</li>
+      <li style="margin:0 0 8px;padding:0;">Keep your profile and details up to date so you show up the way you want</li>
+      <li style="margin:0 0 8px;padding:0;">Rank higher${cityText} so more families find you first</li>
+      <li style="margin:0 0 8px;padding:0;">Collect reviews from the families you've helped</li>
+      <li style="margin:0 0 8px;padding:0;">Hire staff for your team</li>
+    </ul>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      It takes one click to get in — no password, no sign-up, nothing to log into. The button below drops you right into your account ${ctaReminder}.
+    </p>
+    <div style="margin:0 0 32px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganHeavySignature()}
+    ${offRampBlock(opts.providerSlug)}
+  `,
+    preheader
+  );
+}
+
+/**
  * Consolidated nudge email for providers with multiple waiting leads.
  * Lists all families waiting for a response in a single email.
  */
@@ -3351,7 +3444,12 @@ function loganHeavySignature(): string {
  * Day 1 Follow-up: "In case it got buried"
  * Light signature. Sent 1 day after initial email.
  */
-export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+/**
+ * Day 1 Follow-up: Scenario A - Provider has NOT viewed the lead yet
+ * Subject: "[Name] picked your team"
+ * Gentle reminder that the request is waiting.
+ */
+export function providerFollowupDay1NotViewedEmail(opts: FollowupEmailOpts): string {
   const lead = opts.leads[0];
   const leadCount = opts.leads.length;
   const isMultiple = leadCount > 1;
@@ -3364,22 +3462,33 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build preheader
+  // Build pronoun contractions ("She's", "He's", "They're" - NOT "They's")
+  const pronounContraction = pronouns.pronoun === "They"
+    ? "They're"
+    : `${pronouns.pronoun}'s`;
+
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
+
+  // Build preheader - factual, informative (same pattern as existing)
   let preheader: string;
   if (isMultiple) {
     preheader = `${leadCount} families are looking for care.`;
+  } else if (hasCareType && lead.careRecipient && hasCity) {
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()} for ${lead.careRecipient} in ${lead.city}.`;
   } else if (hasCareType && hasCity) {
-    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
   } else if (hasCareType) {
-    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()}.`;
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()}.`;
   } else {
-    preheader = `${pronouns.pronoun}'s looking for care in your area.`;
+    preheader = `${pronounContraction} looking for care in your area.`;
   }
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
-  // Build body for single lead
+  // Build body
   let bodyHtml: string;
   if (isMultiple) {
     // Multiple leads
@@ -3392,16 +3501,13 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        Just making sure these didn't get buried — ${leadCount} families reached out yesterday looking for care, and chose your team.
+        ${leadCount} families reached out in the past day looking for care, and out of every option nearby, they chose your team. Their requests are waiting for you.
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Their requests are still open. You can see their details and message them directly:
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead
+    // Single lead - new copy
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
@@ -3409,10 +3515,7 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        Just making sure this didn't get buried — ${escapeHtml(familyRef)} reached out yesterday looking for ${careTypeRef}${recipientRef}${cityRef}, and chose your team.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is still open. You can see ${pronouns.possessive} details and message ${pronouns.object} directly:
+        ${escapeHtml(familyRef)} reached out yesterday — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}, and out of every option nearby, ${pronouns.pronounLower} chose you. ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is waiting for you.
       </p>`;
   }
 
@@ -3431,6 +3534,116 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 }
 
 /**
+ * Day 1 Follow-up: Scenario B - Provider HAS viewed the lead
+ * Subject: "Still deciding on [Name]?"
+ * Pushes for binary decision: MESSAGE or PASS ON.
+ *
+ * Note: viewedCount can be passed via metadata to adjust copy for partial viewing.
+ * If not provided, assumes all leads were viewed.
+ */
+export function providerFollowupDay1ViewedEmail(
+  opts: FollowupEmailOpts & { viewedCount?: number }
+): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+  const viewedCount = opts.viewedCount ?? leadCount; // Default: assume all viewed
+
+  // Extract first name, fallback for placeholder names
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction for body text ("she's", "he's", "they're" - NOT "they's")
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
+
+  // Build preheader - action-oriented, decision push
+  const preheader = isMultiple
+    ? "Message them, or pass — either one takes a second."
+    : `Message ${pronouns.object}, or pass — either one takes a second.`;
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
+
+  // Build body
+  let bodyHtml: string;
+  if (isMultiple) {
+    // Multiple leads - viewed scenario
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
+      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+    }).join("");
+
+    // Adjust copy based on how many were actually viewed
+    const openedText = viewedCount === leadCount
+      ? "You opened these requests earlier"
+      : viewedCount === 1
+        ? "You opened one of these requests earlier"
+        : `You opened ${viewedCount} of these requests earlier`;
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        ${openedText} — ${leadCount} families are looking for care. From here it's one of two clicks:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Message them if they're a good fit. And if they're not, a quick pass lets them know to keep looking — so they're not left waiting and wondering.
+      </p>`;
+  } else {
+    // Single lead - viewed scenario with decision push
+    const familyRef = hasName ? safeFamilyName : "the family";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        You opened ${escapeHtml(familyRef)}'s request earlier — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}. From here it's one of two clicks:
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Message ${pronouns.object} if ${pronounContractionLower} a good fit. And if ${pronounContractionLower} not, a quick pass lets ${pronouns.object} know to keep looking — so ${pronounContractionLower} not left waiting and wondering.
+      </p>`;
+  }
+
+  // Build buttons - both route to same URL, different labels
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
+
+  const passButtonText = isMultiple
+    ? "Pass on these leads →"
+    : "Pass on this lead →";
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+    ${bodyHtml}
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(passButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
+    ${loganLightSignature()}
+    ${followupFooterBlock(opts)}
+  `, preheader);
+}
+
+/** @deprecated Use providerFollowupDay1NotViewedEmail or providerFollowupDay1ViewedEmail instead */
+export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+  // Default to not-viewed variant for backward compatibility
+  return providerFollowupDay1NotViewedEmail(opts);
+}
+
+/**
  * Day 3 Follow-up: "Still waiting, replying is effortless"
  * Light signature. Sent 3 days after initial email.
  */
@@ -3445,6 +3658,11 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
   const hasCareType = !!lead.careType;
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction ("She's", "He's", "They're" - NOT "They's")
+  const pronounContraction = pronouns.pronoun === "They"
+    ? "They're"
+    : `${pronouns.pronoun}'s`;
 
   // Build preheader
   const preheader = "A quick reply is all it takes.";
@@ -3471,36 +3689,54 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
         Getting in touch is quick — open their requests and you can message them directly from your dashboard in under a minute. No forms, no fees. They're real families hoping someone gets back to them.
       </p>`;
   } else {
+    // Single lead - new copy
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
     const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
+    // Line 2: Simple, consistent copy for everyone (no complex detection needed)
+    const familyRefLower = hasName ? escapeHtml(familyRef) : escapeHtml(familyRef.toLowerCase());
+    const line2 = `That's really all this is — ${familyRefLower} trying to find the right care, hoping the people ${pronouns.pronounLower} contacted will get back to ${pronouns.object}. No middleman, no fee, just ${pronouns.object} and you.`;
+
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        A few days ago, ${escapeHtml(familyRef)} reached out looking for ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun} hasn't heard back yet.
+        A few days ago, ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}, and out of everyone nearby, ${pronouns.pronounLower} chose you.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        ${line2}
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Getting in touch is quick — open ${pronouns.possessive} request and you can message ${pronouns.object} directly from your dashboard in under a minute. No forms, no fees. ${pronouns.pronoun}'s a real family hoping someone gets back to ${pronouns.object}.
+        Whenever you have a moment: if it feels like a fit, send ${pronouns.object} a message. And if it's not, a quick pass lets ${pronouns.object} know, so ${pronouns.pronounLower} can keep looking without wondering. Either one is a real help to ${pronouns.object}.
       </p>`;
   }
 
-  const buttonText = isMultiple
-    ? "Reply to families →"
-    : (hasName ? `Reply to ${escapeHtml(safeFamilyName)} →` : "Reply to the family →");
+  // Build buttons - both route to same URL (auto-login magic link)
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
+
+  const passButtonText = isMultiple
+    ? "Pass on these leads →"
+    : "Pass on this lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(passButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
     ${loganLightSignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
 }
 
 /**
- * Day 6 Follow-up: "She's deciding, may go elsewhere"
- * HEAVY signature with photo + credentials. The make-or-break email.
+ * Day 5 Follow-up (formerly Day 6): "One last note" - Final outreach
+ * HEAVY signature with photo. Last chance before sequence ends.
  */
 export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
   const lead = opts.leads[0];
@@ -3514,16 +3750,23 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build preheader
-  const preheader = isMultiple
-    ? "These families reached out almost a week ago."
-    : `${pronouns.pronoun} reached out to you almost a week ago.`;
+  // Build pronoun contraction ("she's", "he's", "they're" - NOT "they's")
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build preheader - dynamic pronoun
+  const preheader = `Message ${pronouns.object} if it's a fit, or pass if it's not.`;
+
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
+
+  // Reference for family name (used multiple times)
+  const familyRef = hasName ? safeFamilyName : "the family";
 
   let bodyHtml: string;
   if (isMultiple) {
+    // Multiple leads - keep simpler copy
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
       const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
@@ -3533,47 +3776,60 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        It's been about a week since these families reached out looking for care:
+        We'll keep this short — it's the last time we'll reach out about these requests.
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
       </ul>
       <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        Families usually settle on a provider within a week or two, and they're likely speaking with a few others by now.
+        They reached out about a week ago and haven't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what they're hoping for.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        And if it's not a fit, no problem at all. Just pass on the leads and let us know why — we'll share that with them so they can keep looking.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        If these are families you'd like to help, a short reply could be the reason they choose you. And if it's not the right fit, that's completely okay — there's nothing you need to do.
+        Either way, thanks for taking a look.
       </p>`;
   } else {
-    const familyRef = hasName ? safeFamilyName : "A family";
+    // Single lead - new copy
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
     const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        It's been about a week since ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}. Families usually settle on a provider within a week or two, and ${pronouns.pronounLower}'s likely speaking with a few others by now.
+        We'll keep this short — it's the last time we'll reach out about ${escapeHtml(familyRef)}.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        ${pronouns.pronoun} reached out about a week ago, looking for ${careTypeRef}${recipientRef}${cityRef}, and hasn't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what ${pronounContractionLower} hoping for.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        And if it's not a fit, no problem at all. Just pass on the lead and let us know why — we'll share that with ${escapeHtml(familyRef)} so ${pronouns.pronounLower} can keep looking.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        If this is still something you're taking, a short reply could be the reason ${pronouns.pronounLower} chooses you. And if it's not the right fit, that's completely okay — there's nothing you need to do.
+        Either way, thanks for taking a look.
       </p>`;
   }
 
-  const buttonText = isMultiple
-    ? "See all requests →"
-    : (hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the request →");
+  // Build buttons - both route to same URL (auto-login magic link)
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
 
-  // Add note about real introductions after the signature
-  const realIntroNote = isMultiple
-    ? `<p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">These are real introductions, and they're still open.</p>`
-    : `<p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">${hasName ? escapeHtml(safeFamilyName) + "'s is" : "This is"} a real introduction, and it's still open.</p>`;
+  const passButtonText = isMultiple
+    ? "Pass on these leads →"
+    : "Pass on this lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(passButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
     ${loganHeavySignature()}
-    ${realIntroNote}
     ${followupFooterBlock(opts)}
   `, preheader);
 }

@@ -26,7 +26,7 @@ import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/li
  *
  * FALLBACK BEHAVIOR:
  * If server-side auth fails at any step, we redirect to the onboard page
- * so the provider can still sign in manually. We never show an error page
+ * where they can claim their account manually. We never show an error page
  * that blocks the provider entirely.
  *
  * Query params:
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${siteUrl}/`, { status: 303 });
     }
 
-    // Redirect to onboard page with the lead action params
+    // Redirect to onboard page where they can claim their account
     const fallbackUrl = new URL(`${siteUrl}/provider/${slug}/onboard`);
     fallbackUrl.searchParams.set("action", "lead");
     if (connectionId) {

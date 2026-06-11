@@ -937,8 +937,35 @@ export function slackBenefitsCompleted(opts: {
   topProgramName: string | null;
   topSavings: string | null;
   isNewUser: boolean;
+  /** Page path the intake was submitted from (e.g.
+   *  `/benefits/texas/liheap`). Program pages + editorial mounts set this. */
+  entrySource?: string | null;
+  /** Provider slug, when the intake came from a provider page. */
+  providerSlug?: string | null;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  // Attribution — where did this lead come from? Humanize the last path
+  // segment into a readable label and link to the page. Falls back to the
+  // provider page, then to "Direct" when we have no source signal.
+  const sourceLine = (() => {
+    if (opts.entrySource) {
+      const segs = opts.entrySource.split("/").filter(Boolean);
+      const last = segs[segs.length - 1] || opts.entrySource;
+      const label = last.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const kind =
+        opts.entrySource.startsWith("/benefits") || opts.entrySource.startsWith("/senior-benefits")
+          ? "Benefits page"
+          : opts.entrySource.startsWith("/caregiver-support")
+            ? "Article"
+            : "Page";
+      return `<${siteUrl}${opts.entrySource}|${label}> · ${kind}`;
+    }
+    if (opts.providerSlug) {
+      return `<${siteUrl}/provider/${opts.providerSlug}|${opts.providerSlug}> · Provider page`;
+    }
+    return "Direct (no source page)";
+  })();
 
   // Build the situation line — humanize the numbers
   const situationParts: string[] = [];
@@ -982,6 +1009,7 @@ export function slackBenefitsCompleted(opts: {
           ...(opts.careNeedLabel
             ? [{ type: "mrkdwn", text: `*Care need:*\n${opts.careNeedLabel}` }]
             : []),
+          { type: "mrkdwn", text: `*Source:*\n${sourceLine}` },
         ],
       },
       {

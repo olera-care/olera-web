@@ -16,8 +16,8 @@ interface ProfileCompleteness {
 }
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-export type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
-export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
+export type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 export type Perspective = "provider" | "family";
 
 export interface ConnectionRowData {
@@ -61,6 +61,18 @@ export interface ConnectionRowData {
   markedReplied?: boolean;
   /** Provider archived with "already_connected" reason */
   alreadyConnected?: boolean;
+  /** Admin manually marked this connection (verified off-platform activity) */
+  adminOverride?: {
+    status: "viewed" | "connected";
+    marked_at: string;
+    marked_by_email?: string;
+    reason: string;
+    notes?: string;
+  } | null;
+  /** Provider archived this lead in their portal */
+  archived?: boolean;
+  archiveReason?: "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
+  archivedAt?: string;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -129,6 +141,12 @@ interface Detail {
   engagement: DetailEngagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
+  // Archive information (when provider passed on lead)
+  archived: boolean;
+  archiveReason: string | null;
+  archiveMessage: string | null;
+  archivedBy: string | null;
+  archivedAt: string | null;
 }
 
 const EMAIL_TYPE_LABELS: Record<string, string> = {
@@ -169,6 +187,37 @@ function fmtDate(iso: string | null): string {
   }
 }
 
+// Map archive reason codes to display labels
+function getArchiveReasonLabel(reason: string | null | undefined): string {
+  if (!reason) return "Archived";
+  switch (reason) {
+    case "already_connected":
+      return "Already connected";
+    case "not_a_fit":
+      return "Not a good fit";
+    case "not_accepting_clients":
+      return "Not accepting new clients";
+    case "unable_to_reach":
+      return "Unable to reach";
+    case "other":
+      return "Other";
+    default:
+      return "Archived";
+  }
+}
+
+// Calculate days since archived
+function daysAgo(isoDate: string | undefined): string {
+  if (!isoDate) return "";
+  const date = new Date(isoDate);
+  // Guard against invalid date strings
+  if (isNaN(date.getTime())) return "";
+  const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (days === 0) return "today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
 // Engagement badges component
 // Note: `messaged`, `markedReplied`, `alreadyConnected` are passed separately
 // because they're per-connection, not per-provider like the other engagement fields.
@@ -177,21 +226,30 @@ function EngagementBadges({
   messaged = false,
   markedReplied = false,
   alreadyConnected = false,
+  adminOverride = null,
   compact = false
 }: {
   engagement?: Engagement | DetailEngagement;
   messaged?: boolean;
   markedReplied?: boolean;
   alreadyConnected?: boolean;
+  adminOverride?: {
+    status: "viewed" | "connected";
+    reason: string;
+  } | null;
   compact?: boolean;
 }) {
-  if (!engagement && !markedReplied && !alreadyConnected) return null;
+  if (!engagement && !markedReplied && !alreadyConnected && !adminOverride) return null;
 
   // Check if messaged is in the engagement object (DetailEngagement) or passed separately
   const isMessaged = messaged || (engagement && 'messaged' in engagement && engagement.messaged);
 
   // Build badges with specific labels for what the provider did
-  const badges: { icon: string; label: string; active: boolean }[] = [
+  const adminVerifiedLabel = adminOverride
+    ? `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
+    : "";
+
+  const badges: { icon: string; label: string; active: boolean; highlight?: boolean }[] = [
     { icon: "👁", label: "Viewed", active: engagement?.lead_opened ?? false },
     { icon: "📋", label: "Copied Phone", active: engagement?.phone_copied ?? false },
     { icon: "📋", label: "Copied Email", active: engagement?.email_copied ?? false },
@@ -201,6 +259,7 @@ function EngagementBadges({
     { icon: "💬", label: "Messaged", active: isMessaged ?? false },
     { icon: "✓", label: "Marked Replied", active: markedReplied },
     { icon: "🤝", label: "Already Connected", active: alreadyConnected },
+    { icon: "✓", label: adminVerifiedLabel, active: !!adminOverride, highlight: true },
   ];
 
   const activeBadges = badges.filter(b => b.active);
@@ -219,7 +278,12 @@ function EngagementBadges({
       {activeBadges.map(b => (
         <span
           key={b.label}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600"
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+            b.highlight
+              ? "bg-blue-100 text-blue-700 font-medium"
+              : "bg-gray-100 text-gray-600"
+          }`}
+          title={b.highlight && adminOverride ? adminOverride.reason : undefined}
         >
           {b.icon} {b.label}
         </span>
@@ -277,6 +341,15 @@ export default function ConnectionRow({
   const [editingEmailLoading, setEditingEmailLoading] = useState(false);
   const [pendingEmailEdit, setPendingEmailEdit] = useState<{ oldEmail: string; newEmail: string } | null>(null);
   const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Mark status modal state
+  const [showMarkStatusModal, setShowMarkStatusModal] = useState(false);
+  const [markStatusType, setMarkStatusType] = useState<"viewed" | "connected">("connected");
+  const [markStatusReason, setMarkStatusReason] = useState("");
+  const [markStatusNotes, setMarkStatusNotes] = useState("");
+  const [markingStatus, setMarkingStatus] = useState(false);
+  const [markStatusError, setMarkStatusError] = useState<string | null>(null);
+  const [markStatusSuccess, setMarkStatusSuccess] = useState(false);
 
   // Find email state
   const [findingEmail, setFindingEmail] = useState(false);
@@ -407,10 +480,8 @@ export default function ConnectionRow({
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
         case "awaiting":
           return { status: "Awaiting Reply", color: "text-amber-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
-        case "stuck":
-          return { status: "Stuck", color: "text-gray-500", nudgeInfo: `Family nudged ${familyNudges}x` };
-        case "needs_call":
-          return { status: "Needs Call", color: "text-red-600", nudgeInfo: `Family nudged ${familyNudges}x` };
+        case "needs_follow_up":
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: familyNudges > 0 ? `Family nudged ${familyNudges}x` : null };
         case "new":
         default:
           return { status: "New", color: "text-blue-600", nudgeInfo: null };
@@ -426,12 +497,10 @@ export default function ConnectionRow({
       switch (engLevel) {
         case "connected":
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
-        case "engaged":
-          return { status: `Engaged${waitingOnText}`, color: "text-orange-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
         case "viewed":
           return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
-        case "stuck":
-          return { status: "Stuck", color: "text-gray-500", nudgeInfo: c.waitingOn === "family" ? `Family nudged ${familyNudges}x` : `Provider nudged ${providerNudges}x` };
+        case "needs_follow_up":
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: c.waitingOn === "family" ? `Family nudged ${familyNudges}x` : `Provider nudged ${providerNudges}x` };
         case "new":
         default:
           return { status: "New", color: "text-blue-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
@@ -541,6 +610,53 @@ export default function ConnectionRow({
       setShowPreviewModal(false);
     } finally {
       setNudging(false);
+    }
+  }
+
+  // Mark connection status (admin verification of off-platform activity)
+  async function handleMarkStatus() {
+    if (!markStatusReason.trim()) {
+      setMarkStatusError("Please select a reason");
+      return;
+    }
+
+    setMarkingStatus(true);
+    setMarkStatusError(null);
+
+    try {
+      const res = await fetch(`/api/admin/connections/${c.id}/mark-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: markStatusType,
+          reason: markStatusReason,
+          notes: markStatusNotes.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setMarkStatusSuccess(true);
+        setMarkStatusError(null);
+
+        // Close modal and reset after brief success feedback
+        setTimeout(() => {
+          setShowMarkStatusModal(false);
+          setMarkStatusReason("");
+          setMarkStatusNotes("");
+          setMarkStatusSuccess(false);
+        }, 2000);
+
+        // Notify parent to refresh list - connection should move tabs
+        onNudgeSuccess?.();
+      } else {
+        setMarkStatusError(data.error || "Failed to mark status");
+      }
+    } catch {
+      setMarkStatusError("Network error");
+    } finally {
+      setMarkingStatus(false);
     }
   }
 
@@ -724,10 +840,17 @@ export default function ConnectionRow({
     }
   }
 
+  // Provider archived this lead - show as declined with reduced opacity
+  const isDeclined = c.archived && c.archiveReason;
+
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
-      <div className="flex w-full items-center gap-3 px-4 py-4 hover:bg-stone-50/60 transition-colors">
+      <div className={`flex w-full items-center gap-3 px-4 py-4 transition-colors ${
+        isDeclined
+          ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
+          : "hover:bg-stone-50/60"
+      }`}>
         <button
           onClick={toggle}
           className="flex-1 min-w-0 text-left"
@@ -738,9 +861,9 @@ export default function ConnectionRow({
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
             <span className="font-medium text-gray-900 truncate">{provider}</span>
-            <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} compact />
+            <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>
-          {/* Secondary line: care type + timeline | waiting status | nudge info | no email badge */}
+          {/* Secondary line: care type + timeline | waiting status | nudge info | archive badge | no email badge */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
             {(careType || timeline) && (
               <>
@@ -761,6 +884,15 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
+            {/* Archive badge - show when provider archived/declined the lead */}
+            {c.archived && c.archiveReason && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600" title={c.archivedAt ? `Archived ${daysAgo(c.archivedAt)}` : "Archived"}>
+                  🚫 {getArchiveReasonLabel(c.archiveReason)}
+                </span>
+              </>
+            )}
             {/* Show "No email" badge when provider has no email (both perspectives) */}
             {/* Hide badge immediately when email is successfully added (optimistic UI) */}
             {/* Use .trim() to defensively catch empty/whitespace emails */}
@@ -776,7 +908,15 @@ export default function ConnectionRow({
         </button>
 
         {/* Timestamp - vertically centered with other controls */}
-        <span className="text-sm text-gray-400 shrink-0">{age} ago</span>
+        <span className="text-sm text-gray-400 shrink-0">
+          {(() => {
+            if (isDeclined && c.archivedAt) {
+              const archiveAge = daysAgo(c.archivedAt);
+              return archiveAge ? `Archived ${archiveAge}` : "Archived";
+            }
+            return `${age} ago`;
+          })()}
+        </span>
 
         {/* Delete button - hover reveal */}
         {onDelete && (
@@ -825,17 +965,13 @@ export default function ConnectionRow({
               {/* Stuck/Needs Call banner - only show if we can actually call someone */}
               {/* Family perspective: only show if family has phone */}
               {/* Provider perspective: only show if provider has phone */}
-              {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call") && detail.family.phone) ||
-                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call") && detail.provider.phone)) && (
+              {((perspective === "family" && c.familyEngagementLevel === "needs_follow_up" && detail.family.phone) ||
+                (perspective === "provider" && c.engagementLevel === "needs_follow_up" && detail.provider.phone)) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
                     {perspective === "family"
-                      ? c.familyEngagementLevel === "needs_call"
-                        ? "Family requires manual call. No activity for 24+ days."
-                        : "Family needs follow-up. No activity for 14+ days."
-                      : c.engagementLevel === "needs_call"
-                        ? "Provider requires manual call. No activity for 14+ days."
-                        : "Provider needs follow-up. No activity for 10+ days."}
+                      ? "Family needs follow-up. No activity for 10+ days."
+                      : "Provider needs follow-up. No activity for 10+ days."}
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (
@@ -847,7 +983,7 @@ export default function ConnectionRow({
                         Call Family
                       </a>
                     ) : (
-                      // Provider perspective: only show Call Provider + Fact Sheet
+                      // Provider perspective: only show Call Provider + Fact Sheet + Mark Status
                       <>
                         <a
                           href={`tel:${detail.provider.phone}`}
@@ -861,6 +997,14 @@ export default function ConnectionRow({
                         >
                           Fact Sheet
                         </button>
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowMarkStatusModal(true)}
+                            className="px-3 py-1.5 rounded-lg border border-blue-300 text-blue-700 text-sm font-medium hover:bg-blue-50"
+                          >
+                            Mark Status ▼
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
@@ -873,7 +1017,7 @@ export default function ConnectionRow({
                 {perspective === "family" ? (
                   // Family perspective: primary action is nudging family
                   <>
-                    {c.familyEngagementLevel !== "connected" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_call" && (
+                    {c.familyEngagementLevel !== "connected" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_follow_up" && (
                       <>
                         {/* Family nudge - primary action in family perspective */}
                         {detail.family.email && (
@@ -905,7 +1049,7 @@ export default function ConnectionRow({
                 ) : (
                   // Provider perspective: existing logic
                   <>
-                    {c.engagementLevel !== "stuck" && c.engagementLevel !== "connected" && c.engagementLevel !== "needs_call" && (
+                    {c.engagementLevel !== "needs_follow_up" && c.engagementLevel !== "connected" && (
                       <>
                         {/* Provider nudge - when waiting on provider */}
                         {c.waitingOn === "provider" && detail.provider.hasEmail && (
@@ -948,8 +1092,18 @@ export default function ConnectionRow({
                     {c.engagementLevel === "connected" && (
                       <span className="text-sm text-emerald-600 font-medium">Provider reached out to family</span>
                     )}
-                    {/* Fact Sheet for needs_call when banner doesn't show (no provider phone) */}
-                    {(c.engagementLevel === "needs_call" || c.engagementLevel === "stuck") && !detail.provider.phone && (
+                    {/* Manual nudge for needs_follow_up - final intervention after automated sequence */}
+                    {c.engagementLevel === "needs_follow_up" && detail.provider.hasEmail && (
+                      <button
+                        onClick={() => showNudgePreview("/api/admin/send-manual-nudge", "Manual nudge sent to provider.")}
+                        disabled={nudging || loadingPreview}
+                        className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                      >
+                        {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Provider"}
+                      </button>
+                    )}
+                    {/* Fact Sheet for needs_follow_up when no email available */}
+                    {c.engagementLevel === "needs_follow_up" && !detail.provider.hasEmail && !detail.provider.phone && (
                       <button
                         onClick={() => setShowFactSheet(true)}
                         className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100"
@@ -961,7 +1115,7 @@ export default function ConnectionRow({
                 )}
 
                 {/* Engagement badges */}
-                <EngagementBadges engagement={detail.engagement} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} />
+                <EngagementBadges engagement={detail.engagement} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} />
 
                 {/* Nudge feedback */}
                 {nudgeMsg && (
@@ -1252,6 +1406,34 @@ export default function ConnectionRow({
                 </div>
               </div>
 
+              {/* Archive information - show when provider passed on lead */}
+              {detail.archived && detail.archiveReason && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🚫</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                        Provider Passed on Lead
+                      </h3>
+                      <p className="text-sm text-gray-700 mb-2">
+                        <span className="font-medium">Reason:</span> {getArchiveReasonLabel(detail.archiveReason)}
+                      </p>
+                      {detail.archiveMessage && (
+                        <div className="mt-2 p-3 bg-white border border-gray-200 rounded">
+                          <p className="text-xs font-medium text-gray-500 uppercase mb-1">Message for Family</p>
+                          <p className="text-sm text-gray-700">{detail.archiveMessage}</p>
+                        </div>
+                      )}
+                      {detail.archivedAt && (
+                        <p className="text-xs text-gray-400 mt-2">
+                          Passed {daysAgo(detail.archivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Section 3: Conversation thread (collapsible, default open) */}
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
@@ -1401,6 +1583,165 @@ export default function ConnectionRow({
           providerId={c.provider.slug || c.provider.source_provider_id || c.provider.id || ""}
           providerName={c.provider.display_name || "Provider"}
         />
+      )}
+
+      {/* Mark Status Modal */}
+      {showMarkStatusModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowMarkStatusModal(false);
+              setMarkStatusReason("");
+              setMarkStatusNotes("");
+              setMarkStatusError(null);
+              setMarkStatusSuccess(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Mark Connection as {markStatusType === "viewed" ? "Viewed" : "Connected"}
+            </h3>
+
+            {/* Status Type Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setMarkStatusType("viewed");
+                    setMarkStatusReason("");
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium ${
+                    markStatusType === "viewed"
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Viewed
+                </button>
+                <button
+                  onClick={() => {
+                    setMarkStatusType("connected");
+                    setMarkStatusReason("");
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium ${
+                    markStatusType === "connected"
+                      ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Connected
+                </button>
+              </div>
+            </div>
+
+            {/* Reason Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Reason *</label>
+              <select
+                value={markStatusReason}
+                onChange={(e) => setMarkStatusReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select a reason...</option>
+                {markStatusType === "viewed" ? (
+                  <>
+                    <option value="Called provider - they viewed the lead">Called provider - they viewed the lead</option>
+                    <option value="Provider confirmed via email">Provider confirmed via email</option>
+                    <option value="Found evidence in notes">Found evidence in notes</option>
+                    <option value="Other (see notes)">Other (see notes)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Called provider - they connected with family">Called provider - they connected with family</option>
+                    <option value="Called family - they confirmed provider contacted them">Called family - they confirmed provider contacted them</option>
+                    <option value="Provider confirmed connection via email">Provider confirmed connection via email</option>
+                    <option value="Found evidence in conversation thread">Found evidence in conversation thread</option>
+                    <option value="Other (see notes)">Other (see notes)</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            {/* Notes */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
+              <textarea
+                value={markStatusNotes}
+                onChange={(e) => setMarkStatusNotes(e.target.value)}
+                placeholder="Additional context..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Impact Message */}
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                {markStatusType === "viewed" ? (
+                  <>
+                    • Move to <strong>Viewed</strong> tab<br />
+                    • Email sequence continues from viewed stage
+                  </>
+                ) : (
+                  <>
+                    • Move to <strong>Connected</strong> tab<br />
+                    • <strong>Stop email sequence</strong><br />
+                    • Mark as admin-verified
+                  </>
+                )}
+              </p>
+            </div>
+
+            {/* Success */}
+            {markStatusSuccess && (
+              <div className="mb-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <p className="text-sm text-emerald-800">
+                  ✓ Marked as {markStatusType === "viewed" ? "viewed" : "connected"}! Connection will move to {markStatusType === "viewed" ? "Viewed" : "Connected"} tab.
+                </p>
+              </div>
+            )}
+
+            {/* Error */}
+            {markStatusError && (
+              <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                <p className="text-sm text-red-800">{markStatusError}</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowMarkStatusModal(false);
+                  setMarkStatusReason("");
+                  setMarkStatusNotes("");
+                  setMarkStatusError(null);
+                  setMarkStatusSuccess(false);
+                }}
+                disabled={markingStatus || markStatusSuccess}
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkStatus}
+                disabled={markingStatus || markStatusSuccess || !markStatusReason}
+                className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 ${
+                  markStatusType === "viewed"
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : "bg-emerald-600 hover:bg-emerald-700"
+                }`}
+              >
+                {markingStatus ? "Marking..." : `Mark as ${markStatusType === "viewed" ? "Viewed" : "Connected"}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Email edit confirmation modal */}

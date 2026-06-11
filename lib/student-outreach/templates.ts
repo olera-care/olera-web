@@ -56,6 +56,10 @@ export interface TemplateContext {
   /** Provider templates branch on this; stakeholder templates
    *  ignore it. */
   variant?: "general" | "named";
+  /** Activation copy audience: providers (hire students) vs partners /
+   *  advisors (circulate the flyer, meet Dr. DuBose, join the partner network).
+   *  Defaults to provider when omitted. */
+  is_partner?: boolean;
 }
 
 /**
@@ -131,6 +135,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "activation_intro": return activationIntroEmail(ctx);
     case "activation_nudge": return activationNudgeEmail(ctx);
     case "activation_final": return activationFinalEmail(ctx);
+    case "partner_welcome_intro": return partnerWelcomeIntroEmail(ctx);
+    case "partner_welcome_checkin": return partnerWelcomeCheckinEmail(ctx);
+    case "partner_welcome_planning": return partnerWelcomePlanningEmail(ctx);
   }
 }
 
@@ -272,6 +279,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
   // reads to operators and faculty alike.
   const programExplanation = `**This program matches ${PLACEHOLDER.campus} pre-nursing and pre-medical students with local home care agencies for paid caregiver roles that fit alongside coursework.** Students gain hands-on experience working with clients, mentorship, and recommendation letters that strengthen their applications to medical, PA, and nursing school.`;
   const packetLine = `The attached information packet has the program details.`;
+  // Portal magic-link CTA (#5): lets a partner self-serve from email one —
+  // learn more, share the flyer, add colleagues/events, or confirm partnership.
+  const portalLine = `You can also open our partner portal to see the program, share the flyer with students, and tell us how you'd like to help: [open the partner portal]({welcome_url}).`;
 
   switch (stakeholder_type) {
     case "student_org":
@@ -288,10 +298,16 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `We hope you'll consider sharing the program with your members. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
           ``,
+          portalLine,
+          ``,
           packetLine,
         ].join("\n"),
       };
     case "advisor":
+      // Option A: ONE advising body that reads correctly whether it lands at
+      // the office alias OR a named advisor (named = greeting only, like
+      // providers). Supporter angle: share the flyer with students, meet
+      // Dr. DuBose, engage via the recruitment partner portal.
       return {
         subject,
         body: [
@@ -299,13 +315,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across your office while identifying pre-health advisors at ${PLACEHOLDER.campus} who might find Olera's ${PLACEHOLDER.campus} Student Caregiver Program useful for their advisees.`,
+          `I'm reaching out about Olera's ${PLACEHOLDER.campus} Student Caregiver Program, which was built for the pre-health students your office works with.`,
           ``,
           programExplanation,
           ``,
-          `We hope you'll consider passing this along to your advisees. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          `If you advise pre-health students, we'd love your help getting this in front of the ones who'd benefit most. Our one-page flyer is ready to share: [program flyer](${PLACEHOLDER.programPdf}).`,
           ``,
-          packetLine,
+          `A few easy ways to support the program: circulate the flyer to students, [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to learn more, and connect with our partner network through your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+          ``,
+          `If there's a specific advisor or coordinator who'd be the best point of contact, I'd be glad to connect with them too — otherwise just reply here with any questions.`,
         ].join("\n"),
       };
     case "dept_head":
@@ -321,6 +339,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           programExplanation,
           ``,
           `With your approval, we'd love to share this with your department. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT} at your convenience.`,
+          ``,
+          portalLine,
           ``,
           packetLine,
         ].join("\n"),
@@ -338,6 +358,8 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           programExplanation,
           ``,
           `If you'd be open to forwarding this to interested students, we'd be grateful. For more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          ``,
+          portalLine,
           ``,
           packetLine,
         ].join("\n"),
@@ -572,6 +594,22 @@ export function providerFinalEmail(
 export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
   const variant = ctx.variant ?? "named";
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  if (ctx.is_partner) {
+    return {
+      subject: `Supporting your ${PLACEHOLDER.campus} pre-health students`,
+      body: [
+        greeting,
+        ``,
+        `Great to connect! A few easy ways to support the program:`,
+        ``,
+        `• Share our one-page flyer with students who'd benefit: [program flyer](${PLACEHOLDER.programPdf})`,
+        `• Talk it through with Dr. DuBose: [grab a time](${PLACEHOLDER.calendlyUrl})`,
+        `• Join our partner network and manage everything from your recruitment partner portal — share the flyer, add colleagues, and tell us how you'd like to help: [open the partner portal](${PLACEHOLDER.welcomeUrl})`,
+        ``,
+        `Either way, happy to help.`,
+      ].join("\n"),
+    };
+  }
   return {
     subject: `Your ${PLACEHOLDER.campus} students + getting set up`,
     body: [
@@ -591,6 +629,20 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
 export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
   const variant = ctx.variant ?? "named";
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  if (ctx.is_partner) {
+    return {
+      subject: `Your ${PLACEHOLDER.campus} partner portal is ready`,
+      body: [
+        greeting,
+        ``,
+        `Just making sure this didn't get buried. You can support your students anytime:`,
+        ``,
+        `**[Open the partner portal →](${PLACEHOLDER.welcomeUrl})** — share the flyer, add colleagues, and join our partner network.`,
+        ``,
+        `Or grab a time with Dr. DuBose if it's easier to talk first: [Dr. DuBose's calendar](${PLACEHOLDER.calendlyUrl}).`,
+      ].join("\n"),
+    };
+  }
   return {
     subject: `Your ${PLACEHOLDER.campus} students are ready`,
     body: [
@@ -608,6 +660,20 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
 export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
   const variant = ctx.variant ?? "named";
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  if (ctx.is_partner) {
+    return {
+      subject: `Still here when you're ready`,
+      body: [
+        greeting,
+        ``,
+        `No rush at all. Whenever you're ready, here's your recruitment partner portal to share the flyer with students and join our partner network:`,
+        ``,
+        `**[Open the partner portal →](${PLACEHOLDER.welcomeUrl})**`,
+        ``,
+        `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
+      ].join("\n"),
+    };
+  }
   return {
     subject: `Still here when you're ready`,
     body: [
@@ -618,6 +684,72 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
       `**[Review your ${PLACEHOLDER.campus} students →](${PLACEHOLDER.welcomeUrl})**`,
       ``,
       `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+// ── Partner welcome cadence ─────────────────────────────────────────────
+//
+// Begins when a stakeholder is promoted to an active Recruitment Partner.
+// Audience: an advising office / faculty / student-org contact who has
+// agreed to help get the program in front of pre-health students. Goal:
+// welcome them warmly, hand them the flyer + partner portal, keep the
+// program fresh with periodic check-ins, and pull them into seasonal
+// term-planning meetings with Dr. DuBose. Tone: warm, human, low-pressure.
+// No em-dashes. Greeting follows the partner pattern: named -> "Hi
+// {first_name},"; general -> "Hello,".
+
+function partnerGreeting(ctx: TemplateContext): string {
+  const variant = ctx.variant ?? "named";
+  return variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+}
+
+export function partnerWelcomeIntroEmail(ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Welcome to Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
+    body: [
+      partnerGreeting(ctx),
+      ``,
+      `Thank you for partnering with us. We're glad to have you helping connect ${PLACEHOLDER.campus} pre-health students with paid caregiver roles that fit alongside their coursework.`,
+      ``,
+      `Two things to get you started:`,
+      ``,
+      `• Our one-page flyer to share with students: [program flyer](${PLACEHOLDER.programPdf})`,
+      `• Your partner portal, where you can share the flyer, add colleagues, tell us about events, and see your impact: [open the partner portal](${PLACEHOLDER.welcomeUrl})`,
+      ``,
+      `Here's how we like to work with partners: a quick check-in every couple of months, plus a short planning meeting with Dr. DuBose a few weeks before each term (Fall, Spring, and Summer) to line up events, share updates and results, refresh student-org contacts, and find new ways to reach students.`,
+      ``,
+      `Want to get the first one on the calendar? [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}). And of course, just reply here anytime.`,
+    ].join("\n"),
+  };
+}
+
+export function partnerWelcomeCheckinEmail(ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Checking in: Olera's ${PLACEHOLDER.campus} Student Caregiver Program`,
+    body: [
+      partnerGreeting(ctx),
+      ``,
+      `Just a quick check-in. Hope things are going well on your end.`,
+      ``,
+      `If it would help, here's the flyer to pass along to any students who'd benefit: [program flyer](${PLACEHOLDER.programPdf}). And your partner portal is always here if you'd like to add a colleague or tell us about an upcoming event: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+      ``,
+      `Anything we can do to make this easier? Just reply and let me know.`,
+    ].join("\n"),
+  };
+}
+
+export function partnerWelcomePlanningEmail(ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Planning ahead for your ${PLACEHOLDER.campus} students`,
+    body: [
+      partnerGreeting(ctx),
+      ``,
+      `With a new term coming up, it's a good time for a short planning meeting with Dr. DuBose. We usually use it to line up events, share program updates and results, refresh student-org contacts, and find new ways to get in front of students.`,
+      ``,
+      `Find a time that works for you: [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+      ``,
+      `In the meantime, the latest flyer is here to share: [program flyer](${PLACEHOLDER.programPdf}), and you can manage everything from your partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
     ].join("\n"),
   };
 }

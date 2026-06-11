@@ -39,8 +39,11 @@ import { useMemo, useState, type ReactNode } from "react";
 import type { ResearchCampusCard, TabRow } from "@/lib/student-outreach/types";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { ProviderProspectCard } from "../cards/ProviderProspectCard";
+import { useRouter } from "next/navigation";
 import { CampusResearchCard } from "../cards/CampusResearchCard";
 import { CardOverflowMenu } from "../cards/CardOverflowMenu";
+import { ResearchWorkspace } from "../ResearchWorkspace";
+import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 
 export function ResearchTabContent({
   rows,
@@ -48,8 +51,6 @@ export function ResearchTabContent({
   researchCampuses,
   renderRow,
   onStartProviderOutreach,
-  onOpenCampusResearch,
-  onMarkResearchComplete,
   tabCountsAll,
 }: {
   rows: TabRow[];
@@ -57,10 +58,15 @@ export function ResearchTabContent({
   researchCampuses: ResearchCampusCard[];
   renderRow: (row: TabRow) => ReactNode;
   onStartProviderOutreach: (row: ProviderProspectRow) => void;
-  onOpenCampusResearch: (campus: ResearchCampusCard) => void;
-  onMarkResearchComplete: (campus: ResearchCampusCard) => void;
+  /** Legacy props — partner research now runs through the sourcing + audit
+   *  modals mounted here, not the BulkResearchModal. Kept optional so existing
+   *  parents compile without change. */
+  onOpenCampusResearch?: (campus: ResearchCampusCard) => void;
+  onMarkResearchComplete?: (campus: ResearchCampusCard) => void;
   tabCountsAll: number;
 }) {
+  const router = useRouter();
+  const [researchCampus, setResearchCampus] = useState<ResearchCampusCard | null>(null);
   // Split materialized rows by kind. Provider-kind rows belong with the
   // virtual provider catchment cards; everything else is a stakeholder
   // (advisor / professor / dept_head / student_org) that lives under
@@ -226,26 +232,9 @@ export function ResearchTabContent({
         <li key={`research-${c.id}`}>
           <CampusResearchCard
             row={c}
-            onOpenResearch={() => onOpenCampusResearch(c)}
-            overflowMenu={
-              <CardOverflowMenu
-                items={[
-                  {
-                    label: "Mark research complete",
-                    onClick: () => onMarkResearchComplete(c),
-                  },
-                  {
-                    label: "Open site management page",
-                    onClick: () => {
-                      window.open(
-                        `/admin/student-outreach/campus/${c.slug}`,
-                        "_blank",
-                        "noopener,noreferrer",
-                      );
-                    },
-                  },
-                ]}
-              />
+            onFindPartners={() => setResearchCampus(c)}
+            onSeeStakeholders={() =>
+              router.push(`/admin/student-outreach/campus/${c.slug}`)
             }
           />
         </li>
@@ -256,11 +245,28 @@ export function ResearchTabContent({
     </ul>
   ) : null;
 
+  // Partner research runs through the single Research Workspace (links →
+  // extract → verify → review → attest → generate). Attestation of all three
+  // subtypes sets research_complete, which removes this card from the queue.
+  const modals = researchCampus ? (
+    <ResearchWorkspace
+      campusSlug={researchCampus.slug}
+      universityName={researchCampus.name}
+      onClose={() => setResearchCampus(null)}
+      onChanged={() => refreshMedJobs()}
+    />
+  ) : null;
+
   // Single-type queue: render the surviving cards flat. No section
   // header, no chevron — the grouping UI exists to differentiate two
   // queues, and there's nothing to differentiate against here.
   if (!showSections) {
-    return <div className="space-y-3">{providerCardList ?? partnerCardList}</div>;
+    return (
+      <div className="space-y-3">
+        {providerCardList ?? partnerCardList}
+        {modals}
+      </div>
+    );
   }
 
   return (
@@ -283,6 +289,7 @@ export function ResearchTabContent({
       >
         {partnerCardList}
       </Section>
+      {modals}
     </div>
   );
 }

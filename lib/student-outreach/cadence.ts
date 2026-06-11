@@ -34,7 +34,15 @@ export type TemplateKey =
   // option; the cadence stops on Trial Active or a booked meeting.
   | "activation_intro"
   | "activation_nudge"
-  | "activation_final";
+  | "activation_final"
+  // Partner welcome cadence — launched when a stakeholder becomes an active
+  // Recruitment Partner. A slow, long nurture (every ~45-70 days) that
+  // welcomes them, shares the flyer + portal link, keeps the program fresh
+  // with periodic check-ins, and invites seasonal term-planning meetings
+  // with Dr. DuBose.
+  | "partner_welcome_intro"
+  | "partner_welcome_checkin"
+  | "partner_welcome_planning";
 
 /**
  * Cadence lookup key. Stakeholder rows use their StakeholderType;
@@ -42,7 +50,7 @@ export type TemplateKey =
  * Keeps one cadence registry serving both surfaces — the universal
  * launch path goes through schedule_sequence regardless of kind.
  */
-export type CadenceKey = StakeholderType | "provider" | "activation";
+export type CadenceKey = StakeholderType | "provider" | "activation" | "partner_welcome";
 
 export interface OutreachStep {
   id: StepId;
@@ -111,12 +119,11 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   ],
   advisor: [
     {
+      // No Day-0 call for advising offices — they're confirmed by a Pre-Flight
+      // call before launch, so a paired Day-0 call would be redundant.
       day: 0,
-      title: "Day 0 · email + paired call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
+      title: "Day 0 · intro email",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 3,
@@ -282,6 +289,63 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       title: "Day 7 · soft final",
       steps: [
         { id: "email", channel: "email", required: true, template: "activation_final" },
+      ],
+    },
+  ],
+  // Partner welcome cadence (MVP, 2026-06-11). Begins when a stakeholder is
+  // promoted to an active Recruitment Partner (the "Make a partner" button).
+  // Email-only, delivered via its own per-campus Smartlead campaign. Six
+  // touches spread every ~45-70 days across roughly a 10-month loop so the
+  // program stays top-of-mind without overdoing it:
+  //   Day 0   welcome + flyer + portal link, sets expectations
+  //   Day 45  light check-in
+  //   Day 110 term-planning meeting invite (Dr. DuBose)
+  //   Day 165 light check-in
+  //   Day 230 term-planning meeting invite
+  //   Day 300 term-planning meeting invite
+  // Seasonal beats (pre-Fall/Spring/Summer) are approximated by the relative
+  // spacing in MVP rather than pinned to real semester start dates.
+  partner_welcome: [
+    {
+      day: 0,
+      title: "Welcome · flyer + partner portal",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_intro" },
+      ],
+    },
+    {
+      day: 45,
+      title: "Day 45 · check-in",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_checkin" },
+      ],
+    },
+    {
+      day: 110,
+      title: "Day 110 · term-planning meeting",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
+      ],
+    },
+    {
+      day: 165,
+      title: "Day 165 · check-in",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_checkin" },
+      ],
+    },
+    {
+      day: 230,
+      title: "Day 230 · term-planning meeting",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
+      ],
+    },
+    {
+      day: 300,
+      title: "Day 300 · term-planning meeting",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
       ],
     },
   ],

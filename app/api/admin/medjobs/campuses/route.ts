@@ -38,7 +38,7 @@ export async function GET(_request: NextRequest) {
     ] = await Promise.all([
       db
         .from("student_outreach_campuses")
-        .select("id, slug, name, state, city, research_complete, is_active, created_at, viewed_at")
+        .select("id, slug, name, state, city, research_complete, is_active, created_at, viewed_at, partner_research")
         .eq("is_active", true)
         .order("name", { ascending: true }),
       db
@@ -160,6 +160,39 @@ export async function GET(_request: NextRequest) {
         latestTaskCreated != null &&
         (!c.viewed_at || latestTaskCreated > c.viewed_at);
 
+      // Flatten the admin's KEPT research links (all subtypes) into one deduped
+      // list so the Site card surfaces the approved research record. Only links
+      // the admin explicitly kept in the workspace appear here — never raw AI
+      // suggestions.
+      const partnerSources: { title: string; url: string }[] = [];
+      {
+        const workspace = (
+          (c as { partner_research?: { workspace?: Record<string, { links?: { title?: string; url?: string }[] }> } })
+            .partner_research?.workspace ?? {}
+        ) as Record<string, { links?: { title?: string; url?: string }[] }>;
+        const seen = new Set<string>();
+        for (const subtypeWs of Object.values(workspace)) {
+          for (const s of subtypeWs?.links ?? []) {
+            if (s?.url && !seen.has(s.url)) {
+              seen.add(s.url);
+              partnerSources.push({ title: s.title ?? s.url, url: s.url });
+            }
+          }
+        }
+      }
+
+      // Per-category prospecting completion (partner_research.audit), so the
+      // Site card mirrors the In-Basket research card's per-category status.
+      const audit = (
+        (c as { partner_research?: { audit?: Record<string, { complete_at?: string }> } })
+          .partner_research?.audit ?? {}
+      ) as Record<string, { complete_at?: string }>;
+      const partnerAudit = {
+        advisor: Boolean(audit.advisor?.complete_at),
+        student_org: Boolean(audit.student_org?.complete_at),
+        dept_head: Boolean(audit.dept_head?.complete_at),
+      };
+
       return {
         id: c.id,
         slug: c.slug,
@@ -176,6 +209,10 @@ export async function GET(_request: NextRequest) {
         queue_age_days: queueAgeDays,
         // v9.0 Phase 7 Commit O: unified unread flag.
         unread,
+        // Persisted AI research source links (all subtypes, deduped).
+        partner_sources: partnerSources,
+        // Per-category audit completion (Advising / Orgs / Dept heads).
+        partner_audit: partnerAudit,
       };
     });
 

@@ -36,9 +36,7 @@ export const NUDGE_EMAIL_TYPES = new Set<string>([
   "provider_followup_day1",
   "provider_followup_day3",
   "provider_followup_day6",
-  "provider_followup_day10",
-  "provider_followup_day17",
-  "provider_followup",
+  "provider_followup", // Catch-all for any provider followup variants
 ]);
 
 /** True when this email_type is a governed nudge (subject to the per-provider weekly cap). */

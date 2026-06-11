@@ -231,6 +231,15 @@ export interface ResearchData {
     lead_email: string | null;
     enrolled_at: string;
   };
+  /** Partner welcome cadence Smartlead linkage — a SEPARATE per-campus
+   *  campaign enrolling a freshly-activated Recruitment Partner into the
+   *  long welcome/nurture sequence. Set by enrollRowIntoWelcomeCampaign when
+   *  the "Make a partner" button promotes the row. */
+  smartlead_welcome?: {
+    campaign_id: number;
+    lead_email: string | null;
+    enrolled_at: string;
+  };
 }
 
 export interface Campus {
@@ -497,6 +506,10 @@ export interface ResearchCampusCard {
   /** v9.0 Phase 2: count of clients currently in the campus's catchment.
    *  Used to label the research-needed banner. */
   client_count?: number;
+  /** Per-category prospecting completion (from partner_research.audit). The
+   *  research card persists until all three are complete; the card shows which
+   *  categories are done (Advising ✓ · Orgs ◻ · Dept heads ◻). */
+  partner_audit?: { advisor: boolean; student_org: boolean; dept_head: boolean };
 }
 
 /** v7 tab counts — one number per tab in the new workflow.
@@ -676,9 +689,12 @@ export interface SmartleadPreviewSnapshot {
   sender_pool: string[];
 }
 
+// Semantic convention: an "advisor" row is the advising OFFICE (the org
+// prospect). Individual advisors live as office members inside it, not as their
+// own rows — so the row-level label is "Advising Office", not "Advisor".
 export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
   student_org: "Student Org",
-  advisor: "Advisor",
+  advisor: "Advising Office",
   professor: "Professor",
   dept_head: "Dept Head",
 };
@@ -690,7 +706,7 @@ export const STAKEHOLDER_TYPE_LABELS: Record<StakeholderType, string> = {
  */
 export const KIND_LABELS: Record<StakeholderType | "provider", string> = {
   student_org: "Student Org",
-  advisor: "Advisor",
+  advisor: "Advising Office",
   professor: "Professor",
   dept_head: "Dept Head",
   provider: "Provider",

@@ -111,11 +111,11 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           live in the General Contact section below, and the campus is
           already in the panel header. */}
 
-      {/* Zone 2 · Next Step. v9.x Phase 2e: for prospect/researched
-          rows this is now a thin stage indicator — the operational
-          surface (checklist + Visit Website + Call to Confirm +
-          Launch Outreach) lives in the Research Card below. */}
-      <NextStepCard ctx={ctx} action={action} setError={setError} />
+      {/* Zone 2 · Next Step. Pre-launch (prospect/researched) the drawer now
+          starts directly with the Research Card — the old thin "Pre-Flight"
+          indicator box was redundant (the Research Card's own orienting line
+          says what to do). NextStepCard stays for post-launch stage CTAs. */}
+      {!isPreLaunch && <NextStepCard ctx={ctx} action={action} setError={setError} />}
 
       {/* Partner pre-flight (Chunk 1.4): stakeholder-only, additive to the
           SnapshotCard — source links, org contacts + faculty advisor, and the

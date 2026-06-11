@@ -1020,20 +1020,8 @@ export async function GET(request: NextRequest) {
           engagementCounts.all++;
         }
 
-        // Engagement level counts (new, viewed, connected, needs_follow_up):
-        // Exclude ALL archived - matches list filtering which uses !c.archived
-        if (!c.archived) {
-          // For needs_follow_up: only count if provider HAS email
-          // Providers without email should only appear in needs_email tab
-          if (engResult.level === "needs_follow_up" && !c.provider.email?.trim()) {
-            // Don't count in needs_follow_up - they'll be in needs_email instead
-          } else {
-            engagementCounts[engResult.level]++;
-          }
-        }
-
-        // Count "Needs Email" - combines: no email, delivery failed, or invalid email
-        // Determine email issue type for this connection
+        // Determine email issue type FIRST (needed for engagement level counting)
+        // Combines: no email, delivery failed, or invalid email
         const providerEmail = c.provider.email?.trim();
         let emailIssueType: EmailIssueType = null;
 
@@ -1047,6 +1035,13 @@ export async function GET(request: NextRequest) {
 
         // Store the issue type on the connection for filtering/display
         (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType = emailIssueType;
+
+        // Engagement level counts (new, viewed, connected, needs_follow_up):
+        // Exclude ALL archived - matches list filtering which uses !c.archived
+        // CRITICAL: Exclude connections with email issues - they go to "Needs Email" tab exclusively
+        if (!c.archived && !emailIssueType) {
+          engagementCounts[engResult.level]++;
+        }
 
         // Only count non-archived connections in needs_email (consistent with other tabs)
         // Archived/declined leads shouldn't appear in "Needs Email" - they go to "Declined" tab
@@ -1144,27 +1139,14 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          if (responseFilter === "needs_follow_up") {
-            // Needs Follow-up: only include providers WITH email
-            // Providers without email should be in "No Email" tab instead
-            // Exclude archived (those go to "Declined" tab)
-            list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === "needs_follow_up" &&
-              c.provider.email?.trim() &&
-              !c.archived
-            );
-          } else if (responseFilter === "connected") {
-            // Connected: providers who messaged, copied phone, or copied email
-            list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === "connected" && !c.archived
-            );
-          } else {
-            // Other engagement levels (new, viewed): exclude archived
-            list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === responseFilter &&
-              !c.archived
-            );
-          }
+          // All engagement-level tabs (new, viewed, connected, needs_follow_up):
+          // - Exclude archived (those go to "Declined" tab)
+          // - Exclude connections with email issues (those go to "Needs Email" tab exclusively)
+          list = list.filter((c) =>
+            connectionEngagementLevels.get(c.id) === responseFilter &&
+            !c.archived &&
+            !(c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType
+          );
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);

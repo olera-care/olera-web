@@ -22,6 +22,7 @@ import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderP
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
@@ -1406,11 +1407,20 @@ function ResearchSection({
           />
         )}
 
-        {/* Office model: an advising office is a general contact + a roster of
-            people. Members live in research_data (NOT outreach contacts) so cold
-            outreach stays on the general contact and never fans out to them. */}
+        {/* Advisors — the SAME shared component the Provider drawer uses for
+            Decision makers. Stored in research_data; materialized into recipients
+            at launch (launchOffice). */}
         {type === "advisor" && (
-          <OfficeMembersSection ctx={ctx} action={action} setError={setError} />
+          <SpecificContactsSection
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            researchKey="office_members"
+            title="Advisors"
+            primaryRoleLabel="Advisor"
+            addLabel="Add an advisor"
+            helpText="Advisors at this office. Anyone with an email becomes a selectable recipient at launch, alongside the general office contact."
+          />
         )}
 
         {research && (
@@ -1425,182 +1435,6 @@ function ResearchSection({
         {notesField}
       </div>
     </section>
-  );
-}
-
-// ── Office members (advising-office roster) ───────────────────────────
-//
-// People associated with an advising office, stored in
-// research_data.office_members — NOT student_outreach_contacts — so cold
-// outreach (which fans out to contacts) stays on the general office contact.
-// Members can have partial info (name-only is fine) and can be PROMOTED into
-// their own advisor prospect (reusing the stakeholders endpoint, linked back).
-
-interface OfficeMember {
-  name?: string;
-  title?: string;
-  email?: string;
-  phone?: string;
-  source_url?: string;
-  /** How we found them — website (with source_url) or on a call. Preselected to
-   *  avoid spelling/semantic drift in the role + provenance. */
-  source?: "website" | "call";
-  notes?: string;
-  /** Set once promoted to its own prospect row. */
-  promoted_outreach_id?: string;
-}
-
-/** Segmented preselect button — keeps role/source values clean (no drift). */
-function Segment({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-md px-2.5 py-1 text-xs font-medium ${
-        active ? "bg-primary-600 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function OfficeMembersSection({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const members =
-    ((ctx.outreach.research_data as Record<string, unknown>).office_members as
-      | OfficeMember[]
-      | undefined) ?? [];
-  const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState<OfficeMember>({});
-  const [roleKind, setRoleKind] = useState<"advisor" | "other">("advisor");
-  const [sourceKind, setSourceKind] = useState<"website" | "call">("website");
-
-  const resetDraft = () => {
-    setDraft({});
-    setRoleKind("advisor");
-    setSourceKind("website");
-  };
-
-  const persist = async (next: OfficeMember[]) => {
-    try {
-      await action("update_research", { research: { office_members: next } });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    }
-  };
-
-  const addMember = async () => {
-    if (!draft.name?.trim() && !draft.email?.trim()) {
-      setError("Add a name or an email for the advisor");
-      return;
-    }
-    // Role: preselected "Advisor" by default; "Other" lets them type a title —
-    // keeps the data clean (no spelling drift). Source: website (with link) or call.
-    const title = roleKind === "advisor" ? "Advisor" : draft.title?.trim() || "Other";
-    const member: OfficeMember = {
-      ...draft,
-      title,
-      source: sourceKind,
-      source_url: sourceKind === "website" ? draft.source_url?.trim() || undefined : undefined,
-    };
-    await persist([...members, member]);
-    resetDraft();
-    setAdding(false);
-  };
-
-  const removeMember = (i: number) => persist(members.filter((_, idx) => idx !== i));
-
-  const input =
-    "w-full rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-gray-400 focus:outline-none";
-
-  return (
-    <div className="rounded-md border border-gray-100 bg-gray-50 p-3">
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Advisors ({members.length})
-        </p>
-        <SmallButton onClick={() => { if (adding) resetDraft(); setAdding((s) => !s); }}>
-          {adding ? "Cancel" : "+ Add an advisor"}
-        </SmallButton>
-      </div>
-      <p className="mt-0.5 text-[11px] text-gray-500">
-        Advisors at this office. Name-only is fine. Anyone with an email becomes a selectable
-        recipient at launch — pick them in the email review alongside the general office contact.
-      </p>
-
-      {members.length > 0 && (
-        <ul className="mt-2 space-y-1">
-          {members.map((m, i) => (
-            <li key={i} className="flex items-center justify-between gap-2 rounded border border-gray-100 bg-white px-2 py-1.5 text-xs">
-              <span className="min-w-0">
-                <span className="font-medium text-gray-800">{m.name || m.email || "(unnamed)"}</span>
-                {m.title ? <span className="text-gray-500"> · {m.title}</span> : null}
-                {m.email && m.name ? <span className="text-gray-500"> · {m.email}</span> : null}
-                {m.source_url ? (
-                  <>
-                    {" "}
-                    <a href={m.source_url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">src ↗</a>
-                  </>
-                ) : null}
-              </span>
-              <span className="flex shrink-0 items-center gap-2">
-                {m.email ? <span className="text-[10px] text-gray-400">emailable</span> : null}
-                <button onClick={() => removeMember(i)} className="text-gray-400 hover:text-red-600" title="Remove">×</button>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {adding && (
-        <div className="mt-2 space-y-2">
-          <div className="grid grid-cols-2 gap-1.5">
-            <input className={input} placeholder="Name" value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-            <input className={input} placeholder="Email (optional)" value={draft.email ?? ""} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
-            <input className={`${input} col-span-2`} placeholder="Phone (optional)" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
-          </div>
-
-          {/* Role — preselected to avoid spelling drift. */}
-          <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Role</p>
-            <div className="flex gap-1.5">
-              <Segment active={roleKind === "advisor"} onClick={() => setRoleKind("advisor")}>Advisor</Segment>
-              <Segment active={roleKind === "other"} onClick={() => setRoleKind("other")}>Other</Segment>
-              {roleKind === "other" && (
-                <input className={`${input} flex-1`} placeholder="Title (e.g. Director, Coordinator)" value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-              )}
-            </div>
-          </div>
-
-          {/* Source — website (with link) or on a call. */}
-          <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Source</p>
-            <div className="flex gap-1.5">
-              <Segment active={sourceKind === "website"} onClick={() => setSourceKind("website")}>Website</Segment>
-              <Segment active={sourceKind === "call"} onClick={() => setSourceKind("call")}>On a call</Segment>
-            </div>
-            {sourceKind === "website" && (
-              <input className={`${input} mt-1.5`} placeholder="Source link (https://…)" value={draft.source_url ?? ""} onChange={(e) => setDraft({ ...draft, source_url: e.target.value })} />
-            )}
-          </div>
-
-          <button
-            onClick={addMember}
-            className="w-full rounded-md bg-primary-600 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-700"
-          >
-            Save advisor
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
 

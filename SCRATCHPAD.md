@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-11 — Notion P1 board triage + olera.care human-send email auth FIXED (DNS-only session, repo untouched)
+
+Two threads, neither touching the codebase (DNS + Notion + memory only — `git status` stayed clean all session).
+
+**1. Notion board triage (Web App roadmap, Owner=TJ).** Audited all 4 P1s + the 36 remaining To-Dos against current code via parallel Explore agents. Headline: 3 of 4 P1s were already shipped (SBF V3 cutover `c749e993`; both outreach enrichers `3cc152b1`) — closed/reframed. Broader sweep: closed Hero image library + WEB-08 (done), archived SMS-toggle + WEB-07 (obsolete), rescoped 3 partials (deletion audit trail → only "source" field left; draft_reviews → UI wiring; Benefits CMS → write path), marked staffing-outreach Done (Logan owns it in a separate flow — corrected the stale "staffing retired" memory; it's still live in-repo). Caught + reversed one bad close: the "Fix " card *looked* empty but was the email-auth task below — title was truncated by an inline `olera.care` link in the list view.
+
+**2. olera.care human-send email auth FIXED (Notion P2 → Done, live-verified).** Manual Gmail sends from @olera.care (TJ/Logan/Graize) were landing in spam — mail-tester 4/10, driven entirely by a −6 SPF/DKIM/DMARC auth fail. Two root causes, both fixed in Cloudflare DNS + Google Admin: (a) duplicate root SPF (Google + leftover Squarespace = RFC-7208 PermError) → merged to one `v=spf1 include:_spf.google.com include:squarespace-mail.com ~all`, deleted the standalone Squarespace record; (b) no Google DKIM → published the Workspace 2048-bit key at `google._domainkey` (Cloudflare auto-split the 408-char value, correct) + clicked Start Authentication. Re-test **10/10**, "properly authenticated" green. Resend transactional path verified unaffected throughout (own `resend._domainkey` + `send.olera.care` envelope SPF — the broken root SPF never touched it). → memory `project_email_deliverability` updated; Slack-noted to #ai-product-development.
+
+**Next up:** remaining open P1 work = connect-two-sides remnants (email-quality badge, lead-outcome cron, `connection_succeeded` event) + the overdue SBF V3 keep/kill decision (variant's been live at ~60% — pull the funnel and call it). Squarespace SPF include can be trimmed later if olera.care no longer sends via Squarespace.
+
 ### 2026-06-10 — Editorial freshness: /caregiver-support/ decay audit + byline refresh-date emphasis (branch `modest-nobel`)
 
 Worked through the "Olera Action Items" Notion board. Two items shipped, one archived.

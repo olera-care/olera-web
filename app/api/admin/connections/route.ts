@@ -12,11 +12,32 @@ import {
 import {
   getEngagementLevel,
   getFamilyEngagementLevel,
+  parseAdminOverride,
   type EngagementLevel,
   type FamilyEngagementLevel,
   type EngagementData,
   type FamilyEngagementData,
 } from "@/lib/connection-engagement";
+
+// Valid archive reasons from provider portal
+const VALID_ARCHIVE_REASONS = [
+  "already_connected",
+  "not_a_fit",
+  "not_accepting_clients",
+  "unable_to_reach",
+  "other",
+] as const;
+
+type ArchiveReason = typeof VALID_ARCHIVE_REASONS[number];
+
+/**
+ * Type-safe parser for archive_reason metadata.
+ * Returns null if the value isn't a valid archive reason.
+ */
+function parseArchiveReason(value: unknown): ArchiveReason | null {
+  if (typeof value !== "string") return null;
+  return VALID_ARCHIVE_REASONS.includes(value as ArchiveReason) ? (value as ArchiveReason) : null;
+}
 
 /**
  * GET /api/admin/connections — rows for the connections tracker's
@@ -99,7 +120,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "no_email";
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "no_email" | "declined";
 
 // Stuck threshold: 3+ nudges with no response
 const STUCK_NUDGE_THRESHOLD = 3;
@@ -118,10 +139,8 @@ interface EngagementCounts {
   all: number;
   new: number;
   viewed: number;
-  engaged: number;
   connected: number;
-  stuck: number;
-  needs_call: number;
+  needs_follow_up: number;
   no_email: number; // Cross-cutting filter: providers without email
 }
 
@@ -143,8 +162,6 @@ interface FunnelStats {
   total: number;
   providerViewed: number;
   providerViewedRate: number;
-  providerEngaged: number;
-  providerEngagedRate: number;
   responded: number;
   respondedRate: number;
   connected: number;
@@ -467,8 +484,14 @@ export async function GET(request: NextRequest) {
 
       // Check metadata for explicit connection signals from provider
       const markedReplied = meta.marked_replied === true;
-      const archiveReason = meta.archive_reason as string | undefined;
-      const alreadyConnected = archiveReason === "already_connected";
+      const archived = meta.archived === true;
+      const archiveReason = parseArchiveReason(meta.archive_reason);
+      const archivedAt = meta.archived_at as string | undefined;
+      // Only treat as "already_connected" if CURRENTLY archived with that reason
+      const alreadyConnected = archived && archiveReason === "already_connected";
+
+      // Extract admin override (manually marked status)
+      const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
 
       // Check if family has replied AFTER provider's response
       // This determines if we need to nudge the family
@@ -645,6 +668,12 @@ export async function GET(request: NextRequest) {
         // Explicit connection signals from provider metadata
         markedReplied,
         alreadyConnected,
+        // Archive state (provider archived in their portal)
+        archived,
+        archiveReason,
+        archivedAt,
+        // Admin override for manual status marking
+        adminOverride,
         // For engagement-based "Needs Call" tab
         needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
         // When Day 0 email was sent (for staleness calculation)
@@ -788,20 +817,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Query provider actions with metadata for detailed breakdown
-    // This gives us granular counts: viewed, copied phone, copied email, clicked phone, clicked email, continued to inbox
+    // Simplified: viewed (opened drawer), copied phone (connected), copied email (connected)
     let actionViewedCount = 0;
     let actionCopiedPhoneCount = 0;
     let actionCopiedEmailCount = 0;
-    let actionClickedPhoneCount = 0;
-    let actionClickedEmailCount = 0;
-    let actionContinuedToInboxCount = 0;
 
     if (allProviderKeys.length > 0) {
       let actionQuery = db
         .from("provider_activity")
         .select("event_type, metadata")
         .in("provider_id", allProviderKeys)
-        .in("event_type", ["lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
+        .in("event_type", ["lead_opened", "phone_clicked", "email_link_clicked", "contact_revealed"]);
 
       // Apply date filters to match the connections date range
       if (dateFrom) actionQuery = actionQuery.gte("created_at", dateFrom);
@@ -812,22 +838,20 @@ export async function GET(request: NextRequest) {
       for (const ev of actionEvents ?? []) {
         if (ev.event_type === "lead_opened") {
           actionViewedCount++;
+        } else if (ev.event_type === "phone_clicked") {
+          // Copying phone = connecting
+          actionCopiedPhoneCount++;
+        } else if (ev.event_type === "email_link_clicked") {
+          // Copying email = connecting
+          actionCopiedEmailCount++;
         } else if (ev.event_type === "contact_revealed") {
+          // Legacy event (pre-simplification): still count for historical data
           const meta = ev.metadata as Record<string, unknown> | null;
           if (meta?.contact_type === "phone") {
             actionCopiedPhoneCount++;
-          } else if (meta?.contact_type === "email") {
-            actionCopiedEmailCount++;
           } else {
-            // Default to email if contact_type not specified
             actionCopiedEmailCount++;
           }
-        } else if (ev.event_type === "phone_clicked") {
-          actionClickedPhoneCount++;
-        } else if (ev.event_type === "email_link_clicked") {
-          actionClickedEmailCount++;
-        } else if (ev.event_type === "continue_in_inbox") {
-          actionContinuedToInboxCount++;
         }
       }
     }
@@ -847,10 +871,8 @@ export async function GET(request: NextRequest) {
       all: 0,
       new: 0,
       viewed: 0,
-      engaged: 0,
       connected: 0,
-      stuck: 0,
-      needs_call: 0,
+      needs_follow_up: 0,
       no_email: 0,
     };
 
@@ -866,7 +888,6 @@ export async function GET(request: NextRequest) {
 
     // Funnel stats
     let providerViewedCount = 0;
-    let providerEngagedCount = 0;
     let respondedCount = 0;
     let connectedCount = 0;
 
@@ -891,6 +912,10 @@ export async function GET(request: NextRequest) {
         combinedLastActivity = engagementLastActivity || messageLastActivity;
       }
 
+      // Use admin override from connection object (already parsed earlier)
+      const adminMarkedViewed = c.adminOverride?.status === "viewed";
+      const adminMarkedConnected = c.adminOverride?.status === "connected";
+
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
         leadOpened: eng?.lead_opened ?? false,
@@ -901,6 +926,8 @@ export async function GET(request: NextRequest) {
         providerMessaged: c.responded,
         markedReplied: c.markedReplied,
         alreadyConnected: c.alreadyConnected,
+        adminMarkedViewed,
+        adminMarkedConnected,
         lastActivityAt: combinedLastActivity,
         needsCall: c.needsCall,
         // When Day 0 email was sent - providers who got email added later start fresh
@@ -931,12 +958,17 @@ export async function GET(request: NextRequest) {
         workflowCounts[c.workflowState]++;
 
         // Count engagement levels (provider perspective)
-        engagementCounts.all++;
+        // Exclude declined archives from "all" count (they go to "Declined" tab)
+        // Exception: "already_connected" archives are included (they appear in "Connected" tab)
+        const isDeclinedArchive = c.archived && c.archiveReason && c.archiveReason !== "already_connected";
+        if (!isDeclinedArchive) {
+          engagementCounts.all++;
+        }
 
-        // For needs_call: only count if provider HAS email
+        // For needs_follow_up: only count if provider HAS email
         // Providers without email should only appear in no_email tab
-        if (engResult.level === "needs_call" && !c.provider.email?.trim()) {
-          // Don't count in needs_call - they'll be in no_email instead
+        if (engResult.level === "needs_follow_up" && !c.provider.email?.trim()) {
+          // Don't count in needs_follow_up - they'll be in no_email instead
         } else {
           engagementCounts[engResult.level]++;
         }
@@ -947,12 +979,15 @@ export async function GET(request: NextRequest) {
         }
 
         // Count family engagement levels
-        familyEngagementCounts.all++;
+        // Exclude declined archives from "all" count (consistent with provider perspective)
+        if (!isDeclinedArchive) {
+          familyEngagementCounts.all++;
+        }
         familyEngagementCounts[familyEngResult.level]++;
 
         // Funnel stats (based on provider engagement)
+        // Viewed = opened lead drawer
         if (eng?.lead_opened) providerViewedCount++;
-        if (eng?.contact_revealed || eng?.phone_clicked || eng?.email_link_clicked || eng?.continue_in_inbox) providerEngagedCount++;
         // Count as responded if: sent message, marked as replied, or already connected
         if (c.responded || c.markedReplied || c.alreadyConnected) respondedCount++;
         if (c.familyRepliedAfterProvider) connectedCount++;
@@ -965,8 +1000,6 @@ export async function GET(request: NextRequest) {
       total: totalActive,
       providerViewed: providerViewedCount,
       providerViewedRate: totalActive > 0 ? Math.round((providerViewedCount / totalActive) * 100) : 0,
-      providerEngaged: providerEngagedCount,
-      providerEngagedRate: totalActive > 0 ? Math.round((providerEngagedCount / totalActive) * 100) : 0,
       responded: respondedCount,
       respondedRate: totalActive > 0 ? Math.round((respondedCount / totalActive) * 100) : 0,
       connected: connectedCount,
@@ -978,27 +1011,46 @@ export async function GET(request: NextRequest) {
       viewed: actionViewedCount,
       copiedPhone: actionCopiedPhoneCount,
       copiedEmail: actionCopiedEmailCount,
-      clickedPhone: actionClickedPhoneCount,
-      clickedEmail: actionClickedEmailCount,
-      continuedToInbox: actionContinuedToInboxCount,
+      clickedPhone: actionCopiedPhoneCount, // Same as copied (simplified)
+      clickedEmail: actionCopiedEmailCount, // Same as copied (simplified)
+      continuedToInbox: 0, // No longer tracked
       copiedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
       copiedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
-      clickedPhoneRate: actionViewedCount > 0 ? Math.round((actionClickedPhoneCount / actionViewedCount) * 100) : 0,
-      clickedEmailRate: actionViewedCount > 0 ? Math.round((actionClickedEmailCount / actionViewedCount) * 100) : 0,
-      continuedToInboxRate: actionViewedCount > 0 ? Math.round((actionContinuedToInboxCount / actionViewedCount) * 100) : 0,
+      clickedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
+      clickedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
+      continuedToInboxRate: 0, // No longer tracked
     };
 
     // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
+    // For "all" tab: exclude archived connections (they go to "Passed" tab)
+    // Exceptions:
+    // - "already_connected" archives appear in "Connected" tab instead
+    // - Corrupted archives (archived=true but archiveReason=null) appear in "All" tab so admins can see/fix them
+    if (responseFilter === "all") {
+      list = list.filter(c => !c.archived || c.archiveReason === "already_connected" || !c.archiveReason);
+    }
+
     // Check if filter is an engagement level (provider or family)
-    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "engaged", "connected", "stuck", "needs_call"];
+    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "needs_follow_up"];
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
       // Special filter: no_email (provider perspective only - cross-cutting filter)
       if (responseFilter === "no_email" && perspective === "provider") {
         list = list.filter((c) => !c.provider.email?.trim());
+      }
+      // Special filter: declined (provider archived with decline reasons)
+      else if (responseFilter === "declined" && perspective === "provider") {
+        list = list.filter((c) => {
+          // Provider archived with a decline reason (not "already_connected")
+          // BUT: exclude if admin manually verified as connected (admin override > provider archive)
+          return c.archived &&
+                 c.archiveReason &&
+                 c.archiveReason !== "already_connected" &&
+                 c.adminOverride?.status !== "connected";
+        });
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
@@ -1012,23 +1064,27 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          if (responseFilter === "needs_call") {
-            // Needs Call: only include providers WITH email
+          if (responseFilter === "needs_follow_up") {
+            // Needs Follow-up: only include providers WITH email
             // Providers without email should be in "No Email" tab instead
+            // Exclude archived (those go to "Declined" tab)
             list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === "needs_call" &&
-              c.provider.email?.trim()
+              connectionEngagementLevels.get(c.id) === "needs_follow_up" &&
+              c.provider.email?.trim() &&
+              !c.archived
             );
-          } else if (responseFilter === "stuck") {
-            // Stuck: only include providers WITH email
-            // Providers without email should be in "No Email" tab instead
-            // (Can't be "stuck" in a sequence if they never received an email)
+          } else if (responseFilter === "connected") {
+            // Connected: Include both active connections AND "already_connected" archives
             list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === "stuck" &&
-              c.provider.email?.trim()
+              connectionEngagementLevels.get(c.id) === "connected" ||
+              (c.archived && c.archiveReason === "already_connected")
             );
           } else {
-            list = list.filter((c) => connectionEngagementLevels.get(c.id) === responseFilter);
+            // Other engagement levels (new, viewed): exclude archived
+            list = list.filter((c) =>
+              connectionEngagementLevels.get(c.id) === responseFilter &&
+              !c.archived
+            );
           }
         } else {
           // Filter by workflow state (legacy)
@@ -1037,22 +1093,36 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort by most recent first (matches Leads page behavior)
+    // Sort by most recent first
+    // For "declined" tab: sort by archive date (most recently declined first)
+    // For other tabs: sort by creation date (most recent inquiry first)
     list.sort((a, b) => {
-      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return bTime - aTime;
+      if (responseFilter === "declined") {
+        // Guard against invalid date strings (corrupted data)
+        const aDate = a.archivedAt ? new Date(a.archivedAt) : null;
+        const bDate = b.archivedAt ? new Date(b.archivedAt) : null;
+        const aTime = aDate && !isNaN(aDate.getTime()) ? aDate.getTime() : 0;
+        const bTime = bDate && !isNaN(bDate.getTime()) ? bDate.getTime() : 0;
+        return bTime - aTime; // Most recently archived first
+      } else {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime; // Most recent inquiry first
+      }
     });
 
     const pageRaw = list.slice(offset, offset + limit);
 
     // Add engagement level to each connection in the page
     // Include both provider and family engagement levels so UI can display appropriately
-    const page = pageRaw.map((c) => ({
-      ...c,
-      engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
-      familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
-    }));
+    const page = pageRaw.map((c) => {
+      return {
+        ...c,
+        engagementLevel: connectionEngagementLevels.get(c.id) ?? "new",
+        familyEngagementLevel: connectionFamilyEngagementLevels.get(c.id) ?? "new",
+        // adminOverride is already included in c from earlier mapping
+      };
+    });
 
     // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
     // This shows engagement specific to each connection, not aggregated across all provider's connections.

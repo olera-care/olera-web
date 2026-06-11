@@ -4,12 +4,10 @@
  * Unlike connection-temperature.ts (which tracks message-based state),
  * this module categorizes connections by provider engagement level:
  *
- *   New        → Lead sent, provider hasn't viewed it yet
- *   Viewed     → Provider opened the lead page
- *   Engaged    → Provider revealed contact info (opened drawer)
- *   Connected  → Provider reached out (called, emailed, or messaged)
- *   Stuck      → No provider activity for 10+ days, awaiting re-engagement
- *   Needs Call → Re-engagement email sent, still no response (14+ days)
+ *   New             → Lead sent, provider hasn't viewed it yet
+ *   Viewed          → Provider opened lead or showed interest (revealed contact, clicked inbox)
+ *   Connected       → Provider reached out (called, emailed, or messaged)
+ *   Needs Follow-up → No provider activity for 10+ days, requires manual intervention
  *
  * This matches the actual provider journey rather than assuming
  * a messaging-based workflow.
@@ -18,10 +16,8 @@
 export type EngagementLevel =
   | "new"
   | "viewed"
-  | "engaged"
   | "connected"
-  | "stuck"
-  | "needs_call";
+  | "needs_follow_up";
 
 /**
  * Family engagement levels - parallel to provider engagement but from family's perspective.
@@ -39,6 +35,54 @@ export type FamilyEngagementLevel =
   | "stuck"
   | "needs_call";
 
+/**
+ * Admin override structure for manually marking connection status.
+ * Used when admins verify off-platform activity (phone calls, in-person, etc.)
+ */
+export interface AdminOverride {
+  status: "viewed" | "connected";
+  marked_at: string;
+  marked_by: string;
+  marked_by_email?: string;
+  reason: string;
+  notes?: string | null;
+}
+
+/**
+ * Type-safe parser for admin_override metadata.
+ * Returns null if the data doesn't match the expected structure.
+ */
+export function parseAdminOverride(value: unknown): AdminOverride | null {
+  if (!value || typeof value !== "object") return null;
+
+  const obj = value as Record<string, unknown>;
+
+  // Validate required fields
+  if (typeof obj.status !== "string" || (obj.status !== "viewed" && obj.status !== "connected")) {
+    return null;
+  }
+  if (typeof obj.marked_at !== "string") return null;
+  if (typeof obj.marked_by !== "string") return null;
+  if (typeof obj.reason !== "string") return null;
+
+  // Validate optional fields
+  if (obj.marked_by_email !== undefined && typeof obj.marked_by_email !== "string") {
+    return null;
+  }
+  if (obj.notes !== undefined && obj.notes !== null && typeof obj.notes !== "string") {
+    return null;
+  }
+
+  return {
+    status: obj.status as "viewed" | "connected",
+    marked_at: obj.marked_at,
+    marked_by: obj.marked_by,
+    marked_by_email: obj.marked_by_email as string | undefined,
+    reason: obj.reason,
+    notes: (obj.notes as string | null | undefined) ?? null,
+  };
+}
+
 export interface EngagementData {
   emailClicked: boolean;
   leadOpened: boolean;
@@ -51,6 +95,10 @@ export interface EngagementData {
   markedReplied: boolean;
   /** Provider archived with reason "already_connected" */
   alreadyConnected: boolean;
+  /** Admin manually marked this connection as "viewed" (verified off-platform activity) */
+  adminMarkedViewed: boolean;
+  /** Admin manually marked this connection as "connected" (verified off-platform activity) */
+  adminMarkedConnected: boolean;
   lastActivityAt: string | null;
   /** Set by cron when all automated outreach is exhausted */
   needsCall?: boolean;
@@ -104,9 +152,9 @@ export interface FamilyEngagementResult {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Provider engagement thresholds (compressed for faster human intervention)
-/** Provider connections with no activity beyond this are "stuck" */
+/** Provider connections with no activity beyond this need follow-up */
 export const PROVIDER_STUCK_THRESHOLD_DAYS = 10;
-/** Provider connections stuck beyond this need manual call intervention */
+/** @deprecated No longer used - provider engagement uses single 10-day threshold */
 export const PROVIDER_NEEDS_CALL_THRESHOLD_DAYS = 14;
 
 // Family engagement thresholds (more lenient)
@@ -126,10 +174,8 @@ export const NEEDS_CALL_THRESHOLD_DAYS = PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 export const ENGAGEMENT_LABELS: Record<EngagementLevel, string> = {
   new: "New",
   viewed: "Viewed",
-  engaged: "Engaged",
   connected: "Connected",
-  stuck: "Stuck",
-  needs_call: "Needs Call",
+  needs_follow_up: "Needs Follow-up",
 };
 
 export const FAMILY_ENGAGEMENT_LABELS: Record<FamilyEngagementLevel, string> = {
@@ -154,13 +200,7 @@ export const ENGAGEMENT_CONFIG: Record<
     label: "Viewed",
     dot: "bg-amber-400",
     text: "text-amber-700",
-    description: "Provider opened the lead",
-  },
-  engaged: {
-    label: "Engaged",
-    dot: "bg-orange-400",
-    text: "text-orange-700",
-    description: "Provider revealed contact info",
+    description: "Provider opened or showed interest in the lead",
   },
   connected: {
     label: "Connected",
@@ -168,17 +208,11 @@ export const ENGAGEMENT_CONFIG: Record<
     text: "text-emerald-700",
     description: "Provider reached out to family",
   },
-  stuck: {
-    label: "Stuck",
-    dot: "bg-gray-400",
-    text: "text-gray-500",
-    description: "No activity for 10+ days",
-  },
-  needs_call: {
-    label: "Needs Call",
+  needs_follow_up: {
+    label: "Needs Follow-up",
     dot: "bg-red-400",
     text: "text-red-600",
-    description: "Re-engagement failed, requires manual call",
+    description: "No activity for 10+ days, requires manual intervention",
   },
 };
 
@@ -223,11 +257,9 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
  *
  * Hierarchy (highest wins):
  *   1. Connected - provider messaged, called, or emailed
- *   2. Engaged - provider revealed contact info
- *   3. Viewed - provider opened the lead
- *   4. New - no engagement yet
- *   5. Stuck - any of above but stale (10+ days)
- *   6. Needs Call - stuck beyond 14 days OR marked by cron as needing manual intervention
+ *   2. Viewed - provider opened the lead or showed interest
+ *   3. New - no engagement yet
+ *   4. Needs Follow-up - no activity for 10+ days (requires manual intervention)
  */
 export function getEngagementLevel(
   engagement: EngagementData,
@@ -251,25 +283,32 @@ export function getEngagementLevel(
   const lastActivity = Math.max(providerLastActivity, baselineTime);
   const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
   const isStale = daysSinceActivity >= PROVIDER_STUCK_THRESHOLD_DAYS;
-  const needsCallByTime = daysSinceActivity >= PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 
   // Determine base level first (before applying time-based rules)
+  // PRIORITY: Admin override > Automatic tracking
   let baseLevel: EngagementLevel;
 
-  if (
+  if (engagement.adminMarkedConnected) {
+    // Admin manually verified this connection (off-platform activity)
+    // Takes highest priority - admin has confirmed provider connected
+    baseLevel = "connected";
+  } else if (engagement.adminMarkedViewed) {
+    // Admin manually verified provider viewed the lead (off-platform confirmation)
+    // Takes priority over automatic tracking
+    baseLevel = "viewed";
+  } else if (
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked ||
     engagement.markedReplied ||    // Provider explicitly marked as "Replied"
     engagement.alreadyConnected    // Provider archived with "Already connected" reason
   ) {
-    // Provider reached out - this is success
+    // Provider reached out - this is success (automatic tracking)
     baseLevel = "connected";
-  } else if (engagement.contactRevealed || engagement.continueInInbox) {
-    // Provider revealed contact info or clicked to continue in inbox - actively interested
-    baseLevel = "engaged";
-  } else if (engagement.leadOpened) {
-    // Provider viewed the lead - passive interest
+  } else if (
+    engagement.leadOpened
+  ) {
+    // Provider opened the lead drawer
     baseLevel = "viewed";
   } else {
     // No engagement yet
@@ -277,23 +316,28 @@ export function getEngagementLevel(
   }
 
   // Determine final engagement level (purely time-based for UI tabs)
-  // - Connected: provider reached out (success) - never becomes stuck/needs_call
-  // - Viewed/Engaged: provider showed interest, keep in their tab and continue sequence
-  // - Needs Call: 14+ days with NO engagement (only for "new" connections)
-  // - Stuck: 10+ days with NO engagement (only for "new" connections)
+  // - Connected: provider reached out (success) - never becomes needs_follow_up
+  // - Viewed: provider showed interest, keep in their tab and continue sequence
+  // - Admin-marked viewed: can still escalate if very stale (prevents zombie records)
+  // - Needs Follow-up: 10+ days with NO engagement (requires manual intervention)
   let level: EngagementLevel;
   if (baseLevel === "connected") {
     level = "connected";
-  } else if (baseLevel === "viewed" || baseLevel === "engaged") {
-    // Provider showed interest - keep them in their tab and continue sequence
-    // Even if it's 14+ days old, if they viewed/engaged, they stay in that tab
-    level = baseLevel;
-  } else if (needsCallByTime) {
-    // Only NEW connections (never viewed/engaged) that are 14+ days old need manual call
-    level = "needs_call";
+  } else if (baseLevel === "viewed") {
+    // Check if this is admin-marked viewed vs automatic tracking
+    const isAdminMarkedViewed = engagement.adminMarkedViewed && !engagement.leadOpened && !engagement.contactRevealed;
+
+    if (isAdminMarkedViewed && isStale) {
+      // Admin verified they viewed, but it's been 10+ days with no actual activity
+      // Escalate to needs_follow_up to prevent zombie records stuck in viewed forever
+      level = "needs_follow_up";
+    } else {
+      // Automatic viewed OR admin-marked but not yet stale - keep in viewed tab
+      level = baseLevel;
+    }
   } else if (isStale) {
-    // 10+ days with NO engagement → stuck (awaiting re-engagement email)
-    level = "stuck";
+    // 10+ days with NO engagement → needs_follow_up (requires manual intervention)
+    level = "needs_follow_up";
   } else {
     level = baseLevel;
   }
@@ -308,10 +352,11 @@ export function getEngagementLevel(
 
 /**
  * Check if a connection is considered successful.
- * Connected = provider took action to reach the family.
+ * Connected = provider took action to reach the family (automatically tracked or admin-verified).
  */
 export function isConnected(engagement: EngagementData): boolean {
   return (
+    engagement.adminMarkedConnected ||
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked ||
@@ -325,20 +370,16 @@ export function isConnected(engagement: EngagementData): boolean {
  * Lower = more urgent / needs attention.
  *
  * Priority:
- *   1. Needs Call (requires immediate manual intervention)
- *   2. Engaged (hot leads - provider interested but hasn't reached out)
- *   3. Viewed (warm - they looked)
- *   4. New (cold - need to nudge)
- *   5. Stuck (stale - awaiting re-engagement)
- *   6. Connected (success - just monitoring)
+ *   1. Needs Follow-up (requires manual intervention)
+ *   2. Viewed (warm - they looked or showed interest)
+ *   3. New (cold - need to nudge)
+ *   4. Connected (success - just monitoring)
  */
 export const ENGAGEMENT_PRIORITY: Record<EngagementLevel, number> = {
-  needs_call: 0, // Urgent - requires manual call
-  engaged: 1,    // Hot - prioritize these
-  viewed: 2,     // Warm
-  new: 3,        // Cold
-  stuck: 4,      // Stale - awaiting re-engagement
-  connected: 5,  // Success - lowest priority (good problem to have)
+  needs_follow_up: 0, // Urgent - requires manual intervention
+  viewed: 1,          // Warm - they looked or showed interest
+  new: 2,             // Cold
+  connected: 3,       // Success - lowest priority (good problem to have)
 };
 
 /**

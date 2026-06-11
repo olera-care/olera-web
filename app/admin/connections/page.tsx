@@ -25,10 +25,10 @@ interface EngagementCounts {
   all: number;
   new: number;
   viewed: number;
-  engaged: number;
   connected: number;
-  stuck: number;
-  needs_call: number;
+  needs_follow_up: number;
+  // Note: declined is calculated client-side, not returned by backend
+  declined?: number;
 }
 
 interface FamilyEngagementCounts {
@@ -36,16 +36,13 @@ interface FamilyEngagementCounts {
   new: number;
   awaiting: number;
   connected: number;
-  stuck: number;
-  needs_call: number;
+  needs_follow_up: number;
 }
 
 interface FunnelStats {
   total: number;
   providerViewed: number;
   providerViewedRate: number;
-  providerEngaged: number;
-  providerEngagedRate: number;
   responded: number;
   respondedRate: number;
   connected: number;
@@ -80,14 +77,14 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "engaged" | "connected" | "stuck" | "needs_call";
-type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
+type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 
 // Perspective type
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "no_email";
+type ProviderFilterKey = "all" | EngagementLevel | "no_email" | "declined";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -101,11 +98,10 @@ interface TabConfig {
 // Provider perspective tabs
 const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
-  { key: "viewed", label: "Viewed", description: "Provider opened the lead", emptyMessage: "No leads have been viewed yet." },
-  { key: "engaged", label: "Engaged", description: "Provider revealed contact info", emptyMessage: "No engaged leads yet." },
+  { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
-  { key: "stuck", label: "Stuck", description: "No activity for 10+ days", emptyMessage: "No stuck connections." },
-  { key: "needs_call", label: "Needs Call", description: "14+ days, requires manual intervention", emptyMessage: "No providers need calling." },
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
+  { key: "declined", label: "Passed", description: "Provider passed on lead (not a fit, not accepting clients, etc.)", emptyMessage: "No passed leads." },
   { key: "no_email", label: "No Email", description: "Providers without email addresses", emptyMessage: "All providers have emails." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
@@ -115,8 +111,7 @@ const FAMILY_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Provider hasn't responded yet", emptyMessage: "No connections awaiting provider response." },
   { key: "awaiting", label: "Awaiting", description: "Provider responded, awaiting family reply", emptyMessage: "No families awaiting response." },
   { key: "connected", label: "Connected", description: "Family replied to provider", emptyMessage: "No families have replied yet." },
-  { key: "stuck", label: "Stuck", description: "No family activity for 14+ days", emptyMessage: "No stuck family connections." },
-  { key: "needs_call", label: "Needs Call", description: "No family activity for 24+ days", emptyMessage: "No families need calling." },
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "No family activity for 10+ days, requires manual intervention", emptyMessage: "No families need follow-up." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
@@ -652,7 +647,15 @@ export default function ConnectionsTrackerPage() {
       }
       return 0;
     } else {
+      // Provider perspective
       if (!list?.engagementCounts) return 0;
+
+      // Declined count is not calculated by backend and is hidden in UI
+      // When backend support is added, remove this special case
+      if (key === "declined") {
+        return 0; // Count not shown in UI
+      }
+
       const counts = list.engagementCounts;
       if (key in counts) {
         return counts[key as keyof EngagementCounts] ?? 0;
@@ -804,19 +807,13 @@ export default function ConnectionsTrackerPage() {
           </button>
 
           {statsExpanded && list?.funnelStats && (
-            <div className="mt-4 grid grid-cols-5 gap-3">
+            <div className="mt-4 grid grid-cols-4 gap-3">
               <FunnelStat label="Total Leads" value={list.funnelStats.total} />
               <FunnelStat
                 label="Provider Viewed"
                 value={list.funnelStats.providerViewedRate}
                 format="percent"
                 subtitle={`${list.funnelStats.providerViewed} ${list.funnelStats.providerViewed === 1 ? "lead" : "leads"}`}
-              />
-              <FunnelStat
-                label="Provider Engaged"
-                value={list.funnelStats.providerEngagedRate}
-                format="percent"
-                subtitle={`${list.funnelStats.providerEngaged} ${list.funnelStats.providerEngaged === 1 ? "lead" : "leads"}`}
               />
               <FunnelStat
                 label="Responded"
@@ -987,6 +984,8 @@ export default function ConnectionsTrackerPage() {
           INBOUND_TABS.map((tab) => {
             const count = getInboundTabCount(tab.key);
             const isActive = activeFilter === tab.key;
+            // Hide count for declined tab (backend doesn't calculate it, frontend workaround is inaccurate)
+            const showCount = tab.key !== "declined";
             return (
               <button
                 key={tab.key}
@@ -1000,9 +999,11 @@ export default function ConnectionsTrackerPage() {
                 }`}
               >
                 {tab.label}
-                <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
-                  {count}
-                </span>
+                {showCount && (
+                  <span className={`ml-1.5 ${isActive ? "text-gray-500" : "text-gray-300"}`}>
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })

@@ -15,6 +15,7 @@ import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import VerifyToUnlockPrompt from "@/components/provider/VerifyToUnlockPrompt";
 import Pagination from "@/components/ui/Pagination";
+import ArchiveLeadModal from "@/components/provider/ArchiveLeadModal";
 
 // ── Lead types (previously from mock file) ──
 
@@ -100,36 +101,30 @@ function LeadDetailDrawer({
   lead,
   isOpen,
   onClose,
-  onArchive,
   onRestore,
   onDelete,
-  onContactReveal,
   onPhoneClick,
   onEmailClick,
   onContinueInInbox,
   onMarkAsReplied,
+  onArchiveClick,
   isVerified = true,
   onVerifyClick,
 }: {
   lead: LeadDetail | null;
   isOpen: boolean;
   onClose: () => void;
-  onArchive: (leadId: string, reason: string) => void;
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
-  onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
   onMarkAsReplied?: (leadId: string) => void;
+  onArchiveClick?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
 }) {
   const router = useRouter();
-  const [showArchive, setShowArchive] = useState(false);
-  const [archiveReason, setArchiveReason] = useState<string | null>(null);
-  const [archiveOtherText, setArchiveOtherText] = useState("");
-  const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
@@ -141,17 +136,20 @@ function LeadDetailDrawer({
   const copyToClipboard = (text: string, field: "phone" | "email") => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    onContactReveal?.(lead?.id || "", field);
+
+    // Track copy action (marks as connected)
+    if (field === "phone") {
+      onPhoneClick?.(lead?.id || "");
+    } else {
+      onEmailClick?.(lead?.id || "");
+    }
+
     setTimeout(() => setCopiedField(null), 2000);
   };
 
   // Reset state when drawer closes or lead changes
   useEffect(() => {
     if (!isOpen) {
-      setShowArchive(false);
-      setArchiveReason(null);
-      setArchiveOtherText("");
-      setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
       setCopiedField(null);
@@ -160,10 +158,6 @@ function LeadDetailDrawer({
 
   useEffect(() => {
     if (lead) {
-      setShowArchive(false);
-      setArchiveReason(null);
-      setArchiveOtherText("");
-      setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
       setCopiedField(null);
@@ -174,11 +168,7 @@ function LeadDetailDrawer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (showArchive) {
-          setShowArchive(false);
-          setArchiveReason(null);
-          setArchiveOtherText("");
-        } else if (showDeleteConfirm) {
+        if (showDeleteConfirm) {
           setShowDeleteConfirm(false);
         } else {
           onClose();
@@ -193,7 +183,7 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose, showArchive, showDeleteConfirm]);
+  }, [isOpen, onClose, showDeleteConfirm]);
 
   // Navigate to inbox to continue conversation
   const handleContinueInInbox = () => {
@@ -201,27 +191,6 @@ function LeadDetailDrawer({
     onContinueInInbox?.(lead.id);
     router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`);
     onClose();
-  };
-
-  const handleArchive = async () => {
-    if (!lead || !archiveReason) return;
-    setArchived(true);
-
-    // If "already_connected", auto-mark as replied before archiving
-    // (they've communicated outside Olera, so it's effectively replied)
-    // Await to prevent race condition with archive metadata update
-    if (archiveReason === "already_connected" && lead.status === "new") {
-      await onMarkAsReplied?.(lead.id);
-    }
-
-    onArchive(lead.id, archiveReason);
-    setTimeout(() => {
-      setArchived(false);
-      setShowArchive(false);
-      setArchiveReason(null);
-      setArchiveOtherText("");
-      onClose();
-    }, 1500);
   };
 
   const handleRestore = () => {
@@ -240,14 +209,6 @@ function LeadDetailDrawer({
     onDelete(lead.id);
     onClose();
   };
-
-  const ARCHIVE_REASONS = [
-    { value: "already_connected", label: "Already connected", description: "We\u2019ve been in touch outside Olera" },
-    { value: "not_a_fit", label: "Not a good fit", description: "Care needs, location, or budget don\u2019t match" },
-    { value: "not_accepting", label: "Not accepting new clients", description: "We\u2019re at capacity right now" },
-    { value: "unable_to_reach", label: "Unable to reach", description: "Tried contacting but no response" },
-    { value: "other", label: "Other" },
-  ];
 
   if (!lead) return null;
 
@@ -272,7 +233,7 @@ function LeadDetailDrawer({
   );
 
   const StickyHeader = (
-    <div className="flex items-center gap-3">
+    <div className="flex items-start gap-3">
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center text-base font-semibold text-white shrink-0`}>
         {lead.initials}
       </div>
@@ -281,169 +242,94 @@ function LeadDetailDrawer({
           <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
           {statusTag}
         </div>
-        {lead.location && (
-          <p className="text-sm text-gray-600 truncate">{lead.location}</p>
-        )}
-      </div>
-      <div className="text-right shrink-0">
-        <p className="text-sm">
-          <span className="text-gray-500">Received</span>{" "}
-          <span className="font-semibold text-gray-700">{lead.date}</span>
-        </p>
+        <div className="flex items-center gap-3">
+          {lead.location && (
+            <p className="text-sm text-gray-600 truncate">{lead.location}</p>
+          )}
+          <p className="text-sm text-gray-500 shrink-0 ml-auto">{lead.date}</p>
+        </div>
       </div>
     </div>
   );
 
   // ── Contact Information Section ──
-  // Header row with "Mark as Replied" button, then contact card below
+  // Apple-minimal design: section header + clean rows, no borders
   const ContactInfoSection = isVerified ? (
     (lead.email || lead.phone) ? (
       <div>
-        {/* Header row - outside the card */}
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-gray-700">Contact Information</p>
-          {lead.status !== "archived" && (
-            lead.status === "replied" ? (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg cursor-default">
-                <span className="w-4 h-4 rounded border-2 border-primary-600 bg-primary-600 flex items-center justify-center">
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                </span>
-                Replied
-              </span>
-            ) : (
+        <p className="text-lg font-semibold text-gray-900 mb-2.5">Contact information</p>
+        <div className="space-y-2">
+          {lead.phone && (
+            <div className="group flex items-center gap-3">
+              {/* Phone icon */}
+              <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+              </svg>
+              <div className="min-w-0">
+                <p className="text-base font-medium text-gray-900 truncate">{lead.phone}</p>
+              </div>
               <button
                 type="button"
-                onClick={() => onMarkAsReplied?.(lead.id)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 hover:border-primary-300 transition-colors"
+                onClick={() => copyToClipboard(lead.phone!, "phone")}
+                className={`p-2 md:p-1.5 rounded-md transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
+                  copiedField === "phone"
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                }`}
+                aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
               >
-                <span className="w-4 h-4 rounded border-2 border-primary-400 bg-white" />
-                Mark as Replied
+                {copiedField === "phone" ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                  </svg>
+                )}
               </button>
-            )
+            </div>
           )}
-        </div>
-        {/* Contact card */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <div className="space-y-3">
-            {lead.phone && (
-              <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-gray-200">
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500 mb-0.5">Phone</p>
-                  <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.phone}</p>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <a
-                    href={`tel:${lead.phone}`}
-                    onClick={() => onPhoneClick?.(lead.id)}
-                    className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-                    aria-label="Call"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                    </svg>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(lead.phone!, "phone")}
-                    className={`p-2 rounded-lg border transition-colors ${
-                      copiedField === "phone"
-                        ? "bg-primary-100 border-primary-200 text-primary-700"
-                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                    }`}
-                    aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
-                  >
-                    {copiedField === "phone" ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
+          {lead.email && (
+            <div className="group flex items-center gap-3">
+              {/* Email icon */}
+              <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+              <div className="min-w-0">
+                <p className="text-base font-medium text-gray-900 truncate">{lead.email}</p>
               </div>
-            )}
-            {lead.email && (
-              <div className="flex items-center justify-between gap-3 bg-white rounded-lg px-3.5 py-3 border border-gray-200">
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500 mb-0.5">Email</p>
-                  <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.email}</p>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <a
-                    href={`mailto:${lead.email}`}
-                    onClick={() => onEmailClick?.(lead.id)}
-                    className="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-                    aria-label="Send email"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                    </svg>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(lead.email!, "email")}
-                    className={`p-2 rounded-lg border transition-colors ${
-                      copiedField === "email"
-                        ? "bg-primary-100 border-primary-200 text-primary-700"
-                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                    }`}
-                    aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
-                  >
-                    {copiedField === "email" ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(lead.email!, "email")}
+                className={`p-2 md:p-1.5 rounded-md transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
+                  copiedField === "email"
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                }`}
+                aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
+              >
+                {copiedField === "email" ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     ) : (
-      <div>
-        {/* Header row - outside the card */}
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-gray-700">Contact Information</p>
-          {lead.status !== "archived" && (
-            lead.status === "replied" ? (
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg cursor-default">
-                <span className="w-4 h-4 rounded border-2 border-primary-600 bg-primary-600 flex items-center justify-center">
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                </span>
-                Replied
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onMarkAsReplied?.(lead.id)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 hover:border-primary-300 transition-colors"
-              >
-                <span className="w-4 h-4 rounded border-2 border-primary-400 bg-white" />
-                Mark as Replied
-              </button>
-            )
-          )}
-        </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-          <p className="text-sm text-gray-500">No contact information provided yet</p>
-        </div>
+      <div className="px-3.5 py-3 border border-gray-200 rounded-lg bg-gray-50">
+        <p className="text-sm text-gray-500">No contact information provided yet</p>
       </div>
     )
   ) : (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+    <div className="px-3.5 py-3 border border-gray-200 rounded-lg bg-gray-50">
       <VerifyToUnlockPrompt
         action="see contact info"
         onVerifyClick={onVerifyClick || (() => {})}
@@ -455,8 +341,8 @@ function LeadDetailDrawer({
   // ── About Situation Section ──
   const AboutSituationSection = lead.aboutSituation ? (
     <div>
-      <p className="text-lg font-semibold text-gray-900 mb-2">About their situation</p>
-      <p className="text-base text-gray-700 leading-relaxed">
+      <p className="text-lg font-semibold text-gray-900 mb-2.5">About their situation</p>
+      <p className="text-base font-medium text-gray-900 leading-relaxed">
         &ldquo;{lead.aboutSituation}&rdquo;
       </p>
     </div>
@@ -504,12 +390,12 @@ function LeadDetailDrawer({
 
   const CareDetailsSection = (
     <div>
-      <p className="text-lg font-semibold text-gray-900 mb-3">Care details</p>
+      <p className="text-lg font-semibold text-gray-900 mb-2.5">Care details</p>
       <div className="space-y-3">
         {(lead.timeline || (lead.careType && lead.careType.length > 0)) && (
-          <div>
-            <p className="text-sm text-gray-500">Needs</p>
-            <p className="text-base font-medium text-gray-700">
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Needs:</span>{" "}
+            <span className="font-medium text-gray-900">
               {lead.careType?.[0] || "Care"}{lead.timeline ? ` in ${
                 lead.timeline === "asap" || lead.timeline === "immediate" ? "immediately" :
                 lead.timeline === "within_month" || lead.timeline === "within_1_month" ? "~1 month" :
@@ -517,44 +403,44 @@ function LeadDetailDrawer({
                 lead.timeline === "exploring" || lead.timeline === "researching" ? "(exploring)" :
                 lead.timeline
               }` : ""}
-            </p>
-          </div>
+            </span>
+          </p>
         )}
         {lead.careNeeds && lead.careNeeds.length > 0 && (
-          <div>
-            <p className="text-sm text-gray-500">Help with</p>
-            <p className="text-base font-medium text-gray-700">{lead.careNeeds.join(", ")}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Help with:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.careNeeds.join(", ")}</span>
+          </p>
         )}
         {whoNeedsCareDisplay && (
-          <div>
-            <p className="text-sm text-gray-500">Who needs care</p>
-            <p className="text-base font-medium text-gray-700">{whoNeedsCareDisplay}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Who needs care:</span>{" "}
+            <span className="font-medium text-gray-900">{whoNeedsCareDisplay}</span>
+          </p>
         )}
         {preferencesDisplay && (
-          <div>
-            <p className="text-sm text-gray-500">Preferences</p>
-            <p className="text-base font-medium text-gray-700">{preferencesDisplay}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Preferences:</span>{" "}
+            <span className="font-medium text-gray-900">{preferencesDisplay}</span>
+          </p>
         )}
         {lead.paymentMethods && lead.paymentMethods.length > 0 && (
-          <div>
-            <p className="text-sm text-gray-500">Can pay via</p>
-            <p className="text-base font-medium text-gray-700">{lead.paymentMethods.join(", ")}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Can pay via:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.paymentMethods.join(", ")}</span>
+          </p>
         )}
         {lead.profileCompleteness !== undefined && (
-          <div>
-            <p className="text-sm text-gray-500">Profile</p>
-            <p className="text-base font-medium text-gray-700">{lead.profileCompleteness}% complete</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Profile:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.profileCompleteness}% complete</span>
+          </p>
         )}
         {lead.memberSince && (
-          <div>
-            <p className="text-sm text-gray-500">Member since</p>
-            <p className="text-base font-medium text-gray-700">{lead.memberSince}</p>
-          </div>
+          <p className="text-base text-gray-700">
+            <span className="text-gray-500">Member since:</span>{" "}
+            <span className="font-medium text-gray-900">{lead.memberSince}</span>
+          </p>
         )}
       </div>
     </div>
@@ -579,7 +465,7 @@ function LeadDetailDrawer({
 
   // ── Scrollable Content ──
   const ScrollableContent = (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {ArchivedBanner}
       {ContactInfoSection}
       {AboutSituationSection}
@@ -587,43 +473,49 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // ── Active Footer (Archive + Continue in Inbox) ──
-  const ActiveFooter = (
-    <div className="flex items-center gap-3">
+  // ── Active Footer (Message Care Seeker + Pass on lead link) ──
+  const ActiveFooter = isVerified ? (
+    <div className="flex flex-col items-center gap-4">
+      {/* Primary action - polished for Airbnb-style hierarchy */}
       <button
         type="button"
-        onClick={() => setShowArchive(true)}
-        className="px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+        onClick={handleContinueInInbox}
+        className="w-full px-4 py-4 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+        <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
         </svg>
-        Archive
+        {(() => {
+          if (!lead.name) return 'Message Care Seeker';
+          const firstName = lead.name.split(' ')[0];
+          // Use first name if it looks real (more than 1 char, not a placeholder)
+          if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+            return `Message ${firstName}`;
+          }
+          return 'Message Care Seeker';
+        })()}
       </button>
-      {isVerified ? (
-        <button
-          type="button"
-          onClick={handleContinueInInbox}
-          className="flex-1 px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-          </svg>
-          Continue in Inbox
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={onVerifyClick}
-          className="flex-1 px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-          </svg>
-          Verify to continue
-        </button>
-      )}
+
+      {/* Secondary action - subtle text link */}
+      <button
+        type="button"
+        onClick={() => onArchiveClick?.(lead.id)}
+        className="text-[13px] text-gray-500 hover:text-gray-900 hover:underline transition-colors py-3 px-4"
+      >
+        Pass on lead
+      </button>
     </div>
+  ) : (
+    <button
+      type="button"
+      onClick={onVerifyClick}
+      className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+      </svg>
+      Verify to continue
+    </button>
   );
 
   // ── Archived Footer (Delete + Restore) ──
@@ -692,82 +584,10 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // ── Archive Flow Footer ──
-  const ArchiveFlowFooter = archived ? (
-    <div className="flex flex-col items-center justify-center gap-3 py-2">
-      <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-        </svg>
-      </div>
-      <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
-    </div>
-  ) : (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
-        <button
-          type="button"
-          onClick={() => { setShowArchive(false); setArchiveReason(null); setArchiveOtherText(""); }}
-          className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
-        >
-          Cancel
-        </button>
-      </div>
-      <div className="space-y-2.5">
-        {ARCHIVE_REASONS.map((reason) => (
-          <button
-            key={reason.value}
-            type="button"
-            onClick={() => setArchiveReason(reason.value)}
-            className={`w-full flex items-start gap-3.5 px-4 py-3.5 rounded-xl border text-left transition-all duration-150 ${
-              archiveReason === reason.value
-                ? "border-primary-200 bg-primary-50/30"
-                : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
-            }`}
-          >
-            <div className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-150 ${
-              archiveReason === reason.value ? "border-primary-500" : "border-gray-300"
-            }`}>
-              {archiveReason === reason.value && (
-                <div className="w-2 h-2 rounded-full bg-primary-500" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[15px] font-medium text-gray-800">{reason.label}</p>
-              {reason.description && (
-                <p className="text-[13px] text-gray-400 mt-0.5">{reason.description}</p>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
-      {archiveReason === "other" && (
-        <textarea
-          value={archiveOtherText}
-          onChange={(e) => setArchiveOtherText(e.target.value)}
-          placeholder="Tell us more (optional)"
-          rows={2}
-          className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
-        />
-      )}
-      {archiveReason && (
-        <button
-          type="button"
-          onClick={handleArchive}
-          className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white hover:bg-gray-800 transition-colors"
-        >
-          Archive Lead
-        </button>
-      )}
-    </div>
-  );
 
   // Determine which footer to show
   const StickyFooter = lead.status === "archived"
     ? ArchivedFooter
-    : showArchive
-    ? ArchiveFlowFooter
     : ActiveFooter;
 
   return (
@@ -1064,7 +884,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const archiveReasonLabel = archiveReason ? ({
     already_connected: "Already connected",
     not_a_fit: "Not a good fit",
-    not_accepting: "Not accepting new clients",
+    not_accepting_clients: "Not accepting new clients",
     unable_to_reach: "Unable to reach",
     other: "Other",
   }[archiveReason] || archiveReason) : undefined;
@@ -1156,6 +976,8 @@ export default function ProviderLeadsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   // Track which lead's drawer should reopen after verification
   const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
+  // Track which lead to archive (for modal)
+  const [leadIdToArchive, setLeadIdToArchive] = useState<string | null>(null);
   const fetchedRef = useRef(false);
   const [whatsappBannerDismissed, setWhatsappBannerDismissed] = useState(false);
   const [whatsappOptingIn, setWhatsappOptingIn] = useState(false);
@@ -1325,19 +1147,70 @@ export default function ProviderLeadsPage() {
     setIsDrawerOpen(false);
   }, []);
 
-  const handleArchiveLead = useCallback(async (leadId: string, reason: string) => {
+  const handleMarkAsReplied = useCallback(async (leadId: string) => {
+    // Update local state immediately
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId ? { ...l, status: "replied" as LeadStatus } : l
+      )
+    );
+
+    // Persist to backend (update connection metadata)
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        // Find the connection ID for this lead
+        const lead = leads.find((l) => l.id === leadId);
+        const connectionId = lead?.connectionId || leadId;
+
+        // Get current connection to preserve metadata
+        const { data: conn } = await supabase
+          .from("connections")
+          .select("metadata")
+          .eq("id", connectionId)
+          .single();
+
+        if (conn) {
+          const existingMeta = (conn.metadata || {}) as Record<string, unknown>;
+          await supabase
+            .from("connections")
+            .update({
+              metadata: {
+                ...existingMeta,
+                marked_replied: true,
+                marked_replied_at: new Date().toISOString(),
+              },
+            })
+            .eq("id", connectionId);
+        }
+      } catch (err) {
+        console.error("[markAsReplied] Failed:", err);
+      }
+    }
+  }, [leads]);
+  const handleArchiveLead = useCallback(async (leadId: string, reason: string, message?: string) => {
     const reasonLabel = {
       already_connected: "Already connected",
       not_a_fit: "Not a good fit",
-      not_accepting: "Not accepting new clients",
+      not_accepting_clients: "Not accepting new clients",
       unable_to_reach: "Unable to reach",
       other: "Other",
     }[reason] || reason;
 
     // Find the lead to get connectionId and preserve previous status
     const lead = leads.find((l) => l.id === leadId);
-    const connectionId = lead?.connectionId || leadId;
-    const previousStatus = lead?.status || "new";
+    if (!lead) {
+      console.error(`[archive] Lead ${leadId} not found in state`);
+      return;
+    }
+    const connectionId = lead.connectionId || leadId;
+    const previousStatus = lead.status || "new";
+
+    // If "already_connected", auto-mark as replied before archiving
+    // (they've communicated outside Olera, so it's effectively replied)
+    if (reason === "already_connected" && lead?.status === "new") {
+      await handleMarkAsReplied(leadId);
+    }
 
     // Optimistic UI update
     setLeads((prev) =>
@@ -1364,6 +1237,7 @@ export default function ProviderLeadsPage() {
           connectionId,
           action: "archive",
           archiveReason: reason,
+          archiveMessage: message || undefined,
         }),
       });
 
@@ -1389,7 +1263,32 @@ export default function ProviderLeadsPage() {
         )
       );
     }
-  }, [leads]);
+  }, [leads, handleMarkAsReplied]);
+
+  const handleArchiveFromModal = useCallback(async (reason: string, message: string) => {
+    if (!leadIdToArchive) return;
+
+    // Capture the lead ID at submission time to detect interruption
+    const submittingLeadId = leadIdToArchive;
+
+    // Verify lead exists before archiving
+    const lead = leads.find((l) => l.id === submittingLeadId);
+    if (!lead) {
+      console.error(`[archive] Lead ${submittingLeadId} not found in state`);
+      throw new Error("Lead not found");
+    }
+
+    await handleArchiveLead(submittingLeadId, reason, message);
+
+    // Close drawer if archiving the currently selected lead
+    if (selectedLeadId === submittingLeadId) {
+      setIsDrawerOpen(false);
+    }
+
+    // Only close modal if leadIdToArchive hasn't changed (no interruption)
+    // This prevents closing a different modal that was opened during submission
+    setLeadIdToArchive((current) => current === submittingLeadId ? null : current);
+  }, [leadIdToArchive, handleArchiveLead, selectedLeadId, leads]);
 
   const handleRestoreLead = useCallback(async (leadId: string) => {
     // Find the lead to get connectionId and previous status
@@ -1474,47 +1373,6 @@ export default function ProviderLeadsPage() {
     }
   }, [leads, fetchLeads]);
 
-  const handleMarkAsReplied = useCallback(async (leadId: string) => {
-    // Update local state immediately
-    setLeads((prev) =>
-      prev.map((l) =>
-        l.id === leadId ? { ...l, status: "replied" as LeadStatus } : l
-      )
-    );
-
-    // Persist to backend (update connection metadata)
-    if (isSupabaseConfigured()) {
-      try {
-        const supabase = createClient();
-        // Find the connection ID for this lead
-        const lead = leads.find((l) => l.id === leadId);
-        const connectionId = lead?.connectionId || leadId;
-
-        // Get current connection to preserve metadata
-        const { data: conn } = await supabase
-          .from("connections")
-          .select("metadata")
-          .eq("id", connectionId)
-          .single();
-
-        if (conn) {
-          const existingMeta = (conn.metadata || {}) as Record<string, unknown>;
-          await supabase
-            .from("connections")
-            .update({
-              metadata: {
-                ...existingMeta,
-                marked_replied: true,
-                marked_replied_at: new Date().toISOString(),
-              },
-            })
-            .eq("id", connectionId);
-        }
-      } catch (err) {
-        console.error("[markAsReplied] Failed:", err);
-      }
-    }
-  }, [leads]);
 
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
@@ -1739,7 +1597,7 @@ export default function ProviderLeadsPage() {
             <div
               key={lead.id}
               onClick={() => openDrawer(lead)}
-              className="group bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors duration-150 cursor-pointer"
+              className="group relative bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors duration-150 cursor-pointer"
             >
               {/* Mobile card layout */}
               <div className="lg:hidden px-4 py-4 active:bg-vanilla-50/60">
@@ -1898,23 +1756,10 @@ export default function ProviderLeadsPage() {
         lead={selectedLead}
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
-        onArchive={handleArchiveLead}
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
         onMarkAsReplied={handleMarkAsReplied}
-        onContactReveal={(leadId, contactType) => {
-          if (!providerProfile) return;
-          const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
-          fetch("/api/activity/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              provider_id: providerKey,
-              event_type: "contact_revealed",
-              metadata: { lead_id: leadId, contact_type: contactType },
-            }),
-          }).catch(() => {});
-        }}
+        onArchiveClick={setLeadIdToArchive}
         onPhoneClick={(leadId) => {
           if (!providerProfile) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
@@ -1967,6 +1812,15 @@ export default function ProviderLeadsPage() {
         businessName={providerProfile?.display_name || "your business"}
         profileId={providerProfile?.id}
       />
+
+      {/* ── Archive Lead Modal ── */}
+      {leadIdToArchive && (
+        <ArchiveLeadModal
+          leadName={leads.find((l) => l.id === leadIdToArchive)?.name || "this lead"}
+          onClose={() => setLeadIdToArchive(null)}
+          onSubmit={handleArchiveFromModal}
+        />
+      )}
     </div>
   );
 }

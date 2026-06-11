@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { Profile, BusinessProfile } from "@/lib/types";
+import type { Profile, BusinessProfile, Connection } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
@@ -185,6 +185,122 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
   </svg>
 );
+
+// ── Provider Passed Card ──
+
+function ProviderPassedCard({
+  providerName,
+  archiveReason,
+  archiveMessage,
+  time,
+  dateStr,
+  connection,
+}: {
+  providerName: string;
+  archiveReason: string;
+  archiveMessage?: string | null;
+  time: string;
+  dateStr: string;
+  connection: ConnectionWithProfile;
+}) {
+  // Map reason codes to user-friendly labels (keep already_connected for old messages)
+  const reasonLabels: Record<string, string> = {
+    already_connected: "Already connected off-platform",
+    not_a_fit: "Not a good fit",
+    not_accepting_clients: "Not accepting new clients",
+    unable_to_reach: "Unable to reach",
+    other: "Other",
+  };
+
+  const reasonLabel = reasonLabels[archiveReason] || archiveReason;
+
+  // Build contextual browse URL from connection
+  const familyProfile = connection.fromProfile;
+  const city = familyProfile?.city;
+  const state = familyProfile?.state;
+  const careTypes = familyProfile?.care_types as string[] | undefined;
+  const primaryCareType = careTypes?.[0] || "senior-care";
+
+  let browseUrl = "/browse";
+  if (city && state) {
+    const params = new URLSearchParams({
+      care_type: primaryCareType,
+      city,
+      state,
+    });
+    browseUrl = `/browse?${params.toString()}`;
+  }
+
+  // Provider name (providers always have names, no need for complex fallback)
+  const displayProviderName = providerName || "Provider";
+
+  return (
+    <div className="flex justify-center">
+      <div className="max-w-[420px] w-full">
+        <div className="rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+          {/* Subtle gray header - minimal color */}
+          <div className="bg-gradient-to-r from-gray-600 to-gray-500 px-5 py-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-sm font-bold text-white">Update from {displayProviderName}</span>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="bg-white px-5 pt-4 pb-4">
+            <p className="text-[15px] text-gray-700 leading-relaxed">
+              They've reviewed your inquiry and won't be able to help at this time.
+            </p>
+
+            {/* Reason chip */}
+            <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
+              <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
+                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {reasonLabel}
+              </span>
+            </div>
+
+            {/* Provider's message (if provided) */}
+            {archiveMessage && (
+              <div className="mt-3">
+                <p className="text-[14px] text-gray-600 leading-relaxed italic border-l-2 border-gray-200 pl-3">
+                  &ldquo;{archiveMessage}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* CTA to browse other providers - contextual URL */}
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <a
+                href={browseUrl}
+                className="inline-flex items-center gap-2 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Browse other providers
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="bg-gray-50 px-5 py-2.5 border-t border-gray-100">
+            <p className="text-xs text-gray-400">
+              {dateStr}
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-1.5 text-center">{time}</p>
+      </div>
+    </div>
+  );
+}
 
 // ── Care Request Card ──
 
@@ -716,6 +832,41 @@ export default function ConversationPanel({
 
             // System messages
             if (msg.type === "system") {
+              // Check if this is a "provider passed" message
+              const isProviderPassed = msg.text?.includes("passed on this inquiry");
+
+              if (isProviderPassed) {
+                // Parse reason and message from text
+                // Format: "This provider has passed on this inquiry. Reason: not_a_fit\n\"message\""
+                const reasonMatch = msg.text.match(/Reason:\s*(\w+)/);
+                const messageMatch = msg.text.match(/\n"([\s\S]+)"/);
+                const archiveReason = reasonMatch?.[1] || "other";
+                // Unescape quotes that were escaped in backend
+                const rawMessage = messageMatch?.[1] || null;
+                const archiveMessage = rawMessage ? rawMessage.replace(/\\"/g, '"') : null;
+
+                return (
+                  <div key={i}>
+                    {showSeparator && (
+                      <div className="flex justify-center py-3">
+                        <span className="text-sm font-medium text-gray-400">
+                          {formatDateSeparator(msg.created_at)}
+                        </span>
+                      </div>
+                    )}
+                    <ProviderPassedCard
+                      providerName={otherName}
+                      archiveReason={archiveReason}
+                      archiveMessage={archiveMessage}
+                      time={formatTime(msg.created_at)}
+                      dateStr={formatDateSeparator(msg.created_at)}
+                      connection={connection}
+                    />
+                  </div>
+                );
+              }
+
+              // Default system message (simple italic text)
               return (
                 <div key={i}>
                   {showSeparator && (

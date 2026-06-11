@@ -81,14 +81,14 @@ function InlineEmailInput({
       if (res.ok) {
         setSuccess(true);
         setUndeliverable(false);
-        setTimeout(() => onEmailAdded(), 1200);
+        setTimeout(() => onEmailAdded(), 1400);
       } else {
         const data = await res.json();
-        setError(data.message || data.error || "Failed to save");
+        setError(data.message || data.error || "Couldn't save that — try again.");
         setUndeliverable(res.status === 422 && data.error === "undeliverable");
       }
     } catch {
-      setError("Network error");
+      setError("Network hiccup — try again.");
       setUndeliverable(false);
     } finally {
       setSaving(false);
@@ -102,46 +102,63 @@ function InlineEmailInput({
 
   if (success) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-900 font-medium">
+      <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
-        {hasExistingEmail ? "Question forwarded" : "Email saved — question forwarded"}
+        {hasExistingEmail ? "Question forwarded" : "Saved — question forwarded"}
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <input
-        type="email"
-        placeholder="provider@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-56 px-3 py-1.5 text-sm bg-transparent border-b border-gray-200 focus:outline-none focus:border-gray-900 placeholder:text-gray-300 transition-colors"
-        disabled={saving}
-        required
-      />
-      <button
-        type="submit"
-        disabled={saving || !email.trim()}
-        className="px-4 py-1.5 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-40"
-      >
-        {saving ? "Sending..." : hasExistingEmail ? "Send" : "Add & Send"}
-      </button>
-      {hasExistingEmail && !error && !saving && email === existingEmail && (
-        <span className="text-xs text-amber-600">Email on file</span>
-      )}
-      {error && <span className="text-xs text-red-500">{error}</span>}
-      {undeliverable && (
-        <button
-          type="button"
-          onClick={() => submit(true)}
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="email"
+          placeholder="provider@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-64 px-3.5 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5 placeholder:text-gray-300 transition"
           disabled={saving}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+          required
+          autoComplete="off"
+        />
+        <button
+          type="submit"
+          disabled={saving || !email.trim()}
+          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100"
         >
-          Send anyway
+          {saving ? (
+            "Checking…"
+          ) : (
+            <>
+              {hasExistingEmail ? "Send" : "Add & send"}
+              <span aria-hidden className="text-white/50">→</span>
+            </>
+          )}
         </button>
+        {hasExistingEmail && !error && !saving && email === existingEmail && (
+          <span className="text-xs text-gray-400">on file</span>
+        )}
+      </div>
+      {error && (
+        <p className="text-xs text-gray-500">
+          {error}
+          {undeliverable && (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => submit(true)}
+                disabled={saving}
+                className="text-gray-400 underline underline-offset-2 hover:text-gray-700 transition disabled:opacity-40"
+              >
+                send to it anyway
+              </button>
+            </>
+          )}
+        </p>
       )}
     </form>
   );
@@ -446,7 +463,7 @@ export default function AdminQuestionsPage() {
           )}
         </div>
       ) : (
-        <div className="space-y-1">
+        <div className="divide-y divide-gray-100">
           {questions.map((q) => {
             const needsEmail = q.metadata?.needs_provider_email === true;
             const emailIsDead = q.metadata?.email_dead === true;
@@ -459,8 +476,8 @@ export default function AdminQuestionsPage() {
             return (
               <div
                 key={q.id}
-                className={`group rounded-lg px-5 py-4 transition-colors ${
-                  isRemoved || isArchived ? "opacity-40" : "hover:bg-gray-50"
+                className={`group px-5 py-4 transition-colors ${
+                  isRemoved || isArchived ? "opacity-40" : "hover:bg-gray-50/60"
                 }`}
               >
                 {/* Main row */}
@@ -499,7 +516,10 @@ export default function AdminQuestionsPage() {
                         </a>
                       )}
                       {needsEmail && !isRemoved && (
-                        <span className="font-medium text-gray-900">Needs email</span>
+                        <span className="inline-flex items-center gap-1.5 font-medium text-gray-600">
+                          <span className={`w-1.5 h-1.5 rounded-full ${emailIsDead ? "bg-amber-500" : "bg-gray-300"}`} />
+                          {emailIsDead ? "Email bounced" : "Needs email"}
+                        </span>
                       )}
                       <span>{formatDate(q.created_at)}</span>
                     </div>
@@ -557,12 +577,26 @@ export default function AdminQuestionsPage() {
                 )}
 
                 {showEmailInput && (
-                  <div className="mt-3">
-                    {emailIsDead && (
-                      <p className="mb-1.5 text-xs font-medium text-red-600" title={q.provider_email ? `${q.provider_email} is undeliverable` : undefined}>
-                        Dead email — replace{q.provider_email ? ` (${q.provider_email})` : ""}
-                      </p>
-                    )}
+                  <div className="mt-3.5">
+                    <p className="mb-2 text-[13px] text-gray-500 leading-relaxed">
+                      {emailIsDead ? (
+                        <>
+                          The address on file can&apos;t receive mail
+                          {q.provider_email ? <span className="text-gray-400"> ({q.provider_email})</span> : null}
+                          {" — add a working one to forward this question."}
+                        </>
+                      ) : (
+                        <>No email on file — add one to forward this question.</>
+                      )}
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(`${providerLabel} contact email`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1.5 whitespace-nowrap text-gray-400 underline underline-offset-2 hover:text-gray-700 transition-colors"
+                      >
+                        find one →
+                      </a>
+                    </p>
                     <InlineEmailInput
                       providerSlug={q.provider_id}
                       existingEmail={q.provider_email}

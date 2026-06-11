@@ -192,13 +192,13 @@ function InlineEmailInput({
         setTimeout(() => onEmailAdded(), 1500);
       } else {
         const data = await res.json();
-        setError(data.message || data.error || "Failed to save");
-        // 422 + undeliverable means ZeroBounce rejected it — let the operator
-        // grab a better address, or force through if they're sure.
+        setError(data.message || data.error || "Couldn't save that — try again.");
+        // 422 + undeliverable: address was rejected — let the operator grab a
+        // better one, or send to it anyway if they're sure.
         setUndeliverable(res.status === 422 && data.error === "undeliverable");
       }
     } catch {
-      setError("Network error");
+      setError("Network hiccup — try again.");
       setUndeliverable(false);
     } finally {
       setSaving(false);
@@ -212,40 +212,60 @@ function InlineEmailInput({
 
   if (success) {
     return (
-      <span className="text-xs font-medium text-green-600">
-        Saved & notified
+      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+        Saved &amp; notified
       </span>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <input
-        type="email"
-        placeholder="provider@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-44 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-        disabled={saving}
-        required
-      />
-      <button
-        type="submit"
-        disabled={saving || !email.trim()}
-        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50"
-      >
-        {saving ? "..." : "Save"}
-      </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
-      {undeliverable && (
-        <button
-          type="button"
-          onClick={() => submit(true)}
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="email"
+          placeholder="provider@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-64 px-3.5 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5 placeholder:text-gray-300 transition"
           disabled={saving}
-          className="px-2 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50"
+          required
+          autoComplete="off"
+        />
+        <button
+          type="submit"
+          disabled={saving || !email.trim()}
+          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100"
         >
-          Send anyway
+          {saving ? (
+            "Checking…"
+          ) : (
+            <>
+              Add &amp; send
+              <span aria-hidden className="text-white/50">→</span>
+            </>
+          )}
         </button>
+      </div>
+      {error && (
+        <p className="text-xs text-gray-500">
+          {error}
+          {undeliverable && (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => submit(true)}
+                disabled={saving}
+                className="text-gray-400 underline underline-offset-2 hover:text-gray-700 transition disabled:opacity-40"
+              >
+                send to it anyway
+              </button>
+            </>
+          )}
+        </p>
       )}
     </form>
   );
@@ -693,13 +713,10 @@ export default function AdminLeadsPage() {
                           <span>{urgencyDisplay}</span>
                         )}
                         {needsEmail && (
-                          emailIsDead ? (
-                            <span className="font-medium text-red-600" title={lead.flagged_email ? `${lead.flagged_email} is undeliverable` : "Address on file is undeliverable"}>
-                              Dead email — replace
-                            </span>
-                          ) : (
-                            <span className="font-medium text-gray-900">Needs email</span>
-                          )
+                          <span className="inline-flex items-center gap-1.5 font-medium text-gray-600">
+                            <span className={`w-1.5 h-1.5 rounded-full ${emailIsDead ? "bg-amber-500" : "bg-gray-300"}`} />
+                            {emailIsDead ? "Email bounced" : "Needs email"}
+                          </span>
                         )}
                         {providerIsDeleted && providerHasNoEmail && (
                           <span className="text-gray-400 italic">Provider deleted</span>
@@ -751,7 +768,26 @@ export default function AdminLeadsPage() {
                 </div>
 
                 {needsEmail && !isArchived && (
-                  <div className="mt-3 ml-7">
+                  <div className="mt-3.5 ml-7">
+                    <p className="mb-2 text-[13px] text-gray-500 leading-relaxed">
+                      {emailIsDead ? (
+                        <>
+                          The address on file can&apos;t receive mail
+                          {lead.flagged_email ? <span className="text-gray-400"> ({lead.flagged_email})</span> : null}
+                          {" — add a working one to reach this provider."}
+                        </>
+                      ) : (
+                        <>No email on file — add one to reach this provider.</>
+                      )}
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(`${toName} contact email`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1.5 whitespace-nowrap text-gray-400 underline underline-offset-2 hover:text-gray-700 transition-colors"
+                      >
+                        find one →
+                      </a>
+                    </p>
                     <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
                   </div>
                 )}

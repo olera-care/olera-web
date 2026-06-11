@@ -50,8 +50,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "undeliverable",
-            message:
-              "ZeroBounce flagged this address as undeliverable — it would bounce. Try a different email, or resubmit with force to send anyway.",
+            message: "That address can't receive mail — it would bounce. Try another.",
           },
           { status: 422 },
         );

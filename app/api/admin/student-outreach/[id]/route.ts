@@ -374,11 +374,11 @@ export async function POST(
         await handleLaunchActivation(db, row, body, user.id);
         break;
 
-      // Stop a running activation cadence (cancels its pending tasks).
-      // Trial Active already auto-stops via the conversion task-cleanup;
-      // this is the manual off-switch on the drawer's running state.
-      case "stop_activation":
-        await handleStopActivation(db, row, user.id);
+      // Hard stop — cancels EVERY pending outreach task (cold email/call +
+      // activation) for the row. The drawer's overflow off-switch; Trial
+      // Active already auto-stops via the conversion task-cleanup.
+      case "stop_all_outreach":
+        await handleStopAllOutreach(db, row, user.id);
         break;
       case "offer_call":
         await handleOfferCall(db, row, body, user.id);
@@ -2381,8 +2381,15 @@ async function enrollRowIntoWelcomeCampaign(
   return { status: "enrolled" };
 }
 
-/** Stop a running activation cadence: cancel its pending tasks + mark stopped. */
-async function handleStopActivation(db: DB, row: OutreachRow, userId: string) {
+/**
+ * Hard stop: cancel EVERY pending outreach task for the row — cold email/call,
+ * Day 0, and activation tasks alike — and record the stop so the drawer no
+ * longer reads as an active cadence. Status is left unchanged (this halts
+ * automated sends without closing the row, so the admin can still book a
+ * meeting or make a partner manually). Smartlead's email drip auto-pauses on
+ * reply; per-lead Smartlead pause is not part of this MVP off-switch.
+ */
+async function handleStopAllOutreach(db: DB, row: OutreachRow, userId: string) {
   await db
     .from("student_outreach_tasks")
     .update({
@@ -2391,11 +2398,10 @@ async function handleStopActivation(db: DB, row: OutreachRow, userId: string) {
       completed_by: userId,
     })
     .eq("outreach_id", row.id)
-    .eq("status", "pending")
-    .filter("payload->>cadence", "eq", "activation");
+    .eq("status", "pending");
   await insertTouchpoint(db, row.id, "note_added", userId, {
     channel: "system",
-    payload: { reason: "activation_stopped" },
+    payload: { reason: "outreach_stopped" },
   });
   await touchOutreach(db, row.id, userId);
 }

@@ -115,7 +115,15 @@ export function Drawer(props: DrawerProps) {
  * actions that aren't tied to any specific row card slot. Currently
  * just Mark as unread; future drawer-level actions land here.
  */
-function DrawerHeaderOverflow({ onMarkUnread }: { onMarkUnread: () => Promise<void> }) {
+function DrawerHeaderOverflow({
+  onMarkUnread,
+  onStopOutreach,
+}: {
+  onMarkUnread: () => Promise<void>;
+  /** When provided, a "Stop all outreach" item appears under Mark as unread —
+   *  a hard stop that cancels every queued email and call for the row. */
+  onStopOutreach?: () => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -152,6 +160,17 @@ function DrawerHeaderOverflow({ onMarkUnread }: { onMarkUnread: () => Promise<vo
           >
             Mark as unread
           </button>
+          {onStopOutreach && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                void onStopOutreach();
+              }}
+              className="block w-full px-3 py-1.5 text-left text-xs font-medium text-red-700 hover:bg-red-50"
+            >
+              Stop all outreach
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -303,6 +322,30 @@ function StakeholderDrawer({
               setError(e instanceof Error ? e.message : "Failed to mark unread");
             }
           }}
+          // Hard stop — only offered while outreach is actually live. Cancels
+          // every queued email and call (cold + activation) for the row.
+          onStopOutreach={
+            ctx &&
+            ["outreach_sent", "engaged", "meeting_scheduled"].includes(
+              ctx.outreach.status,
+            )
+              ? async () => {
+                  if (
+                    !window.confirm(
+                      "Stop all outreach for this row? This cancels every queued email and call.",
+                    )
+                  )
+                    return;
+                  try {
+                    await action("stop_all_outreach");
+                  } catch (e) {
+                    setError(
+                      e instanceof Error ? e.message : "Failed to stop outreach",
+                    );
+                  }
+                }
+              : undefined
+          }
         />
       }
     >

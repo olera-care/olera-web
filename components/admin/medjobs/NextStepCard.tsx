@@ -221,11 +221,28 @@ function InOutreachBody({
     .filter((t) => t.touchpoint_type === "email_replied")
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
-  const subline = nextEmail
-    ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
-    : lastEmailSent
-      ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
-      : "Outreach in flight";
+  // Which cadence are we awaiting a reply to — the cold outreach drip or the
+  // warm activation cadence? Drives the headline copy (replaces the old green
+  // "Activation cadence running" box).
+  const activationRunning = isActivationRunning(ctx);
+  const nextActivationCall = ctx.pending_tasks
+    .filter(
+      (t) =>
+        t.task_type === "outreach_followup_call" &&
+        (t.payload as Record<string, unknown> | null)?.cadence === "activation",
+    )
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+
+  const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
+  const subline = activationRunning
+    ? nextActivationCall
+      ? `Next call ${formatRelative(nextActivationCall.due_at)}`
+      : "Follow-ups queued"
+    : nextEmail
+      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
+      : lastEmailSent
+        ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
+        : "Outreach in flight";
 
   return (
     <>
@@ -237,7 +254,7 @@ function InOutreachBody({
             <ReplyPreview reply={latestReply} />
           ) : (
             <>
-              <p className="text-sm text-gray-700">Awaiting reply.</p>
+              <p className="text-sm text-gray-700">{headline}</p>
               <p className="mt-1 text-xs text-gray-500">{subline}</p>
             </>
           )}
@@ -267,6 +284,31 @@ function InOutreachBody({
 /** Stakeholder (non-provider) row → can be promoted to a Recruitment Partner. */
 function isPartnerRow(ctx: DrawerContext): boolean {
   return ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
+}
+
+/**
+ * Is an activation cadence currently running? Derived from the timeline:
+ * a launch with no later stop. A hard "stop all outreach" (outreach_stopped)
+ * counts as a stop too, so the drawer stops reading as activation-in-flight.
+ */
+function isActivationRunning(ctx: DrawerContext): boolean {
+  const latestReasonAt = (reason: string): string | null =>
+    ctx.touchpoints
+      .filter(
+        (t) =>
+          t.touchpoint_type === "note_added" &&
+          (t.payload as Record<string, unknown> | null)?.reason === reason,
+      )
+      .map((t) => t.created_at)
+      .sort()
+      .at(-1) ?? null;
+  const launchedAt = latestReasonAt("activation_launched");
+  const stoppedAt =
+    [latestReasonAt("activation_stopped"), latestReasonAt("outreach_stopped")]
+      .filter((d): d is string => d != null)
+      .sort()
+      .at(-1) ?? null;
+  return !!launchedAt && (!stoppedAt || stoppedAt < launchedAt);
 }
 
 // ── call_due ─────────────────────────────────────────────────────────────
@@ -737,31 +779,13 @@ function ActivationActions({
     null;
   const recipientLastName = primary?.last_name ?? null;
 
-  const [stopping, setStopping] = useState(false);
-
-  // Detect a running activation cadence from the timeline: launched with no
-  // later stop. Converted rows render ConvertedBody, so this never shows after
-  // Trial Active (the conversion cleanup also cancels the cadence's tasks).
-  const latestReasonAt = (reason: string): string | null =>
-    ctx.touchpoints
-      .filter(
-        (t) =>
-          t.touchpoint_type === "note_added" &&
-          (t.payload as Record<string, unknown> | null)?.reason === reason,
-      )
-      .map((t) => t.created_at)
-      .sort()
-      .at(-1) ?? null;
-  const launchedAt = latestReasonAt("activation_launched");
-  const stoppedAt = latestReasonAt("activation_stopped");
-  const isRunning = !!launchedAt && (!stoppedAt || stoppedAt < launchedAt);
-  const nextActivationCall = ctx.pending_tasks
-    .filter(
-      (t) =>
-        t.task_type === "outreach_followup_call" &&
-        (t.payload as Record<string, unknown> | null)?.cadence === "activation",
-    )
-    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  // A running activation cadence is now reflected in the headline copy
+  // ("Awaiting reply to activation cadence") rather than a heavy green box,
+  // and the off-switch lives in the drawer's overflow menu (Stop all
+  // outreach). Once running, the Interested/Not-interested decision is moot,
+  // so this face shows just the trailing actions (Book a meeting / Make a
+  // partner).
+  const isRunning = isActivationRunning(ctx);
 
   const markNotInterested = async () => {
     setClosing(true);
@@ -775,41 +799,10 @@ function ActivationActions({
     }
   };
 
-  const stopActivation = async () => {
-    setStopping(true);
-    setError(null);
-    try {
-      await action("stop_activation", {});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to stop");
-    } finally {
-      setStopping(false);
-    }
-  };
-
   if (isRunning) {
-    return (
-      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-primary-200 bg-primary-50/60 px-3 py-2.5">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-primary-800">
-            Activation cadence running
-          </p>
-          <p className="mt-0.5 text-xs text-gray-600">
-            {nextActivationCall
-              ? `Next call ${formatRelative(nextActivationCall.due_at)}.`
-              : "Follow-ups queued."}
-          </p>
-        </div>
-        <button
-          onClick={stopActivation}
-          disabled={stopping}
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-        >
-          {stopping ? "Stopping…" : "Stop activation"}
-        </button>
-        {trailing}
-      </div>
-    );
+    return trailing ? (
+      <div className="mt-3 flex flex-wrap items-center gap-2">{trailing}</div>
+    ) : null;
   }
 
   return (

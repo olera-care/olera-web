@@ -21,6 +21,7 @@ import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { VerificationSection } from "@/components/admin/medjobs/SnapshotCard";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
@@ -990,12 +991,7 @@ function ResearchModePanel({
           { done: havePrograms, label: "Programs selected" },
           ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
         ]
-    : isOffice
-      ? [
-          { done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" },
-          { done: verificationState.can_launch, label: verificationState.can_launch ? verificationState.label : "Confirmation call made — email confirmed" },
-        ]
-      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
+    : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
   // CTA: office research → mark complete only (no PreFlight); office researched
   // but un-confirmed → the call gate; otherwise the email-sequence launcher.
@@ -1026,33 +1022,35 @@ function ResearchModePanel({
         {label}
       </button>
     );
-  } else if (officeNeedsCall) {
+  } else if (isOffice) {
+    // Mirror the provider Research Card exactly: a Verification status card +
+    // a Pre-Flight action row (Call to Confirm + Launch outreach). Launch is
+    // disabled until a confirmed call (or override) — no bespoke amber box.
     cta = (
-      <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
-        <p className="text-sm font-semibold text-amber-900">Confirm by call before outreach</p>
-        <p className="text-xs text-amber-800">
-          Call{" "}
-          {officePhone ? (
-            <a href={`tel:${officePhone}`} className="font-medium underline">{officePhone}</a>
-          ) : (
-            "the office"
-          )}{" "}
-          to confirm {officeEmail ? <span className="font-medium">{officeEmail}</span> : "the general email"} is the
-          right address for program info — and ask who should review it. Then log the outcome.
-        </p>
-        <button
-          onClick={() => setShowCallConfirm(true)}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          📞 Call to confirm — log outcome
-        </button>
-        <button
-          disabled
-          title="Log a confirmation call first."
-          className="w-full cursor-not-allowed rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-white"
-        >
-          Start email sequence → (confirm by call first)
-        </button>
+      <div className="space-y-3">
+        <VerificationSection state={verificationState} />
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Pre-Flight actions</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowCallConfirm(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              📞 Call to Confirm
+            </button>
+            <button
+              onClick={() => {
+                if (verificationState.can_launch) setShowPreFlight(true);
+                else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
+              }}
+              disabled={!verificationState.can_launch}
+              title={verificationState.can_launch ? "Review and launch the email sequence." : "Confirm the office on a call first."}
+              className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {verificationState.status === "overridden" ? "Launch outreach (override) →" : "Launch outreach →"}
+            </button>
+          </div>
+        </div>
       </div>
     );
   } else {
@@ -1444,7 +1442,6 @@ function OfficeMembersSection({
   const [draft, setDraft] = useState<OfficeMember>({});
   const [roleKind, setRoleKind] = useState<"advisor" | "other">("advisor");
   const [sourceKind, setSourceKind] = useState<"website" | "call">("website");
-  const [busy, setBusy] = useState(false);
 
   const resetDraft = () => {
     setDraft({});
@@ -1481,47 +1478,6 @@ function OfficeMembersSection({
 
   const removeMember = (i: number) => persist(members.filter((_, idx) => idx !== i));
 
-  const promote = async (i: number) => {
-    const m = members[i];
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/student-outreach/stakeholders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campus_slug: ctx.campus.slug,
-          stakeholder_type: "advisor",
-          organization_name: m.name || m.email || "Advisor",
-          notes: m.notes ?? null,
-          research_data: {
-            general_contact: { email: m.email ?? null, phone: m.phone ?? null },
-            source_url: m.source_url ?? null,
-            referred_from_office: ctx.outreach.id,
-            source: "office_member_promotion",
-          },
-          initial_contact: {
-            name: m.name ?? null,
-            title: m.title ?? null,
-            email: m.email ?? null,
-            phone: m.phone ?? null,
-          },
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Promote failed");
-      const newId = (d.outreach as { id?: string } | undefined)?.id;
-      await persist(
-        members.map((mm, idx) => (idx === i ? { ...mm, promoted_outreach_id: newId } : mm)),
-      );
-      refreshMedJobs();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Promote failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const input =
     "w-full rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-gray-400 focus:outline-none";
 
@@ -1536,8 +1492,8 @@ function OfficeMembersSection({
         </SmallButton>
       </div>
       <p className="mt-0.5 text-[11px] text-gray-500">
-        Advisors at this office. Logged for reference — outreach stays on the general contact.
-        Name-only is fine; promote to their own prospect when ready.
+        Advisors at this office. Name-only is fine. Anyone with an email becomes a selectable
+        recipient at launch — pick them in the email review alongside the general office contact.
       </p>
 
       {members.length > 0 && (
@@ -1556,13 +1512,7 @@ function OfficeMembersSection({
                 ) : null}
               </span>
               <span className="flex shrink-0 items-center gap-2">
-                {m.promoted_outreach_id ? (
-                  <span className="text-primary-700">Promoted ✓</span>
-                ) : (
-                  <button onClick={() => promote(i)} disabled={busy} className="rounded border border-gray-200 px-2 py-0.5 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                    Promote
-                  </button>
-                )}
+                {m.email ? <span className="text-[10px] text-gray-400">emailable</span> : null}
                 <button onClick={() => removeMember(i)} className="text-gray-400 hover:text-red-600" title="Remove">×</button>
               </span>
             </li>

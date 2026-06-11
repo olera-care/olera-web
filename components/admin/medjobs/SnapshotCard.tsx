@@ -1449,7 +1449,7 @@ function DecisionMakerSection({
  * override_pre_flight. This section just mirrors the derived state
  * so admin can see at a glance whether Launch will fire.
  */
-function VerificationSection({ state }: { state: VerificationState }) {
+export function VerificationSection({ state }: { state: VerificationState }) {
   const tone =
     state.status === "verified"
       ? {

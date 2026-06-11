@@ -611,14 +611,11 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   const gc = (rd.general_contact ?? {}) as { email?: string };
   const members = (Array.isArray(rd.office_members) ? rd.office_members : []) as Array<{ email?: string }>;
   const hasEmail = Boolean(gc.email) || members.some((m) => Boolean(m?.email));
-  const callDone = Boolean((rd.confirm_call as { done?: boolean } | undefined)?.done);
+  // Precise verified state lives on touchpoints (shown in the drawer); the card
+  // just points to the next action by stage.
   const subStateText =
     row.status === "researched"
-      ? callDone
-        ? "Ready — launch outreach"
-        : hasEmail
-          ? "Confirm by call, then launch outreach"
-          : "Review contact info, then launch outreach"
+      ? "Confirm by call, then launch outreach"
       : hasEmail
         ? "Has contact — confirm and launch outreach"
         : "Needs contact info before outreach";

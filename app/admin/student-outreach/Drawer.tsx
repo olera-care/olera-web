@@ -20,6 +20,8 @@ import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
@@ -918,62 +920,6 @@ function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
 // changes by status: prospect → "Research complete", researched →
 // opens PreFlightReviewModal.
 
-/**
- * Confirmation-call gate — like provider prospecting, an advising-office
- * prospect must be confirmed by a quick call before any cold email goes out:
- * confirm the general email is right, and learn who should receive the program
- * info. Records the call on research_data.confirm_call so the launcher unlocks.
- */
-function ConfirmCallGate({
-  action,
-  email,
-  phone,
-  setError,
-}: {
-  action: ActionFn;
-  email: string | null;
-  phone: string | null;
-  setError: (e: string | null) => void;
-}) {
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  const confirm = async () => {
-    setBusy(true);
-    try {
-      await action("update_research", {
-        research: { confirm_call: { done: true, at: new Date().toISOString(), note: note.trim() || null } },
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save");
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
-      <p className="text-sm font-semibold text-amber-900">Confirm by call before outreach</p>
-      <p className="mt-1 text-xs text-amber-800">
-        Call {phone ? <a href={`tel:${phone}`} className="font-medium underline">{phone}</a> : "the office"} to confirm{" "}
-        {email ? <span className="font-medium">{email}</span> : "the general email"} is the right address for program
-        info — and ask who should review it.
-      </p>
-      <input
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="Who to send to / who to ask for (optional)"
-        className="mt-2 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-sm focus:border-amber-400 focus:outline-none"
-      />
-      <button
-        onClick={confirm}
-        disabled={busy}
-        className="mt-2 w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-      >
-        {busy ? "Saving…" : "✓ Confirmation call done — set up outreach next"}
-      </button>
-    </div>
-  );
-}
-
 function ResearchModePanel({
   ctx,
   action,
@@ -987,6 +933,7 @@ function ResearchModePanel({
   const type = ctx.outreach.stakeholder_type;
   const isOffice = type === "advisor";
   const [showPreFlight, setShowPreFlight] = useState(false);
+  const [showCallConfirm, setShowCallConfirm] = useState(false);
 
   // Readiness gating per stage.
   const haveContact = ctx.contacts.some((c) => c.status === "active");
@@ -1014,12 +961,14 @@ function ResearchModePanel({
   // already says what the section is for, so the prefix sentence
   // ("Research this stakeholder." / "Ready to email.") was redundant.
   // What's left is the actionable bit only.
-  // Office prospects get a confirmation-call gate between "research complete"
-  // and launching email: confirm the general email + learn who to send to.
-  const callObj = (rd.confirm_call ?? {}) as { done?: boolean; note?: string };
-  const callDone = Boolean(callObj.done);
+  // Office prospects mirror provider Pre-Flight EXACTLY: outreach is gated on a
+  // logged confirmation call. The launcher stays disabled until a "Confirmed"
+  // call outcome is logged (or Pre-Flight is overridden) — same verification
+  // state, same modal (CallForEmailModal) as providers.
+  const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
+  const verificationState = getVerificationState(ctx.touchpoints, overridden);
   const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
-  const officeNeedsCall = isOffice && !isProspect && !callDone;
+  const officeNeedsCall = isOffice && !isProspect && !verificationState.can_launch;
 
   const orientation = isProspect ? (
     isOffice ? (
@@ -1028,7 +977,7 @@ function ResearchModePanel({
       <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
     )
   ) : officeNeedsCall ? (
-    <>Before any email goes out, make a quick confirmation call: confirm the general email is the right place to send program info, and ask who should review it.</>
+    <>Before any email goes out, call to confirm the general email is the right place to send program info — then log the outcome. Outreach unlocks once a call confirms it.</>
   ) : (
     <>Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.</>
   );
@@ -1044,7 +993,7 @@ function ResearchModePanel({
     : isOffice
       ? [
           { done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" },
-          { done: callDone, label: "Confirmation call made — email confirmed" },
+          { done: verificationState.can_launch, label: verificationState.can_launch ? verificationState.label : "Confirmation call made — email confirmed" },
         ]
       : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
@@ -1078,7 +1027,34 @@ function ResearchModePanel({
       </button>
     );
   } else if (officeNeedsCall) {
-    cta = <ConfirmCallGate action={action} email={officeEmail ?? null} phone={officePhone} setError={setError} />;
+    cta = (
+      <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+        <p className="text-sm font-semibold text-amber-900">Confirm by call before outreach</p>
+        <p className="text-xs text-amber-800">
+          Call{" "}
+          {officePhone ? (
+            <a href={`tel:${officePhone}`} className="font-medium underline">{officePhone}</a>
+          ) : (
+            "the office"
+          )}{" "}
+          to confirm {officeEmail ? <span className="font-medium">{officeEmail}</span> : "the general email"} is the
+          right address for program info — and ask who should review it. Then log the outcome.
+        </p>
+        <button
+          onClick={() => setShowCallConfirm(true)}
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          📞 Call to confirm — log outcome
+        </button>
+        <button
+          disabled
+          title="Log a confirmation call first."
+          className="w-full cursor-not-allowed rounded-md bg-gray-300 px-3 py-2 text-sm font-semibold text-white"
+        >
+          Start email sequence → (confirm by call first)
+        </button>
+      </div>
+    );
   } else {
     cta = (
       <button
@@ -1101,6 +1077,17 @@ function ResearchModePanel({
         setError={setError}
         research={{ orientation, checklist, cta }}
       />
+      {showCallConfirm && (
+        <CallForEmailModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          phone={officePhone}
+          action={action}
+          onCancel={() => setShowCallConfirm(false)}
+          onDone={() => setShowCallConfirm(false)}
+          setError={setError}
+        />
+      )}
       {showPreFlight && (
         <PreFlightReviewModal
           stakeholderType={type}

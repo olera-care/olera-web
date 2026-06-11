@@ -48,6 +48,7 @@ import type {
   Contact,
   ContactPermission,
   ContactStatus,
+  DeptHeadPartnership,
   DistributionEvidence,
   DrawerContext,
   OutreachRow,
@@ -1340,9 +1341,73 @@ async function handleLogMeetingRescheduled(
 async function handleMarkPartner(
   db: DB,
   row: OutreachRow,
-  body: { evidence?: DistributionEvidence; evidence_notes?: string; notes?: string },
+  body: {
+    evidence?: DistributionEvidence;
+    evidence_notes?: string;
+    notes?: string;
+    dept_head?: DeptHeadPartnership;
+  },
   userId: string,
 ) {
+  // ── Department heads: documented terminal step, NOT a portal hand-off ──
+  // The key artifact is the professor-outreach decision, not a welcome email.
+  // We require the documentation, persist it, and DO NOT enroll the partner
+  // welcome/portal cadence. Professor outreach never auto-starts — we only
+  // capture permission + next step for a future workflow.
+  if (row.stakeholder_type === "dept_head") {
+    const doc = body.dept_head;
+    if (!doc || !doc.professor_permission || !doc.next_step) {
+      throw new Error(
+        "Document professor-outreach permission (and the next step) before marking " +
+          "this department head as a partner.",
+      );
+    }
+    await transitionStage(db, row, "active_partner", userId, body.notes, {
+      distribution_evidence: body.evidence ?? "explicit_verbal",
+      distribution_evidence_notes: doc.notes || null,
+    });
+    await insertTouchpoint(db, row.id, "distribution_confirmed", userId, {
+      notes: doc.notes || null,
+      payload: { evidence: body.evidence ?? "explicit_verbal" },
+    });
+    // Persist the structured documentation on the row (source of truth for the
+    // drawer + any later professor-outreach workflow).
+    const rd = (row.research_data ?? {}) as Record<string, unknown>;
+    await db
+      .from("student_outreach")
+      .update({
+        research_data: {
+          ...rd,
+          dept_head_partnership: { ...doc, documented_at: new Date().toISOString() },
+        },
+      })
+      .eq("id", row.id);
+    // Descriptive timeline note (no welcome cadence).
+    await insertTouchpoint(db, row.id, "note_added", userId, {
+      channel: "system",
+      payload: {
+        reason: "dept_head_partner_documented",
+        professor_permission: doc.professor_permission,
+        next_step: doc.next_step,
+        confirmed_via: doc.confirmed_via,
+      },
+    });
+    // If the decision is still open, queue an explicit follow-up so it isn't lost.
+    if (doc.next_step === "need_followup" || doc.professor_permission === "not_yet") {
+      await queueTask(
+        db,
+        row.id,
+        {
+          task_type: "manual_followup",
+          due_at: new Date(Date.now() + 7 * DAY_MS),
+          payload: { reason: "dept_head_professor_permission_followup" },
+        },
+        userId,
+      );
+    }
+    return;
+  }
+
   if (!body.evidence) throw new Error("evidence required");
   await transitionStage(db, row, "active_partner", userId, body.notes, {
     distribution_evidence: body.evidence,

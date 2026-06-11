@@ -42,6 +42,7 @@ import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import type { PartnerEvidence } from "@/components/admin/medjobs/PartnerEvidencePanel";
 
 type ActionFn = (
   actionName: string,
@@ -222,6 +223,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
   const submitCallLog = async (
     outcome: string,
     notes: string,
+    partner?: PartnerEvidence,
   ): Promise<void> => {
     if (!callLogTask) return;
     try {
@@ -231,6 +233,11 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         task_id: callLogTask.taskId,
         cadence_day: callLogTask.cadenceDay ?? undefined,
       });
+      // Conversion outcome (convert_to_partner) rides a partner payload — fire
+      // mark_partner so the timeline path converts like the step-list path.
+      if (partner) {
+        await action("mark_partner", { ...partner });
+      }
       setCallLogTask(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to log call");
@@ -312,6 +319,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
           contactName={callLogTask.recipientName}
           contactPhone={callLogTask.recipientPhone}
           rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
+          stakeholderType={ctx.outreach.stakeholder_type}
           onCancel={() => setCallLogTask(null)}
           onSubmit={submitCallLog}
         />

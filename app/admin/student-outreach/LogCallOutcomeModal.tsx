@@ -32,7 +32,29 @@ import {
   DEFAULT_PARTNER_EVIDENCE,
   type PartnerEvidence,
 } from "@/components/admin/medjobs/PartnerEvidencePanel";
-import type { DistributionEvidence } from "@/lib/student-outreach/types";
+import {
+  DeptHeadPartnerPanel,
+  DEFAULT_DEPT_HEAD_PARTNERSHIP,
+} from "@/components/admin/medjobs/DeptHeadPartnerPanel";
+import type {
+  DistributionEvidence,
+  DeptHeadPartnership,
+  StakeholderType,
+} from "@/lib/student-outreach/types";
+
+/** Map the dept-head "confirmed via" onto a distribution-evidence value so the
+ *  shared transitionStage / reporting path stays valid. */
+function evidenceFromConfirmedVia(via: DeptHeadPartnership["confirmed_via"]): DistributionEvidence {
+  switch (via) {
+    case "email":
+      return "explicit_email";
+    case "verbal":
+    case "meeting":
+      return "explicit_verbal";
+    default:
+      return "self_reported";
+  }
+}
 
 interface Props {
   organizationName: string;
@@ -45,6 +67,10 @@ interface Props {
    * to stakeholder.
    */
   rowKind?: "provider" | "stakeholder";
+  /** Specific stakeholder type. When "dept_head", the partner conversion
+   *  captures the professor-outreach documentation instead of the generic
+   *  distribution-evidence panel. */
+  stakeholderType?: StakeholderType;
   onCancel: () => void;
   /**
    * Called on submit. When the admin picked the partner outcome,
@@ -146,9 +172,11 @@ export function LogCallOutcomeModal({
   contactName,
   contactPhone,
   rowKind = "stakeholder",
+  stakeholderType,
   onCancel,
   onSubmit,
 }: Props) {
+  const isDeptHead = stakeholderType === "dept_head";
   // v9 final: provider rows can convert to Client; stakeholder rows
   // can convert to Partner. They're mutually exclusive — neither
   // appears on the wrong kind.
@@ -162,6 +190,9 @@ export function LogCallOutcomeModal({
   const [meetingAt, setMeetingAt] = useState("");
   const [evidence, setEvidence] = useState<DistributionEvidence>(DEFAULT_PARTNER_EVIDENCE);
   const [evidenceNotes, setEvidenceNotes] = useState("");
+  const [deptHeadDoc, setDeptHeadDoc] = useState<DeptHeadPartnership>(
+    DEFAULT_DEPT_HEAD_PARTNERSHIP,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -179,7 +210,17 @@ export function LogCallOutcomeModal({
       await onSubmit(
         outcome,
         notes.trim(),
-        isPartner ? { evidence, evidence_notes: evidenceNotes.trim() } : undefined,
+        isPartner
+          ? isDeptHead
+            ? {
+                // Dept heads: ride the professor-outreach doc through the
+                // partner payload; derive evidence so reporting stays valid.
+                evidence: evidenceFromConfirmedVia(deptHeadDoc.confirmed_via),
+                evidence_notes: deptHeadDoc.notes.trim(),
+                dept_head: { ...deptHeadDoc, notes: deptHeadDoc.notes.trim() },
+              }
+            : { evidence, evidence_notes: evidenceNotes.trim() }
+          : undefined,
         isMeetingScheduled && meetingAt
           ? new Date(meetingAt).toISOString()
           : isMeetingScheduled
@@ -282,14 +323,17 @@ export function LogCallOutcomeModal({
           className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
         />
       </label>
-      {isPartner && (
-        <PartnerEvidencePanel
-          evidence={evidence}
-          notes={evidenceNotes}
-          onEvidenceChange={setEvidence}
-          onNotesChange={setEvidenceNotes}
-        />
-      )}
+      {isPartner &&
+        (isDeptHead ? (
+          <DeptHeadPartnerPanel value={deptHeadDoc} onChange={setDeptHeadDoc} />
+        ) : (
+          <PartnerEvidencePanel
+            evidence={evidence}
+            notes={evidenceNotes}
+            onEvidenceChange={setEvidence}
+            onNotesChange={setEvidenceNotes}
+          />
+        ))}
     </LogModalShell>
   );
 }

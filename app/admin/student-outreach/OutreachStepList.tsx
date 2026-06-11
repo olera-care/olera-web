@@ -379,6 +379,7 @@ function PhoneStepRow({
             organizationName={ctx.outreach.organization_name}
             contactName={primary.name}
             contactPhone={primary.phone}
+            stakeholderType={ctx.outreach.stakeholder_type}
             onCancel={() => setShowLogModal(false)}
             onSubmit={async (outcome, notes, partner) => {
               await handleErr(

@@ -249,6 +249,26 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
           detail = str(p.message) ?? note;
           break;
         }
+        case "dept_head_partner_documented": {
+          const perm: Record<string, string> = {
+            yes: "✅ professor outreach approved",
+            no: "🚫 no professor outreach",
+            not_yet: "⏳ professor outreach not yet",
+            unclear: "❓ professor permission unclear",
+          };
+          const next: Record<string, string> = {
+            email_professors: "We may email professors directly",
+            will_forward: "Dept head will forward the flyer",
+            will_introduce: "Dept head will introduce us",
+            need_followup: "Need a follow-up to decide",
+            do_not_contact_yet: "Do not contact professors yet",
+            other: "See notes",
+          };
+          const permLabel = perm[String(p.professor_permission)] ?? "professor permission documented";
+          text = `🏛️ Department-head partnership documented — ${permLabel}.`;
+          detail = next[String(p.next_step)] ?? note;
+          break;
+        }
         default:
           text = fields ? `📋 Research / notes updated (${fields}).` : `Note added.`;
           // For a plain research/notes update the free-form note IS the detail;

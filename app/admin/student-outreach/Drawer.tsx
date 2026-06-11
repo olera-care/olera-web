@@ -296,6 +296,19 @@ function StakeholderDrawer({
             ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
                 ?.created_at ?? null
             : null;
+          // Dept-head partners: surface the professor-outreach decision (the
+          // terminal documented step) right in the header.
+          const deptHeadPartnership =
+            isPartner && ctx.outreach.stakeholder_type === "dept_head"
+              ? ((ctx.outreach.research_data as { dept_head_partnership?: { professor_permission?: string } } | null)
+                  ?.dept_head_partnership ?? null)
+              : null;
+          const PERMISSION_LABEL: Record<string, string> = {
+            yes: "✅ professors: approved",
+            no: "🚫 professors: not allowed",
+            not_yet: "⏳ professors: not yet",
+            unclear: "❓ professors: unclear",
+          };
           return (
             <>
               <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
@@ -318,6 +331,8 @@ function StakeholderDrawer({
                   {partnerSince
                     ? ` since ${new Date(partnerSince).toLocaleDateString()}`
                     : ""}
+                  {deptHeadPartnership?.professor_permission &&
+                    ` · ${PERMISSION_LABEL[deptHeadPartnership.professor_permission] ?? "professors: documented"}`}
                 </p>
               )}
             </>

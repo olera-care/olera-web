@@ -132,7 +132,9 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         whenIso: tp.created_at,
         icon: iconForTouchpoint(tp.touchpoint_type),
         title: n.text,
-        subline: tp.notes ?? null,
+        // n.detail owns the subline now — narration split title vs detail so a
+        // free-form note is never rendered twice (it used to land in both).
+        subline: n.detail,
         emailLogId,
         emailSentPayload: isEmailSent ? payload : null,
         admin: n.admin ?? null,
@@ -198,8 +200,10 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
 
   // v10 Bullet 5: Past Activity collapse. If past has >5 events,
   // default to showing last 3 + "Show all" affordance.
-  const PAST_COLLAPSE_THRESHOLD = 5;
-  const PAST_COLLAPSE_DEFAULT_SHOW = 3;
+  // Bias toward showing the relationship story: only collapse long histories,
+  // and when we do, keep a generous default window before "Show all".
+  const PAST_COLLAPSE_THRESHOLD = 8;
+  const PAST_COLLAPSE_DEFAULT_SHOW = 5;
   const [showAllPast, setShowAllPast] = useState(false);
   const pastNeedsCollapse = pastRows.length > PAST_COLLAPSE_THRESHOLD;
   const visiblePastRows =
@@ -355,14 +359,20 @@ function TimelineRowView({
         </span>
         <div className="min-w-0 flex-1">
           <p
-            className={`truncate ${
-              row.kind === "future" ? "text-gray-600" : "text-gray-800"
-            }`}
+            className={
+              row.kind === "future"
+                ? "truncate text-gray-600"
+                : "text-gray-800" // past rows wrap so the full descriptive line shows
+            }
           >
             {row.title}
           </p>
           {row.subline && (
-            <p className="mt-0.5 truncate text-xs italic text-gray-500">
+            <p
+              className={`mt-0.5 text-xs italic text-gray-500 ${
+                row.kind === "future" ? "truncate" : "whitespace-pre-line"
+              }`}
+            >
               {row.subline}
             </p>
           )}

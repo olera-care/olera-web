@@ -164,8 +164,12 @@ export function predefinedSearches(subtype: PartnerSubtype, uni: string): Search
     ];
   }
   return [
-    { key: "org_premed", label: `Google: ${uni} pre-med society contact`, url: g(`${uni} pre-med society contact`), ran: false },
     { key: "org_dir", label: `Google: ${uni} student organizations directory pre-health`, url: g(`${uni} student organizations directory pre-health`), ran: false },
+    { key: "org_premed", label: `Google: ${uni} pre-med society OR AMSA chapter contact`, url: g(`${uni} pre-med society OR AMSA chapter contact`), ran: false },
+    { key: "org_prenursing_pa", label: `Google: ${uni} pre-nursing OR pre-PA OR pre-dental club contact`, url: g(`${uni} pre-nursing OR pre-PA OR pre-dental club contact`), ran: false },
+    { key: "org_hosa", label: `Google: ${uni} HOSA OR public health student club`, url: g(`${uni} HOSA OR public health student club`), ran: false },
+    { key: "org_identity", label: `Google: ${uni} MAPS OR SNMA OR minority pre-health organization`, url: g(`${uni} MAPS OR SNMA OR minority pre-health organization`), ran: false },
+    { key: "org_ig", label: `Google: ${uni} pre-health club Instagram`, url: g(`${uni} pre-health club Instagram`), ran: false },
   ];
 }
 

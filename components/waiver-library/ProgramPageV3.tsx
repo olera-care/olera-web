@@ -20,6 +20,24 @@ import { ContentStatusBadge } from "@/components/waiver-library/ContentStatusBad
 import { ReviewerAvatar } from "@/components/waiver-library/ReviewerAvatar";
 import { getProgramVerifier, getProgramPublisher, getStateReviewedAt } from "@/data/benefits-verifiers";
 import { formatReviewDate } from "@/lib/format-review-date";
+import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
+import ProgramBenefitsCard, { type BenefitsProgram } from "@/components/waiver-library/ProgramBenefitsCard";
+import ProgramBenefitsMobileCTA from "@/components/waiver-library/ProgramBenefitsMobileCTA";
+import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { trackBenefitsEvent } from "@/lib/analytics/track-step";
+
+// Pre-derive the care need from the program the user is reading. Landing on
+// a specific program IS the care signal, so the conversion card skips the
+// "what do you need help with?" step entirely. Order is most-specific first;
+// payingForCare is the catch-all (most benefit programs are financial).
+function deriveProgramCareNeed(program: WaiverProgram): CareNeed {
+  const probe = { name: program.name, shortName: program.shortName, tagline: program.tagline };
+  const order: CareNeed[] = ["stayingAtHome", "memoryHealth", "companionship", "payingForCare"];
+  for (const cn of order) {
+    if (matchesCareNeed(probe, cn)) return cn;
+  }
+  return "payingForCare";
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Design atoms — shared visual vocabulary from the state page, adapted
@@ -865,6 +883,68 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
   const primaryPhone = program.phone || contacts.find((c) => c.phone)?.phone || null;
 
+  // Benefits conversion card — the "soft lane" (see if you qualify → email →
+  // we send eligibility + matches). Shown for benefit-type programs only;
+  // resources/navigators/employment aren't things you "qualify" for, so the
+  // framing would be wrong. Desktop renders it as a sticky rail; below xl it
+  // becomes the fixed bottom bar (which replaces the call pill — see below).
+  const showBenefitsCTA = !isResource && program.programType === "benefit";
+  const benefitsCareNeed = showBenefitsCTA ? deriveProgramCareNeed(program) : "payingForCare";
+
+  // One-time, page-level ownership of the benefits funnel: fire the entry-view
+  // event once and fetch the state's program list once, then pass both down to
+  // the rail + mobile cards. Deliberately here, not in the card — the rail
+  // renders hidden on mobile (display:none but still mounted) and the sheet
+  // mounts a second card, so card-owned effects would double-fire
+  // benefits_entry_viewed and double-fetch. One owner = one event, one fetch.
+  const [benefitsPrograms, setBenefitsPrograms] = useState<BenefitsProgram[]>([]);
+  const [benefitsSessionId, setBenefitsSessionId] = useState("");
+  const benefitsEntryFiredRef = useRef(false);
+  useEffect(() => {
+    if (!showBenefitsCTA) return;
+    const sid = getOrCreateSessionId();
+    setBenefitsSessionId(sid);
+    if (!benefitsEntryFiredRef.current) {
+      benefitsEntryFiredRef.current = true;
+      trackBenefitsEvent({
+        event: "benefits_entry_viewed",
+        sessionId: sid,
+        stateCode: state.abbreviation,
+        stateName: state.name,
+        providerName: null,
+        providerSlug: null,
+        variant: "program_card",
+        entrySource: `/benefits/${state.id}/${program.id}`,
+      });
+    }
+    let cancelled = false;
+    fetch(`/api/benefits/programs?state=${encodeURIComponent(state.abbreviation)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data || !Array.isArray(data.allPrograms)) return;
+        setBenefitsPrograms(data.allPrograms);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showBenefitsCTA]);
+
+  const benefitsCardProps = {
+    programId: program.id,
+    programName: getDisplayName(program, state),
+    programShortName: program.shortName,
+    savingsRange: program.savingsRange,
+    programType: program.programType,
+    stateCode: state.abbreviation,
+    stateName: state.name,
+    stateId: state.id,
+    careNeed: benefitsCareNeed,
+    programs: benefitsPrograms,
+    sessionId: benefitsSessionId,
+  };
+
   return (
     <div className="bg-vanilla-100 min-h-[100dvh]">
       {/* Structured data */}
@@ -910,7 +990,11 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
               {program.tagline && program.tagline !== program.description && (
                 <p className="mt-4 text-lg text-gray-600 leading-relaxed max-w-xl">{program.tagline}</p>
               )}
-              {program.savingsRange ? (
+              {/* When the benefits card is shown it owns the savings number
+                  (in the rail / bottom bar), so we drop the hero line to
+                  avoid showing the same figure twice. Non-benefit pages keep
+                  it here since they have no card. */}
+              {program.savingsRange && !showBenefitsCTA ? (
                 <p className="mt-3 text-sm text-gray-500">
                   Estimated savings: <span className="font-semibold text-gray-700">{program.savingsRange}</span>
                   {program.savingsSource && program.savingsSource !== "Free service" && (
@@ -981,6 +1065,14 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
       {navSections.length > 0 && <SectionNav sections={navSections} activeId={activeSection} />}
 
       <main className="pb-24 pt-8">
+        {/* Two-column on xl+: editorial content column + sticky benefits rail
+            (the Airbnb listing pattern). Below xl it collapses to the single
+            column it has always been; the rail's job is taken by the fixed
+            bottom bar (ProgramBenefitsMobileCTA). Per-section max-widths are
+            preserved — they center within the content column instead of the
+            viewport. items-start + self-start lets the rail stick. */}
+        <div className="xl:mx-auto xl:flex xl:max-w-[84rem] xl:items-start xl:gap-12 xl:px-8">
+          <div className="min-w-0 xl:flex-1">
         {isResource ? (
           <div className="max-w-2xl mx-auto px-6 lg:px-8">
             <ResourceOnePager program={program} />
@@ -1309,6 +1401,15 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             </div>
           </section>
         )}
+          </div>
+
+          {/* Desktop sticky rail — the soft "see if you qualify" lane. */}
+          {showBenefitsCTA && (
+            <aside className="hidden xl:block xl:w-[21rem] xl:shrink-0 xl:self-start xl:sticky xl:top-24">
+              <ProgramBenefitsCard {...benefitsCardProps} variant="rail" />
+            </aside>
+          )}
+        </div>
       </main>
 
       {/* Mobile floating call action — the one real thing a stressed caregiver
@@ -1316,7 +1417,9 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
           Labeled, not icon-only, for senior-user clarity. Safe-area padded so
           it never sits under the iPhone home-indicator. Desktop has the
           contact section inline and doesn't need this. */}
-      {primaryPhone && (
+      {showBenefitsCTA ? (
+        <ProgramBenefitsMobileCTA {...benefitsCardProps} />
+      ) : primaryPhone ? (
         <a
           href={`tel:${primaryPhone.replace(/[^\d+]/g, "")}`}
           className="md:hidden fixed right-4 z-40 inline-flex items-center gap-2 rounded-full bg-primary-600 text-white pl-4 pr-5 py-3.5 text-sm font-semibold shadow-lg shadow-primary-900/20 active:scale-[0.97] transition-transform print:hidden"
@@ -1326,7 +1429,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
           <Phone className="w-5 h-5" weight="fill" aria-hidden="true" />
           Call to apply
         </a>
-      )}
+      ) : null}
     </div>
   );
 }

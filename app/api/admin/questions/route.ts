@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       if (needsEmail) {
         let countQuery = db
           .from("provider_questions")
-          .select("provider_id")
+          .select("provider_id, metadata")
           .contains("metadata", { needs_provider_email: true })
           .neq("status", "archived")
           .neq("status", "rejected");
@@ -98,10 +98,13 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // Count only questions where provider exists, not archived, and has no email
+        // Count only questions where provider exists, not archived, and has no
+        // USABLE email — either none on file, or one verified undeliverable
+        // (email_dead, set when the send path suppressed it).
         const validCount = (questionsForCount ?? []).filter((q) => {
           const status = providerStatus.get(q.provider_id);
-          return status?.exists && !status.isArchived && !status.hasEmail;
+          const emailDead = (q.metadata as Record<string, unknown> | null)?.email_dead === true;
+          return status?.exists && !status.isArchived && (!status.hasEmail || emailDead);
         }).length;
 
         return NextResponse.json({ count: validCount });
@@ -182,10 +185,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Filter to valid questions only
+      // Filter to valid questions only: provider exists, not archived, and has
+      // no USABLE email — either none on file, or one verified undeliverable
+      // (email_dead, set when the send path suppressed it).
       const validQuestions = (allNeedsEmailQuestions ?? []).filter((q) => {
         const pStatus = providerStatusMap.get(q.provider_id);
-        return pStatus?.exists && !pStatus.isArchived && !pStatus.hasEmail;
+        const emailDead = (q.metadata as Record<string, unknown> | null)?.email_dead === true;
+        return pStatus?.exists && !pStatus.isArchived && (!pStatus.hasEmail || emailDead);
       });
 
       // Apply pagination manually

@@ -317,7 +317,7 @@ export async function POST(request: NextRequest) {
           question: question.trim(),
           variant: qaVariant,
         });
-        await sendEmail({
+        const qSendResult = await sendEmail({
           to: pEmail,
           subject: qaInbox.subject,
           html: questionReceivedEmail({
@@ -334,6 +334,17 @@ export async function POST(request: NextRequest) {
           recipientProfileId: providerIdForLogs,
           metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
+        // If the provider's on-file address is undeliverable, the send path
+        // suppresses it (prior bounce or ZeroBounce 'invalid'). Flag the question
+        // for the admin "Needs Email" tab — same as if there were no email — so the
+        // team re-fetches a live address instead of it silently going dark. The
+        // email_dead marker lets the queue keep it despite an address being on file.
+        if (qSendResult?.skipped && qSendResult.skipReason === "suppressed" && newQuestion?.id) {
+          await db
+            .from("provider_questions")
+            .update({ metadata: { needs_provider_email: true, email_dead: true } })
+            .eq("id", newQuestion.id);
+        }
       } else if (newQuestion?.id) {
         // No provider email — flag for admin "Needs Email" tab
         await db

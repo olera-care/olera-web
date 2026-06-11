@@ -151,6 +151,10 @@ interface Lead {
   created_at: string;
   from_profile: ConnectionProfile | null;
   to_profile: ConnectionProfile | null;
+  // Set by the API's needs_email view: "missing" = no address on file,
+  // "invalid" = address on file but ZeroBounce-verified undeliverable.
+  email_status?: "missing" | "invalid";
+  flagged_email?: string | null;
 }
 
 function InlineEmailInput({
@@ -164,9 +168,9 @@ function InlineEmailInput({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [undeliverable, setUndeliverable] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(force: boolean) {
     if (!email.trim() || !lead.to_profile?.id) return;
 
     setSaving(true);
@@ -178,25 +182,32 @@ function InlineEmailInput({
         body: JSON.stringify({
           profileId: lead.to_profile.id,
           email: email.trim(),
+          force,
         }),
       });
 
       if (res.ok) {
-        const data = await res.json();
         setSuccess(true);
+        setUndeliverable(false);
         setTimeout(() => onEmailAdded(), 1500);
-        if (data.emailsSent > 0) {
-          setError(null);
-        }
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to save");
+        setError(data.message || data.error || "Failed to save");
+        // 422 + undeliverable means ZeroBounce rejected it — let the operator
+        // grab a better address, or force through if they're sure.
+        setUndeliverable(res.status === 422 && data.error === "undeliverable");
       }
     } catch {
       setError("Network error");
+      setUndeliverable(false);
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    submit(false);
   }
 
   if (success) {
@@ -226,6 +237,16 @@ function InlineEmailInput({
         {saving ? "..." : "Save"}
       </button>
       {error && <span className="text-xs text-red-600">{error}</span>}
+      {undeliverable && (
+        <button
+          type="button"
+          onClick={() => submit(true)}
+          disabled={saving}
+          className="px-2 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50"
+        >
+          Send anyway
+        </button>
+      )}
     </form>
   );
 }
@@ -571,7 +592,10 @@ export default function AdminLeadsPage() {
             // All leads are inquiry connections (family→provider), so we check if provider needs email
             const providerIsActive = !!lead.to_profile && lead.to_profile.is_active !== false;
             const providerHasNoEmail = !lead.to_profile?.email;
-            const needsEmail = providerIsActive && providerHasNoEmail;
+            // A dead address (on file but verified undeliverable) also needs a fresh
+            // email — the API flags these via email_status so they surface here too.
+            const emailIsDead = lead.email_status === "invalid";
+            const needsEmail = providerIsActive && (providerHasNoEmail || emailIsDead);
             // Determine specific provider status for display
             const providerIsDeleted = !lead.to_profile;
             const providerIsArchived = !!lead.to_profile && lead.to_profile.is_active === false;
@@ -669,7 +693,13 @@ export default function AdminLeadsPage() {
                           <span>{urgencyDisplay}</span>
                         )}
                         {needsEmail && (
-                          <span className="font-medium text-gray-900">Needs email</span>
+                          emailIsDead ? (
+                            <span className="font-medium text-red-600" title={lead.flagged_email ? `${lead.flagged_email} is undeliverable` : "Address on file is undeliverable"}>
+                              Dead email — replace
+                            </span>
+                          ) : (
+                            <span className="font-medium text-gray-900">Needs email</span>
+                          )
                         )}
                         {providerIsDeleted && providerHasNoEmail && (
                           <span className="text-gray-400 italic">Provider deleted</span>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
+import { verifyAndCache } from "@/lib/email-verification";
 
 /**
  * POST /api/admin/leads/add-email
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const { profileId, email } = await request.json();
+    const { profileId, email, force } = await request.json();
 
     if (!profileId || !email) {
       return NextResponse.json({ error: "Missing profileId or email" }, { status: 400 });
@@ -34,6 +35,28 @@ export async function POST(request: NextRequest) {
     // Basic email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    }
+
+    // Instant deliverability check on the freshly-fetched address. This endpoint
+    // saves the email AND immediately fires the deferred question/lead
+    // notification to it — so a dead address here means a guaranteed bounce on
+    // a brand-new domain. ZeroBounce verifies + caches the verdict (so the
+    // subsequent send is a warm cache hit, never re-checked). If it's invalid,
+    // don't save or send — tell the operator to find another address. Force
+    // through with { force: true } for the rare case the operator is certain.
+    // Fails OPEN: a verification error returns 'unknown' and we proceed.
+    if (!force) {
+      const verdict = await verifyAndCache(email);
+      if (verdict.status === "invalid") {
+        return NextResponse.json(
+          {
+            error: "undeliverable",
+            message:
+              "ZeroBounce flagged this address as undeliverable — it would bounce. Try a different email, or resubmit with force to send anyway.",
+          },
+          { status: 422 },
+        );
+      }
     }
 
     const db = getServiceClient();

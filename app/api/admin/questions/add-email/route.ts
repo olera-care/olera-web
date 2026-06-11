@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
+import { verifyAndCache } from "@/lib/email-verification";
 
 /**
  * POST /api/admin/questions/add-email
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const { providerSlug, email } = await request.json();
+    const { providerSlug, email, force } = await request.json();
 
     if (!providerSlug || !email) {
       return NextResponse.json({ error: "Missing providerSlug or email" }, { status: 400 });
@@ -35,6 +36,26 @@ export async function POST(request: NextRequest) {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    }
+
+    // Instant deliverability check on the freshly-fetched address. This endpoint
+    // saves the email AND immediately fires the deferred question notification to
+    // it — so a dead address here is a guaranteed bounce. ZeroBounce verifies +
+    // caches the verdict (the subsequent send is a warm hit). Invalid → don't
+    // save or send; tell the operator to find another, or force through.
+    // Fails OPEN: a verification error returns 'unknown' and we proceed.
+    if (!force) {
+      const verdict = await verifyAndCache(email);
+      if (verdict.status === "invalid") {
+        return NextResponse.json(
+          {
+            error: "undeliverable",
+            message:
+              "ZeroBounce flagged this address as undeliverable — it would bounce. Try a different email, or resubmit with force to send anyway.",
+          },
+          { status: 422 },
+        );
+      }
     }
 
     const db = getServiceClient();

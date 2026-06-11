@@ -117,6 +117,7 @@ function providerEmailTypeLabel(type: string | null): string {
     lead_opened: "Lead Opened",
     page_view: "Page View",
     market_diagnostic_viewed_no_leads: "Market View (No Leads)",
+    market_outreach_status_updated: "Market Outreach",
   };
   return map[type] || type;
 }
@@ -155,6 +156,7 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     lead_opened: "bg-sky-50 text-sky-700",
     page_view: "bg-gray-50 text-gray-500",
     market_diagnostic_viewed_no_leads: "bg-indigo-50 text-indigo-700",
+    market_outreach_status_updated: "bg-emerald-50 text-emerald-700",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -711,6 +713,7 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "one_click_access", label: "Auto sign-ins" },
   { value: "analytics_teaser_cta_clicked", label: "Analytics CTA clicks" },
   { value: "market_diagnostic_viewed_no_leads", label: "Market views (no leads)" },
+  { value: "market_outreach_status_updated", label: "Market outreach" },
 ];
 
 const FAMILY_EVENT_FILTER_OPTIONS = [

@@ -78,7 +78,7 @@ interface PreviewResponse {
 const DIGEST_SAMPLES: { key: string; label: string }[] = [
   { key: "family_question", label: "Family question" },
   { key: "leads", label: "Leads recap" },
-  { key: "weekly_digest_rank", label: "Weekly digest · with rank" },
+  { key: "weekly_digest_rank", label: "Market rank digest" },
   { key: "weekly_digest_plain", label: "Weekly digest · plain" },
   { key: "completion", label: "Completion nudge" },
   { key: "cold_rank", label: "Cold rank note" },
@@ -88,6 +88,7 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
 const VARIANT_TRIGGERS: Record<string, string> = {
   family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
   leads: "Goes to providers who received one or more new family inquiries this week. A weekly recap that nudges them to respond, with a one-click link to their connections inbox. Outranks every variant except an open question — a lead is the hottest weekly signal.",
+  market_rank: "Goes to active providers whose local market rank has been computed and who do not have a hotter lead/question/completion nudge. Converts when they work a referral target in Your Market.",
   weekly_digest: "Goes to providers active in the last 14 days — page views or clicks. Providers with a new lead or an open question get the Leads recap / Family question variant instead.",
   completion: "Goes to claimed providers with an incomplete profile (e.g. no owner story). Nudges them to finish it with a one-click deep link to the editor.",
   cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",

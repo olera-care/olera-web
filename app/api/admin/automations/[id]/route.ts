@@ -29,11 +29,12 @@ function isoWeek(d: Date): string {
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
   leads: "Leads recap",
+  market_rank: "Market rank",
   weekly_digest: "Weekly digest",
   completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "leads", "weekly_digest", "completion", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "leads", "market_rank", "weekly_digest", "completion", "cold_rank"];
 
 // ── Per-variant downstream CONVERSION ──
 // Each variant maps to the one provider_activity event that means "this email worked".
@@ -45,6 +46,7 @@ const VARIANT_ORDER = ["family_question", "leads", "weekly_digest", "completion"
 const CONVERSION_EVENT: Record<string, string> = {
   family_question: "question_responded",
   leads: "lead_opened",
+  market_rank: "market_outreach_status_updated",
   completion: "profile_published",
   cold_rank: "claim_completed",
   weekly_digest: "one_click_access",
@@ -52,10 +54,12 @@ const CONVERSION_EVENT: Record<string, string> = {
 const CONVERSION_LABEL: Record<string, string> = {
   family_question: "Answered",
   leads: "Lead opened",
+  market_rank: "Worked market",
   completion: "Profile published",
   cold_rank: "Listing claimed",
   weekly_digest: "Re-visited portal",
 };
+const MARKET_OUTREACH_CONVERSION_STATUSES = new Set(["contacted", "responded", "referring"]);
 // Last-touch attribution window: an action counts as driven by a send if it happens within
 // 14 days AFTER that send. Last-touch (most recent preceding send wins) so the weekly cadence
 // can't double-count a single action across two consecutive sends.
@@ -112,7 +116,10 @@ function accVStat(s: VStat, e: VRow) {
  */
 function classifyVariant(subject: string | null, metadata: Record<string, unknown> | null): { variant: string; ledWithRank: boolean } {
   const mv = metadata?.variant;
-  if (mv === "family_question" || mv === "leads" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
+  if (mv === "weekly_digest" && metadata?.ledWithRank === true) {
+    return { variant: "market_rank", ledWithRank: true };
+  }
+  if (mv === "family_question" || mv === "leads" || mv === "market_rank" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
     return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
   }
   const s = subject ?? "";
@@ -120,8 +127,8 @@ function classifyVariant(subject: string | null, metadata: Record<string, unknow
   if (/reached out about .+ this week$/i.test(s)) return { variant: "leads", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
   if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
-  const led = /^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s);
-  return { variant: "weekly_digest", ledWithRank: led };
+  if (/^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s)) return { variant: "market_rank", ledWithRank: true };
+  return { variant: "weekly_digest", ledWithRank: false };
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -247,12 +254,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         try {
           const { data: acts } = await db
             .from("provider_activity")
-            .select("provider_id, event_type, created_at")
+            .select("provider_id, event_type, created_at, metadata")
             .in("event_type", Object.values(CONVERSION_EVENT))
             .gte("created_at", since)
             .limit(100000);
-          for (const a of (acts ?? []) as Array<{ provider_id: string | null; event_type: string; created_at: string }>) {
+          for (const a of (acts ?? []) as Array<{ provider_id: string | null; event_type: string; created_at: string; metadata: Record<string, unknown> | null }>) {
             if (!a.provider_id) continue;
+            if (a.event_type === "market_outreach_status_updated") {
+              const status = typeof a.metadata?.status === "string" ? a.metadata.status : null;
+              if (!status || !MARKET_OUTREACH_CONVERSION_STATUSES.has(status)) continue;
+            }
             const byProv = eventTimesByType.get(a.event_type) ?? new Map<string, number[]>();
             const arr = byProv.get(a.provider_id);
             if (arr) arr.push(Date.parse(a.created_at));

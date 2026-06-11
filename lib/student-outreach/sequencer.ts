@@ -360,6 +360,11 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
       return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
     }
   }
+  if (type === "student_org") {
+    // Day 6 org call (phone permitting), paired with the follow-up email. Lead
+    // with the opportunity for their members + the easy share + the speaker.
+    return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. We sent your org a paid healthcare experience opportunity for your members, $10 to $15 an hour, counts toward med, PA, and nursing applications. It is easy to share with your group, and Dr. DuBose would be glad to speak at a meeting. Wanted to see if your members might be interested."`;
+  }
   if (type === "advisor") {
     // Day 6 intro call, paired with the program-info email that goes out the
     // same day. Introduce, signal the info is coming, and tee up the meeting.

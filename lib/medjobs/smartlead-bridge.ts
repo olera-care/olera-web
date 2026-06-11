@@ -32,6 +32,7 @@ import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/c
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
+import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import type { Status } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
@@ -248,6 +249,16 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
     }
   };
 
+  // Per-row student apply link: campus pre-filled + attributed to THIS row's
+  // outreach id, so applies that come through a partner's shared link count for
+  // that partner. Same for both leads on the row.
+  const applyUrl = studentApplyUrl({
+    campusSlug: campus.slug ?? null,
+    universityName: campus.name,
+    partnerOutreachId: row.outreach_id,
+    source: "partner_email",
+  });
+
   const generalEmail = row.email?.trim();
   if (generalEmail && !row.suppressed && row.email_verdict !== "invalid") {
     leads.push({
@@ -269,6 +280,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           // formal cadences the greeting stays neutral.
           salutation: "Hello",
           welcome_url: buildWelcomeFor(generalEmail),
+          apply_url: applyUrl,
         },
       },
     });
@@ -307,6 +319,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           role: c.role ?? "",
           salutation,
           welcome_url: buildWelcomeFor(email),
+          apply_url: applyUrl,
         },
       },
     });
@@ -489,6 +502,10 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
     // the {{welcome_url}} merge tag at send time.
     .replace(/\{welcome_url\}/g, "{{welcome_url}}")
+    // Per-lead application link (campus + that row's outreach id) set in
+    // rowToLeads as custom_fields.apply_url. Lets a partner-shared link trace
+    // applies back to the org that shared it.
+    .replace(/\{apply_url\}/g, "{{apply_url}}")
     .replace(/\{first_name\}/g, "{{first_name}}")
     .replace(/(^|\n)(Hi|Dear) \{salutation\}/g, `$1{salutation}`)
     .replace(/\{salutation\}/g, MERGE_SALUTATION)

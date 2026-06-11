@@ -93,6 +93,10 @@ const PLACEHOLDER = {
    *  Filled per-campaign in toSmartleadHtml from the campus slug; falls back to
    *  PROGRAM_URL on the Resend/preview path (no slug there). */
   programPdf: "{program_pdf}",
+  /** Canonical student apply link, personalized per-partner (campus + that
+   *  row's outreach id) via the per-lead {{apply_url}} Smartlead merge tag set
+   *  in rowToLeads. Applies through it trace back to the org that shared it. */
+  applyUrl: "{apply_url}",
 };
 
 /**
@@ -131,6 +135,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "advisor_info": return advisorInfoEmail(ctx);
     case "advisor_nudge": return advisorNudgeEmail(ctx);
     case "advisor_close": return advisorCloseEmail(ctx);
+    case "org_bump": return orgBumpEmail(ctx);
+    case "org_followup": return orgFollowupEmail(ctx);
+    case "org_close": return orgCloseEmail(ctx);
     case "share": return postAgreedShareEmail(ctx);
     case "seasonal": return partnerSeasonalEmail(ctx, "Pre-Fall");
     case "provider_intro": return providerIntroEmail(ctx, ctx.contacts);
@@ -207,10 +214,13 @@ export function substituteVars(
     welcome_url?: string;
     /** Campus program PDF URL. */
     program_pdf?: string;
+    /** Canonical student apply link (per-partner). */
+    apply_url?: string;
   },
 ): string {
   return text
     .replace(/\{program_pdf\}/g, vars.program_pdf ?? PROGRAM_URL)
+    .replace(/\{apply_url\}/g, vars.apply_url ?? "https://olera.care/medjobs/apply")
     .replace(/\{salutation\}/g, vars.salutation ?? vars.first_name ?? "{salutation}")
     .replace(/\{first_name\}/g, vars.first_name ?? "{first_name}")
     .replace(/\{organization_name\}/g, vars.organization_name ?? "{organization_name}")
@@ -289,25 +299,22 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
 
   switch (stakeholder_type) {
     case "student_org":
-      // Org ask: share the flyer through the org's own channels (listserv,
-      // GroupMe, Discord, Instagram), let us speak at an event, and connect us
-      // with members. Same structure + CTAs as the advisor body.
+      // Org leaders move fast and share natively. Lead with the opportunity +
+      // partner status, make sharing one tap (flyer + the org's application
+      // link), and offer Dr. DuBose as a speaker. No portal in the cold email.
       return {
-        subject,
+        subject: `Paid healthcare experience for your members`,
         body: [
           greeting,
           ``,
-          GRAIZE_INTRO,
+          `I work with Dr. Logan DuBose, MD, MBA (Texas A&M College of Medicine, NIH-funded). We run a program that places pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule.`,
           ``,
-          `I'm reaching out about Olera's ${PLACEHOLDER.campus} Student Caregiver Program, which connects pre-health students at ${PLACEHOLDER.campus} with paid caregiver roles that fit around their coursework.`,
+          `I think it could be a great fit for your members, and we would love to partner with ${PLACEHOLDER.orgName} at ${PLACEHOLDER.campus}. A couple of simple ways we could do that:`,
           ``,
-          programExplanation,
+          `- Share it with your members. Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) for your group chat.`,
+          `- Dr. DuBose would be glad to speak at an org meeting about getting into professional school and building healthcare experience as a pre-health student.`,
           ``,
-          `${PLACEHOLDER.orgName} is exactly the kind of group whose members would benefit. Our one-page flyer is ready to share: [program flyer](${PLACEHOLDER.programPdf}).`,
-          ``,
-          `A few easy ways to help: share the flyer with your members (email listserv, GroupMe, Discord, Slack, or Instagram), let us speak briefly at one of your meetings or events, or connect us with members who'd be interested. You can also [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to learn more, and manage everything from your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
-          ``,
-          `Just reply with any questions — happy to make this as easy as possible for your org.`,
+          `Please let me know if you are interested or have any questions. Thanks!`,
         ].join("\n"),
       };
     case "advisor":
@@ -470,6 +477,50 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
       `We would still love to support your ${PLACEHOLDER.campus} pre-health students. If the timing is better later, we will check back before next semester. Anytime, just reply or grab a time: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+// ── Student-org cadence (value-first, share-led) ────────────────────────
+// Lighter than advisors. Each email stands alone and restates the offer; the
+// application link is the org's unique link so applies count for that org.
+
+/** Touch 2 — one-line bump. Empty subject so Smartlead replies in-thread. */
+export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: ``,
+    body: `Bumping this note about a paid healthcare opportunity for your members.`,
+  };
+}
+
+/** Touch 3 — follow-up (paired with the Day-6 call when a phone exists). */
+export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `A paid opportunity for your members`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `We place pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule.`,
+      ``,
+      `Easy ways to share with your members:`,
+      `- Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) for your group chat.`,
+      `- Dr. DuBose would be glad to speak at one of your meetings.`,
+      ``,
+      `Let me know if you are interested or have any questions. Thanks!`,
+    ].join("\n"),
+  };
+}
+
+/** Touch 4 — short final. */
+export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Checking in for your members`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `Glad to help your members get paid healthcare experience this semester. Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) to share, and Dr. DuBose is happy to speak at a meeting anytime.`,
+      ``,
+      `Just let me know. Thanks!`,
     ].join("\n"),
   };
 }

@@ -30,6 +30,11 @@ export type TemplateKey =
   | "advisor_info"
   | "advisor_nudge"
   | "advisor_close"
+  // Student-org cadence (R1): value-first, share-led, lighter than advisors.
+  // Each email stands alone; the application link is the org's unique link.
+  | "org_bump"
+  | "org_followup"
+  | "org_close"
   // v9 provider cadence — distinct copy targeting agency owners /
   // hiring managers, not university stakeholders.
   | "provider_intro"
@@ -91,23 +96,21 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
     },
     {
       day: 3,
-      title: "Day 3 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
+      title: "Day 3 · one-line bump",
+      steps: [{ id: "email", channel: "email", required: true, template: "org_bump" }],
     },
     {
-      day: 5,
-      title: "Day 5 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
-    },
-    {
-      day: 8,
-      title: "Day 8 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 6,
+      title: "Day 6 · call (if phone) + follow-up email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Call — paid opportunity + speaker offer" },
+        { id: "email", channel: "email", required: true, template: "org_followup" },
+      ],
     },
     {
       day: 10,
-      title: "Day 10 · final email",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+      title: "Day 10 · short final",
+      steps: [{ id: "email", channel: "email", required: true, template: "org_close" }],
     },
   ],
   advisor: [

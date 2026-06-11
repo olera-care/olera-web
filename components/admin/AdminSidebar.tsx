@@ -45,6 +45,7 @@ const navSections: NavSection[] = [
       { label: "Care Seekers", href: "/admin/care-seekers" },
       { label: "Reviews", href: "/admin/reviews" },
       { label: "Emails", href: "/admin/emails" },
+      { label: "Email Verifier", href: "/admin/email-verifier" },
     ],
   },
   {

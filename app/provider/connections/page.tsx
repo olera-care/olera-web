@@ -119,7 +119,6 @@ function LeadDetailInlineView({
   onArchiveClick,
   onVerifyClick,
   onRestore,
-  onDelete,
 }: {
   lead: LeadDetail;
   isVerified: boolean;
@@ -130,10 +129,8 @@ function LeadDetailInlineView({
   onArchiveClick?: () => void;
   onVerifyClick?: () => void;
   onRestore?: (leadId: string) => void;
-  onDelete?: (leadId: string) => void;
 }) {
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(false);
 
@@ -173,15 +170,8 @@ function LeadDetailInlineView({
     onRestore?.(lead.id);
     setTimeout(() => {
       setRestored(false);
-      setShowDeleteConfirm(false);
       onClose();
     }, 1500);
-  };
-
-  const handleDelete = () => {
-    if (!lead) return;
-    onDelete?.(lead.id);
-    onClose();
   };
 
   // Status tag
@@ -531,59 +521,17 @@ function LeadDetailInlineView({
               <p className="text-[15px] font-semibold text-gray-900">Lead restored</p>
               <p className="text-[13px] text-gray-500">Moved back to active leads</p>
             </div>
-          ) : showDeleteConfirm ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
-              <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-[15px] font-semibold text-gray-900">Delete permanently?</p>
-                  <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">This will permanently remove this lead and any message history. This action can&apos;t be undone.</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white hover:bg-red-700 transition-colors"
-                >
-                  Yes, Delete Forever
-                </button>
-              </div>
-            </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                </svg>
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={handleRestore}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-600 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-                </svg>
-                Restore
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleRestore}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-primary-600 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+              </svg>
+              Restore
+            </button>
           )
         ) : isVerified ? (
           // Active footer - horizontal layout with helper text
@@ -646,7 +594,6 @@ function LeadDetailDrawer({
   isOpen,
   onClose,
   onRestore,
-  onDelete,
   onPhoneClick,
   onEmailClick,
   onContinueInInbox,
@@ -658,7 +605,6 @@ function LeadDetailDrawer({
   isOpen: boolean;
   onClose: () => void;
   onRestore: (leadId: string) => void;
-  onDelete: (leadId: string) => void;
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
@@ -668,7 +614,6 @@ function LeadDetailDrawer({
 }) {
   const router = useRouter();
   const [restored, setRestored] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
   const [showFullDetails, setShowFullDetails] = useState(false);
 
@@ -702,7 +647,6 @@ function LeadDetailDrawer({
   useEffect(() => {
     if (!isOpen) {
       setRestored(false);
-      setShowDeleteConfirm(false);
       setCopiedField(null);
     }
   }, [isOpen]);
@@ -710,7 +654,6 @@ function LeadDetailDrawer({
   useEffect(() => {
     if (lead) {
       setRestored(false);
-      setShowDeleteConfirm(false);
       setCopiedField(null);
       setShowFullDetails(false);
     }
@@ -720,11 +663,7 @@ function LeadDetailDrawer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (showDeleteConfirm) {
-          setShowDeleteConfirm(false);
-        } else {
-          onClose();
-        }
+        onClose();
       }
     };
     if (isOpen) {
@@ -735,7 +674,7 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose, showDeleteConfirm]);
+  }, [isOpen, onClose]);
 
   // Navigate to inbox to continue conversation
   const handleContinueInInbox = () => {
@@ -751,15 +690,8 @@ function LeadDetailDrawer({
     onRestore(lead.id);
     setTimeout(() => {
       setRestored(false);
-      setShowDeleteConfirm(false);
       onClose();
     }, 1500);
-  };
-
-  const handleDelete = () => {
-    if (!lead) return;
-    onDelete(lead.id);
-    onClose();
   };
 
   if (!lead) return null;
@@ -1319,59 +1251,17 @@ function LeadDetailDrawer({
       <p className="text-[15px] font-semibold text-gray-900">Lead restored</p>
       <p className="text-[13px] text-gray-500">Moved back to active leads</p>
     </div>
-  ) : showDeleteConfirm ? (
-    <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
-      <div className="flex items-start gap-3.5">
-        <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-[15px] font-semibold text-gray-900">Delete permanently?</p>
-          <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">This will permanently remove this lead and any message history. This action can&apos;t be undone.</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-3 mt-4">
-        <button
-          type="button"
-          onClick={() => setShowDeleteConfirm(false)}
-          className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          Yes, Delete Forever
-        </button>
-      </div>
-    </div>
   ) : (
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        onClick={() => setShowDeleteConfirm(true)}
-        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-        </svg>
-        Delete
-      </button>
-      <button
-        type="button"
-        onClick={handleRestore}
-        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-600 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-        </svg>
-        Restore
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={handleRestore}
+      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-primary-600 text-sm font-semibold text-white hover:bg-primary-700 transition-colors active:scale-[0.98]"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+      </svg>
+      Restore
+    </button>
   );
 
 
@@ -2159,39 +2049,6 @@ export default function ProviderLeadsPage() {
     }
   }, [leads]);
 
-  const handleDeleteLead = useCallback(async (leadId: string) => {
-    // Find the lead to get connectionId
-    const lead = leads.find((l) => l.id === leadId);
-    const connectionId = lead?.connectionId || leadId;
-
-    // Optimistic UI update - remove from list
-    setLeads((prev) => prev.filter((l) => l.id !== leadId));
-    setSelectedLeadId(null);
-
-    // Persist to database via API
-    try {
-      const response = await fetch("/api/connections/manage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId,
-          action: "delete",
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("[delete] API failed:", await response.text());
-        // On failure, refetch to restore the lead
-        fetchLeads(false);
-      }
-    } catch (err) {
-      console.error("[delete] Failed:", err);
-      // On failure, refetch to restore the lead
-      fetchLeads(false);
-    }
-  }, [leads, fetchLeads]);
-
-
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
   const showWhatsAppBanner =
@@ -2701,7 +2558,6 @@ export default function ProviderLeadsPage() {
                 onArchiveClick={() => setLeadIdToArchive(selectedLead.id)}
                 onVerifyClick={handleVerifyFromDrawer}
                 onRestore={handleRestoreLead}
-                onDelete={handleDeleteLead}
               />
             </div>
           )}
@@ -2717,7 +2573,6 @@ export default function ProviderLeadsPage() {
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
         onRestore={handleRestoreLead}
-        onDelete={handleDeleteLead}
         onArchiveClick={setLeadIdToArchive}
         onPhoneClick={(leadId) => {
           if (!providerProfile) return;

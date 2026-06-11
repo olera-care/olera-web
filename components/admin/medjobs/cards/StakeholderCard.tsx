@@ -41,6 +41,7 @@ import type {
   TabKey,
 } from "@/lib/student-outreach/tab-config";
 import { STAGE_DISPLAY, type Stage } from "@/lib/medjobs/stage";
+import { smartleadInboxUrl } from "@/lib/medjobs/smartlead-inbox";
 
 // ── RowCard ──────────────────────────────────────────────────────────────
 
@@ -859,17 +860,5 @@ function renderSmartleadInboxLink(
   );
 }
 
-function smartleadInboxUrl(
-  linkage: TabRow["smartlead_linkage"],
-): string | null {
-  const base = "https://app.smartlead.ai/app/master-inbox";
-  // We always want to surface the link when Smartlead is wired,
-  // even if one of lead_id/campaign_id is missing — root inbox is
-  // a graceful fallback.
-  if (!linkage) return null;
-  const params = new URLSearchParams();
-  if (linkage.lead_id) params.set("lead_id", linkage.lead_id);
-  if (linkage.campaign_id) params.set("campaign_id", linkage.campaign_id);
-  const qs = params.toString();
-  return qs ? `${base}?${qs}` : base;
-}
+// Inbox URL construction lives in lib/medjobs/smartlead-inbox.ts so the
+// awaiting-reply Next Step and both pre-launch modals share one builder.

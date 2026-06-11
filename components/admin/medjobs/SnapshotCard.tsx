@@ -52,6 +52,7 @@ import Input from "@/components/ui/Input";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
 type ActionFn = (
@@ -1475,6 +1476,7 @@ function ResearchActionFooter({
               null,
           }}
           smartleadPreview={ctx.smartlead_preview}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {
             try {

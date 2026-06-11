@@ -22,6 +22,7 @@ import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderP
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
@@ -1114,6 +1115,7 @@ function ResearchModePanel({
           generalContact={{ email: officeEmail ?? null, phone: officePhone }}
           smartleadPreview={ctx.smartlead_preview}
           cadenceKey={type}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
           onSubmit={async (payload) => {
             try {

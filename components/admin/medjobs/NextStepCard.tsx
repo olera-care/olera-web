@@ -40,10 +40,13 @@ import {
   formatLongDate,
   formatRelative,
 } from "@/lib/student-outreach/formatters";
-import type { DistributionEvidence, DrawerContext } from "@/lib/student-outreach/types";
+import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
+import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 
@@ -234,12 +237,25 @@ function InOutreachBody({
           <p className="mt-1 text-xs text-gray-500">{subline}</p>
         </>
       )}
+      {/* Manual-reply escape hatch — jump into the Smartlead inbox to answer
+          this thread by hand instead of waiting on the cadence. */}
+      <p className="mt-1.5">
+        <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
+      </p>
       <ActivationActions ctx={ctx} action={action} setError={setError} source="reply" />
-      <div>
-        <BookMeetingLink ctx={ctx} />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <BookMeetingLink ctx={ctx} inline />
+        {isPartnerRow(ctx) && (
+          <PartnerActivate ctx={ctx} action={action} setError={setError} />
+        )}
       </div>
     </>
   );
+}
+
+/** Stakeholder (non-provider) row → can be promoted to a Recruitment Partner. */
+function isPartnerRow(ctx: DrawerContext): boolean {
+  return ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
 }
 
 // ── call_due ─────────────────────────────────────────────────────────────
@@ -333,8 +349,11 @@ function CallDueBody({
         </details>
       )}
       <ActivationActions ctx={ctx} action={action} setError={setError} source="phone" />
-      <div>
-        <BookMeetingLink ctx={ctx} />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <BookMeetingLink ctx={ctx} inline />
+        {isPartnerRow(ctx) && (
+          <PartnerActivate ctx={ctx} action={action} setError={setError} />
+        )}
       </div>
       <div className="mt-2">
         <button
@@ -370,6 +389,11 @@ function MeetingSetBody({
     <>
       <p className="text-sm font-medium text-gray-900">{sublineCopy}</p>
       <ActivationActions ctx={ctx} action={action} setError={setError} source="meeting" />
+      {isPartnerRow(ctx) && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <PartnerActivate ctx={ctx} action={action} setError={setError} />
+        </div>
+      )}
     </>
   );
 }
@@ -615,14 +639,14 @@ function bookingUrlFor(ctx: DrawerContext): string {
 /** "Book a meeting" — opens this provider's tagged Calendly link in a new tab.
  *  Surfaced on the reply + call faces, the two moments an admin naturally books
  *  on a provider's behalf. */
-function BookMeetingLink({ ctx }: { ctx: DrawerContext }) {
+function BookMeetingLink({ ctx, inline = false }: { ctx: DrawerContext; inline?: boolean }) {
   return (
     <a
       href={bookingUrlFor(ctx)}
       target="_blank"
       rel="noopener noreferrer"
       title="Opens this provider's Calendly link (tagged to this row) so the booking files here automatically."
-      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+      className={`${inline ? "" : "mt-2 "}inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50`}
     >
       📅 Book a meeting
     </a>
@@ -656,41 +680,10 @@ function ActivationActions({
   const [showLaunch, setShowLaunch] = useState(false);
   const [closing, setClosing] = useState(false);
 
-  // Partner activation (Chunk 2.3) — stakeholder rows can be activated directly
-  // by the admin on a clear commitment, without waiting on the portal. Maps the
-  // 4-way confirmation onto the existing distribution_evidence enum (no new
-  // enum/action; reuses mark_partner). Providers never see this.
-  const isPartner = ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
-  const [showActivate, setShowActivate] = useState(false);
-  const [portalLink, setPortalLink] = useState<string | null>(null);
-  const openActivate = async () => {
-    setShowActivate(true);
-    if (portalLink) return;
-    try {
-      const res = await fetch(`/api/admin/medjobs/partner-portal-link?outreach_id=${ctx.outreach.id}`);
-      const d = await res.json();
-      if (res.ok && d.url) setPortalLink(d.url as string);
-    } catch {
-      /* preview link is best-effort */
-    }
-  };
-  const [activating, setActivating] = useState(false);
-  const [confirmMethod, setConfirmMethod] = useState<
-    "email" | "verbal" | "meeting" | "other"
-  >("email");
-  const [confirmNote, setConfirmNote] = useState("");
-  const ACTIVATE_EVIDENCE: Record<typeof confirmMethod, DistributionEvidence> = {
-    email: "explicit_email",
-    verbal: "explicit_verbal",
-    meeting: "explicit_verbal",
-    other: "self_reported",
-  };
-  const ACTIVATE_LABEL: Record<typeof confirmMethod, string> = {
-    email: "Email confirmation",
-    verbal: "Verbal (call) confirmation",
-    meeting: "Confirmed in a meeting",
-    other: "Other confirmation",
-  };
+  // Partner activation ("Make a partner") moved next to Book a meeting on the
+  // email/call/meeting faces via the shared PartnerActivate component, so it's
+  // available both before AND after the activation cadence launches. Providers
+  // never see it.
 
   const primary =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
@@ -754,25 +747,6 @@ function ActivationActions({
     }
   };
 
-  const activatePartner = async () => {
-    setActivating(true);
-    setError(null);
-    try {
-      const note = [ACTIVATE_LABEL[confirmMethod], confirmNote.trim()]
-        .filter(Boolean)
-        .join(" — ");
-      await action("mark_partner", {
-        evidence: ACTIVATE_EVIDENCE[confirmMethod],
-        evidence_notes: note,
-      });
-      setShowActivate(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to activate");
-    } finally {
-      setActivating(false);
-    }
-  };
-
   const stopActivation = async () => {
     setStopping(true);
     setError(null);
@@ -817,15 +791,6 @@ function ActivationActions({
         >
           Interested
         </button>
-        {isPartner && (
-          <button
-            onClick={() => (showActivate ? setShowActivate(false) : openActivate())}
-            title="They clearly agreed to help — activate them as a Recruitment Partner."
-            className="rounded-md border border-primary-300 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100"
-          >
-            Activate partner ★
-          </button>
-        )}
         <button
           onClick={markNotInterested}
           disabled={closing}
@@ -835,72 +800,6 @@ function ActivationActions({
           Not interested
         </button>
       </div>
-      {isPartner && showActivate && (
-        <div className="mt-2 rounded-md border border-primary-200 bg-primary-50/50 px-3 py-2.5">
-          <p className="text-xs font-semibold text-primary-800">
-            Activate {ctx.outreach.organization_name} as a Recruitment Partner
-          </p>
-          <p className="mt-0.5 text-[11px] text-gray-600">
-            They&apos;ll become an active Recruitment Partner with portal access. Here&apos;s what they receive:
-          </p>
-
-          {/* Preview of what the partner gets (transparency, like our outreach
-              review). The portal link is delivered in their outreach/activation
-              emails. */}
-          <div className="mt-1.5 rounded border border-gray-200 bg-white px-2.5 py-2 text-[11px] text-gray-700">
-            <p><span className="text-gray-400">Subject:</span> You&apos;re a Recruitment Partner for {ctx.campus.name} students</p>
-            <p><span className="text-gray-400">From:</span> Graize, on behalf of Dr. Logan DuBose</p>
-            <p className="mt-1">
-              Thanks for partnering with us! Your portal is where you can share the flyer with students,
-              add colleagues, tell us about events, and see your impact.
-            </p>
-            <p className="mt-1">
-              <span className="text-gray-400">Portal link:</span>{" "}
-              {portalLink ? (
-                <a href={portalLink} target="_blank" rel="noopener noreferrer" className="break-all text-primary-600 hover:underline">{portalLink}</a>
-              ) : (
-                <span className="text-gray-400">generating…</span>
-              )}
-            </p>
-          </div>
-
-          <p className="mt-2 text-[11px] text-gray-600">How did they confirm?</p>
-          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
-            {(["email", "verbal", "meeting", "other"] as const).map((m) => (
-              <label key={m} className="flex items-center gap-1.5">
-                <input
-                  type="radio"
-                  name="confirm-method"
-                  checked={confirmMethod === m}
-                  onChange={() => setConfirmMethod(m)}
-                />
-                {m === "email" ? "Email" : m === "verbal" ? "Verbal (call)" : m === "meeting" ? "In a meeting" : "Other"}
-              </label>
-            ))}
-          </div>
-          <input
-            value={confirmNote}
-            onChange={(e) => setConfirmNote(e.target.value)}
-            placeholder="Optional note (e.g. said yes on the Oct 3 call)"
-            className="mt-2 w-full rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-gray-400 focus:outline-none"
-          />
-          <div className="mt-2 flex justify-end gap-2">
-            <button
-              onClick={() => setShowActivate(false)}
-              className="rounded-md px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={activatePartner}
-              disabled={activating}
-              className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
-            >
-              {activating ? "Activating…" : "Activate →"}
-            </button>
-          </div>
-        </div>
-      )}
       {showLaunch && (
         <CadenceLaunchModal
           cadenceKey="activation"
@@ -909,6 +808,7 @@ function ActivationActions({
           campusName={ctx.campus.name}
           recipientName={recipientName}
           recipientEmail={recipientEmail}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowLaunch(false)}
           onSubmit={async (payload) => {
             try {

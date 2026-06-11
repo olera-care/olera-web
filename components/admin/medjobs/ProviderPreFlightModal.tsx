@@ -58,6 +58,8 @@ import {
 import type { Contact, SmartleadPreviewSnapshot } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
 import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
+import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
+import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 
 interface Props {
   organizationName: string;
@@ -95,6 +97,9 @@ interface Props {
   /** Which cadence to render (provider by default). Stakeholder office launch
    *  passes the row's stakeholder_type so the advisor cadence + copy show. */
   cadenceKey?: CadenceKey;
+  /** Smartlead thread linkage, when known, for the manual-reply inbox link.
+   *  Omitted before a campaign exists — the link falls back to the root inbox. */
+  smartleadLinkage?: SmartleadLinkage | null;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -152,6 +157,7 @@ export function ProviderPreFlightModal({
   generalContact,
   smartleadPreview,
   cadenceKey = PROVIDER_CADENCE_KEY,
+  smartleadLinkage,
   onCancel,
   onSubmit,
 }: Props) {
@@ -355,6 +361,10 @@ export function ProviderPreFlightModal({
             <p className="mt-0.5 text-xs text-gray-500">
               {organizationName} · Smartlead campaign. Emails ship from
               findmedjobs.co (warmed); calls queue to the Calls tab.
+            </p>
+            {/* Replies land in Smartlead — open the inbox to answer by hand. */}
+            <p className="mt-1">
+              <SmartleadInboxLink linkage={smartleadLinkage} label="Reply manually in Smartlead" />
             </p>
           </div>
           <button

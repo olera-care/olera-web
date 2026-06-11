@@ -254,9 +254,8 @@ export async function POST(request: Request) {
 
           let systemText = `This provider has passed on this inquiry. Reason: ${archiveReason}`;
           if (archiveMessage) {
-            // Escape quotes to prevent parsing issues on frontend
-            const escapedMessage = archiveMessage.replace(/"/g, '\\"');
-            systemText += `\n"${escapedMessage}"`;
+            // No manual escaping needed - Postgres JSONB serialization handles it
+            systemText += `\n"${archiveMessage}"`;
           }
 
           archiveMeta.thread = [
@@ -288,13 +287,25 @@ export async function POST(request: Request) {
           "other",
         ].includes(archiveReason);
 
-        // Skip email if already archived (prevent duplicate emails)
-        const wasAlreadyArchived = existingMeta.archived === true;
-
         // Only send for inquiry and request connections (not save, application, etc.)
         const isValidConnectionType = connection.type === "inquiry" || connection.type === "request";
 
-        if (shouldNotifyFamily && !wasAlreadyArchived && isValidConnectionType) {
+        if (shouldNotifyFamily && isValidConnectionType) {
+          // Re-check database to prevent race condition on concurrent archive requests
+          // (existingMeta was read before the update, so check current state)
+          const { data: recheck } = await admin
+            .from("connections")
+            .select("metadata")
+            .eq("id", connectionId)
+            .single();
+
+          const recheckMeta = (recheck?.metadata as Record<string, unknown>) || {};
+          const wasAlreadyArchived = recheckMeta.archived === true;
+
+          if (wasAlreadyArchived) {
+            // Another request already archived and sent email, skip to avoid duplicate
+            return NextResponse.json({ status: "archived" });
+          }
           try {
             // Determine family and provider profile IDs based on connection type
             // - "inquiry": from_profile_id = family, to_profile_id = provider

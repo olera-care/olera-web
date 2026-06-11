@@ -132,14 +132,16 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
     },
   ],
+  // Dept heads (all Drs.) get a relationship-first, meeting-oriented cadence.
+  // The Day-0 intro CALL is NOT a queued cadence step — it's an optional,
+  // non-blocking pre-launch intro call surfaced at Pre-Flight (a confirm-the-
+  // person courtesy, only when a phone exists). Post-launch calls (Day 7/11)
+  // remain operational follow-ups.
   dept_head: [
     {
       day: 0,
-      title: "Day 0 · formal intro email + paired call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
+      title: "Day 0 · formal intro email",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 5,

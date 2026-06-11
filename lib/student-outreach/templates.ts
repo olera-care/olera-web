@@ -330,6 +330,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         ].join("\n"),
       };
     case "dept_head":
+      // Relationship-first + meeting-led. The primary CTA is a meeting with
+      // Dr. DuBose (dept heads are senior faculty — all Drs.); the student
+      // flyer is attached for context. We intentionally do NOT push the
+      // partner portal here, and we don't ask for professor-outreach
+      // permission in writing — that conversation happens in the meeting.
       return {
         subject,
         body: [
@@ -337,15 +342,13 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus} whose students might benefit from Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `I'm reaching out because your department works with exactly the pre-health students Olera's ${PLACEHOLDER.campus} Student Caregiver Program was built for.`,
           ``,
           programExplanation,
           ``,
-          `With your approval, we'd love to share this with your department. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT} at your convenience.`,
+          `I've attached our one-page student flyer so you can see exactly what the program offers your students: [student flyer](${PLACEHOLDER.programPdf}).`,
           ``,
-          portalLine,
-          ``,
-          packetLine,
+          `More than anything, Dr. DuBose would value the chance to introduce the program to you directly and learn how your department supports its pre-health students. If you're open to it, you can [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) at a time that suits you — or simply reply here with any questions.`,
         ].join("\n"),
       };
     case "professor":

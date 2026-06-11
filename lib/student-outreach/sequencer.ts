@@ -360,6 +360,17 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
       return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
     }
   }
+  if (type === "dept_head") {
+    if (day === 0) {
+      // Pre-launch intro call (non-blocking, phone permitting). Introduce
+      // ourselves + Dr. DuBose, confirm the right person/email, and signal that
+      // concise info is on the way. Not a pitch. Leave a professional voicemail
+      // along the same lines if there's no answer.
+      return `"Hello, this is {admin_first_name}, a research assistant working with Dr. Logan DuBose at Olera. I'm reaching out to {recipient_name}'s office about our {campus_name} Student Caregiver Program for pre-health students, and I wanted to introduce myself before sending the details. Are you the right person to share this with, or is there a better contact? I'll follow up by email with a short student flyer and an invitation to meet Dr. DuBose."`;
+    }
+    // Follow-up calls (Day 7 / 11): reference the email and offer the meeting.
+    return `"Hello, this is {admin_first_name} from Dr. Logan DuBose's office at Olera, following up on the email about our {campus_name} Student Caregiver Program. I'd love to help set up a few minutes for you and Dr. DuBose to connect — would a short meeting work, or is there anything I can answer for you?"`;
+  }
   return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and ask whether there's a better person to forward the program details to.`;
 }
 

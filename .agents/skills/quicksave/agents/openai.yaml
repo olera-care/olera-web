@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quicksave"
+  short_description: "Save progress, commit, push, and open a staging PR for Vercel preview."
+  default_prompt: "Run quicksave for the current Olera work."

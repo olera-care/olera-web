@@ -157,7 +157,36 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Enhanced filter that checks both business_profiles AND olera-providers for email
+      // Normalized effective on-file email for a connection's provider:
+      // business_profiles.email, else the olera-providers fallback.
+      const effectiveEmailOf = (conn: typeof allConnections[number]): string | null => {
+        const tp = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
+        if (!tp) return null;
+        const raw =
+          tp.email || (tp.source_provider_id ? oleraEmailMap.get(tp.source_provider_id) : null) || null;
+        return raw ? raw.trim().toLowerCase() : null;
+      };
+
+      // An address that's ON FILE but ZeroBounce-verified 'invalid' is effectively
+      // no usable address: the provider keeps getting questions, but the send path
+      // now suppresses the notification — so without this, they'd silently go dark
+      // and the team would never know to re-fetch. Surface them in this same queue.
+      // Reuses the email_verifications cache (no new flag, non-destructive).
+      const onFileEmails = [
+        ...new Set((allConnections ?? []).map(effectiveEmailOf).filter(Boolean) as string[]),
+      ];
+      const invalidEmailSet = new Set<string>();
+      for (let i = 0; i < onFileEmails.length; i += 500) {
+        const { data: verifs } = await db
+          .from("email_verifications")
+          .select("email, status")
+          .in("email", onFileEmails.slice(i, i + 500))
+          .eq("status", "invalid");
+        for (const v of verifs ?? []) invalidEmailSet.add(v.email as string);
+      }
+
+      // Enhanced filter: a provider needs email if it has NO address anywhere, OR
+      // the address on file is verified undeliverable.
       const providerNeedsEmailEnhanced = (conn: typeof allConnections[number]) => {
         const provider = Array.isArray(conn.to_profile) ? conn.to_profile[0] : conn.to_profile;
         if (!provider || provider.is_active === false) return false;
@@ -165,15 +194,8 @@ export async function GET(request: NextRequest) {
         // Check if provider already responded
         if (providerResponded(conn)) return false;
 
-        // Check business_profiles.email first
-        if (provider.email) return false;
-
-        // Check olera-providers.email as fallback
-        if (provider.source_provider_id && oleraEmailMap.has(provider.source_provider_id)) {
-          return false;
-        }
-
-        return true;
+        const effective = effectiveEmailOf(conn);
+        return !effective || invalidEmailSet.has(effective);
       };
 
       // Filter in memory for providers needing email
@@ -183,9 +205,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ count: filtered.length });
       }
 
-      // Apply pagination in memory
+      // Apply pagination in memory, tagging each row so the UI can tell a
+      // missing address apart from a dead one that needs replacing.
       const total = filtered.length;
-      const paginatedConnections = filtered.slice(offset, offset + limit);
+      const paginatedConnections = filtered.slice(offset, offset + limit).map((c) => {
+        const eff = effectiveEmailOf(c);
+        const isInvalid = !!eff && invalidEmailSet.has(eff);
+        return {
+          ...c,
+          email_status: isInvalid ? "invalid" : "missing",
+          flagged_email: isInvalid ? eff : null,
+        };
+      });
 
       // Enrich with provider engagement data (same as non-needsEmail path)
       let engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};

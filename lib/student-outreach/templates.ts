@@ -127,6 +127,10 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "followup_light": return followupLightEmail(ctx);
     case "followup_socialproof": return followupSocialProofEmail(ctx);
     case "followup_final": return followupFinalEmail(ctx);
+    case "advisor_bump": return advisorBumpEmail(ctx);
+    case "advisor_info": return advisorInfoEmail(ctx);
+    case "advisor_nudge": return advisorNudgeEmail(ctx);
+    case "advisor_close": return advisorCloseEmail(ctx);
     case "share": return postAgreedShareEmail(ctx);
     case "seasonal": return partnerSeasonalEmail(ctx, "Pre-Fall");
     case "provider_intro": return providerIntroEmail(ctx, ctx.contacts);
@@ -307,26 +311,22 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         ].join("\n"),
       };
     case "advisor":
-      // Option A: ONE advising body that reads correctly whether it lands at
-      // the office alias OR a named advisor (named = greeting only, like
-      // providers). Supporter angle: share the flyer with students, meet
-      // Dr. DuBose, engage via the recruitment partner portal.
+      // Relationship-first, meeting-led (R1). The cold email's only job is to
+      // earn a meeting. No share ask and no portal here; the flyer is attached
+      // only for context. Sharing + the portal come later (program-info touch +
+      // after the meeting).
       return {
-        subject,
+        subject: `Paid healthcare experience for your pre-health students`,
         body: [
           greeting,
           ``,
           GRAIZE_INTRO,
           ``,
-          `I'm reaching out about Olera's ${PLACEHOLDER.campus} Student Caregiver Program, which was built for the pre-health students your office works with.`,
+          `I'm reaching out about a program we run that places ${PLACEHOLDER.campus} pre-health students in paid caregiving roles with local families and agencies. Students earn $10 to $15 per hour and build real healthcare experience for their med, PA, and nursing school applications, on a schedule that works around their classes. I've attached a one-page flyer so you can see exactly what it offers your students: [program flyer](${PLACEHOLDER.programPdf}).`,
           ``,
-          programExplanation,
+          `Before anything else, Dr. DuBose would value the chance to introduce himself and hear how your office supports its pre-health students. Would you be open to a short call? You can pick a time here: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
           ``,
-          `If you advise pre-health students, we'd love your help getting this in front of the ones who'd benefit most. Our one-page flyer is ready to share: [program flyer](${PLACEHOLDER.programPdf}).`,
-          ``,
-          `A few easy ways to support the program: circulate the flyer to students, [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to learn more, and connect with our partner network through your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
-          ``,
-          `If there's a specific advisor or coordinator who'd be the best point of contact, I'd be glad to connect with them too — otherwise just reply here with any questions.`,
+          `Happy to answer questions by email too, and thank you for the work you do for these students.`,
         ].join("\n"),
       };
     case "dept_head":
@@ -414,6 +414,62 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
       `If now isn't the right time, no worries; we'll check back next term. If there's a better person at ${PLACEHOLDER.orgName} to coordinate with, we'd appreciate a redirect.`,
       ``,
       `Thanks for your time.`,
+    ].join("\n"),
+  };
+}
+
+// ── Advisor relationship-first cadence (meeting-led) ────────────────────
+// Each email stands alone (no narrative threading). The only ask in the cold
+// stretch is a meeting; sharing/portal arrive at the program-info touch.
+
+/** Touch 2 — one-line bump. Empty subject so Smartlead sends it as a reply in
+ *  the same thread with the original email quoted beneath. */
+export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: ``,
+    body: `Bumping this note about a paid opportunity for your pre-health students.`,
+  };
+}
+
+/** Touch 3 — program info (paired with the Day-6 intro call). The first place
+ *  the portal link appears; flyer linked for context; meeting is the CTA. */
+export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Information on the pre-health student program`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `Here is more on the program for your pre-health students. We place ${PLACEHOLDER.campus} pre-health students in paid caregiving roles with local families and agencies. They earn $10 to $15 per hour, build healthcare experience for med, PA, and nursing school, and work around their class schedule. We handle the matching, training, and support.`,
+      ``,
+      `The attached flyer has the details: [student flyer](${PLACEHOLDER.programPdf}). You can also see the full program here: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+      ``,
+      `Once you've looked it over, Dr. DuBose would value a short meeting: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+/** Touch 4 — short, standalone nudge. */
+export function advisorNudgeEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `A paid opportunity for your pre-health students`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `We have room for more ${PLACEHOLDER.campus} pre-health students this semester. They earn $10 to $15 per hour building healthcare experience around their classes.`,
+      ``,
+      `If you would like to learn more, Dr. DuBose is glad to meet: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+    ].join("\n"),
+  };
+}
+
+/** Touch 5 — gracious close that reopens by season. */
+export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Checking in before the semester`,
+    body: [
+      `Hi ${PLACEHOLDER.salutation},`,
+      ``,
+      `We would still love to support your ${PLACEHOLDER.campus} pre-health students. If the timing is better later, we will check back before next semester. Anytime, just reply or grab a time: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
     ].join("\n"),
   };
 }

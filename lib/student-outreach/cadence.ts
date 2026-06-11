@@ -23,6 +23,13 @@ export type TemplateKey =
   | "followup_final"
   | "share"
   | "seasonal"
+  // Advisor relationship-first cadence (R1): meeting-led cold touches; sharing
+  // and the portal are deferred to the warm program-info touch + after the
+  // meeting. Each email stands alone (no narrative threading).
+  | "advisor_bump"
+  | "advisor_info"
+  | "advisor_nudge"
+  | "advisor_close"
   // v9 provider cadence — distinct copy targeting agency owners /
   // hiring managers, not university stakeholders.
   | "provider_intro"
@@ -108,28 +115,31 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       // No Day-0 call for advising offices — they're confirmed by a Pre-Flight
       // call before launch, so a paired Day-0 call would be redundant.
       day: 0,
-      title: "Day 0 · intro email",
+      title: "Day 0 · intro email (meeting-first)",
       steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 3,
-      title: "Day 3 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
+      title: "Day 3 · one-line bump",
+      steps: [{ id: "email", channel: "email", required: true, template: "advisor_bump" }],
     },
     {
-      day: 5,
-      title: "Day 5 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
-    },
-    {
-      day: 8,
-      title: "Day 8 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 6,
+      title: "Day 6 · intro call + program info email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Intro call — info is coming, then the meeting" },
+        { id: "email", channel: "email", required: true, template: "advisor_info" },
+      ],
     },
     {
       day: 10,
-      title: "Day 10 · final email",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+      title: "Day 10 · short nudge",
+      steps: [{ id: "email", channel: "email", required: true, template: "advisor_nudge" }],
+    },
+    {
+      day: 14,
+      title: "Day 14 · seasonal close",
+      steps: [{ id: "email", channel: "email", required: true, template: "advisor_close" }],
     },
   ],
   // Dept heads (all Drs.) get a relationship-first, meeting-oriented cadence.

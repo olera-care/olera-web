@@ -360,6 +360,13 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
       return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
     }
   }
+  if (type === "advisor") {
+    // Day 6 intro call, paired with the program-info email that goes out the
+    // same day. Introduce, signal the info is coming, and tee up the meeting.
+    // Not a pitch; references the email we're about to send (the one place a
+    // call may reference an email).
+    return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. I'm sending over information on a paid program that gives your pre-health students healthcare experience. Once you look it over, Dr. DuBose would love to meet. What's the best email, and is there a good time to talk?"`;
+  }
   if (type === "dept_head") {
     if (day === 0) {
       // Pre-launch intro call (non-blocking, phone permitting). Introduce

@@ -605,11 +605,16 @@ function toSmartleadHtml(
   // we fill it here (per-campaign slug). Stakeholder templates still say
   // "attached information packet" — rewrite that + append the link instead.
   const hasInlinePdf = /\{program_pdf\}/.test(body);
+  // Only auto-append the PDF link for templates that actually reference the
+  // packet (the "information packet" phrasing). Newer templates either inline
+  // {program_pdf} where they want the flyer, or intentionally carry no flyer
+  // (e.g. the one-line bump) — those must NOT get a packet link appended.
+  const mentionsPacket = /information packet/i.test(body);
   let rewritten = body
     .replace(/\{program_pdf\}/g, pdfUrl)
     .replace(/The attached information packet/g, "The program packet (linked below)")
     .replace(/the attached information packet/g, "the program packet (linked below)");
-  if (campusSlug && !hasInlinePdf) {
+  if (campusSlug && !hasInlinePdf && mentionsPacket) {
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));

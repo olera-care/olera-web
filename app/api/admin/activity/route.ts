@@ -91,13 +91,19 @@ async function handleFeedView(db: any, opts: {
   let searchProviderIds: string[] | null = null;
   if (search) {
     const [{ data: iosMatches }, { data: bpMatches }] = await Promise.all([
-      db.from("olera-providers").select("provider_id").ilike("provider_name", `%${search}%`).limit(200),
-      db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).ilike("display_name", `%${search}%`).limit(200),
+      db.from("olera-providers").select("provider_id, slug").ilike("provider_name", `%${search}%`).limit(200),
+      db.from("business_profiles").select("slug, source_provider_id").in("type", ["organization", "caregiver"]).ilike("display_name", `%${search}%`).limit(200),
     ]);
 
     const ids = new Set<string>();
-    for (const p of iosMatches ?? []) ids.add(p.provider_id);
-    for (const p of bpMatches ?? []) ids.add(p.slug);
+    for (const p of iosMatches ?? []) {
+      if (p.provider_id) ids.add(p.provider_id);
+      if (p.slug) ids.add(p.slug);
+    }
+    for (const p of bpMatches ?? []) {
+      if (p.slug) ids.add(p.slug);
+      if (p.source_provider_id) ids.add(p.source_provider_id);
+    }
     searchProviderIds = Array.from(ids);
 
     if (searchProviderIds.length === 0) {
@@ -181,13 +187,33 @@ async function handleFeedView(db: any, opts: {
       }
     }
 
-    // Also check business_profiles for providers not found in olera-providers (slug-based IDs)
+    // Also check olera-providers.slug and business_profiles for canonical slug / BP slug IDs.
     const missingIds = providerIds.filter((id) => !providerMap[id]);
     if (missingIds.length > 0) {
+      const { data: providersBySlug } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, provider_category, city, state, slug")
+        .in("slug", missingIds);
+
+      if (providersBySlug) {
+        for (const p of providersBySlug) {
+          providerMap[p.slug] = {
+            name: p.provider_name,
+            category: p.provider_category,
+            city: p.city,
+            state: p.state,
+            slug: p.slug,
+          };
+        }
+      }
+    }
+
+    const stillMissingIds = providerIds.filter((id) => !providerMap[id]);
+    if (stillMissingIds.length > 0) {
       const { data: bps } = await db
         .from("business_profiles")
         .select("slug, display_name, category, city, state")
-        .in("slug", missingIds);
+        .in("slug", stillMissingIds);
 
       if (bps) {
         for (const bp of bps) {
@@ -376,13 +402,34 @@ async function handleProvidersView(db: any, opts: {
       }
     }
 
-    // Also check slug-based provider IDs
+    // Also check canonical olera-providers.slug and business_profiles slug IDs.
     const missingIds = providerIds.filter((id) => !providerMap[id]);
     if (missingIds.length > 0) {
+      const { data: providersBySlug } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, provider_category, city, state, slug")
+        .in("slug", missingIds);
+
+      if (providersBySlug) {
+        for (const p of providersBySlug) {
+          providerMap[p.slug] = {
+            name: p.provider_name,
+            category: p.provider_category,
+            city: p.city,
+            state: p.state,
+            slug: p.slug,
+            claimed: claimedSet.has(p.provider_id),
+          };
+        }
+      }
+    }
+
+    const stillMissingIds = providerIds.filter((id) => !providerMap[id]);
+    if (stillMissingIds.length > 0) {
       const { data: bps } = await db
         .from("business_profiles")
         .select("slug, display_name, category, city, state, claim_state")
-        .in("slug", missingIds);
+        .in("slug", stillMissingIds);
 
       if (bps) {
         for (const bp of bps) {

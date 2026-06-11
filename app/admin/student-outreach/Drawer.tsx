@@ -20,6 +20,11 @@ import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
+import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
+import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
@@ -36,6 +41,7 @@ import {
   type Status,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import { cleanOrgName } from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
   OTHER,
@@ -241,9 +247,10 @@ function StakeholderDrawer({
                 .join(" ")
                 .trim() || primary.name || null
             : null;
-          const headline = contactDisplay || ctx.outreach.organization_name;
+          const orgDisplay = cleanOrgName(ctx.outreach.organization_name);
+          const headline = contactDisplay || orgDisplay;
           const showOrgInSubline =
-            !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+            !!contactDisplay && contactDisplay !== orgDisplay;
           // v8.10.37: surface a small "★ Partner since {date}" indicator
           // for active partners. NextStepPanel is suppressed for partners,
           // so without this header cue the drawer wouldn't show their
@@ -260,7 +267,7 @@ function StakeholderDrawer({
               <p className="truncate text-sm text-gray-500">
                 {showOrgInSubline && (
                   <>
-                    {ctx.outreach.organization_name}
+                    {orgDisplay}
                     {ctx.outreach.department &&
                       ctx.outreach.department !== ctx.outreach.organization_name &&
                       ` · ${ctx.outreach.department}`}
@@ -814,6 +821,9 @@ function DrawerBody({
           convey state for active-partner / closed states. The banner
           was repeating those signals one row above them. */}
       {isResearch ? (
+        // The Research Card is the source of truth — website, notes, and the
+        // sources collapsible live inside it. (The separate Partner Pre-Flight
+        // card was redundant and was removed.)
         <ResearchModePanel ctx={ctx} action={action} setError={setError} />
       ) : (
         // v9: unified NextStepCard replaces the Partner-specific
@@ -924,7 +934,9 @@ function ResearchModePanel({
 }) {
   const status = ctx.outreach.status;
   const type = ctx.outreach.stakeholder_type;
+  const isOffice = type === "advisor";
   const [showPreFlight, setShowPreFlight] = useState(false);
+  const [showCallConfirm, setShowCallConfirm] = useState(false);
 
   // Readiness gating per stage.
   const haveContact = ctx.contacts.some((c) => c.status === "active");
@@ -934,64 +946,145 @@ function ResearchModePanel({
     (c) => c.status === "active" && c.email,
   ).length;
 
+  // Office readiness (R: ready = at least one email — office OR a member;
+  // phone/name optional). Offices have no "programs" requirement.
+  const rd = (ctx.outreach.research_data ?? {}) as Record<string, unknown>;
+  const officeEmail = ((rd.general_contact ?? {}) as { email?: string }).email;
+  const members = (Array.isArray(rd.office_members) ? rd.office_members : []) as { email?: string }[];
+  const hasOfficeEmail = Boolean(officeEmail) || members.some((m) => m?.email) || eligibleEmail > 0;
+
   const isProspect = status === "prospect";
-  const ready = isProspect ? haveContact && havePrograms && haveDept : eligibleEmail > 0;
+  const ready = isOffice
+    ? hasOfficeEmail
+    : isProspect
+      ? haveContact && havePrograms && haveDept
+      : eligibleEmail > 0;
 
   // v8.10.11: orientation copy trimmed — the section h3 ("RESEARCH")
   // already says what the section is for, so the prefix sentence
   // ("Research this stakeholder." / "Ready to email.") was redundant.
   // What's left is the actionable bit only.
-  const orientation = isProspect ? (
+  // Office prospects mirror provider Pre-Flight EXACTLY: outreach is gated on a
+  // logged confirmation call. The launcher stays disabled until a "Confirmed"
+  // call outcome is logged (or Pre-Flight is overridden) — same verification
+  // state, same modal (CallForEmailModal) as providers.
+  const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
+  const verificationState = getVerificationState(ctx.touchpoints, overridden);
+  const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
+
+  // Office launch: materialize advisors-with-email as named contacts (so they
+  // become recipients alongside the general office), then open the per-recipient
+  // review modal — the same one providers use.
+  const officeMembersFull = (Array.isArray(rd.office_members) ? rd.office_members : []) as Array<{
+    name?: string;
+    title?: string;
+    email?: string;
+    phone?: string;
+  }>;
+  const launchOffice = async () => {
+    try {
+      // Offices skip the explicit "Research complete" click — transition here,
+      // transparently, on the way to launch (prospect → researched is required
+      // before outreach_sent).
+      if (ctx.outreach.status === "prospect") await action("mark_research_complete");
+      const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      const gcLc = officeEmail?.toLowerCase();
+      for (const m of officeMembersFull) {
+        const em = m.email?.trim().toLowerCase();
+        if (!em || em === gcLc || existing.has(em)) continue;
+        existing.add(em);
+        await action("add_contact", { name: m.name, title: m.title ?? null, email: m.email, phone: m.phone });
+      }
+      setShowPreFlight(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't prepare recipients");
+    }
+  };
+
+  // Offices skip the redundant "Research complete" pre-state — they're
+  // generated WITH contact info, so they land straight on Pre-Flight (confirm
+  // by call, then launch). Only non-office stakeholders keep the prospect step.
+  const orientation = isOffice ? (
+    <>Check the info, call to confirm, then launch outreach.</>
+  ) : isProspect ? (
     <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
-    <>
-      Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.
-    </>
+    <>Check the info, call to confirm, then launch outreach.</>
   );
 
-  const checklist = isProspect
-    ? [
-        { done: haveContact, label: "At least one active contact added" },
-        { done: havePrograms, label: "Programs selected" },
-        ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
-      ]
-    : [{ done: eligibleEmail > 0, label: `Active contact with email (${eligibleEmail} found)` }];
+  const checklist = isOffice
+    ? [] // offices: the buttons (Call to Confirm → Launch) carry the workflow; no checklist line
+    : isProspect
+      ? [
+          { done: haveContact, label: "At least one active contact added" },
+          { done: havePrograms, label: "Programs selected" },
+          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
+        ]
+      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
-  const ctaLabel = isProspect
-    ? ready
+  // CTA: offices show Pre-Flight (Verification + Call to Confirm + Launch) at
+  // any research status; non-office prospects keep the Research-complete step.
+  let cta: React.ReactNode;
+  if (!isOffice && isProspect) {
+    const label = ready
       ? "✓ Research complete — review email sequence"
-      : "Add a contact + programs to continue"
-    : ready
-      ? "Start email sequence →"
-      : "Add a contact with email to continue";
-
-  // v8.10.5: prospect's CTA chains mark_research_complete with opening
-  // PreFlight. Removes the previous "two clicks to schedule" friction
-  // — admin transitions to researched AND lands on the email-review
-  // modal in one action. ctx re-renders to the researched-stage label
-  // behind the modal, but admin doesn't have to click again.
-  const onCtaClick = isProspect
-    ? async () => {
-        try {
-          await action("mark_research_complete");
-          setShowPreFlight(true);
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "Action failed");
-        }
-      }
-    : () => setShowPreFlight(true);
-
-  const cta = (
-    <button
-      onClick={onCtaClick}
-      disabled={!ready}
-      className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-        ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-      }`}
-    >
-      {ctaLabel}
-    </button>
-  );
+      : "Add a contact + programs to continue";
+    cta = (
+      <button
+        onClick={async () => {
+          try {
+            await action("mark_research_complete");
+            setShowPreFlight(true);
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Action failed");
+          }
+        }}
+        disabled={!ready}
+        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        {label}
+      </button>
+    );
+  } else if (isOffice) {
+    // Two actions only — Call to Confirm, then Launch. Launch unlocks once the
+    // call is confirmed (the verification card was removed: the button state
+    // already conveys it).
+    cta = (
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowCallConfirm(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          📞 Call to Confirm
+        </button>
+        <button
+          onClick={() => {
+            if (verificationState.can_launch) void launchOffice();
+            else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
+          }}
+          disabled={!verificationState.can_launch}
+          title={verificationState.can_launch ? "Review recipients and launch outreach." : "Confirm the office on a call first."}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {verificationState.status === "overridden" ? "Launch outreach (override) →" : "Launch outreach →"}
+        </button>
+      </div>
+    );
+  } else {
+    cta = (
+      <button
+        onClick={() => setShowPreFlight(true)}
+        disabled={!ready}
+        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        {ready ? "Start email sequence →" : "Add a contact with email to continue"}
+      </button>
+    );
+  }
 
   return (
     <>
@@ -1001,7 +1094,41 @@ function ResearchModePanel({
         setError={setError}
         research={{ orientation, checklist, cta }}
       />
-      {showPreFlight && (
+      {showCallConfirm && (
+        <CallForEmailModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          phone={officePhone}
+          action={action}
+          onCancel={() => setShowCallConfirm(false)}
+          onDone={() => setShowCallConfirm(false)}
+          setError={setError}
+        />
+      )}
+      {showPreFlight && isOffice && (
+        <ProviderPreFlightModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
+          contacts={ctx.contacts}
+          generalContact={{ email: officeEmail ?? null, phone: officePhone }}
+          smartleadPreview={ctx.smartlead_preview}
+          cadenceKey={type}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("schedule_sequence", payload);
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showPreFlight && !isOffice && (
         <PreFlightReviewModal
           stakeholderType={type}
           organizationName={ctx.outreach.organization_name}
@@ -1083,6 +1210,35 @@ function ResearchSection({
   const [email, setEmail] = useState(primary?.email ?? "");
   const [phone, setPhone] = useState(primary?.phone ?? "");
 
+  // Office-shaped advisor rows: an advising OFFICE has org-level contact info
+  // (general email/phone/website in research_data.general_contact) + a people
+  // roster (office_members) — not a single person. No person form, no programs.
+  const isOffice = type === "advisor";
+  const gc0 = ((ctx.outreach.research_data as Record<string, unknown>).general_contact ?? {}) as {
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
+  };
+  const [officeEmail, setOfficeEmail] = useState(gc0.email ?? "");
+  const [officePhone, setOfficePhone] = useState(gc0.phone ?? "");
+  const [officeWebsite, setOfficeWebsite] = useState(gc0.website ?? "");
+  const saveOfficeContact = async () => {
+    try {
+      await action("update_research", {
+        research: {
+          general_contact: {
+            ...gc0,
+            email: officeEmail.trim() || null,
+            phone: officePhone.trim() || null,
+            website: officeWebsite.trim() || null,
+          },
+        },
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  };
+
   const saveResearch = async () => {
     try {
       await action("update_research", {
@@ -1093,26 +1249,38 @@ function ResearchSection({
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
-  const saveOutreach = async () => {
+  // Accepts explicit overrides so dropdown onChange handlers persist the NEW
+  // value instead of the stale render-closure state (the prior setTimeout
+  // pattern saved the previous selection — e.g. the first program pick saved
+  // an empty list, leaving "Programs selected" stuck unchecked).
+  const saveOutreach = async (overrides?: { programs?: string[]; department?: string | null }) => {
     try {
-      const departmentValue = department === OTHER ? departmentOther.trim() || null : department || null;
+      const departmentValue =
+        overrides?.department !== undefined
+          ? overrides.department
+          : department === OTHER
+            ? departmentOther.trim() || null
+            : department || null;
+      const programsValue = overrides?.programs ?? programs;
       await action("update_outreach", {
         organization_name: orgName,
         department: departmentValue,
-        programs,
+        programs: programsValue,
       });
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
   const savePrimaryContact = async () => {
     if (!primary) {
-      // No contact exists yet; create one. Only fire when there's at least a first name.
-      if (!firstName.trim()) return;
+      // No contact exists yet; create one. Partners often have only a shared
+      // general email (e.g. hpo@…) with no named person — so an email alone is
+      // enough; we don't require a name.
+      if (!firstName.trim() && !email.trim()) return;
       try {
         await action("add_contact", {
           title: title.trim() || null,
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
           email: email.trim() || null,
           phone: phone.trim() || null,
           is_primary: true,
@@ -1133,7 +1301,14 @@ function ResearchSection({
   };
 
   const showDepartment = type === "dept_head" || type === "professor";
-  const showOrgName = type === "student_org"; // others auto-derive
+  const showOrgName = type === "student_org" || isOffice; // offices need a name
+
+  // Source link by the name = the website / first research source where we
+  // found them (replaces the website field + the old sources dropdown).
+  const researchLinks = (((r as Record<string, unknown>).research_links ?? []) as Array<{ title?: string; url?: string }>).filter((s) => s?.url);
+  const sourceUrl = (gc0.website?.trim() || researchLinks[0]?.url || "") || null;
+
+  const notesField = <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />;
 
   return (
     <section>
@@ -1145,7 +1320,22 @@ function ResearchSection({
           <Guidance>{research.orientation}</Guidance>
         )}
         {showOrgName && (
-          <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+          <NameWithSource
+            label={isOffice ? "Office name" : "Organization name"}
+            value={orgName}
+            onChange={setOrgName}
+            onBlur={saveOutreach}
+            sourceUrl={sourceUrl}
+          />
+        )}
+
+        {/* Office-level contact (the outreach target). Website lives in the
+            source link by the name; people go in the Advisors section. */}
+        {isOffice && (
+          <div className="grid grid-cols-2 gap-2">
+            <Field type="email" label="General email" value={officeEmail} onChange={setOfficeEmail} onBlur={saveOfficeContact} placeholder="hpo@uni.edu" />
+            <Field label="General phone" value={officePhone} onChange={setOfficePhone} onBlur={saveOfficeContact} />
+          </div>
         )}
 
         {showDepartment && (
@@ -1153,7 +1343,7 @@ function ResearchSection({
             <Select
               label="Department"
               value={department}
-              onChange={(v) => { setDepartment(v); setTimeout(saveOutreach, 0); }}
+              onChange={(v) => { setDepartment(v); saveOutreach({ department: v === OTHER ? null : v || null }); }}
               options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
             />
             {department === OTHER && (
@@ -1167,8 +1357,9 @@ function ResearchSection({
           </>
         )}
 
-        {/* v8.7: primary contact embedded for single-contact types */}
-        {!isMultiContact && (
+        {/* v8.7: primary contact embedded for single-contact types (not offices —
+            offices use the general-contact fields above + the people roster). */}
+        {!isMultiContact && !isOffice && (
           <>
             {showTitleField && (
               <Field
@@ -1188,12 +1379,12 @@ function ResearchSection({
           </>
         )}
 
-        {/* Programs */}
-        {singleProgram(type) ? (
+        {/* Programs — not shown for advising offices. */}
+        {isOffice ? null : singleProgram(type) ? (
           <Select
             label="Program"
             value={programs[0] ?? ""}
-            onChange={(v) => { setPrograms(v ? [v] : []); setTimeout(saveOutreach, 0); }}
+            onChange={(v) => { const next = v ? [v] : []; setPrograms(next); saveOutreach({ programs: next }); }}
             options={programOptions.map((p) => ({ value: p, label: p }))}
           />
         ) : (
@@ -1204,19 +1395,37 @@ function ResearchSection({
             onToggle={(v) => {
               const next = programs.includes(v) ? programs.filter((p) => p !== v) : [...programs, v];
               setPrograms(next);
-              setTimeout(saveOutreach, 0);
+              saveOutreach({ programs: next });
             }}
           />
         )}
 
-        <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
+        {/* Advisors — the SAME shared component the Provider drawer uses for
+            Decision makers. Stored in research_data; materialized into recipients
+            at launch (launchOffice). */}
+        {type === "advisor" && (
+          <SpecificContactsSection
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            researchKey="office_members"
+            title="Advisors"
+            primaryRoleLabel="Advisor"
+            addLabel="Add an advisor"
+            helpText="Advisors at this office. Anyone with an email becomes a selectable recipient at launch, alongside the general office contact."
+          />
+        )}
 
         {research && (
           <>
-            <ChecklistInline items={research.checklist} />
+            {research.checklist.length > 0 && <ChecklistInline items={research.checklist} />}
             <div className="pt-1">{research.cta}</div>
           </>
         )}
+
+        {/* Research notes sit BELOW the workflow (call to confirm + launch) so
+            they don't interrupt the main path. */}
+        {notesField}
       </div>
     </section>
   );
@@ -1331,7 +1540,7 @@ function AddContactInline({
   return (
     <div className="space-y-2 rounded-md border border-dashed border-gray-200 p-3">
       <div className="grid grid-cols-2 gap-2">
-        <Field label="First name *" value={firstName} onChange={setFirstName} />
+        <Field label="First name" value={firstName} onChange={setFirstName} />
         <Field label="Last name" value={lastName} onChange={setLastName} />
       </div>
       <Select
@@ -1350,11 +1559,12 @@ function AddContactInline({
         Primary contact
       </label>
       <PrimaryButton onClick={async () => {
-        if (!firstName.trim()) { setError("First name required"); return; }
+        // A name OR an email is enough — partners may share one general inbox.
+        if (!firstName.trim() && !email.trim()) { setError("Add a name or an email"); return; }
         try {
           await action("add_contact", {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
+            first_name: firstName.trim() || null,
+            last_name: lastName.trim() || null,
             role: role === OTHER ? roleOther : role,
             email,
             phone,
@@ -1839,6 +2049,44 @@ function SmallButton({ children, onClick }: { children: React.ReactNode; onClick
     >
       {children}
     </button>
+  );
+}
+
+/** Name field with a green "source" link on the right of the label — opens the
+ *  website / research source where we found the record. Shared visual pattern
+ *  with the Provider Research Card. */
+function NameWithSource({
+  label, value, onChange, onBlur, sourceUrl,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  sourceUrl: string | null;
+}) {
+  return (
+    <div className="block">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-gray-600">{label}</span>
+        {sourceUrl && (
+          <a
+            href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+            title="Open the website / research source"
+          >
+            🌐 source ↗
+          </a>
+        )}
+      </div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+      />
+    </div>
   );
 }
 

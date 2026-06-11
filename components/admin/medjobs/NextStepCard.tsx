@@ -44,6 +44,9 @@ import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
+import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 
@@ -234,12 +237,25 @@ function InOutreachBody({
           <p className="mt-1 text-xs text-gray-500">{subline}</p>
         </>
       )}
+      {/* Manual-reply escape hatch — jump into the Smartlead inbox to answer
+          this thread by hand instead of waiting on the cadence. */}
+      <p className="mt-1.5">
+        <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
+      </p>
       <ActivationActions ctx={ctx} action={action} setError={setError} source="reply" />
-      <div>
-        <BookMeetingLink ctx={ctx} />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <BookMeetingLink ctx={ctx} inline />
+        {isPartnerRow(ctx) && (
+          <PartnerActivate ctx={ctx} action={action} setError={setError} />
+        )}
       </div>
     </>
   );
+}
+
+/** Stakeholder (non-provider) row → can be promoted to a Recruitment Partner. */
+function isPartnerRow(ctx: DrawerContext): boolean {
+  return ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
 }
 
 // ── call_due ─────────────────────────────────────────────────────────────
@@ -333,8 +349,11 @@ function CallDueBody({
         </details>
       )}
       <ActivationActions ctx={ctx} action={action} setError={setError} source="phone" />
-      <div>
-        <BookMeetingLink ctx={ctx} />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <BookMeetingLink ctx={ctx} inline />
+        {isPartnerRow(ctx) && (
+          <PartnerActivate ctx={ctx} action={action} setError={setError} />
+        )}
       </div>
       <div className="mt-2">
         <button
@@ -370,6 +389,11 @@ function MeetingSetBody({
     <>
       <p className="text-sm font-medium text-gray-900">{sublineCopy}</p>
       <ActivationActions ctx={ctx} action={action} setError={setError} source="meeting" />
+      {isPartnerRow(ctx) && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <PartnerActivate ctx={ctx} action={action} setError={setError} />
+        </div>
+      )}
     </>
   );
 }
@@ -615,14 +639,14 @@ function bookingUrlFor(ctx: DrawerContext): string {
 /** "Book a meeting" — opens this provider's tagged Calendly link in a new tab.
  *  Surfaced on the reply + call faces, the two moments an admin naturally books
  *  on a provider's behalf. */
-function BookMeetingLink({ ctx }: { ctx: DrawerContext }) {
+function BookMeetingLink({ ctx, inline = false }: { ctx: DrawerContext; inline?: boolean }) {
   return (
     <a
       href={bookingUrlFor(ctx)}
       target="_blank"
       rel="noopener noreferrer"
       title="Opens this provider's Calendly link (tagged to this row) so the booking files here automatically."
-      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+      className={`${inline ? "" : "mt-2 "}inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50`}
     >
       📅 Book a meeting
     </a>
@@ -655,6 +679,11 @@ function ActivationActions({
 }) {
   const [showLaunch, setShowLaunch] = useState(false);
   const [closing, setClosing] = useState(false);
+
+  // Partner activation ("Make a partner") moved next to Book a meeting on the
+  // email/call/meeting faces via the shared PartnerActivate component, so it's
+  // available both before AND after the activation cadence launches. Providers
+  // never see it.
 
   const primary =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
@@ -774,10 +803,12 @@ function ActivationActions({
       {showLaunch && (
         <CadenceLaunchModal
           cadenceKey="activation"
+          isPartner={ctx.outreach.kind != null && ctx.outreach.kind !== "provider"}
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           recipientName={recipientName}
           recipientEmail={recipientEmail}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowLaunch(false)}
           onSubmit={async (payload) => {
             try {

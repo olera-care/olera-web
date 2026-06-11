@@ -31,7 +31,7 @@ import {
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
-import { buildWelcomeUrl } from "@/lib/medjobs/welcome-token";
+import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import type { Status } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
@@ -233,10 +233,12 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
   const buildWelcomeFor = (email: string): string => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {
-      return buildWelcomeUrl(
-        { outreach_id: row.outreach_id, email },
-        magicLinkSecret,
-      );
+      // Partners (stakeholder rows) get the Recruitment Partner Portal link in
+      // their cold email so they can learn more, share the flyer, add
+      // colleagues, and self-activate. Providers get the provider magic link.
+      return row.kind === "provider"
+        ? buildWelcomeUrl({ outreach_id: row.outreach_id, email }, magicLinkSecret)
+        : buildPartnerPortalUrl({ outreach_id: row.outreach_id, email }, magicLinkSecret);
     } catch (e) {
       console.error(
         "[smartlead-bridge] buildWelcomeUrl failed:",
@@ -370,6 +372,8 @@ export interface SequenceOptions {
    *  link instead. Without a slug, the body's "attached information
    *  packet" phrasing is rewritten to a neutral fallback. */
   campusSlug?: string | null;
+  /** Activation audience — partner (advisor) copy vs provider. */
+  isPartner?: boolean;
 }
 
 /**
@@ -393,7 +397,9 @@ export function buildEmailSequence(
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
   const ctxStakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
+    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? "student_org"
+      : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
@@ -408,6 +414,8 @@ export function buildEmailSequence(
     // body copy itself), so one sequence covers both per-lead salutations
     // without duplicating the campaign.
     variant: "general" as const,
+    // Activation copy audience (partner vs provider). Inert for cold cadences.
+    is_partner: opts.isPartner ?? false,
     contacts: [],
   };
 
@@ -1080,6 +1088,13 @@ export interface ActivationEnrollInput {
    *  research_data.smartlead_activation.campaign_id). Append to it when set;
    *  provision a new PAUSED activation campaign when absent. */
   existingCampaignId?: number;
+  /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
+   *  their welcome_url; providers get the provider magic link (DF-3b). */
+  is_partner?: boolean;
+  /** Which single-lead email cadence to enroll into. Defaults to the
+   *  "activation" sequence; the partner-welcome nurture passes
+   *  "partner_welcome". Both are single-lead, separate-per-campus campaigns. */
+  cadenceKey?: CadenceKey;
   /** The ONE engaged contact the activation cadence targets (not a fan-out). */
   recipient: {
     email: string;
@@ -1124,10 +1139,14 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
   const welcomeUrl = (() => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {
-      return buildWelcomeUrl(
-        { outreach_id: input.outreach_id, email, activate: true },
-        magicLinkSecret,
-      );
+      // Partners → Recruitment Partner Portal (token self-activates there).
+      // Providers → provider magic link with the activate flag (opens Terms).
+      return input.is_partner
+        ? buildPartnerPortalUrl({ outreach_id: input.outreach_id, email }, magicLinkSecret)
+        : buildWelcomeUrl(
+            { outreach_id: input.outreach_id, email, activate: true },
+            magicLinkSecret,
+          );
     } catch {
       return PROGRAM_URL;
     }
@@ -1170,9 +1189,10 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
     return result;
   }
-  const steps = buildEmailSequence("activation", {
+  const steps = buildEmailSequence(input.cadenceKey ?? "activation", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
+    isPartner: input.is_partner ?? false,
   });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   result.errors.push(...prov.errors);

@@ -64,3 +64,18 @@ export function humanChannel(channel: string): string {
       return channel;
   }
 }
+
+/**
+ * Clean AI artifacts out of an organization name for display. The partner
+ * sourcing AI sometimes puts a description in the name field for offices with
+ * no named person (e.g. "Health Professions Office (not a named person)").
+ * Strip those parentheticals so cards/headers read cleanly. Does not mutate
+ * stored data — display-only.
+ */
+export function cleanOrgName(name: string | null | undefined): string {
+  if (!name) return "";
+  return name
+    .replace(/\s*\((?:not a named person|no named[^)]*|general contact|general)\)\s*/gi, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}

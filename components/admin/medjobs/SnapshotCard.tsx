@@ -328,9 +328,7 @@ export function ProviderSnapshotCard({
           rows={3}
           size="sm"
         />
-        <p className="mt-0.5 text-[11px] text-gray-400">
-          {savingNotes ? "Saving…" : "Saved on blur"}
-        </p>
+        {savingNotes && <p className="mt-0.5 text-[11px] text-gray-400">Saving…</p>}
       </div>
     </section>
   );
@@ -772,49 +770,8 @@ function GeneralContactSection({
           <SaveStatusBadge saving={saving} savedAt={savedAt} />
         </div>
       </div>
+      {/* Website moved to the green "source" link by the Business Name. */}
       <dl className="grid grid-cols-[16px_88px_1fr] gap-x-3 gap-y-1.5 text-sm">
-        <CoverageRow
-          checked={Boolean(website) || websiteUnavailable}
-          label="Website"
-        >
-          {editable ? (
-            <div className="space-y-1">
-              <Input
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                onBlur={() => saveField("website", website)}
-                placeholder="https://agency.com"
-                disabled={websiteUnavailable}
-                size="sm"
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable("website_unavailable", !websiteUnavailable)
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {websiteUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
-            </div>
-          ) : websiteUnavailable ? (
-            <span className="text-gray-500">Marked not available</span>
-          ) : website ? (
-            <a
-              href={website.startsWith("http") ? website : `https://${website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block truncate text-primary-700 hover:underline"
-            >
-              {website}
-            </a>
-          ) : (
-            <span className="text-gray-400">Not on file</span>
-          )}
-        </CoverageRow>
         <CoverageRow
           checked={Boolean(phone) || phoneUnavailable}
           label="Phone"
@@ -832,26 +789,9 @@ function GeneralContactSection({
                   onChange={(e) => setPhone(e.target.value)}
                   onBlur={() => saveField("phone", phone)}
                   placeholder="(555) 123-4567"
-                  disabled={phoneUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!phone && !phoneUnavailable}
-                label="Find phone"
-                busy={finding === "phone" || finding === "all"}
-                disabled={finding !== null}
-                onClick={() => findContact("phone")}
-                note={findNote.phone}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() => toggleUnavailable("phone_unavailable", !phoneUnavailable)}
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {phoneUnavailable ? "Revert (mark available)" : "Mark not available"}
-              </button>
             </div>
           ) : phoneUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -880,26 +820,9 @@ function GeneralContactSection({
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => saveField("email", email)}
                   placeholder="info@agency.com"
-                  disabled={emailUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!email && !emailUnavailable}
-                label="Find email"
-                busy={finding === "email" || finding === "both"}
-                disabled={finding !== null}
-                onClick={() => findContact("email")}
-                note={findNote.email}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() => toggleUnavailable("email_unavailable", !emailUnavailable)}
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {emailUnavailable ? "Revert (mark available)" : "Mark not available"}
-              </button>
             </div>
           ) : emailUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -961,26 +884,6 @@ function GeneralContactSection({
                   />
                 </div>
               </div>
-              <FindRow
-                showButton={!addressComplete && !addressUnavailable}
-                label="Find address"
-                busy={finding === "address" || finding === "all"}
-                disabled={finding !== null}
-                onClick={() => findContact("address")}
-                note={findNote.address}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable("address_unavailable", !addressUnavailable)
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {addressUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
             </div>
           ) : addressUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -1006,26 +909,9 @@ function GeneralContactSection({
                   onChange={(e) => setFax(e.target.value)}
                   onBlur={() => saveField("fax", fax)}
                   placeholder="(555) 123-9999"
-                  disabled={faxUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!fax && !faxUnavailable}
-                label="Find fax"
-                busy={finding === "fax" || finding === "all"}
-                disabled={finding !== null}
-                onClick={() => findContact("fax")}
-                note={findNote.fax}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() => toggleUnavailable("fax_unavailable", !faxUnavailable)}
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {faxUnavailable ? "Revert (mark available)" : "Mark not available"}
-              </button>
             </div>
           ) : faxUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -1052,33 +938,9 @@ function GeneralContactSection({
                   onChange={(e) => setContactFormUrl(e.target.value)}
                   onBlur={() => saveField("contact_form_url", contactFormUrl)}
                   placeholder="https://agency.com/contact"
-                  disabled={contactFormUnavailable}
                   size="sm"
                 />
               </div>
-              <FindRow
-                showButton={!contactFormUrl && !contactFormUnavailable}
-                label="Find contact form"
-                busy={finding === "contact_form" || finding === "both"}
-                disabled={finding !== null}
-                onClick={() => findContact("contact_form")}
-                note={findNote.contact_form}
-                websiteHref={websiteHref}
-              />
-              <button
-                type="button"
-                onClick={() =>
-                  toggleUnavailable(
-                    "contact_form_unavailable",
-                    !contactFormUnavailable,
-                  )
-                }
-                className="text-[11px] font-medium text-gray-600 hover:text-gray-900"
-              >
-                {contactFormUnavailable
-                  ? "Revert (mark available)"
-                  : "Mark not available"}
-              </button>
             </div>
           ) : contactFormUnavailable ? (
             <span className="text-gray-500">Marked not available</span>
@@ -1195,13 +1057,31 @@ function BusinessNameSection({
     }
   };
 
+  const sourceUrl =
+    ctx.outreach.research_data?.general_contact?.website ||
+    ctx.provider_business_profile?.website ||
+    null;
+
   return (
     <div>
-      <div className="mb-1.5 flex items-baseline justify-between">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
           Business Name
         </p>
-        {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
+        <span className="flex items-center gap-2">
+          {sourceUrl && (
+            <a
+              href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+              title="Open the website / research source"
+            >
+              🌐 source ↗
+            </a>
+          )}
+          {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
+        </span>
       </div>
       {editable ? (
         <Input
@@ -1540,24 +1420,9 @@ function ResearchActionFooter({
 
   return (
     <div className="border-t border-gray-200 pt-4">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-        Pre-Flight actions
-      </p>
+      {/* Two clean actions only — the website lives in the green source link by
+          the Business Name now, so the old "Visit Website" button is gone. */}
       <div className="flex flex-wrap items-center gap-2">
-        {showVisitWebsite && generalContactWebsite && (
-          <a
-            href={
-              generalContactWebsite.startsWith("http")
-                ? generalContactWebsite
-                : `https://${generalContactWebsite}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            🌐 Visit Website
-          </a>
-        )}
         {showCallToConfirm && (
           <button
             onClick={() => setShowCallForEmail(true)}

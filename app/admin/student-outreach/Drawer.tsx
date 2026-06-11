@@ -77,6 +77,25 @@ const TERMINAL_STATUSES: Status[] = [
   "no_response_closed",
 ];
 
+// Office-shaped prospects: a parent organization with named child contacts,
+// researched + launched through the same card. Advising offices have
+// "Advisors"; student organizations have "Leaders". Both reuse the
+// general-contact + SpecificContactsSection + confirm-call + launch flow.
+function isOfficeType(type: StakeholderType): boolean {
+  return type === "advisor" || type === "student_org";
+}
+
+// Student-organization Leader role presets (Faculty Advisor first — it's the
+// highest-value, turnover-proof contact). "Other" is appended by the picker.
+const LEADER_ROLES = [
+  "Faculty Advisor",
+  "President",
+  "Vice President",
+  "Treasurer",
+  "Secretary",
+  "Recruitment Chair",
+];
+
 // v8.10.11: TabContext + TabContextBanner removed. The drawer's section
 // h3s + per-state guidance already convey orientation; the banner was
 // repeating it one row above. tabContext prop on DrawerProps was only
@@ -914,12 +933,14 @@ function DrawerBody({
             {!isResearch && (
               <ResearchSection ctx={ctx} action={action} setError={setError} />
             )}
-            {/* Contacts section only for student orgs (multi-officer).
-                Single-contact types render the primary contact inline in
-                ResearchSection to avoid a redundant section. */}
-            {supportsMultipleContacts(ctx.outreach.stakeholder_type) && (
-              <ContactsSection ctx={ctx} action={action} setError={setError} />
-            )}
+            {/* Multi-officer ContactsSection only for non-office multi-contact
+                types. Office-shaped types (advisor / student_org) manage named
+                contacts via SpecificContactsSection (Advisors / Leaders) in the
+                research card, so they skip this redundant section. */}
+            {supportsMultipleContacts(ctx.outreach.stakeholder_type) &&
+              !isOfficeType(ctx.outreach.stakeholder_type) && (
+                <ContactsSection ctx={ctx} action={action} setError={setError} />
+              )}
             {/* MVP: Permissions cards + the Close out / Danger Zone section
                 were removed from the drawer — not used for partners or
                 providers in this MVP (less is more). */}
@@ -972,7 +993,7 @@ function ResearchModePanel({
 }) {
   const status = ctx.outreach.status;
   const type = ctx.outreach.stakeholder_type;
-  const isOffice = type === "advisor";
+  const isOffice = isOfficeType(type);
   const [showPreFlight, setShowPreFlight] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
 
@@ -1042,8 +1063,18 @@ function ResearchModePanel({
   // Offices skip the redundant "Research complete" pre-state — they're
   // generated WITH contact info, so they land straight on Pre-Flight (confirm
   // by call, then launch). Only non-office stakeholders keep the prospect step.
+  // Phone-conditional pre-flight: a confirm-call is only required (and only
+  // possible) when a phone number exists. Phoneless orgs (common for student
+  // organizations) launch on a verified email alone.
+  const requiresCall = isOffice && Boolean(officePhone);
+  const officeCanLaunch = hasOfficeEmail && (requiresCall ? verificationState.can_launch : true);
+
   const orientation = isOffice ? (
-    <>Check the info, call to confirm, then launch outreach.</>
+    requiresCall ? (
+      <>Check the info, call to confirm, then launch outreach.</>
+    ) : (
+      <>Check the info, then launch outreach.</>
+    )
   ) : isProspect ? (
     <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
@@ -1086,27 +1117,38 @@ function ResearchModePanel({
       </button>
     );
   } else if (isOffice) {
-    // Two actions only — Call to Confirm, then Launch. Launch unlocks once the
-    // call is confirmed (the verification card was removed: the button state
-    // already conveys it).
+    // Call to Confirm (only when a phone exists), then Launch. With a phone,
+    // launch unlocks once the call is confirmed; without a phone, a verified
+    // email is enough (student orgs usually have no phone).
     cta = (
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => setShowCallConfirm(true)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          📞 Call to Confirm
-        </button>
+        {officePhone && (
+          <button
+            onClick={() => setShowCallConfirm(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            📞 Call to Confirm
+          </button>
+        )}
         <button
           onClick={() => {
-            if (verificationState.can_launch) void launchOffice();
+            if (officeCanLaunch) void launchOffice();
+            else if (!hasOfficeEmail) setError("Add an email to reach this organization before launching.");
             else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
           }}
-          disabled={!verificationState.can_launch}
-          title={verificationState.can_launch ? "Review recipients and launch outreach." : "Confirm the office on a call first."}
+          disabled={!officeCanLaunch}
+          title={
+            officeCanLaunch
+              ? "Review recipients and launch outreach."
+              : !hasOfficeEmail
+                ? "Add an email first."
+                : "Confirm the office on a call first."
+          }
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {verificationState.status === "overridden" ? "Launch outreach (override) →" : "Launch outreach →"}
+          {requiresCall && verificationState.status === "overridden"
+            ? "Launch outreach (override) →"
+            : "Launch outreach →"}
         </button>
       </div>
     );
@@ -1196,6 +1238,34 @@ function ResearchModePanel({
 // own the actual buttons; the drawer just describes and offers a few
 // always-visible CTAs (Mark Partner, Log meeting outcome).
 
+/** Read-only social channels (Instagram / Discord / GroupMe …) the AI surfaced
+ *  for an organization. Stored on research_data.socials at generation time;
+ *  shown as small links since student orgs often reach members via social. */
+function OrgSocials({ ctx }: { ctx: DrawerContext }) {
+  const socials =
+    ((ctx.outreach.research_data as { socials?: Array<{ platform?: string | null; url?: string | null }> } | null)
+      ?.socials ?? []).filter((s) => s?.url);
+  if (socials.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+        Socials
+      </span>
+      {socials.map((s, i) => (
+        <a
+          key={i}
+          href={s.url ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-primary-600 hover:underline"
+        >
+          {s.platform || "link"} ↗
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function ResearchSection({
   ctx,
   action,
@@ -1235,11 +1305,10 @@ function ResearchSection({
 
   const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
 
-  // v8.7: for single-contact types (advisor / dept_head / professor) we
-  // render the primary contact inline here instead of a separate
-  // Contacts section. Track the first/last/email/phone right alongside
-  // the rest of the research fields.
-  const isMultiContact = type === "student_org";
+  // v8.7: for single-contact types (dept_head / professor) we render the
+  // primary contact inline here instead of a separate Contacts section.
+  // Office-shaped types (advisor / student_org) render named contacts via
+  // SpecificContactsSection instead, so they skip the inline person fields.
   const showTitleField = type === "dept_head" || type === "professor";
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const [title, setTitle] = useState(primary?.title ?? (showTitleField ? "Dr." : ""));
@@ -1251,7 +1320,7 @@ function ResearchSection({
   // Office-shaped advisor rows: an advising OFFICE has org-level contact info
   // (general email/phone/website in research_data.general_contact) + a people
   // roster (office_members) — not a single person. No person form, no programs.
-  const isOffice = type === "advisor";
+  const isOffice = isOfficeType(type);
   const gc0 = ((ctx.outreach.research_data as Record<string, unknown>).general_contact ?? {}) as {
     email?: string | null;
     phone?: string | null;
@@ -1359,7 +1428,7 @@ function ResearchSection({
         )}
         {showOrgName && (
           <NameWithSource
-            label={isOffice ? "Office name" : "Organization name"}
+            label={type === "advisor" ? "Office name" : "Organization name"}
             value={orgName}
             onChange={setOrgName}
             onBlur={saveOutreach}
@@ -1368,13 +1437,18 @@ function ResearchSection({
         )}
 
         {/* Office-level contact (the outreach target). Website lives in the
-            source link by the name; people go in the Advisors section. */}
+            source link by the name; people go in the named-contacts section. */}
         {isOffice && (
           <div className="grid grid-cols-2 gap-2">
-            <Field type="email" label="General email" value={officeEmail} onChange={setOfficeEmail} onBlur={saveOfficeContact} placeholder="hpo@uni.edu" />
+            <Field type="email" label="General email" value={officeEmail} onChange={setOfficeEmail} onBlur={saveOfficeContact} placeholder="org@uni.edu" />
             <Field label="General phone" value={officePhone} onChange={setOfficePhone} onBlur={saveOfficeContact} />
           </div>
         )}
+
+        {/* Social channels the AI surfaced (Instagram / Discord / GroupMe …) —
+            read-only; useful context for student orgs whose primary reach is
+            social, not email. */}
+        {isOffice && <OrgSocials ctx={ctx} />}
 
         {showDepartment && (
           <>
@@ -1397,7 +1471,7 @@ function ResearchSection({
 
         {/* v8.7: primary contact embedded for single-contact types (not offices —
             offices use the general-contact fields above + the people roster). */}
-        {!isMultiContact && !isOffice && (
+        {!isOffice && (
           <>
             {showTitleField && (
               <Field
@@ -1438,9 +1512,11 @@ function ResearchSection({
           />
         )}
 
-        {/* Advisors — the SAME shared component the Provider drawer uses for
-            Decision makers. Stored in research_data; materialized into recipients
-            at launch (launchOffice). */}
+        {/* Named contacts — the SAME shared component the Provider drawer uses
+            for Decision makers. Advising offices have "Advisors"; student
+            organizations have "Leaders" (with role presets). Stored in
+            research_data.office_members; materialized into recipients at launch
+            (launchOffice). */}
         {type === "advisor" && (
           <SpecificContactsSection
             ctx={ctx}
@@ -1451,6 +1527,19 @@ function ResearchSection({
             primaryRoleLabel="Advisor"
             addLabel="Add an advisor"
             helpText="Advisors at this office. Anyone with an email becomes a selectable recipient at launch, alongside the general office contact."
+          />
+        )}
+        {type === "student_org" && (
+          <SpecificContactsSection
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            researchKey="office_members"
+            title="Leaders"
+            primaryRoleLabel="President"
+            rolePresets={LEADER_ROLES}
+            addLabel="Add Leader"
+            helpText="Officers and the faculty advisor for this organization. Anyone with an email becomes a selectable recipient at launch, alongside the general org contact. The faculty advisor is the most valuable long-term contact (year-to-year continuity)."
           />
         )}
 

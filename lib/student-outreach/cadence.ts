@@ -72,49 +72,35 @@ export interface OutreachDay {
 export const CADENCE_END_DAY = 14;
 
 export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
+  // Student organizations mirror the advising-office (advisor) cadence exactly:
+  // they're office-shaped partners confirmed at Pre-Flight (when a phone exists),
+  // so there's no cold Day-0 paired call. Phone steps queue only when a phone is
+  // on file (planSequence's has_phone gate) — most student orgs are email-only.
   student_org: [
     {
       day: 0,
-      title: "Day 0 · intro email + paired call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
+      title: "Day 0 · intro email",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 3,
-      title: "Day 3 · light follow-up",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_light" },
-      ],
+      title: "Day 3 · email follow-up",
+      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
     },
     {
       day: 5,
       title: "Day 5 · call attempt",
-      steps: [
-        { id: "phone", channel: "phone", required: true },
-      ],
-    },
-    {
-      day: 7,
-      title: "Day 7 · social-proof follow-up",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_socialproof" },
-      ],
+      steps: [{ id: "phone", channel: "phone", required: true }],
     },
     {
       day: 8,
       title: "Day 8 · call attempt",
-      steps: [
-        { id: "phone", channel: "phone", required: true },
-      ],
+      steps: [{ id: "phone", channel: "phone", required: true }],
     },
     {
       day: 10,
-      title: "Day 10 · final follow-up",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_final" },
-      ],
+      title: "Day 10 · final email",
+      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
     },
   ],
   advisor: [

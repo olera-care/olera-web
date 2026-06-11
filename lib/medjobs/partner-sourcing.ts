@@ -133,6 +133,9 @@ export interface ExtractedOffice {
   email: string | null;
   phone: string | null;
   website: string | null;
+  /** Social channels (Instagram / Discord / GroupMe …) — populated for student
+   *  orgs; empty for advising offices / departments. */
+  socials?: SocialLink[];
   ask_for: string[];
   advisors: ExtractedAdvisor[];
   source_url: string | null;
@@ -511,6 +514,7 @@ function parseOffices(raw: Record<string, unknown> | null, sourceUrl: string): E
       email: str(o.email),
       phone: str(o.phone),
       website: url(o.website),
+      socials: parseSocials(o.socials),
       ask_for: parseAskFor(o.ask_for),
       advisors: parseAdvisors(o.advisors),
       source_url: url(o.source_url) ?? sourceUrl,
@@ -538,6 +542,9 @@ function officeSchema(sourceUrl: string): string {
     ` - "ask_for": up to 3 names clearly tied to this office and relevant to`,
     `   pre-health (e.g. "An-Janet Smith — Pre-Health Advisor") who DON'T have`,
     `   their own contact — for email personalization only. [] if none.`,
+    ` - "socials": for a student organization, an array of {platform,url} for any`,
+    `   Instagram / Discord / GroupMe / Slack / LinkedIn shown on the page; []`,
+    `   for advising offices / departments.`,
     ` - "source_url": "${sourceUrl}"`,
   ].join("\n");
 }

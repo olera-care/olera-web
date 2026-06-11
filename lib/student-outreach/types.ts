@@ -170,6 +170,10 @@ export interface ResearchData {
     email_unavailable?: boolean;
     address_unavailable?: boolean;
   };
+  /** Social channels (Instagram / Discord / GroupMe …) surfaced by the AI for
+   *  an organization (mainly student orgs). Set at Generate; read-only in the
+   *  drawer. */
+  socials?: { platform: string; url: string }[];
   /** v9.x single Decision Maker slot — the named person on the team admin
    *  identified as the right recipient (owner, hiring manager, etc.). Stored
    *  here (not in `student_outreach_contacts`) so the Pre-Flight UI surfaces

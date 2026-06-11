@@ -285,6 +285,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
 
   switch (stakeholder_type) {
     case "student_org":
+      // Org ask: share the flyer through the org's own channels (listserv,
+      // GroupMe, Discord, Instagram), let us speak at an event, and connect us
+      // with members. Same structure + CTAs as the advisor body.
       return {
         subject,
         body: [
@@ -292,15 +295,15 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           GRAIZE_INTRO,
           ``,
-          `I came across ${PLACEHOLDER.orgName} while identifying pre-health student groups at ${PLACEHOLDER.campus} that might be interested in Olera's ${PLACEHOLDER.campus} Student Caregiver Program.`,
+          `I'm reaching out about Olera's ${PLACEHOLDER.campus} Student Caregiver Program, which connects pre-health students at ${PLACEHOLDER.campus} with paid caregiver roles that fit around their coursework.`,
           ``,
           programExplanation,
           ``,
-          `We hope you'll consider sharing the program with your members. If you'd like more information first, you can reply directly to this email, or Dr. DuBose is happy to ${SCHEDULE_LINK_SHORT}.`,
+          `${PLACEHOLDER.orgName} is exactly the kind of group whose members would benefit. Our one-page flyer is ready to share: [program flyer](${PLACEHOLDER.programPdf}).`,
           ``,
-          portalLine,
+          `A few easy ways to help: share the flyer with your members (email listserv, GroupMe, Discord, Slack, or Instagram), let us speak briefly at one of your meetings or events, or connect us with members who'd be interested. You can also [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to learn more, and manage everything from your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
           ``,
-          packetLine,
+          `Just reply with any questions — happy to make this as easy as possible for your org.`,
         ].join("\n"),
       };
     case "advisor":

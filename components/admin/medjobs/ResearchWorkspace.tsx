@@ -220,6 +220,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
             website: eo.website ?? null,
             ask_for: [...eo.ask_for],
             notes: null,
+            socials: eo.socials ? [...eo.socials] : [],
             source_link_ids: linkId ? [linkId] : [],
           };
           offices.push(office);
@@ -227,6 +228,8 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
           if (!office.email) office.email = eo.email ?? null;
           if (!office.phone) office.phone = eo.phone ?? null;
           if (!office.website) office.website = eo.website ?? null;
+          if ((!office.socials || office.socials.length === 0) && eo.socials?.length)
+            office.socials = [...eo.socials];
           office.ask_for = [...new Set([...office.ask_for, ...eo.ask_for])].slice(0, 3);
           if (linkId && !office.source_link_ids.includes(linkId)) office.source_link_ids.push(linkId);
         }

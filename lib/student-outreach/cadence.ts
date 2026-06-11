@@ -35,6 +35,11 @@ export type TemplateKey =
   | "org_bump"
   | "org_followup"
   | "org_close"
+  // Department-head cadence (R1): formal, meeting-led, gateway-framed. Same
+  // skeleton as advisors; the ask is a short Zoom, professor outreach deferred.
+  | "dept_bump"
+  | "dept_followup"
+  | "dept_close"
   // v9 provider cadence — distinct copy targeting agency owners /
   // hiring managers, not university stakeholders.
   | "provider_intro"
@@ -145,11 +150,10 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       steps: [{ id: "email", channel: "email", required: true, template: "advisor_close" }],
     },
   ],
-  // Dept heads (all Drs.) get a relationship-first, meeting-oriented cadence.
-  // The Day-0 intro CALL is NOT a queued cadence step — it's an optional,
-  // non-blocking pre-launch intro call surfaced at Pre-Flight (a confirm-the-
-  // person courtesy, only when a phone exists). Post-launch calls (Day 7/11)
-  // remain operational follow-ups.
+  // Dept heads (all Drs.) get a formal, meeting-led cadence, same skeleton as
+  // advisors. An optional non-blocking pre-launch intro call still lives at
+  // Pre-Flight; the Day-6 call below is the in-cadence follow-up. Each email
+  // stands alone; the ask is a short Zoom, professor outreach deferred.
   dept_head: [
     {
       day: 0,
@@ -157,24 +161,22 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
-      day: 5,
-      title: "Day 5 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
+      day: 3,
+      title: "Day 3 · one-line bump",
+      steps: [{ id: "email", channel: "email", required: true, template: "dept_bump" }],
     },
     {
-      day: 7,
-      title: "Day 7 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
-    },
-    {
-      day: 11,
-      title: "Day 11 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 6,
+      title: "Day 6 · call (if phone) + follow-up email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Call — program + Dr. DuBose Zoom offer" },
+        { id: "email", channel: "email", required: true, template: "dept_followup" },
+      ],
     },
     {
       day: 12,
-      title: "Day 12 · final email",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+      title: "Day 12 · gracious close",
+      steps: [{ id: "email", channel: "email", required: true, template: "dept_close" }],
     },
   ],
   professor: [

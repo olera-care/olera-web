@@ -138,6 +138,9 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "org_bump": return orgBumpEmail(ctx);
     case "org_followup": return orgFollowupEmail(ctx);
     case "org_close": return orgCloseEmail(ctx);
+    case "dept_bump": return deptHeadBumpEmail(ctx);
+    case "dept_followup": return deptHeadFollowupEmail(ctx);
+    case "dept_close": return deptHeadCloseEmail(ctx);
     case "share": return postAgreedShareEmail(ctx);
     case "seasonal": return partnerSeasonalEmail(ctx, "Pre-Fall");
     case "provider_intro": return providerIntroEmail(ctx, ctx.contacts);
@@ -337,25 +340,21 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         ].join("\n"),
       };
     case "dept_head":
-      // Relationship-first + meeting-led. The primary CTA is a meeting with
-      // Dr. DuBose (dept heads are senior faculty — all Drs.); the student
-      // flyer is attached for context. We intentionally do NOT push the
-      // partner portal here, and we don't ask for professor-outreach
-      // permission in writing — that conversation happens in the meeting.
+      // Formal, meeting-led, gateway-framed (R1). The ask is a short Zoom; no
+      // portal, no application link, and no professor-outreach ask in the cold
+      // email (that is earned in the meeting). Flyer linked for context.
       return {
-        subject,
+        subject: `Paid healthcare experience for your pre-health students`,
         body: [
           greeting,
           ``,
-          GRAIZE_INTRO,
+          `My name is Graize Belandres, and I am a research assistant working with Dr. Logan DuBose. I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus}, and wanted to share an opportunity for your students.`,
           ``,
-          `I'm reaching out because your department works with exactly the pre-health students Olera's ${PLACEHOLDER.campus} Student Caregiver Program was built for.`,
+          `We run a program that places pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule. I attached a one-page [flyer](${PLACEHOLDER.programPdf}) so you can see what it offers your students.`,
           ``,
-          programExplanation,
+          `If you are open to it, Dr. DuBose and I would love to connect to introduce the program and see if we could collaborate. I am also glad to answer any questions or discuss ways to partner to spread the word to your students.`,
           ``,
-          `I've attached our one-page student flyer so you can see exactly what the program offers your students: [student flyer](${PLACEHOLDER.programPdf}).`,
-          ``,
-          `More than anything, Dr. DuBose would value the chance to introduce the program to you directly and learn how your department supports its pre-health students. If you're open to it, you can [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) at a time that suits you — or simply reply here with any questions.`,
+          `Please let me know if you are interested in connecting, or if there is a good time for you for a Zoom call.`,
         ].join("\n"),
       };
     case "professor":
@@ -521,6 +520,48 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
       `Glad to help your members get paid healthcare experience this semester. Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) to share, and Dr. DuBose is happy to speak at a meeting anytime.`,
       ``,
       `Just let me know. Thanks!`,
+    ].join("\n"),
+  };
+}
+
+// ── Department-head cadence (formal, meeting-led, gateway-framed) ────────
+// Same skeleton as advisors but formal (Dear Dr.) and the ask is a short Zoom.
+// Each email stands alone; flyer linked for context, no portal / apply link.
+
+/** Touch 2 — one-line bump. Empty subject so Smartlead replies in-thread. */
+export function deptHeadBumpEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: ``,
+    body: `Bumping this note about a paid healthcare opportunity for your pre-health students.`,
+  };
+}
+
+/** Touch 3 — full standalone follow-up (paired with the Day-6 call). */
+export function deptHeadFollowupEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `A paid opportunity for your pre-health students`,
+    body: [
+      `Dear ${PLACEHOLDER.salutation},`,
+      ``,
+      `I am a research assistant working with Dr. Logan DuBose, reaching out about an opportunity for your department's pre-health students. We run a program that places pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule. The [flyer](${PLACEHOLDER.programPdf}) is attached so you can see what it offers your students.`,
+      ``,
+      `If you are open to it, Dr. DuBose and I would love to connect to introduce the program and see if we could collaborate. I am also glad to answer any questions or discuss ways to partner to spread the word to your students.`,
+      ``,
+      `Please let me know if you are interested in connecting, or if there is a good time for a Zoom call.`,
+    ].join("\n"),
+  };
+}
+
+/** Touch 4 — gracious close that reopens by season. */
+export function deptHeadCloseEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: `Checking in for your pre-health students`,
+    body: [
+      `Dear ${PLACEHOLDER.salutation},`,
+      ``,
+      `If supporting your pre-health students with paid healthcare experience would be useful, Dr. DuBose and I would be glad to connect, now or next semester. The [flyer](${PLACEHOLDER.programPdf}) is attached if it would help to share with your students.`,
+      ``,
+      `Please let me know anytime if you are interested.`,
     ].join("\n"),
   };
 }

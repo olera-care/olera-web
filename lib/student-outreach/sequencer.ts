@@ -373,15 +373,10 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
     return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. I'm sending over information on a paid program that gives your pre-health students healthcare experience. Once you look it over, Dr. DuBose would love to meet. What's the best email, and is there a good time to talk?"`;
   }
   if (type === "dept_head") {
-    if (day === 0) {
-      // Pre-launch intro call (non-blocking, phone permitting). Introduce
-      // ourselves + Dr. DuBose, confirm the right person/email, and signal that
-      // concise info is on the way. Not a pitch. Leave a professional voicemail
-      // along the same lines if there's no answer.
-      return `"Hello, this is {admin_first_name}, a research assistant working with Dr. Logan DuBose at Olera. I'm reaching out to {recipient_name}'s office about our {campus_name} Student Caregiver Program for pre-health students, and I wanted to introduce myself before sending the details. Are you the right person to share this with, or is there a better contact? I'll follow up by email with a short student flyer and an invitation to meet Dr. DuBose."`;
-    }
-    // Follow-up calls (Day 7 / 11): reference the email and offer the meeting.
-    return `"Hello, this is {admin_first_name} from Dr. Logan DuBose's office at Olera, following up on the email about our {campus_name} Student Caregiver Program. I'd love to help set up a few minutes for you and Dr. DuBose to connect — would a short meeting work, or is there anything I can answer for you?"`;
+    // Day 6 call, paired with the follow-up email. Introduce, the program for
+    // their pre-health students, and Dr. DuBose's offer to connect on a short
+    // Zoom. Formal, not a pitch.
+    return `"Hello, this is {admin_first_name}, a research assistant working with Dr. Logan DuBose at Olera. I reached out about a program that gives your pre-health students paid healthcare experience for med, PA, and nursing applications. Dr. DuBose would value a short Zoom to introduce it and see if we could collaborate. I wanted to see if you might be interested, or if there is a good time to connect."`;
   }
   return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and ask whether there's a better person to forward the program details to.`;
 }

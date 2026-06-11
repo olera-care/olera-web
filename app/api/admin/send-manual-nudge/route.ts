@@ -96,7 +96,19 @@ export async function POST(req: NextRequest) {
   const familyProfile = isInquiry ? fromProfile : toProfile;
   const providerProfile = isInquiry ? toProfile : fromProfile;
 
-  if (!providerProfile?.email?.trim()) {
+  // Check provider email - first from business_profiles, then fallback to olera-providers
+  let providerEmail = providerProfile?.email?.trim() || null;
+  if (!providerEmail && providerProfile?.source_provider_id) {
+    const { data: iosProvider } = await db
+      .from("olera-providers")
+      .select("email")
+      .eq("provider_id", providerProfile.source_provider_id)
+      .not("deleted", "is", true)
+      .maybeSingle();
+    providerEmail = iosProvider?.email?.trim() || null;
+  }
+
+  if (!providerEmail) {
     return NextResponse.json(
       { error: "Provider has no email address" },
       { status: 400 }
@@ -148,7 +160,7 @@ export async function POST(req: NextRequest) {
   const providerName = providerProfile.display_name || "Your Organization";
   const familyName = familyProfile?.display_name || "A family";
   const fromAddress = "Olera <noreply@olera.care>";
-  const providerEmail = providerProfile.email;
+  // providerEmail already resolved above with olera-providers fallback
 
   // Extract provider city from profile
   const providerCity = (providerProfile as { city?: string | null }).city || null;

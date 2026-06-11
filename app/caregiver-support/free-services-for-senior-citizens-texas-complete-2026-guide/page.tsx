@@ -185,15 +185,29 @@ const FAQS = [
 // ============================================================
 
 export default async function FreeServicesForSeniorsPage() {
-  const supabase = await createClient();
-  const { data: related } = await supabase
-    .from("content_articles")
-    .select("id, slug, title, cover_image_url, care_types, reading_time")
-    .eq("status", "published")
-    .not("published_at", "is", null)
-    .containedBy("care_types", ["home-care"])
-    .order("published_at", { ascending: false })
-    .limit(3);
+  // Fetch related articles if Supabase is configured (fails gracefully during build)
+  let related = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("content_articles")
+      .select("id, slug, title, cover_image_url, care_types, reading_time")
+      .eq("status", "published")
+      .not("published_at", "is", null)
+      .containedBy("care_types", ["home-care"])
+      .order("published_at", { ascending: false })
+      .limit(3);
+    related = data;
+  } catch (error) {
+    // Only catch Supabase configuration errors during build
+    // Re-throw other errors so we see them
+    if (error instanceof Error && error.message.includes("Supabase is not configured")) {
+      // Expected during static generation without env vars
+    } else {
+      console.error("[article] Failed to fetch related articles:", error);
+      // Don't throw - degrade gracefully, but log it
+    }
+  }
 
   return (
     <main className="min-h-screen bg-white">

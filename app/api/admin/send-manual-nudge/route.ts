@@ -67,8 +67,8 @@ export async function POST(req: NextRequest) {
       message,
       metadata,
       created_at,
-      from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, slug, source_provider_id, email, care_types, metadata),
-      to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, care_types, metadata)
+      from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, care_types, metadata),
+      to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, care_types, metadata)
     `
     )
     .eq("id", connection_id)
@@ -151,9 +151,8 @@ export async function POST(req: NextRequest) {
   const fromAddress = "Olera <noreply@olera.care>";
   const providerEmail = providerProfile.email;
 
-  // Extract provider city from metadata
-  const providerMeta = (providerProfile?.metadata as Record<string, unknown>) ?? {};
-  const providerCity = (providerMeta.city as string) || null;
+  // Extract provider city from profile
+  const providerCity = (providerProfile as { city?: string | null }).city || null;
 
   // Dynamic subject line based on lead count and family name
   const safeFamilyName = familyName && familyName !== "A family" ? familyName.split(" ")[0] : null;

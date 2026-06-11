@@ -662,6 +662,11 @@ export async function POST(req: Request) {
       is_new_user: isNewUser,
       top_program: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       top_savings: matchedPrograms[0]?.savingsRange || null,
+      // Attribution — where the intake was submitted from. Surfaced in the
+      // admin Activity Center + the Slack alert so leads are traceable to
+      // the page that produced them (program page, article, provider page).
+      entry_source: entrySource || null,
+      provider_slug: providerSlug || null,
     },
   }).then(({ error }: { error: { message: string } | null }) => {
     if (error) console.error("[seeker_activity] benefits_completed insert failed:", error);
@@ -703,6 +708,8 @@ export async function POST(req: Request) {
       topProgramName: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       topSavings,
       isNewUser,
+      entrySource: entrySource || null,
+      providerSlug: providerSlug || null,
     });
     // Awaited via Promise.allSettled — fire-and-forget gets killed by
     // Vercel's serverless runtime once the response goes out (cost a 7h

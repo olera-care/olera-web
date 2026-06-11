@@ -583,10 +583,25 @@ function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selec
                 if (matchCount > 0) parts.push(`${matchCount} ${matchCount === 1 ? "match" : "matches"}`);
                 if (topProgram) parts.push(`top: ${topProgram}`);
                 if (careNeed && careNeedLabels[careNeed]) parts.push(careNeedLabels[careNeed].toLowerCase());
-                return parts.length > 0 ? (
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">
-                    {parts.join(" · ")}
-                  </p>
+                // Attribution — which page produced this lead.
+                const entrySource = meta?.entry_source ? String(meta.entry_source) : null;
+                const providerSlug = meta?.provider_slug ? String(meta.provider_slug) : null;
+                const sourceLabel = entrySource
+                  ? (entrySource.split("/").filter(Boolean).pop() || entrySource)
+                      .replace(/-/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())
+                  : providerSlug
+                    ? `Provider: ${providerSlug}`
+                    : null;
+                return parts.length > 0 || sourceLabel ? (
+                  <>
+                    {parts.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{parts.join(" · ")}</p>
+                    )}
+                    {sourceLabel && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">from {sourceLabel}</p>
+                    )}
+                  </>
                 ) : null;
               })()}
             </div>

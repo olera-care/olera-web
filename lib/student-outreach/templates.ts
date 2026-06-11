@@ -261,6 +261,7 @@ export function salutationFor(
  */
 export function introEmail(ctx: TemplateContext): EmailDraft {
   const { stakeholder_type } = ctx;
+  const variant = ctx.variant ?? "general";
   const greeting =
     stakeholder_type === "dept_head" || stakeholder_type === "professor"
       ? `Dear ${PLACEHOLDER.salutation},`
@@ -297,8 +298,33 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         ].join("\n"),
       };
     case "advisor":
-      // Office-first: we reach the advising OFFICE and ask it to point us to
-      // the right person, rather than guessing an individual advisor.
+      // Named variant — sent to an INDIVIDUAL advisor (not the office alias).
+      // Advisor-supporter angle: circulate the flyer to students who'd benefit,
+      // meet Dr. DuBose, and engage via the partner portal. Mirrors the
+      // provider intro's structure (flyer + Calendly + portal) with the
+      // advising audience's needs.
+      if (variant === "named") {
+        return {
+          subject,
+          body: [
+            `Hi ${PLACEHOLDER.firstName},`,
+            ``,
+            GRAIZE_INTRO,
+            ``,
+            `I'm reaching out because you advise pre-health students at ${PLACEHOLDER.campus}, and Olera's ${PLACEHOLDER.campus} Student Caregiver Program was built for exactly the students you work with.`,
+            ``,
+            programExplanation,
+            ``,
+            `Would you be open to sharing our one-page flyer with students you think would benefit? It's ready to circulate: [program flyer](${PLACEHOLDER.programPdf}).`,
+            ``,
+            `We'd also love to have you as a supporter of the program. A few easy ways to help: pass the flyer to advisees, [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to hear how it works, and connect with our partner network through your recruitment partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+            ``,
+            `If you'd like more information first, just reply to this email.`,
+          ].join("\n"),
+        };
+      }
+      // General variant — we reach the advising OFFICE and ask it to point us
+      // to the right person, rather than guessing an individual advisor.
       return {
         subject,
         body: [

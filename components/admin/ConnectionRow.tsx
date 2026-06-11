@@ -354,8 +354,11 @@ export default function ConnectionRow({
   // Find email state
   const [findingEmail, setFindingEmail] = useState(false);
   const [foundEmails, setFoundEmails] = useState<string[]>([]);
+  // Map of email -> source URL for all candidates
+  const [emailToUrlMap, setEmailToUrlMap] = useState<Map<string, string>>(new Map());
   const [findEmailError, setFindEmailError] = useState<string | null>(null);
   const [emailSource, setEmailSource] = useState<"scrape" | "perplexity" | null>(null);
+  const [foundUrl, setFoundUrl] = useState<string | null>(null);
   const [isCachedResult, setIsCachedResult] = useState(false);
   const [autoSuggestAttempted, setAutoSuggestAttempted] = useState(false);
 
@@ -378,7 +381,9 @@ export default function ConnectionRow({
         setFindingEmail(true);
         setFindEmailError(null);
         setEmailSource(null);
+        setFoundUrl(null);
         setFoundEmails([]);
+        setEmailToUrlMap(new Map());
         setIsCachedResult(false);
 
         try {
@@ -393,9 +398,20 @@ export default function ConnectionRow({
           if (res.ok && data.email) {
             setEmailInput(data.email);
             setEmailSource(data.source);
+            setFoundUrl(data.foundUrl || null);
             setIsCachedResult(data.cached || false);
             if (data.candidates && data.candidates.length > 0) {
               setFoundEmails(data.candidates);
+            }
+            // Build email -> URL map from candidatesWithUrls
+            if (data.candidatesWithUrls && Array.isArray(data.candidatesWithUrls)) {
+              const urlMap = new Map<string, string>();
+              for (const c of data.candidatesWithUrls) {
+                if (c.email && c.foundUrl) {
+                  urlMap.set(c.email, c.foundUrl);
+                }
+              }
+              setEmailToUrlMap(urlMap);
             }
           } else if (res.ok && !data.email) {
             // No email found or insufficient data
@@ -420,8 +436,10 @@ export default function ConnectionRow({
       setAutoSuggestAttempted(false);
       setFindEmailError(null);
       setEmailSource(null);
+      setFoundUrl(null);
       setIsCachedResult(false);
       setFoundEmails([]);
+      setEmailToUrlMap(new Map());
     }
   }, [open, detail, autoSuggestAttempted, c.provider.id]);
 
@@ -686,8 +704,10 @@ export default function ConnectionRow({
 
         // Clear find email state
         setEmailSource(null);
+        setFoundUrl(null);
         setIsCachedResult(false);
         setFoundEmails([]);
+        setEmailToUrlMap(new Map());
         setFindEmailError(null);
 
         // Update local detail state to show new email
@@ -751,9 +771,13 @@ export default function ConnectionRow({
         setEditEmailSuccess(true);
         setEditEmailInput("");
 
-        // Show warning if metadata update failed
-        if (data.warning) {
-          setEditEmailError(data.warning);
+        // Show warning if metadata update failed or account is claimed
+        let warning = data.warning || null;
+        if (data.accountClaimed && data.skippedOleraProvidersSync) {
+          warning = "Note: Provider has claimed their account. Email updated in Olera but not synced to the iOS provider database.";
+        }
+        if (warning) {
+          setEditEmailError(warning);
         }
 
         // Update local detail state to show new email
@@ -773,7 +797,7 @@ export default function ConnectionRow({
           setEditEmailSuccess(false);
           setEditEmailError(null);
           editEmailTimeoutRef.current = null;
-        }, data.warning ? 5000 : 3000);
+        }, warning ? 5000 : 3000);
       } else {
         setEditEmailError(data.error || "Failed to update email");
       }
@@ -790,7 +814,9 @@ export default function ConnectionRow({
     setFindingEmail(true);
     setFindEmailError(null);
     setFoundEmails([]);
+    setEmailToUrlMap(new Map());
     setEmailSource(null);
+    setFoundUrl(null);
     setIsCachedResult(false);
 
     try {
@@ -816,11 +842,22 @@ export default function ConnectionRow({
         }
 
         setEmailSource(data.source);
+        setFoundUrl(data.foundUrl || null);
         setIsCachedResult(data.cached || false);
 
         // Store all candidates for potential dropdown
         if (data.candidates && data.candidates.length > 0) {
           setFoundEmails(data.candidates);
+        }
+        // Build email -> URL map from candidatesWithUrls
+        if (data.candidatesWithUrls && Array.isArray(data.candidatesWithUrls)) {
+          const urlMap = new Map<string, string>();
+          for (const c of data.candidatesWithUrls) {
+            if (c.email && c.foundUrl) {
+              urlMap.set(c.email, c.foundUrl);
+            }
+          }
+          setEmailToUrlMap(urlMap);
         }
       } else if (res.ok && !data.email) {
         // No email found or insufficient data
@@ -1193,8 +1230,10 @@ export default function ConnectionRow({
                                 // Clear previous find email state
                                 setFindEmailError(null);
                                 setEmailSource(null);
+                                setFoundUrl(null);
                                 setIsCachedResult(false);
                                 setFoundEmails([]);
+                                setEmailToUrlMap(new Map());
                               }}
                               className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
                             >
@@ -1213,6 +1252,7 @@ export default function ConnectionRow({
                                     // Clear source indicator if user manually edits away from found emails
                                     if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                       setEmailSource(null);
+                                      setFoundUrl(null);
                                       setIsCachedResult(false);
                                     }
                                   }}
@@ -1263,7 +1303,9 @@ export default function ConnectionRow({
                                   setEditEmailSuccess(false);
                                   setFindEmailError(null);
                                   setFoundEmails([]);
+                                  setEmailToUrlMap(new Map());
                                   setEmailSource(null);
+                                  setFoundUrl(null);
                                   setIsCachedResult(false);
                                 }}
                                 disabled={editingEmailLoading || findingEmail}
@@ -1278,6 +1320,20 @@ export default function ConnectionRow({
                                 Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
                                 {isCachedResult && " (cached)"}
                                 {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                                {foundUrl && (
+                                  <>
+                                    {" · "}
+                                    <a
+                                      href={foundUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline"
+                                      title={`Source: ${foundUrl}`}
+                                    >
+                                      View source
+                                    </a>
+                                  </>
+                                )}
                               </p>
                             )}
                             {foundEmails.length > 1 && (
@@ -1286,7 +1342,11 @@ export default function ConnectionRow({
                                   <button
                                     key={email}
                                     type="button"
-                                    onClick={() => setEditEmailInput(email)}
+                                    onClick={() => {
+                                      setEditEmailInput(email);
+                                      // Update source URL to match selected candidate
+                                      setFoundUrl(emailToUrlMap.get(email) || null);
+                                    }}
                                     className={`px-2 py-0.5 text-xs rounded border transition-colors ${
                                       editEmailInput === email
                                         ? "bg-amber-100 border-amber-300 text-amber-800"
@@ -1320,6 +1380,7 @@ export default function ConnectionRow({
                                 // Clear source indicator if user manually edits away from found emails
                                 if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                   setEmailSource(null);
+                                  setFoundUrl(null);
                                   setIsCachedResult(false);
                                 }
                               }}
@@ -1363,6 +1424,20 @@ export default function ConnectionRow({
                             Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
                             {isCachedResult && " (cached)"}
                             {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                            {foundUrl && (
+                              <>
+                                {" · "}
+                                <a
+                                  href={foundUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                  title={`Source: ${foundUrl}`}
+                                >
+                                  View source
+                                </a>
+                              </>
+                            )}
                           </p>
                         )}
                         {foundEmails.length > 1 && (
@@ -1371,7 +1446,11 @@ export default function ConnectionRow({
                               <button
                                 key={email}
                                 type="button"
-                                onClick={() => setEmailInput(email)}
+                                onClick={() => {
+                                  setEmailInput(email);
+                                  // Update source URL to match selected candidate
+                                  setFoundUrl(emailToUrlMap.get(email) || null);
+                                }}
                                 className={`px-2 py-0.5 text-xs rounded border transition-colors ${
                                   emailInput === email
                                     ? "bg-amber-100 border-amber-300 text-amber-800"

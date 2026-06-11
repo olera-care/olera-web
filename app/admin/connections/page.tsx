@@ -26,8 +26,7 @@ interface EngagementCounts {
   new: number;
   viewed: number;
   connected: number;
-  stuck: number;
-  needs_call: number;
+  needs_follow_up: number;
   // Note: declined is calculated client-side, not returned by backend
   declined?: number;
 }
@@ -79,7 +78,7 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "connected" | "stuck" | "needs_call";
+type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
 type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
 
 // Perspective type
@@ -102,8 +101,7 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
-  { key: "stuck", label: "Stuck", description: "No activity for 10+ days", emptyMessage: "No stuck connections." },
-  { key: "needs_call", label: "Needs Call", description: "14+ days, requires manual intervention", emptyMessage: "No providers need calling." },
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "declined", label: "Passed", description: "Provider passed on lead (not a fit, not accepting clients, etc.)", emptyMessage: "No passed leads." },
   { key: "no_email", label: "No Email", description: "Providers without email addresses", emptyMessage: "All providers have emails." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },

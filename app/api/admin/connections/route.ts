@@ -140,8 +140,7 @@ interface EngagementCounts {
   new: number;
   viewed: number;
   connected: number;
-  stuck: number;
-  needs_call: number;
+  needs_follow_up: number;
   no_email: number; // Cross-cutting filter: providers without email
 }
 
@@ -873,8 +872,7 @@ export async function GET(request: NextRequest) {
       new: 0,
       viewed: 0,
       connected: 0,
-      stuck: 0,
-      needs_call: 0,
+      needs_follow_up: 0,
       no_email: 0,
     };
 
@@ -967,10 +965,10 @@ export async function GET(request: NextRequest) {
           engagementCounts.all++;
         }
 
-        // For needs_call: only count if provider HAS email
+        // For needs_follow_up: only count if provider HAS email
         // Providers without email should only appear in no_email tab
-        if (engResult.level === "needs_call" && !c.provider.email?.trim()) {
-          // Don't count in needs_call - they'll be in no_email instead
+        if (engResult.level === "needs_follow_up" && !c.provider.email?.trim()) {
+          // Don't count in needs_follow_up - they'll be in no_email instead
         } else {
           engagementCounts[engResult.level]++;
         }
@@ -1035,7 +1033,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if filter is an engagement level (provider or family)
-    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "stuck", "needs_call"];
+    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "needs_follow_up"];
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
@@ -1066,22 +1064,12 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          if (responseFilter === "needs_call") {
-            // Needs Call: only include providers WITH email
+          if (responseFilter === "needs_follow_up") {
+            // Needs Follow-up: only include providers WITH email
             // Providers without email should be in "No Email" tab instead
             // Exclude archived (those go to "Declined" tab)
             list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === "needs_call" &&
-              c.provider.email?.trim() &&
-              !c.archived
-            );
-          } else if (responseFilter === "stuck") {
-            // Stuck: only include providers WITH email
-            // Providers without email should be in "No Email" tab instead
-            // (Can't be "stuck" in a sequence if they never received an email)
-            // Exclude archived (those go to "Declined" tab)
-            list = list.filter((c) =>
-              connectionEngagementLevels.get(c.id) === "stuck" &&
+              connectionEngagementLevels.get(c.id) === "needs_follow_up" &&
               c.provider.email?.trim() &&
               !c.archived
             );

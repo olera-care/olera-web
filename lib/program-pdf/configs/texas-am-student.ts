@@ -13,6 +13,7 @@
  */
 
 import type { ProgramPdfConfig } from "./texas-am";
+import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 
 export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   slug: "texas-am",
@@ -21,8 +22,16 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   universityShort: "Texas A&M",
   localArea: "Bryan/College Station area",
   universityAccent: "#500000",
-  // Student-facing landing / apply page (the program's student brand).
-  ctaUrl: "https://findmedjobs.co",
+  // The QR/CTA goes straight to the application, pre-filled to this campus and
+  // tagged for attribution (campus-level — one flyer serves every partner).
+  // Hardcode the production base so the shared artifact never points at a
+  // preview deployment. The displayed URL under the QR is cleaned in Template.
+  ctaUrl: studentApplyUrl({
+    campusSlug: "texas-am",
+    universityName: "Texas A&M University",
+    source: "flyer",
+    siteUrl: "https://olera.care",
+  }),
   universityTagLine: "Paid experience for pre-health students",
   subtitle: "Paid caregiving experience for pre-nursing and pre-medical students",
   documentSubject: "Student program flyer",
@@ -59,5 +68,5 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     headline: "Paid hourly · flexible hours · start this semester",
     body: "You choose how much you work. We provide the training, the match, and ongoing support so you can focus on doing great work and building your health-career story.",
   },
-  ctaLabel: "Apply or learn more",
+  ctaLabel: "Apply now — scan or visit",
 };

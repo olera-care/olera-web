@@ -451,7 +451,9 @@ export function ProgramPdfTemplate({
             <Image src={assets.qrDataUri} style={styles.qrImage} />
             <Text style={styles.ctaLabel}>{config.ctaLabel}</Text>
             <Text style={styles.ctaUrl}>
-              {config.ctaUrl.replace(/^https?:\/\//, "")}
+              {/* QR encodes the full (attributed) URL; the printed text shows a
+                  clean, memorable URL without the query string. */}
+              {config.ctaUrl.replace(/^https?:\/\//, "").replace(/\?.*$/, "")}
             </Text>
           </View>
         </View>

@@ -74,7 +74,7 @@ Program info: ${programUrl}
           rel="noopener noreferrer"
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          View flyer ↗
+          View / download flyer ↗
         </a>
         <CopyButton label="Copy email template" text={emailTemplate} />
         <CopyButton label="Copy social post" text={socialPost} />
@@ -92,7 +92,7 @@ Program info: ${programUrl}
           <CopyButton label="Slack" text={socialPost} />
         </div>
         <p className="mt-2 text-[11px] text-gray-400">
-          A designed, campus-specific flyer PDF is coming soon — for now the link above is shareable everywhere.
+          Every link here is unique to you — students who apply through it are counted as yours.
         </p>
       </div>
     </section>

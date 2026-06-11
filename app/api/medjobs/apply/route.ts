@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { studentWelcomeEmail, studentReturningEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
+import { sanitizeReferral } from "@/lib/medjobs/apply-link";
 import type { IntendedProfessionalSchool, StudentProgramTrack } from "@/lib/types";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
       // Honeypot
       website: honeypot,
     } = body;
+    const referral = sanitizeReferral(body.referral);
 
     // Honeypot check
     if (honeypot) {
@@ -155,6 +157,11 @@ export async function POST(req: NextRequest) {
           seeking_status: "actively_looking" as const,
           application_completed: true,
           profile_completeness: 0,
+          // Attribution — preserve any referral captured at partial-save, else
+          // take it from this submission.
+          referral:
+            (existingMeta.referral as Record<string, unknown> | undefined) ??
+            (referral ? { ...referral, captured_at: new Date().toISOString() } : undefined),
         };
 
         // Compute completeness
@@ -381,6 +388,8 @@ export async function POST(req: NextRequest) {
       profile_completeness: 0,
       seeking_status: "actively_looking" as const,
       application_completed: true,
+      // Attribution — campus + partner + channel this applicant came through.
+      ...(referral ? { referral: { ...referral, captured_at: new Date().toISOString() } } : {}),
     };
 
     // Compute completeness

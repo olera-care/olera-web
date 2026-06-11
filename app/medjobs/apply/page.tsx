@@ -186,6 +186,45 @@ export default function MedJobsApplyPage() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Attribution + pre-fill from the canonical apply link (campus / uni / pid /
+  // src). Captured once on mount; the referral rides both submit payloads so a
+  // partner-driven applicant is traceable back to the campus (and partner).
+  const referralRef = useRef<{ campus: string | null; partner_outreach_id: string | null; source: string | null } | null>(null);
+  const uniParamRef = useRef<string | null>(null);
+  const uniPrefilledRef = useRef(false);
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const campus = q.get("campus");
+      const pid = q.get("pid");
+      const src = q.get("src");
+      if (campus || pid || src) {
+        referralRef.current = { campus, partner_outreach_id: pid, source: src };
+      }
+      uniParamRef.current = q.get("uni");
+    } catch {
+      /* no-op — attribution is best-effort */
+    }
+  }, []);
+
+  // Pre-fill the University (and its city/state) from the `uni` link param once
+  // the options load — removes a field for the student AND seeds attribution.
+  useEffect(() => {
+    if (uniPrefilledRef.current || !uniParamRef.current || university || universityOptions.length === 0) return;
+    const target = uniParamRef.current.trim().toLowerCase();
+    const match =
+      universityOptions.find((u) => u.name.toLowerCase() === target) ??
+      universityOptions.find((u) => u.name.toLowerCase().includes(target) || target.includes(u.name.toLowerCase()));
+    if (match) {
+      uniPrefilledRef.current = true;
+      setUniversity(match.name);
+      setUniversityId(match.id);
+      setCity(match.city);
+      setState(match.state);
+      setCityQuery(match.city);
+    }
+  }, [universityOptions, university]);
+
   // Fetch universities (includes city/state for filtering)
   useEffect(() => {
     const supabase = createClient();
@@ -270,6 +309,7 @@ export default function MedJobsApplyPage() {
           body: JSON.stringify({
             displayName, email, phone, city, state,
             website: honeypot,
+            referral: referralRef.current ?? undefined,
           }),
         })
           .then((res) => res.json())
@@ -336,6 +376,7 @@ export default function MedJobsApplyPage() {
           hoursPerWeekRange: hoursPerWeekRange || undefined,
           acknowledgmentsCompleted: true,
           website: honeypot,
+          referral: referralRef.current ?? undefined,
         }),
       });
       const data = await res.json();

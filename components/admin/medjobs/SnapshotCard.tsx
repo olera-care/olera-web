@@ -50,6 +50,7 @@ import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
 import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
@@ -268,41 +269,19 @@ export function ProviderSnapshotCard({
           UI for new rows. Stored in research_data.decision_maker;
           surfaces in the Smartlead fan-out as the named recipient
           alongside the General Contact. */}
-      <DecisionMakerSection
+      {/* Decision makers — the SAME shared component the Partner drawer uses
+          for Advisors. Stored in research_data.decision_makers; materialized
+          into recipients at launch (ResearchActionFooter). */}
+      <SpecificContactsSection
         ctx={ctx}
         action={action}
         setError={setError}
-        editable={isPreLaunch}
+        researchKey="decision_makers"
+        title="Decision makers"
+        primaryRoleLabel="Decision maker"
+        addLabel="Add decision maker"
+        helpText="People at this agency. Anyone with an email becomes a selectable recipient at launch, alongside the general contact."
       />
-
-      {/* ── 3. Legacy Specific Contacts ─────────────────────────────
-          Pre-v9.x multi-contact data. Read-only display so existing
-          rows don't lose data; new edits write to the Decision Maker
-          slot above. Hidden when no legacy contacts exist on the row. */}
-      {ctx.contacts.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            Legacy contacts
-            <span className="ml-2 text-[10px] font-normal normal-case text-gray-400">
-              read-only · pre-Decision Maker data
-            </span>
-          </p>
-          <ul className="space-y-2">
-            {[...activeContacts, ...inactiveContacts].map((c) => (
-              <li key={c.id}>
-                <ContactRow
-                  contact={c}
-                  action={action}
-                  setError={setError}
-                  editable={false}
-                  hasCadenceWork={contactHasCadenceWork(c.id, ctx)}
-                  isPostLaunch={!isPreLaunch}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* ── 4. Verification ───────────────────────────────────────
           v9.x Phase 2b: passive Pre-Flight status indicator. The
@@ -1599,6 +1578,21 @@ function ResearchActionFooter({
             }
             try {
               if (beforeLaunch) await beforeLaunch();
+              // Materialize decision makers (research_data.decision_makers) with
+              // an email into named contacts so they're selectable recipients
+              // alongside the general contact — same pattern as the office's
+              // advisors. Deduped against existing contacts + the general email.
+              const dms = (ctx.outreach.research_data as Record<string, unknown>).decision_makers;
+              if (Array.isArray(dms)) {
+                const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+                const gcLc = ctx.outreach.research_data?.general_contact?.email?.toLowerCase();
+                for (const m of dms as Array<{ name?: string; title?: string; email?: string; phone?: string }>) {
+                  const em = m.email?.trim().toLowerCase();
+                  if (!em || em === gcLc || existing.has(em)) continue;
+                  existing.add(em);
+                  await action("add_contact", { name: m.name, title: m.title ?? null, role: m.title ?? null, email: m.email, phone: m.phone });
+                }
+              }
               setShowPreFlight(true);
             } catch (e) {
               setError(

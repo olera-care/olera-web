@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-06-11 — Email deliverability: verify-on-send + dead-email surfacing + Email Verifier tool — ALL SHIPPED TO PROD (branches `email-verify-on-send` → `admin-email-verifier` → `admin-needs-email-redesign`)
+
+Started from the Smartlead warm-up thread, pivoted into closing the actual bounce problem. `oleracare.com` (the `PROVIDER_NOTIFY_FROM` domain) was bouncing at **5.1%** — over Resend's account-wide 4% suspension line — because the send path only suppressed *cached* invalids, so new/team-fetched directory addresses sent blind. A backfill found **43% of `question_received` addresses are dead**. Resend's thresholds are account-wide, so this threatened olera.care transactional mail too.
+
+Shipped to production today across 4 PRs:
+- **#1014 — verify-on-send** (`lib/email.ts:330`): the 9 `PROVIDER_NOTIFY_FROM_TYPES` now verify-on-miss (`verifyAndCache`, fail-open, skip-on-invalid) instead of cache-only. Plus instant verify in both `add-email` endpoints (leads + questions) with a Send-anyway force override, and **dead on-file emails surface in the "Needs Email" queues** (leads + questions). For questions, the send path sets `metadata.{needs_provider_email,email_dead}` on suppression so the question re-enters the queue instead of going dark.
+- Backfill: **987 dead addresses cached + suppressed**; **384 historical dead-email questions flagged** (one-time script, merged metadata).
+- **#1016 — Email Verifier admin tool** (Records → Email Verifier): paste any address → Valid/Invalid/Risky + reason + live ZeroBounce credit balance. Thin UI over the same engine. `app/admin/email-verifier/page.tsx` + `app/api/admin/verify-email/route.ts` + `getZeroBounceCredits()`.
+- **#1017 — Needs Email redesign**: reworked the input toward the calm/typographic direction (Perena/Airbnb/Linear) — amber-dot cue, focal rounded input, "send anyway" → quiet text link, plain language, "find one →" lookup, hairline dividers. Presentation only.
+
+**Infra (TJ did):** ZeroBounce funded — 5,000 credits + autopay. `ZEROBOUNCE_API_KEY` set in Vercel (Production + Preview). Team announced in #ai-product-development.
+
+**Pre-test gotcha caught:** A & B were first built on the *leads* surface, but the scenario (provider *questions*) runs through a separate questions surface — ported both before QA. Also: ZeroBounce sits behind Cloudflare (HTTP 429 / "error 1015" on bursts) — throttle bulk runs ≤1 req/1.5s.
+
 ### 2026-06-11 — Notion P1 board triage + olera.care human-send email auth FIXED (DNS-only session, repo untouched)
 
 Two threads, neither touching the codebase (DNS + Notion + memory only — `git status` stayed clean all session).
@@ -2478,6 +2492,11 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+**Email deliverability follow-ups (2026-06-11, after verify-on-send shipped):**
+- ⏳ **`seniorlistings.net` send-domain rotation** — turn the single `PROVIDER_NOTIFY_FROM` (`lib/email.ts:43` `resolveFromAddress`) into a per-recipient sticky multi-domain pool with a warmup weight, so provider outreach spreads across `oleracare.com` + `seniorlistings.net`. Blocked on TJ's side: DNS-verify + warm `seniorlistings.net` in Resend first. Plan before coding.
+- ⏳ **Email Verifier v2** — bulk list paste + CSV export, throttled (≤1 req/1.5s to stay under ZeroBounce's Cloudflare limit). Only if the team leans on v1.
+- Note: `oleracare.com` is still cold (2 days old, no warmup ramp) — verify-on-send protects the bounce *rate*, but the domain itself wants a real ramp.
+
 **Provider-removal hygiene (multi-session, started 2026-05-08):**
 - ✅ **Project 1: Blocklist data layer + admin surface.** Shipped on `quiet-kepler` as commit `08d3dcc1`, migration applied, blocklist caught up via admin UI. Awaiting PR open.
 - ⏳ **Project 2: Periodic audit script** — `scripts/audit-removal-blocklist.js`. Load blocklist + olera-providers, fuzzy-match (normalized_name + phone + place_id), Slack alert on hits. Weekly cron + manual run after every city pipeline batch. ~1-2 hours.
@@ -2634,6 +2653,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-06-11 — Email verify-on-send + dead-email surfacing + Email Verifier — shipped to prod (#1014, #1016, #1017)
+
+Closed the provider-email bounce problem end-to-end. Send path now verifies provider-notification addresses via ZeroBounce on cache-miss (was cache-only → new addresses bounced; oleracare.com hit 5.1%, over Resend's account-wide 4% line; 43% of addresses dead). Dead on-file emails now surface in the "Needs Email" queues (questions flagged on send-suppression via `email_dead`). Built an admin Email Verifier tool (Records → Email Verifier) on the same engine. Redesigned the Needs Email input (calm/typographic). Backfill: 987 dead addresses suppressed + 384 stuck questions surfaced. ZeroBounce funded (5k credits + autopay) + key in Vercel Prod+Preview. All PRs (#1014, #1016, #1017, promotions #1015/#1019) merged staging→main, live in prod. Team announced in #ai-product-development. Pre-test caught: A/B were on the leads surface, the scenario is questions — ported. Next: `seniorlistings.net` send-domain rotation pool; Email Verifier v2 (bulk + CSV). See Current Focus for detail.
 
 ### 2026-06-09 — Per-variant conversion + leads-recap variant (PR #993)
 

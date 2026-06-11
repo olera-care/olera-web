@@ -37,15 +37,98 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
 ]);
 
 /**
- * Resolve the From address. Precedence: explicit caller value > cold provider-
- * notification override (PROVIDER_NOTIFY_FROM, when set) > default olera.care.
+ * Provider-notification sender POOL. When PROVIDER_NOTIFY_POOL is set (a JSON
+ * array of {from, replyTo?, weight}), provider-directed mail spreads across those
+ * domains by a STICKY per-recipient pick — a given provider always lands on the
+ * same domain (consistent sender identity + threading), while volume splits by
+ * weight. Lets us warm a second outreach domain (e.g. seniorlistings.net at a
+ * small starting weight) and ramp it just by bumping its weight in the env — no
+ * code change. A malformed or empty pool falls back to single PROVIDER_NOTIFY_FROM.
+ *
+ * Example PROVIDER_NOTIFY_POOL (one line):
+ *   [{"from":"Olera <hello@oleracare.com>","replyTo":"reply@oleracare.com","weight":80},
+ *    {"from":"Olera <hello@seniorlistings.net>","replyTo":"reply@seniorlistings.net","weight":20}]
  */
-export function resolveFromAddress(explicitFrom: string | undefined, emailType: string): string {
-  if (explicitFrom) return explicitFrom;
-  if (PROVIDER_NOTIFY_FROM_TYPES.has(emailType) && process.env.PROVIDER_NOTIFY_FROM) {
-    return process.env.PROVIDER_NOTIFY_FROM;
+type NotifyPoolEntry = { from: string; replyTo?: string; weight: number };
+
+function loadNotifyPool(): NotifyPoolEntry[] {
+  const raw = process.env.PROVIDER_NOTIFY_POOL;
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((e) => e && typeof e.from === "string" && e.from.trim())
+      .map((e) => ({
+        from: e.from,
+        replyTo: typeof e.replyTo === "string" ? e.replyTo : undefined,
+        weight: Number(e.weight) > 0 ? Number(e.weight) : 1,
+      }));
+  } catch {
+    return []; // malformed → ignore the pool, fall back to single domain (fail safe)
   }
-  return FROM_ADDRESS;
+}
+
+/** Deterministic 32-bit FNV-1a hash — stable across processes/deploys. */
+function hashString(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Sticky weighted pick: same recipient → same entry (until weights change), so a
+ * provider always sees one consistent sender. No recipient (preview/logging) →
+ * the highest-weight entry, deterministically. Returns null for an empty pool.
+ */
+function pickPoolEntry(pool: NotifyPoolEntry[], recipient: string | undefined): NotifyPoolEntry | null {
+  if (pool.length === 0) return null;
+  if (pool.length === 1) return pool[0];
+  if (!recipient) return pool.reduce((a, b) => (b.weight > a.weight ? b : a));
+  const total = pool.reduce((s, e) => s + e.weight, 0);
+  let bucket = hashString(recipient.trim().toLowerCase()) % total;
+  for (const e of pool) {
+    if (bucket < e.weight) return e;
+    bucket -= e.weight;
+  }
+  return pool[pool.length - 1]; // float-safety; unreachable for integer weights
+}
+
+/**
+ * Resolve {from, replyTo} for a send. From precedence: explicit caller value >
+ * provider-notify pool (sticky per recipient) > single PROVIDER_NOTIFY_FROM >
+ * default olera.care. replyTo follows the chosen domain.
+ */
+export function resolveSender(
+  explicitFrom: string | undefined,
+  emailType: string,
+  recipient?: string,
+): { from: string; replyTo?: string } {
+  if (explicitFrom) return { from: explicitFrom };
+  if (PROVIDER_NOTIFY_FROM_TYPES.has(emailType)) {
+    const entry = pickPoolEntry(loadNotifyPool(), recipient);
+    if (entry) return { from: entry.from, replyTo: entry.replyTo };
+    if (process.env.PROVIDER_NOTIFY_FROM) {
+      return { from: process.env.PROVIDER_NOTIFY_FROM, replyTo: process.env.PROVIDER_NOTIFY_REPLY_TO };
+    }
+  }
+  return { from: FROM_ADDRESS };
+}
+
+/**
+ * Back-compat thin wrapper returning just the From string (used by the pre-send
+ * log + admin preview routes). Pass `recipient` so the logged sender matches the
+ * sticky domain the real send will use.
+ */
+export function resolveFromAddress(
+  explicitFrom: string | undefined,
+  emailType: string,
+  recipient?: string,
+): string {
+  return resolveSender(explicitFrom, emailType, recipient).from;
 }
 
 /**
@@ -246,7 +329,11 @@ export async function reserveEmailLogId(options: {
     recipient,
     // Log the address the send will actually use, so analytics-by-sender stays
     // accurate when provider notifications are routed off olera.care.
-    sender: resolveFromAddress(undefined, options.emailType ?? "unknown"),
+    sender: resolveFromAddress(
+      undefined,
+      options.emailType ?? "unknown",
+      Array.isArray(options.to) ? options.to[0] : options.to,
+    ),
     subject: options.subject,
     emailType: options.emailType ?? "unknown",
     recipientType: options.recipientType,
@@ -287,7 +374,11 @@ export async function sendEmail(
 
   // Resolve sender: explicit caller value wins; otherwise provider-directed
   // notifications route to the isolated PROVIDER_NOTIFY_FROM domain when set.
-  const from = resolveFromAddress(explicitFrom, emailType);
+  const { from, replyTo: poolReplyTo } = resolveSender(
+    explicitFrom,
+    emailType,
+    Array.isArray(to) ? to[0] : to,
+  );
 
   // Check notification preferences for controllable (activity-based) notifications
   // Marketing and transactional emails bypass this check and always send
@@ -408,13 +499,10 @@ export async function sendEmail(
     }));
   }
   // Reply-To: explicit caller value wins. Otherwise, if this send was routed to
-  // the provider-notification domain, point replies at PROVIDER_NOTIFY_REPLY_TO
-  // (when set) so they don't land on an unmonitored mailbox on the new domain.
-  const replyTo =
-    options.replyTo ??
-    (from === process.env.PROVIDER_NOTIFY_FROM
-      ? process.env.PROVIDER_NOTIFY_REPLY_TO
-      : undefined);
+  // the From domain the sender resolver chose (the pool entry's replyTo, or
+  // PROVIDER_NOTIFY_REPLY_TO in the single-domain fallback), so replies don't
+  // land on an unmonitored mailbox on a cousin domain.
+  const replyTo = options.replyTo ?? poolReplyTo;
   if (replyTo) {
     sendPayload.replyTo = replyTo;
   }

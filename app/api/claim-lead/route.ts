@@ -25,9 +25,9 @@ import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/li
  *  7. Redirects to /provider/connections?id=<connectionId>
  *
  * FALLBACK BEHAVIOR:
- * If server-side auth fails at any step, we redirect to the provider's public
- * page where they can sign in manually. We never show an error page that blocks
- * the provider entirely.
+ * If server-side auth fails at any step, we redirect to the onboard page
+ * where they can claim their account manually. We never show an error page
+ * that blocks the provider entirely.
  *
  * Query params:
  *   - otk: Required. The signed claim token (HMAC-SHA256)
@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
   // IMPORTANT: We still track lead_opened even on fallback, so the connection
   // moves from "New" to "Viewed" in the admin panel. The provider clicked
   // the link and landed on our site - that's a "view" even if auth failed.
-  const fallbackToProviderPage = async (reason: string, slug?: string | null) => {
-    console.log("[claim-lead] falling back to provider page:", { reason, slug, connectionId });
+  const fallbackToOnboard = async (reason: string, slug?: string | null) => {
+    console.log("[claim-lead] falling back to onboard:", { reason, slug, connectionId });
 
     // Track lead_opened even on fallback (if we have enough info)
     if (slug && connectionId) {
@@ -82,8 +82,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${siteUrl}/`, { status: 303 });
     }
 
-    // Redirect to provider's public page where they can sign in
-    const fallbackUrl = new URL(`${siteUrl}/provider/${slug}`);
+    // Redirect to onboard page where they can claim their account
+    const fallbackUrl = new URL(`${siteUrl}/provider/${slug}/onboard`);
+    fallbackUrl.searchParams.set("action", "lead");
+    if (connectionId) {
+      fallbackUrl.searchParams.set("actionId", connectionId);
+    }
     return NextResponse.redirect(fallbackUrl.toString(), { status: 303 });
   };
 
@@ -98,7 +102,7 @@ export async function GET(request: NextRequest) {
     console.error("[claim-lead] token validation failed:", validation.error);
     // Token invalid/expired - redirect to onboard page if we have a slug, else home
     // This lets expired links still land on a useful page instead of a dead end
-    return await fallbackToProviderPage(validation.error, validation.providerId || null);
+    return await fallbackToOnboard(validation.error, validation.providerId || null);
   }
 
   const { providerId: providerSlug, email } = validation;
@@ -110,7 +114,7 @@ export async function GET(request: NextRequest) {
 
   if (!supabaseUrl || !anonKey || !serviceKey) {
     console.error("[claim-lead] missing env vars");
-    return await fallbackToProviderPage("missing env vars", providerSlug);
+    return await fallbackToOnboard("missing env vars", providerSlug);
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
@@ -126,7 +130,7 @@ export async function GET(request: NextRequest) {
 
   if (!providerProfile) {
     console.error("[claim-lead] provider profile lookup failed:", profileError?.message || "not found");
-    return await fallbackToProviderPage("provider not found", providerSlug);
+    return await fallbackToOnboard("provider not found", providerSlug);
   }
 
   // Use the actual slug from the profile for onboard fallback (more reliable)
@@ -138,7 +142,7 @@ export async function GET(request: NextRequest) {
       tokenEmail: normalizedEmail,
       profileEmail: providerProfile.email?.toLowerCase(),
     });
-    return await fallbackToProviderPage("email mismatch", actualSlug);
+    return await fallbackToOnboard("email mismatch", actualSlug);
   }
 
   // 3. If connectionId provided, verify it belongs to this provider
@@ -172,7 +176,7 @@ export async function GET(request: NextRequest) {
       createError.message?.includes("already exists");
     if (!alreadyExists) {
       console.error("[claim-lead] createUser failed:", createError.message);
-      return await fallbackToProviderPage("createUser failed", actualSlug);
+      return await fallbackToOnboard("createUser failed", actualSlug);
     }
   } else {
     userId = createdUser?.user?.id;
@@ -186,7 +190,7 @@ export async function GET(request: NextRequest) {
 
   if (linkError || !linkData?.properties?.hashed_token) {
     console.error("[claim-lead] generateLink failed:", linkError?.message);
-    return await fallbackToProviderPage("generateLink failed", actualSlug);
+    return await fallbackToOnboard("generateLink failed", actualSlug);
   }
   if (!userId) userId = linkData.user?.id;
   const tokenHash = linkData.properties.hashed_token;
@@ -210,7 +214,7 @@ export async function GET(request: NextRequest) {
 
   if (otpError || !otpData?.session) {
     console.error("[claim-lead] verifyOtp failed:", otpError?.message);
-    return await fallbackToProviderPage("verifyOtp failed", actualSlug);
+    return await fallbackToOnboard("verifyOtp failed", actualSlug);
   }
 
   // 7. Build the redirect response and write session cookies onto it
@@ -248,13 +252,13 @@ export async function GET(request: NextRequest) {
 
   if (setSessionError) {
     console.error("[claim-lead] setSession failed:", setSessionError.message);
-    return await fallbackToProviderPage("setSession failed", actualSlug);
+    return await fallbackToOnboard("setSession failed", actualSlug);
   }
 
   // 8. Ensure an account row exists, then link the profile to it (idempotent)
   if (!userId) {
     console.error("[claim-lead] could not resolve userId");
-    return await fallbackToProviderPage("no userId", actualSlug);
+    return await fallbackToOnboard("no userId", actualSlug);
   }
 
   let { data: account } = await admin
@@ -295,7 +299,7 @@ export async function GET(request: NextRequest) {
         console.error("[claim-lead] account creation failed:", accountError.message);
         // Session is already set, but without an account they can't claim the profile
         // Fall back to onboard page where they can try again
-        return await fallbackToProviderPage("account creation failed", actualSlug);
+        return await fallbackToOnboard("account creation failed", actualSlug);
       }
     } else {
       account = newAccount;

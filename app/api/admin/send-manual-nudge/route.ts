@@ -136,98 +136,12 @@ export async function POST(req: NextRequest) {
     .select("*", { count: "exact", head: true })
     .eq("to_profile_id", providerProfileId)  // Always query TO provider for inquiries
     .eq("type", "inquiry")
+    .eq("status", "pending")  // Only count leads actually waiting for response
     .is("metadata->archived", null);
 
   const leadCount = pendingLeadsCount || 1;
-
-  // Extract message preview from JSON or thread
-  // We want the FAMILY's message, not the provider's auto-reply
-  let messagePreview: string | null = null;
-  if (connection.message) {
-    try {
-      const msgJson = JSON.parse(String(connection.message));
-      messagePreview = msgJson.additional_notes || msgJson.message || msgJson.notes || null;
-    } catch {
-      // If not JSON, use as-is (legacy format)
-      messagePreview = String(connection.message);
-    }
-  }
-  // Fall back to first FAMILY message in thread (skip provider auto-replies)
-  if (!messagePreview) {
-    const thread = (meta.thread as Array<{ from_profile_id?: string; text?: string; is_auto_reply?: boolean }>) || [];
-    const familyMessage = thread.find(
-      (m) => m.from_profile_id === familyProfileId && m.text && !m.is_auto_reply
-    );
-    if (familyMessage?.text) {
-      messagePreview = familyMessage.text;
-    }
-  }
-
-  // If still no message, build context from care type and timeline
-  if (!messagePreview) {
-    // Match labels used in admin/leads for consistency
-    const CARE_TYPE_LABELS: Record<string, string> = {
-      home_care: "Home Care",
-      home_health: "Home Health Care",
-      assisted_living: "Assisted Living",
-      memory_care: "Memory Care",
-    };
-
-    // Covers both "urgency" and "timeline" field naming conventions
-    const TIMELINE_LABELS: Record<string, string> = {
-      // timeline field values
-      immediate: "ASAP",
-      within_1_month: "Within 1 month",
-      within_3_months: "Within 3 months",
-      exploring: "Exploring",
-      // urgency field values
-      asap: "ASAP",
-      within_month: "Within 1 month",
-      few_months: "Within 3 months",
-      researching: "Exploring",
-    };
-
-    // Try to get care type from family profile or connection message
-    let careType: string | null = null;
-    let timeline: string | null = null;
-
-    // From family profile
-    const familyMeta = (familyProfile?.metadata as Record<string, unknown>) ?? {};
-    const familyCareTypes = (familyProfile as { care_types?: string[] })?.care_types;
-    if (familyCareTypes && familyCareTypes.length > 0) {
-      careType = CARE_TYPE_LABELS[familyCareTypes[0]] || familyCareTypes[0];
-    }
-    if (familyMeta.timeline) {
-      timeline = TIMELINE_LABELS[familyMeta.timeline as string] || (familyMeta.timeline as string);
-    }
-
-    // From connection message JSON (if not already found)
-    if ((!careType || !timeline) && connection.message) {
-      try {
-        const msgJson = JSON.parse(String(connection.message));
-        if (!careType && msgJson.care_type) {
-          careType = CARE_TYPE_LABELS[msgJson.care_type] || msgJson.care_type;
-        }
-        if (!timeline && msgJson.urgency) {
-          timeline = TIMELINE_LABELS[msgJson.urgency] || msgJson.urgency;
-        }
-      } catch {
-        // ignore parse errors
-      }
-    }
-
-    // Build context string
-    const contextParts: string[] = [];
-    if (careType) contextParts.push(`Looking for ${careType}`);
-    if (timeline) contextParts.push(`Timeline: ${timeline}`);
-    if (contextParts.length > 0) {
-      messagePreview = contextParts.join(" · ");
-    }
-  }
-
-  // Truncate for email
-  if (messagePreview && messagePreview.length > 100) {
-    messagePreview = messagePreview.substring(0, 97) + "...";
+  if (!pendingLeadsCount) {
+    console.warn("[send-manual-nudge] Lead count is 0, defaulting to 1. Connection:", connection_id);
   }
 
   const siteUrl = getSiteUrl();

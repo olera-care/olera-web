@@ -986,18 +986,25 @@ export async function GET(request: NextRequest) {
         workflowCounts[c.workflowState]++;
 
         // Count engagement levels (provider perspective)
-        // Exclude declined archives from "all" count (they go to "Declined" tab)
+        // Declined archives go to "Declined" tab; corrupted archives go to "All" tab only
         const isDeclinedArchive = c.archived && c.archiveReason;
+
+        // "All" count: include everything except properly declined archives
+        // (corrupted archives appear in "All" tab so count them there)
         if (!isDeclinedArchive) {
           engagementCounts.all++;
         }
 
-        // For needs_follow_up: only count if provider HAS email
-        // Providers without email should only appear in no_email tab
-        if (engResult.level === "needs_follow_up" && !c.provider.email?.trim()) {
-          // Don't count in needs_follow_up - they'll be in no_email instead
-        } else {
-          engagementCounts[engResult.level]++;
+        // Engagement level counts (new, viewed, connected, needs_follow_up):
+        // Exclude ALL archived - matches list filtering which uses !c.archived
+        if (!c.archived) {
+          // For needs_follow_up: only count if provider HAS email
+          // Providers without email should only appear in no_email tab
+          if (engResult.level === "needs_follow_up" && !c.provider.email?.trim()) {
+            // Don't count in needs_follow_up - they'll be in no_email instead
+          } else {
+            engagementCounts[engResult.level]++;
+          }
         }
 
         // Count providers without email (cross-cutting filter)

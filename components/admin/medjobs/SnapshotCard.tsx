@@ -308,31 +308,10 @@ export function ProviderSnapshotCard({
           mirrors the resulting state so admin sees whether Launch
           will fire without scrolling back to the Next Step card.
           Pre-launch only; post-launch the status no longer matters
-          (outreach is in flight). */}
-      {verificationState && (
-        <VerificationSection state={verificationState} />
-      )}
+          (outreach is in flight). The separate Verification card was removed —
+          the Launch button enabling after Call to Confirm already conveys it. */}
 
-      {/* ── 5. Research notes ─────────────────────────────────────── */}
-      <div>
-        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Research notes
-        </p>
-        <Input
-          as="textarea"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          onBlur={saveNotes}
-          placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
-          rows={3}
-          size="sm"
-        />
-        <p className="mt-0.5 text-[11px] text-gray-400">
-          {savingNotes ? "Saving…" : "Saved on blur"}
-        </p>
-      </div>
-
-      {/* ── 6. Pre-Flight action footer ────────────────────────────
+      {/* ── 5. Pre-Flight action footer ────────────────────────────
           v9.x Phase 2c: action affordances live inside the Research
           Card so admin can finish Pre-Flight without leaving the
           card. Visit Website opens the provider site for research;
@@ -351,6 +330,27 @@ export function ProviderSnapshotCard({
           beforeLaunch={beforeLaunch}
         />
       )}
+
+      {/* ── 6. Research notes ─────────────────────────────────────── */}
+      {/* Notes sit BELOW the workflow (call to confirm + launch) so they
+          don't interrupt the main path — matches the Partner drawer. */}
+      <div>
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+          Research notes
+        </p>
+        <Input
+          as="textarea"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={saveNotes}
+          placeholder="Source of contact info, agency character, hiring activity, anything else worth remembering."
+          rows={3}
+          size="sm"
+        />
+        <p className="mt-0.5 text-[11px] text-gray-400">
+          {savingNotes ? "Saving…" : "Saved on blur"}
+        </p>
+      </div>
     </section>
   );
 }

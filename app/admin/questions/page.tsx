@@ -50,20 +50,23 @@ const STATUS_COLORS: Record<string, string> = {
 function InlineEmailInput({
   providerSlug,
   existingEmail,
+  emailIsDead,
   onEmailAdded,
 }: {
   providerSlug: string;
   existingEmail?: string | null;
+  emailIsDead?: boolean;
   onEmailAdded: () => void;
 }) {
-  const [email, setEmail] = useState(existingEmail || "");
+  // Don't pre-fill a dead address — the operator needs to replace it.
+  const [email, setEmail] = useState(emailIsDead ? "" : existingEmail || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const hasExistingEmail = !!existingEmail;
+  const [undeliverable, setUndeliverable] = useState(false);
+  const hasExistingEmail = !!existingEmail && !emailIsDead;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(force: boolean) {
     if (!email.trim() || !providerSlug) return;
 
     setSaving(true);
@@ -72,21 +75,29 @@ function InlineEmailInput({
       const res = await fetch("/api/admin/questions/add-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerSlug, email: email.trim() }),
+        body: JSON.stringify({ providerSlug, email: email.trim(), force }),
       });
 
       if (res.ok) {
         setSuccess(true);
+        setUndeliverable(false);
         setTimeout(() => onEmailAdded(), 1200);
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to save");
+        setError(data.message || data.error || "Failed to save");
+        setUndeliverable(res.status === 422 && data.error === "undeliverable");
       }
     } catch {
       setError("Network error");
+      setUndeliverable(false);
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    submit(false);
   }
 
   if (success) {
@@ -122,6 +133,16 @@ function InlineEmailInput({
         <span className="text-xs text-amber-600">Email on file</span>
       )}
       {error && <span className="text-xs text-red-500">{error}</span>}
+      {undeliverable && (
+        <button
+          type="button"
+          onClick={() => submit(true)}
+          disabled={saving}
+          className="px-3 py-1.5 rounded-lg text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+        >
+          Send anyway
+        </button>
+      )}
     </form>
   );
 }
@@ -428,6 +449,7 @@ export default function AdminQuestionsPage() {
         <div className="space-y-1">
           {questions.map((q) => {
             const needsEmail = q.metadata?.needs_provider_email === true;
+            const emailIsDead = q.metadata?.email_dead === true;
             const providerLabel = q.provider_name || q.provider_id;
             const isRemoved = q.status === "rejected";
             const isArchived = q.status === "archived";
@@ -536,9 +558,15 @@ export default function AdminQuestionsPage() {
 
                 {showEmailInput && (
                   <div className="mt-3">
+                    {emailIsDead && (
+                      <p className="mb-1.5 text-xs font-medium text-red-600" title={q.provider_email ? `${q.provider_email} is undeliverable` : undefined}>
+                        Dead email — replace{q.provider_email ? ` (${q.provider_email})` : ""}
+                      </p>
+                    )}
                     <InlineEmailInput
                       providerSlug={q.provider_id}
                       existingEmail={q.provider_email}
+                      emailIsDead={emailIsDead}
                       onEmailAdded={fetchQuestions}
                     />
                   </div>

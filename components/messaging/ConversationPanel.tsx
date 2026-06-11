@@ -245,7 +245,7 @@ function ProviderPassedCard({
     : `Update from ${displayProviderName}`;
 
   const bodyText = isProviderView
-    ? `You passed on this inquiry and won't be able to help at this time.`
+    ? `You declined this inquiry and won't be able to help at this time.`
     : `They've reviewed your inquiry and won't be able to help at this time.`;
 
   return (
@@ -859,12 +859,12 @@ export default function ConversationPanel({
 
             // System messages
             if (msg.type === "system") {
-              // Check if this is a "provider passed" message
-              const isProviderPassed = msg.text?.includes("passed on this inquiry");
+              // Check if this is a "provider declined" message (also check "passed on" for backwards compat)
+              const isProviderDeclined = msg.text?.includes("declined this inquiry") || msg.text?.includes("passed on this inquiry");
 
-              if (isProviderPassed) {
+              if (isProviderDeclined) {
                 // Parse reason and message from text
-                // Format: "This provider has passed on this inquiry. Reason: not_a_fit\n\"message\""
+                // Format: "This provider has declined this inquiry. Reason: not_a_fit\n\"message\""
                 const reasonMatch = msg.text.match(/Reason:\s*(\w+)/);
                 const messageMatch = msg.text.match(/\n"([\s\S]+)"/);
                 const archiveReason = reasonMatch?.[1] || "other";

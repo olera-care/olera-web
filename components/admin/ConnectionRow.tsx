@@ -141,7 +141,7 @@ interface Detail {
   engagement: DetailEngagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
-  // Archive information (when provider passed on lead)
+  // Archive information (when provider declined the lead)
   archived: boolean;
   archiveReason: string | null;
   archiveMessage: string | null;
@@ -1485,14 +1485,14 @@ export default function ConnectionRow({
                 </div>
               </div>
 
-              {/* Archive information - show when provider passed on lead */}
+              {/* Archive information - show when provider declined the lead */}
               {detail.archived && detail.archiveReason && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start gap-2">
                     <span className="text-lg">🚫</span>
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                        Provider Passed on Lead
+                        Provider Declined Lead
                       </h3>
                       <p className="text-sm text-gray-700 mb-2">
                         <span className="font-medium">Reason:</span> {getArchiveReasonLabel(detail.archiveReason)}
@@ -1505,7 +1505,7 @@ export default function ConnectionRow({
                       )}
                       {detail.archivedAt && (
                         <p className="text-xs text-gray-400 mt-2">
-                          Passed {daysAgo(detail.archivedAt)}
+                          Declined {daysAgo(detail.archivedAt)}
                         </p>
                       )}
                     </div>

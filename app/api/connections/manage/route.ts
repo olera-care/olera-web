@@ -262,7 +262,7 @@ export async function POST(request: Request) {
             created_at: string;
           }>) || [];
 
-          let systemText = `This provider has passed on this inquiry. Reason: ${archiveReason}`;
+          let systemText = `This provider has declined this inquiry. Reason: ${archiveReason}`;
           if (archiveMessage) {
             // No manual escaping needed - Postgres JSONB serialization handles it
             systemText += `\n"${archiveMessage}"`;
@@ -463,6 +463,7 @@ export async function POST(request: Request) {
                 familyName: familyProfile.display_name || "there",
                 providerName,
                 providerPassed: true, // This changes the email copy to "isn't able to take new families"
+                declineMessage: archiveMessage || null, // Show provider's custom message if provided
                 recommendedProviders,
                 browseUrl,
                 city: city ?? null, // Convert undefined to null for type safety

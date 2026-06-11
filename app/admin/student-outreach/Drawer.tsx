@@ -970,7 +970,6 @@ function ResearchModePanel({
   const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
   const verificationState = getVerificationState(ctx.touchpoints, overridden);
   const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
-  const officeNeedsCall = isOffice && !isProspect && !verificationState.can_launch;
 
   // Office launch: materialize advisors-with-email as named contacts (so they
   // become recipients alongside the general office), then open the per-recipient
@@ -983,6 +982,10 @@ function ResearchModePanel({
   }>;
   const launchOffice = async () => {
     try {
+      // Offices skip the explicit "Research complete" click — transition here,
+      // transparently, on the way to launch (prospect → researched is required
+      // before outreach_sent).
+      if (ctx.outreach.status === "prospect") await action("mark_research_complete");
       const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
       const gcLc = officeEmail?.toLowerCase();
       for (const m of officeMembersFull) {
@@ -997,45 +1000,40 @@ function ResearchModePanel({
     }
   };
 
-  const orientation = isProspect ? (
-    isOffice ? (
-      <>Fill the office contact info and add any advisors, then click <em>Research complete</em>.</>
-    ) : (
-      <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
-    )
-  ) : officeNeedsCall ? (
-    <>Before any email goes out, call to confirm the general email is the right place to send program info — then log the outcome. Outreach unlocks once a call confirms it.</>
+  // Offices skip the redundant "Research complete" pre-state — they're
+  // generated WITH contact info, so they land straight on Pre-Flight (confirm
+  // by call, then launch). Only non-office stakeholders keep the prospect step.
+  const orientation = isOffice ? (
+    <>Confirm the office&apos;s email, then make a quick confirmation call before any email goes out — outreach unlocks once a call confirms it.</>
+  ) : isProspect ? (
+    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
     <>Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.</>
   );
 
-  const checklist = isProspect
-    ? isOffice
-      ? [{ done: hasOfficeEmail, label: "At least one email — the office or a person" }]
-      : [
+  const checklist = isOffice
+    ? [{ done: hasOfficeEmail, label: "An email on file to reach out to" }]
+    : isProspect
+      ? [
           { done: haveContact, label: "At least one active contact added" },
           { done: havePrograms, label: "Programs selected" },
           ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
         ]
-    : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
+      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
-  // CTA: office research → mark complete only (no PreFlight); office researched
-  // but un-confirmed → the call gate; otherwise the email-sequence launcher.
+  // CTA: offices show Pre-Flight (Verification + Call to Confirm + Launch) at
+  // any research status; non-office prospects keep the Research-complete step.
   let cta: React.ReactNode;
-  if (isProspect) {
+  if (!isOffice && isProspect) {
     const label = ready
-      ? isOffice
-        ? "✓ Research complete →"
-        : "✓ Research complete — review email sequence"
-      : isOffice
-        ? "Add the office email to continue"
-        : "Add a contact + programs to continue";
+      ? "✓ Research complete — review email sequence"
+      : "Add a contact + programs to continue";
     cta = (
       <button
         onClick={async () => {
           try {
             await action("mark_research_complete");
-            if (!isOffice) setShowPreFlight(true);
+            setShowPreFlight(true);
           } catch (e) {
             setError(e instanceof Error ? e.message : "Action failed");
           }

@@ -5,6 +5,7 @@ import { sendEmail, reserveEmailLogId } from "@/lib/email";
 import { connectionResponseEmail, providerSilentEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -318,7 +319,7 @@ export async function POST(request: Request) {
             const [{ data: familyProfile }, { data: providerProfile }] = await Promise.all([
               admin
                 .from("business_profiles")
-                .select("id, email, display_name, care_types, city, state")
+                .select("id, email, display_name, care_types, city, state, account_id")
                 .eq("id", familyProfileId)
                 .single(),
               admin
@@ -329,6 +330,30 @@ export async function POST(request: Request) {
             ]);
 
             if (familyProfile?.email && providerProfile) {
+              // Resolve family email: business_profiles.email for sending, auth email for HMAC tokens
+              // CRITICAL: Use Supabase auth email (not profile email) for HMAC token generation
+              // to ensure authentication succeeds when profile email differs from auth email
+              let familyEmailForSending = familyProfile.email;
+              let familyEmailForHMAC = familyEmailForSending; // Default to profile email
+
+              // Always look up auth email if account exists (for HMAC token generation)
+              if (familyProfile.account_id) {
+                const { data: acct } = await admin
+                  .from("accounts")
+                  .select("user_id")
+                  .eq("id", familyProfile.account_id)
+                  .single();
+                if (acct?.user_id) {
+                  const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
+                  if (authUser?.email) {
+                    familyEmailForHMAC = authUser.email; // Use auth email for HMAC tokens
+                    if (!familyEmailForSending) {
+                      familyEmailForSending = authUser.email; // Fallback for sending if no profile email
+                    }
+                  }
+                }
+              }
+
               // Get location data with proper null handling
               const city = providerProfile.city || familyProfile.city || null;
               const state = providerProfile.state || familyProfile.state || null;
@@ -375,22 +400,37 @@ export async function POST(request: Request) {
                 }).slice(0, 3);
               }
 
-              // Build recommended providers array with view URLs
+              // Build recommended providers array with HMAC-signed view URLs
+              // Use generateFamilyInboxUrl for one-click authentication (72-hour expiry)
               const siteUrl = getSiteUrl();
               const recommendedProviders = matchingProviders.map((p) => {
                 const slug = p.slug || p.source_provider_id || p.id;
+                const destination = `/provider/${slug}`;
+                const viewUrl = generateFamilyInboxUrl(
+                  familyEmailForHMAC,
+                  destination,
+                  siteUrl
+                );
                 return {
                   name: p.display_name || "Provider",
                   slug,
                   priceRange: p.price_range as string | null,
-                  viewUrl: `${siteUrl}/provider/${slug}`,
+                  viewUrl,
                 };
               });
 
-              // Browse URL for finding more providers
-              const browseUrl = city && state
-                ? `${siteUrl}/search?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
-                : `${siteUrl}/search`;
+              // Browse URL with HMAC-signed auto-signin (72-hour expiry)
+              // Use /browse path (not /search which doesn't exist)
+              // Use location param with "City, State" format (browse page doesn't accept separate city/state params)
+              const location = [city, state].filter(Boolean).join(", ");
+              const searchDestination = location
+                ? `/browse?location=${encodeURIComponent(location)}`
+                : `/browse`;
+              const browseUrl = generateFamilyInboxUrl(
+                familyEmailForHMAC,
+                searchDestination,
+                siteUrl
+              );
 
               // Use provider name with fallback
               const providerName = providerProfile.display_name || "The provider";
@@ -398,7 +438,7 @@ export async function POST(request: Request) {
 
               // Reserve email log ID
               const emailLogId = await reserveEmailLogId({
-                to: familyProfile.email,
+                to: familyEmailForSending,
                 subject,
                 emailType: "provider_declined",
                 recipientType: "family",
@@ -420,7 +460,7 @@ export async function POST(request: Request) {
               });
 
               await sendEmail({
-                to: familyProfile.email,
+                to: familyEmailForSending,
                 subject,
                 html,
                 emailType: "provider_declined",
@@ -433,7 +473,7 @@ export async function POST(request: Request) {
                 emailLogId: emailLogId ?? undefined,
               });
 
-              console.log("[manage] Sent provider declined email to family:", familyProfile.email);
+              console.log("[manage] Sent provider declined email to family:", familyEmailForSending);
             }
           } catch (emailError) {
             // Non-blocking - log error but don't fail the archive

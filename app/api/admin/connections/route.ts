@@ -1048,7 +1048,9 @@ export async function GET(request: NextRequest) {
         // Store the issue type on the connection for filtering/display
         (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType = emailIssueType;
 
-        if (emailIssueType) {
+        // Only count non-archived connections in needs_email (consistent with other tabs)
+        // Archived/declined leads shouldn't appear in "Needs Email" - they go to "Declined" tab
+        if (emailIssueType && !c.archived) {
           engagementCounts.needs_email++;
         }
 
@@ -1116,8 +1118,9 @@ export async function GET(request: NextRequest) {
     if (responseFilter !== "all") {
       // Special filter: needs_email (provider perspective only)
       // Combines: no email, delivery failed, or invalid email
+      // Exclude archived connections (they go to "Declined" tab)
       if (responseFilter === "needs_email" && perspective === "provider") {
-        list = list.filter((c) => (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null);
+        list = list.filter((c) => (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null && !c.archived);
       }
       // Special filter: declined (provider archived with decline reasons)
       else if (responseFilter === "declined" && perspective === "provider") {

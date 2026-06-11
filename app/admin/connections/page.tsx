@@ -36,8 +36,7 @@ interface FamilyEngagementCounts {
   new: number;
   awaiting: number;
   connected: number;
-  stuck: number;
-  needs_call: number;
+  needs_follow_up: number;
 }
 
 interface FunnelStats {
@@ -79,7 +78,7 @@ interface ListResponse {
 
 // Engagement level type
 type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
-type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
+type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 
 // Perspective type
 type Perspective = "provider" | "family";
@@ -112,8 +111,7 @@ const FAMILY_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Provider hasn't responded yet", emptyMessage: "No connections awaiting provider response." },
   { key: "awaiting", label: "Awaiting", description: "Provider responded, awaiting family reply", emptyMessage: "No families awaiting response." },
   { key: "connected", label: "Connected", description: "Family replied to provider", emptyMessage: "No families have replied yet." },
-  { key: "stuck", label: "Stuck", description: "No family activity for 14+ days", emptyMessage: "No stuck family connections." },
-  { key: "needs_call", label: "Needs Call", description: "No family activity for 24+ days", emptyMessage: "No families need calling." },
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "No family activity for 10+ days, requires manual intervention", emptyMessage: "No families need follow-up." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 

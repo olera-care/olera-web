@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendEmail } from "@/lib/email";
-import { connectionResponseEmail } from "@/lib/email-templates";
+import { sendEmail, reserveEmailLogId } from "@/lib/email";
+import { connectionResponseEmail, providerSilentEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
+import { getSiteUrl } from "@/lib/site-url";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -278,6 +279,157 @@ export async function POST(request: Request) {
           console.error("[manage] archive error:", updateError);
           return NextResponse.json({ error: "Failed to archive" }, { status: 500 });
         }
+
+        // Send immediate email to family when provider passes on lead
+        const shouldNotifyFamily = archiveReason && [
+          "not_a_fit",
+          "not_accepting_clients",
+          "unable_to_reach",
+          "other",
+        ].includes(archiveReason);
+
+        // Skip email if already archived (prevent duplicate emails)
+        const wasAlreadyArchived = existingMeta.archived === true;
+
+        // Only send for inquiry and request connections (not save, application, etc.)
+        const isValidConnectionType = connection.type === "inquiry" || connection.type === "request";
+
+        if (shouldNotifyFamily && !wasAlreadyArchived && isValidConnectionType) {
+          try {
+            // Determine family and provider profile IDs based on connection type
+            // - "inquiry": from_profile_id = family, to_profile_id = provider
+            // - "request": from_profile_id = provider, to_profile_id = family
+            const isInquiry = connection.type === "inquiry";
+            const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
+            const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
+
+            // Get family and provider profiles
+            const [{ data: familyProfile }, { data: providerProfile }] = await Promise.all([
+              admin
+                .from("business_profiles")
+                .select("id, email, display_name, care_types, city, state")
+                .eq("id", familyProfileId)
+                .single(),
+              admin
+                .from("business_profiles")
+                .select("id, display_name, city, state, care_types")
+                .eq("id", providerProfileId)
+                .single(),
+            ]);
+
+            if (familyProfile?.email && providerProfile) {
+              // Get location data with proper null handling
+              const city = providerProfile.city || familyProfile.city || null;
+              const state = providerProfile.state || familyProfile.state || null;
+              const careTypes = familyProfile.care_types || providerProfile.care_types || [];
+
+              // Only query for recommended providers if we have location data
+              let matchingProviders: Array<{
+                id: string;
+                display_name: string | null;
+                slug: string | null;
+                source_provider_id: string | null;
+                price_range: string | null;
+              }> = [];
+
+              if (city && state) {
+                // Query responsive providers in same location
+                const { data: candidateProviders } = await admin
+                  .from("business_profiles")
+                  .select("id, display_name, slug, source_provider_id, email, price_range, city, state, care_types")
+                  .eq("type", "organization")
+                  .eq("is_active", true)
+                  .eq("city", city)
+                  .eq("state", state)
+                  .neq("id", providerProfile.id)
+                  .limit(20);
+
+                // Filter to providers with matching care types (or all if no care types specified)
+                matchingProviders = (candidateProviders || []).filter((p: {
+                  id: string;
+                  display_name: string | null;
+                  slug: string | null;
+                  source_provider_id: string | null;
+                  email: string | null;
+                  price_range: string | null;
+                  care_types: unknown;
+                }) => {
+                  if (!p.email) return false;
+
+                  // If no care types specified, include all providers
+                  if (careTypes.length === 0) return true;
+
+                  const providerCareTypes = (p.care_types as string[]) || [];
+                  return careTypes.some((ct: string) => providerCareTypes.includes(ct));
+                }).slice(0, 3);
+              }
+
+              // Build recommended providers array with view URLs
+              const siteUrl = getSiteUrl();
+              const recommendedProviders = matchingProviders.map((p) => {
+                const slug = p.slug || p.source_provider_id || p.id;
+                return {
+                  name: p.display_name || "Provider",
+                  slug,
+                  priceRange: p.price_range as string | null,
+                  viewUrl: `${siteUrl}/provider/${slug}`,
+                };
+              });
+
+              // Browse URL for finding more providers
+              const browseUrl = city && state
+                ? `${siteUrl}/search?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
+                : `${siteUrl}/search`;
+
+              // Use provider name with fallback
+              const providerName = providerProfile.display_name || "The provider";
+              const subject = `${providerName} isn't able to take new families`;
+
+              // Reserve email log ID
+              const emailLogId = await reserveEmailLogId({
+                to: familyProfile.email,
+                subject,
+                emailType: "provider_declined",
+                recipientType: "family",
+                metadata: {
+                  connection_id: connectionId,
+                  archive_reason: archiveReason,
+                  recommended_count: recommendedProviders.length,
+                },
+              });
+
+              // Send email using existing providerSilentEmail template
+              const html = providerSilentEmail({
+                familyName: familyProfile.display_name || "there",
+                providerName,
+                providerPassed: true, // This changes the email copy to "isn't able to take new families"
+                recommendedProviders,
+                browseUrl,
+                city: city ?? null, // Convert undefined to null for type safety
+              });
+
+              await sendEmail({
+                to: familyProfile.email,
+                subject,
+                html,
+                emailType: "provider_declined",
+                recipientType: "family",
+                metadata: {
+                  connection_id: connectionId,
+                  archive_reason: archiveReason,
+                  recommended_count: recommendedProviders.length,
+                },
+                emailLogId: emailLogId ?? undefined,
+              });
+
+              console.log("[manage] Sent provider declined email to family:", familyProfile.email);
+            }
+          } catch (emailError) {
+            // Non-blocking - log error but don't fail the archive
+            console.error("[manage] Failed to send provider declined email:", emailError);
+          }
+        }
+
         return NextResponse.json({ status: "archived" });
       }
 

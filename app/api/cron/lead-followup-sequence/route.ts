@@ -15,7 +15,7 @@ import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tok
 import { parseAdminOverride } from "@/lib/connection-engagement";
 
 // Valid archive reasons from provider portal
-const VALID_ARCHIVE_REASONS = ["already_connected", "not_a_fit", "not_accepting_clients", "unable_to_reach", "other"] as const;
+const VALID_ARCHIVE_REASONS = ["not_a_fit", "not_accepting_clients", "unable_to_reach", "other"] as const;
 type ArchiveReason = typeof VALID_ARCHIVE_REASONS[number];
 
 function parseArchiveReason(value: unknown): ArchiveReason | null {
@@ -43,7 +43,7 @@ function parseArchiveReason(value: unknown): ArchiveReason | null {
  *   - Copies email (email_link_clicked)
  *   - Sends a message to family
  *   - Marks lead as "Replied"
- *   - Archives with "Already connected" reason
+ *   - Archives the lead in their portal
  *
  * Viewing alone (opening drawer) does NOT stop the sequence.
  */
@@ -354,27 +354,24 @@ export async function GET(request: NextRequest) {
 
       const meta = (conn.metadata as FollowupMetadata & Record<string, unknown>) ?? {};
 
-      // FORCE STUCK REENGAGEMENT MODE: Only process connections that are currently stuck
-      // This is used for one-time blast to all stuck providers
+      // FORCE STUCK REENGAGEMENT MODE: Obsolete after stuck/needs_call merge
+      // The forceStuckReengagement parameter is no longer functional since "stuck"
+      // was merged into "needs_follow_up" engagement level
       if (forceStuckReengagement) {
-        if (meta.followup_stopped_reason !== "stuck") {
-          counts.skipped++;
-          counts.skipReasons.not_stuck++;
-          continue;
-        }
-        // In force mode, we don't skip based on followup_stopped_at
-        // because we explicitly want to re-engage stuck connections
-      } else {
-        // NORMAL MODE: Check if sequence was already stopped for a REAL connection
-        // Skip if stopped for actual connection ("connected", "responded") or admin verification
-        // Also skip old "needs_call" (legacy - from before sequence compression)
-        const stopReason = meta.followup_stopped_reason;
-        const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "needs_call" || stopReason === "admin_marked_connected";
-        if (meta.followup_stopped_at && isRealStop) {
-          counts.skipped++;
-          counts.skipReasons.sequence_stopped++;
-          continue;
-        }
+        // Skip all connections in force mode since "stuck" stop reason no longer exists
+        counts.skipped++;
+        counts.skipReasons.sequence_stopped++;
+        continue;
+      }
+
+      // Check if sequence was already stopped for a REAL connection
+      // Skip if stopped for actual connection ("connected", "responded") or admin verification
+      const stopReason = meta.followup_stopped_reason;
+      const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "admin_marked_connected";
+      if (meta.followup_stopped_at && isRealStop) {
+        counts.skipped++;
+        counts.skipReasons.sequence_stopped++;
+        continue;
       }
 
       // Check if admin manually marked this connection (verified off-platform activity)

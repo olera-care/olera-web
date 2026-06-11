@@ -16,8 +16,8 @@ interface ProfileCompleteness {
 }
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-export type EngagementLevel = "new" | "viewed" | "connected" | "stuck" | "needs_call";
-export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "stuck" | "needs_call";
+export type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 export type Perspective = "provider" | "family";
 
 export interface ConnectionRowData {
@@ -71,7 +71,7 @@ export interface ConnectionRowData {
   } | null;
   /** Provider archived this lead in their portal */
   archived?: boolean;
-  archiveReason?: "already_connected" | "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
+  archiveReason?: "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
   archivedAt?: string;
 }
 
@@ -480,10 +480,8 @@ export default function ConnectionRow({
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
         case "awaiting":
           return { status: "Awaiting Reply", color: "text-amber-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
-        case "stuck":
-          return { status: "Stuck", color: "text-gray-500", nudgeInfo: `Family nudged ${familyNudges}x` };
-        case "needs_call":
-          return { status: "Needs Call", color: "text-red-600", nudgeInfo: `Family nudged ${familyNudges}x` };
+        case "needs_follow_up":
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: familyNudges > 0 ? `Family nudged ${familyNudges}x` : null };
         case "new":
         default:
           return { status: "New", color: "text-blue-600", nudgeInfo: null };
@@ -501,8 +499,8 @@ export default function ConnectionRow({
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
         case "viewed":
           return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
-        case "stuck":
-          return { status: "Stuck", color: "text-gray-500", nudgeInfo: c.waitingOn === "family" ? `Family nudged ${familyNudges}x` : `Provider nudged ${providerNudges}x` };
+        case "needs_follow_up":
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: c.waitingOn === "family" ? `Family nudged ${familyNudges}x` : `Provider nudged ${providerNudges}x` };
         case "new":
         default:
           return { status: "New", color: "text-blue-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
@@ -842,7 +840,8 @@ export default function ConnectionRow({
     }
   }
 
-  const isDeclined = c.archived && c.archiveReason && c.archiveReason !== "already_connected";
+  // Provider archived this lead - show as declined with reduced opacity
+  const isDeclined = c.archived && c.archiveReason;
 
   return (
     <div className="group">
@@ -885,8 +884,8 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
-            {/* Archive badge - show when archived with decline reason (not already_connected) */}
-            {c.archived && c.archiveReason && c.archiveReason !== "already_connected" && (
+            {/* Archive badge - show when provider archived/declined the lead */}
+            {c.archived && c.archiveReason && (
               <>
                 <span className="text-gray-300">|</span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600" title={c.archivedAt ? `Archived ${daysAgo(c.archivedAt)}` : "Archived"}>
@@ -966,17 +965,13 @@ export default function ConnectionRow({
               {/* Stuck/Needs Call banner - only show if we can actually call someone */}
               {/* Family perspective: only show if family has phone */}
               {/* Provider perspective: only show if provider has phone */}
-              {((perspective === "family" && (c.familyEngagementLevel === "stuck" || c.familyEngagementLevel === "needs_call") && detail.family.phone) ||
-                (perspective === "provider" && (c.engagementLevel === "stuck" || c.engagementLevel === "needs_call") && detail.provider.phone)) && (
+              {((perspective === "family" && c.familyEngagementLevel === "needs_follow_up" && detail.family.phone) ||
+                (perspective === "provider" && c.engagementLevel === "needs_follow_up" && detail.provider.phone)) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
                   <p className="text-sm font-medium text-amber-800 mb-2">
                     {perspective === "family"
-                      ? c.familyEngagementLevel === "needs_call"
-                        ? "Family requires manual call. No activity for 24+ days."
-                        : "Family needs follow-up. No activity for 14+ days."
-                      : c.engagementLevel === "needs_call"
-                        ? "Provider requires manual call. No activity for 14+ days."
-                        : "Provider needs follow-up. No activity for 10+ days."}
+                      ? "Family needs follow-up. No activity for 10+ days."
+                      : "Provider needs follow-up. No activity for 10+ days."}
                   </p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {perspective === "family" ? (
@@ -1022,7 +1017,7 @@ export default function ConnectionRow({
                 {perspective === "family" ? (
                   // Family perspective: primary action is nudging family
                   <>
-                    {c.familyEngagementLevel !== "connected" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_call" && (
+                    {c.familyEngagementLevel !== "connected" && c.familyEngagementLevel !== "new" && c.familyEngagementLevel !== "needs_follow_up" && (
                       <>
                         {/* Family nudge - primary action in family perspective */}
                         {detail.family.email && (
@@ -1054,7 +1049,7 @@ export default function ConnectionRow({
                 ) : (
                   // Provider perspective: existing logic
                   <>
-                    {c.engagementLevel !== "stuck" && c.engagementLevel !== "connected" && c.engagementLevel !== "needs_call" && (
+                    {c.engagementLevel !== "needs_follow_up" && c.engagementLevel !== "connected" && (
                       <>
                         {/* Provider nudge - when waiting on provider */}
                         {c.waitingOn === "provider" && detail.provider.hasEmail && (
@@ -1097,8 +1092,8 @@ export default function ConnectionRow({
                     {c.engagementLevel === "connected" && (
                       <span className="text-sm text-emerald-600 font-medium">Provider reached out to family</span>
                     )}
-                    {/* Fact Sheet for needs_call when banner doesn't show (no provider phone) */}
-                    {(c.engagementLevel === "needs_call" || c.engagementLevel === "stuck") && !detail.provider.phone && (
+                    {/* Fact Sheet for needs_follow_up when banner doesn't show (no provider phone) */}
+                    {c.engagementLevel === "needs_follow_up" && !detail.provider.phone && (
                       <button
                         onClick={() => setShowFactSheet(true)}
                         className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100"

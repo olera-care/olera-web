@@ -44,7 +44,7 @@ function parseArchiveReason(value: unknown): ArchiveReason | null {
  * and sorted most-needs-attention first.
  *
  * Query params:
- *   - filter         "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "no_email"
+ *   - filter         "all" | "needs_attention" | "provider_nudged" | "family_nudged" | "responded" | "needs_email"
  *   - state          (legacy) one of awaiting_provider|awaiting_family|live|going_cold|closed
  *   - include_closed "true" to include declined/expired/ended connections (default: excluded)
  *   - search         case-insensitive match on family or provider display name
@@ -119,7 +119,10 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "no_email" | "declined" | "delivery_failed";
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "declined";
+
+// Email issue types for the "Needs Email" tab
+type EmailIssueType = "no_email" | "failed" | "invalid" | null;
 
 // Stuck threshold: 3+ nudges with no response
 const STUCK_NUDGE_THRESHOLD = 3;
@@ -140,9 +143,8 @@ interface EngagementCounts {
   viewed: number;
   connected: number;
   needs_follow_up: number;
-  no_email: number; // Cross-cutting filter: providers without email
+  needs_email: number; // Combined: no email, delivery failed, or invalid email
   declined: number; // Provider archived with decline reasons
-  delivery_failed: number; // Email attempted but bounced/failed/suppressed
 }
 
 // Family engagement-based tab counts (family perspective)
@@ -884,6 +886,30 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Query for invalid/undeliverable emails (verified by ZeroBounce)
+    // Collect all provider emails and check against email_verifications table
+    const providerEmails = new Set<string>();
+    for (const c of searched) {
+      const email = c.provider.email?.trim();
+      if (email) providerEmails.add(email);
+    }
+
+    const invalidEmailSet = new Set<string>();
+    if (providerEmails.size > 0) {
+      const emailArray = Array.from(providerEmails);
+      // Batch query in chunks of 500 (Supabase IN clause limit)
+      for (let i = 0; i < emailArray.length; i += 500) {
+        const { data: verifs } = await db
+          .from("email_verifications")
+          .select("email, status")
+          .in("email", emailArray.slice(i, i + 500))
+          .eq("status", "invalid");
+        for (const v of verifs ?? []) {
+          invalidEmailSet.add(v.email as string);
+        }
+      }
+    }
+
     // Workflow-based counts (legacy)
     const workflowCounts: WorkflowCounts = {
       all: 0,
@@ -901,9 +927,8 @@ export async function GET(request: NextRequest) {
       viewed: 0,
       connected: 0,
       needs_follow_up: 0,
-      no_email: 0,
+      needs_email: 0,
       declined: 0,
-      delivery_failed: 0,
     };
 
     // Family engagement-based counts (family perspective)
@@ -999,28 +1024,37 @@ export async function GET(request: NextRequest) {
         // Exclude ALL archived - matches list filtering which uses !c.archived
         if (!c.archived) {
           // For needs_follow_up: only count if provider HAS email
-          // Providers without email should only appear in no_email tab
+          // Providers without email should only appear in needs_email tab
           if (engResult.level === "needs_follow_up" && !c.provider.email?.trim()) {
-            // Don't count in needs_follow_up - they'll be in no_email instead
+            // Don't count in needs_follow_up - they'll be in needs_email instead
           } else {
             engagementCounts[engResult.level]++;
           }
         }
 
-        // Count providers without email (cross-cutting filter)
-        if (!c.provider.email?.trim()) {
-          engagementCounts.no_email++;
+        // Count "Needs Email" - combines: no email, delivery failed, or invalid email
+        // Determine email issue type for this connection
+        const providerEmail = c.provider.email?.trim();
+        let emailIssueType: EmailIssueType = null;
+
+        if (!providerEmail) {
+          emailIssueType = "no_email";
+        } else if (connectionsWithDeliveryFailure.has(c.id)) {
+          emailIssueType = "failed";
+        } else if (invalidEmailSet.has(providerEmail)) {
+          emailIssueType = "invalid";
+        }
+
+        // Store the issue type on the connection for filtering/display
+        (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType = emailIssueType;
+
+        if (emailIssueType) {
+          engagementCounts.needs_email++;
         }
 
         // Count declined (provider archived with decline reasons)
         if (isDeclinedArchive) {
           engagementCounts.declined++;
-        }
-
-        // Count delivery failures (email attempted but bounced/failed/suppressed)
-        // Only count if provider HAS email (no_email is a separate category)
-        if (c.provider.email?.trim() && connectionsWithDeliveryFailure.has(c.id)) {
-          engagementCounts.delivery_failed++;
         }
 
         // Count family engagement levels
@@ -1080,15 +1114,10 @@ export async function GET(request: NextRequest) {
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
-      // Special filter: no_email (provider perspective only - cross-cutting filter)
-      if (responseFilter === "no_email" && perspective === "provider") {
-        list = list.filter((c) => !c.provider.email?.trim());
-      }
-      // Special filter: delivery_failed (email attempted but bounced/failed/suppressed)
-      else if (responseFilter === "delivery_failed" && perspective === "provider") {
-        list = list.filter((c) =>
-          c.provider.email?.trim() && connectionsWithDeliveryFailure.has(c.id)
-        );
+      // Special filter: needs_email (provider perspective only)
+      // Combines: no email, delivery failed, or invalid email
+      if (responseFilter === "needs_email" && perspective === "provider") {
+        list = list.filter((c) => (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null);
       }
       // Special filter: declined (provider archived with decline reasons)
       else if (responseFilter === "declined" && perspective === "provider") {

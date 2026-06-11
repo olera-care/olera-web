@@ -28,8 +28,7 @@ interface EngagementCounts {
   connected: number;
   needs_follow_up: number;
   declined: number;
-  no_email: number;
-  delivery_failed: number;
+  needs_email: number;
 }
 
 interface FamilyEngagementCounts {
@@ -85,7 +84,7 @@ type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "no_email" | "declined" | "delivery_failed";
+type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -103,8 +102,7 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "declined", label: "Declined", description: "Provider declined lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
-  { key: "no_email", label: "No Email", description: "Providers without email addresses", emptyMessage: "All providers have emails." },
-  { key: "delivery_failed", label: "Delivery Failed", description: "Email bounced, was suppressed, or failed to send", emptyMessage: "No delivery failures." },
+  { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 

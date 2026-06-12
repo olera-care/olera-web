@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import {
+  PROVIDER_CATEGORIES,
+  eventTypesForCategory,
+  isProviderCategory,
+  type ProviderCategoryKey,
+} from "@/lib/activity/provider-categories";
 
 // The Providers tab answers "what are providers DOING on the platform?" — so it
 // must show only events a provider's own session performed. The provider_activity
@@ -50,6 +56,23 @@ const PROVIDER_ACTION_EVENT_TYPES = [
 ];
 
 /**
+ * Constrain a provider_activity query to a taxonomy category (see
+ * lib/activity/provider-categories.ts). "flags" is special: it folds in
+ * low-trust one_click_access events the same way the standalone "Suspicious
+ * claims" filter does, so the trust signal isn't split across two places.
+ * Returns the query unchanged for an unknown category.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyCategoryFilter(query: any, category: ProviderCategoryKey) {
+  if (category === "flags") {
+    return query.or(
+      "event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)"
+    );
+  }
+  return query.in("event_type", eventTypesForCategory(category));
+}
+
+/**
  * GET /api/admin/activity
  *
  * Admin Activity Center data. Supports two actor types:
@@ -86,6 +109,8 @@ export async function GET(request: NextRequest) {
     const actor = searchParams.get("actor") || "providers";
     const view = searchParams.get("view") || "feed";
     const eventType = searchParams.get("event_type") || searchParams.get("email_type");
+    const categoryParam = searchParams.get("category");
+    const category = isProviderCategory(categoryParam) ? categoryParam : null;
     const days = parseInt(searchParams.get("days") || "30", 10);
     const search = searchParams.get("search")?.trim() || "";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
@@ -108,12 +133,17 @@ export async function GET(request: NextRequest) {
       return handleFamiliesFeedView(db, opts);
     }
 
-    // Provider views (default + backward compat)
-    if (view === "providers" || view === "people") {
-      return handleProvidersView(db, { ...opts, emailType: eventType });
+    // Orientation summary — per-category counts for the providers tab.
+    if (view === "summary") {
+      return handleProviderSummary(db, sinceISO);
     }
 
-    return handleFeedView(db, { ...opts, emailType: eventType });
+    // Provider views (default + backward compat)
+    if (view === "providers" || view === "people") {
+      return handleProvidersView(db, { ...opts, emailType: eventType, category });
+    }
+
+    return handleFeedView(db, { ...opts, emailType: eventType, category });
   } catch (err) {
     console.error("Admin activity error:", err);
     return NextResponse.json(
@@ -123,16 +153,48 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * Per-category counts for the Providers orientation strip. One exact head-count
+ * query per category, run in parallel — accurate beyond the 5000-row aggregation
+ * cap, and cheap (no rows transferred). Returns counts in PROVIDER_CATEGORIES
+ * order plus the grand total of provider actions in the window.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleProviderSummary(db: any, sinceISO: string) {
+  const counts = await Promise.all(
+    PROVIDER_CATEGORIES.map(async (cat) => {
+      let q = db
+        .from("provider_activity")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", sinceISO);
+      q = applyCategoryFilter(q, cat.key);
+      const { count } = await q;
+      return { key: cat.key, count: count || 0 };
+    })
+  );
+
+  // Grand total = all genuine provider actions (matches the feed's "All" view),
+  // not the sum of categories — "flags" overlaps Leads (low-trust sign-ins).
+  const { count: total } = await db
+    .from("provider_activity")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", sinceISO)
+    .in("event_type", PROVIDER_ACTION_EVENT_TYPES);
+
+  return NextResponse.json({ categories: counts, total: total || 0 });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleFeedView(db: any, opts: {
   emailType: string | null;
+  category: ProviderCategoryKey | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, sinceISO, search, limit, offset, countOnly } = opts;
   // Provider feed — existing behavior
 
   // If searching, find matching provider IDs first (check both tables)
@@ -184,6 +246,10 @@ async function handleFeedView(db: any, opts: {
     } else {
       query = query.eq("email_type", emailType);
     }
+  }
+  // Category navigation (orientation tiles / chips) narrows to a taxonomy bucket.
+  if (category) {
+    query = applyCategoryFilter(query, category);
   }
   if (searchProviderIds) {
     query = query.in("provider_id", searchProviderIds);
@@ -293,13 +359,14 @@ async function handleFeedView(db: any, opts: {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleProvidersView(db: any, opts: {
   emailType: string | null;
+  category: ProviderCategoryKey | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, sinceISO, search, limit, offset, countOnly } = opts;
 
   // Use raw SQL via RPC for aggregation — Supabase JS doesn't support GROUP BY
   // Fallback: fetch all activity and aggregate in JS (fine for current scale).
@@ -323,6 +390,9 @@ async function handleProvidersView(db: any, opts: {
     } else {
       query = query.eq("email_type", emailType);
     }
+  }
+  if (category) {
+    query = applyCategoryFilter(query, category);
   }
 
   // Cap at 5000 events for aggregation (covers most scenarios)

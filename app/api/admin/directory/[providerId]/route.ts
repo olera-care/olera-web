@@ -434,15 +434,19 @@ export async function PATCH(
 
     // Protection: If this provider is linked to a claimed account with an existing email,
     // block the email change. The provider owns their email and should update it themselves.
-    // However, if NO email is on file, allow adding one (for directory enrichment).
-    if (emailChanged && current.email) {
+    // However, if NO email is on file (neither olera-providers nor business_profiles),
+    // allow adding one (for directory enrichment).
+    if (emailChanged) {
       const { data: linkedBp } = await db
         .from("business_profiles")
         .select("account_id, email")
         .eq("source_provider_id", providerId)
         .maybeSingle();
 
-      if (linkedBp?.account_id && linkedBp?.email) {
+      // Block if: provider is claimed AND (olera-providers OR business_profiles has email)
+      // Allow if: neither has email (true "add" case)
+      const hasExistingEmail = !!(current.email || linkedBp?.email);
+      if (linkedBp?.account_id && hasExistingEmail) {
         return NextResponse.json(
           {
             error: "claimed_account",

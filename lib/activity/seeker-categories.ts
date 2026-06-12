@@ -42,7 +42,9 @@ export const SEEKER_CATEGORIES: SeekerCategoryMeta[] = [
     key: "questions",
     label: "Asking questions",
     blurb: "Asked providers a question",
-    eventTypes: ["question_asked", "qa_email_capture_impression", "question_email_enriched"],
+    // qa_email_capture_impression is the "get notified" prompt, not an actual
+    // ask — it lives under "Saving an account" so this bucket = real questions.
+    eventTypes: ["question_asked", "question_email_enriched"],
   },
   {
     key: "benefits",
@@ -59,12 +61,14 @@ export const SEEKER_CATEGORIES: SeekerCategoryMeta[] = [
   {
     key: "saving",
     label: "Saving an account",
-    blurb: "Engaged the save-to-account prompt",
+    blurb: "Engaged save-to-account and get-notified prompts",
     eventTypes: [
       "save_nudge_shown",
       "save_nudge_dismissed",
       "save_nudge_signup_clicked",
       "save_nudge_converted",
+      // Q&A "get notified when answered" email-capture prompt (guest askers).
+      "qa_email_capture_impression",
     ],
   },
   {

@@ -232,18 +232,18 @@ function LeadDetailInlineView({
 
       {/* Scrollable content */}
       <div className="flex-1 min-h-0 overflow-y-auto px-5 pt-5 pb-5 space-y-6">
-        {/* Archived banner */}
+        {/* Declined banner */}
         {lead.status === "archived" && lead.archivedDate && (
-          <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
-            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <div className="flex items-center gap-2.5 rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
               </svg>
             </div>
-            <div>
-              <p className="text-[15px] font-semibold text-gray-800">Archived on {lead.archivedDate}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-700">Declined on {lead.archivedDate}</p>
               {lead.archiveReason && (
-                <p className="text-[13px] text-gray-400 mt-0.5">Reason: {lead.archiveReason}</p>
+                <p className="text-xs text-gray-400">Reason: {lead.archiveReason}</p>
               )}
             </div>
           </div>
@@ -935,18 +935,18 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // ── Archived Banner ──
-  const ArchivedBanner = lead.status === "archived" && lead.archivedDate ? (
-    <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
-      <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+  // ── Declined Banner ──
+  const DeclinedBanner = lead.status === "archived" && lead.archivedDate ? (
+    <div className="flex items-center gap-2.5 rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-2.5">
+      <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
         </svg>
       </div>
-      <div>
-        <p className="text-[15px] font-semibold text-gray-800">Archived on {lead.archivedDate}</p>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-gray-700">Declined on {lead.archivedDate}</p>
         {lead.archiveReason && (
-          <p className="text-[13px] text-gray-400 mt-0.5">Reason: {lead.archiveReason}</p>
+          <p className="text-xs text-gray-400">Reason: {lead.archiveReason}</p>
         )}
       </div>
     </div>
@@ -955,8 +955,8 @@ function LeadDetailDrawer({
   // ── Scrollable Content ──
   const ScrollableContent = (
     <div className="space-y-6">
-      {/* Archived banner */}
-      {ArchivedBanner}
+      {/* Declined banner */}
+      {DeclinedBanner}
 
       {/* Quality Summary Card */}
       {(() => {
@@ -1679,6 +1679,9 @@ export default function ProviderLeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  // Track whether page change is automatic (from page size adjustment) vs user-initiated
+  // When true, we skip clearing the selected lead on page change
+  const isAutoPageChangeRef = useRef(false);
   // Track which lead's drawer should reopen after verification
   const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
   // Track which lead to archive (for modal)
@@ -1748,7 +1751,13 @@ export default function ProviderLeadsPage() {
   };
 
   // Clear selected lead when pagination or filter changes to avoid showing details for non-visible leads
+  // Skip clearing if the page change was automatic (from page size adjustment when selecting a lead)
   useEffect(() => {
+    if (isAutoPageChangeRef.current) {
+      // Reset the flag and don't clear selection - this was an automatic adjustment
+      isAutoPageChangeRef.current = false;
+      return;
+    }
     setSelectedLeadId(null);
     setIsDrawerOpen(false);
   }, [currentPage, activeFilter]);
@@ -2121,6 +2130,8 @@ export default function ProviderLeadsPage() {
   // Reset to last valid page if current page exceeds total (e.g., after data refresh)
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
+      // Mark this as an automatic page change so we don't clear the selected lead
+      isAutoPageChangeRef.current = true;
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
@@ -2132,6 +2143,8 @@ export default function ProviderLeadsPage() {
       if (leadIndex !== -1) {
         const correctPage = Math.floor(leadIndex / activePageSize) + 1;
         if (correctPage !== currentPage && correctPage <= totalPages) {
+          // Mark this as an automatic page change so we don't clear the selected lead
+          isAutoPageChangeRef.current = true;
           setCurrentPage(correctPage);
         }
       }

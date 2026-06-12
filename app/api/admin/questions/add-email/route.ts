@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Strategy 1: business_profiles by slug
     let provider = await db
       .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug, metadata")
+      .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
       .eq("slug", providerSlug)
       .maybeSingle()
       .then(r => r.data);
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       if (iosProvider) {
         provider = await db
           .from("business_profiles")
-          .select("id, display_name, email, source_provider_id, slug, metadata")
+          .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
           .eq("source_provider_id", iosProvider.provider_id)
           .maybeSingle()
           .then(r => r.data);
@@ -125,6 +125,19 @@ export async function POST(request: NextRequest) {
 
     if (!provider && !iosProvider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    // Protection: If this account is claimed (has account_id) AND already has an email,
+    // block the change. The provider owns this email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    if (provider?.account_id && provider?.email) {
+      return NextResponse.json(
+        {
+          error: "claimed_account",
+          message: "This provider has claimed their account. Their email cannot be changed by admins.",
+        },
+        { status: 403 }
+      );
     }
 
     // Use submitted email, or fall back to existing email on file

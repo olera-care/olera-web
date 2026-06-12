@@ -51,6 +51,11 @@ export default function EditOverviewModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Email is locked for verified providers (can't self-edit, must contact support)
+  // This applies when verification_state is "verified" or "not_required" (high-trust)
+  const verificationState = profile.verification_state as string | null;
+  const isEmailLocked = verificationState === "verified" || verificationState === "not_required";
+
   // City picker state
   const [cityInput, setCityInput] = useState(profile.city || "");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -74,7 +79,8 @@ export default function EditOverviewModal({
     state !== (profile.state || "") ||
     zip !== (profile.zip || "") ||
     phone !== (profile.phone || "") ||
-    email !== (profile.email || "") ||
+    // Don't consider email changes if locked (can't be saved anyway)
+    (!isEmailLocked && email !== (profile.email || "")) ||
     website !== (profile.website || "");
 
   async function handleSave() {
@@ -99,7 +105,8 @@ export default function EditOverviewModal({
           state: state || null,
           zip: zip || null,
           phone: phone || null,
-          email: email || null,
+          // Don't update email if locked - preserve existing value
+          email: isEmailLocked ? profile.email : (email || null),
           website: website || null,
         },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
@@ -237,13 +244,35 @@ export default function EditOverviewModal({
             onChange={(e) => setPhone((e.target as HTMLInputElement).value)}
             placeholder="(555) 123-4567"
           />
-          <Input
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
-            placeholder="contact@example.com"
-          />
+          {isEmailLocked ? (
+            <div>
+              <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                Email
+              </label>
+              <div className="px-4 py-2.5 rounded-lg border border-gray-100 bg-gray-50 text-base text-gray-600">
+                {email || "Not set"}
+              </div>
+              <a
+                href="/contact"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-1.5 text-[13px] text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Contact support to change
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          ) : (
+            <Input
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+              placeholder="contact@example.com"
+            />
+          )}
         </div>
 
         <Input

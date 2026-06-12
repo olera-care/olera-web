@@ -124,6 +124,8 @@ If content regressions are detected, recommend reconcile first.
 
 Direct merge:
 - Use `gh pr merge <PR> --merge --delete-branch` unless the user requests squash.
+- If GitHub blocks the merge only because base branch policy/review protection prohibits it, and TJ has already explicitly chosen the direct-merge option after the analysis report, rerun with `--admin` instead of asking again. This is the established Olera workflow for TJ-approved staging merges.
+- Do not use admin override for unresolved conflicts, red CI, content regressions, missing production/main confirmation, or any blocker that was not already disclosed in the analysis report.
 - Fetch `origin/staging` afterward and confirm the merge commit exists.
 - Re-run critical spot-checks on `origin/staging`.
 
@@ -154,6 +156,7 @@ If Notion is available and the user wants a record, create a concise PR Merge Re
 - Never merge to `main` without explicit confirmation.
 - Never force-push without explicit confirmation.
 - Never merge with failing CI unless the user explicitly accepts the risk.
+- Admin override is allowed for `staging` PRs only after TJ explicitly confirms merge and the remaining blocker is branch protection/review policy, not code safety.
 - Always fetch fresh before analysis.
 - Treat revert chains and old PR branches as high-signal risk.
 - Do not claim a PR is safe based only on GitHub’s mergeable status.

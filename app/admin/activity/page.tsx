@@ -7,7 +7,6 @@ import {
   PROVIDER_CATEGORIES,
   PROVIDER_CATEGORY_MAP,
   providerEventLabel,
-  providerEventBadge,
   isProviderCategory,
   type ProviderCategoryKey,
 } from "@/lib/activity/provider-categories";
@@ -105,20 +104,6 @@ function relativeTime(iso: string): string {
   });
 }
 
-function trustBadgeLabel(level: string | null | undefined): string {
-  if (level === "high") return "Trust: High";
-  if (level === "medium") return "Trust: Medium";
-  if (level === "low") return "🚩 Suspicious";
-  return "";
-}
-
-function trustBadgeColor(level: string | null | undefined): string {
-  if (level === "high") return "bg-emerald-50 text-emerald-700";
-  if (level === "medium") return "bg-amber-50 text-amber-700";
-  if (level === "low") return "bg-red-50 text-red-700";
-  return "bg-gray-100 text-gray-500";
-}
-
 function familyEventTypeLabel(type: string): string {
   const map: Record<string, string> = {
     connection_sent: "Connection",
@@ -201,6 +186,32 @@ function SegmentedControl<T extends string>({
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
           ].join(" ")}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Light text toggle for secondary axes (view, time). Lower visual weight than
+// SegmentedControl so the Families/Providers switch stays the primary control.
+function TextToggle<T extends string>({ options, value, onChange }: {
+  options: { label: string; value: T }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="inline-flex items-center gap-3">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`text-xs transition-colors ${
+            value === opt.value
+              ? "text-gray-900 font-medium"
+              : "text-gray-400 hover:text-gray-600"
+          }`}
         >
           {opt.label}
         </button>
@@ -326,18 +337,17 @@ function ProviderSummaryStrip({ summary, total, selected, onSelect, loading }: {
   onSelect: (key: ProviderCategoryKey | "") => void;
   loading: boolean;
 }) {
-  const tiles: { key: ProviderCategoryKey | ""; label: string; count: number; dot: string | null }[] = [
-    { key: "", label: "All activity", count: total ?? 0, dot: null },
+  const tiles: { key: ProviderCategoryKey | ""; label: string; count: number }[] = [
+    { key: "", label: "All activity", count: total ?? 0 },
     ...PROVIDER_CATEGORIES.map((c) => ({
       key: c.key,
       label: c.label,
       count: summary?.[c.key] ?? 0,
-      dot: c.dot,
     })),
   ];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-7 overflow-x-auto pb-1">
       {tiles.map((t) => {
         const active = selected === t.key;
         const meta = t.key ? PROVIDER_CATEGORY_MAP[t.key] : null;
@@ -347,19 +357,22 @@ function ProviderSummaryStrip({ summary, total, selected, onSelect, loading }: {
             key={t.key || "all"}
             onClick={() => onSelect(active && t.key ? "" : t.key)}
             title={meta?.blurb}
-            className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${
-              active
-                ? meta
-                  ? meta.tileActive
-                  : "border-gray-300 bg-gray-100"
-                : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
-            } ${dim ? "opacity-45" : ""}`}
+            className={`group flex shrink-0 flex-col items-start border-b-2 pb-1.5 transition-colors ${
+              active ? "border-teal-500" : "border-transparent"
+            } ${dim ? "opacity-40" : ""}`}
           >
-            {meta && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${meta.dot}`} />}
-            <span className="text-sm font-semibold text-gray-900 tabular-nums">
-              {loading ? "··" : t.count.toLocaleString()}
+            <span className="text-lg font-semibold leading-none tabular-nums text-gray-900">
+              {loading ? "·" : t.count.toLocaleString()}
             </span>
-            <span className="text-xs text-gray-500 whitespace-nowrap">{t.label}</span>
+            <span
+              className={`mt-1.5 whitespace-nowrap text-[11px] transition-colors ${
+                active
+                  ? "font-medium text-teal-700"
+                  : "text-gray-400 group-hover:text-gray-600"
+              }`}
+            >
+              {t.label}
+            </span>
           </button>
         );
       })}
@@ -378,8 +391,7 @@ function ProviderSubFilter({ category, counts, selectedEvent, onSelect, loading 
 }) {
   const meta = PROVIDER_CATEGORY_MAP[category];
   return (
-    <div className="flex flex-wrap items-center gap-1.5 pl-0.5">
-      <span className="text-[11px] text-gray-400 mr-0.5">{meta.label}:</span>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px]">
       {meta.eventTypes.map((et) => {
         const active = selectedEvent === et;
         const count = counts?.[et] ?? 0;
@@ -388,14 +400,14 @@ function ProviderSubFilter({ category, counts, selectedEvent, onSelect, loading 
           <button
             key={et}
             onClick={() => onSelect(active ? "" : et)}
-            className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
-              active
-                ? `${meta.badge} border-transparent`
-                : "border-gray-200 text-gray-600 hover:bg-gray-50"
+            className={`transition-colors ${
+              active ? "font-medium text-teal-700" : "text-gray-500 hover:text-gray-900"
             } ${dim ? "opacity-40" : ""}`}
           >
             {providerEventLabel(et)}
-            {!loading && <span className="ml-1 tabular-nums text-gray-400">{count.toLocaleString()}</span>}
+            {!loading && count > 0 && (
+              <span className="ml-1 tabular-nums text-gray-300">{count.toLocaleString()}</span>
+            )}
           </button>
         );
       })}
@@ -421,9 +433,9 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
   }
   return (
     <div>
-      <div className="space-y-0">
+      <div className="space-y-0 animate-in fade-in duration-200">
         {events.map((event) => (
-          <div key={event.id} className="flex items-center gap-3 py-3.5 border-b border-gray-100/80 group">
+          <div key={event.id} className="flex items-center gap-3 py-4 border-b border-gray-100 group">
             <RowCheckbox checked={selected.has(event.id)} onChange={() => onToggle(event.id)} />
             <div className="min-w-0 flex-1">
               <a href={`/provider/${event.provider?.slug || event.provider_id}`} target="_blank" rel="noopener noreferrer"
@@ -469,14 +481,20 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
                 </p>
               )}
             </div>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${providerEventBadge(event.event_type)}`}>
+            {/* One quiet action label per row — red only when it's a trust flag
+                (suspicious claim or low-trust sign-in). Routine "Trust: High"
+                noise is gone. */}
+            <span
+              className={`text-xs shrink-0 ${
+                event.event_type === "suspicious_claim" ||
+                (event.event_type === "one_click_access" &&
+                  (event.metadata as Record<string, string>)?.trust_level === "low")
+                  ? "font-medium text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
               {providerEventLabel(event.event_type)}
             </span>
-            {event.event_type === "one_click_access" && (event.metadata as Record<string, string>)?.trust_level && (
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${trustBadgeColor((event.metadata as Record<string, string>).trust_level)}`}>
-                {trustBadgeLabel((event.metadata as Record<string, string>).trust_level)}
-              </span>
-            )}
             <TrashButton onClick={() => onDeleteOne(event.id, event.provider?.name || event.provider_id)} />
             <span className="text-xs text-gray-400 shrink-0 w-20 text-right">{relativeTime(event.created_at)}</span>
           </div>
@@ -540,10 +558,10 @@ function ProvidersPeopleView({ providers, loading, total, page, setPage, pageSiz
                   </span>
                 )}
                 {Object.keys(p.email_types).length > 0 && (
-                  <div className="flex gap-1.5 mt-1">
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-gray-400">
                     {Object.entries(p.email_types).map(([type, count]) => (
-                      <span key={type} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${providerEventBadge(type)}`}>
-                        {providerEventLabel(type)} {count}
+                      <span key={type}>
+                        {providerEventLabel(type)} <span className="tabular-nums text-gray-300">{count}</span>
                       </span>
                     ))}
                   </div>
@@ -870,7 +888,6 @@ export default function ActivityCenterPage() {
   const [familiesTotal, setFamiliesTotal] = useState(0);
 
   const [loading, setLoading] = useState(true);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Delete state
@@ -1005,16 +1022,6 @@ export default function ActivityCenterPage() {
     }
   }, [actor, fetchProviderSummary]);
 
-  // Fetch total counts for header
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/admin/activity?actor=providers&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-      fetch("/api/admin/activity?actor=families&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-    ]).then(([prov, fam]) => {
-      setTotalCount((prov.count || 0) + (fam.count || 0));
-    });
-  }, []);
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -1029,15 +1036,6 @@ export default function ActivityCenterPage() {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
-    });
-  }, []);
-
-  const refreshTotalCount = useCallback(() => {
-    Promise.all([
-      fetch("/api/admin/activity?actor=providers&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-      fetch("/api/admin/activity?actor=families&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-    ]).then(([prov, fam]) => {
-      setTotalCount((prov.count || 0) + (fam.count || 0));
     });
   }, []);
 
@@ -1057,14 +1055,13 @@ export default function ActivityCenterPage() {
       setSelectedIds(new Set());
       setConfirmDialog({ open: false, message: "", onConfirm: () => {} });
       fetchData();
-      refreshTotalCount();
       if (actorType === "providers") fetchProviderSummary();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setDeleting(false);
     }
-  }, [fetchData, refreshTotalCount, fetchProviderSummary]);
+  }, [fetchData, fetchProviderSummary]);
 
   const handleDeleteOneEvent = useCallback((id: string, label: string) => {
     setConfirmDialog({
@@ -1113,7 +1110,6 @@ export default function ActivityCenterPage() {
             setSelectedIds(new Set());
             setConfirmDialog({ open: false, message: "", onConfirm: () => {} });
             fetchData();
-            refreshTotalCount();
             if (actor === "providers") fetchProviderSummary();
           } catch (err) {
             setDeleteError(err instanceof Error ? err.message : "Delete failed");
@@ -1123,7 +1119,7 @@ export default function ActivityCenterPage() {
         },
       });
     }
-  }, [selectedIds, subView, actor, executeDelete, fetchData, refreshTotalCount, fetchProviderSummary]);
+  }, [selectedIds, subView, actor, executeDelete, fetchData, fetchProviderSummary]);
 
   const filterOptions = eventFilterOptionsForActor(actor);
 
@@ -1142,16 +1138,15 @@ export default function ActivityCenterPage() {
           Activity Center
         </h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          {totalCount !== null
-            ? totalCount === 0
-              ? "Waiting for first engagement"
-              : `${totalCount} total engagement${totalCount === 1 ? "" : "s"} tracked`
-            : "\u00a0"}
+          {actor === "providers"
+            ? "What providers are doing on the platform"
+            : "What families are doing on the platform"}
         </p>
       </div>
 
-      {/* Actor toggle */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Controls. Families/Providers is the primary axis (segmented); view and
+          time recede to light text toggles. */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <SegmentedControl
           options={[
             { label: "Families", value: "families" as Actor },
@@ -1161,9 +1156,7 @@ export default function ActivityCenterPage() {
           onChange={setActor}
         />
 
-        <div className="w-px h-5 bg-gray-200" />
-
-        <SegmentedControl
+        <TextToggle
           options={[
             { label: "Feed", value: "feed" as SubView },
             { label: "People", value: "people" as SubView },
@@ -1172,7 +1165,7 @@ export default function ActivityCenterPage() {
           onChange={setSubView}
         />
 
-        <SegmentedControl
+        <TextToggle
           options={[
             { label: "7d", value: "7" as TimeWindow },
             { label: "30d", value: "30" as TimeWindow },
@@ -1188,7 +1181,7 @@ export default function ActivityCenterPage() {
           <select
             value={eventFilter}
             onChange={(e) => setEventFilter(e.target.value)}
-            className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-gray-300"
+            className="text-xs text-gray-500 bg-transparent rounded-md py-1 focus:outline-none focus:ring-0 cursor-pointer hover:text-gray-700"
           >
             {filterOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1199,10 +1192,10 @@ export default function ActivityCenterPage() {
         <div className="ml-auto">
           <input
             type="text"
-            placeholder={actor === "families" ? "Search families..." : "Search providers..."}
+            placeholder={actor === "families" ? "Search families…" : "Search providers…"}
             defaultValue={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="text-sm text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-1.5 w-48 placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300"
+            className="text-sm text-gray-900 bg-transparent border-b border-gray-200 py-1 w-44 placeholder:text-gray-300 focus:outline-none focus:border-teal-400 transition-colors"
           />
         </div>
       </div>

@@ -9,6 +9,7 @@
 - When the user says `quicksave`, `quick save`, or `save progress and PR`, use the repo skill `quicksave`.
 - When the user says `pre-test`, `pretest`, or asks what to test before previewing, use the repo skill `pre-test`.
 - When the user says `pr-merge`, `/pr-merge`, `merge PR`, or asks whether a PR is safe to merge, use the repo skill `pr-merge`.
+- When the user says `promote-to-main`, `/promote-to-main`, `promote staging to main`, or asks to ship staging to production, use the repo skill `promote-to-main`.
 
 ## Verification
 

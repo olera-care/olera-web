@@ -225,6 +225,26 @@ function loganLeadSignature(): string {
     </div>`;
 }
 
+function referralTeaserTrustBlock(): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  return `
+    <div style="margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
+            <p style="margin:0 0 4px;font-weight:600;color:#111827;">Why Olera maps this</p>
+            <p style="margin:0 0 6px;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We're working to make senior care less opaque for families and providers.</p>
+            <p style="margin:0;color:#9ca3af;">This map is one way to show the local relationships that can shape where families call first.</p>
+          </td>
+        </tr>
+      </table>
+    </div>`;
+}
+
 /**
  * Cold / quiet-week provider rank email — the §1c Market-Intelligence expansion audience.
  *
@@ -2725,6 +2745,21 @@ interface DigestOpts {
     careLabel: string;
     flattering: boolean;
   } | null;
+  /**
+   * Referral Market teaser for the Market Intelligence branch. This keeps the
+   * first ask curiosity-led ("see who could send families") instead of
+   * homework-led ("work these targets"). Progress is shown only when the
+   * provider has already taken market actions.
+   */
+  referralTeaser?: {
+    totalSources: number;
+    starterTotal: number;
+    workedCount: number;
+    respondedCount: number;
+    referringCount: number;
+    targets: Array<{ name: string; category: string; distanceMiles: number | null }>;
+  } | null;
+  marketUrl?: string | null;
 }
 
 
@@ -2770,6 +2805,22 @@ function digestLead(opts: DigestOpts): string {
     parts.push(`${opts.localDemand.toLocaleString()} families searched for ${cat}${where}.`);
   }
   return parts.join(" ");
+}
+
+const REFERRAL_CATEGORY_LABELS: Record<string, string> = {
+  hospital: "Hospital / discharge",
+  skilled_nursing: "Skilled nursing / rehab",
+  hospice: "Hospice",
+  assisted_living: "Assisted living",
+  elder_law: "Elder law",
+  senior_resource: "Senior resource",
+  home_health: "Home health",
+  financial: "Financial",
+  faith: "Faith community",
+};
+
+function referralCategoryLabel(cat: string): string {
+  return REFERRAL_CATEGORY_LABELS[cat] ?? cat.replace(/_/g, " ");
 }
 
 /**
@@ -2873,35 +2924,77 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
   }
 
   const microStatsBlock =
-    microStats.length > 0
+    microStats.length > 0 && !opts.referralTeaser
       ? `<div style="display:flex;gap:12px;background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 24px;">${microStats.join("")}</div>`
       : "";
 
   // Market Intelligence hero (no-question providers with a resolved rank) replaces the bland
   // "Your week on Olera" recap. Lead with the rank when flattering, with curiosity otherwise.
   const m = opts.marketRank;
+  const r = opts.referralTeaser;
+  const marketArea = m?.cityLabel ? escapeHtml(m.cityLabel) : "your area";
+  const marketAreaAdjective = m?.cityLabel ? `${escapeHtml(m.cityLabel)}-area` : "nearby";
   const eyebrowText = m ? `Your market · ${escapeHtml(m.cityLabel)}` : "Your week on Olera";
   const headlineHtml = m
-    ? m.flattering
+    ? r
+      ? `Families in ${marketArea} ask these places who provides care.`
+      : m.flattering
       ? `You're <span style="color:${BRAND_COLOR};">#${m.rank}</span> of ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
       : `See where you rank among ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
     : headline;
   const leadHtml = m
-    ? m.flattering
+    ? r
+      ? `When someone near ${marketArea} needs home care after a hospital stay, rehab, or a new senior-care need, they often ask a trusted local team which providers to call. We found ${r.totalSources.toLocaleString()} nearby organizations that may shape where those families go next.`
+      : m.flattering
       ? `Share of voice — who owns the reviews families read on Google — is the currency of local trust. Here's exactly where you stand, and the fastest ways to climb.`
       : `We mapped your local market: your competitors by share of voice, your best referral sources, and the ZIPs worth your marketing time.`
     : lead;
-  const ctaLabel = m ? "See your market" : "See your full analytics";
+  const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your market" : "See your full analytics";
   const ctaUrl = m
-    ? `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=market_rank`
+    ? (opts.marketUrl || `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
     : dashboardUrl;
+  const referralRows = r?.targets.slice(0, 3).map((target) => {
+    const distance = target.distanceMiles == null ? "" : ` · ${Number(target.distanceMiles).toFixed(1)} mi`;
+    return `
+      <tr>
+        <td style="padding:12px 0;border-top:1px solid #f3f4f6;">
+          <div style="font-size:14px;font-weight:600;color:#111827;line-height:1.35;">${escapeHtml(target.name)}</div>
+          <div style="font-size:12px;color:#9ca3af;margin-top:3px;line-height:1.35;">${escapeHtml(referralCategoryLabel(target.category))}${distance}</div>
+        </td>
+      </tr>`;
+  }).join("") ?? "";
+  const hasMarketProgress = !!r && (r.workedCount > 0 || r.respondedCount > 0 || r.referringCount > 0);
+  const progressLine = r && hasMarketProgress
+    ? r.referringCount > 0
+      ? `${r.referringCount} referral ${r.referringCount === 1 ? "source is" : "sources are"} already marked as referring.`
+      : r.respondedCount > 0
+        ? `${r.respondedCount} referral ${r.respondedCount === 1 ? "source has" : "sources have"} responded so far.`
+        : `${r.workedCount} referral ${r.workedCount === 1 ? "source is" : "sources are"} already in motion.`
+    : null;
+  const referralBlock = r && referralRows
+    ? `
+    <div style="background:#f9fafb;border-radius:12px;padding:16px;margin:0 0 24px;">
+      <div style="font-size:12px;font-weight:700;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.4px;margin:0 0 2px;">First 3 of ${r.totalSources.toLocaleString()} ${marketAreaAdjective} places</div>
+      <div style="font-size:13px;color:#9ca3af;margin:0 0 10px;line-height:1.5;">Open the full map when you want the rest.</div>
+      <table width="100%" cellpadding="0" cellspacing="0">${referralRows}</table>
+    </div>
+    ${progressLine ? `<p style="font-size:13px;color:#6b7280;margin:-8px 0 24px;line-height:1.5;">${escapeHtml(progressLine)}</p>` : ""}`
+      : "";
+  const preheader = r
+    ? `Hospitals, rehab centers, and senior resources near ${m?.cityLabel ?? "you"} can shape which care providers families call.`
+    : m
+      ? `See where ${opts.providerName} stands in ${m.cityLabel}.`
+      : headline;
+  const trustBlock = r ? referralTeaserTrustBlock() : "";
 
   return layout(`
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${eyebrowText}</p>
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${headlineHtml}</h1>
     ${leadHtml ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${leadHtml}</p>` : ""}
+    ${referralBlock}
     ${microStatsBlock}
     <div>${button(ctaLabel, ctaUrl)}</div>
+    ${trustBlock}
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -2909,7 +3002,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
       <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
       <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", `${BASE_URL}/for-providers/removal-request/${opts.providerSlug}`)} &middot; ${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
     </div>
-  `, headline);
+  `, preheader);
 }
 
 // ── Provider Verification Emails ──────────────────────────────────

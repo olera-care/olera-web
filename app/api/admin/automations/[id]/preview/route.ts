@@ -45,6 +45,27 @@ function digestVariantSample(variant: string): { subject: string; html: string }
           marketRank: { rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care", flattering: true },
         }),
       };
+    case "referral_teaser":
+      return {
+        subject: "3 Austin-area places families may ask about care",
+        html: providerWeeklyDigestEmail({
+          ...SAMPLE_BASE, viewsThisWeek: 4, ctaClicks: 1, leadsReceived: 0, questionsReceived: 0,
+          marketRank: { rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care", flattering: true },
+          referralTeaser: {
+            totalSources: 18,
+            starterTotal: 5,
+            workedCount: 0,
+            respondedCount: 0,
+            referringCount: 0,
+            targets: [
+              { name: "St. David's South Austin Medical Center", category: "hospital", distanceMiles: 2.4 },
+              { name: "Austin Wellness & Rehabilitation", category: "skilled_nursing", distanceMiles: 3.1 },
+              { name: "AGE of Central Texas", category: "senior_resource", distanceMiles: 4.8 },
+            ],
+          },
+          marketUrl: `${SAMPLE_LINK}?action=market`,
+        }),
+      };
     case "weekly_digest_plain":
       return {
         subject: "9 families viewed your page this week",

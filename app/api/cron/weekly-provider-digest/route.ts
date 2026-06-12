@@ -5,10 +5,12 @@ import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileComple
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
-import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
+import { getRow, isFresh, normalizeKey, type DiagRow } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
 import { normCareType } from "@/lib/market-diagnostic/resolve";
 import { warmCity } from "@/lib/market-diagnostic/warm";
+
+export const maxDuration = 300;
 
 // ── Question recency decay (2026-06-09) ──
 // The family_question rung used to fire for ANY open question, top priority, every week. Because
@@ -28,6 +30,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // stateless — the same provider always lands on the same day, which keeps the per-provider cadence
 // weekly (preserving the decay/resurface math) while spreading send volume to protect deliverability.
 const SEND_WEEKDAYS = 5; // Mon–Fri
+// Proactive market warming: the referral teaser should be gated by product/audience fit, not by
+// whether a provider happened to discover Find Families first. Each run scans a bounded slice of
+// email-reachable directory providers and warms a small number of missing city×care markets. The
+// monthly cache budget still lives in warmCity/cache; this cap just keeps one digest run from
+// monopolizing the 300s background window.
+const MARKET_PREWARM_SCAN_LIMIT = 5000;
+const MARKET_PREWARM_SCAN_PAGES = 15; // 15 × 5k ≈ the current 75k-provider directory.
+const MARKET_PREWARM_TARGET_LIMIT = 6;
 function providerSendBucket(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
@@ -147,6 +157,8 @@ export async function GET(request: NextRequest) {
         "lead_received",
         "question_received",
         "review_received",
+        "market_diagnostic_viewed_no_leads",
+        "market_outreach_status_updated",
       ])
       .limit(100000);
 
@@ -232,6 +244,8 @@ export async function GET(request: NextRequest) {
       ctaClicks: number;
       leads: number;
       questions: number;
+      marketViews: number;
+      marketActions: number;
       sources: Record<string, number>;
     };
     const buckets = new Map<string, ProviderBucket>();
@@ -244,6 +258,8 @@ export async function GET(request: NextRequest) {
         ctaClicks: 0,
         leads: 0,
         questions: 0,
+        marketViews: 0,
+        marketActions: 0,
         sources: { direct: 0, search: 0, internal: 0, other: 0 },
       };
       buckets.set(id, fresh);
@@ -271,6 +287,8 @@ export async function GET(request: NextRequest) {
         if (e.event_type === "cta_click_public") bucket.ctaClicks += 1;
         else if (e.event_type === "lead_received") bucket.leads += 1;
         else if (e.event_type === "question_received") bucket.questions += 1;
+        else if (e.event_type === "market_diagnostic_viewed_no_leads") bucket.marketViews += 1;
+        else if (e.event_type === "market_outreach_status_updated") bucket.marketActions += 1;
       }
     }
 
@@ -289,21 +307,62 @@ export async function GET(request: NextRequest) {
     // already computed. Enrollment caps at rank<=5 so the "you're #N" hook is always
     // flattering (product call 2026-06-08); widen to top-half later if it converts.
     const rankEligible = new Set<string>();
-    const preRank = new Map<string, DigestMarketRank>();
+    const preRank = new Map<string, DigestMarketSnapshot>();
+    const proactiveWarmTargets: { city: string; state: string; careType: string | null }[] = [];
     {
       const RANK_CHUNK = 200;
       const TOP_RANK_FOR_ENROLLMENT = 5;
       const { data: readyDiags, error: diagErr } = await db
         .from("market_diagnostics")
-        .select("city, state, care_type, data")
+        .select("id, city, state, care_type, status, data, error, attempts, cost_estimate, generated_at, claimed_at")
         .eq("status", "ready")
         .limit(20000);
       if (diagErr) {
         console.error("[weekly-provider-digest] ready-diagnostics query failed:", diagErr);
       }
+      const freshMarketKeys = new Set<string>();
+      for (const d of (readyDiags ?? []) as DiagRow[]) {
+        if (isFresh(d)) freshMarketKeys.add(`${d.city}|${d.state}|${d.care_type}`);
+      }
+
+      // Proactively warm markets for email-reachable providers instead of waiting for someone to
+      // open Find Families first. This does NOT enroll the scanned provider directly. It just makes
+      // their city×care market available so a later digest can truthfully send the rank/referral
+      // hook to whichever local providers resolve as send-worthy.
+      const prewarmScanPage = Math.floor(now.getTime() / DAY_MS) % MARKET_PREWARM_SCAN_PAGES;
+      const prewarmScanFrom = prewarmScanPage * MARKET_PREWARM_SCAN_LIMIT;
+      const { data: warmCandidates, error: warmCandidateErr } = await db
+        .from("olera-providers")
+        .select("provider_id, city, state, provider_category")
+        .not("email", "is", null)
+        .not("place_id", "is", null)
+        .not("city", "is", null)
+        .not("state", "is", null)
+        .or("deleted.is.null,deleted.eq.false")
+        .order("provider_id", { ascending: true })
+        .range(prewarmScanFrom, prewarmScanFrom + MARKET_PREWARM_SCAN_LIMIT - 1);
+      if (warmCandidateErr) {
+        console.error("[weekly-provider-digest] market prewarm candidate query failed:", warmCandidateErr);
+      }
+      const seenPrewarmKeys = new Set<string>();
+      for (const p of (warmCandidates ?? []) as Array<{
+        provider_id: string;
+        city: string | null;
+        state: string | null;
+        provider_category: string | null;
+      }>) {
+        if (!p.city || !p.state) continue;
+        const key = normalizeKey(p.city, p.state, p.provider_category);
+        const keyString = `${key.city}|${key.state}|${key.careType}`;
+        if (freshMarketKeys.has(keyString) || seenPrewarmKeys.has(keyString)) continue;
+        seenPrewarmKeys.add(keyString);
+        proactiveWarmTargets.push({ city: p.city, state: p.state, careType: p.provider_category });
+        if (proactiveWarmTargets.length >= MARKET_PREWARM_TARGET_LIMIT) break;
+      }
+
       // place_id → its rank in the cached diagnostic (first/best diagnostic wins on collision).
-      const placeRank = new Map<string, DigestMarketRank>();
-      for (const d of (readyDiags ?? []) as Array<{ city: string; state: string; care_type: string; data: unknown }>) {
+      const placeRank = new Map<string, DigestMarketSnapshot>();
+      for (const d of (readyDiags ?? []) as DiagRow[]) {
         const data = d.data as { meta?: { city?: string }; competitorLandscape?: { ranked?: RankedEntry[] } } | null;
         const ranked = data?.competitorLandscape?.ranked ?? [];
         const careLabel = d.care_type === "assisted_living" ? "assisted living" : "home care";
@@ -311,7 +370,11 @@ export async function GET(request: NextRequest) {
         for (let i = 0; i < Math.min(ranked.length, TOP_RANK_FOR_ENROLLMENT); i++) {
           const pid = ranked[i]?.id;
           if (!pid || placeRank.has(pid)) continue;
-          placeRank.set(pid, { rank: i + 1, outOf: ranked.length, cityLabel, careLabel, flattering: true });
+          placeRank.set(pid, {
+            rank: { rank: i + 1, outOf: ranked.length, cityLabel, careLabel, flattering: true },
+            referralTargets: extractReferralTargets(data),
+            totalReferralSources: totalReferralSources(data),
+          });
         }
       }
       // Map those top-5 place_ids → Olera providers with an email. Keyed by provider_id so the
@@ -331,8 +394,8 @@ export async function GET(request: NextRequest) {
         }
         for (const p of (provs ?? []) as Array<{ provider_id: string; slug: string | null; place_id: string | null; email: string | null }>) {
           if (!p.email || !p.place_id) continue;
-          const rank = placeRank.get(p.place_id);
-          if (!rank) continue;
+          const snapshot = placeRank.get(p.place_id);
+          if (!snapshot) continue;
           // Merge onto the provider's SLUG key when they're ALREADY in the audience via activity or a
           // question (this block runs after §1/§1b). Otherwise a rank-eligible provider who also has
           // activity would sit in `buckets` under TWO keys (slug + legacy provider_id) → two different
@@ -345,7 +408,7 @@ export async function GET(request: NextRequest) {
           const id = slugKey && buckets.has(slugKey) ? slugKey : String(p.provider_id);
           ensureBucket(id);
           rankEligible.add(id);
-          preRank.set(id, rank);
+          preRank.set(id, snapshot);
         }
       }
     }
@@ -368,7 +431,14 @@ export async function GET(request: NextRequest) {
     const sendWorthy = (id: string): boolean => {
       if (willLeadQuestion(id)) return true;
       const b = buckets.get(id);
-      if (b && (b.viewsThisWeek > 0 || b.ctaClicks > 0 || b.leads > 0 || b.questions > 0)) return true;
+      if (b && (
+        b.viewsThisWeek > 0 ||
+        b.ctaClicks > 0 ||
+        b.leads > 0 ||
+        b.questions > 0 ||
+        b.marketViews > 0 ||
+        b.marketActions > 0
+      )) return true;
       return rankEligible.has(id);
     };
     // Through-the-week cadence: each provider has a deterministic weekday (Mon–Fri) from a hash of
@@ -535,6 +605,49 @@ export async function GET(request: NextRequest) {
 
     const bpBySlug = bpByKey;
 
+    // ── 2c. Existing referral-market work state ──
+    // Keep the first ask curiosity-led, but if a provider has already touched
+    // the call sheet, acknowledge that momentum quietly in the teaser.
+    type OutreachRow = { provider_id: string; target_id: string; status: string; updated_at: string };
+    type OutreachSummary = {
+      statusByTarget: Map<string, string>;
+      workedCount: number;
+      respondedCount: number;
+      referringCount: number;
+    };
+    const outreachByProfile = new Map<string, OutreachSummary>();
+    const profileIdsForOutreach = Array.from(
+      new Set(providerIds.map((id) => bpBySlug.get(id)?.id).filter(Boolean) as string[]),
+    );
+    if (profileIdsForOutreach.length > 0) {
+      for (let i = 0; i < profileIdsForOutreach.length; i += chunkSize) {
+        const chunk = profileIdsForOutreach.slice(i, i + chunkSize);
+        const { data: rows, error } = await db
+          .from("market_referral_outreach")
+          .select("provider_id, target_id, status, updated_at")
+          .in("provider_id", chunk)
+          .order("updated_at", { ascending: false })
+          .limit(10000);
+        if (error) {
+          console.error("[weekly-provider-digest] market outreach query failed:", error);
+          continue;
+        }
+        for (const row of (rows ?? []) as OutreachRow[]) {
+          const summary = outreachByProfile.get(row.provider_id) ?? {
+            statusByTarget: new Map<string, string>(),
+            workedCount: 0,
+            respondedCount: 0,
+            referringCount: 0,
+          };
+          summary.statusByTarget.set(row.target_id, row.status);
+          if (row.status === "contacted" || row.status === "responded" || row.status === "referring") summary.workedCount += 1;
+          if (row.status === "responded") summary.respondedCount += 1;
+          if (row.status === "referring") summary.referringCount += 1;
+          outreachByProfile.set(row.provider_id, summary);
+        }
+      }
+    }
+
     // ── 3. Cohort benchmarks for "local demand" signal ──
     // Pull this week's provider_page_view_stats to sum unique demand per cohort.
     const weekStartDate = weekAgo.toISOString().slice(0, 10);
@@ -562,6 +675,8 @@ export async function GET(request: NextRequest) {
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
     let marketHeroCount = 0;
+    let referralTeaserCount = 0;
+    let marketRankMissingReferralTargets = 0;
     let coldRankSent = 0; // sends to the §1c cold/quiet rank-eligible audience (no weekly activity)
     let completionCount = 0; // sends of the completion ("sell the output") variant
     let skipped = 0;
@@ -617,6 +732,8 @@ export async function GET(request: NextRequest) {
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
         bucket.questions > 0 ||
+        bucket.marketViews > 0 ||
+        bucket.marketActions > 0 ||
         !!openQ ||
         rankEligible.has(providerId);
       if (!hasSignal) {
@@ -719,14 +836,20 @@ export async function GET(request: NextRequest) {
       // so they cost zero Places/warming calls and can never queue a warm.
       // Skipped when a completion nudge is showing (it takes priority).
       let marketRank: DigestMarketRank | null = null;
+      let referralTargets: DigestReferralTarget[] = [];
+      let totalReferralSources = 0;
       if (!unansweredQuestion && !hasLead && !completionUrl) {
         const pre = preRank.get(providerId);
         if (pre) {
-          marketRank = pre;
+          marketRank = pre.rank;
+          referralTargets = pre.referralTargets;
+          totalReferralSources = pre.totalReferralSources;
         } else {
           try {
             const mr = await resolveProviderMarketRank(bp, db);
             marketRank = mr.rank;
+            referralTargets = mr.referralTargets;
+            totalReferralSources = mr.totalReferralSources;
             // Demoting stale questions newly routes ~2,200 question-providers into this block. A
             // cache READ (resolveProviderMarketRank) is cheap, but queuing a warm spends Places +
             // Anthropic. For a demoted-question provider, use only an already-cached rank — never
@@ -744,7 +867,9 @@ export async function GET(request: NextRequest) {
         bucket.viewsThisWeek > 0 ||
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
-        bucket.questions > 0;
+        bucket.questions > 0 ||
+        bucket.marketViews > 0 ||
+        bucket.marketActions > 0;
       if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank && !completionUrl) {
         // Distinguish the new common case: a provider whose only signal was a stale question we
         // demoted this week, with no other rung to fall to → intentionally goes quiet (the whole
@@ -772,6 +897,14 @@ export async function GET(request: NextRequest) {
         !bp.account_id;
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const referralTeaser = marketRank
+        ? buildReferralTeaser(
+            referralTargets,
+            totalReferralSources,
+            outreachByProfile.get(bp.id) ?? null,
+          )
+        : null;
+      const marketUrl = generateProviderPortalUrl(providerSlug, bp.email, "market");
       const html = isColdFirstContact
         ? coldProviderRankEmail({
             rank: marketRank!.rank,
@@ -817,6 +950,8 @@ export async function GET(request: NextRequest) {
             unansweredQuestion,
             answerUrl,
             marketRank,
+            referralTeaser,
+            marketUrl,
           });
 
       const subject = unansweredQuestion
@@ -831,6 +966,10 @@ export async function GET(request: NextRequest) {
           // Cold first-contact: attribute the rank to families up front (these strangers have
           // never heard from us), matching the note's family-led opening.
           ? `Families in ${marketRank!.cityLabel} rank you #${marketRank!.rank} of ${marketRank!.outOf}`
+          : referralTeaser
+            ? referralTeaser.targets.length > 0
+              ? `${referralTeaser.targets.length} ${marketRank!.cityLabel}-area places families may ask about care`
+              : `See who families may ask in ${marketRank!.cityLabel}`
           : marketRank
             ? marketRank.flattering
               ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
@@ -852,6 +991,8 @@ export async function GET(request: NextRequest) {
             ? "cold_rank"
             : completionUrl
               ? "completion"
+              : referralTeaser
+                ? "referral_teaser"
               : marketRank
                 ? "market_rank"
                 : "weekly_digest";
@@ -860,6 +1001,10 @@ export async function GET(request: NextRequest) {
       if (dryRun) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (variant === "referral_teaser") referralTeaserCount += 1;
+        if (variant === "market_rank" && marketRank && referralTargets.length === 0) {
+          marketRankMissingReferralTargets += 1;
+        }
         if (preRank.has(providerId)) coldRankSent += 1;
         if (completionUrl) completionCount += 1;
         sentEmails.add(emailKey);
@@ -883,6 +1028,10 @@ export async function GET(request: NextRequest) {
         });
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (variant === "referral_teaser") referralTeaserCount += 1;
+        if (variant === "market_rank" && marketRank && referralTargets.length === 0) {
+          marketRankMissingReferralTargets += 1;
+        }
         if (preRank.has(providerId)) coldRankSent += 1;
         if (completionUrl) completionCount += 1;
         sentEmails.add(emailKey);
@@ -896,9 +1045,15 @@ export async function GET(request: NextRequest) {
       // sent, within maxDuration) so next week's digest can show those providers' rank. Skipped
       // on dry runs. warmCity self-guards (monthly budget circuit-breaker + claim dedup), so a
       // big miss list can't run away on cost.
-      const uniqueWarm = Array.from(
-        new Map(warmTargets.map((t) => [`${t.city}|${t.state}|${t.careType ?? ""}`, t])).values(),
+      const proactiveWarmKeys = new Set(
+        proactiveWarmTargets.map((t) => `${t.city}|${t.state}|${t.careType ?? ""}`),
       );
+      const uniqueWarm = Array.from(
+        new Map([...warmTargets, ...proactiveWarmTargets].map((t) => [`${t.city}|${t.state}|${t.careType ?? ""}`, t])).values(),
+      );
+      const proactiveWarmQueued = uniqueWarm.filter((t) =>
+        proactiveWarmKeys.has(`${t.city}|${t.state}|${t.careType ?? ""}`),
+      ).length;
       if (!dryRun && uniqueWarm.length > 0) {
         after(async () => {
           for (const t of uniqueWarm) {
@@ -912,7 +1067,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} referralTeaser=${referralTeaserCount} marketRankMissingReferralTargets=${marketRankMissingReferralTargets} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} proactiveWarmQueued=${proactiveWarmQueued} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -922,6 +1077,8 @@ export async function GET(request: NextRequest) {
         processed: providerIds.length,
         sent,
         marketHeroSent: marketHeroCount,
+        referralTeaserSent: referralTeaserCount,
+        marketRankMissingReferralTargets,
         // §1c cold/quiet expansion: providers enrolled by a top-5 cached rank, and how many got sent.
         rankEligibleEnrolled: rankEligible.size,
         coldRankSent,
@@ -929,6 +1086,7 @@ export async function GET(request: NextRequest) {
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,
+        proactiveWarmQueued,
         // The exact city×care-type list to pre-warm (so a dry_run shows what to warm before the
         // real send to expand THIS week's hero reach, not just next week's).
         warmCities: uniqueWarm.map((t) => `${t.city}, ${t.state} (${normCareType(t.careType)})`),
@@ -940,6 +1098,20 @@ export async function GET(request: NextRequest) {
 }
 
 type DigestMarketRank = { rank: number; outOf: number; cityLabel: string; careLabel: string; flattering: boolean };
+type DigestReferralTarget = { id: string; name: string; category: string; distanceMiles: number | null };
+type DigestReferralTeaser = {
+  totalSources: number;
+  starterTotal: number;
+  workedCount: number;
+  respondedCount: number;
+  referringCount: number;
+  targets: Array<{ name: string; category: string; distanceMiles: number | null }>;
+};
+type DigestMarketSnapshot = {
+  rank: DigestMarketRank;
+  referralTargets: DigestReferralTarget[];
+  totalReferralSources: number;
+};
 
 /**
  * Resolve a no-question provider's rank in their local market for the digest Market-Intel hero.
@@ -954,8 +1126,13 @@ type DigestMarketRank = { rank: number; outOf: number; cityLabel: string; careLa
 async function resolveProviderMarketRank(
   bp: { metadata: Record<string, unknown> | null; source_provider_id: string | null; city: string | null; state: string | null; category: string | null },
   db: ReturnType<typeof getServiceClient>,
-): Promise<{ rank: DigestMarketRank | null; warmTarget: { city: string; state: string; careType: string | null } | null }> {
-  if (!bp.city) return { rank: null, warmTarget: null };
+): Promise<{
+  rank: DigestMarketRank | null;
+  referralTargets: DigestReferralTarget[];
+  totalReferralSources: number;
+  warmTarget: { city: string; state: string; careType: string | null } | null;
+}> {
+  if (!bp.city) return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: null };
   let placeId =
     (bp.metadata as { google_metadata?: { place_id?: string } } | null)?.google_metadata?.place_id ?? null;
   if (!placeId && bp.source_provider_id) {
@@ -966,23 +1143,31 @@ async function resolveProviderMarketRank(
       .maybeSingle();
     placeId = (data as { place_id?: string | null } | null)?.place_id ?? null;
   }
-  if (!placeId) return { rank: null, warmTarget: null }; // no key to match — skip, don't warm
+  if (!placeId) return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: null }; // no key to match — skip, don't warm
 
   const key = normalizeKey(bp.city, bp.state ?? "", bp.category);
   const row = await getRow(key, db);
   if (!(row && row.status === "ready" && row.data)) {
     // Diagnostic not cached → warm it in the background for next week.
-    return { rank: null, warmTarget: { city: bp.city, state: bp.state ?? "", careType: bp.category } };
+    return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: { city: bp.city, state: bp.state ?? "", careType: bp.category } };
   }
+  const refreshTarget = isFresh(row)
+    ? null
+    : { city: bp.city, state: bp.state ?? "", careType: bp.category };
 
-  const cl = (row.data as { competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number } })
-    .competitorLandscape;
+  const data = row.data as {
+    competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number };
+    referralGraph?: { totalViableSources?: number; prioritizedTargets?: unknown[] };
+  };
+  const cl = data.competitorLandscape;
+  const referralTargets = extractReferralTargets(data);
+  const totalSources = totalReferralSources(data);
   const self = await resolveSelfRank({
     ranked: cl?.ranked,
     totalReviewsInMarket: cl?.totalReviewsInMarket ?? 0,
     placeId,
   });
-  if (!self) return { rank: null, warmTarget: null };
+  if (!self) return { rank: null, referralTargets, totalReferralSources: totalSources, warmTarget: refreshTarget };
 
   const careLabel = normCareType(bp.category) === "assisted_living" ? "assisted living" : "home care";
   return {
@@ -993,7 +1178,70 @@ async function resolveProviderMarketRank(
       careLabel,
       flattering: self.rank <= 5 || self.rank <= Math.ceil(self.outOf / 4),
     },
-    warmTarget: null,
+    referralTargets,
+    totalReferralSources: totalSources,
+    warmTarget: refreshTarget,
+  };
+}
+
+function extractReferralTargets(data: unknown): DigestReferralTarget[] {
+  const targets = (data as { referralGraph?: { prioritizedTargets?: unknown[] } } | null)
+    ?.referralGraph?.prioritizedTargets;
+  if (!Array.isArray(targets)) return [];
+  return targets
+    .map((target) => {
+      const t = target as {
+        id?: unknown;
+        name?: unknown;
+        cat?: unknown;
+        distanceMiles?: unknown;
+      };
+      if (typeof t.name !== "string" || !t.name.trim()) return null;
+      return {
+        id: typeof t.id === "string" && t.id.trim() ? t.id : t.name,
+        name: t.name.trim(),
+        category: typeof t.cat === "string" ? t.cat : "referral_source",
+        distanceMiles: typeof t.distanceMiles === "number" ? t.distanceMiles : null,
+      };
+    })
+    .filter((target): target is DigestReferralTarget => !!target)
+    .slice(0, 8);
+}
+
+function totalReferralSources(data: unknown): number {
+  const graph = (data as { referralGraph?: { totalViableSources?: unknown; prioritizedTargets?: unknown[] } } | null)
+    ?.referralGraph;
+  return typeof graph?.totalViableSources === "number"
+    ? graph.totalViableSources
+    : Array.isArray(graph?.prioritizedTargets)
+      ? graph.prioritizedTargets.length
+      : 0;
+}
+
+function buildReferralTeaser(
+  targets: DigestReferralTarget[],
+  totalSources: number,
+  outreach: { statusByTarget: Map<string, string>; workedCount: number; respondedCount: number; referringCount: number } | null,
+): DigestReferralTeaser | null {
+  if (targets.length === 0) return null;
+  const statusByTarget = outreach?.statusByTarget ?? new Map<string, string>();
+  const freshTargets = targets.filter((target) => {
+    const status = statusByTarget.get(target.id);
+    return status !== "dismissed" && status !== "referring";
+  });
+  const selected = (freshTargets.length > 0 ? freshTargets : targets).slice(0, 3);
+  if (selected.length === 0) return null;
+  return {
+    totalSources: Math.max(totalSources, targets.length),
+    starterTotal: Math.min(5, targets.length),
+    workedCount: outreach?.workedCount ?? 0,
+    respondedCount: outreach?.respondedCount ?? 0,
+    referringCount: outreach?.referringCount ?? 0,
+    targets: selected.map((target) => ({
+      name: target.name,
+      category: target.category,
+      distanceMiles: target.distanceMiles,
+    })),
   };
 }
 

@@ -1063,7 +1063,9 @@ function AccountRow({
         {!isEditing && (
           locked ? (
             <a
-              href="mailto:support@olera.care?subject=Change%20Account%20Email"
+              href="/contact"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
             >
               Contact support

@@ -253,7 +253,9 @@ export default function EditOverviewModal({
                 {email || "Not set"}
               </div>
               <a
-                href="mailto:support@olera.care?subject=Change%20Account%20Email"
+                href="/contact"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 mt-1.5 text-[13px] text-primary-600 hover:text-primary-700 font-medium"
               >
                 Contact support to change

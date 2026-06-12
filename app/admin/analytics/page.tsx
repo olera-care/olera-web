@@ -21,6 +21,7 @@ import {
   PROVIDER_EMAIL_FUNNEL_LABELS,
   PROVIDER_EMAIL_FUNNEL_ORDER,
 } from "@/lib/analytics/provider-email-funnels";
+import { HeroCard, buildBannerPreviews } from "@/components/provider-dashboard/v2/DashboardHero";
 
 interface WindowedCounts {
   page_view: number;
@@ -2120,6 +2121,9 @@ function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) 
   const totalImpressions = rows.reduce((sum, r) => sum + r.impressions, 0);
   const totalClicks = rows.reduce((sum, r) => sum + r.clicks, 0);
   const totalConverted = rows.reduce((sum, r) => sum + (r.converted ?? 0), 0);
+  // Which banner the preview lightbox opened on (null = closed). Any row opens
+  // it; ‹ › then flip through every banner, so it doubles as the full gallery.
+  const [previewBanner, setPreviewBanner] = useState<string | null>(null);
 
   const tiles: Array<{ label: string; value: number; hint: string }> = [
     { label: "Shown to", value: totalImpressions, hint: "distinct providers" },
@@ -2141,6 +2145,13 @@ function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) 
         Converted = did the action within 3 days of seeing the banner; it&rsquo;s a last-touch signal,
         not proof the banner caused it.
       </p>
+      {totalImpressions > 0 && (
+        <p className="text-[11px] text-gray-400 mb-4">
+          Click any row to preview the actual banner — copy, photo, and CTA exactly as the provider
+          sees it. Use <span className="font-medium text-gray-600">‹ ›</span> to flip through every
+          banner.
+        </p>
+      )}
 
       {totalImpressions === 0 ? (
         <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2">
@@ -2180,7 +2191,11 @@ function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) 
                       ? Math.round(((r.converted as number) / r.impressions) * 100)
                       : null;
                   return (
-                    <tr key={r.banner} className="border-b border-gray-50 last:border-0">
+                    <tr
+                      key={r.banner}
+                      onClick={() => setPreviewBanner(r.banner)}
+                      className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/70 transition-colors"
+                    >
                       <td className="px-3 py-2.5">
                         <div className="text-gray-900">{bannerLabel(r.banner)}</div>
                         <div className="text-[11px] text-gray-400">{bannerCohort(r.banner)}</div>
@@ -2213,6 +2228,110 @@ function DashboardBannersCard({ summary }: { summary: SummaryResponse | null }) 
           </div>
         </>
       )}
+
+      {previewBanner && (
+        <BannerPreviewLightbox
+          startBanner={previewBanner}
+          onClose={() => setPreviewBanner(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Unframed banner preview. Container discipline (Lens 7): the hero card is the
+ * ONE surface — it floats on a dimmed field with nothing wrapping it. Chrome is
+ * reduced to quiet text: a label line, bare ‹ › arrows flanking the card, and a
+ * Desktop · Mobile text toggle. No panel, no header bar, no metadata strip.
+ * Renders the real <HeroCard> so the preview is the actual component.
+ */
+function BannerPreviewLightbox({
+  startBanner,
+  onClose,
+}: {
+  startBanner: string;
+  onClose: () => void;
+}) {
+  const previews = useMemo(() => buildBannerPreviews(), []);
+  const startIdx = Math.max(0, previews.findIndex((p) => p.bannerId === startBanner));
+  const [idx, setIdx] = useState(startIdx);
+  const [surface, setSurface] = useState<"desktop" | "mobile">("desktop");
+
+  const go = useCallback(
+    (delta: number) => setIdx((i) => (i + delta + previews.length) % previews.length),
+    [previews.length],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go, onClose]);
+
+  const current = previews[idx];
+  if (!current) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-warm-950/85 backdrop-blur-sm px-6"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Banner preview"
+    >
+      {/* ‹ › flank the whole field, Airbnb photo-tap style — bare glyphs, no box */}
+      <button
+        onClick={(e) => { e.stopPropagation(); go(-1); }}
+        className="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 text-4xl leading-none text-white/40 hover:text-white transition-colors"
+        aria-label="Previous banner"
+      >
+        ‹
+      </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); go(1); }}
+        className="absolute right-3 sm:right-8 top-1/2 -translate-y-1/2 text-4xl leading-none text-white/40 hover:text-white transition-colors"
+        aria-label="Next banner"
+      >
+        ›
+      </button>
+
+      {/* label — a quiet caption, not a header bar */}
+      <p className="text-[13px] font-medium text-white/85 mb-1">{bannerLabel(current.bannerId)}</p>
+      <p className="text-[11px] text-white/40 mb-6">{bannerCohort(current.bannerId)}</p>
+
+      {/* the one surface: the real card. stop propagation so a click on it
+          (e.g. the CTA) doesn't close the field */}
+      <div
+        className={surface === "mobile" ? "w-[380px] max-w-[88vw]" : "w-[680px] max-w-[92vw]"}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <HeroCard firstName="Maria" hook={current.hook} surface={surface} />
+      </div>
+
+      {/* Desktop · Mobile — text toggle, not a boxed button group */}
+      <div className="mt-6 flex items-center gap-3 text-[12px]" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={() => setSurface("desktop")}
+          className={surface === "desktop" ? "text-white font-medium" : "text-white/40 hover:text-white/70 transition-colors"}
+        >
+          Desktop
+        </button>
+        <span className="text-white/20">·</span>
+        <button
+          onClick={() => setSurface("mobile")}
+          className={surface === "mobile" ? "text-white font-medium" : "text-white/40 hover:text-white/70 transition-colors"}
+        >
+          Mobile
+        </button>
+      </div>
+      <p className="mt-3 text-[11px] text-white/30">
+        {idx + 1} / {previews.length} · Esc to close
+      </p>
     </div>
   );
 }

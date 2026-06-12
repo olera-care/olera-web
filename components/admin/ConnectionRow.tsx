@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   formatAge,
   type ConnectionTemperature,
@@ -9,6 +9,7 @@ import {
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import EmailPreviewModal from "@/components/admin/EmailPreviewModal";
 import ProviderFactSheetModal from "@/components/admin/ProviderFactSheetModal";
+import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 
 interface ProfileCompleteness {
   percentage: number;
@@ -75,6 +76,8 @@ export interface ConnectionRowData {
   archivedAt?: string;
   /** Email issue type for "Needs Email" tab */
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
+  /** Admin archived this provider - no emails sent to them */
+  isProviderArchived?: boolean;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -298,13 +301,21 @@ export default function ConnectionRow({
   c,
   perspective = "provider",
   engagement,
-  onDelete,
+  onConnectionAction,
   onNudgeSuccess,
 }: {
   c: ConnectionRowData;
   perspective?: Perspective;
   engagement?: Engagement;
-  onDelete?: (id: string) => void;
+  /** Called when user clicks action icon on connection row - opens multi-action dialog */
+  onConnectionAction?: (
+    connectionId: string,
+    providerId: string | null,
+    familyName: string | null,
+    providerName: string | null,
+    isArchived: boolean,
+    isProviderArchived: boolean
+  ) => void;
   onNudgeSuccess?: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -344,9 +355,8 @@ export default function ConnectionRow({
   const [pendingEmailEdit, setPendingEmailEdit] = useState<{ oldEmail: string; newEmail: string } | null>(null);
   const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mark status modal state
+  // Mark as Connected modal state
   const [showMarkStatusModal, setShowMarkStatusModal] = useState(false);
-  const [markStatusType, setMarkStatusType] = useState<"viewed" | "connected">("connected");
   const [markStatusReason, setMarkStatusReason] = useState("");
   const [markStatusNotes, setMarkStatusNotes] = useState("");
   const [markingStatus, setMarkingStatus] = useState(false);
@@ -364,14 +374,104 @@ export default function ConnectionRow({
   const [isCachedResult, setIsCachedResult] = useState(false);
   const [autoSuggestAttempted, setAutoSuggestAttempted] = useState(false);
 
+  // Email verification state
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
+  const [candidateStatuses, setCandidateStatuses] = useState<Map<string, VerificationStatus>>(new Map());
+  const [forceSubmit, setForceSubmit] = useState(false);
+  const verifyDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (editEmailTimeoutRef.current) {
         clearTimeout(editEmailTimeoutRef.current);
       }
+      if (verifyDebounceRef.current) {
+        clearTimeout(verifyDebounceRef.current);
+      }
     };
   }, []);
+
+  // Verify a single email address
+  const verifyEmail = useCallback(async (email: string): Promise<VerificationStatus> => {
+    if (!email || !email.includes("@")) return "idle";
+
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) return "unknown";
+
+      const data = await res.json();
+      const result = data.results?.[0];
+      if (!result) return "unknown";
+
+      return result.status as VerificationStatus;
+    } catch {
+      return "unknown";
+    }
+  }, []);
+
+  // Batch verify multiple email addresses
+  const batchVerifyEmails = useCallback(async (emails: string[]): Promise<Map<string, VerificationStatus>> => {
+    const results = new Map<string, VerificationStatus>();
+    if (emails.length === 0) return results;
+
+    // Initialize all as verifying
+    emails.forEach(e => results.set(e, "verifying"));
+
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails }),
+      });
+
+      if (!res.ok) {
+        emails.forEach(e => results.set(e, "unknown"));
+        return results;
+      }
+
+      const data = await res.json();
+      for (const r of data.results || []) {
+        results.set(r.email, r.status as VerificationStatus);
+      }
+
+      // Fill in any missing with unknown
+      emails.forEach(e => {
+        if (!results.has(e)) results.set(e, "unknown");
+      });
+
+      return results;
+    } catch {
+      emails.forEach(e => results.set(e, "unknown"));
+      return results;
+    }
+  }, []);
+
+  // Handle email input blur - trigger verification after debounce
+  const handleEmailBlur = useCallback((email: string, mode: "edit" | "add") => {
+    // Clear any pending verification
+    if (verifyDebounceRef.current) {
+      clearTimeout(verifyDebounceRef.current);
+    }
+
+    // Skip verification if email is empty or invalid format
+    if (!email || !email.includes("@")) {
+      setVerificationStatus("idle");
+      return;
+    }
+
+    // Debounce verification
+    verifyDebounceRef.current = setTimeout(async () => {
+      setVerificationStatus("verifying");
+      const status = await verifyEmail(email);
+      setVerificationStatus(status);
+    }, 300);
+  }, [verifyEmail]);
 
   // Auto-suggest email when drawer opens and provider has no email
   useEffect(() => {
@@ -387,6 +487,7 @@ export default function ConnectionRow({
         setFoundEmails([]);
         setEmailToUrlMap(new Map());
         setIsCachedResult(false);
+        setCandidateStatuses(new Map());
 
         try {
           const res = await fetch("/api/admin/connections/find-provider-email", {
@@ -402,9 +503,10 @@ export default function ConnectionRow({
             setEmailSource(data.source);
             setFoundUrl(data.foundUrl || null);
             setIsCachedResult(data.cached || false);
-            if (data.candidates && data.candidates.length > 0) {
-              setFoundEmails(data.candidates);
-            }
+
+            const candidates: string[] = data.candidates?.length > 0 ? data.candidates : [data.email];
+            setFoundEmails(candidates);
+
             // Build email -> URL map from candidatesWithUrls
             if (data.candidatesWithUrls && Array.isArray(data.candidatesWithUrls)) {
               const urlMap = new Map<string, string>();
@@ -414,6 +516,21 @@ export default function ConnectionRow({
                 }
               }
               setEmailToUrlMap(urlMap);
+            }
+
+            // Batch verify all candidates
+            if (candidates.length > 0) {
+              // Set all to verifying initially (use lowercase for consistency with API response)
+              setCandidateStatuses(new Map(candidates.map(e => [e.toLowerCase(), "verifying" as VerificationStatus])));
+
+              const verifiedStatuses = await batchVerifyEmails(candidates);
+              setCandidateStatuses(verifiedStatuses);
+
+              // Also set the main input verification status (normalize to lowercase for lookup)
+              const mainStatus = verifiedStatuses.get(data.email.toLowerCase());
+              if (mainStatus) {
+                setVerificationStatus(mainStatus);
+              }
             }
           } else if (res.ok && !data.email) {
             // No email found or insufficient data
@@ -442,8 +559,11 @@ export default function ConnectionRow({
       setIsCachedResult(false);
       setFoundEmails([]);
       setEmailToUrlMap(new Map());
+      setVerificationStatus("idle");
+      setCandidateStatuses(new Map());
+      setForceSubmit(false);
     }
-  }, [open, detail, autoSuggestAttempted, c.provider.id]);
+  }, [open, detail, autoSuggestAttempted, c.provider.id, batchVerifyEmails]);
 
   // Fact sheet modal state
   const [showFactSheet, setShowFactSheet] = useState(false);
@@ -633,7 +753,7 @@ export default function ConnectionRow({
     }
   }
 
-  // Mark connection status (admin verification of off-platform activity)
+  // Mark connection as connected (admin verification of off-platform activity)
   async function handleMarkStatus() {
     if (!markStatusReason.trim()) {
       setMarkStatusError("Please select a reason");
@@ -648,7 +768,7 @@ export default function ConnectionRow({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: markStatusType,
+          status: "connected",
           reason: markStatusReason,
           notes: markStatusNotes.trim() || undefined,
         }),
@@ -764,7 +884,10 @@ export default function ConnectionRow({
       const res = await fetch(`/api/admin/connections/${c.id}/edit-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newEmail: pendingEmailEdit.newEmail }),
+        body: JSON.stringify({
+          newEmail: pendingEmailEdit.newEmail,
+          force: forceSubmit, // Pass force flag to bypass verification check
+        }),
       });
 
       const data = await res.json();
@@ -801,7 +924,8 @@ export default function ConnectionRow({
           editEmailTimeoutRef.current = null;
         }, warning ? 5000 : 3000);
       } else {
-        setEditEmailError(data.error || "Failed to update email");
+        // Use descriptive message if available (e.g., for 422 undeliverable errors)
+        setEditEmailError(data.message || data.error || "Failed to update email");
       }
     } catch {
       setEditEmailError("Network error");
@@ -813,6 +937,12 @@ export default function ConnectionRow({
   async function handleFindEmail(mode: "edit" | "add" = "edit", forceRefresh = false) {
     if (!c.provider.id) return;
 
+    // Clear any pending onBlur verification to prevent race condition
+    if (verifyDebounceRef.current) {
+      clearTimeout(verifyDebounceRef.current);
+      verifyDebounceRef.current = null;
+    }
+
     setFindingEmail(true);
     setFindEmailError(null);
     setFoundEmails([]);
@@ -820,6 +950,8 @@ export default function ConnectionRow({
     setEmailSource(null);
     setFoundUrl(null);
     setIsCachedResult(false);
+    setCandidateStatuses(new Map());
+    setVerificationStatus("idle");
 
     try {
       const res = await fetch("/api/admin/connections/find-provider-email", {
@@ -847,10 +979,9 @@ export default function ConnectionRow({
         setFoundUrl(data.foundUrl || null);
         setIsCachedResult(data.cached || false);
 
-        // Store all candidates for potential dropdown
-        if (data.candidates && data.candidates.length > 0) {
-          setFoundEmails(data.candidates);
-        }
+        const candidates: string[] = data.candidates?.length > 0 ? data.candidates : [data.email];
+        setFoundEmails(candidates);
+
         // Build email -> URL map from candidatesWithUrls
         if (data.candidatesWithUrls && Array.isArray(data.candidatesWithUrls)) {
           const urlMap = new Map<string, string>();
@@ -860,6 +991,21 @@ export default function ConnectionRow({
             }
           }
           setEmailToUrlMap(urlMap);
+        }
+
+        // Batch verify all candidates
+        if (candidates.length > 0) {
+          // Set all to verifying initially (use lowercase for consistency with API response)
+          setCandidateStatuses(new Map(candidates.map(e => [e.toLowerCase(), "verifying" as VerificationStatus])));
+
+          const verifiedStatuses = await batchVerifyEmails(candidates);
+          setCandidateStatuses(verifiedStatuses);
+
+          // Also set the main input verification status (normalize to lowercase for lookup)
+          const mainStatus = verifiedStatuses.get(data.email.toLowerCase());
+          if (mainStatus) {
+            setVerificationStatus(mainStatus);
+          }
         }
       } else if (res.ok && !data.email) {
         // No email found or insufficient data
@@ -881,14 +1027,18 @@ export default function ConnectionRow({
 
   // Provider archived this lead - show as declined with reduced opacity
   const isDeclined = c.archived && c.archiveReason;
+  // Admin archived (either provider-level OR connection-level without reason)
+  const isAdminArchived = c.isProviderArchived || (c.archived && !c.archiveReason);
 
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
       <div className={`flex w-full items-center gap-3 px-4 py-4 transition-colors ${
-        isDeclined
-          ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
-          : "hover:bg-stone-50/60"
+        isAdminArchived
+          ? "bg-amber-50/40 hover:bg-amber-50/60 opacity-70"
+          : isDeclined
+            ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
+            : "hover:bg-stone-50/60"
       }`}>
         <button
           onClick={toggle}
@@ -899,7 +1049,12 @@ export default function ConnectionRow({
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
-            <span className="font-medium text-gray-900 truncate">{provider}</span>
+            <span className={`font-medium truncate ${isAdminArchived ? "text-gray-500" : "text-gray-900"}`}>{provider}</span>
+            {isAdminArchived && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
+                Archived
+              </span>
+            )}
             <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>
           {/* Secondary line: care type + timeline | waiting status | nudge info | archive badge | no email badge */}
@@ -963,18 +1118,29 @@ export default function ConnectionRow({
           })()}
         </span>
 
-        {/* Delete button - hover reveal */}
-        {onDelete && (
+        {/* Actions button - hover reveal */}
+        {/* Don't show for provider-declined connections (they already made their decision) */}
+        {onConnectionAction && !isDeclined && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(c.id);
+              const isConnectionArchived = c.archived === true && !c.archiveReason;
+              const isProviderArchived = c.isProviderArchived === true;
+              onConnectionAction(
+                c.id,
+                c.provider.id ?? null,
+                c.family.display_name,
+                c.provider.display_name,
+                isConnectionArchived,
+                isProviderArchived
+              );
             }}
-            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 text-gray-300 hover:text-red-500 transition-all"
-            title="Delete connection"
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
+            title="Actions"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            {/* Ellipsis vertical icon (more options) */}
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
           </button>
         )}
@@ -1028,7 +1194,7 @@ export default function ConnectionRow({
                         Call Family
                       </a>
                     ) : (
-                      // Provider perspective: only show Call Provider + Fact Sheet + Mark Status
+                      // Provider perspective: Call Provider + Nudge Provider + Fact Sheet + Mark Connected
                       <>
                         <a
                           href={`tel:${detail.provider.phone}`}
@@ -1036,20 +1202,27 @@ export default function ConnectionRow({
                         >
                           Call Provider
                         </a>
+                        {detail.provider.hasEmail && (
+                          <button
+                            onClick={() => showNudgePreview("/api/admin/send-manual-nudge", "Manual nudge sent to provider.")}
+                            disabled={nudging || loadingPreview}
+                            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+                          >
+                            {loadingPreview ? "Loading..." : nudging ? "Sending..." : "Nudge Provider"}
+                          </button>
+                        )}
                         <button
                           onClick={() => setShowFactSheet(true)}
                           className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
                         >
                           Fact Sheet
                         </button>
-                        <div className="relative">
-                          <button
-                            onClick={() => setShowMarkStatusModal(true)}
-                            className="px-3 py-1.5 rounded-lg border border-blue-300 text-blue-700 text-sm font-medium hover:bg-blue-50"
-                          >
-                            Mark Status ▼
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => setShowMarkStatusModal(true)}
+                          className="px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 text-sm font-medium hover:bg-emerald-50"
+                        >
+                          ✓ Mark Connected
+                        </button>
                       </>
                     )}
                   </div>
@@ -1137,23 +1310,15 @@ export default function ConnectionRow({
                     {c.engagementLevel === "connected" && (
                       <span className="text-sm text-emerald-600 font-medium">Provider reached out to family</span>
                     )}
-                    {/* Manual nudge for needs_follow_up - final intervention after automated sequence */}
-                    {c.engagementLevel === "needs_follow_up" && detail.provider.hasEmail && (
+                    {/* Fallback for needs_follow_up when no phone (banner won't show) */}
+                    {/* Note: needs_follow_up always has email (otherwise would be in "Needs Email" tab) */}
+                    {c.engagementLevel === "needs_follow_up" && !detail.provider.phone && (
                       <button
                         onClick={() => showNudgePreview("/api/admin/send-manual-nudge", "Manual nudge sent to provider.")}
                         disabled={nudging || loadingPreview}
                         className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
                       >
-                        {loadingPreview ? "Loading Preview..." : nudging ? "Sending..." : "Nudge Provider"}
-                      </button>
-                    )}
-                    {/* Fact Sheet for needs_follow_up when no email available */}
-                    {c.engagementLevel === "needs_follow_up" && !detail.provider.hasEmail && !detail.provider.phone && (
-                      <button
-                        onClick={() => setShowFactSheet(true)}
-                        className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100"
-                      >
-                        Fact Sheet
+                        {loadingPreview ? "Loading..." : nudging ? "Sending..." : "Nudge Provider"}
                       </button>
                     )}
                   </>
@@ -1243,6 +1408,10 @@ export default function ConnectionRow({
                                   setIsCachedResult(false);
                                   setFoundEmails([]);
                                   setEmailToUrlMap(new Map());
+                                  // Clear verification state
+                                  setVerificationStatus("idle");
+                                  setCandidateStatuses(new Map());
+                                  setForceSubmit(false);
                                 }}
                                 className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
                               >
@@ -1264,6 +1433,9 @@ export default function ConnectionRow({
                                   value={editEmailInput}
                                   onChange={(e) => {
                                     setEditEmailInput(e.target.value);
+                                    // Reset verification when typing
+                                    setVerificationStatus("idle");
+                                    setForceSubmit(false);
                                     // Clear source indicator if user manually edits away from found emails
                                     if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                       setEmailSource(null);
@@ -1271,6 +1443,7 @@ export default function ConnectionRow({
                                       setIsCachedResult(false);
                                     }
                                   }}
+                                  onBlur={() => handleEmailBlur(editEmailInput, "edit")}
                                   placeholder="New provider email..."
                                   className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                                   disabled={editingEmailLoading || findingEmail}
@@ -1300,11 +1473,20 @@ export default function ConnectionRow({
                               </div>
                               <button
                                 type="submit"
-                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email}
+                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email || (verificationStatus === "invalid" && !forceSubmit)}
                                 className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {editingEmailLoading ? "Saving..." : "Save"}
                               </button>
+                              {verificationStatus === "invalid" && !forceSubmit && (
+                                <button
+                                  type="button"
+                                  onClick={() => setForceSubmit(true)}
+                                  className="text-xs text-gray-500 hover:text-gray-700 underline"
+                                >
+                                  Save anyway
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1322,6 +1504,9 @@ export default function ConnectionRow({
                                   setEmailSource(null);
                                   setFoundUrl(null);
                                   setIsCachedResult(false);
+                                  setVerificationStatus("idle");
+                                  setCandidateStatuses(new Map());
+                                  setForceSubmit(false);
                                 }}
                                 disabled={editingEmailLoading || findingEmail}
                                 className="px-2 py-1 text-sm text-gray-500 hover:text-gray-700"
@@ -1329,6 +1514,8 @@ export default function ConnectionRow({
                                 Cancel
                               </button>
                             </div>
+                            {/* Verification badge */}
+                            <EmailVerificationBadge status={verificationStatus} />
                             {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
                             {emailSource && (
                               <p className="text-xs text-gray-500">
@@ -1353,25 +1540,59 @@ export default function ConnectionRow({
                             )}
                             {foundEmails.length > 1 && (
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {[...new Set(foundEmails)].map((email) => (
-                                  <button
-                                    key={email}
-                                    type="button"
-                                    onClick={() => {
-                                      setEditEmailInput(email);
-                                      // Update source URL to match selected candidate
-                                      setFoundUrl(emailToUrlMap.get(email) || null);
-                                    }}
-                                    className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-                                      editEmailInput === email
-                                        ? "bg-amber-100 border-amber-300 text-amber-800"
-                                        : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
-                                    }`}
-                                    disabled={editingEmailLoading || findingEmail}
-                                  >
-                                    {email}
-                                  </button>
-                                ))}
+                                {/* Sort candidates: valid/risky/unknown first, invalid last */}
+                                {[...new Set(foundEmails)]
+                                  .sort((a, b) => {
+                                    // Normalize to lowercase for Map lookup (API returns lowercase keys)
+                                    const statusA = candidateStatuses.get(a.toLowerCase()) || "unknown";
+                                    const statusB = candidateStatuses.get(b.toLowerCase()) || "unknown";
+                                    const isInvalidA = statusA === "invalid" ? 1 : 0;
+                                    const isInvalidB = statusB === "invalid" ? 1 : 0;
+                                    return isInvalidA - isInvalidB;
+                                  })
+                                  .map((email) => {
+                                    // Normalize to lowercase for Map lookup (API returns lowercase keys)
+                                    const status = candidateStatuses.get(email.toLowerCase());
+                                    const isInvalid = status === "invalid";
+                                    const isVerifying = status === "verifying";
+                                    const statusIcon = status === "valid" ? "✓" : status === "risky" ? "⚠️" : status === "invalid" ? "✗" : isVerifying ? "..." : "";
+
+                                    return (
+                                      <button
+                                        key={email}
+                                        type="button"
+                                        onClick={() => {
+                                          setEditEmailInput(email);
+                                          // Update source URL to match selected candidate
+                                          setFoundUrl(emailToUrlMap.get(email) || null);
+                                          // Update verification status to match selected candidate
+                                          if (status && status !== "verifying") {
+                                            setVerificationStatus(status);
+                                          }
+                                        }}
+                                        className={`px-2 py-0.5 text-xs rounded border transition-colors inline-flex items-center gap-1 ${
+                                          editEmailInput === email
+                                            ? "bg-amber-100 border-amber-300 text-amber-800"
+                                            : isInvalid
+                                              ? "bg-gray-50 border-gray-200 text-gray-400 opacity-60"
+                                              : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                        }`}
+                                        disabled={editingEmailLoading || findingEmail}
+                                      >
+                                        <span className={isInvalid ? "line-through" : ""}>{email}</span>
+                                        {statusIcon && (
+                                          <span className={
+                                            status === "valid" ? "text-emerald-600" :
+                                            status === "risky" ? "text-amber-600" :
+                                            status === "invalid" ? "text-red-500" :
+                                            "text-gray-400"
+                                          }>
+                                            {statusIcon}
+                                          </span>
+                                        )}
+                                      </button>
+                                    );
+                                  })}
                               </div>
                             )}
                             {editEmailError && <p className="text-xs text-red-600">{editEmailError}</p>}
@@ -1392,6 +1613,9 @@ export default function ConnectionRow({
                               value={emailInput}
                               onChange={(e) => {
                                 setEmailInput(e.target.value);
+                                // Reset verification when typing
+                                setVerificationStatus("idle");
+                                setForceSubmit(false);
                                 // Clear source indicator if user manually edits away from found emails
                                 if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                   setEmailSource(null);
@@ -1399,6 +1623,7 @@ export default function ConnectionRow({
                                   setIsCachedResult(false);
                                 }
                               }}
+                              onBlur={() => handleEmailBlur(emailInput, "add")}
                               placeholder={findingEmail ? "Searching..." : "Add provider email..."}
                               className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                               disabled={addingEmail || findingEmail}
@@ -1427,12 +1652,23 @@ export default function ConnectionRow({
                           </div>
                           <button
                             type="submit"
-                            disabled={addingEmail || findingEmail || !emailInput.trim()}
+                            disabled={addingEmail || findingEmail || !emailInput.trim() || (verificationStatus === "invalid" && !forceSubmit)}
                             className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {addingEmail ? "Adding..." : "Add"}
                           </button>
+                          {verificationStatus === "invalid" && !forceSubmit && (
+                            <button
+                              type="button"
+                              onClick={() => setForceSubmit(true)}
+                              className="text-xs text-gray-500 hover:text-gray-700 underline"
+                            >
+                              Add anyway
+                            </button>
+                          )}
                         </div>
+                        {/* Verification badge */}
+                        <EmailVerificationBadge status={verificationStatus} />
                         {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
                         {emailSource && (
                           <p className="text-xs text-gray-500">
@@ -1457,25 +1693,59 @@ export default function ConnectionRow({
                         )}
                         {foundEmails.length > 1 && (
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {[...new Set(foundEmails)].map((email) => (
-                              <button
-                                key={email}
-                                type="button"
-                                onClick={() => {
-                                  setEmailInput(email);
-                                  // Update source URL to match selected candidate
-                                  setFoundUrl(emailToUrlMap.get(email) || null);
-                                }}
-                                className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-                                  emailInput === email
-                                    ? "bg-amber-100 border-amber-300 text-amber-800"
-                                    : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
-                                }`}
-                                disabled={addingEmail || findingEmail}
-                              >
-                                {email}
-                              </button>
-                            ))}
+                            {/* Sort candidates: valid/risky/unknown first, invalid last */}
+                            {[...new Set(foundEmails)]
+                              .sort((a, b) => {
+                                // Normalize to lowercase for Map lookup (API returns lowercase keys)
+                                const statusA = candidateStatuses.get(a.toLowerCase()) || "unknown";
+                                const statusB = candidateStatuses.get(b.toLowerCase()) || "unknown";
+                                const isInvalidA = statusA === "invalid" ? 1 : 0;
+                                const isInvalidB = statusB === "invalid" ? 1 : 0;
+                                return isInvalidA - isInvalidB;
+                              })
+                              .map((email) => {
+                                // Normalize to lowercase for Map lookup (API returns lowercase keys)
+                                const status = candidateStatuses.get(email.toLowerCase());
+                                const isInvalid = status === "invalid";
+                                const isVerifying = status === "verifying";
+                                const statusIcon = status === "valid" ? "✓" : status === "risky" ? "⚠️" : status === "invalid" ? "✗" : isVerifying ? "..." : "";
+
+                                return (
+                                  <button
+                                    key={email}
+                                    type="button"
+                                    onClick={() => {
+                                      setEmailInput(email);
+                                      // Update source URL to match selected candidate
+                                      setFoundUrl(emailToUrlMap.get(email) || null);
+                                      // Update verification status to match selected candidate
+                                      if (status && status !== "verifying") {
+                                        setVerificationStatus(status);
+                                      }
+                                    }}
+                                    className={`px-2 py-0.5 text-xs rounded border transition-colors inline-flex items-center gap-1 ${
+                                      emailInput === email
+                                        ? "bg-amber-100 border-amber-300 text-amber-800"
+                                        : isInvalid
+                                          ? "bg-gray-50 border-gray-200 text-gray-400 opacity-60"
+                                          : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                    disabled={addingEmail || findingEmail}
+                                  >
+                                    <span className={isInvalid ? "line-through" : ""}>{email}</span>
+                                    {statusIcon && (
+                                      <span className={
+                                        status === "valid" ? "text-emerald-600" :
+                                        status === "risky" ? "text-amber-600" :
+                                        status === "invalid" ? "text-red-500" :
+                                        "text-gray-400"
+                                      }>
+                                        {statusIcon}
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
                           </div>
                         )}
                         {emailError && (
@@ -1679,7 +1949,7 @@ export default function ConnectionRow({
         />
       )}
 
-      {/* Mark Status Modal */}
+      {/* Mark as Connected Modal */}
       {showMarkStatusModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
@@ -1696,106 +1966,84 @@ export default function ConnectionRow({
           }}
         >
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Mark Connection as {markStatusType === "viewed" ? "Viewed" : "Connected"}
-            </h3>
-
-            {/* Status Type Selection */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setMarkStatusType("viewed");
-                    setMarkStatusReason("");
-                  }}
-                  className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium ${
-                    markStatusType === "viewed"
-                      ? "border-blue-600 bg-blue-50 text-blue-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Viewed
-                </button>
-                <button
-                  onClick={() => {
-                    setMarkStatusType("connected");
-                    setMarkStatusReason("");
-                  }}
-                  className={`flex-1 px-4 py-2 rounded-lg border text-sm font-medium ${
-                    markStatusType === "connected"
-                      ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Connected
-                </button>
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Mark as Connected</h3>
+                <p className="text-sm text-gray-500">Verify this provider contacted the family</p>
               </div>
             </div>
 
-            {/* Reason Selection */}
+            {/* Reason Selection - Polished radio buttons */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Reason *</label>
-              <select
-                value={markStatusReason}
-                onChange={(e) => setMarkStatusReason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a reason...</option>
-                {markStatusType === "viewed" ? (
-                  <>
-                    <option value="Called provider - they viewed the lead">Called provider - they viewed the lead</option>
-                    <option value="Provider confirmed via email">Provider confirmed via email</option>
-                    <option value="Found evidence in notes">Found evidence in notes</option>
-                    <option value="Other (see notes)">Other (see notes)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Called provider - they connected with family">Called provider - they connected with family</option>
-                    <option value="Called family - they confirmed provider contacted them">Called family - they confirmed provider contacted them</option>
-                    <option value="Provider confirmed connection via email">Provider confirmed connection via email</option>
-                    <option value="Found evidence in conversation thread">Found evidence in conversation thread</option>
-                    <option value="Other (see notes)">Other (see notes)</option>
-                  </>
-                )}
-              </select>
+              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                How did you verify?
+              </label>
+              <div className="space-y-2">
+                {[
+                  { value: "Called provider — confirmed they contacted family", icon: "📞" },
+                  { value: "Provider replied to admin outreach", icon: "📧" },
+                  { value: "Verified in platform messages", icon: "💬" },
+                  { value: "Other", icon: "📝" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setMarkStatusReason(option.value)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-all ${
+                      markStatusReason === option.value
+                        ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span className="text-lg">{option.icon}</span>
+                    <span className={`text-sm ${markStatusReason === option.value ? "text-emerald-900 font-medium" : "text-gray-700"}`}>
+                      {option.value}
+                    </span>
+                    {markStatusReason === option.value && (
+                      <svg className="w-5 h-5 text-emerald-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Notes */}
+            {/* Notes - only show when "Other" is selected or always available */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
+              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                Notes {markStatusReason === "Other" ? "(required)" : "(optional)"}
+              </label>
               <textarea
                 value={markStatusNotes}
                 onChange={(e) => setMarkStatusNotes(e.target.value)}
-                placeholder="Additional context..."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder={markStatusReason === "Other" ? "Describe how you verified..." : "Additional context..."}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-gray-400"
               />
             </div>
 
             {/* Impact Message */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                {markStatusType === "viewed" ? (
-                  <>
-                    • Move to <strong>Viewed</strong> tab<br />
-                    • Email sequence continues from viewed stage
-                  </>
-                ) : (
-                  <>
-                    • Move to <strong>Connected</strong> tab<br />
-                    • <strong>Stop email sequence</strong><br />
-                    • Mark as admin-verified
-                  </>
-                )}
+            <div className="mb-5 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-600">
+                <span className="font-medium text-gray-900">What happens:</span> Connection moves to Connected tab, email sequence stops, and this verification is logged.
               </p>
             </div>
 
             {/* Success */}
             {markStatusSuccess && (
               <div className="mb-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                <p className="text-sm text-emerald-800">
-                  ✓ Marked as {markStatusType === "viewed" ? "viewed" : "connected"}! Connection will move to {markStatusType === "viewed" ? "Viewed" : "Connected"} tab.
+                <p className="text-sm text-emerald-800 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Marked as connected! Moving to Connected tab.
                 </p>
               </div>
             )}
@@ -1818,20 +2066,26 @@ export default function ConnectionRow({
                   setMarkStatusSuccess(false);
                 }}
                 disabled={markingStatus || markStatusSuccess}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleMarkStatus}
-                disabled={markingStatus || markStatusSuccess || !markStatusReason}
-                className={`flex-1 px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 ${
-                  markStatusType === "viewed"
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "bg-emerald-600 hover:bg-emerald-700"
-                }`}
+                disabled={markingStatus || markStatusSuccess || !markStatusReason || (markStatusReason === "Other" && !markStatusNotes.trim())}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {markingStatus ? "Marking..." : `Mark as ${markStatusType === "viewed" ? "Viewed" : "Connected"}`}
+                {markingStatus ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Marking...
+                  </span>
+                ) : (
+                  "Mark as Connected"
+                )}
               </button>
             </div>
           </div>

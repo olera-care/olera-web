@@ -86,8 +86,20 @@ export function slackProviderClaimed(opts: {
   providerName: string;
   claimedByEmail: string;
   providerSlug: string;
+  /** Optional: where the claim originated from (e.g., "lead_email", "question_email", "instant_claim") */
+  claimSource?: string;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+  // Build the fields array, conditionally adding source if provided
+  const fields: { type: "mrkdwn"; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Claimed by:*\n${opts.claimedByEmail}` },
+  ];
+  if (opts.claimSource) {
+    fields.push({ type: "mrkdwn", text: `*Source:*\n${opts.claimSource}` });
+  }
+
   return {
     text: `Provider claimed: ${opts.providerName} by ${opts.claimedByEmail}`,
     blocks: [
@@ -97,10 +109,7 @@ export function slackProviderClaimed(opts: {
       },
       {
         type: "section",
-        fields: [
-          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
-          { type: "mrkdwn", text: `*Claimed by:*\n${opts.claimedByEmail}` },
-        ],
+        fields,
       },
       {
         type: "context",

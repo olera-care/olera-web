@@ -6,7 +6,7 @@ import { isBlockedEmailDomain } from "@/lib/email-validation";
 import { generateProviderSlug } from "@/lib/slugify";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
-import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
+import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
 import {
   scoreClaimTrust,
@@ -399,19 +399,32 @@ export async function POST(request: Request) {
         providerName: claimedBp?.display_name || providerId,
         claimedByEmail: user.email || "unknown",
         providerSlug: profileSlug,
+        claimSource: "otp_verification",
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch {
       // Non-blocking
     }
 
-    // 6b-ii. Trust signal for one-click claims is now carried by the
-    // one_click_access event (written client-side by /api/activity/track)
-    // and the 🚩 Suspicious Claim Slack alert is fired by /api/auth/auto-sign-in.
-    // finalize only persists `claim_trust_level` on business_profiles; it
-    // intentionally does NOT write a separate activity row or Slack alert to
-    // avoid duplicates in the one-click flow. OTP-only claims are covered as a
-    // followup.
+    // 6b-ii. Suspicious claim alert for OTP-based claims with medium/low trust
+    // One-click claims get their suspicious alert via /api/auth/auto-sign-in,
+    // but OTP-only claims (manual email verification) need their own alert here.
+    // Only send if trust scoring actually ran (reason !== "not_scored")
+    if (trustResult.reason !== "not_scored" &&
+        (trustResult.level === "medium" || trustResult.level === "low")) {
+      try {
+        const suspiciousAlert = slackSuspiciousClaim({
+          providerName: providerDisplayName,
+          claimedByEmail: user.email || "unknown",
+          providerSlug: profileSlug,
+          trustLevel: trustResult.level,
+          trustReason: trustResult.reason,
+        });
+        await sendSlackAlert(suspiciousAlert.text, suspiciousAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
+    }
 
     // 6c. Loops: provider claimed (fire-and-forget)
     try {

@@ -29,6 +29,7 @@ interface EngagementCounts {
   needs_follow_up: number;
   declined: number;
   needs_email: number;
+  archived: number;
 }
 
 interface FamilyEngagementCounts {
@@ -84,7 +85,7 @@ type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined";
+type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "archived";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -100,9 +101,10 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
-  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "declined", label: "Declined", description: "Provider declined lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
+  { key: "archived", label: "Archived", description: "Admin-archived providers - no emails sent to them", emptyMessage: "No archived providers." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
 
@@ -530,10 +532,29 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Delete state
-  const [pendingDelete, setPendingDelete] = useState<ConnectionRowData | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Action dialog state - supports Mark Connected, Archive Provider, Unarchive
+  type ActionType = "mark_connected" | "archive_provider" | "unarchive_lead";
+  const [pendingAction, setPendingAction] = useState<{
+    connectionId: string;
+    providerId: string | null;
+    familyName: string | null;
+    providerName: string | null;
+    isArchived: boolean; // true if lead is already archived (for unarchive)
+    isProviderArchived: boolean; // true if provider is admin-archived
+  } | null>(null);
+  const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionReason, setActionReason] = useState("");
+  const [actionNotes, setActionNotes] = useState("");
+
+  // Mark Connected reason options
+  const MARK_CONNECTED_REASONS = [
+    "Confirmed via phone call",
+    "Confirmed via email",
+    "Provider confirmed in portal",
+    "Other",
+  ] as const;
 
   // Debounce search input by 300ms
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -663,62 +684,116 @@ export default function ConnectionsTrackerPage() {
     return outboundList.outboundCounts[key] ?? 0;
   };
 
-  // Delete handlers
-  const requestDelete = (id: string) => {
-    const connection = list?.connections.find(c => c.id === id);
-    if (connection) {
-      setPendingDelete(connection);
-      setDeleteError(null);
-    }
+  // Handle action button click - opens multi-action dialog
+  const handleConnectionAction = (
+    connectionId: string,
+    providerId: string | null,
+    familyName: string | null,
+    providerName: string | null,
+    isArchived: boolean,
+    isProviderArchived: boolean
+  ) => {
+    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived });
+    setSelectedAction(null);
+    setActionError(null);
+    setActionReason("");
+    setActionNotes("");
   };
 
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
+  // Reset dialog state
+  const closeActionDialog = () => {
+    setPendingAction(null);
+    setSelectedAction(null);
+    setActionError(null);
+    setActionReason("");
+    setActionNotes("");
+  };
 
-    setDeleting(true);
-    setDeleteError(null);
+  // Execute the selected action
+  const confirmAction = async () => {
+    if (!pendingAction || !selectedAction) return;
 
-    // Optimistic removal - update both connections list and engagement counts
-    const connectionToDelete = pendingDelete;
-    setList(prev => {
-      if (!prev) return null;
-
-      // Decrement the appropriate engagement count
-      const engagementLevel = connectionToDelete.engagementLevel;
-      const updatedCounts = { ...prev.engagementCounts };
-      if (engagementLevel && updatedCounts[engagementLevel] > 0) {
-        updatedCounts[engagementLevel]--;
-        updatedCounts.all--;
-      }
-
-      return {
-        ...prev,
-        connections: prev.connections.filter(c => c.id !== connectionToDelete.id),
-        total: prev.total - 1,
-        engagementCounts: updatedCounts,
-      };
-    });
+    setActionLoading(true);
+    setActionError(null);
 
     try {
-      const res = await fetch(`/api/admin/connections/${connectionToDelete.id}`, {
-        method: "DELETE",
-      });
+      let res: Response;
+      let successMessage = "";
+
+      if (selectedAction === "mark_connected") {
+        // Mark as Connected API
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "connected",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as connected";
+
+      } else if (selectedAction === "unarchive_lead") {
+        // Unarchive Lead API (via leads page)
+        res = await fetch("/api/admin/leads", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: [pendingAction.connectionId],
+            action: "unarchive",
+          }),
+        });
+        successMessage = "Lead unarchived";
+
+      } else if (selectedAction === "archive_provider") {
+        // Archive Provider API
+        if (!pendingAction.providerId) {
+          setActionError("Provider ID not available");
+          setActionLoading(false);
+          return;
+        }
+
+        const action = pendingAction.isProviderArchived ? "unarchive" : "archive";
+        res = await fetch(`/api/admin/providers/${pendingAction.providerId}/archive`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            reason: action === "archive" ? "provider_requested_no_emails" : undefined,
+          }),
+        });
+        successMessage = pendingAction.isProviderArchived ? "Provider unarchived" : "Provider archived";
+
+      } else {
+        setActionError("Unknown action");
+        setActionLoading(false);
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        setPendingDelete(null);
-        // Refetch to get accurate funnel stats (optimistic update handles immediate UI)
+        closeActionDialog();
+        // Refetch to update tab counts
         fetchConnections();
       } else {
-        // Rollback on error
-        fetchConnections();
-        const data = await res.json().catch(() => ({}));
-        setDeleteError(data.error || "Failed to delete connection");
+        setActionError(data.error || `Failed: ${successMessage}`);
       }
     } catch {
-      fetchConnections();
-      setDeleteError("Network error");
+      setActionError("Network error");
     } finally {
-      setDeleting(false);
+      setActionLoading(false);
     }
   };
 
@@ -1036,7 +1111,7 @@ export default function ConnectionsTrackerPage() {
                   engagement={
                     c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
                   }
-                  onDelete={requestDelete}
+                  onConnectionAction={handleConnectionAction}
                   onNudgeSuccess={fetchConnections}
                 />
               ))}
@@ -1081,55 +1156,267 @@ export default function ConnectionsTrackerPage() {
         </p>
       )}
 
-      {/* Delete confirmation modal */}
-      {pendingDelete && (
+      {/* Connection Action Dialog - supports Mark Connected, Close Lead, Archive Provider */}
+      {pendingAction && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="delete-connection-title"
+          aria-labelledby="action-dialog-title"
         >
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-            <h3 id="delete-connection-title" className="text-base font-semibold text-gray-900 mb-3">
-              Delete this connection?
+            <h3 id="action-dialog-title" className="text-base font-semibold text-gray-900 mb-3">
+              Connection Actions
             </h3>
-            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
-              <div className="flex gap-2">
-                <dt className="w-20 shrink-0 text-gray-400">Family</dt>
-                <dd className="text-gray-900">{pendingDelete.family.display_name || "Unknown"}</dd>
-              </div>
-              <div className="flex gap-2">
-                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
-                <dd className="text-gray-900">{pendingDelete.provider.display_name || "Unknown"}</dd>
-              </div>
-            </dl>
-            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
-              This will permanently delete this connection and all associated messages. This cannot be undone.
-            </p>
-            {deleteError && (
-              <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>
-            )}
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setPendingDelete(null);
-                  setDeleteError(null);
-                }}
-                disabled={deleting}
-                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
+
+            {/* Connection info */}
+            <div className="text-sm text-gray-700 mb-4 space-y-1 pb-3 border-b border-gray-100">
+              <p>
+                <span className="text-gray-400">Family:</span>{" "}
+                <span className="font-medium text-gray-900">{pendingAction.familyName || "Unknown"}</span>
+              </p>
+              <p>
+                <span className="text-gray-400">Provider:</span>{" "}
+                <span className="font-medium text-gray-900">{pendingAction.providerName || "Unknown"}</span>
+                {pendingAction.isProviderArchived && (
+                  <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Archived</span>
+                )}
+              </p>
             </div>
+
+            {/* Action selection - Step 1 */}
+            {!selectedAction && (
+              <div className="space-y-2">
+                {/* Warning banner when provider is archived */}
+                {pendingAction.isProviderArchived && (
+                  <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs text-amber-800">
+                      <span className="font-medium">Provider is archived.</span> All leads to this provider appear in the Archived tab. Unarchive the provider to resume normal tracking.
+                    </p>
+                  </div>
+                )}
+
+                {/* Unarchive Lead option - only show if connection is archived AND provider is NOT archived */}
+                {/* If provider is archived, unarchiving the lead won't help - need to unarchive provider */}
+                {pendingAction.isArchived && !pendingAction.isProviderArchived && (
+                  <button
+                    onClick={() => setSelectedAction("unarchive_lead")}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Unarchive Lead</p>
+                        <p className="text-xs text-gray-500">Restore this lead to active tracking</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Mark as Connected - always show, but add note if provider is archived */}
+                <button
+                  onClick={() => setSelectedAction("mark_connected")}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                    pendingAction.isProviderArchived
+                      ? "border-gray-200 hover:border-green-200 hover:bg-green-50/50"
+                      : "border-gray-200 hover:border-green-300 hover:bg-green-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      pendingAction.isProviderArchived ? "bg-green-50" : "bg-green-100"
+                    }`}>
+                      <svg className={`w-4 h-4 ${pendingAction.isProviderArchived ? "text-green-400" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className={`font-medium ${pendingAction.isProviderArchived ? "text-gray-600" : "text-gray-900"}`}>Mark as Connected</p>
+                      <p className="text-xs text-gray-500">
+                        {pendingAction.isProviderArchived
+                          ? "Records connection but lead stays in Archived tab"
+                          : "Confirm this lead successfully connected"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Archive Provider */}
+                {pendingAction.providerId && (
+                  <button
+                    onClick={() => setSelectedAction("archive_provider")}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {pendingAction.isProviderArchived ? "Unarchive Provider" : "Archive Provider"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {pendingAction.isProviderArchived
+                            ? "Resume sending emails to this provider"
+                            : "Stop all emails to this provider"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Cancel button */}
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={closeActionDialog}
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Action confirmation - Step 2 */}
+            {selectedAction && (
+              <div className="space-y-4">
+                {/* Mark Connected form */}
+                {selectedAction === "mark_connected" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will mark the lead as successfully connected and stop follow-up emails.
+                    </p>
+                    {pendingAction.isProviderArchived && (
+                      <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-800">
+                          Note: This provider is archived. The lead will be marked as connected but will remain in the Archived tab.
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">How was this confirmed?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_CONNECTED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe how this was confirmed..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
+                )}
+
+                {/* Unarchive Lead confirmation */}
+                {selectedAction === "unarchive_lead" && (
+                  <p className="text-sm text-gray-600">
+                    This will unarchive the lead and return it to the appropriate tab based on engagement status.
+                  </p>
+                )}
+
+                {/* Archive Provider confirmation */}
+                {selectedAction === "archive_provider" && (
+                  <div className="space-y-3">
+                    {pendingAction.isProviderArchived ? (
+                      <p className="text-sm text-gray-600">
+                        This will unarchive the provider. Email sequences will resume for their connections.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-600">
+                          This will archive <span className="font-medium">{pendingAction.providerName}</span> at the provider level:
+                        </p>
+                        <ul className="text-xs text-gray-500 space-y-1 ml-4 list-disc">
+                          <li>All their connections will move to Archived tab</li>
+                          <li>No emails will be sent to this provider</li>
+                          <li>New leads will automatically be archived</li>
+                          <li>Family emails are not affected</li>
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Error display */}
+                {actionError && (
+                  <p className="text-xs text-red-600">{actionError}</p>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedAction(null);
+                      setActionReason("");
+                      setActionNotes("");
+                      setActionError(null);
+                    }}
+                    disabled={actionLoading}
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+                  >
+                    Back
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={closeActionDialog}
+                      disabled={actionLoading}
+                      className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmAction}
+                      disabled={
+                        actionLoading ||
+                        (selectedAction === "mark_connected" && !actionReason) ||
+                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim())
+                      }
+                      className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
+                        selectedAction === "mark_connected"
+                          ? "bg-green-600 hover:bg-green-700"
+                          : selectedAction === "archive_provider"
+                          ? pendingAction.isProviderArchived ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      }`}
+                    >
+                      {actionLoading
+                        ? "Processing..."
+                        : selectedAction === "mark_connected"
+                        ? "Mark Connected"
+                        : selectedAction === "unarchive_lead"
+                        ? "Unarchive"
+                        : pendingAction.isProviderArchived
+                        ? "Unarchive Provider"
+                        : "Archive Provider"
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

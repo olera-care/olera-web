@@ -1215,7 +1215,13 @@ export default function ActivityCenterPage() {
             summary={categorySummary}
             total={summaryTotal}
             selected={providerCategory}
-            onSelect={setProviderCategory}
+            onSelect={(key) => {
+              // Clear the drill-down in the same batch as the category change so
+              // fetchData doesn't fire once with the stale exact-event (which
+              // takes precedence) before the effect resets it.
+              setProviderCategory(key);
+              setProviderEvent("");
+            }}
             loading={categorySummary === null}
           />
           {providerCategory && providerCategory !== "flags" && (

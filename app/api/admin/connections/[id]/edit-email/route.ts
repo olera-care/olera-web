@@ -93,6 +93,20 @@ export async function POST(
       return NextResponse.json({ error: "New email is the same as current email" }, { status: 400 });
     }
 
+    // Protection: If this account is claimed (has account_id) AND already has an email,
+    // block the change. The provider owns this email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    const isAccountClaimed = !!(toProfile as { account_id?: string | null }).account_id;
+    if (isAccountClaimed && oldEmail) {
+      return NextResponse.json(
+        {
+          error: "claimed_account",
+          message: "This provider has claimed their account. Their email cannot be changed by admins.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Update business_profiles.email
     const { error: updateError } = await db
       .from("business_profiles")
@@ -105,9 +119,8 @@ export async function POST(
     }
 
     // Also update olera-providers.email if source_provider_id exists (keep databases in sync)
-    // BUT: Skip this if the provider has claimed their account (account_id is set)
-    // When claimed, the provider has set their own email via auth flow, we should not overwrite it
-    const isAccountClaimed = !!(toProfile as { account_id?: string | null }).account_id;
+    // Skip if provider has claimed their account (we already checked above, this is for
+    // the edge case where the provider is adding their first email to a claimed account)
     let skippedOleraProvidersSync = false;
 
     if (toProfile.source_provider_id && !isAccountClaimed) {

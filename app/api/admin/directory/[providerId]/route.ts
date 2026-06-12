@@ -432,6 +432,27 @@ export async function PATCH(
     const emailChanged = "email" in updates && updates.email !== current.email;
     const emailAdded = emailChanged && !current.email; // Was empty, now has value
 
+    // Protection: If this provider is linked to a claimed account with an existing email,
+    // block the email change. The provider owns their email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    if (emailChanged && current.email) {
+      const { data: linkedBp } = await db
+        .from("business_profiles")
+        .select("account_id, email")
+        .eq("source_provider_id", providerId)
+        .maybeSingle();
+
+      if (linkedBp?.account_id && linkedBp?.email) {
+        return NextResponse.json(
+          {
+            error: "claimed_account",
+            message: "This provider has claimed their account. Their email cannot be changed by admins.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     // Always sync email to business_profiles when it changes (fix: was only syncing on add)
     if (emailChanged && updates.email) {
       const newEmail = updates.email as string;

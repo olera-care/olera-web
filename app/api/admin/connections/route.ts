@@ -1067,31 +1067,25 @@ export async function GET(request: NextRequest) {
         (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType = emailIssueType;
 
         // Archive classification:
-        // - "Archived" tab: leads that are archived AND have no engagement
+        // - "Archived" tab: admin-archived provider OR connection archived without provider decline reason
         // - "Declined" tab: provider explicitly declined (has decline reason like "not_a_fit")
-        // - Leads with engagement (viewed/connected) stay in their engagement tab even if archived
         const isAdminArchived = c.isProviderArchived;
 
-        // Connection-level archive without provider decline reason = admin archived
+        // Connection-level archive without provider decline reason = admin archived on leads page
         // Connection-level archive WITH provider decline reason = provider declined in their portal
         const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
         const isProviderDeclined = c.archived && !!c.archiveReason;
 
-        // Archived tab: ONLY if archived AND no engagement (engagement level is "new")
-        // Leads with engagement (viewed, connected, needs_follow_up) stay in their engagement tab
-        // Provider-level archive always goes to Archived tab (stops all emails)
-        const hasEngagement = engResult.level !== "new";
-        const belongsToArchivedTab = isAdminArchived || (isConnectionArchivedByAdmin && !hasEngagement);
+        // Archived tab: provider-level OR connection-level admin archive
+        const belongsToArchivedTab = isAdminArchived || isConnectionArchivedByAdmin;
 
-        // Count archived connections
+        // Count archived connections (both provider-level and connection-level admin archives)
         if (belongsToArchivedTab) {
           engagementCounts.archived++;
         }
         // Engagement level counts (new, viewed, connected, needs_follow_up):
-        // - Exclude provider-level archives (they go to Archived tab)
-        // - Exclude provider-declined (they go to Declined tab)
-        // - Exclude connections with email issues (they go to "Needs Email" tab)
-        // - Include connection-level archives IF they have engagement (they stay in engagement tab)
+        // Exclude all archived types and declined - they go to their own tabs
+        // CRITICAL: Exclude connections with email issues - they go to "Needs Email" tab exclusively
         else if (!isProviderDeclined && !emailIssueType) {
           engagementCounts[engResult.level]++;
         }
@@ -1160,31 +1154,24 @@ export async function GET(request: NextRequest) {
 
     if (responseFilter !== "all") {
       // Special filter: archived
-      // Shows: provider-level archives OR connection-level archives with NO engagement
-      // Leads with engagement (viewed/connected) stay in their engagement tab
+      // Shows: provider-level admin-archived OR connection-level admin-archived (from leads page)
+      // Connection archived WITHOUT reason = admin archived on leads page
+      // Connection archived WITH reason = provider declined (goes to Declined tab instead)
       if (responseFilter === "archived" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
-          const engLevel = connectionEngagementLevels.get(c.id);
-          const hasEngagement = engLevel && engLevel !== "new";
-          // Provider-level archive always shows here
-          // Connection-level archive only shows if NO engagement
-          return c.isProviderArchived || (isConnectionArchivedByAdmin && !hasEngagement);
+          return c.isProviderArchived || isConnectionArchivedByAdmin;
         });
       }
       // Special filter: needs_email (provider perspective only)
       // Combines: no email, delivery failed, or invalid email
-      // Exclude: provider-level archives, provider-declined, AND connection-level archives without engagement
-      // (connection-level archives without engagement belong to Archived tab, not Needs Email)
+      // Exclude all archived types (they go to Archived or Declined tab)
       else if (responseFilter === "needs_email" && perspective === "provider") {
         list = list.filter((c) => {
-          const isConnectionArchivedByAdmin = c.archived === true && !c.archiveReason;
-          const engLevel = connectionEngagementLevels.get(c.id);
-          const hasEngagement = engLevel && engLevel !== "new";
-          const belongsToArchivedTab = c.isProviderArchived || (isConnectionArchivedByAdmin && !hasEngagement);
-          const isProviderDeclined = c.archived === true && !!c.archiveReason;
+          const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+          const isProviderDeclined = c.archived && !!c.archiveReason;
           return (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null &&
-            !belongsToArchivedTab && !isProviderDeclined;
+            !c.isProviderArchived && !isConnectionArchivedByAdmin && !isProviderDeclined;
         });
       }
       // Special filter: declined (provider explicitly declined with reason)
@@ -1205,14 +1192,14 @@ export async function GET(request: NextRequest) {
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
           // All engagement-level tabs (new, viewed, connected, needs_follow_up):
-          // - Exclude provider-level archives (they go to Archived tab)
-          // - Exclude provider-declined (they go to Declined tab)
-          // - Exclude connections with email issues (they go to "Needs Email" tab)
-          // - INCLUDE connection-level archives if they have engagement (they stay in engagement tab)
+          // - Exclude all archived types (provider-level, connection-level admin, provider declined)
+          // - Exclude connections with email issues (those go to "Needs Email" tab exclusively)
           list = list.filter((c) => {
+            const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
             const isProviderDeclined = c.archived && !!c.archiveReason;
             return connectionEngagementLevels.get(c.id) === responseFilter &&
               !c.isProviderArchived &&
+              !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
               !(c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
           });

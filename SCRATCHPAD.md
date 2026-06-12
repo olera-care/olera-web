@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
+
+Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.
+
+**What changed in PR #1040 (`codex/referral-teaser-digest`, base `staging`):**
+- `weekly-provider-digest` now has a `referral_teaser` variant that routes providers to the market call sheet when we have referral targets. It stays below fresh questions, fresh leads, and claimed-provider completion nudges.
+- Email copy/HTML added: local-area subject/body, first 3 referral/source teams, "See the {city} map" CTA, and a trust block with Logan + TJ LinkedIn context.
+- Admin automation analytics now classify/report `referral_teaser`; conversion maps to `market_outreach_status_updated`; sample preview exists in the weekly-digest admin page.
+- Safety guard: referral teaser only sends when `referralGraph.prioritizedTargets` exists. If not, provider falls back to safe market-rank email; cron reports `referralTeaserSent` and `marketRankMissingReferralTargets`.
+- Cache freshness tightened: old diagnostics that have rank but no referral graph are treated as stale so they can self-heal.
+- Important correction from TJ: do **not** limit the funnel to markets already computed by user visits. Added bounded proactive warming: each weekday digest scans a rotating slice of email-reachable directory providers with email/place/city/state, warms up to 6 missing city-care markets, and reports `proactiveWarmQueued`. `warmCity` still dedupes and enforces monthly spend limits.
+
+**Validation:** `git diff --check`, `npx --no-install tsc --noEmit`, and `npm run check:crons` passed. PR #1040 is ready-for-review against `staging`; Vercel check was pending after the latest push.
+
+**Next:** QA the Vercel preview email/admin surfaces; watch first dry/live run summary for `referralTeaserSent`, `marketRankMissingReferralTargets`, `proactiveWarmQueued`, and `warmCities`. If missing-targets stays high, next product PR should be an explicit pre-send market research queue rather than more copy tweaking.
+
 ### 2026-06-11 (PM) — seniorlistings.net: Resend rotation built→closed, then pivoted to Smartlead warm-up (LIVE)
 
 Two threads. **(1) Resend sender-pool rotation (#1023) — built then CLOSED.** Built a sticky weighted multi-domain sender pool for the Resend provider-notify path (`lib/email.ts` `resolveSender`, new `PROVIDER_NOTIFY_POOL` env JSON, per-recipient FNV-1a hash, env-gated + backward-compatible, unit-tested: stickiness + ~weighted distribution + fail-safe) to add `seniorlistings.net` as a 2nd Resend outreach domain. Then TJ reframed: warm `seniorlistings.net` in **Smartlead (cold lane)** like findmedjobs.co — NOT a Resend secondary — and don't send from it yet, just warm. So **closed #1023** (no Resend domain to rotate to; code is sound + recoverable if we ever add one). Prod send path stays single `oleracare.com`.
@@ -2728,5 +2744,4 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-
 

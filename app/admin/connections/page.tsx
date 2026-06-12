@@ -532,8 +532,8 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Action dialog state - supports Mark Connected, Close Lead, Archive Provider
-  type ActionType = "mark_connected" | "close_lead" | "archive_provider" | "unarchive_lead";
+  // Action dialog state - supports Mark Connected, Archive Provider, Unarchive
+  type ActionType = "mark_connected" | "archive_provider" | "unarchive_lead";
   const [pendingAction, setPendingAction] = useState<{
     connectionId: string;
     providerId: string | null;
@@ -744,23 +744,17 @@ export default function ConnectionsTrackerPage() {
         });
         successMessage = "Marked as connected";
 
-      } else if (selectedAction === "close_lead" || selectedAction === "unarchive_lead") {
-        // Close/Unarchive Lead API (via leads page)
-        const action = selectedAction === "unarchive_lead" ? "unarchive" : "archive";
-        const body: { ids: string[]; action: string; reason?: string } = {
-          ids: [pendingAction.connectionId],
-          action,
-        };
-        if (action === "archive" && actionReason.trim()) {
-          body.reason = actionReason.trim();
-        }
-
+      } else if (selectedAction === "unarchive_lead") {
+        // Unarchive Lead API (via leads page)
         res = await fetch("/api/admin/leads", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            ids: [pendingAction.connectionId],
+            action: "unarchive",
+          }),
         });
-        successMessage = selectedAction === "unarchive_lead" ? "Lead unarchived" : "Lead closed";
+        successMessage = "Lead unarchived";
 
       } else if (selectedAction === "archive_provider") {
         // Archive Provider API
@@ -1231,26 +1225,6 @@ export default function ConnectionsTrackerPage() {
                   </div>
                 </button>
 
-                {/* Close Lead */}
-                {!pendingAction.isArchived && (
-                  <button
-                    onClick={() => setSelectedAction("close_lead")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Close this Lead</p>
-                        <p className="text-xs text-gray-500">Archive this individual connection</p>
-                      </div>
-                    </div>
-                  </button>
-                )}
-
                 {/* Archive Provider */}
                 {pendingAction.providerId && (
                   <button
@@ -1325,23 +1299,6 @@ export default function ConnectionsTrackerPage() {
                   </>
                 )}
 
-                {/* Close Lead form */}
-                {selectedAction === "close_lead" && (
-                  <>
-                    <p className="text-sm text-gray-600">
-                      This lead will move to the Archived tab. You can unarchive it later if needed.
-                    </p>
-                    <textarea
-                      value={actionReason}
-                      onChange={(e) => setActionReason(e.target.value)}
-                      placeholder="Reason for closing (e.g. provider unreachable, not a fit)..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
-                      rows={2}
-                      autoFocus
-                    />
-                  </>
-                )}
-
                 {/* Unarchive Lead confirmation */}
                 {selectedAction === "unarchive_lead" && (
                   <p className="text-sm text-gray-600">
@@ -1407,25 +1364,20 @@ export default function ConnectionsTrackerPage() {
                       disabled={
                         actionLoading ||
                         (selectedAction === "mark_connected" && !actionReason) ||
-                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
-                        (selectedAction === "close_lead" && !actionReason.trim())
+                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim())
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
                         selectedAction === "mark_connected"
                           ? "bg-green-600 hover:bg-green-700"
                           : selectedAction === "archive_provider"
                           ? pendingAction.isProviderArchived ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
-                          : selectedAction === "unarchive_lead"
-                          ? "bg-blue-600 hover:bg-blue-700"
-                          : "bg-amber-600 hover:bg-amber-700"
+                          : "bg-blue-600 hover:bg-blue-700"
                       }`}
                     >
                       {actionLoading
                         ? "Processing..."
                         : selectedAction === "mark_connected"
                         ? "Mark Connected"
-                        : selectedAction === "close_lead"
-                        ? "Close Lead"
                         : selectedAction === "unarchive_lead"
                         ? "Unarchive"
                         : pendingAction.isProviderArchived

@@ -8,6 +8,7 @@
 - Do not merge PRs unless TJ explicitly asks.
 - When the user says `quicksave`, `quick save`, or `save progress and PR`, use the repo skill `quicksave`.
 - When the user says `pre-test`, `pretest`, or asks what to test before previewing, use the repo skill `pre-test`.
+- When the user says `pr-merge`, `/pr-merge`, `merge PR`, or asks whether a PR is safe to merge, use the repo skill `pr-merge`.
 
 ## Verification
 

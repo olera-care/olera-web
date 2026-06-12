@@ -367,6 +367,42 @@ function ProviderSummaryStrip({ summary, total, selected, onSelect, loading }: {
   );
 }
 
+// Drill-down chip row — appears under the tiles when a category is selected,
+// letting you isolate one exact action (e.g. "Edited their profile") within it.
+function ProviderSubFilter({ category, counts, selectedEvent, onSelect, loading }: {
+  category: ProviderCategoryKey;
+  counts: Record<string, number> | null;
+  selectedEvent: string;
+  onSelect: (ev: string) => void;
+  loading: boolean;
+}) {
+  const meta = PROVIDER_CATEGORY_MAP[category];
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 pl-0.5">
+      <span className="text-[11px] text-gray-400 mr-0.5">{meta.label}:</span>
+      {meta.eventTypes.map((et) => {
+        const active = selectedEvent === et;
+        const count = counts?.[et] ?? 0;
+        const dim = !loading && !active && count === 0;
+        return (
+          <button
+            key={et}
+            onClick={() => onSelect(active ? "" : et)}
+            className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+              active
+                ? `${meta.badge} border-transparent`
+                : "border-gray-200 text-gray-600 hover:bg-gray-50"
+            } ${dim ? "opacity-40" : ""}`}
+          >
+            {providerEventLabel(et)}
+            {!loading && <span className="ml-1 tabular-nums text-gray-400">{count.toLocaleString()}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function ProviderFeedView({ events, loading, total, page, setPage, pageSize, selected, onToggle, onDeleteOne, emptyHint }: {
   events: ActivityEvent[]; loading: boolean; total: number;
   page: number; setPage: (p: number) => void; pageSize: number;
@@ -816,6 +852,10 @@ export default function ActivityCenterPage() {
   // Per-category counts for the providers orientation strip.
   const [categorySummary, setCategorySummary] = useState<Record<string, number> | null>(null);
   const [summaryTotal, setSummaryTotal] = useState<number | null>(null);
+  // Drill-down: a specific event type within the selected category, plus the
+  // per-event counts that populate the sub-chip row.
+  const [providerEvent, setProviderEvent] = useState<string>("");
+  const [subCounts, setSubCounts] = useState<Record<string, number> | null>(null);
 
   // Provider data
   const [providerFeedEvents, setProviderFeedEvents] = useState<ActivityEvent[]>([]);
@@ -856,7 +896,12 @@ export default function ActivityCenterPage() {
   useEffect(() => {
     setPage(0);
     setSelectedIds(new Set());
-  }, [timeWindow, eventFilter, providerCategory, search]);
+  }, [timeWindow, eventFilter, providerCategory, providerEvent, search]);
+
+  // Changing category clears any drill-down selection from the prior category.
+  useEffect(() => {
+    setProviderEvent("");
+  }, [providerCategory]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -875,7 +920,8 @@ export default function ActivityCenterPage() {
       }
 
       if (actor === "providers") {
-        if (providerCategory) params.set("category", providerCategory);
+        if (providerEvent) params.set("event", providerEvent);
+        else if (providerCategory) params.set("category", providerCategory);
       } else if (eventFilter) {
         params.set("event_type", eventFilter);
       }
@@ -907,7 +953,32 @@ export default function ActivityCenterPage() {
     } finally {
       setLoading(false);
     }
-  }, [actor, subView, timeWindow, eventFilter, providerCategory, search, page]);
+  }, [actor, subView, timeWindow, eventFilter, providerCategory, providerEvent, search, page]);
+
+  // Per-event counts for the drill-down chip row — fetched when a (non-flags)
+  // category is selected. Cancelled on change to avoid out-of-order responses.
+  useEffect(() => {
+    if (actor !== "providers" || !providerCategory || providerCategory === "flags") {
+      setSubCounts(null);
+      return;
+    }
+    let cancelled = false;
+    setSubCounts(null);
+    fetch(`/api/admin/activity?actor=providers&view=summary&category=${providerCategory}&days=${timeWindow}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const m: Record<string, number> = {};
+        for (const e of d.events || []) m[e.event_type] = e.count;
+        setSubCounts(m);
+      })
+      .catch(() => {
+        if (!cancelled) setSubCounts(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, providerCategory, timeWindow]);
 
   // Per-category counts for the providers orientation strip. Refetched on time-
   // window change (and after deletes); independent of the feed pagination/filter
@@ -1056,6 +1127,13 @@ export default function ActivityCenterPage() {
 
   const filterOptions = eventFilterOptionsForActor(actor);
 
+  // Category/event-aware empty copy that teaches instead of dead-ending.
+  const providerEmptyHint = providerEvent
+    ? `No "${providerEventLabel(providerEvent)}" activity in this window yet.`
+    : providerCategory
+    ? `No "${PROVIDER_CATEGORY_MAP[providerCategory].label}" activity in this window yet — ${PROVIDER_CATEGORY_MAP[providerCategory].blurb.toLowerCase()}.`
+    : undefined;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1129,15 +1207,27 @@ export default function ActivityCenterPage() {
         </div>
       </div>
 
-      {/* Providers orientation strip — see the shape of activity, tap to filter */}
+      {/* Providers orientation strip — see the shape of activity, tap to filter.
+          Selecting a category reveals a drill-down row to isolate one action. */}
       {actor === "providers" && (
-        <ProviderSummaryStrip
-          summary={categorySummary}
-          total={summaryTotal}
-          selected={providerCategory}
-          onSelect={setProviderCategory}
-          loading={categorySummary === null}
-        />
+        <div className="space-y-2">
+          <ProviderSummaryStrip
+            summary={categorySummary}
+            total={summaryTotal}
+            selected={providerCategory}
+            onSelect={setProviderCategory}
+            loading={categorySummary === null}
+          />
+          {providerCategory && providerCategory !== "flags" && (
+            <ProviderSubFilter
+              category={providerCategory}
+              counts={subCounts}
+              selectedEvent={providerEvent}
+              onSelect={setProviderEvent}
+              loading={subCounts === null}
+            />
+          )}
+        </div>
       )}
 
       {/* Error banner */}
@@ -1169,14 +1259,14 @@ export default function ActivityCenterPage() {
             events={providerFeedEvents} loading={loading} total={providerFeedTotal}
             page={page} setPage={setPage} pageSize={PAGE_SIZE}
             selected={selectedIds} onToggle={toggleSelection} onDeleteOne={handleDeleteOneEvent}
-            emptyHint={providerCategory ? `No "${PROVIDER_CATEGORY_MAP[providerCategory].label}" activity in this window yet — ${PROVIDER_CATEGORY_MAP[providerCategory].blurb.toLowerCase()}.` : undefined}
+            emptyHint={providerEmptyHint}
           />
         ) : (
           <ProvidersPeopleView
             providers={providerRows} loading={loading} total={providersTotal}
             page={page} setPage={setPage} pageSize={PAGE_SIZE}
             selected={selectedIds} onToggle={toggleSelection} onDeletePerson={handleDeletePerson}
-            emptyHint={providerCategory ? `No "${PROVIDER_CATEGORY_MAP[providerCategory].label}" activity in this window yet — ${PROVIDER_CATEGORY_MAP[providerCategory].blurb.toLowerCase()}.` : undefined}
+            emptyHint={providerEmptyHint}
           />
         )
       )}

@@ -111,6 +111,12 @@ export async function GET(request: NextRequest) {
     const eventType = searchParams.get("event_type") || searchParams.get("email_type");
     const categoryParam = searchParams.get("category");
     const category = isProviderCategory(categoryParam) ? categoryParam : null;
+    // Drill-down: isolate one exact provider action (e.g. provider_profile_edited)
+    // within a category. Validated against the allowlist so it can't smuggle in a
+    // care-seeker event type.
+    const eventParam = searchParams.get("event");
+    const exactEvent =
+      eventParam && PROVIDER_ACTION_EVENT_TYPES.includes(eventParam) ? eventParam : null;
     const days = parseInt(searchParams.get("days") || "30", 10);
     const search = searchParams.get("search")?.trim() || "";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
@@ -133,17 +139,18 @@ export async function GET(request: NextRequest) {
       return handleFamiliesFeedView(db, opts);
     }
 
-    // Orientation summary — per-category counts for the providers tab.
+    // Orientation summary — per-category counts, or per-event counts when a
+    // category is given (drill-down chip row).
     if (view === "summary") {
-      return handleProviderSummary(db, sinceISO);
+      return handleProviderSummary(db, sinceISO, category);
     }
 
     // Provider views (default + backward compat)
     if (view === "providers" || view === "people") {
-      return handleProvidersView(db, { ...opts, emailType: eventType, category });
+      return handleProvidersView(db, { ...opts, emailType: eventType, category, exactEvent });
     }
 
-    return handleFeedView(db, { ...opts, emailType: eventType, category });
+    return handleFeedView(db, { ...opts, emailType: eventType, category, exactEvent });
   } catch (err) {
     console.error("Admin activity error:", err);
     return NextResponse.json(
@@ -160,7 +167,25 @@ export async function GET(request: NextRequest) {
  * order plus the grand total of provider actions in the window.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleProviderSummary(db: any, sinceISO: string) {
+async function handleProviderSummary(db: any, sinceISO: string, category: ProviderCategoryKey | null) {
+  // Drill-down: per-event-type counts within one category (the sub-chip row).
+  // "flags" has no useful sub-breakdown (it's already a narrow overlay), so it
+  // falls through to the category-level summary.
+  if (category && category !== "flags") {
+    const types = eventTypesForCategory(category);
+    const events = await Promise.all(
+      types.map(async (et) => {
+        const { count } = await db
+          .from("provider_activity")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", sinceISO)
+          .eq("event_type", et);
+        return { event_type: et, count: count || 0 };
+      })
+    );
+    return NextResponse.json({ category, events });
+  }
+
   const counts = await Promise.all(
     PROVIDER_CATEGORIES.map(async (cat) => {
       let q = db
@@ -188,13 +213,14 @@ async function handleProviderSummary(db: any, sinceISO: string) {
 async function handleFeedView(db: any, opts: {
   emailType: string | null;
   category: ProviderCategoryKey | null;
+  exactEvent: string | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, category, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
   // Provider feed — existing behavior
 
   // If searching, find matching provider IDs first (check both tables)
@@ -247,8 +273,11 @@ async function handleFeedView(db: any, opts: {
       query = query.eq("email_type", emailType);
     }
   }
-  // Category navigation (orientation tiles / chips) narrows to a taxonomy bucket.
-  if (category) {
+  // Drill-down to one exact action takes precedence over its category.
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    // Category navigation (orientation tiles) narrows to a taxonomy bucket.
     query = applyCategoryFilter(query, category);
   }
   if (searchProviderIds) {
@@ -360,13 +389,14 @@ async function handleFeedView(db: any, opts: {
 async function handleProvidersView(db: any, opts: {
   emailType: string | null;
   category: ProviderCategoryKey | null;
+  exactEvent: string | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, category, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
 
   // Use raw SQL via RPC for aggregation — Supabase JS doesn't support GROUP BY
   // Fallback: fetch all activity and aggregate in JS (fine for current scale).
@@ -391,7 +421,9 @@ async function handleProvidersView(db: any, opts: {
       query = query.eq("email_type", emailType);
     }
   }
-  if (category) {
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
     query = applyCategoryFilter(query, category);
   }
 

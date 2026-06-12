@@ -1,5 +1,83 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import {
+  PROVIDER_CATEGORIES,
+  eventTypesForCategory,
+  isProviderCategory,
+  type ProviderCategoryKey,
+} from "@/lib/activity/provider-categories";
+import {
+  SEEKER_CATEGORIES,
+  SEEKER_ALL_EVENT_TYPES,
+  eventTypesForSeekerCategory,
+  isSeekerCategory,
+  type SeekerCategoryKey,
+} from "@/lib/activity/seeker-categories";
+
+// The Providers tab answers "what are providers DOING on the platform?" — so it
+// must show only events a provider's own session performed. The provider_activity
+// table is overloaded: anonymous care-seeker browsing (multi_provider_viewed,
+// cta_variant_impression, benefits_*_viewed, enrichment_*, etc.) is written here
+// too, keyed on the *page's* provider slug — NOT because the provider did anything.
+// In production those care-seeker rows are ~89% of the table, so a blacklist of
+// page_view + question_received let them drown the real provider signal in both
+// the feed and the per-provider People aggregation (which caps at 5000 rows).
+//
+// This allowlist is the inverse fix: surface only genuine provider-session
+// actions. Anything not on this list (anonymous care-seeker events, question/
+// review/lead "_received" mirrors that are care-seeker-driven) is excluded.
+// Keep in sync with PROVIDER_EVENT_TYPES in app/api/activity/track/route.ts —
+// add new provider actions here when they're added there.
+const PROVIDER_ACTION_EVENT_TYPES = [
+  // Lead engagement (provider opened / acted on a care-seeker lead)
+  "lead_opened",
+  "contact_revealed",
+  "phone_clicked",
+  "email_link_clicked",
+  "continue_in_inbox",
+  "one_click_access",
+  "email_click", // provider clicked a tracked link in a notification email
+  // Question answering
+  "question_responded",
+  // Reviews
+  "review_viewed",
+  "reviews_cta_clicked",
+  // Profile / claim lifecycle
+  "provider_profile_edited",
+  "provider_saved",
+  "claim_completed",
+  "suspicious_claim",
+  // Dashboard / activation funnel
+  "dashboard_arrival",
+  "provider_picker_impression",
+  "provider_picker_clicked",
+  "analytics_teaser_impression",
+  "analytics_teaser_cta_clicked",
+  // Find Families / market outreach
+  "matches_page_viewed",
+  "matches_card_clicked",
+  "matches_message_generated",
+  "matches_outreach_sent",
+  "market_diagnostic_viewed_no_leads",
+  "market_outreach_status_updated",
+];
+
+/**
+ * Constrain a provider_activity query to a taxonomy category (see
+ * lib/activity/provider-categories.ts). "flags" is special: it folds in
+ * low-trust one_click_access events the same way the standalone "Suspicious
+ * claims" filter does, so the trust signal isn't split across two places.
+ * Returns the query unchanged for an unknown category.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyCategoryFilter(query: any, category: ProviderCategoryKey) {
+  if (category === "flags") {
+    return query.or(
+      "event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)"
+    );
+  }
+  return query.in("event_type", eventTypesForCategory(category));
+}
 
 /**
  * GET /api/admin/activity
@@ -38,6 +116,16 @@ export async function GET(request: NextRequest) {
     const actor = searchParams.get("actor") || "providers";
     const view = searchParams.get("view") || "feed";
     const eventType = searchParams.get("event_type") || searchParams.get("email_type");
+    const categoryParam = searchParams.get("category");
+    const category = isProviderCategory(categoryParam) ? categoryParam : null;
+    const seekerCategory = isSeekerCategory(categoryParam) ? categoryParam : null;
+    // Drill-down: isolate one exact action within a category. Validated against
+    // the relevant allowlist so it can't smuggle in an out-of-scope event type.
+    const eventParam = searchParams.get("event");
+    const exactEvent =
+      eventParam && PROVIDER_ACTION_EVENT_TYPES.includes(eventParam) ? eventParam : null;
+    const seekerExactEvent =
+      eventParam && SEEKER_ALL_EVENT_TYPES.includes(eventParam) ? eventParam : null;
     const days = parseInt(searchParams.get("days") || "30", 10);
     const search = searchParams.get("search")?.trim() || "";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
@@ -54,18 +142,28 @@ export async function GET(request: NextRequest) {
     const opts = { eventType, sinceISO, search, limit, offset, countOnly };
 
     if (actor === "families") {
-      if (view === "people" || view === "families") {
-        return handleFamiliesPeopleView(db, opts);
+      if (view === "summary") {
+        return handleSeekerSummary(db, sinceISO, seekerCategory);
       }
-      return handleFamiliesFeedView(db, opts);
+      const familyOpts = { ...opts, category: seekerCategory, exactEvent: seekerExactEvent };
+      if (view === "people" || view === "families") {
+        return handleFamiliesPeopleView(db, familyOpts);
+      }
+      return handleFamiliesFeedView(db, familyOpts);
+    }
+
+    // Orientation summary — per-category counts, or per-event counts when a
+    // category is given (drill-down chip row).
+    if (view === "summary") {
+      return handleProviderSummary(db, sinceISO, category);
     }
 
     // Provider views (default + backward compat)
     if (view === "providers" || view === "people") {
-      return handleProvidersView(db, { ...opts, emailType: eventType });
+      return handleProvidersView(db, { ...opts, emailType: eventType, category, exactEvent });
     }
 
-    return handleFeedView(db, { ...opts, emailType: eventType });
+    return handleFeedView(db, { ...opts, emailType: eventType, category, exactEvent });
   } catch (err) {
     console.error("Admin activity error:", err);
     return NextResponse.json(
@@ -75,29 +173,87 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * Per-category counts for the Providers orientation strip. One exact head-count
+ * query per category, run in parallel — accurate beyond the 5000-row aggregation
+ * cap, and cheap (no rows transferred). Returns counts in PROVIDER_CATEGORIES
+ * order plus the grand total of provider actions in the window.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleProviderSummary(db: any, sinceISO: string, category: ProviderCategoryKey | null) {
+  // Drill-down: per-event-type counts within one category (the sub-chip row).
+  // "flags" has no useful sub-breakdown (it's already a narrow overlay), so it
+  // falls through to the category-level summary.
+  if (category && category !== "flags") {
+    const types = eventTypesForCategory(category);
+    const events = await Promise.all(
+      types.map(async (et) => {
+        const { count } = await db
+          .from("provider_activity")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", sinceISO)
+          .eq("event_type", et);
+        return { event_type: et, count: count || 0 };
+      })
+    );
+    return NextResponse.json({ category, events });
+  }
+
+  const counts = await Promise.all(
+    PROVIDER_CATEGORIES.map(async (cat) => {
+      let q = db
+        .from("provider_activity")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", sinceISO);
+      q = applyCategoryFilter(q, cat.key);
+      const { count } = await q;
+      return { key: cat.key, count: count || 0 };
+    })
+  );
+
+  // Grand total = all genuine provider actions (matches the feed's "All" view),
+  // not the sum of categories — "flags" overlaps Leads (low-trust sign-ins).
+  const { count: total } = await db
+    .from("provider_activity")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", sinceISO)
+    .in("event_type", PROVIDER_ACTION_EVENT_TYPES);
+
+  return NextResponse.json({ categories: counts, total: total || 0 });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleFeedView(db: any, opts: {
   emailType: string | null;
+  category: ProviderCategoryKey | null;
+  exactEvent: string | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
   // Provider feed — existing behavior
 
   // If searching, find matching provider IDs first (check both tables)
   let searchProviderIds: string[] | null = null;
   if (search) {
     const [{ data: iosMatches }, { data: bpMatches }] = await Promise.all([
-      db.from("olera-providers").select("provider_id").ilike("provider_name", `%${search}%`).limit(200),
-      db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).ilike("display_name", `%${search}%`).limit(200),
+      db.from("olera-providers").select("provider_id, slug").ilike("provider_name", `%${search}%`).limit(200),
+      db.from("business_profiles").select("slug, source_provider_id").in("type", ["organization", "caregiver"]).ilike("display_name", `%${search}%`).limit(200),
     ]);
 
     const ids = new Set<string>();
-    for (const p of iosMatches ?? []) ids.add(p.provider_id);
-    for (const p of bpMatches ?? []) ids.add(p.slug);
+    ids.add(search);
+    for (const p of iosMatches ?? []) {
+      if (p.provider_id) ids.add(p.provider_id);
+      if (p.slug) ids.add(p.slug);
+    }
+    for (const p of bpMatches ?? []) {
+      if (p.slug) ids.add(p.slug);
+      if (p.source_provider_id) ids.add(p.source_provider_id);
+    }
     searchProviderIds = Array.from(ids);
 
     if (searchProviderIds.length === 0) {
@@ -106,17 +262,15 @@ async function handleFeedView(db: any, opts: {
   }
 
   // Build query.
-  // Exclude event_type='question_received' — those are mirrors of care-seeker
-  // "question_asked" events (written by app/api/questions/route.ts) and belong
-  // on the Families side / Questions triage, not the provider activity feed.
-  // Exclude event_type='page_view' — page views are too voluminous and drown
-  // the signal in the feed. They belong in the analytics dashboards, not here.
+  // Restrict to genuine provider-session actions (see PROVIDER_ACTION_EVENT_TYPES).
+  // This excludes anonymous care-seeker browsing events that also live in
+  // provider_activity keyed on the page's provider slug — they are NOT provider
+  // actions and previously dominated this feed (~89% of rows).
   let query = db
     .from("provider_activity")
     .select("*", { count: "exact" })
     .gte("created_at", sinceISO)
-    .neq("event_type", "question_received")
-    .neq("event_type", "page_view")
+    .in("event_type", PROVIDER_ACTION_EVENT_TYPES)
     .order("created_at", { ascending: false });
 
   if (emailType) {
@@ -125,12 +279,19 @@ async function handleFeedView(db: any, opts: {
       // Legacy standalone suspicious_claim rows are also surfaced.
       query = query
         .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "email_click", "question_responded", "market_diagnostic_viewed_no_leads"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "email_click", "question_responded", "market_diagnostic_viewed_no_leads", "market_outreach_status_updated"].includes(emailType)) {
       // These are event_type values, not email_type
       query = query.eq("event_type", emailType);
     } else {
       query = query.eq("email_type", emailType);
     }
+  }
+  // Drill-down to one exact action takes precedence over its category.
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    // Category navigation (orientation tiles) narrows to a taxonomy bucket.
+    query = applyCategoryFilter(query, category);
   }
   if (searchProviderIds) {
     query = query.in("provider_id", searchProviderIds);
@@ -181,13 +342,33 @@ async function handleFeedView(db: any, opts: {
       }
     }
 
-    // Also check business_profiles for providers not found in olera-providers (slug-based IDs)
+    // Also check olera-providers.slug and business_profiles for canonical slug / BP slug IDs.
     const missingIds = providerIds.filter((id) => !providerMap[id]);
     if (missingIds.length > 0) {
+      const { data: providersBySlug } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, provider_category, city, state, slug")
+        .in("slug", missingIds);
+
+      if (providersBySlug) {
+        for (const p of providersBySlug) {
+          providerMap[p.slug] = {
+            name: p.provider_name,
+            category: p.provider_category,
+            city: p.city,
+            state: p.state,
+            slug: p.slug,
+          };
+        }
+      }
+    }
+
+    const stillMissingIds = providerIds.filter((id) => !providerMap[id]);
+    if (stillMissingIds.length > 0) {
       const { data: bps } = await db
         .from("business_profiles")
         .select("slug, display_name, category, city, state")
-        .in("slug", missingIds);
+        .in("slug", stillMissingIds);
 
       if (bps) {
         for (const bp of bps) {
@@ -220,35 +401,43 @@ async function handleFeedView(db: any, opts: {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleProvidersView(db: any, opts: {
   emailType: string | null;
+  category: ProviderCategoryKey | null;
+  exactEvent: string | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
 
   // Use raw SQL via RPC for aggregation — Supabase JS doesn't support GROUP BY
   // Fallback: fetch all activity and aggregate in JS (fine for current scale).
-  // Mirror of handleFeedView's exclusions: hide care-seeker question mirrors
-  // and hide page_view (too voluminous — drowns the signal in per-provider counts).
+  // Mirror of handleFeedView: restrict to genuine provider-session actions so
+  // per-provider counts reflect what providers DO, not care-seeker browsing on
+  // their page. Also keeps the 5000-row cap below full of real signal instead of
+  // ~89% anonymous noise (which previously truncated real provider activity out).
   let query = db
     .from("provider_activity")
     .select("provider_id, event_type, email_type, created_at, metadata")
     .gte("created_at", sinceISO)
-    .neq("event_type", "question_received")
-    .neq("event_type", "page_view")
+    .in("event_type", PROVIDER_ACTION_EVENT_TYPES)
     .order("created_at", { ascending: false });
 
   if (emailType) {
     if (emailType === "suspicious_claim") {
       query = query
         .or("event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)");
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "question_responded", "market_diagnostic_viewed_no_leads"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "question_responded", "market_diagnostic_viewed_no_leads", "market_outreach_status_updated"].includes(emailType)) {
       query = query.eq("event_type", emailType);
     } else {
       query = query.eq("email_type", emailType);
     }
+  }
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    query = applyCategoryFilter(query, category);
   }
 
   // Cap at 5000 events for aggregation (covers most scenarios)
@@ -376,13 +565,34 @@ async function handleProvidersView(db: any, opts: {
       }
     }
 
-    // Also check slug-based provider IDs
+    // Also check canonical olera-providers.slug and business_profiles slug IDs.
     const missingIds = providerIds.filter((id) => !providerMap[id]);
     if (missingIds.length > 0) {
+      const { data: providersBySlug } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, provider_category, city, state, slug")
+        .in("slug", missingIds);
+
+      if (providersBySlug) {
+        for (const p of providersBySlug) {
+          providerMap[p.slug] = {
+            name: p.provider_name,
+            category: p.provider_category,
+            city: p.city,
+            state: p.state,
+            slug: p.slug,
+            claimed: claimedSet.has(p.provider_id),
+          };
+        }
+      }
+    }
+
+    const stillMissingIds = providerIds.filter((id) => !providerMap[id]);
+    if (stillMissingIds.length > 0) {
       const { data: bps } = await db
         .from("business_profiles")
         .select("slug, display_name, category, city, state, claim_state")
-        .in("slug", missingIds);
+        .in("slug", stillMissingIds);
 
       if (bps) {
         for (const bp of bps) {
@@ -404,7 +614,11 @@ async function handleProvidersView(db: any, opts: {
     const lowerSearch = search.toLowerCase();
     sortedProviders = sortedProviders.filter((p) => {
       const info = providerMap[p.provider_id];
-      return info?.name?.toLowerCase().includes(lowerSearch);
+      return (
+        p.provider_id.toLowerCase().includes(lowerSearch) ||
+        info?.slug?.toLowerCase().includes(lowerSearch) ||
+        info?.name?.toLowerCase().includes(lowerSearch)
+      );
     });
   }
 
@@ -501,6 +715,8 @@ export async function DELETE(request: NextRequest) {
 
 interface FamilyOpts {
   eventType: string | null;
+  category?: SeekerCategoryKey | null;
+  exactEvent?: string | null;
   sinceISO: string;
   search: string;
   limit: number;
@@ -508,9 +724,51 @@ interface FamilyOpts {
   countOnly: boolean;
 }
 
+/**
+ * Per-category counts for the Families orientation strip (mirrors
+ * handleProviderSummary). With a category, returns per-event counts for the
+ * drill-down row. Total is all seeker_activity in the window — families has no
+ * allowlist (the table is purely care-seeker events), so this matches the feed.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleSeekerSummary(db: any, sinceISO: string, category: SeekerCategoryKey | null) {
+  if (category) {
+    const types = eventTypesForSeekerCategory(category);
+    const events = await Promise.all(
+      types.map(async (et) => {
+        const { count } = await db
+          .from("seeker_activity")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", sinceISO)
+          .eq("event_type", et);
+        return { event_type: et, count: count || 0 };
+      })
+    );
+    return NextResponse.json({ category, events });
+  }
+
+  const counts = await Promise.all(
+    SEEKER_CATEGORIES.map(async (cat) => {
+      const { count } = await db
+        .from("seeker_activity")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", sinceISO)
+        .in("event_type", cat.eventTypes);
+      return { key: cat.key, count: count || 0 };
+    })
+  );
+
+  const { count: total } = await db
+    .from("seeker_activity")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", sinceISO);
+
+  return NextResponse.json({ categories: counts, total: total || 0 });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
-  const { eventType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { eventType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
 
   // If searching, find matching family profile IDs first
   let searchProfileIds: string[] | null = null;
@@ -535,7 +793,12 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
     .gte("created_at", sinceISO)
     .order("created_at", { ascending: false });
 
-  if (eventType) {
+  // Drill-down exact event > category bucket > legacy single event_type.
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    query = query.in("event_type", eventTypesForSeekerCategory(category));
+  } else if (eventType) {
     query = query.eq("event_type", eventType);
   }
   if (searchProfileIds) {
@@ -605,7 +868,7 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
-  const { eventType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { eventType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
 
   let query = db
     .from("seeker_activity")
@@ -613,7 +876,11 @@ async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
     .gte("created_at", sinceISO)
     .order("created_at", { ascending: false });
 
-  if (eventType) {
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    query = query.in("event_type", eventTypesForSeekerCategory(category));
+  } else if (eventType) {
     query = query.eq("event_type", eventType);
   }
 

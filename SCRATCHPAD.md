@@ -7,6 +7,28 @@
 
 ## Current Focus
 
+### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
+
+Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.
+
+**What changed in PR #1040 (`codex/referral-teaser-digest`, base `staging`):**
+- `weekly-provider-digest` now has a `referral_teaser` variant that routes providers to the market call sheet when we have referral targets. It stays below fresh questions, fresh leads, and claimed-provider completion nudges.
+- Email copy/HTML added: local-area subject/body, first 3 referral/source teams, "See the {city} map" CTA, and a trust block with Logan + TJ LinkedIn context.
+- Admin automation analytics now classify/report `referral_teaser`; conversion maps to `market_outreach_status_updated`; sample preview exists in the weekly-digest admin page.
+- Safety guard: referral teaser only sends when `referralGraph.prioritizedTargets` exists. If not, provider falls back to safe market-rank email; cron reports `referralTeaserSent` and `marketRankMissingReferralTargets`.
+- Cache freshness tightened: old diagnostics that have rank but no referral graph are treated as stale so they can self-heal.
+- Important correction from TJ: do **not** limit the funnel to markets already computed by user visits. Added bounded proactive warming: each weekday digest scans a rotating slice of email-reachable directory providers with email/place/city/state, warms up to 6 missing city-care markets, and reports `proactiveWarmQueued`. `warmCity` still dedupes and enforces monthly spend limits.
+
+**Validation:** `git diff --check`, `npx --no-install tsc --noEmit`, and `npm run check:crons` passed. PR #1040 is ready-for-review against `staging`; Vercel check was pending after the latest push.
+
+**Next:** QA the Vercel preview email/admin surfaces; watch first dry/live run summary for `referralTeaserSent`, `marketRankMissingReferralTargets`, `proactiveWarmQueued`, and `warmCities`. If missing-targets stays high, next product PR should be an explicit pre-send market research queue rather than more copy tweaking.
+
+### 2026-06-11 (PM) — seniorlistings.net: Resend rotation built→closed, then pivoted to Smartlead warm-up (LIVE)
+
+Two threads. **(1) Resend sender-pool rotation (#1023) — built then CLOSED.** Built a sticky weighted multi-domain sender pool for the Resend provider-notify path (`lib/email.ts` `resolveSender`, new `PROVIDER_NOTIFY_POOL` env JSON, per-recipient FNV-1a hash, env-gated + backward-compatible, unit-tested: stickiness + ~weighted distribution + fail-safe) to add `seniorlistings.net` as a 2nd Resend outreach domain. Then TJ reframed: warm `seniorlistings.net` in **Smartlead (cold lane)** like findmedjobs.co — NOT a Resend secondary — and don't send from it yet, just warm. So **closed #1023** (no Resend domain to rotate to; code is sound + recoverable if we ever add one). Prod send path stays single `oleracare.com`.
+
+**(2) seniorlistings.net warm-up stood up end-to-end (infra/dashboard, no repo code).** Bare domain → Google Workspace Business Starter (`hello@seniorlistings.net`) → GoDaddy DNS (MX `smtp.google.com`; SPF `v=spf1 include:_spf.google.com ~all`; DMARC `p=none`; DKIM `google._domainkey` 2048-bit) → Gmail activated + **DKIM "Authenticating email"** = fully authenticated → connected to Smartlead → **warm-up STARTED 2026-06-11** (30% reply rate, 40/day ceiling, no campaign). Seasoned ~early-July. Gotchas logged in memory `project_email_deliverability` (DKIM copy-paste-only; Smartlead+Workspace needs BOTH Domain-Wide Delegation AND App-Access "Trusted"; Workspace defaults to pricey Plus → pick Business Starter).
+
 ### 2026-06-11 — Email deliverability: verify-on-send + dead-email surfacing + Email Verifier tool — ALL SHIPPED TO PROD (branches `email-verify-on-send` → `admin-email-verifier` → `admin-needs-email-redesign`)
 
 Started from the Smartlead warm-up thread, pivoted into closing the actual bounce problem. `oleracare.com` (the `PROVIDER_NOTIFY_FROM` domain) was bouncing at **5.1%** — over Resend's account-wide 4% suspension line — because the send path only suppressed *cached* invalids, so new/team-fetched directory addresses sent blind. A backfill found **43% of `question_received` addresses are dead**. Resend's thresholds are account-wide, so this threatened olera.care transactional mail too.
@@ -2492,10 +2514,11 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
-**Email deliverability follow-ups (2026-06-11, after verify-on-send shipped):**
-- ⏳ **`seniorlistings.net` send-domain rotation** — turn the single `PROVIDER_NOTIFY_FROM` (`lib/email.ts:43` `resolveFromAddress`) into a per-recipient sticky multi-domain pool with a warmup weight, so provider outreach spreads across `oleracare.com` + `seniorlistings.net`. Blocked on TJ's side: DNS-verify + warm `seniorlistings.net` in Resend first. Plan before coding.
-- ⏳ **Email Verifier v2** — bulk list paste + CSV export, throttled (≤1 req/1.5s to stay under ZeroBounce's Cloudflare limit). Only if the team leans on v1.
-- Note: `oleracare.com` is still cold (2 days old, no warmup ramp) — verify-on-send protects the bounce *rate*, but the domain itself wants a real ramp.
+**Email deliverability follow-ups (updated 2026-06-11 PM):**
+- ⏳ **`seniorlistings.net` warming in Smartlead** (started 2026-06-11, seasoned ~early-July). Decide its eventual send-use closer to July (cold outreach via Smartlead, or wherever it fits). Optionally connect + warm `team@seniorlistings.net` (2nd mailbox).
+- 🅿️ **Resend sticky sender-pool rotation (#1023) — CLOSED/parked.** Built (`lib/email.ts` `resolveSender` + `PROVIDER_NOTIFY_POOL`, env-gated, unit-tested) but seniorlistings went to the Smartlead cold lane, not Resend — so no domain to rotate to. Reopen only if we ever add a 2nd *Resend* provider-notification sender.
+- ⏳ **Email Verifier v2** — bulk list paste + CSV export, throttled (≤1 req/1.5s under ZeroBounce's Cloudflare limit). Only if the team leans on v1.
+- Note: `oleracare.com` is still cold (no warm-up ramp) — verify-on-send protects the bounce *rate*, but the domain itself wants a real ramp.
 
 **Provider-removal hygiene (multi-session, started 2026-05-08):**
 - ✅ **Project 1: Blocklist data layer + admin surface.** Shipped on `quiet-kepler` as commit `08d3dcc1`, migration applied, blocklist caught up via admin UI. Awaiting PR open.
@@ -2654,6 +2677,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
+### 2026-06-11 (PM) — seniorlistings.net cold-domain warm-up stood up; Resend rotation pool closed
+
+Built then closed the Resend sticky sender-pool rotation (#1023, `lib/email.ts` `resolveSender`, env-gated, unit-tested) after TJ reframed `seniorlistings.net` to the Smartlead cold lane (warm-only, not a Resend secondary). Then stood the domain up end-to-end (infra only, no repo code): Google Workspace + GoDaddy DNS (MX/SPF/DMARC/DKIM all authenticated) + Smartlead connect (cleared the Domain-Wide-Delegation + "app blocked"/App-Access-Trusted hurdles) + warm-up started 2026-06-11 (seasoned ~early-July). No code merged (rotation parked). Detail in Current Focus + memory `project_email_deliverability`.
+
 ### 2026-06-11 — Email verify-on-send + dead-email surfacing + Email Verifier — shipped to prod (#1014, #1016, #1017)
 
 Closed the provider-email bounce problem end-to-end. Send path now verifies provider-notification addresses via ZeroBounce on cache-miss (was cache-only → new addresses bounced; oleracare.com hit 5.1%, over Resend's account-wide 4% line; 43% of addresses dead). Dead on-file emails now surface in the "Needs Email" queues (questions flagged on send-suppression via `email_dead`). Built an admin Email Verifier tool (Records → Email Verifier) on the same engine. Redesigned the Needs Email input (calm/typographic). Backfill: 987 dead addresses suppressed + 384 stuck questions surfaced. ZeroBounce funded (5k credits + autopay) + key in Vercel Prod+Preview. All PRs (#1014, #1016, #1017, promotions #1015/#1019) merged staging→main, live in prod. Team announced in #ai-product-development. Pre-test caught: A/B were on the leads surface, the scenario is questions — ported. Next: `seniorlistings.net` send-domain rotation pool; Email Verifier v2 (bulk + CSV). See Current Focus for detail.
@@ -2717,5 +2744,4 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-
 

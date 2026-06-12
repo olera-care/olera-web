@@ -364,7 +364,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
     }
 
-    // Extract archive information if provider passed on the lead
+    // Extract archive information if provider declined the lead
     const archived = meta.archived === true;
     const archiveReason = archived ? (meta.archive_reason as string | null) : null;
     const archiveMessage = archived ? (meta.archive_message as string | null) : null;
@@ -404,7 +404,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       engagement,
       temperature,
       nextStep,
-      // Archive information (when provider passed on lead)
+      // Archive information (when provider declined the lead)
       archived,
       archiveReason,
       archiveMessage,

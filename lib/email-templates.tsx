@@ -225,6 +225,26 @@ function loganLeadSignature(): string {
     </div>`;
 }
 
+function referralTeaserTrustBlock(): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  return `
+    <div style="margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
+            <p style="margin:0 0 4px;font-weight:600;color:#111827;">Why Olera maps this</p>
+            <p style="margin:0 0 6px;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We're working to make senior care less opaque for families and providers.</p>
+            <p style="margin:0;color:#9ca3af;">This map is one way to show the local relationships that can shape where families call first.</p>
+          </td>
+        </tr>
+      </table>
+    </div>`;
+}
+
 /**
  * Cold / quiet-week provider rank email — the §1c Market-Intelligence expansion audience.
  *
@@ -786,45 +806,80 @@ export function unreadReminderEmail(opts: {
   `, `There's no rush — they're still there whenever you're ready.`);
 }
 
-/** Email to family when provider is silent for ~4 days - offer alternative providers */
+/** Email to family when provider is silent for ~4 days OR actively declines - offer alternative providers */
 export function providerSilentEmail(opts: {
   familyName: string;
   providerName: string;
   providerPassed: boolean; // true if provider actively declined, false if just silent
+  declineMessage?: string | null; // Provider's custom message when declining (only shown if providerPassed is true)
   recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
   browseUrl: string;
   city: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
+  const hasDeclineMessage = opts.providerPassed && opts.declineMessage?.trim();
+  const hasRecommendedProviders = opts.recommendedProviders.length > 0;
 
-  // Different copy for explicit pass vs silence
-  const openingLine = opts.providerPassed
-    ? `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`
-    : `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one. Here are a few other providers near you who are ready to help:`;
+  // Different copy for explicit decline vs silence
+  // Adjust based on whether we have recommendations to show
+  let openingLine: string;
+  if (opts.providerPassed) {
+    if (hasDeclineMessage) {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now and left you a message:`;
+    } else if (hasRecommendedProviders) {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`;
+    } else {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area who may be able to help.`;
+    }
+  } else {
+    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you who are ready to help:" : ""}`;
+  }
 
+  // Adjust closing line based on whether we showed recommendations
   const closingLine = opts.providerPassed
-    ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
-    : `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`;
+    ? (hasRecommendedProviders
+        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
+        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls. It's your call.`)
+    : (hasRecommendedProviders
+        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
+        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
+
+  // Show provider's decline message if present (similar to message preview style)
+  // Only say "plenty of other options" if we actually have recommendations
+  const declineMessageSection = hasDeclineMessage
+    ? `<div style="background:#f9fafb;border-left:3px solid #9ca3af;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.declineMessage!.trim())}"</p>
+      </div>
+      ${hasRecommendedProviders
+        ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">But you've got plenty of other great options nearby who'd be glad to help:</p>`
+        : `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">There are other providers in your area who may be able to help:</p>`
+      }`
+    : "";
 
   // Render recommended providers prominently (high up, visible on mobile)
   // Each provider gets a magic link for one-click viewing
-  const providersSection = opts.recommendedProviders.map((p) => `
-    <div style="margin:0 0 12px;">
-      <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
-      ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
-    </div>
-  `).join("");
+  const providersSection = hasRecommendedProviders
+    ? opts.recommendedProviders.map((p) => `
+        <div style="margin:0 0 12px;">
+          <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
+          ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
+        </div>
+      `).join("")
+    : "";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+    <p style="font-size:15px;color:#374151;margin:0 0 ${hasDeclineMessage ? "20px" : "24px"};line-height:1.5;">
       ${openingLine}
     </p>
+    ${declineMessageSection}
+    ${hasRecommendedProviders ? `
     <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
       ${providersSection}
     </div>
+    ` : ""}
     <div style="margin:0 0 24px;">${button("See more providers near you", opts.browseUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -2690,6 +2745,21 @@ interface DigestOpts {
     careLabel: string;
     flattering: boolean;
   } | null;
+  /**
+   * Referral Market teaser for the Market Intelligence branch. This keeps the
+   * first ask curiosity-led ("see who could send families") instead of
+   * homework-led ("work these targets"). Progress is shown only when the
+   * provider has already taken market actions.
+   */
+  referralTeaser?: {
+    totalSources: number;
+    starterTotal: number;
+    workedCount: number;
+    respondedCount: number;
+    referringCount: number;
+    targets: Array<{ name: string; category: string; distanceMiles: number | null }>;
+  } | null;
+  marketUrl?: string | null;
 }
 
 
@@ -2735,6 +2805,22 @@ function digestLead(opts: DigestOpts): string {
     parts.push(`${opts.localDemand.toLocaleString()} families searched for ${cat}${where}.`);
   }
   return parts.join(" ");
+}
+
+const REFERRAL_CATEGORY_LABELS: Record<string, string> = {
+  hospital: "Hospital / discharge",
+  skilled_nursing: "Skilled nursing / rehab",
+  hospice: "Hospice",
+  assisted_living: "Assisted living",
+  elder_law: "Elder law",
+  senior_resource: "Senior resource",
+  home_health: "Home health",
+  financial: "Financial",
+  faith: "Faith community",
+};
+
+function referralCategoryLabel(cat: string): string {
+  return REFERRAL_CATEGORY_LABELS[cat] ?? cat.replace(/_/g, " ");
 }
 
 /**
@@ -2838,35 +2924,77 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
   }
 
   const microStatsBlock =
-    microStats.length > 0
+    microStats.length > 0 && !opts.referralTeaser
       ? `<div style="display:flex;gap:12px;background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 24px;">${microStats.join("")}</div>`
       : "";
 
   // Market Intelligence hero (no-question providers with a resolved rank) replaces the bland
   // "Your week on Olera" recap. Lead with the rank when flattering, with curiosity otherwise.
   const m = opts.marketRank;
+  const r = opts.referralTeaser;
+  const marketArea = m?.cityLabel ? escapeHtml(m.cityLabel) : "your area";
+  const marketAreaAdjective = m?.cityLabel ? `${escapeHtml(m.cityLabel)}-area` : "nearby";
   const eyebrowText = m ? `Your market · ${escapeHtml(m.cityLabel)}` : "Your week on Olera";
   const headlineHtml = m
-    ? m.flattering
+    ? r
+      ? `Families in ${marketArea} ask these places who provides care.`
+      : m.flattering
       ? `You're <span style="color:${BRAND_COLOR};">#${m.rank}</span> of ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
       : `See where you rank among ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
     : headline;
   const leadHtml = m
-    ? m.flattering
+    ? r
+      ? `When someone near ${marketArea} needs home care after a hospital stay, rehab, or a new senior-care need, they often ask a trusted local team which providers to call. We found ${r.totalSources.toLocaleString()} nearby organizations that may shape where those families go next.`
+      : m.flattering
       ? `Share of voice — who owns the reviews families read on Google — is the currency of local trust. Here's exactly where you stand, and the fastest ways to climb.`
       : `We mapped your local market: your competitors by share of voice, your best referral sources, and the ZIPs worth your marketing time.`
     : lead;
-  const ctaLabel = m ? "See your market" : "See your full analytics";
+  const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your market" : "See your full analytics";
   const ctaUrl = m
-    ? `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=market_rank`
+    ? (opts.marketUrl || `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
     : dashboardUrl;
+  const referralRows = r?.targets.slice(0, 3).map((target) => {
+    const distance = target.distanceMiles == null ? "" : ` · ${Number(target.distanceMiles).toFixed(1)} mi`;
+    return `
+      <tr>
+        <td style="padding:12px 0;border-top:1px solid #f3f4f6;">
+          <div style="font-size:14px;font-weight:600;color:#111827;line-height:1.35;">${escapeHtml(target.name)}</div>
+          <div style="font-size:12px;color:#9ca3af;margin-top:3px;line-height:1.35;">${escapeHtml(referralCategoryLabel(target.category))}${distance}</div>
+        </td>
+      </tr>`;
+  }).join("") ?? "";
+  const hasMarketProgress = !!r && (r.workedCount > 0 || r.respondedCount > 0 || r.referringCount > 0);
+  const progressLine = r && hasMarketProgress
+    ? r.referringCount > 0
+      ? `${r.referringCount} referral ${r.referringCount === 1 ? "source is" : "sources are"} already marked as referring.`
+      : r.respondedCount > 0
+        ? `${r.respondedCount} referral ${r.respondedCount === 1 ? "source has" : "sources have"} responded so far.`
+        : `${r.workedCount} referral ${r.workedCount === 1 ? "source is" : "sources are"} already in motion.`
+    : null;
+  const referralBlock = r && referralRows
+    ? `
+    <div style="background:#f9fafb;border-radius:12px;padding:16px;margin:0 0 24px;">
+      <div style="font-size:12px;font-weight:700;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.4px;margin:0 0 2px;">First 3 of ${r.totalSources.toLocaleString()} ${marketAreaAdjective} places</div>
+      <div style="font-size:13px;color:#9ca3af;margin:0 0 10px;line-height:1.5;">Open the full map when you want the rest.</div>
+      <table width="100%" cellpadding="0" cellspacing="0">${referralRows}</table>
+    </div>
+    ${progressLine ? `<p style="font-size:13px;color:#6b7280;margin:-8px 0 24px;line-height:1.5;">${escapeHtml(progressLine)}</p>` : ""}`
+      : "";
+  const preheader = r
+    ? `Hospitals, rehab centers, and senior resources near ${m?.cityLabel ?? "you"} can shape which care providers families call.`
+    : m
+      ? `See where ${opts.providerName} stands in ${m.cityLabel}.`
+      : headline;
+  const trustBlock = r ? referralTeaserTrustBlock() : "";
 
   return layout(`
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${eyebrowText}</p>
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${headlineHtml}</h1>
     ${leadHtml ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${leadHtml}</p>` : ""}
+    ${referralBlock}
     ${microStatsBlock}
     <div>${button(ctaLabel, ctaUrl)}</div>
+    ${trustBlock}
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -2874,7 +3002,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
       <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
       <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", `${BASE_URL}/for-providers/removal-request/${opts.providerSlug}`)} &middot; ${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
     </div>
-  `, headline);
+  `, preheader);
 }
 
 // ── Provider Verification Emails ──────────────────────────────────
@@ -3536,7 +3664,7 @@ export function providerFollowupDay1NotViewedEmail(opts: FollowupEmailOpts): str
 /**
  * Day 1 Follow-up: Scenario B - Provider HAS viewed the lead
  * Subject: "Still deciding on [Name]?"
- * Pushes for binary decision: MESSAGE or PASS ON.
+ * Pushes for binary decision: MESSAGE or DECLINE.
  *
  * Note: viewedCount can be passed via metadata to adjust copy for partial viewing.
  * If not provided, assumes all leads were viewed.
@@ -3564,8 +3692,8 @@ export function providerFollowupDay1ViewedEmail(
 
   // Build preheader - action-oriented, decision push
   const preheader = isMultiple
-    ? "Message them, or pass — either one takes a second."
-    : `Message ${pronouns.object}, or pass — either one takes a second.`;
+    ? "Message them, or decline — either one takes a second."
+    : `Message ${pronouns.object}, or decline — either one takes a second.`;
 
   // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
@@ -3596,7 +3724,7 @@ export function providerFollowupDay1ViewedEmail(
         ${leadsListHtml}
       </ul>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Message them if they're a good fit. And if they're not, a quick pass lets them know to keep looking — so they're not left waiting and wondering.
+        Message them if they're a good fit. And if they're not, a quick decline lets them know to keep looking — so they're not left waiting and wondering.
       </p>`;
   } else {
     // Single lead - viewed scenario with decision push
@@ -3610,7 +3738,7 @@ export function providerFollowupDay1ViewedEmail(
         You opened ${escapeHtml(familyRef)}'s request earlier — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}. From here it's one of two clicks:
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Message ${pronouns.object} if ${pronounContractionLower} a good fit. And if ${pronounContractionLower} not, a quick pass lets ${pronouns.object} know to keep looking — so ${pronounContractionLower} not left waiting and wondering.
+        Message ${pronouns.object} if ${pronounContractionLower} a good fit. And if ${pronounContractionLower} not, a quick decline lets ${pronouns.object} know to keep looking — so ${pronounContractionLower} not left waiting and wondering.
       </p>`;
   }
 
@@ -3619,9 +3747,9 @@ export function providerFollowupDay1ViewedEmail(
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
 
-  const passButtonText = isMultiple
-    ? "Pass on these leads →"
-    : "Pass on this lead →";
+  const declineButtonText = isMultiple
+    ? "Decline leads →"
+    : "Decline lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
@@ -3629,7 +3757,7 @@ export function providerFollowupDay1ViewedEmail(
     <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
         <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(passButtonText, opts.viewUrl)}</td>
+        <td>${button(declineButtonText, opts.viewUrl)}</td>
       </tr>
     </table>
     ${loganLightSignature()}
@@ -3707,7 +3835,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
         ${line2}
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Whenever you have a moment: if it feels like a fit, send ${pronouns.object} a message. And if it's not, a quick pass lets ${pronouns.object} know, so ${pronouns.pronounLower} can keep looking without wondering. Either one is a real help to ${pronouns.object}.
+        Whenever you have a moment: if it feels like a fit, send ${pronouns.object} a message. And if it's not, a quick decline lets ${pronouns.object} know, so ${pronouns.pronounLower} can keep looking without wondering. Either one is a real help to ${pronouns.object}.
       </p>`;
   }
 
@@ -3716,9 +3844,9 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
 
-  const passButtonText = isMultiple
-    ? "Pass on these leads →"
-    : "Pass on this lead →";
+  const declineButtonText = isMultiple
+    ? "Decline leads →"
+    : "Decline lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
@@ -3726,7 +3854,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
         <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(passButtonText, opts.viewUrl)}</td>
+        <td>${button(declineButtonText, opts.viewUrl)}</td>
       </tr>
     </table>
     ${loganLightSignature()}
@@ -3756,7 +3884,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     : `${pronouns.pronounLower}'s`;
 
   // Build preheader - dynamic pronoun
-  const preheader = `Message ${pronouns.object} if it's a fit, or pass if it's not.`;
+  const preheader = `Message ${pronouns.object} if it's a fit, or decline if it's not.`;
 
   // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
@@ -3785,7 +3913,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
         They reached out about a week ago and haven't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what they're hoping for.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        And if it's not a fit, no problem at all. Just pass on the leads and let us know why — we'll share that with them so they can keep looking.
+        And if it's not a fit, no problem at all. Just decline the leads and let us know why — we'll share that with them so they can keep looking.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
         Either way, thanks for taking a look.
@@ -3804,7 +3932,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
         ${pronouns.pronoun} reached out about a week ago, looking for ${careTypeRef}${recipientRef}${cityRef}, and hasn't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what ${pronounContractionLower} hoping for.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        And if it's not a fit, no problem at all. Just pass on the lead and let us know why — we'll share that with ${escapeHtml(familyRef)} so ${pronouns.pronounLower} can keep looking.
+        And if it's not a fit, no problem at all. Just decline the lead and let us know why — we'll share that with ${escapeHtml(familyRef)} so ${pronouns.pronounLower} can keep looking.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
         Either way, thanks for taking a look.
@@ -3816,9 +3944,9 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
 
-  const passButtonText = isMultiple
-    ? "Pass on these leads →"
-    : "Pass on this lead →";
+  const declineButtonText = isMultiple
+    ? "Decline leads →"
+    : "Decline lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
@@ -3826,7 +3954,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
         <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(passButtonText, opts.viewUrl)}</td>
+        <td>${button(declineButtonText, opts.viewUrl)}</td>
       </tr>
     </table>
     ${loganHeavySignature()}

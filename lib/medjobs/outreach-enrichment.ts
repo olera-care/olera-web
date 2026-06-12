@@ -54,11 +54,21 @@ export interface ProviderContext {
 
 export type FinderSource = "scrape" | "perplexity" | null;
 
+export interface EmailCandidate {
+  email: string;
+  /** The URL where this email was found (for verification by admin) */
+  foundUrl?: string;
+}
+
 export interface EmailResult {
   email: string | null;
   source: FinderSource;
+  /** The URL where the primary email was found (for admin verification) */
+  foundUrl?: string | null;
   /** All scrape candidates (ranked), for debugging / spot-checks. */
   candidates: string[];
+  /** Detailed candidates with source URLs */
+  candidatesWithUrls?: EmailCandidate[];
 }
 
 export interface ContactFormResult {
@@ -294,6 +304,7 @@ function extractEmailsFromHtml(html: string): string[] {
 /**
  * Find a contactable email for a provider.
  * Waterfall: scrape homepage → /contact → /about, then Perplexity for stragglers.
+ * Returns the source URL where each email was found for admin verification.
  */
 export async function findEmail(
   ctx: ProviderContext,
@@ -305,6 +316,9 @@ export async function findEmail(
     const pages = [website, `${origin}/contact`, `${origin}/contact-us`, `${origin}/about`];
     const seen = new Set<string>();
     const candidates: string[] = [];
+    // Track which page each email was found on (first occurrence wins)
+    const emailToUrl = new Map<string, string>();
+
     for (const page of pages) {
       const html = await fetchHtml(page);
       if (!html) continue;
@@ -312,19 +326,43 @@ export async function findEmail(
         if (!seen.has(e)) {
           seen.add(e);
           candidates.push(e);
+          emailToUrl.set(e, page); // Record where this email was found
         }
       }
       // A role address on the homepage/contact page is good enough — stop early.
       if (candidates.length && ROLE_LOCALPARTS.includes(candidates[0].split("@")[0])) break;
     }
     const ranked = rankEmails(candidates);
-    if (ranked.length) return { email: ranked[0], source: "scrape", candidates: ranked };
+    if (ranked.length) {
+      const primaryEmail = ranked[0];
+      const foundUrl = emailToUrl.get(primaryEmail) || null;
+      // Build detailed candidates with source URLs
+      const candidatesWithUrls: EmailCandidate[] = ranked.map(email => ({
+        email,
+        foundUrl: emailToUrl.get(email),
+      }));
+      return {
+        email: primaryEmail,
+        source: "scrape",
+        foundUrl,
+        candidates: ranked,
+        candidatesWithUrls,
+      };
+    }
   }
 
   const fromPplx = await perplexityEmail(ctx, cost);
-  if (fromPplx) return { email: fromPplx, source: "perplexity", candidates: [fromPplx] };
+  if (fromPplx) {
+    return {
+      email: fromPplx,
+      source: "perplexity",
+      foundUrl: null, // Perplexity doesn't provide source URL
+      candidates: [fromPplx],
+      candidatesWithUrls: [{ email: fromPplx }],
+    };
+  }
 
-  return { email: null, source: null, candidates: [] };
+  return { email: null, source: null, foundUrl: null, candidates: [], candidatesWithUrls: [] };
 }
 
 async function perplexityEmail(

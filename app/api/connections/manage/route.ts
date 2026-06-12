@@ -41,13 +41,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { connectionId, action, reportReason, reportDetails, archiveReason, archiveMessage } = body as {
+    const { connectionId, action, reportReason, reportDetails, archiveReason, archiveMessage, source } = body as {
       connectionId: string;
       action: Action;
       reportReason?: string;
       reportDetails?: string;
       archiveReason?: string;
       archiveMessage?: string;
+      source?: "inbox" | "connections";
     };
 
     if (!connectionId || !action) {
@@ -233,9 +234,17 @@ export async function POST(request: Request) {
       case "archive": {
         // Store archive state in metadata — do NOT change status (DB CHECK constraint
         // only allows pending/accepted/declined/expired, not archived).
+
+        // Differentiate between lead archiving (from /provider/connections) and inbox archiving:
+        // - If archiveReason is provided (non-empty) = lead archiving (decline lead) → set lead_archived
+        // - If no archiveReason or source="inbox" = inbox archiving (hide conversation) → set archived
+        const isLeadArchive = archiveReason && archiveReason.trim().length > 0;
+
         const archiveMeta: Record<string, unknown> = {
           ...existingMeta,
-          archived: true,
+          ...(isLeadArchive
+            ? { lead_archived: true }  // Lead archiving (connections page)
+            : { archived: true }),      // Inbox archiving (inbox page)
           archived_from_status: connection.status,
         };
 
@@ -253,7 +262,7 @@ export async function POST(request: Request) {
             created_at: string;
           }>) || [];
 
-          let systemText = `This provider has passed on this inquiry. Reason: ${archiveReason}`;
+          let systemText = `This provider has declined this inquiry. Reason: ${archiveReason}`;
           if (archiveMessage) {
             // No manual escaping needed - Postgres JSONB serialization handles it
             systemText += `\n"${archiveMessage}"`;
@@ -454,6 +463,7 @@ export async function POST(request: Request) {
                 familyName: familyProfile.display_name || "there",
                 providerName,
                 providerPassed: true, // This changes the email copy to "isn't able to take new families"
+                declineMessage: archiveMessage || null, // Show provider's custom message if provided
                 recommendedProviders,
                 browseUrl,
                 city: city ?? null, // Convert undefined to null for type safety
@@ -486,14 +496,54 @@ export async function POST(request: Request) {
 
       case "unarchive": {
         const restoreStatus = (existingMeta.archived_from_status as string) || "accepted";
-        // Remove ALL archived flags from metadata, status never changed so nothing to restore
+        // Remove archive flags from metadata
         const cleanMeta: Record<string, unknown> = { ...existingMeta };
-        delete cleanMeta.archived;
-        delete cleanMeta.archived_from_status;
-        delete cleanMeta.archive_reason;
-        delete cleanMeta.archive_message;
-        delete cleanMeta.archived_by;
-        delete cleanMeta.archived_at;
+
+        const hasLeadArchived = existingMeta.lead_archived === true;
+        const hasInboxArchived = existingMeta.archived === true;
+
+        // Determine which flag to remove based on source or what's set:
+        // - source="connections" OR only lead_archived set → remove lead_archived
+        // - source="inbox" OR only archived set → remove archived
+        // - If both flags set and no source, check for archive_reason to determine which is primary
+
+        const hasArchiveReason = existingMeta.archive_reason !== undefined && existingMeta.archive_reason !== null;
+
+        const isConnectionsUnarchive = source === "connections"
+          || (hasLeadArchived && !hasInboxArchived)
+          || (!source && hasLeadArchived && hasInboxArchived && hasArchiveReason); // Fallback: both flags + reason = lead archive
+
+        const isInboxUnarchive = source === "inbox"
+          || (!hasLeadArchived && hasInboxArchived)
+          || (!source && hasLeadArchived && hasInboxArchived && !hasArchiveReason); // Fallback: both flags + no reason = inbox archive
+
+        if (isConnectionsUnarchive) {
+          // Unarchiving lead from connections page
+          delete cleanMeta.lead_archived;
+          delete cleanMeta.archive_reason;    // These are lead-specific
+          delete cleanMeta.archive_message;
+          delete cleanMeta.archived_by;
+          delete cleanMeta.archived_at;
+
+          // For old data: if archived flag has archive_reason, it represents lead archiving
+          // Delete it so inbox conversation becomes visible again
+          const hadArchiveReason = existingMeta.archive_reason !== undefined && existingMeta.archive_reason !== null;
+          if (hasInboxArchived && hadArchiveReason) {
+            delete cleanMeta.archived;
+          }
+
+          // Only remove archived_from_status if inbox is not archived (or we just removed archived flag)
+          if (!hasInboxArchived || hadArchiveReason) {
+            delete cleanMeta.archived_from_status;
+          }
+        } else if (isInboxUnarchive) {
+          // Unarchiving conversation from inbox
+          delete cleanMeta.archived;
+          // Only remove archived_from_status if lead is not archived
+          if (!hasLeadArchived) {
+            delete cleanMeta.archived_from_status;
+          }
+        }
 
         const { error: updateError } = await admin
           .from("connections")

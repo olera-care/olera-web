@@ -138,7 +138,6 @@ export async function GET(request: Request) {
       // Waiver-library state URLs (state listing page)
       for (const state of allStates) {
         entries.push(xmlEntry(`${SITE_URL}/benefits/${state.id}`, 0.5, "monthly"));
-        entries.push(xmlEntry(`${SITE_URL}/senior-benefits/forms/${state.id}`, 0.4, "monthly"));
       }
 
       // Program URLs come from pipeline-drafts (the source of truth for

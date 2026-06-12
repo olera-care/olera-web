@@ -54,7 +54,7 @@ export async function POST(
       .select(`
         id, type, created_at, from_profile_id, to_profile_id, message, metadata,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, account_id)
       `)
       .eq("id", connectionId)
       .eq("type", "inquiry")
@@ -89,11 +89,22 @@ export async function POST(
     }
 
     // Also update olera-providers.email if source_provider_id exists (keep databases in sync)
-    if (toProfile.source_provider_id) {
+    // BUT: Skip this if the provider has claimed their account (account_id is set)
+    // When claimed, the provider has set their own email via auth flow, we should not overwrite it
+    const isAccountClaimed = !!(toProfile as { account_id?: string | null }).account_id;
+    let skippedOleraProvidersSync = false;
+
+    if (toProfile.source_provider_id && !isAccountClaimed) {
       await db
         .from("olera-providers")
         .update({ email: newEmail })
         .eq("provider_id", toProfile.source_provider_id);
+    } else if (toProfile.source_provider_id && isAccountClaimed) {
+      skippedOleraProvidersSync = true;
+      console.log(
+        `[edit-email] Skipped olera-providers sync for ${toProfile.source_provider_id} ` +
+        `because account is claimed (account_id: ${(toProfile as { account_id?: string }).account_id})`
+      );
     }
 
     // Prepare metadata for later update
@@ -293,6 +304,8 @@ export async function POST(
       emailVersion,
       oldEmail,
       newEmail,
+      accountClaimed: isAccountClaimed,
+      skippedOleraProvidersSync,
       deferredNotifications: {
         ...deferredResult,
         succeeded: deferredNotificationsSucceeded,

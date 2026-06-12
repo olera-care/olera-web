@@ -47,6 +47,7 @@ const TIMELINE_ACTIVITY_EVENTS = [
   "reviews_cta_clicked",
   "lead_opened",
   "review_viewed",
+  "market_outreach_status_updated",
 ] as const;
 
 type EmailEvent = {
@@ -126,6 +127,11 @@ function summarizeActivity(eventType: string, metadata: Record<string, unknown> 
       return "Opened a lead";
     case "review_viewed":
       return "Viewed a review";
+    case "market_outreach_status_updated": {
+      const target = typeof m.target_name === "string" ? m.target_name : "referral target";
+      const status = typeof m.status === "string" ? m.status.replace(/_/g, " ") : null;
+      return status ? `Updated ${target} to ${status}` : `Updated ${target}`;
+    }
     default:
       return eventType;
   }

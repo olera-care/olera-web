@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pre-Test"
+  short_description: "Critically review recent changes before preview/QA and produce a focused test checklist."
+  default_prompt: "Run pre-test for the current Olera work."

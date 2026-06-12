@@ -73,6 +73,8 @@ export interface ConnectionRowData {
   archived?: boolean;
   archiveReason?: "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
   archivedAt?: string;
+  /** Email issue type for "Needs Email" tab */
+  emailIssueType?: "no_email" | "failed" | "invalid" | null;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -141,7 +143,7 @@ interface Detail {
   engagement: DetailEngagement;
   temperature: ConnectionTemperature;
   nextStep: NextStep;
-  // Archive information (when provider passed on lead)
+  // Archive information (when provider declined the lead)
   archived: boolean;
   archiveReason: string | null;
   archiveMessage: string | null;
@@ -354,8 +356,11 @@ export default function ConnectionRow({
   // Find email state
   const [findingEmail, setFindingEmail] = useState(false);
   const [foundEmails, setFoundEmails] = useState<string[]>([]);
+  // Map of email -> source URL for all candidates
+  const [emailToUrlMap, setEmailToUrlMap] = useState<Map<string, string>>(new Map());
   const [findEmailError, setFindEmailError] = useState<string | null>(null);
   const [emailSource, setEmailSource] = useState<"scrape" | "perplexity" | null>(null);
+  const [foundUrl, setFoundUrl] = useState<string | null>(null);
   const [isCachedResult, setIsCachedResult] = useState(false);
   const [autoSuggestAttempted, setAutoSuggestAttempted] = useState(false);
 
@@ -378,7 +383,9 @@ export default function ConnectionRow({
         setFindingEmail(true);
         setFindEmailError(null);
         setEmailSource(null);
+        setFoundUrl(null);
         setFoundEmails([]);
+        setEmailToUrlMap(new Map());
         setIsCachedResult(false);
 
         try {
@@ -393,9 +400,20 @@ export default function ConnectionRow({
           if (res.ok && data.email) {
             setEmailInput(data.email);
             setEmailSource(data.source);
+            setFoundUrl(data.foundUrl || null);
             setIsCachedResult(data.cached || false);
             if (data.candidates && data.candidates.length > 0) {
               setFoundEmails(data.candidates);
+            }
+            // Build email -> URL map from candidatesWithUrls
+            if (data.candidatesWithUrls && Array.isArray(data.candidatesWithUrls)) {
+              const urlMap = new Map<string, string>();
+              for (const c of data.candidatesWithUrls) {
+                if (c.email && c.foundUrl) {
+                  urlMap.set(c.email, c.foundUrl);
+                }
+              }
+              setEmailToUrlMap(urlMap);
             }
           } else if (res.ok && !data.email) {
             // No email found or insufficient data
@@ -420,8 +438,10 @@ export default function ConnectionRow({
       setAutoSuggestAttempted(false);
       setFindEmailError(null);
       setEmailSource(null);
+      setFoundUrl(null);
       setIsCachedResult(false);
       setFoundEmails([]);
+      setEmailToUrlMap(new Map());
     }
   }, [open, detail, autoSuggestAttempted, c.provider.id]);
 
@@ -686,8 +706,10 @@ export default function ConnectionRow({
 
         // Clear find email state
         setEmailSource(null);
+        setFoundUrl(null);
         setIsCachedResult(false);
         setFoundEmails([]);
+        setEmailToUrlMap(new Map());
         setFindEmailError(null);
 
         // Update local detail state to show new email
@@ -751,9 +773,13 @@ export default function ConnectionRow({
         setEditEmailSuccess(true);
         setEditEmailInput("");
 
-        // Show warning if metadata update failed
-        if (data.warning) {
-          setEditEmailError(data.warning);
+        // Show warning if metadata update failed or account is claimed
+        let warning = data.warning || null;
+        if (data.accountClaimed && data.skippedOleraProvidersSync) {
+          warning = "Note: Provider has claimed their account. Email updated in Olera but not synced to the iOS provider database.";
+        }
+        if (warning) {
+          setEditEmailError(warning);
         }
 
         // Update local detail state to show new email
@@ -773,7 +799,7 @@ export default function ConnectionRow({
           setEditEmailSuccess(false);
           setEditEmailError(null);
           editEmailTimeoutRef.current = null;
-        }, data.warning ? 5000 : 3000);
+        }, warning ? 5000 : 3000);
       } else {
         setEditEmailError(data.error || "Failed to update email");
       }
@@ -790,7 +816,9 @@ export default function ConnectionRow({
     setFindingEmail(true);
     setFindEmailError(null);
     setFoundEmails([]);
+    setEmailToUrlMap(new Map());
     setEmailSource(null);
+    setFoundUrl(null);
     setIsCachedResult(false);
 
     try {
@@ -816,11 +844,22 @@ export default function ConnectionRow({
         }
 
         setEmailSource(data.source);
+        setFoundUrl(data.foundUrl || null);
         setIsCachedResult(data.cached || false);
 
         // Store all candidates for potential dropdown
         if (data.candidates && data.candidates.length > 0) {
           setFoundEmails(data.candidates);
+        }
+        // Build email -> URL map from candidatesWithUrls
+        if (data.candidatesWithUrls && Array.isArray(data.candidatesWithUrls)) {
+          const urlMap = new Map<string, string>();
+          for (const c of data.candidatesWithUrls) {
+            if (c.email && c.foundUrl) {
+              urlMap.set(c.email, c.foundUrl);
+            }
+          }
+          setEmailToUrlMap(urlMap);
         }
       } else if (res.ok && !data.email) {
         // No email found or insufficient data
@@ -893,14 +932,20 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
-            {/* Show "No email" badge when provider has no email (both perspectives) */}
+            {/* Show email issue badge when provider needs email attention */}
             {/* Hide badge immediately when email is successfully added (optimistic UI) */}
-            {/* Use .trim() to defensively catch empty/whitespace emails */}
-            {!c.provider.email?.trim() && !emailSuccess && (
+            {c.emailIssueType && !emailSuccess && (
               <>
                 <span className="text-gray-300">|</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
-                  {addingEmail ? "Adding email..." : "No email"}
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${
+                  c.emailIssueType === "no_email" ? "bg-gray-100 text-gray-500" :
+                  c.emailIssueType === "failed" ? "bg-red-50 text-red-600" :
+                  "bg-amber-50 text-amber-600"
+                }`}>
+                  {addingEmail ? "Adding email..." :
+                   c.emailIssueType === "no_email" ? "No email" :
+                   c.emailIssueType === "failed" ? "Failed" :
+                   "Invalid"}
                 </span>
               </>
             )}
@@ -1178,29 +1223,38 @@ export default function ConnectionRow({
                     {detail.provider.email ? (
                       <div className="space-y-1">
                         {!editingEmail ? (
-                          <div className="flex items-center justify-between gap-2">
-                            <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
-                            <button
-                              onClick={() => {
-                                if (editEmailTimeoutRef.current) {
-                                  clearTimeout(editEmailTimeoutRef.current);
-                                  editEmailTimeoutRef.current = null;
-                                }
-                                setEditingEmail(true);
-                                setEditEmailInput(detail.provider.email || "");
-                                setEditEmailError(null);
-                                setEditEmailSuccess(false);
-                                // Clear previous find email state
-                                setFindEmailError(null);
-                                setEmailSource(null);
-                                setIsCachedResult(false);
-                                setFoundEmails([]);
-                              }}
-                              className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
-                            >
-                              Edit
-                            </button>
-                          </div>
+                          <>
+                            <div className="flex items-center justify-between gap-2">
+                              <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
+                              <button
+                                onClick={() => {
+                                  if (editEmailTimeoutRef.current) {
+                                    clearTimeout(editEmailTimeoutRef.current);
+                                    editEmailTimeoutRef.current = null;
+                                  }
+                                  setEditingEmail(true);
+                                  setEditEmailInput(detail.provider.email || "");
+                                  setEditEmailError(null);
+                                  setEditEmailSuccess(false);
+                                  // Clear previous find email state
+                                  setFindEmailError(null);
+                                  setEmailSource(null);
+                                  setFoundUrl(null);
+                                  setIsCachedResult(false);
+                                  setFoundEmails([]);
+                                  setEmailToUrlMap(new Map());
+                                }}
+                                className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                            {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && (
+                              <p className="text-xs text-amber-600 mt-1">
+                                ⚠️ {c.emailIssueType === "failed" ? "Delivery failed" : "Invalid email"} — needs replacement
+                              </p>
+                            )}
+                          </>
                         ) : (
                           <form onSubmit={handleEditEmail} className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -1213,6 +1267,7 @@ export default function ConnectionRow({
                                     // Clear source indicator if user manually edits away from found emails
                                     if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                       setEmailSource(null);
+                                      setFoundUrl(null);
                                       setIsCachedResult(false);
                                     }
                                   }}
@@ -1263,7 +1318,9 @@ export default function ConnectionRow({
                                   setEditEmailSuccess(false);
                                   setFindEmailError(null);
                                   setFoundEmails([]);
+                                  setEmailToUrlMap(new Map());
                                   setEmailSource(null);
+                                  setFoundUrl(null);
                                   setIsCachedResult(false);
                                 }}
                                 disabled={editingEmailLoading || findingEmail}
@@ -1278,6 +1335,20 @@ export default function ConnectionRow({
                                 Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
                                 {isCachedResult && " (cached)"}
                                 {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                                {foundUrl && (
+                                  <>
+                                    {" · "}
+                                    <a
+                                      href={foundUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline"
+                                      title={`Source: ${foundUrl}`}
+                                    >
+                                      View source
+                                    </a>
+                                  </>
+                                )}
                               </p>
                             )}
                             {foundEmails.length > 1 && (
@@ -1286,7 +1357,11 @@ export default function ConnectionRow({
                                   <button
                                     key={email}
                                     type="button"
-                                    onClick={() => setEditEmailInput(email)}
+                                    onClick={() => {
+                                      setEditEmailInput(email);
+                                      // Update source URL to match selected candidate
+                                      setFoundUrl(emailToUrlMap.get(email) || null);
+                                    }}
                                     className={`px-2 py-0.5 text-xs rounded border transition-colors ${
                                       editEmailInput === email
                                         ? "bg-amber-100 border-amber-300 text-amber-800"
@@ -1320,6 +1395,7 @@ export default function ConnectionRow({
                                 // Clear source indicator if user manually edits away from found emails
                                 if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                   setEmailSource(null);
+                                  setFoundUrl(null);
                                   setIsCachedResult(false);
                                 }
                               }}
@@ -1363,6 +1439,20 @@ export default function ConnectionRow({
                             Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
                             {isCachedResult && " (cached)"}
                             {foundEmails.length > 1 && ` · ${foundEmails.length} candidates`}
+                            {foundUrl && (
+                              <>
+                                {" · "}
+                                <a
+                                  href={foundUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                  title={`Source: ${foundUrl}`}
+                                >
+                                  View source
+                                </a>
+                              </>
+                            )}
                           </p>
                         )}
                         {foundEmails.length > 1 && (
@@ -1371,7 +1461,11 @@ export default function ConnectionRow({
                               <button
                                 key={email}
                                 type="button"
-                                onClick={() => setEmailInput(email)}
+                                onClick={() => {
+                                  setEmailInput(email);
+                                  // Update source URL to match selected candidate
+                                  setFoundUrl(emailToUrlMap.get(email) || null);
+                                }}
                                 className={`px-2 py-0.5 text-xs rounded border transition-colors ${
                                   emailInput === email
                                     ? "bg-amber-100 border-amber-300 text-amber-800"
@@ -1406,14 +1500,14 @@ export default function ConnectionRow({
                 </div>
               </div>
 
-              {/* Archive information - show when provider passed on lead */}
+              {/* Archive information - show when provider declined the lead */}
               {detail.archived && detail.archiveReason && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start gap-2">
                     <span className="text-lg">🚫</span>
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                        Provider Passed on Lead
+                        Provider Declined Lead
                       </h3>
                       <p className="text-sm text-gray-700 mb-2">
                         <span className="font-medium">Reason:</span> {getArchiveReasonLabel(detail.archiveReason)}
@@ -1426,7 +1520,7 @@ export default function ConnectionRow({
                       )}
                       {detail.archivedAt && (
                         <p className="text-xs text-gray-400 mt-2">
-                          Passed {daysAgo(detail.archivedAt)}
+                          Declined {daysAgo(detail.archivedAt)}
                         </p>
                       )}
                     </div>

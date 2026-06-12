@@ -1679,6 +1679,9 @@ export default function ProviderLeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  // Track whether page change is automatic (from page size adjustment) vs user-initiated
+  // When true, we skip clearing the selected lead on page change
+  const isAutoPageChangeRef = useRef(false);
   // Track which lead's drawer should reopen after verification
   const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
   // Track which lead to archive (for modal)
@@ -1748,7 +1751,13 @@ export default function ProviderLeadsPage() {
   };
 
   // Clear selected lead when pagination or filter changes to avoid showing details for non-visible leads
+  // Skip clearing if the page change was automatic (from page size adjustment when selecting a lead)
   useEffect(() => {
+    if (isAutoPageChangeRef.current) {
+      // Reset the flag and don't clear selection - this was an automatic adjustment
+      isAutoPageChangeRef.current = false;
+      return;
+    }
     setSelectedLeadId(null);
     setIsDrawerOpen(false);
   }, [currentPage, activeFilter]);
@@ -2121,6 +2130,8 @@ export default function ProviderLeadsPage() {
   // Reset to last valid page if current page exceeds total (e.g., after data refresh)
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
+      // Mark this as an automatic page change so we don't clear the selected lead
+      isAutoPageChangeRef.current = true;
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
@@ -2132,6 +2143,8 @@ export default function ProviderLeadsPage() {
       if (leadIndex !== -1) {
         const correctPage = Math.floor(leadIndex / activePageSize) + 1;
         if (correctPage !== currentPage && correctPage <= totalPages) {
+          // Mark this as an automatic page change so we don't clear the selected lead
+          isAutoPageChangeRef.current = true;
           setCurrentPage(correctPage);
         }
       }

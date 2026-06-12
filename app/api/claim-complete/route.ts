@@ -326,6 +326,7 @@ export async function GET(request: NextRequest) {
         providerName: providerProfile.display_name || actualSlug,
         claimedByEmail: normalizedEmail,
         providerSlug: actualSlug,
+        claimSource: "completion_email",
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (slackErr) {

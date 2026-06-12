@@ -433,6 +433,7 @@ export async function GET(request: NextRequest) {
         providerName: providerProfile.display_name || actualSlug,
         claimedByEmail: normalizedEmail,
         providerSlug: actualSlug,
+        claimSource: "lead_email",
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (slackErr) {

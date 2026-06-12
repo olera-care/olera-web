@@ -1,6 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
+// The Providers tab answers "what are providers DOING on the platform?" — so it
+// must show only events a provider's own session performed. The provider_activity
+// table is overloaded: anonymous care-seeker browsing (multi_provider_viewed,
+// cta_variant_impression, benefits_*_viewed, enrichment_*, etc.) is written here
+// too, keyed on the *page's* provider slug — NOT because the provider did anything.
+// In production those care-seeker rows are ~89% of the table, so a blacklist of
+// page_view + question_received let them drown the real provider signal in both
+// the feed and the per-provider People aggregation (which caps at 5000 rows).
+//
+// This allowlist is the inverse fix: surface only genuine provider-session
+// actions. Anything not on this list (anonymous care-seeker events, question/
+// review/lead "_received" mirrors that are care-seeker-driven) is excluded.
+// Keep in sync with PROVIDER_EVENT_TYPES in app/api/activity/track/route.ts —
+// add new provider actions here when they're added there.
+const PROVIDER_ACTION_EVENT_TYPES = [
+  // Lead engagement (provider opened / acted on a care-seeker lead)
+  "lead_opened",
+  "contact_revealed",
+  "phone_clicked",
+  "email_link_clicked",
+  "continue_in_inbox",
+  "one_click_access",
+  "email_click", // provider clicked a tracked link in a notification email
+  // Question answering
+  "question_responded",
+  // Reviews
+  "review_viewed",
+  "reviews_cta_clicked",
+  // Profile / claim lifecycle
+  "provider_profile_edited",
+  "provider_saved",
+  "claim_completed",
+  "suspicious_claim",
+  // Dashboard / activation funnel
+  "dashboard_arrival",
+  "provider_picker_impression",
+  "provider_picker_clicked",
+  "analytics_teaser_impression",
+  "analytics_teaser_cta_clicked",
+  // Find Families / market outreach
+  "matches_page_viewed",
+  "matches_card_clicked",
+  "matches_message_generated",
+  "matches_outreach_sent",
+  "market_diagnostic_viewed_no_leads",
+  "market_outreach_status_updated",
+];
+
 /**
  * GET /api/admin/activity
  *
@@ -112,17 +160,15 @@ async function handleFeedView(db: any, opts: {
   }
 
   // Build query.
-  // Exclude event_type='question_received' — those are mirrors of care-seeker
-  // "question_asked" events (written by app/api/questions/route.ts) and belong
-  // on the Families side / Questions triage, not the provider activity feed.
-  // Exclude event_type='page_view' — page views are too voluminous and drown
-  // the signal in the feed. They belong in the analytics dashboards, not here.
+  // Restrict to genuine provider-session actions (see PROVIDER_ACTION_EVENT_TYPES).
+  // This excludes anonymous care-seeker browsing events that also live in
+  // provider_activity keyed on the page's provider slug — they are NOT provider
+  // actions and previously dominated this feed (~89% of rows).
   let query = db
     .from("provider_activity")
     .select("*", { count: "exact" })
     .gte("created_at", sinceISO)
-    .neq("event_type", "question_received")
-    .neq("event_type", "page_view")
+    .in("event_type", PROVIDER_ACTION_EVENT_TYPES)
     .order("created_at", { ascending: false });
 
   if (emailType) {
@@ -256,14 +302,15 @@ async function handleProvidersView(db: any, opts: {
 
   // Use raw SQL via RPC for aggregation — Supabase JS doesn't support GROUP BY
   // Fallback: fetch all activity and aggregate in JS (fine for current scale).
-  // Mirror of handleFeedView's exclusions: hide care-seeker question mirrors
-  // and hide page_view (too voluminous — drowns the signal in per-provider counts).
+  // Mirror of handleFeedView: restrict to genuine provider-session actions so
+  // per-provider counts reflect what providers DO, not care-seeker browsing on
+  // their page. Also keeps the 5000-row cap below full of real signal instead of
+  // ~89% anonymous noise (which previously truncated real provider activity out).
   let query = db
     .from("provider_activity")
     .select("provider_id, event_type, email_type, created_at, metadata")
     .gte("created_at", sinceISO)
-    .neq("event_type", "question_received")
-    .neq("event_type", "page_view")
+    .in("event_type", PROVIDER_ACTION_EVENT_TYPES)
     .order("created_at", { ascending: false });
 
   if (emailType) {

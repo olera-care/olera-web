@@ -85,6 +85,9 @@ const nextConfig: NextConfig = {
       { source: "/company/contact-us", destination: "/contact", permanent: true },
       { source: "/company/investors", destination: "/about", permanent: true },
 
+      // Article slug migrations
+      { source: "/caregiver-support/free-services-for-senior-citizens-texas-complete-2026-guide", destination: "/caregiver-support/free-services-seniors-texas-2026", permanent: true },
+
       // Tier 3: v1.0 pages with no v2 equivalent → homepage
       { source: "/caregiver-relief-network", destination: "/", permanent: true },
       { source: "/caregiver-relief-network/:path*", destination: "/", permanent: true },

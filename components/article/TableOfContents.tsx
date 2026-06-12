@@ -10,25 +10,26 @@ interface TableOfContentsProps {
 // ─── Desktop TOC (sticky sidebar) ───────────────────────────
 
 export function DesktopTableOfContents({ headings }: TableOfContentsProps) {
-  const activeId = useActiveHeading(headings);
+  const h2Only = headings.filter((h) => h.level === 2);
+  const activeId = useActiveHeading(h2Only);
 
   return (
     <nav aria-label="Table of contents" className="hidden lg:block">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
         Table of Contents
       </p>
-      <ul className="space-y-1">
-        {headings.map((h) => (
+      <ul className="space-y-0">
+        {h2Only.map((h) => (
           <li key={h.id}>
             <a
               href={`#${h.id}`}
               onClick={(e) => smoothScroll(e, h.id)}
               className={`
-                block text-sm py-1 border-l-2 transition-colors duration-200
-                pl-3
+                block text-[13px] leading-snug py-2.5 border-l-[3px] transition-colors duration-200
+                pl-4
                 ${
                   activeId === h.id
-                    ? "border-primary-600 text-gray-900 font-medium"
+                    ? "border-gray-800 text-gray-900 font-semibold"
                     : "border-transparent text-gray-400 hover:text-gray-600"
                 }
               `}
@@ -46,6 +47,7 @@ export function DesktopTableOfContents({ headings }: TableOfContentsProps) {
 
 export function MobileTableOfContents({ headings }: TableOfContentsProps) {
   const [open, setOpen] = useState(false);
+  const h2Only = headings.filter((h) => h.level === 2);
 
   return (
     <div className="lg:hidden mb-8 border border-gray-200 rounded-xl">
@@ -65,7 +67,7 @@ export function MobileTableOfContents({ headings }: TableOfContentsProps) {
       </button>
       {open && (
         <ul className="px-4 pb-3 space-y-1 border-t border-gray-100">
-          {headings.map((h) => (
+          {h2Only.map((h) => (
             <li key={h.id}>
               <a
                 href={`#${h.id}`}

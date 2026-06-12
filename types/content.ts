@@ -43,6 +43,10 @@ export interface ContentArticle {
   structured_data_type: string;
   focus_keyword: string | null;
   twitter_card_type: string;
+  // Reviewer
+  reviewer_name: string | null;
+  reviewer_role: string | null;
+  reviewed_at: string | null;
   // Timestamps
   published_at: string | null;
   created_at: string;

@@ -15,6 +15,7 @@ import ArticleFAQ from "@/components/article/ArticleFAQ";
 import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
 import StarPlusFAQ from "@/components/article/StarPlusFAQ";
 import MedicaidEligibilityFAQ from "@/components/article/MedicaidEligibilityFAQ";
+import FreeServicesFAQ from "@/components/article/FreeServicesFAQ";
 import EligibilityChecker from "@/components/article/EligibilityChecker";
 
 // ISR: revalidate every 60 seconds
@@ -137,12 +138,15 @@ export default async function ResourceArticlePage({
   let authorAvatar = article?.author_avatar ?? mockResource?.author.avatar ?? null;
   const readingTime = article?.reading_time ?? mockResource!.readingTime;
   const publishedAt = article?.published_at ?? mockResource!.publishedAt;
-  const coverImage = article?.cover_image_url ?? mockResource!.coverImage;
-  const careTypes = (article?.care_types ?? mockResource!.careTypes) as CareTypeId[];
+  const coverImage = article?.cover_image_url ?? mockResource?.coverImage ?? null;
+  const careTypes = (article?.care_types ?? mockResource?.careTypes ?? []) as CareTypeId[];
   const tags = article?.tags ?? mockResource!.tags ?? [];
   const primaryCareType = careTypes[0] as CareTypeId | undefined;
   const careTypeLabel = primaryCareType ? CARE_TYPE_CONFIG[primaryCareType]?.label : null;
   const showAuthorCard = authorName !== "Olera Team";
+  const reviewerName = article?.reviewer_name ?? null;
+  const reviewerRole = article?.reviewer_role ?? null;
+  const knownReviewer = reviewerName ? getAuthorByName(reviewerName) : null;
   const knownAuthor = getAuthorByName(authorName);
   const authorSlug = knownAuthor?.slug;
   // Fall back to static author avatar when DB value is missing
@@ -168,19 +172,29 @@ export default async function ResourceArticlePage({
     : [];
 
   // JSON-LD structured data
+  const sdType = article?.structured_data_type || "Article";
   const articleJsonLd = article ? {
     "@context": "https://schema.org",
-    "@type": article.structured_data_type || "Article",
+    "@type": sdType,
     headline: title,
     description: article.excerpt || subtitle,
     image: coverImage || undefined,
     datePublished: article.published_at,
     dateModified: article.updated_at,
-    author: {
-      "@type": "Person",
-      name: authorName,
-      ...(authorRole && { jobTitle: authorRole }),
-    },
+    author: authorName === "Olera Team"
+      ? { "@type": "Organization", name: "Olera", url: "https://olera.care" }
+      : {
+          "@type": "Person",
+          name: authorName,
+          ...(authorRole && { jobTitle: authorRole }),
+        },
+    ...(reviewerName && {
+      reviewedBy: {
+        "@type": "Person",
+        name: reviewerName,
+        ...(reviewerRole && { jobTitle: reviewerRole }),
+      },
+    }),
     publisher: {
       "@type": "Organization",
       name: "Olera",
@@ -190,6 +204,9 @@ export default async function ResourceArticlePage({
       "@type": "WebPage",
       "@id": `https://olera.care/caregiver-support/${slug}`,
     },
+    ...(sdType === "MedicalWebPage" && {
+      lastReviewed: article.updated_at,
+    }),
   } : null;
 
   const breadcrumbJsonLd = {
@@ -254,8 +271,8 @@ export default async function ResourceArticlePage({
             )}
 
             {/* Metadata row */}
-            <div className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">
-              {showAuthorCard && (
+            <div className="flex flex-wrap items-center gap-1.5 text-sm text-gray-400 mb-10">
+              {showAuthorCard ? (
                 <>
                   <div className="flex items-center gap-2">
                     {authorAvatar ? (
@@ -281,10 +298,52 @@ export default async function ResourceArticlePage({
                   </div>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
+              ) : (
+                <>
+                  <span>Published by <strong className="text-gray-600 font-semibold">{authorName}</strong></span>
+                  <span className="text-gray-300 mx-1.5">|</span>
+                </>
               )}
-              <span>{formatDate(publishedAt)}</span>
-              <span className="text-gray-300 mx-1.5">&middot;</span>
+              {reviewerName && (
+                <>
+                  <div className="flex items-center gap-2">
+                    {knownReviewer?.avatar ? (
+                      <img
+                        src={knownReviewer.avatar}
+                        alt={reviewerName}
+                        className="w-7 h-7 rounded-full object-cover"
+                      />
+                    ) : null}
+                    <span>Verified by{" "}
+                      {knownReviewer?.slug ? (
+                        <Link href={`/author/${knownReviewer.slug}`} className="text-gray-600 font-semibold hover:text-primary-600 transition-colors">
+                          {reviewerName}
+                        </Link>
+                      ) : (
+                        <strong className="text-gray-600 font-semibold">{reviewerName}</strong>
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-gray-300 mx-1.5">|</span>
+                </>
+              )}
               <span>{readingTime}</span>
+              {article?.updated_at && (
+                <>
+                  <span className="text-gray-300 mx-1.5">|</span>
+                  <span>Updated {formatDate(article.updated_at)}</span>
+                </>
+              )}
+              <span className="text-gray-300 mx-1.5">|</span>
+              <button
+                className="inline-flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Share this article"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+                Share
+              </button>
             </div>
           </header>
 
@@ -293,7 +352,11 @@ export default async function ResourceArticlePage({
             <figure className="mb-10">
               <img
                 src={coverImage}
-                alt={title}
+                alt={article?.cover_image_alt || `${title} - Olera`}
+                width={1200}
+                height={600}
+                loading="lazy"
+                decoding="async"
                 className="w-full aspect-[2/1] object-cover rounded-2xl"
               />
             </figure>
@@ -308,7 +371,7 @@ export default async function ResourceArticlePage({
           {(() => {
             const MARKERS: Record<string, React.ReactNode> = {
               "<!-- eligibility-checker -->": <EligibilityChecker />,
-              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : slug === "texas-medicaid-eligibility-seniors-2026" ? <MedicaidEligibilityFAQ /> : <ArticleFAQ />,
+              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : slug === "texas-medicaid-eligibility-seniors-2026" ? <MedicaidEligibilityFAQ /> : slug === "free-services-seniors-texas-2026" ? <FreeServicesFAQ /> : <ArticleFAQ />,
             };
             let segments: React.ReactNode[] = [processedHtml];
             for (const [marker, component] of Object.entries(MARKERS)) {

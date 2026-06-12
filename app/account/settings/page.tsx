@@ -95,10 +95,6 @@ export default function AccountSettingsPage() {
     verificationState === "not_required" ||
     !isProvider; // Non-providers don't need verification
 
-  // Email is locked for verified providers (must contact support to change)
-  // Families can always change their email
-  const isEmailLocked = isProvider && (verificationState === "verified" || verificationState === "not_required");
-
   // Verification modal
   const {
     isOpen: isVerificationModalOpen,
@@ -473,7 +469,6 @@ export default function AccountSettingsPage() {
                       error={editingField === "email" ? fieldError : ""}
                       success={editingField === "email" ? fieldSuccess : ""}
                       inputType="email"
-                      locked={isEmailLocked}
                     />
                     <AccountRow
                       label="Phone"
@@ -988,7 +983,6 @@ function AccountRow({
   inputType = "text",
   placeholder,
   isPassword,
-  locked,
 }: {
   label: string;
   value: string;
@@ -1008,8 +1002,6 @@ function AccountRow({
   inputType?: string;
   placeholder?: string;
   isPassword?: boolean;
-  /** When true, field cannot be edited - show "Contact support" link instead */
-  locked?: boolean;
 }) {
   return (
     <div className="py-4 first:pt-0 last:pb-0">
@@ -1061,27 +1053,13 @@ function AccountRow({
           )}
         </div>
         {!isEditing && (
-          locked ? (
-            <a
-              href="/contact"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
-            >
-              Contact support
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          ) : (
-            <button
-              type="button"
-              onClick={onStartEdit}
-              className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
-            >
-              {isPassword ? "Change" : "Edit"}
-            </button>
-          )
+          <button
+            type="button"
+            onClick={onStartEdit}
+            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
+          >
+            {isPassword ? "Change" : "Edit"}
+          </button>
         )}
       </div>
       {isEditing && (

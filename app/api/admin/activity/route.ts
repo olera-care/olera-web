@@ -96,6 +96,7 @@ async function handleFeedView(db: any, opts: {
     ]);
 
     const ids = new Set<string>();
+    ids.add(search);
     for (const p of iosMatches ?? []) {
       if (p.provider_id) ids.add(p.provider_id);
       if (p.slug) ids.add(p.slug);
@@ -451,7 +452,11 @@ async function handleProvidersView(db: any, opts: {
     const lowerSearch = search.toLowerCase();
     sortedProviders = sortedProviders.filter((p) => {
       const info = providerMap[p.provider_id];
-      return info?.name?.toLowerCase().includes(lowerSearch);
+      return (
+        p.provider_id.toLowerCase().includes(lowerSearch) ||
+        info?.slug?.toLowerCase().includes(lowerSearch) ||
+        info?.name?.toLowerCase().includes(lowerSearch)
+      );
     });
   }
 

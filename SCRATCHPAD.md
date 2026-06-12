@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-12 (PM) — GA4 ghost spam: measurement ID rotated + shipped to prod, old stream deleted (CLOSED)
+
+GA4 realtime was showing ~90-110 "active users" vs the real 20-30 US baseline. Diagnosis: **ghost spam** — bots sending fake hits directly to Google's collect endpoint using our public measurement ID (`G-ZLP95NWSZW`). Never touched olera.care/Vercel, so the WAF couldn't block it. Telltales: nonexistent page paths (`/about-usda/news/blog`, `/cars/used-cars/all-india`), active users with 0 views, 94 session_starts vs ~24 page_views, Ghana/India-heavy country mix while the WAF challenges that traffic at the edge.
+
+**Fix shipped same night:** rotated to a fresh GA4 web data stream **G-XX0KRLT4FE** ("olera.care web v2", same property). One-line swap in `app/layout.tsx:17` (only occurrence in repo) — PR #1047 → staging, promoted to main via #1048 (also carried #1045 admin connections + #1046 email-lock revert). Verified prod serves the new tag (view-source), verified clean stream separation via a Realtime "Stream name" comparison (new stream = 2 real users, legit pages only), then TJ **deleted the old data stream** — the step that actually drops the spam. Logan notified via DM.
+
+**Why rotation works / caveats:** spam targets the harvested ID; streams in a property share reports, so deleting the old stream is mandatory, not optional. New ID is also public in page source — if spam returns, the durable fix is server-side tagging (first-party proxy), deliberately deferred. **GA data before 2026-06-13 is inflated** — add a Country=US comparison when reading historical windows. Gotcha for next time: when creating a replacement stream, GA's "Set up a Google tag" dialog defaults to reusing the existing on-site tag (would carry the spam over) — always pick "Install manually". Full detail in memory `project_ga4_ghost_spam_rotation` + Notion PR Merge Reports (#1047, #1048).
+
+**Decision (don't relitigate):** did NOT touch the Vercel "Block Restricted Regions" WAF rule — it wasn't the leak, it allowlists team countries, and it carries the verified-bot Bypass from the May Googlebot-403 incident.
+
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 
 Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.

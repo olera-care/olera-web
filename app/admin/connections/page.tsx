@@ -1187,8 +1187,18 @@ export default function ConnectionsTrackerPage() {
             {/* Action selection - Step 1 */}
             {!selectedAction && (
               <div className="space-y-2">
-                {/* Unarchive option if already archived */}
-                {pendingAction.isArchived && (
+                {/* Warning banner when provider is archived */}
+                {pendingAction.isProviderArchived && (
+                  <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs text-amber-800">
+                      <span className="font-medium">Provider is archived.</span> All leads to this provider appear in the Archived tab. Unarchive the provider to resume normal tracking.
+                    </p>
+                  </div>
+                )}
+
+                {/* Unarchive Lead option - only show if connection is archived AND provider is NOT archived */}
+                {/* If provider is archived, unarchiving the lead won't help - need to unarchive provider */}
+                {pendingAction.isArchived && !pendingAction.isProviderArchived && (
                   <button
                     onClick={() => setSelectedAction("unarchive_lead")}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
@@ -1207,20 +1217,31 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
-                {/* Mark as Connected */}
+                {/* Mark as Connected - always show, but add note if provider is archived */}
                 <button
                   onClick={() => setSelectedAction("mark_connected")}
-                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors"
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                    pendingAction.isProviderArchived
+                      ? "border-gray-200 hover:border-green-200 hover:bg-green-50/50"
+                      : "border-gray-200 hover:border-green-300 hover:bg-green-50"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      pendingAction.isProviderArchived ? "bg-green-50" : "bg-green-100"
+                    }`}>
+                      <svg className={`w-4 h-4 ${pendingAction.isProviderArchived ? "text-green-400" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Mark as Connected</p>
-                      <p className="text-xs text-gray-500">Confirm this lead successfully connected</p>
+                      <p className={`font-medium ${pendingAction.isProviderArchived ? "text-gray-600" : "text-gray-900"}`}>Mark as Connected</p>
+                      <p className="text-xs text-gray-500">
+                        {pendingAction.isProviderArchived
+                          ? "Records connection but lead stays in Archived tab"
+                          : "Confirm this lead successfully connected"
+                        }
+                      </p>
                     </div>
                   </div>
                 </button>
@@ -1274,6 +1295,13 @@ export default function ConnectionsTrackerPage() {
                     <p className="text-sm text-gray-600">
                       This will mark the lead as successfully connected and stop follow-up emails.
                     </p>
+                    {pendingAction.isProviderArchived && (
+                      <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs text-amber-800">
+                          Note: This provider is archived. The lead will be marked as connected but will remain in the Archived tab.
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1.5">How was this confirmed?</label>
                       <select

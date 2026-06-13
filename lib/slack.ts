@@ -1142,6 +1142,55 @@ export function slackOutreachRequestSubmitted(opts: {
 }
 
 /**
+ * Provider requested a managed ad campaign (Ad Boost — concierge v1). Fires
+ * when an eligibility-cleared provider submits a campaign request + setup week
+ * from the Boost surface. Routes to the concierge team to schedule the
+ * campaign the chosen week. No PHI — provider-business data only.
+ */
+export function slackAdBoostRequested(opts: {
+  requestId: string;
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  category: string | null;
+  completeness: number;
+  setupWeek: string; // ISO date (Monday of the chosen week)
+  channel?: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "—";
+
+  const fields = [
+    { type: "mrkdwn", text: `*Provider:*\n<${siteUrl}/provider/${opts.providerSlug}|${opts.providerName}>` },
+    { type: "mrkdwn", text: `*Where:*\n${where}` },
+    { type: "mrkdwn", text: `*Category:*\n${opts.category ?? "—"}` },
+    { type: "mrkdwn", text: `*Completeness:*\n${opts.completeness}%` },
+    { type: "mrkdwn", text: `*Setup week:*\n${opts.setupWeek}` },
+  ];
+  if (opts.channel) fields.push({ type: "mrkdwn", text: `*Channel:*\n${opts.channel}` });
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "📣 Ad Boost request — schedule setup", emoji: true },
+    },
+    { type: "section", fields },
+    {
+      type: "context",
+      elements: [
+        { type: "mrkdwn", text: `Request \`${opts.requestId}\` · set up the campaign the week of ${opts.setupWeek}` },
+      ],
+    },
+  ];
+
+  return {
+    text: `Ad Boost request: ${opts.providerName} (${where}) — setup week ${opts.setupWeek}`,
+    blocks,
+  };
+}
+
+/**
  * Email captured via the qa_email_capture variant — fires when a guest who
  * just asked a question on a provider page submits their email through the
  * post-submit enrichment prompt. This is the conversion event for the 5th

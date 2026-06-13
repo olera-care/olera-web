@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+### 2026-06-13 — Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — PLANNED
+
+Explored + planned TJ's "Sri Lanka" idea: Olera runs paid **external** ads (Google/Meta) on a provider's behalf → families land on the provider's Door B intake. Providers pay. Profile must clear a completeness threshold first; "select next week" = concierge setup window. Exploration killed the two objections: external ads make their own demand (no empty-theater) and we never touch internal browse ranking (no collision with the resolved no-pay-to-win-rank decision). Dropped the "not enough families" scarcity message at TJ's direction.
+
+Plan: **`plans/provider-paid-ad-boost-plan.md`**. Concierge v1 = thin request→schedule→measure rails, NOT an ad-platform integration. Payment out-of-band (Stripe inert). Reuses: `calculateProfileCompleteness` (`lib/profile-completeness.ts:217`), Door B `BenefitsDiscoveryModule`, `connections/request`, `seeker_activity`, `lib/analytics/referrer`. Existing `app/provider/pro/page.tsx` promises off-strategy "Priority Search Placement" (internal rank) — must reframe to external ads. This is the paid evolution of the Comfort Keepers lead-gen ask + the market-diagnostic engine.
+
+**Decisions locked (TJ 2026-06-13):** threshold 70% · dedicated `ad_campaign_requests` table · provider-facing ROI (build it) · provider-agnostic (no CK hardcoding).
+
+**Phase 1 backend SHIPPED (typechecked clean, uncommitted):**
+- `lib/ad-boost/eligibility.ts` — pure evaluator (`evaluateAdBoostEligibility`, `AD_BOOST_THRESHOLD=70`, missing-sections sorted by weight w/ edit deep-links).
+- `lib/ad-boost/eligibility.server.ts` — authoritative loader; resolves provider profile + assembles reviews/response-rate like the dashboard endpoint, returns eligibility.
+- `supabase/migrations/104_ad_campaign_requests.sql` — TEXT+CHECK status, RLS service-role-only. **NOT YET APPLIED — ops step.**
+- `app/api/provider/ad-boost/request/route.ts` — POST (server-gated at 70%, validates setup week, blocks dup open requests, inserts, awaits Slack) + GET (eligibility + latest request).
+- `slackAdBoostRequested` builder in `lib/slack.ts`.
+
+Typecheck note: worktree has no node_modules; tsc was run by copying files into ~/Desktop/olera-web (then cleaned up). No ad-boost/slack errors.
+
+**Phase 1 UI SHIPPED:** new `app/provider/boost/page.tsx` (TJ chose a dedicated page; `/provider/pro` left as-is, its off-strategy "Priority Search Placement" copy NOT touched per his call). Three states — gate (<70%, missing sections deep-linked), apply (≥70%, next-4-Mondays picker + Google/Meta/Both channel + submit), in-motion (open request). Reads authoritative state from GET /api/provider/ad-boost/request. Typechecked clean.
+
+**PHASE 1 COMPLETE + LIVE-READY.**
+- Migration 104 APPLIED to Supabase (TJ, 2026-06-13).
+- Entry point wired: `components/provider-dashboard/BoostCard.tsx` — completeness-aware CTA on the dashboard left column (mobile+desktop, hidden in preview). TJ chose dashboard CTA over global nav.
+- `/provider/boost` registered in `app/provider/layout.tsx` HUB_ROUTES (auth-gated).
+
+**Next:** Phase 2 (admin concierge queue at `/admin/ad-boost` + UTM attribution threading campaign_tag through Door B → connections) + Phase 3 (per-campaign ROI from seeker_activity, provider-facing "delivered N families" summary). Nothing committed yet — all changes uncommitted on `keen-stonebraker`.
+
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 
 Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.

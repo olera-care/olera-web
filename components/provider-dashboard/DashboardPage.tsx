@@ -23,6 +23,7 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import VerificationStatusCard from "./VerificationStatusCard";
+import BoostCard from "./BoostCard";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -462,6 +463,10 @@ function DashboardContent({
               />
             </div>
           )}
+
+          {/* Managed Ads invite — entry point to /provider/boost. Hidden in
+              preview (it's dashboard chrome, not part of the family-facing page). */}
+          {!previewMode && <BoostCard completeness={completeness.overall} />}
 
           {/* Profile sections. On mobile they're a flat list: chromeless
               sections separated by hairlines (divide-y) + whitespace — the

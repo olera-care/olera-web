@@ -34,6 +34,8 @@ interface BoostStateResponse {
   eligibility: AdBoostEligibility;
   provider: { slug: string; displayName: string | null };
   request: BoostRequest | null;
+  /** Families delivered so far by this provider's campaign. */
+  delivered: number;
 }
 
 const CHANNELS = [
@@ -157,7 +159,7 @@ export default function ProviderBoostPage() {
       {/* ── Body: one of three states ── */}
       <div className="mt-12">
         {openRequest ? (
-          <CampaignInMotion request={openRequest} />
+          <CampaignInMotion request={openRequest} delivered={state.delivered} />
         ) : state.eligibility.eligible ? (
           <ApplyForm
             weekOptions={weekOptions}
@@ -179,12 +181,19 @@ export default function ProviderBoostPage() {
 
 // ───────────────────────────────────────────────────────────── States
 
-function CampaignInMotion({ request }: { request: BoostRequest }) {
+function CampaignInMotion({
+  request,
+  delivered,
+}: {
+  request: BoostRequest;
+  delivered: number;
+}) {
   const label: Record<string, string> = {
     requested: "Request received",
     scheduled: "Setup scheduled",
     live: "Your campaign is live",
   };
+  const showDelivered = request.status === "live" && delivered > 0;
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -202,6 +211,27 @@ function CampaignInMotion({ request }: { request: BoostRequest }) {
         We&apos;ll reach out before launch to confirm the details, and you&apos;ll
         see families arrive on your dashboard as they come in.
       </p>
+
+      {showDelivered && (
+        <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-6 py-5">
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-4xl font-display font-bold text-gray-900 tabular-nums">
+              {delivered}
+            </span>
+            <span className="text-gray-600">
+              {delivered === 1 ? "family" : "families"} reached out so far
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mt-1.5">
+            From your managed ad campaign. Find them on your{" "}
+            <Link href="/provider/connections" className="text-primary-600 font-medium hover:underline">
+              leads
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
       <Link
         href="/provider"
         className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"

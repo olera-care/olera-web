@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
 
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
@@ -37,7 +38,21 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ requests: data ?? [] });
+  const requests = data ?? [];
+
+  // Attach the ROI signal: families delivered per campaign (benefits_completed
+  // events tagged with the campaign's utm_campaign).
+  const tags = requests
+    .map((r: { campaign_tag: string | null }) => r.campaign_tag)
+    .filter((t: string | null): t is string => !!t);
+  const delivered = await countDeliveredByCampaign(db, tags);
+
+  const withRoi = requests.map((r: { campaign_tag: string | null }) => ({
+    ...r,
+    delivered: r.campaign_tag ? delivered[r.campaign_tag] ?? 0 : 0,
+  }));
+
+  return NextResponse.json({ requests: withRoi });
 }
 
 export async function POST(request: NextRequest) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
+import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 
 /**
@@ -35,10 +36,19 @@ export async function GET() {
     .limit(1)
     .maybeSingle();
 
+  // Families delivered so far by this provider's campaign (ROI for the
+  // "we're on it" state). Only meaningful once a campaign_tag is set (go-live).
+  let delivered = 0;
+  if (latest?.campaign_tag) {
+    const counts = await countDeliveredByCampaign(db, [latest.campaign_tag]);
+    delivered = counts[latest.campaign_tag] ?? 0;
+  }
+
   return NextResponse.json({
     eligibility: elig.eligibility,
     provider: { slug: elig.slug, displayName: elig.displayName },
     request: latest ?? null,
+    delivered,
   });
 }
 

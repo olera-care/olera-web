@@ -15,6 +15,8 @@ interface CampaignRequest {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
+  /** Families delivered so far (benefits_completed events tagged to this campaign). */
+  delivered?: number;
 }
 
 const STATUSES = ["requested", "scheduled", "live", "ended", "cancelled"];
@@ -153,7 +155,14 @@ function RequestRow({
             {new Date(request.created_at).toLocaleDateString()}
           </p>
         </div>
-        <StatusBadge status={request.status} />
+        <div className="flex items-center gap-2.5">
+          {request.campaign_tag && (
+            <span className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700">
+              {request.delivered ?? 0} delivered
+            </span>
+          )}
+          <StatusBadge status={request.status} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">

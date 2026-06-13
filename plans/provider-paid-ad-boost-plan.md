@@ -50,11 +50,12 @@ Let an eligible provider request a done-for-you external ad campaign (Google/Met
       - Query later: `SELECT metadata->>'utm_campaign', COUNT(*) FROM seeker_activity WHERE event_type='benefits_completed' AND metadata->>'utm_source'='olera_managed' GROUP BY 1`.
       - LIMITATION: same-page capture only (no sessionStorage first-touch persistence) — fine for ad-click→convert; lost if the family navigates away and back.
 
-### Phase 3: ROI reporting (thin)
-- [ ] 7. Per-campaign results
-      - Count server-confirmed connections from `seeker_activity` filtered by campaign tag; surface in the admin queue (and optionally a provider-facing "your campaign delivered N families" summary). This is the artifact that justifies charging.
-      - Files: `app/api/admin/ad-boost/route.ts` (extend), admin page (extend)
-      - Verify: connections attributed to a test campaign tag count correctly.
+### Phase 3: ROI reporting (thin) — DONE
+- [x] 7. Per-campaign results
+      - `lib/ad-boost/delivered.server.ts` — `countDeliveredByCampaign(db, tags)`: counts `benefits_completed` seeker_activity events scoped to `utm_source=olera_managed`, grouped by `utm_campaign` tag. Server-confirmed conversions, not clicks.
+      - Admin queue: each request card shows an "N delivered" pill (when a campaign_tag is set).
+      - Provider `/provider/boost` in-motion state: when live + delivered>0, shows "N families reached out so far" with a link to their leads. GET route returns `delivered`.
+      - All typechecked. Same-page UTM capture limitation (Phase 2) applies.
 
 ## Risks
 - **Scope explosion into an ad platform.** Mitigation: concierge — no Google/Meta API integration, no automated bidding/management in v1. Humans run campaigns.

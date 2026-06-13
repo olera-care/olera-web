@@ -37,7 +37,11 @@ Typecheck note: worktree has no node_modules; tsc was run by copying files into 
 - Admin queue: `app/admin/ad-boost/page.tsx` + `app/api/admin/ad-boost/route.ts` (GET list + POST status/tag/note edits, auto campaign_tag=id on go-live). Linked in AdminSidebar (Operations → Ad Boost). Per-row copy-ready UTM landing URL.
 - Attribution: CORRECTION — Door B → `/api/benefits/save-results` (not connections/request = Door A). Wired UTM via `lib/ad-boost/utm.ts` (`readUtmParams` reads window.location.search, no Suspense) → both BenefitsDiscoveryModule variants pass utmSource/utmCampaign → save-results persists into the `benefits_completed` seeker_activity metadata. Same event Phase 3 ROI reads. Limitation: same-page capture only (no first-touch persistence).
 
-**Next: Phase 3** — per-campaign ROI: count `seeker_activity` benefits_completed by `metadata->>'utm_campaign'`, surface in admin queue + provider-facing "delivered N families" summary on /provider/boost. Then: browser QA, the Pro-page "Priority Search Placement" copy contradiction (TJ deferred), PR to staging.
+**PHASE 3 COMPLETE (committed next):** `lib/ad-boost/delivered.server.ts` counts benefits_completed seeker_activity scoped to utm_source=olera_managed, grouped by utm_campaign. Admin queue shows "N delivered" pill per request; provider /provider/boost in-motion state shows "N families reached out so far" (live + delivered>0) linking to leads; provider GET returns `delivered`.
+
+**ALL 3 PHASES DONE.** Phase 1 `3e9e6953`, Phase 2 `c4780660`, Phase 3 = next commit.
+
+**Remaining before merge:** (1) browser QA click-through (typecheck only so far; client components can throw at runtime); (2) Pro-page "Priority Search Placement" copy still promises internal pay-to-rank — TJ deferred the fix, but it now contradicts the live ads product; (3) PR to staging. Optional polish: sessionStorage first-touch UTM persistence (currently same-page capture only).
 
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 

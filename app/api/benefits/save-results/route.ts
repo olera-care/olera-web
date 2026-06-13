@@ -148,6 +148,12 @@ interface SaveResultsPayload {
    *  accounts.session_id so the admin Family Intake drill-in can join an
    *  account back to its impression / started events on provider_activity. */
   sessionId?: string;
+  /** UTM attribution from a managed-ads landing link
+   *  (`utm_source=olera_managed&utm_campaign=<tag>`). Persisted to the
+   *  benefits_completed event metadata so families delivered by a paid Ad Boost
+   *  campaign can be attributed back to it (see /admin/ad-boost). */
+  utmSource?: string;
+  utmCampaign?: string;
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -181,6 +187,8 @@ export async function POST(req: Request) {
     relationship,
     entrySource,
     sessionId,
+    utmSource,
+    utmCampaign,
     matchedPrograms,
     matchCount,
   } = payload;
@@ -667,6 +675,9 @@ export async function POST(req: Request) {
       // the page that produced them (program page, article, provider page).
       entry_source: entrySource || null,
       provider_slug: providerSlug || null,
+      // Managed-ads attribution: which paid campaign (if any) drove this family.
+      utm_source: utmSource || null,
+      utm_campaign: utmCampaign || null,
     },
   }).then(({ error }: { error: { message: string } | null }) => {
     if (error) console.error("[seeker_activity] benefits_completed insert failed:", error);

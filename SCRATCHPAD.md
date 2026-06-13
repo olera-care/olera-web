@@ -31,7 +31,13 @@ Typecheck note: worktree has no node_modules; tsc was run by copying files into 
 - Entry point wired: `components/provider-dashboard/BoostCard.tsx` — completeness-aware CTA on the dashboard left column (mobile+desktop, hidden in preview). TJ chose dashboard CTA over global nav.
 - `/provider/boost` registered in `app/provider/layout.tsx` HUB_ROUTES (auth-gated).
 
-**Next:** Phase 2 (admin concierge queue at `/admin/ad-boost` + UTM attribution threading campaign_tag through Door B → connections) + Phase 3 (per-campaign ROI from seeker_activity, provider-facing "delivered N families" summary). Nothing committed yet — all changes uncommitted on `keen-stonebraker`.
+**Phase 1 committed:** `3e9e6953`.
+
+**PHASE 2 COMPLETE (committed next):**
+- Admin queue: `app/admin/ad-boost/page.tsx` + `app/api/admin/ad-boost/route.ts` (GET list + POST status/tag/note edits, auto campaign_tag=id on go-live). Linked in AdminSidebar (Operations → Ad Boost). Per-row copy-ready UTM landing URL.
+- Attribution: CORRECTION — Door B → `/api/benefits/save-results` (not connections/request = Door A). Wired UTM via `lib/ad-boost/utm.ts` (`readUtmParams` reads window.location.search, no Suspense) → both BenefitsDiscoveryModule variants pass utmSource/utmCampaign → save-results persists into the `benefits_completed` seeker_activity metadata. Same event Phase 3 ROI reads. Limitation: same-page capture only (no first-touch persistence).
+
+**Next: Phase 3** — per-campaign ROI: count `seeker_activity` benefits_completed by `metadata->>'utm_campaign'`, surface in admin queue + provider-facing "delivered N families" summary on /provider/boost. Then: browser QA, the Pro-page "Priority Search Placement" copy contradiction (TJ deferred), PR to staging.
 
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 

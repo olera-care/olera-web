@@ -40,14 +40,15 @@ Let an eligible provider request a done-for-you external ad campaign (Google/Met
       - `slackAdBoostRequested` builder added to `lib/slack.ts`. All typechecked.
 
 ### Phase 2: Concierge admin queue + attribution
-- [ ] 5. Admin campaign queue
-      - Admin page listing requests: provider, completeness, requested week, status (requested → scheduled → live → ended), with status update controls. Must support GET for browser access (`feedback_admin_endpoints_get`).
-      - Files: `app/admin/ad-boost/page.tsx` (new) + `app/api/admin/ad-boost/route.ts` (new)
-      - Verify: requests appear; status updates persist.
-- [ ] 6. Campaign attribution plumbing
-      - Define a UTM convention for managed campaigns (e.g. `utm_source=olera_managed&utm_campaign=<requestId>`). On the provider page, capture the landing UTM/campaign on first touch and thread it through Door B intake → `connections/request` so the connection row/event carries the campaign tag. Extend `lib/analytics/referrer` classification if needed.
-      - Files: `lib/analytics/referrer.ts`, `components/providers/BenefitsDiscoveryModule.tsx` (+ `.empathic`), `app/api/connections/request/route.ts`, `app/api/activity/track/route.ts`
-      - Verify: a visit with the UTM produces a connection tagged with the campaign id.
+- [x] 5. Admin campaign queue — DONE
+      - `app/api/admin/ad-boost/route.ts`: GET (list, newest-first) + POST (update status/channel/campaign_tag/note/setup-week; admin-gated; auto-sets campaign_tag=id when going live without one).
+      - `app/admin/ad-boost/page.tsx`: per-request card with status/channel/tag/note editing, a status badge, and a **copy-ready UTM landing URL** (`/provider/<slug>?utm_source=olera_managed&utm_campaign=<tag>`) to paste into Google/Meta.
+      - Linked from `components/admin/AdminSidebar.tsx` (Operations → Ad Boost). Auth via existing admin layout + route guards.
+- [x] 6. Campaign attribution plumbing — DONE
+      - CORRECTION: Door B submits to `/api/benefits/save-results` (not connections/request — that's Door A), which already writes a `seeker_activity` `benefits_completed` row with a `metadata` JSONB. Attribution rides there — same event Phase 3 ROI reads. No new columns, no referrer changes needed.
+      - `lib/ad-boost/utm.ts` (`readUtmParams`, reads `window.location.search` to avoid Suspense bailout) → both `BenefitsDiscoveryModule.tsx` + `.empathic.tsx` pass `utmSource`/`utmCampaign` in the save-results payload → `save-results/route.ts` persists them into the `benefits_completed` metadata (`utm_source`, `utm_campaign`).
+      - Query later: `SELECT metadata->>'utm_campaign', COUNT(*) FROM seeker_activity WHERE event_type='benefits_completed' AND metadata->>'utm_source'='olera_managed' GROUP BY 1`.
+      - LIMITATION: same-page capture only (no sessionStorage first-touch persistence) — fine for ad-click→convert; lost if the family navigates away and back.
 
 ### Phase 3: ROI reporting (thin)
 - [ ] 7. Per-campaign results

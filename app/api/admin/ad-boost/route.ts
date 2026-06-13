@@ -41,15 +41,17 @@ export async function GET() {
   const requests = data ?? [];
 
   // Attach the ROI signal: families delivered per campaign (benefits_completed
-  // events tagged with the campaign's utm_campaign).
-  const tags = requests
-    .map((r: { campaign_tag: string | null }) => r.campaign_tag)
-    .filter((t: string | null): t is string => !!t);
+  // events tagged with the campaign's utm_campaign). The effective tag is
+  // `campaign_tag || id` — the same value the copy-URL and ad links use — so
+  // counting stays correct even before a campaign_tag is explicitly persisted.
+  const tags = requests.map(
+    (r: { id: string; campaign_tag: string | null }) => r.campaign_tag || r.id,
+  );
   const delivered = await countDeliveredByCampaign(db, tags);
 
-  const withRoi = requests.map((r: { campaign_tag: string | null }) => ({
+  const withRoi = requests.map((r: { id: string; campaign_tag: string | null }) => ({
     ...r,
-    delivered: r.campaign_tag ? delivered[r.campaign_tag] ?? 0 : 0,
+    delivered: delivered[r.campaign_tag || r.id] ?? 0,
   }));
 
   return NextResponse.json({ requests: withRoi });
@@ -130,14 +132,21 @@ export async function POST(request: NextRequest) {
   const db = getServiceClient();
 
   // When launching (status -> live) with no tag yet, default the campaign_tag to
-  // the request id so attribution always has a stable key.
-  if (update.status === "live" && update.campaign_tag === undefined) {
-    const { data: current } = await db
-      .from("ad_campaign_requests")
-      .select("campaign_tag")
-      .eq("id", body.id)
-      .maybeSingle();
-    if (current && !current.campaign_tag) {
+  // the request id so attribution always has a stable, persisted key. The admin
+  // page always sends campaign_tag (null when the field is empty), so we resolve
+  // the *effective* tag — what it'll be after this update, or the current value
+  // if untouched — and only default when that's still empty.
+  if (update.status === "live") {
+    let effectiveTag = update.campaign_tag as string | null | undefined;
+    if (effectiveTag === undefined) {
+      const { data: current } = await db
+        .from("ad_campaign_requests")
+        .select("campaign_tag")
+        .eq("id", body.id)
+        .maybeSingle();
+      effectiveTag = current?.campaign_tag ?? null;
+    }
+    if (!effectiveTag) {
       update.campaign_tag = body.id;
     }
   }

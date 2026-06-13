@@ -71,7 +71,10 @@ export default function AdminAdBoostPage() {
 
       <div className="space-y-3">
         {requests?.map((r) => (
-          <RequestRow key={r.id} request={r} onSaved={load} />
+          // Key on updated_at so a saved row remounts with fresh server state
+          // (e.g. the go-live auto-set of campaign_tag) instead of keeping stale
+          // local edit state.
+          <RequestRow key={`${r.id}-${r.updated_at}`} request={r} onSaved={load} />
         ))}
       </div>
     </div>
@@ -156,7 +159,9 @@ function RequestRow({
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          {request.campaign_tag && (
+          {(request.status === "live" ||
+            request.status === "ended" ||
+            (request.delivered ?? 0) > 0) && (
             <span className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700">
               {request.delivered ?? 0} delivered
             </span>

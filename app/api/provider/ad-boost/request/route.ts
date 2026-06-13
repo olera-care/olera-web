@@ -37,11 +37,13 @@ export async function GET() {
     .maybeSingle();
 
   // Families delivered so far by this provider's campaign (ROI for the
-  // "we're on it" state). Only meaningful once a campaign_tag is set (go-live).
+  // "we're on it" state). Effective tag is `campaign_tag || id` — matching the
+  // ad links — so the count is correct whether or not a tag was set explicitly.
   let delivered = 0;
-  if (latest?.campaign_tag) {
-    const counts = await countDeliveredByCampaign(db, [latest.campaign_tag]);
-    delivered = counts[latest.campaign_tag] ?? 0;
+  if (latest) {
+    const tag = latest.campaign_tag || latest.id;
+    const counts = await countDeliveredByCampaign(db, [tag]);
+    delivered = counts[tag] ?? 0;
   }
 
   return NextResponse.json({

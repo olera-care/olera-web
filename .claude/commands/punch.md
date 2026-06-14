@@ -2,57 +2,50 @@
 
 Take a page or component screenshot and make it punchier, bolder, simpler. Not a full redesign — surgical sharpening. The goal: every element earns its space, text pops, the page has personality.
 
-**Bar:** Perena warmth + Wispr Flow character + Apple simplicity + Airbnb confidence. It should feel like someone cared — not a template, not a UI kit demo, not AI-generated.
-
-**Reference files:** Study the design inspiration screenshots before making changes:
-- `~/Desktop/olera-hq/docs/Design Inspirations/Wispr Flow/` — onboarding flow, dashboard, illustrations
-- `~/Desktop/olera-hq/docs/Design Inspirations/Perena/` — portfolio, convert, invest pages
-
-## Input
-
-$ARGUMENTS — Screenshot of the page/component to sharpen, or a file path to the component.
+**Bar:** it should feel like *someone cared* — not a template, not a UI kit demo, not AI-generated. Calm confidence, clean hierarchy, restrained components, great spacing, human microcopy.
 
 ---
 
-## The Design DNA (study these before every punch)
+## First: study the inspiration folder (do NOT skip, do NOT anchor on one)
 
-### Wispr Flow — what makes it feel alive
+The reference set lives here and **grows over time** — read what's actually in it each run, don't assume:
 
-Wispr Flow's power comes from RESTRAINT combined with CONFIDENCE. Study the actual screenshots:
+```
+~/Desktop/olera-hq/docs/Design Inspirations/
+```
 
-**Radical content restraint.** Each screen shows ONE thing. "Choose your Mac type" — two cards, nothing else. Massive empty space around them. The emptiness is intentional — it says "this is the only thing that matters right now." When a section tries to say 5 things, it says nothing.
+As of this writing it holds **Airbnb, Perena, Wispr Flow, Robinhood (mobile), Wise (mobile)**, with more coming (e.g. Grok). Before forming any opinion:
 
-**Headlines that command.** "Press the keyboard shortcut to use Flow." "Dictate 100 words, extend your trial a day." Not "Here you can learn about..." — DIRECT. Imperative mood. Tight leading. Big. Black. The headline IS the page.
+1. `ls` the folder and **open a representative sample across MULTIPLE subfolders** — not one. At least 3–4 different apps, 1–2 frames each.
+2. Notice what they have *in common* (that's the transferable DNA) and where they *differ* (that's proof there's no single right answer).
 
-**Split composition.** Content on the left, illustration/demo on the right. Not stacked vertically — side by side. The illustration gets 50%+ of the viewport. It's not decoration — it shows the product doing something (Slack conversation, person at desk). Context, not ornament.
+> ⚠️ **The anti-anchor rule.** No single app is "the template." Perena is warm/cream/centered; Airbnb is clean/white/two-column; Robinhood and Wise are dark with a bright accent; Wispr is a warm split-flow. They're all excellent and they contradict each other on surface choices. **Treat any one example as ONE data point, never as the rule.** If you catch yourself making everything cream because Perena is cream, stop — that's the failure this command exists to prevent. Pull the *principle*, then choose the surface treatment that fits *this* screen.
 
-**Black CTAs.** "Continue" buttons are full-width, black, pill-shaped. Not brand-purple, not gradient. Black on cream. Maximum contrast. Unmissable. The CTA is the heaviest element on the page.
+---
 
-**Conversational microcopy.** "Let's get the right version for your computer." "Trying this flow thing out. Let's see if I like it." Human warmth in 10 words. No corporate speak. No "please select your preferred option."
+## The transferable DNA (app-agnostic — these hold across every example)
 
-**Illustrations with personality.** The person at the desk has a specific posture, specific clothes, specific energy. The person juggling envelopes is in motion. These aren't stock — they're characters. They make you feel something.
+These are the things that are true whether the screen is warm, white, or dark. This is what "study the references" should leave you with:
 
-**Warm beige everywhere.** Not white. Not gray. A warm cream/beige (#f5f0eb) that says "welcome." The warmth IS the brand. White would feel clinical. Gray would feel corporate.
+- **One focal point.** Each screen has a single thing the eye lands on first — a number, a card, a headline. Everything else is clearly secondary. When a section tries to say five things, it says nothing.
+- **Headlines that command.** Big, tight leading, imperative/conversational. "Open your accounts." "Welcome TJ! A few questions to get started." The headline *is* the page — not "Eligibility Information."
+- **Proof is scannable, never paragraphs.** A 3-up row works when each item is a *number or 2–3 words* (Robinhood: `4.25% · $2.5M · $0`). The same 3-up fails as three sentences. If you keep value props, compress them to label-scale.
+- **Intentional composition.** Rarely everything-stacked-at-one-width. Split layouts (action left, support/visual right — Wispr, Airbnb), or a single hero number that dominates (Perena, Wise). Pick a composition; don't default to a vertical list.
+- **One accent, used sparingly.** Whether it's Robinhood gold, Perena purple, or Olera teal — interactive emphasis is *one* color, not three.
+- **A single high-contrast CTA.** Black on light, bright on dark — the heaviest, most unmissable element. Pinned or prominent. Never a polite, forgettable link.
+- **Atmosphere = confidence.** Every example has a deliberate ground: warm cream, clean white, or rich dark — chosen, not accidental. Plus restraint: generous space, soft elevation, nothing sharp or loud.
+- **Human microcopy.** Conversational, short, warm. "Here's what you'll need," not "Required Documentation List."
+- **Motion with restraint.** Gentle entrances, 150–250ms transitions, alive-but-calm. Nothing bouncy or attention-grabbing for its own sake.
 
-**One dark moment per screen.** The notification card ("You earned an extra free day") — dark background, small, with an illustration inside. Not a full-width band. A CARD-sized dark moment. Precious, not loud.
+## Choosing the surface treatment for THIS screen
 
-**Stats as quiet confidence.** Dashboard sidebar: "12.2K total words | 121 again | 5 day streak" — prominent but not screaming. The numbers are big enough to read at a glance. No charts, no graphs. Just the number and a quiet label.
+The DNA above is fixed; the *aesthetic* is a choice. Decide it from the screen's job and the closest-fitting reference — not from habit:
 
-### Perena — what makes it feel trustworthy
+- **Background:** warm cream (welcoming, editorial — Perena/Wispr) vs. clean white (transactional clarity — Airbnb) vs. confident dark (focused, premium, data-forward — Robinhood/Wise). Match the *mood the task wants*.
+- **Composition:** split flow for "pick options + continue"; single hero number when a number is the message; centered single card for one focused action.
+- **Accent:** one color. In the Olera repo, the brand palette is teal (`#96c8c8` / `primary-*`) + warm amber (`#e9bd91`) on vanilla/warm neutrals — use it *when warmth fits*, but don't force warmth onto a screen that wants crisp white or focused dark.
 
-Perena's power comes from ZEN-LEVEL SIMPLICITY combined with ATMOSPHERIC WARMTH.
-
-**Numbers as heroes.** "$3.999" takes up half the viewport. MASSIVE serif number. Everything else — tabs, table, buttons — is secondary. The number IS the product. When you have a key number, make it the biggest thing on the page.
-
-**Atmospheric background texture.** Soft photographic/painterly texture behind the content — not a flat color, not a CSS gradient. Organic depth. Like looking through frosted glass at a warm landscape. Gives soul without competing with content.
-
-**One card, one action.** The convert page: one white card, one input field, one button. The buy page: one card, one amount field, one "Buy USD*" button. Minimal to the point of confidence. "We don't need to explain — just do the thing."
-
-**Trust through restraint.** For a financial product, showing LESS is MORE trustworthy. The same applies to senior benefits. A page with 20 elements says "we're trying to convince you." A page with 3 elements says "we're confident in what we have."
-
-**Purple as the singular accent.** One color for interactive elements. Consistent, sparse. Not teal AND amber AND emerald. One.
-
-**Soft elevation.** Cards float on the cream background with barely-there shadows. Elevated but gentle. Nothing sharp, nothing aggressive.
+Name the chosen treatment explicitly in your plan ("white, two-column, teal accent — Airbnb-leaning, because this is a transactional flow") so the choice is deliberate and reviewable.
 
 ---
 
@@ -60,207 +53,134 @@ Perena's power comes from ZEN-LEVEL SIMPLICITY combined with ATMOSPHERIC WARMTH.
 
 ### 1. Simplicity & Boldness (most important)
 
-The page should hit you. Not with noise — with clarity.
+The page should hit you — not with noise, with clarity.
 
 **Text that pops:**
-- Headlines should COMMAND. Big, black, tight leading. Imperative mood. "Do you qualify?" not "Eligibility Information"
+- Headlines COMMAND. Big, tight leading, imperative/conversational. One strong statement beats three weak ones.
 - Kill filler microcopy. If the content is self-explanatory, the label is noise.
-- Numbers should be HEROES. "$2,901/month" pulled out, big, prominent — not buried in a paragraph.
-- One strong statement > three weak ones. Edit ruthlessly.
-- Conversational tone. "Here's what you'll need" not "Required Documentation List"
+- Numbers are HEROES. Pull the key number out big; don't bury it in prose.
 
 **Visual boldness:**
-- Hierarchy obvious from 5 feet away. Squint test.
-- ONE thing per section. Not three things crowded together.
-- Whitespace is boldness. Cramped = timid. Empty space = confidence.
-- Black CTAs for primary actions. Maximum contrast. Unmissable.
-- Contrast between sections — not everything at the same visual volume.
+- Hierarchy obvious from 5 feet away (squint test).
+- ONE thing per section. Whitespace is boldness — cramped reads as timid.
+- One high-contrast CTA. Contrast *between* sections — not everything at one visual volume.
 
 **Simplicity:**
-- Count the visual elements. Can you kill 30%?
-- Every border, badge, label, icon — does it help the user DECIDE or ACT?
-- Reduce nesting. Cards inside cards = visual bureaucracy.
-- If two things say the same thing, keep one.
-- Trust through restraint — fewer elements = more confidence.
+- Count the elements. Can you cut 30%? Cards inside cards = visual bureaucracy.
+- Every border, badge, label, icon: does it help the user DECIDE or ACT? If not, cut it.
+- Trust through restraint — fewer elements read as more confidence.
 
 ### 2. Character & Style
 
-Once it's bold and simple, give it soul.
+Once it's bold and simple, give it soul — *in the chosen aesthetic*, not a fixed one.
 
-**Warmth:**
-- Warm backgrounds (vanilla/cream, not white). White is clinical. Warmth says welcome.
-- Organic shapes over geometric. Rounded corners, soft shadows, hand-drawn paths.
-- Teal (#96c8c8) + warm amber (#e9bd91) as accents, always subtle.
+- **Atmosphere** appropriate to the screen (warm / white / dark), with soft elevation and rounded, non-aggressive shapes.
+- **Personality:** one organic or characterful element per scroll-height (a hand-drawn underline, a textured ground, a real illustration with specificity — not a generic icon). Bold scale shifts between sections.
+- **Composition:** split layouts where they fit; quiet stat moments; at most one "dark/loud moment" per screen, card-sized, not a full-width band — *unless* the whole screen's chosen ground is dark.
+- **Alive interactions:** hover/focus that shifts shadow/scale/border, not just color.
 
-**Personality:**
-- One organic SVG element per scroll-height (underline, blob, divider). Enough to say "a human designed this."
-- Bold scale shifts — jump from text-sm to display-md between sections.
-- Illustrations with SPECIFICITY — not generic icons. Characters, scenes, context.
-- Hover states that feel alive — not just color swap. Shadow shift, gentle scale, border warmth.
-
-**Composition:**
-- Split layouts where possible (content left, visual right) instead of everything stacked.
-- Stats as quiet sidebar moments — big number, small label, no chart.
-- One dark card-sized moment (not full-width band) for the most important single fact.
-
-**What character is NOT:**
-- Decoration for decoration's sake
-- Excessive organic elements on every section
-- "Quirky" at the expense of clarity
-- More elements with less personality each
+**What character is NOT:** decoration for its own sake; quirk at the expense of clarity; five organic elements where one would do; importing another app's palette wholesale.
 
 ---
 
 ## Process
 
-### Step 1: Study the References
+### Step 1: Study the references
+Open 3–4 frames across *different* subfolders (see top). Notice the space, the element count, how the headline hits — and how the apps *differ*, so you don't anchor on one.
 
-Before touching code, open 2-3 screenshots from the design inspiration folders. Let the energy soak in. Notice the SPACE. Notice how few elements are on each screen. Notice how the headlines hit.
+### Step 2: Read the component
+Read the actual code. Understand the data, what's conditional, what's interactive, what states exist.
 
-### Step 2: Read the Component
-
-Read the actual code. Understand what data flows in, what's conditional, what's interactive.
-
-### Step 3: The 5-Second Audit
-
-Look at the screenshot and answer:
+### Step 3: The 5-second audit
 1. **What draws the eye?** Is it the right thing?
-2. **What's the hierarchy?** Can you tell in 3 seconds what this page IS?
-3. **What's redundant?** Same info shown twice? Labels restating the obvious?
-4. **Where's the dead air?** Same bg, same width, same weight — no visual variety?
-5. **What would Wispr Flow cut?** If this were a Wispr Flow screen, which 60% would disappear?
+2. **What's the hierarchy?** Can you tell in 3 seconds what this screen IS?
+3. **What's redundant?** Same info twice? Labels restating the obvious?
+4. **Where's the dead air?** Same bg, width, weight everywhere — no variety?
+5. **What would the leanest reference cut?** Which 40–60% would disappear?
 
-### Step 4: Surgical Edits (max 8)
+### Step 4: Name the direction (decide, don't list)
+State the chosen surface treatment (background / composition / accent) and *why*, tied to the screen's job and the closest reference. One direction — no option menus.
 
-Pick up to 8 specific changes. Prioritize by impact.
+### Step 5: Surgical edits (max 8)
+Pick up to 8 specific changes, prioritized by impact, across: typography, layout, spacing, component density, tone/microcopy, motion.
 
-**Typography punches:**
-- Bump key headlines to display scale. Tight leading. Black. Imperative.
-- Kill unnecessary labels — if content is self-explanatory, the label is noise
-- Pull key numbers OUT of prose into standalone moments (big number, quiet label)
-- Make microcopy conversational. "Here's what you'll need" not "Required Documents"
-
-**Layout punches:**
-- Add breathing room (py-16 between major sections, not py-8)
-- Width variation — break monotony
-- Background shifts between zones (vanilla-200, white, cream)
-- Try split composition — content left, visual right — instead of stacked
-
-**Visual punches:**
-- Black primary CTAs. Not brand-colored. Black.
-- ONE organic element per scroll-height (hand-drawn underline, wavy divider, accent blob)
-- Warm background — replace white with vanilla/cream where possible
-- Kill visual noise: unnecessary borders, redundant icons, badge soup
-
-### Step 5: Implement
-
-Make the changes. Build. Verify.
-
-### Step 6: Before/After Check
-
-For each change, state:
-- **Before:** what it looked like and why it was flat
-- **After:** what changed and why it's better
-- **Principle:** which lens (simplicity, boldness, or character)
+### Step 6: Implement, then before/after
+Build. Verify (typecheck/build). For each change state: **Before** (why it was flat) → **After** (what changed) → **Principle** (which lens).
 
 ---
 
-## Painting Outside the Lines — The Implementation Toolkit
+## Implementation toolkit — creating rhythm, killing monotony
 
-The principles above tell you WHAT to fix. This section tells you HOW — the concrete moves that create visual rhythm and prevent the "same-width same-background same-weight" monotony that makes pages feel like templates.
+The principles say WHAT; this says HOW. A page that uses one max-width, one background, one text weight for every section is a wall — people bounce off walls. Make each section deliberately differ from the last so scrolling feels like progression.
 
-### The Core Idea
-
-A page that uses the same max-width, same background, and same text weight for every section is a wall. People don't read walls — they bounce. "Painting outside the lines" means each section deliberately differs from the one before it: width, background, density, visual treatment. The page CHANGES SHAPE as you scroll. That shape change is what makes scrolling feel like progression, not repetition.
-
-### Width Variation (this IS painting outside the lines)
-
-Don't set one `max-w-3xl` and stick with it. Vary width by content purpose:
+### Width variation
 
 | Content type | Width | Why |
 |---|---|---|
-| Focused prose | `max-w-2xl` | Readable line length, intimate |
-| Interactive tools (tables, checklists, forms) | `max-w-3xl` | Tools need space to breathe |
-| Hero / stat moments | `max-w-4xl` | Commands attention through scale |
-| Maps, grids, visual layouts | `max-w-5xl` | Spatial content needs room |
-| Dark band / full-bleed moment | `max-w-none` | Scroll-stopping break |
+| Focused prose | `max-w-2xl` | readable line length, intimate |
+| Interactive tools (tables, forms, checklists) | `max-w-3xl` | tools need room |
+| Hero / stat moments | `max-w-4xl` | scale commands attention |
+| Maps, grids, spatial layouts | `max-w-5xl` | spatial content needs space |
+| Full-bleed / loud moment | `max-w-none` | a scroll-stopping break |
 
-The width change between sections IS the visual interest. When you go from `max-w-2xl` prose to a `max-w-4xl` stat moment back to `max-w-2xl`, the page breathes.
+The width *change* between sections is itself the visual interest.
 
-### Background Shifts Between Zones
+### Background / zone shifts (in the chosen aesthetic)
+Alternate grounds so zones don't bleed together — *within the palette you picked*. Warm scheme: vanilla base, white floating cards, one bold moment. White scheme: white base, faint-gray or tinted zones, white cards with hairline borders. Dark scheme: rich base, slightly-lighter elevated cards, the accent for emphasis. The move is the same (shift the ground between zones); the colors follow the chosen treatment.
 
-Alternate between these to prevent content zones from bleeding together:
+### Typography scale shifts
+Bold pages jump dramatically between sizes — uniform sizing is monotony.
 
-| Zone feel | Treatment |
+| Element | Scale |
 |---|---|
-| Default content | `bg-vanilla-100` (the warm cream base) |
-| Active/interactive zone | `bg-vanilla-200/30` or `bg-vanilla-200/40` |
-| Floating card/tool | `bg-white` with `border border-gray-200 rounded-2xl` |
-| Bold moment | `bg-gray-900` with white text (use sparingly — one per page) |
-| Warm/inviting zone (contact, CTA) | `bg-vanilla-200/60` or `bg-primary-50/40` |
+| Page title | `display-sm` / `display-md` (the biggest thing) |
+| Section heading | `text-2xl` / `text-3xl` |
+| Section label (eyebrow) | `text-xs uppercase tracking-wide` |
+| Body | `text-base` / `text-lg` |
+| Quiet metadata | `text-sm text-gray-500` |
+| Hero number | `display-xs` / `display-sm` |
 
-### Organic Visual Elements (the "human designed this" signals)
-
-Use these SPARINGLY — one per scroll-height. They're scanning aids, not decoration.
-
-- **Hand-drawn underline** on a key headline — organic SVG path, teal, slightly imperfect. Says "this word matters."
-- **Wavy dividers** between major zones — `<svg>` stroke path, not `<hr>`. Signals "new chapter." Only between the 2-3 biggest zone transitions, not between every section.
-- **Organic blob illustrations** — teal (#96c8c8) + warm amber (#e9bd91) at 8-12% opacity, positioned absolutely. Atmospheric, not literal.
-- **Floating dots/circles** — tiny SVG circles near organic shapes. 3-5px, low opacity. The "a human designed this" detail.
-
-### Typography Scale Shifts
-
-Bold pages have DRAMATIC jumps between text sizes:
-
-| Element | Scale | Notes |
-|---|---|---|
-| Page title | `display-sm` / `display-md` | Serif. The biggest thing on the page. |
-| Section heading | `text-2xl` / `text-3xl` | Serif. Marks a zone transition. |
-| Section label (above heading) | `text-xs uppercase tracking-wide` | Quiet, structural. "ELIGIBILITY DETAILS" |
-| Body prose | `text-base` / `text-lg` | Readable, not cramped. |
-| Quiet metadata | `text-sm text-gray-500` | Dates, sources, footnotes. |
-| Hero number | `display-xs` / `display-sm` | Serif. When a number IS the message. |
-
-The jump from `text-xs` label to `text-3xl` heading to `text-lg` body creates rhythm. Uniform sizing creates monotony.
-
-### Section Spacing
-
+### Section spacing
 | Transition | Spacing |
 |---|---|
-| Between major zones (eligibility → apply) | `mb-16` (64px) minimum |
-| Between items within a zone | `space-y-10` (40px) |
-| Between sibling elements (label → content) | `mb-3` (12px) |
-| After a wavy divider | `my-16` (64px each side) |
+| Between major zones | `mb-16` (64px) min |
+| Between items in a zone | `space-y-10` |
+| Label → content | `mb-3` |
 
-Generous spacing = confidence. Cramped spacing = anxiety.
+Generous spacing reads as confidence; cramped reads as anxiety.
+
+### Organic / characterful elements (sparingly — one per scroll-height)
+Used as scanning aids, not decoration: a hand-drawn underline on the key word; a wavy divider only between the 1–2 biggest zone transitions; a textured/atmospheric ground; an illustration with real specificity. One is personality; five is a craft fair.
 
 ---
 
-## Quick Reference: Common Punches
+## Quick reference: common punches
 
 | Symptom | Punch | Principle |
-|---------|-------|-----------|
-| Headline doesn't command | Display scale, black, tight leading, imperative mood | Boldness |
-| Key number buried in text | Extract to standalone hero moment (big serif, quiet label) | Simplicity + Boldness |
-| Section bleeds into next | Background shift, wavy divider, or double the spacing | Boldness |
-| Too many badges/pills/labels | Kill the ones that restate the obvious | Simplicity |
-| CTA is polite and forgettable | Black, full-width or near-full, pill-shaped. Unmissable. | Boldness |
-| Everything stacked vertically | Try split composition (content left, visual right) | Character |
-| Interactive element feels flat | Focus ring, hover shadow+scale, transition 200ms | Character |
-| Page feels template-y | One organic SVG element (underline, blob, divider) | Character |
-| White background everywhere | Warm cream/vanilla. White is clinical. | Character |
+|---|---|---|
+| Headline doesn't command | Display scale, tight leading, imperative | Boldness |
+| Key number buried in text | Extract to a standalone hero moment | Simplicity + Boldness |
+| Section bleeds into next | Shift the ground, add a divider, or double the spacing | Boldness |
+| Too many badges/pills/labels | Kill the ones restating the obvious | Simplicity |
+| Value props as paragraphs | Compress to a label-scale 3-up (number/2–3 words) | Simplicity |
+| CTA is polite and forgettable | One high-contrast CTA, pinned/prominent | Boldness |
+| Everything stacked vertically | Split composition (action left, support/visual right) | Character |
+| Flat interaction | Focus ring + hover shadow/scale, 150–250ms | Character |
+| Page feels template-y | One characterful element + a deliberate ground | Character |
+| One undifferentiated background | Shift zones — in the chosen aesthetic, not a default one | Boldness |
 | Everything same width | Break one section wider or narrower | Boldness |
-| 5+ things competing for attention | Cut to 2. Restraint = confidence. | Simplicity |
-| Corporate microcopy | Conversational. "Here's what you need" not "Required Items" | Character |
+| 5+ things competing | Cut to 2. Restraint = confidence. | Simplicity |
+| Corporate microcopy | Make it conversational | Character |
 
 ---
 
-## Anti-Patterns
+## Anti-patterns
 
+- **Don't anchor on one example.** No single app is the template. Derive the principle, choose the surface treatment for *this* screen. (This is the #1 failure mode.)
+- **Don't default to a fixed aesthetic.** Warm cream is not always right; neither is white or dark. Choose deliberately from the screen's job.
 - **Don't add features.** This is sharpening, not building. No new sections, no new data.
 - **Don't add copy.** Punch means LESS text, not more.
-- **Don't over-decorate.** One organic element per scroll-height. Two is personality, five is a craft fair.
+- **Don't over-decorate.** One characterful element per scroll-height. Two is personality; five is a craft fair.
 - **Don't sacrifice clarity for style.** If the bold version is harder to understand, revert.
-- **Don't use white backgrounds.** Default to warm cream/vanilla unless there's a reason for white (cards that float on cream).
-- **Don't make polite CTAs.** "Continue" not "Click here to proceed." Black, bold, direct.
+- **Don't make polite CTAs.** Direct, high-contrast, unmissable.
 - **Don't ignore mobile.** Bold on desktop, broken on mobile = not bold.

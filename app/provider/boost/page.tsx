@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ManagedAdsPitch from "@/components/provider/ManagedAdsPitch";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import type {
   AdBoostEligibility,
@@ -176,37 +175,38 @@ export default function ProviderBoostPage() {
   // the marketing and get them to the next action.
   const committed = openRequest || pendingRequest;
 
+  // Committed states (queued / live) keep the focused single-column treatment.
+  // The apply state is the one the redesign targets: a two-column flow — action
+  // spine on the left, a live "your campaign" summary on the right (Airbnb-style
+  // transactional split), so the eye runs headline → pick → confirm with one
+  // resting point, instead of stacked pitch-then-form sections.
+  if (committed) {
+    return (
+      <Shell>
+        <div className="mt-2">
+          {openRequest ? (
+            <CampaignInMotion request={openRequest} delivered={state.delivered} />
+          ) : (
+            <PendingProfile request={pendingRequest!} eligibility={state.eligibility} />
+          )}
+        </div>
+      </Shell>
+    );
+  }
+
   return (
     <Shell>
-      {/* The pitch (headline + marquee + pillars) — shown only while we're still
-          selling it (the apply form). Once they've queued or launched, they've
-          bought in; skip the marketing. The picker follows, so no CTA here. */}
-      {!committed && <ManagedAdsPitch />}
-
-      {/* ── Body: one of four states ── */}
-      <div className="mt-12">
-        {openRequest ? (
-          <CampaignInMotion request={openRequest} delivered={state.delivered} />
-        ) : pendingRequest ? (
-          // Standing order queued under 70% — the completion path, reframed as
-          // "one step left to launch the campaign you already set up."
-          <PendingProfile request={pendingRequest} eligibility={state.eligibility} />
-        ) : (
-          // No request yet — EVERYONE can pick a week + channel (the "taste"),
-          // eligible or not. Sub-70% submits queue as pending_profile.
-          <ApplyForm
-            eligible={state.eligibility.eligible}
-            weekOptions={weekOptions}
-            selectedWeek={selectedWeek}
-            setSelectedWeek={setSelectedWeek}
-            channel={channel}
-            setChannel={setChannel}
-            submitting={submitting}
-            submitError={submitError}
-            onSubmit={submit}
-          />
-        )}
-      </div>
+      <ApplyExperience
+        eligible={state.eligibility.eligible}
+        weekOptions={weekOptions}
+        selectedWeek={selectedWeek}
+        setSelectedWeek={setSelectedWeek}
+        channel={channel}
+        setChannel={setChannel}
+        submitting={submitting}
+        submitError={submitError}
+        onSubmit={submit}
+      />
     </Shell>
   );
 }
@@ -395,7 +395,30 @@ function MissingRow({ section }: { section: AdBoostMissingSection }) {
   );
 }
 
-function ApplyForm({
+/** The three reasons managed ads beat any DIY/agency alternative — compressed
+ *  to label-scale (icon + 2–3 words + a short tail), a scannable proof list, NOT
+ *  the old competing 3-column paragraph grid. Lives in the support column. */
+const VALUE_PROPS = [
+  { title: "Targeted where families look", tail: "Search, social, and neighborhood feeds." },
+  { title: "Powered by your market", tail: "Aimed at the high-demand ZIPs we map for you." },
+  { title: "You do nothing", tail: "No ad account, no keywords, no agency." },
+];
+
+/**
+ * The apply experience — two-column transactional split (Airbnb-leaning):
+ *
+ *   LEFT  (action spine):   one headline → pick a week → pick a channel → black
+ *                           CTA. The eye runs straight down to the one button.
+ *   RIGHT (support, sticky): a live "Your campaign" summary that fills in as they
+ *                           choose (anticipates the next step, confirms choices),
+ *                           with the value props as quiet proof beneath it.
+ *
+ * Clean white ground + one elevated summary card + teal as the single accent —
+ * deliberately not a warm/cream treatment; this is a focused transaction, not an
+ * editorial pitch. On mobile the columns stack and a one-line confirmation sits
+ * right above the CTA so the summary still pays off without a sticky card.
+ */
+function ApplyExperience({
   eligible,
   weekOptions,
   selectedWeek,
@@ -418,99 +441,174 @@ function ApplyForm({
   submitError: string | null;
   onSubmit: () => void;
 }) {
+  const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
+  const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
+
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-center gap-2.5 mb-1">
-        <CheckIcon className="w-5 h-5 text-primary-600" />
-        <span className="text-sm font-semibold text-primary-700">
-          {eligible ? "Your profile is ready" : "Set up your campaign"}
-        </span>
-      </div>
-      <h2 className="text-2xl font-display font-semibold text-gray-900 mt-2">
-        Pick a week to get set up.
-      </h2>
-      <p className="text-gray-500 mt-3 leading-relaxed">
-        {eligible
-          ? "Choose when you'd like us to launch. We'll build and run the campaign, then send the families it brings in straight to your dashboard."
-          : "Choose your week now — we'll lock it in and launch the moment your profile's ready for the families we send. Most providers finish in a few minutes."}
-      </p>
+    <div className="grid lg:grid-cols-[1fr_360px] gap-10 lg:gap-16 items-start">
+      {/* ─────────── LEFT: action spine ─────────── */}
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+          Managed Ads
+        </p>
+        <h1 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.6rem)] text-gray-900 leading-[1.1] tracking-tight">
+          Reach families<br />
+          <span className="text-primary-600 italic">already searching for care</span>.
+        </h1>
+        <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
+          We run the ads where families are already looking — and send every one of
+          them straight to your Olera page.
+        </p>
 
-      {/* Week picker */}
-      <fieldset className="mt-8">
-        <legend className="text-sm font-medium text-gray-900 mb-3">Setup week</legend>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {weekOptions.map((w) => {
-            const active = selectedWeek === w.value;
-            return (
-              <button
-                key={w.value}
-                type="button"
-                onClick={() => setSelectedWeek(w.value)}
-                className={`rounded-xl border px-3 py-3 text-sm font-medium transition-all ${
-                  active
-                    ? "border-primary-500 bg-primary-50/60 text-primary-700"
-                    : "border-gray-200 text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {w.label}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
+        {/* Week picker */}
+        <fieldset className="mt-10">
+          <legend className="text-sm font-medium text-gray-900 mb-3">Pick your week</legend>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {weekOptions.map((w) => {
+              const active = selectedWeek === w.value;
+              return (
+                <button
+                  key={w.value}
+                  type="button"
+                  onClick={() => setSelectedWeek(w.value)}
+                  className={`rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
+                    active
+                      ? "border-primary-500 bg-primary-50/60 text-primary-700"
+                      : "border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {w.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
-      {/* Channel preference */}
-      <fieldset className="mt-7">
-        <legend className="text-sm font-medium text-gray-900 mb-3">
-          Where should we advertise?
-        </legend>
-        <div className="flex flex-wrap gap-2.5">
-          {CHANNELS.map((c) => {
-            const active = channel === c.value;
-            return (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setChannel(c.value)}
-                className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                  active
-                    ? "border-primary-500 bg-primary-50/60 text-primary-700"
-                    : "border-gray-200 text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {c.label}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
+        {/* Channel preference */}
+        <fieldset className="mt-7">
+          <legend className="text-sm font-medium text-gray-900 mb-3">
+            Where we advertise
+          </legend>
+          <div className="flex flex-wrap gap-2.5">
+            {CHANNELS.map((c) => {
+              const active = channel === c.value;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setChannel(c.value)}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
+                    active
+                      ? "border-primary-500 bg-primary-50/60 text-primary-700"
+                      : "border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
-      {submitError && (
-        <p className="mt-6 text-sm text-red-600">{submitError}</p>
-      )}
-
-      <button
-        type="button"
-        disabled={!selectedWeek || submitting}
-        onClick={onSubmit}
-        className="inline-flex items-center gap-2.5 mt-8 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
-      >
-        {submitting
-          ? "Sending…"
-          : eligible
-            ? "Request my campaign"
-            : "Queue my campaign"}
-        {!submitting && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
+        {/* Mobile-only live confirmation — the summary card is desktop-only, so
+            this single dynamic line gives the same payoff above the CTA. */}
+        {selectedWeek && (
+          <p className="lg:hidden mt-8 text-sm text-gray-500">
+            {eligible ? "Launching" : "Queuing"} the week of{" "}
+            <span className="font-medium text-gray-900">{weekLabel}</span> · {channelLabel}
+          </p>
         )}
-      </button>
-      <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
-        {eligible
-          ? "No charge yet — we'll confirm pricing and your ad budget with you before anything goes live."
-          : "No charge to queue, and no charge until we confirm pricing and your ad budget with you before launch."}
+
+        {submitError && <p className="mt-6 text-sm text-red-600">{submitError}</p>}
+
+        <button
+          type="button"
+          disabled={!selectedWeek || submitting}
+          onClick={onSubmit}
+          className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+        >
+          {submitting ? "Sending…" : eligible ? "Request my campaign" : "Queue my campaign"}
+          {!submitting && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          )}
+        </button>
+        <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
+          {eligible
+            ? "No charge yet — we'll confirm pricing and your ad budget with you before anything goes live."
+            : "No charge to queue, and none until we confirm pricing and your ad budget with you before launch."}
+        </p>
+      </div>
+
+      {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
+      <aside className="lg:sticky lg:top-12 space-y-6">
+        <CampaignSummary
+          eligible={eligible}
+          weekLabel={weekLabel}
+          channelLabel={channelLabel}
+        />
+
+        {/* Value props — quiet, scannable proof. Not a competing grid. */}
+        <ul className="space-y-3.5 px-1">
+          {VALUE_PROPS.map((p) => (
+            <li key={p.title} className="flex gap-2.5">
+              <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
+              <span className="text-sm leading-snug">
+                <span className="font-medium text-gray-900">{p.title}</span>
+                <span className="text-gray-500"> — {p.tail}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  );
+}
+
+/** The live "Your campaign" card — fills in as the provider picks. The single
+ *  resting point of the page; updates make the choices feel real before commit. */
+function CampaignSummary({
+  eligible,
+  weekLabel,
+  channelLabel,
+}: {
+  eligible: boolean;
+  weekLabel: string | null;
+  channelLabel: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
+        Your campaign
       </p>
+
+      <dl className="mt-4 space-y-3.5">
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-sm text-gray-500">Launch</dt>
+          <dd className={`text-sm font-medium text-right ${weekLabel ? "text-gray-900" : "text-gray-300"}`}>
+            {weekLabel ?? "Pick a week"}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-sm text-gray-500">Advertising on</dt>
+          <dd className="text-sm font-medium text-gray-900 text-right">{channelLabel}</dd>
+        </div>
+      </dl>
+
+      <div className="mt-5 pt-5 border-t border-gray-100">
+        {eligible ? (
+          <p className="flex items-center gap-2 text-sm text-primary-700">
+            <CheckIcon className="w-4 h-4 shrink-0" />
+            Ready to launch when you confirm.
+          </p>
+        ) : (
+          <p className="text-sm text-gray-500 leading-relaxed">
+            We&apos;ll <span className="font-medium text-gray-900">queue it now</span> and launch
+            the moment your profile&apos;s ready for the families we send.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -520,7 +618,7 @@ function ApplyForm({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 lg:pt-16 pb-24">
         {children}
       </div>
     </div>

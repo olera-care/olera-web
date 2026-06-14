@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  GoogleLogo,
-  FacebookLogo,
-  InstagramLogo,
-  YoutubeLogo,
-  XLogo,
-} from "@phosphor-icons/react";
+import PlatformMarquee from "@/components/provider/PlatformMarquee";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
@@ -17,61 +11,6 @@ import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
  * "you do nothing" pillars, with an optional CTA (Find Families passes one that
  * links to /provider/boost; the boost page omits it because the picker follows).
  */
-
-const PLATFORMS: { name: string; Icon: React.ComponentType<{ className?: string }> }[] = [
-  { name: "Google", Icon: GoogleLogo },
-  { name: "Facebook", Icon: FacebookLogo },
-  { name: "Instagram", Icon: InstagramLogo },
-  { name: "Nextdoor", Icon: NextdoorGlyph },
-  { name: "YouTube", Icon: YoutubeLogo },
-  { name: "X", Icon: XLogo },
-];
-
-const MARQUEE_CSS = `
-@keyframes boost-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.boost-marquee-track { animation: boost-marquee 28s linear infinite; }
-.boost-marquee-track:hover { animation-play-state: paused; }
-@media (prefers-reduced-motion: reduce) { .boost-marquee-track { animation: none; } }
-`;
-
-const MARQUEE_FADE =
-  "linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)";
-
-/** Phosphor has no Nextdoor logo — a simple monochrome house reads the same. */
-function NextdoorGlyph({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 256 256" fill="currentColor" aria-hidden>
-      <path d="M128 36 L228 124 H196 V220 H60 V124 H28 Z" />
-    </svg>
-  );
-}
-
-/** Auto-scrolling strip of the platforms we advertise on — "wherever families look." */
-function PlatformMarquee() {
-  const items = [...PLATFORMS, ...PLATFORMS];
-  return (
-    <div
-      className="mt-10 overflow-hidden"
-      style={{ maskImage: MARQUEE_FADE, WebkitMaskImage: MARQUEE_FADE }}
-    >
-      <style dangerouslySetInnerHTML={{ __html: MARQUEE_CSS }} />
-      {/* Each pill carries its own trailing margin (mr-3) rather than a flex
-          `gap`, so the two duplicated copies total exactly 2× one copy's width
-          and the translateX(-50%) loop is seamless (no half-gap jump). */}
-      <div className="boost-marquee-track flex w-max items-center">
-        {items.map((p, i) => (
-          <span
-            key={i}
-            className="mr-3 inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200/80 px-4 py-2 text-gray-600"
-          >
-            <p.Icon className="h-[18px] w-[18px]" />
-            <span className="text-sm font-medium">{p.name}</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /** The three reasons this is different from every DIY/agency alternative. */
 function ValuePillars() {

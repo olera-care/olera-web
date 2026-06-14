@@ -451,7 +451,7 @@ function ApplyExperience({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
           Managed Ads
         </p>
-        <h1 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.6rem)] text-gray-900 leading-[1.1] tracking-tight">
+        <h1 className="mt-3 font-display font-bold text-[clamp(1.9rem,4vw,2.6rem)] text-gray-900 leading-[1.1] tracking-tight">
           Reach families<br />
           <span className="text-primary-600 italic">already searching for care</span>.
         </h1>

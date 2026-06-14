@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-06-14 — Provider funnel instrumentation + Managed Ads in the banner/digest system (branch `provider-funnel-instrumentation`, off staging, NOT yet PR'd→ now PR'd)
+
+Built on top of the merged IA rework (PR #1050). Three layers this session:
+
+**1. Funnel instrumentation** (mirrors the old Find Families measurement: event → provider_activity → Activity Center + Slack). Migration `105_managed_ads_and_your_market_events.sql` adds 5 event types (managed_ads_cta_clicked/boost_viewed/requested, your_market_viewed, your_market_playbook_clicked) — **APPLIED to Supabase (probed the live CHECK, all accepted)**. Shared `lib/analytics/track-provider-event.ts` (keepalive). Wired into 6 surfaces (BoostCard, ManagedAdsPitch, ManagedAdsCTA, boost page, /provider/market, playbook). 4 new Slack builders. Relabeled `market_diagnostic_viewed_no_leads` → "Saw the managed-ads pitch"; new Activity Center "Growth" category. Allowlist synced across migration/app(`PROVIDER_EVENT_TYPES`)/admin(`PROVIDER_ACTION_EVENT_TYPES`)/categories/labels.
+
+**2. Hero banner integration** (`DashboardHero.tsx` `resolveHook`): for the empty-handed ~99% (no leads/questions/nearby family), Managed Ads is now the **primary fallback** (the one lever that generates demand), shown regardless of completeness — the 70% gate on /provider/boost turns ads-desire into a completion pull. Completion + market-intel rotate in (~1/3 visits); ≥10-views+gap still leads with completion. Hero ads click fires managed_ads_cta_clicked{source:hero} (Slack dedup'd).
+
+**3. Weekly digest variant** (`providerManagedAdsEmail` + the cron): leads the no-leads cohort with the managed-ads email (action="ads" magic link → /provider/boost). Priority: question→leads→cold_rank→MANAGED ADS→completion→market_rank→weekly. Weekly rotation (~2 of 3 weeks) to avoid olera.care fatigue. Registered in admin automations (label/order/conversion=managed_ads_boost_viewed) + the **email-preview picker** (Admin→Automations→digest job→"Managed ads"). Telemetry: added managedAdsCount; fixed completionCount to count off `variant` not URL presence.
+
+**Copy (final, after deep iteration with TJ):** banners DIRECT action, don't pitch Olera. Winner = **"Reach families already searching for care."** + "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up." + **"Get started"** CTA. Applied to all 3 surfaces.
+
+**Test setup:** moved test account **Aggie Home Care** (`db312b06…`) College Station,TX → **Boise, ID** (0 nearby families) so the managed-ads hero banner shows. Reversible — original: College Station, TX (30.5852, -96.2959). It has 0 connections/questions, so nothing deleted. (Shared prod instance — restore when done testing.)
+
+**Pre-test:** ran twice, caught + fixed 2 telemetry bugs (digest completionCount miscount; missing managed_ads in buildBannerPreviews) + a Slack-copy relabel. Full tsc clean (symlinked node_modules). **NOT browser/email-tested** — preview the email via the admin picker + dry-run the digest (this week is managed-ads-active).
+
+**Next:** browser QA on staging-preview (hero banner on Aggie/Boise, the event→Activity Center "Growth"+Slack loop, /provider/market, digest dry-run + email preview). Restore Aggie to College Station after. Then merge to staging.
+
 ### 2026-06-13 — Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — PLANNED
 
 Explored + planned TJ's "Sri Lanka" idea: Olera runs paid **external** ads (Google/Meta) on a provider's behalf → families land on the provider's Door B intake. Providers pay. Profile must clear a completeness threshold first; "select next week" = concierge setup window. Exploration killed the two objections: external ads make their own demand (no empty-theater) and we never touch internal browse ranking (no collision with the resolved no-pay-to-win-rank decision). Dropped the "not enough families" scarcity message at TJ's direction.

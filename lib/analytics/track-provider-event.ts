@@ -18,6 +18,9 @@ export function trackProviderEvent(
   fetch("/api/activity/track", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    // keepalive so the POST survives the navigation that a CTA click triggers
+    // (these events fire as the provider clicks a Link toward another route).
+    keepalive: true,
     body: JSON.stringify({
       actor_type: "provider",
       provider_id: providerId,

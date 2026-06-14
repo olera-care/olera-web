@@ -500,14 +500,19 @@ export async function POST(request: NextRequest) {
     // is only for the Activity Center.
     if (event_type === "managed_ads_cta_clicked") {
       try {
-        const { sendSlackAlert, slackManagedAdsCtaClicked } = await import("@/lib/slack");
         const meta = (metadata as Record<string, unknown>) || {};
-        const alert = slackManagedAdsCtaClicked({
-          providerName: (meta.provider_name as string) || provider_id,
-          providerSlug: provider_id,
-          source: (meta.source as string) || "unknown",
-        });
-        await sendSlackAlert(alert.text, alert.blocks);
+        // Hero-origin clicks already ping via slackHeroCtaClicked (provider_picker_clicked
+        // {source:hero}); skip the duplicate here. The event still records for the
+        // unified managed-ads funnel.
+        if (meta.source !== "hero") {
+          const { sendSlackAlert, slackManagedAdsCtaClicked } = await import("@/lib/slack");
+          const alert = slackManagedAdsCtaClicked({
+            providerName: (meta.provider_name as string) || provider_id,
+            providerSlug: provider_id,
+            source: (meta.source as string) || "unknown",
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        }
       } catch {
         // Non-critical — activity already logged
       }

@@ -12,6 +12,7 @@ import {
   type NudgeSectionId,
   type NextAction,
 } from "@/lib/next-best-action";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -284,6 +285,14 @@ export default function DashboardHero({
       ...(cta.engagementTier ? { tier: cta.engagementTier } : {}),
       destination: cta.href,
     });
+    // Also feed the managed-ads funnel so hero-origin shows up alongside the
+    // dashboard-card / Find Families sources (the boost page reads source).
+    if (bannerId === "managed_ads") {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: firstName,
+        source: "hero",
+      });
+    }
   };
 
   return (
@@ -542,6 +551,23 @@ function marketIntelHook(): Hook {
   };
 }
 
+/** Managed Ads banner — the primary cold-tier nudge. The ~99% have no local
+ *  families surfacing organically; managed ads is the one lever that GENERATES
+ *  demand (external paid acquisition), so it leads the empty-handed fallback.
+ *  Shown regardless of completeness — the 70% eligibility gate lives on
+ *  /provider/boost, which routes thin profiles to "finish these to unlock," so
+ *  the ads desire pulls providers into completing. */
+function managedAdsHook(): Hook {
+  return {
+    bannerId: "managed_ads",
+    headline: "Want more families? We'll run the ads.",
+    subline:
+      "We run targeted ads on Google, Meta & Nextdoor and send local families straight to your Olera page — no ad accounts, no agencies, you don't lift a finger.",
+    cta: { label: "See managed ads", href: "/provider/boost" },
+    imageUrl: TIER_LEADS_IMAGE,
+  };
+}
+
 function resolveHook(
   data: ProviderDashboardV2Data,
   completeness: ProfileCompleteness,
@@ -579,26 +605,31 @@ function resolveHook(
   // closer to converting and the gap is the higher-leverage fix). With a
   // complete profile, there's nothing to fix, so pull them toward Find Families
   // market intel instead of the old no-CTA filler.
-  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
-    if (next) return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  // Priority 5 — meaningful traffic (≥10 views) with a completion gap. They
+  // already have eyeballs arriving organically, so plugging the profile leak
+  // converts traffic they ALREADY have — higher leverage than paying for more.
+  // No rotation here; this is the strongest activation moment. (Complete + this
+  // much traffic falls through to the managed-ads default below.)
+  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD && next) {
+    return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  }
+
+  // Priorities 6-7 — the cold, empty-handed majority (~99%): no leads, no
+  // questions, no nearby family, sparse traffic. Managed Ads leads here — it's
+  // the one lever that GENERATES demand (external paid acquisition) rather than
+  // waiting on an empty local funnel, so it's the KPI move for this cohort.
+  // Shown regardless of completeness: the 70% gate lives on /provider/boost,
+  // which turns the ads desire into a profile-completion pull.
+  //
+  // Every ROTATE_EVERY-th visit we rotate to a secondary so neither the
+  // activation nudge nor the market insight is lost — alternating completion
+  // (when there's a gap) and the market read across rotations.
+  if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
+    const altCompletion = Math.floor(rotationCount / ROTATE_EVERY) % 2 === 0;
+    if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();
   }
-
-  // Priority 6 — sparse traffic AND a completion gap. Cold provider: completion
-  // is the default (a blank profile won't convert a family even if one shows
-  // up), but every ROTATE_EVERY-th visit we rotate in Find Families market
-  // intel so the capability surfaces early and repeatedly without letting
-  // profile completion collapse.
-  if (next) {
-    if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) return marketIntelHook();
-    return coldCompletionHook(next);
-  }
-
-  // Priority 7 — sparse traffic AND fully complete. Profile is dialed in and
-  // there's no nearby seeker yet, so the most useful evergreen nudge is the
-  // market read — surface the Find Families capability rather than a static
-  // "your page is live" reassurance.
-  return marketIntelHook();
+  return managedAdsHook();
 }
 
 /** One previewable banner: the stable id (matches the leaderboard) + the hook

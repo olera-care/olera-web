@@ -53,8 +53,8 @@ function getActionRedirectUrl(
       case "settings":
         return "/account/settings";
       case "market":
-        // Cold/quiet rank email ("See where you rank") → the Find Families market view.
-        return "/provider/matches";
+        // Cold/quiet rank email ("See where you rank") → the Your Market diagnostic.
+        return "/provider/market";
       case "leads":
         // Weekly lead-recap email → the Find Families connections inbox.
         return "/provider/connections";

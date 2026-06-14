@@ -43,6 +43,14 @@ Typecheck note: worktree has no node_modules; tsc was run by copying files into 
 
 **Remaining before merge:** (1) browser QA click-through (typecheck only so far; client components can throw at runtime); (2) Pro-page "Priority Search Placement" copy still promises internal pay-to-rank — TJ deferred the fix, but it now contradicts the live ads product; (3) PR to staging. Optional polish: sessionStorage first-touch UTM persistence (currently same-page capture only).
 
+### 2026-06-14 — Provider IA rework: Find Families (leads) vs Your Market (intel) [commit 4a076858]
+
+Reorganized the overloaded `/provider/matches` (which forked gated market-intel vs ungated marketplace via the marketGate flag). Plan: `plans/provider-find-families-ia-rework-plan.md`. Decisions (TJ): no-leads FF = managed-ads pitch; managed ads lives in FF (boost = deeper setup); has-leads = nearby ~50mi → cards + slim "even more" banner below; ship to everyone, retire flag; tab name = "Your Market" (city dynamic in header).
+
+Built: new `/provider/market` route (lifted FindFamiliesMarketView) + "Your Market" nav tab; matches rewritten to two states (nearbySeekers>0 → marketplace + banner; else → ManagedAdsPitch); marketGate fork removed from matches (flag KEPT — AnalyticsTeaserCard still uses it); no-leads tracking event de-flagged + preserved (same name, no migration); extracted shared `ManagedAdsPitch` (hero+marquee+pillars, used by boost + no-leads FF) and `ManagedAdsCTA` (banner/empty, `tone` prop); registered /provider/market + /provider/boost in layout HUB_ROUTES + both Navbar provider-nav booleans.
+
+Verification: symlinked ~/Desktop/olera-web/node_modules into the worktree → full `tsc` clean except 4 known baseline missing-deps (@vercel/functions, @react-pdf/renderer, qrcode — newer than Desktop's install). NOT browser-tested yet. Next: /pre-test + QA the preview (FF two states, /provider/market, nav highlight, boost pitch parity).
+
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 
 Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.

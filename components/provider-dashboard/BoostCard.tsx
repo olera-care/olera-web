@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AD_BOOST_THRESHOLD } from "@/lib/ad-boost/eligibility";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
  * Dashboard entry point to Managed Ads (/provider/boost). Tied to profile
@@ -18,14 +19,27 @@ import { AD_BOOST_THRESHOLD } from "@/lib/ad-boost/eligibility";
 export default function BoostCard({
   completeness,
   compact = false,
+  providerSlug,
+  providerName,
 }: {
   completeness: number;
   compact?: boolean;
+  providerSlug?: string;
+  providerName?: string;
 }) {
   const ready = completeness >= AD_BOOST_THRESHOLD;
   const headline = ready
     ? "Your profile's ready — let us bring families to you."
     : "Want more families? We'll run the ads for you.";
+
+  const trackClick = () => {
+    if (providerSlug) {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: providerName,
+        source: "dashboard_card",
+      });
+    }
+  };
 
   const arrow = (
     <span className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white transition-transform group-hover:translate-x-0.5">
@@ -39,6 +53,7 @@ export default function BoostCard({
     return (
       <Link
         href="/provider/boost"
+        onClick={trackClick}
         className="group flex items-center justify-between gap-3 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-4 py-3.5 transition-colors hover:bg-primary-50/70"
       >
         <div className="min-w-0">
@@ -57,6 +72,7 @@ export default function BoostCard({
   return (
     <Link
       href="/provider/boost"
+      onClick={trackClick}
       className="group block rounded-2xl border border-primary-100/70 bg-primary-50/40 p-5 transition-colors hover:bg-primary-50/70"
     >
       <div className="flex items-center justify-between gap-4">

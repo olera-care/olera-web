@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
  * Managed Ads call-to-action → /provider/boost. Shared across the provider
@@ -15,15 +16,29 @@ import Link from "next/link";
 export default function ManagedAdsCTA({
   variant,
   tone = "default",
+  providerSlug,
+  providerName,
 }: {
   variant: "banner" | "empty";
   /** "more" reframes the banner for providers who already have a lead or two. */
   tone?: "default" | "more";
+  providerSlug?: string;
+  providerName?: string;
 }) {
+  const trackClick = () => {
+    if (providerSlug) {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: providerName,
+        source: "ff_banner",
+      });
+    }
+  };
+
   if (variant === "banner") {
     return (
       <Link
         href="/provider/boost"
+        onClick={trackClick}
         className="group flex items-center justify-between gap-3 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-4 py-3 transition-colors hover:bg-primary-50/70"
       >
         <p className="text-sm text-gray-700 leading-snug">
@@ -45,6 +60,7 @@ export default function ManagedAdsCTA({
   return (
     <Link
       href="/provider/boost"
+      onClick={trackClick}
       className="group mx-auto mb-8 block max-w-xl rounded-2xl border border-primary-100/70 bg-primary-50/50 p-5 text-left transition-colors hover:bg-primary-50/80"
     >
       <div className="flex items-center justify-between gap-4">

@@ -17,6 +17,7 @@ export type ProviderCategoryKey =
   | "questions"
   | "reviews"
   | "outbound"
+  | "growth"
   | "insights"
   | "flags";
 
@@ -98,18 +99,34 @@ export const PROVIDER_CATEGORIES: ProviderCategoryMeta[] = [
     key: "outbound",
     label: "Finding families",
     emoji: "📣",
-    blurb: "Used Find Families / Your Market to reach out",
+    blurb: "Browsed and reached out to families in Find Families",
     eventTypes: [
       "matches_page_viewed",
       "matches_card_clicked",
       "matches_message_generated",
       "matches_outreach_sent",
-      "market_diagnostic_viewed_no_leads",
-      "market_outreach_status_updated",
     ],
     tileActive: "border-indigo-300 bg-indigo-50",
     badge: "bg-indigo-50 text-indigo-700",
     dot: "bg-indigo-400",
+  },
+  {
+    key: "growth",
+    label: "Growing their business",
+    emoji: "📈",
+    blurb: "Saw the managed-ads pitch, viewed their market, worked the playbook",
+    eventTypes: [
+      "market_diagnostic_viewed_no_leads",
+      "market_outreach_status_updated",
+      "managed_ads_cta_clicked",
+      "managed_ads_boost_viewed",
+      "managed_ads_requested",
+      "your_market_viewed",
+      "your_market_playbook_clicked",
+    ],
+    tileActive: "border-fuchsia-300 bg-fuchsia-50",
+    badge: "bg-fuchsia-50 text-fuchsia-700",
+    dot: "bg-fuchsia-400",
   },
   {
     key: "insights",
@@ -192,8 +209,14 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   matches_card_clicked: "Viewed a family match",
   matches_message_generated: "Generated an outreach message",
   matches_outreach_sent: "Sent outreach to a family",
-  market_diagnostic_viewed_no_leads: "Viewed their market (no leads)",
+  // Growing their business
+  market_diagnostic_viewed_no_leads: "Saw the managed-ads pitch",
   market_outreach_status_updated: "Updated a market referral",
+  managed_ads_cta_clicked: "Tapped a managed-ads CTA",
+  managed_ads_boost_viewed: "Viewed the managed-ads page",
+  managed_ads_requested: "Requested a managed-ads campaign",
+  your_market_viewed: "Viewed Your Market",
+  your_market_playbook_clicked: "Tapped a Your Market playbook step",
   // Trust flags
   suspicious_claim: "Flagged claim attempt",
 };

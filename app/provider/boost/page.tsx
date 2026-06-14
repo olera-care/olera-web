@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ManagedAdsPitch from "@/components/provider/ManagedAdsPitch";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import type {
   AdBoostEligibility,
   AdBoostMissingSection,
@@ -87,6 +88,21 @@ export default function ProviderBoostPage() {
     fetchState();
   }, [fetchState, user?.id]);
 
+  // Fire one managed_ads_boost_viewed event per load, once state resolves —
+  // tags which funnel state they landed in (gate / apply / in_motion).
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (!state || hasTrackedView.current) return;
+    hasTrackedView.current = true;
+    const open = !!state.request && OPEN_STATUSES.includes(state.request.status);
+    const viewState = open ? "in_motion" : state.eligibility.eligible ? "apply" : "gate";
+    trackProviderEvent(state.provider.slug, "managed_ads_boost_viewed", {
+      provider_name: state.provider.displayName,
+      state: viewState,
+      completeness: state.eligibility.overall,
+    });
+  }, [state]);
+
   // Next four Mondays — "select next week to set up".
   const weekOptions = useMemo(() => nextMondays(4), []);
 
@@ -112,6 +128,13 @@ export default function ProviderBoostPage() {
         return;
       }
       setState((prev) => (prev ? { ...prev, request: json.request } : prev));
+      if (state) {
+        trackProviderEvent(state.provider.slug, "managed_ads_requested", {
+          provider_name: state.provider.displayName,
+          setup_week: selectedWeek,
+          channel,
+        });
+      }
     } catch {
       setSubmitError("Network error. Please try again.");
     } finally {

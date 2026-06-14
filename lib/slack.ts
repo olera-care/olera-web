@@ -540,6 +540,145 @@ export function slackMarketDiagnosticNoLeads(opts: {
   };
 }
 
+// ── Managed Ads funnel + Your Market alerts (migration 105) ──────
+// Real-time visibility into the reworked provider funnel: who's clicking
+// toward managed ads, who's viewing the boost page + their market. Mirrors
+// slackMarketDiagnosticNoLeads. The conversion (campaign requested) pings via
+// slackAdBoostRequested at the request route, not here.
+
+const ADS_CTA_SOURCE_LABELS: Record<string, string> = {
+  dashboard_card: "dashboard card",
+  ff_pitch: "Find Families pitch",
+  ff_banner: "Find Families banner",
+  your_market_playbook: "Your Market playbook",
+};
+
+/** 📣 Provider tapped a CTA toward managed ads (/provider/boost). */
+export function slackManagedAdsCtaClicked(opts: {
+  providerName: string;
+  providerSlug: string;
+  source: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const sourceLabel = ADS_CTA_SOURCE_LABELS[opts.source] || opts.source;
+  return {
+    text: `Managed Ads CTA: ${opts.providerName} — from ${sourceLabel}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📣 Provider Tapped Managed Ads", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*From:*\n${sourceLabel}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=managed_ads_cta_clicked|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 🚀 Provider viewed the managed-ads page (gate / picker / in-motion). */
+export function slackBoostViewed(opts: {
+  providerName: string;
+  providerSlug: string;
+  state: string;
+  completeness: number | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const stateLabel =
+    opts.state === "gate" ? "below completeness gate"
+    : opts.state === "apply" ? "eligible — picking a week"
+    : opts.state === "in_motion" ? "campaign in motion"
+    : opts.state;
+  const fields: { type: string; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*State:*\n${stateLabel}` },
+  ];
+  if (opts.completeness != null) {
+    fields.push({ type: "mrkdwn", text: `*Completeness:*\n${opts.completeness}%` });
+  }
+  return {
+    text: `Managed Ads page view: ${opts.providerName} — ${stateLabel}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "🚀 Provider Viewed Managed Ads", emoji: true } },
+      { type: "section", fields },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=managed_ads_boost_viewed|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 🏙️ Provider viewed their Your Market diagnostic. */
+export function slackYourMarketViewed(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  covered: boolean;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  return {
+    text: `Your Market view: ${opts.providerName} — ${where}${opts.covered ? "" : " (uncovered)"}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "🏙️ Provider Viewed Your Market", emoji: true } },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Market:*\n${where}${opts.covered ? "" : " _(not yet covered)_"}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=your_market_viewed|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 📋 Provider tapped a Your Market playbook step. */
+export function slackYourMarketPlaybookClicked(opts: {
+  providerName: string;
+  providerSlug: string;
+  item: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Your Market playbook: ${opts.providerName} — ${opts.item}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "📋 Provider Worked Their Playbook", emoji: true } },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Step:*\n${opts.item}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=your_market_playbook_clicked|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── Post-answer engagement chain alerts ──────────────────────────
 // These three fire across the redirect → hero → action flow that ships
 // providers from the question email into profile activation. Real-time

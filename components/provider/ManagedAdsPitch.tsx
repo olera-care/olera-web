@@ -8,6 +8,7 @@ import {
   YoutubeLogo,
   XLogo,
 } from "@phosphor-icons/react";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
  * The Managed Ads pitch — shared between the boost page (above the gate/picker)
@@ -103,10 +104,24 @@ function ValuePillars() {
 export default function ManagedAdsPitch({
   ctaHref,
   ctaLabel = "Get started",
+  providerSlug,
+  providerName,
 }: {
   ctaHref?: string;
   ctaLabel?: string;
+  /** When set (Find Families no-leads), the CTA click is tracked as a managed-ads CTA. */
+  providerSlug?: string;
+  providerName?: string;
 }) {
+  const trackCta = () => {
+    if (providerSlug) {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: providerName,
+        source: "ff_pitch",
+      });
+    }
+  };
+
   return (
     <div>
       <header className="max-w-2xl">
@@ -129,6 +144,7 @@ export default function ManagedAdsPitch({
       {ctaHref && (
         <Link
           href={ctaHref}
+          onClick={trackCta}
           className="inline-flex items-center gap-2.5 mt-10 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
         >
           {ctaLabel}

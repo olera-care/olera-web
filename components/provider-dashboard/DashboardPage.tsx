@@ -468,7 +468,12 @@ function DashboardContent({
               right sidebar under the completeness scorecard, but that column is
               desktop-only, so mobile gets a compact inline entry here. */}
           <div className="lg:hidden">
-            <BoostCard completeness={completeness.overall} compact />
+            <BoostCard
+              completeness={completeness.overall}
+              compact
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+            />
           </div>
 
           {/* Profile sections. On mobile they're a flat list: chromeless
@@ -576,7 +581,11 @@ function DashboardContent({
 
             {/* Managed Ads invite (desktop) — paired with the completeness card
                 above, since completion is the gate to running ads. */}
-            <BoostCard completeness={completeness.overall} />
+            <BoostCard
+              completeness={completeness.overall}
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+            />
           </div>
         </div>
       </div>

@@ -43,6 +43,7 @@ export default function YourMarketPage() {
       state={providerProfile.state || ""}
       category={careType}
       providerName={providerProfile.display_name || ""}
+      providerSlug={providerProfile.slug}
       providerPlaceId={providerPlaceId}
       providerSourceId={providerProfile.source_provider_id || undefined}
     />

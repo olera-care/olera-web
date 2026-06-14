@@ -1841,7 +1841,11 @@ export default function ProviderMatchesPage() {
     return (
       <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <ManagedAdsPitch ctaHref="/provider/boost" />
+          <ManagedAdsPitch
+            ctaHref="/provider/boost"
+            providerSlug={providerProfile.slug}
+            providerName={providerProfile.display_name}
+          />
         </div>
       </div>
     );
@@ -1990,7 +1994,12 @@ export default function ProviderMatchesPage() {
           {/* Managed Ads — secondary "get even more" nudge, below the leads so the
               real (rare) leads stay the focus. */}
           <div className="mt-6">
-            <ManagedAdsCTA variant="banner" tone="more" />
+            <ManagedAdsCTA
+              variant="banner"
+              tone="more"
+              providerSlug={providerProfile?.slug}
+              providerName={providerProfile?.display_name}
+            />
           </div>
         </div>
 

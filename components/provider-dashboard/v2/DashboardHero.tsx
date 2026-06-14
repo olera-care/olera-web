@@ -143,6 +143,10 @@ interface Props {
    *  bar can mirror exactly what the hero shows (same rotation, same tier).
    *  Null when the current tier carries no CTA (e.g. the view-spike moment). */
   onHeroAction?: (action: HeroAction | null) => void;
+  /** Reports the banner the hero resolved to this visit, so the dashboard can
+   *  suppress the redundant post-edit managed-ads nudge when the hero itself
+   *  is already showing the managed-ads banner. */
+  onBannerResolved?: (bannerId: string) => void;
 }
 
 /** The hero's chosen action, flattened for the mobile sticky bar to mirror. */
@@ -196,6 +200,7 @@ export default function DashboardHero({
   onOpenSection,
   providerSlug,
   onHeroAction,
+  onBannerResolved,
 }: Props) {
   // Per-browser visit counter, read once per mount (lazy init runs a single
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
@@ -242,6 +247,12 @@ export default function DashboardHero({
       ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
   }, [bannerId, sectionId, sectionWeight, providerSlug]);
+
+  // Tell the dashboard which banner won this visit, so it can suppress the
+  // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
+  useEffect(() => {
+    onBannerResolved?.(bannerId);
+  }, [bannerId, onBannerResolved]);
 
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
   // the bar mirrors EXACTLY the tier the hero landed on this visit — no

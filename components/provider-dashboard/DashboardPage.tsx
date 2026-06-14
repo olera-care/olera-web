@@ -238,8 +238,11 @@ function DashboardContent({
   const [previewMode, setPreviewMode] = useState(false);
 
   // Post-edit Managed Ads nudge: shown once per session after a profile save.
+  // Suppressed when the hero already resolved to the managed-ads banner this
+  // visit, so the two managed-ads prompts never stack on one screen.
   const [showEditNudge, setShowEditNudge] = useState(false);
   const editNudgeShownRef = useRef(false);
+  const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
 
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
@@ -440,6 +443,7 @@ function DashboardContent({
                 onOpenSection={setEditingSection}
                 providerSlug={profile.slug}
                 onHeroAction={setHeroAction}
+                onBannerResolved={setHeroBannerId}
               />
             </div>
           ) : (
@@ -449,8 +453,10 @@ function DashboardContent({
           )}
 
           {/* Post-edit Managed Ads nudge — fires once per session after a save,
-              not as an always-on card. The earned, high-intent moment. */}
-          {showEditNudge && (
+              not as an always-on card. The earned, high-intent moment. Hidden
+              when the hero already resolved to the managed-ads banner, so the
+              pitch never doubles on one screen. */}
+          {showEditNudge && heroBannerId !== "managed_ads" && (
             <PostEditAdsNudge
               providerSlug={profile.slug}
               providerName={profile.display_name}

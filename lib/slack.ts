@@ -517,11 +517,11 @@ export function slackMarketDiagnosticNoLeads(opts: {
     fields.push({ type: "mrkdwn", text: `*Email:*\n${opts.email}` });
   }
   return {
-    text: `Market view (no leads): ${opts.providerName} — ${where}`,
+    text: `Saw managed-ads pitch: ${opts.providerName} — ${where}`,
     blocks: [
       {
         type: "header",
-        text: { type: "plain_text", text: "🏙️ Provider Viewed Their Market (No Leads)", emoji: true },
+        text: { type: "plain_text", text: "📣 Provider Saw the Managed-Ads Pitch", emoji: true },
       },
       {
         type: "section",

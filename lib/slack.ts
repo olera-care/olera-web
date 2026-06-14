@@ -548,6 +548,7 @@ export function slackMarketDiagnosticNoLeads(opts: {
 
 const ADS_CTA_SOURCE_LABELS: Record<string, string> = {
   dashboard_card: "dashboard card",
+  post_edit: "post-edit nudge",
   ff_pitch: "Find Families pitch",
   ff_banner: "Find Families banner",
   your_market_playbook: "Your Market playbook",

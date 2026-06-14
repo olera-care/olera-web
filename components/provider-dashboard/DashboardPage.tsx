@@ -23,7 +23,7 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import VerificationStatusCard from "./VerificationStatusCard";
-import BoostCard from "./BoostCard";
+import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -237,6 +237,10 @@ function DashboardContent({
   // a gap opens that section's editor right over the preview.
   const [previewMode, setPreviewMode] = useState(false);
 
+  // Post-edit Managed Ads nudge: shown once per session after a profile save.
+  const [showEditNudge, setShowEditNudge] = useState(false);
+  const editNudgeShownRef = useRef(false);
+
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
 
@@ -290,18 +294,30 @@ function DashboardContent({
 
   const handleSaved = useCallback(async () => {
     await refreshAccountData();
+    let finishedEditing = false;
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);
       if (next) {
         setEditingSection(next);
       } else {
+        // Guided run fully complete — that's a finish too.
         setEditingSection(null);
         guided.stopGuided();
+        finishedEditing = true;
       }
     } else {
       setEditingSection(null);
+      finishedEditing = true;
     }
-  }, [refreshAccountData, guided, editingSection, setEditingSection]);
+    // Just-polished-my-page moment: surface the Managed Ads nudge once per
+    // session. Editing is the one in-app action the engaged minority takes, so
+    // it's the earned, high-intent time to pitch getting the page seen — vs an
+    // always-on sidebar fixture.
+    if (finishedEditing && !editNudgeShownRef.current && !previewMode) {
+      editNudgeShownRef.current = true;
+      setShowEditNudge(true);
+    }
+  }, [refreshAccountData, guided, editingSection, setEditingSection, previewMode]);
 
   const handleGuidedBack = useCallback(() => {
     if (editingSection) {
@@ -432,6 +448,16 @@ function DashboardContent({
             />
           )}
 
+          {/* Post-edit Managed Ads nudge — fires once per session after a save,
+              not as an always-on card. The earned, high-intent moment. */}
+          {showEditNudge && (
+            <PostEditAdsNudge
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              onDismiss={() => setShowEditNudge(false)}
+            />
+          )}
+
           {/* Mobile completeness + verification (lg:hidden) — these sit in the
               desktop sticky sidebar; on mobile they live here, just under the
               hero, so the flow reads: numbers → next action → your progress.
@@ -463,18 +489,6 @@ function DashboardContent({
               />
             </div>
           )}
-
-          {/* Managed Ads invite (mobile only) — the desktop entry lives in the
-              right sidebar under the completeness scorecard, but that column is
-              desktop-only, so mobile gets a compact inline entry here. */}
-          <div className="lg:hidden">
-            <BoostCard
-              completeness={completeness.overall}
-              compact
-              providerSlug={profile.slug}
-              providerName={profile.display_name}
-            />
-          </div>
 
           {/* Profile sections. On mobile they're a flat list: chromeless
               sections separated by hairlines (divide-y) + whitespace — the
@@ -577,14 +591,6 @@ function DashboardContent({
               completeness={completeness}
               defaultExpanded={completeness.overall < 30}
               lastUpdated={profile.updated_at}
-            />
-
-            {/* Managed Ads invite (desktop) — paired with the completeness card
-                above, since completion is the gate to running ads. */}
-            <BoostCard
-              completeness={completeness.overall}
-              providerSlug={profile.slug}
-              providerName={profile.display_name}
             />
           </div>
         </div>

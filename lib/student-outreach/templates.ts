@@ -424,7 +424,7 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
 export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: ``,
-    body: `Bumping this note about a paid opportunity for your pre-health students.`,
+    body: `Bumping this note about a pre-health caregiving internship for your students.`,
   };
 }
 
@@ -432,15 +432,15 @@ export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
  *  the portal link appears; flyer linked for context; meeting is the CTA. */
 export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `Information on the pre-health student program`,
+    subject: `More on the pre-health caregiving internship`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Here is more on the program for your pre-health students. We place ${PLACEHOLDER.campus} pre-health students in paid caregiving roles with local families and agencies. They earn $10 to $15 per hour, build healthcare experience for med, PA, and nursing school, and work around their class schedule. We handle the matching, training, and support.`,
+      `Here is a bit more on the internship pilot. Dr. DuBose places pre-health students with older adults in the community as caregivers. Interns earn paid healthcare experience, a credential, and references for their med, PA, and nursing school applications, on a schedule that works around their classes. We handle the matching, training, and support.`,
       ``,
-      `The attached flyer has the details: [student flyer](${PLACEHOLDER.programPdf}). You can also see the full program here: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+      `The attached overview has the details: [overview](${PLACEHOLDER.programPdf}).`,
       ``,
-      `Once you've looked it over, Dr. DuBose would value a short meeting: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+      `If you are interested, take a look at our website and reply to let me know. Interested advisors will get more details and can meet directly with Dr. DuBose to discuss partnering.`,
     ].join("\n"),
   };
 }
@@ -448,13 +448,13 @@ export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 4 — short, standalone nudge. */
 export function advisorNudgeEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `A paid opportunity for your pre-health students`,
+    subject: `A pre-health caregiving internship for your students`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We have room for more ${PLACEHOLDER.campus} pre-health students this semester. They earn $10 to $15 per hour building healthcare experience around their classes.`,
+      `We have room for more ${PLACEHOLDER.campus} pre-health students in the caregiving internship this semester. Interns earn paid healthcare experience and a credential for their applications, around their classes.`,
       ``,
-      `If you would like to learn more, Dr. DuBose is glad to meet: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+      `If you are interested, take a look at our website and reply to let me know. Interested advisors will get more details and can meet directly with Dr. DuBose to discuss partnering.`,
     ].join("\n"),
   };
 }
@@ -466,7 +466,7 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We would still love to support your ${PLACEHOLDER.campus} pre-health students. If the timing is better later, we will check back before next semester. Anytime, just reply or grab a time: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+      `We would still love to support your ${PLACEHOLDER.campus} pre-health students through the caregiving internship. If the timing is better later, we will check back before next semester. Anytime, take a look at our website and reply, and Dr. DuBose is glad to connect.`,
     ].join("\n"),
   };
 }
@@ -479,18 +479,18 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
 export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: ``,
-    body: `Bumping this note about a paid healthcare opportunity for your members.`,
+    body: `Bumping this note about a paid caregiving internship for your members.`,
   };
 }
 
 /** Touch 3 — follow-up (paired with the Day-6 call when a phone exists). */
 export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `A paid opportunity for your members`,
+    subject: `A paid caregiving internship for your members`,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We place pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule.`,
+      `Dr. DuBose is piloting a caregiving internship that places pre-health students with older adults: paid healthcare experience, a credential, and references for med, PA, and nursing applications, around their class schedule.`,
       ``,
       `Easy ways to share with your members:`,
       `- Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) for your group chat.`,
@@ -508,7 +508,7 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Glad to help your members get paid healthcare experience this semester. Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) to share, and Dr. DuBose is happy to speak at a meeting anytime.`,
+      `Glad to help your members get into the caregiving internship this semester. Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) to share, and Dr. DuBose is happy to speak at a meeting anytime.`,
       ``,
       `Just let me know. Thanks!`,
     ].join("\n"),
@@ -523,22 +523,20 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
 export function deptHeadBumpEmail(_ctx: TemplateContext): EmailDraft {
   return {
     subject: ``,
-    body: `Bumping this note about a paid healthcare opportunity for your pre-health students.`,
+    body: `Bumping this note about a pre-health caregiving internship for your students.`,
   };
 }
 
 /** Touch 3 — full standalone follow-up (paired with the Day-6 call). */
 export function deptHeadFollowupEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `A paid opportunity for your pre-health students`,
+    subject: `A pre-health caregiving internship for your students`,
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
-      `I am a research assistant working with Dr. Logan DuBose, reaching out about an opportunity for your department's pre-health students. We run a program that places pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule. The [flyer](${PLACEHOLDER.programPdf}) is attached so you can see what it offers your students.`,
+      `I am a research assistant working with Dr. Logan DuBose, reaching out about a caregiving internship for your department's pre-health students. Dr. DuBose places pre-health students with older adults in the community: paid healthcare experience, a credential, and references for med, PA, and nursing applications, around their class schedule. The [overview](${PLACEHOLDER.programPdf}) is attached so you can see what it offers your students.`,
       ``,
-      `If you are open to it, Dr. DuBose and I would love to connect to introduce the program and see if we could collaborate. I am also glad to answer any questions or discuss ways to partner to spread the word to your students.`,
-      ``,
-      `Please let me know if you are interested in connecting, or if there is a good time for a Zoom call.`,
+      `If you are interested, take a look at our website and reply to let me know. Interested departments will get more details and can meet directly with Dr. DuBose to discuss collaborating.`,
     ].join("\n"),
   };
 }
@@ -550,9 +548,9 @@ export function deptHeadCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
-      `If supporting your pre-health students with paid healthcare experience would be useful, Dr. DuBose and I would be glad to connect, now or next semester. The [flyer](${PLACEHOLDER.programPdf}) is attached if it would help to share with your students.`,
+      `If the caregiving internship would be useful for your pre-health students, Dr. DuBose and I would be glad to connect, now or next semester. The [overview](${PLACEHOLDER.programPdf}) is attached if it would help.`,
       ``,
-      `Please let me know anytime if you are interested.`,
+      `If you are interested, take a look at our website and reply anytime.`,
     ].join("\n"),
   };
 }

@@ -342,7 +342,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "activation") {
     // Activation cadence has a single check-in call. Reference the link we
     // already sent and offer the meeting as the easy alternative.
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the link to view the {campus_name} students near you and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through getting set up?"`;
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the link to get set up to host {campus_name} interns and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through getting started?"`;
   }
   if (type === "provider") {
     if (day === 0) {
@@ -396,7 +396,7 @@ export function defaultCallTipsForDay(type: CadenceKey, day: number): string[] {
       return [
         "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
         "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Reference today's email from Graize and Olera's {campus_name} Student Caregiver Program.",
+        "Leave a voicemail if unavailable. Reference today's email from Graize and Olera's {campus_name} pre-health caregiving internship.",
         "Offer to resend the information packet if useful.",
       ];
     }

@@ -261,7 +261,7 @@ export function coldProviderRankEmail(opts: {
   outOf: number;
   cityLabel: string;
   careLabel: string;      // "home care" | "assisted living"
-  ctaUrl: string;         // one-click market magic link (auth → /provider/matches)
+  ctaUrl: string;         // one-click market magic link (auth → /provider/market)
   manageUrl: string;
   removeUrl: string;
   unsubscribeUrl: string;
@@ -2951,7 +2951,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
     : lead;
   const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your market" : "See your full analytics";
   const ctaUrl = m
-    ? (opts.marketUrl || `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
+    ? (opts.marketUrl || `${BASE_URL}/provider/market?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
     : dashboardUrl;
   const referralRows = r?.targets.slice(0, 3).map((target) => {
     const distance = target.distanceMiles == null ? "" : ` · ${Number(target.distanceMiles).toFixed(1)} mi`;

@@ -23,6 +23,7 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import VerificationStatusCard from "./VerificationStatusCard";
+import BoostCard from "./BoostCard";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -463,6 +464,13 @@ function DashboardContent({
             </div>
           )}
 
+          {/* Managed Ads invite (mobile only) — the desktop entry lives in the
+              right sidebar under the completeness scorecard, but that column is
+              desktop-only, so mobile gets a compact inline entry here. */}
+          <div className="lg:hidden">
+            <BoostCard completeness={completeness.overall} compact />
+          </div>
+
           {/* Profile sections. On mobile they're a flat list: chromeless
               sections separated by hairlines (divide-y) + whitespace — the
               narrow screen is the container. On desktop they're carded with
@@ -565,6 +573,10 @@ function DashboardContent({
               defaultExpanded={completeness.overall < 30}
               lastUpdated={profile.updated_at}
             />
+
+            {/* Managed Ads invite (desktop) — paired with the completeness card
+                above, since completion is the gate to running ads. */}
+            <BoostCard completeness={completeness.overall} />
           </div>
         </div>
       </div>

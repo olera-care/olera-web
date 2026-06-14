@@ -92,13 +92,14 @@ const ALL_HERO_IMAGES: readonly string[] = [
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
-// Find Families lives at /provider/matches (the market diagnostic + any pinned
-// real seekers). Two banners point here: the hot "family near you" tier (a real
-// nearby published seeker) and the cold "market intel" tier (no seeker yet, so
-// the value is the demand read, not a roster). Reuse existing hero imagery —
-// the leads photo (someone reaching out) for the live-family case, the spike
-// photo (upward momentum) for the market read — so no new assets ship.
+// Find Families (/provider/matches) is now leads-only: the hot "family near you"
+// tier links here to the lead cards. The cold "market intel" tier instead links
+// to Your Market (/provider/market) — the demand/competition diagnostic, which
+// split out into its own tab. Reuse existing hero imagery — the leads photo
+// (someone reaching out) for the live-family case, the spike photo (upward
+// momentum) for the market read — so no new assets ship.
 const FIND_FAMILIES_HREF = "/provider/matches";
+const MARKET_HREF = "/provider/market";
 const FIND_FAMILIES_LIVE_IMAGE = TIER_LEADS_IMAGE;
 const MARKET_INTEL_IMAGE = TIER_SPIKE_IMAGE;
 
@@ -536,7 +537,7 @@ function marketIntelHook(): Hook {
     headline: "See who's searching in your market",
     subline:
       "Olera tracks the families looking for care near you — explore your local demand and where you stand against nearby providers.",
-    cta: { label: "Explore your market", href: FIND_FAMILIES_HREF },
+    cta: { label: "Explore your market", href: MARKET_HREF },
     imageUrl: MARKET_INTEL_IMAGE,
   };
 }

@@ -7,6 +7,50 @@
 
 ## Current Focus
 
+### 2026-06-13 — Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — PLANNED
+
+Explored + planned TJ's "Sri Lanka" idea: Olera runs paid **external** ads (Google/Meta) on a provider's behalf → families land on the provider's Door B intake. Providers pay. Profile must clear a completeness threshold first; "select next week" = concierge setup window. Exploration killed the two objections: external ads make their own demand (no empty-theater) and we never touch internal browse ranking (no collision with the resolved no-pay-to-win-rank decision). Dropped the "not enough families" scarcity message at TJ's direction.
+
+Plan: **`plans/provider-paid-ad-boost-plan.md`**. Concierge v1 = thin request→schedule→measure rails, NOT an ad-platform integration. Payment out-of-band (Stripe inert). Reuses: `calculateProfileCompleteness` (`lib/profile-completeness.ts:217`), Door B `BenefitsDiscoveryModule`, `connections/request`, `seeker_activity`, `lib/analytics/referrer`. Existing `app/provider/pro/page.tsx` promises off-strategy "Priority Search Placement" (internal rank) — must reframe to external ads. This is the paid evolution of the Comfort Keepers lead-gen ask + the market-diagnostic engine.
+
+**Decisions locked (TJ 2026-06-13):** threshold 70% · dedicated `ad_campaign_requests` table · provider-facing ROI (build it) · provider-agnostic (no CK hardcoding).
+
+**Phase 1 backend SHIPPED (typechecked clean, uncommitted):**
+- `lib/ad-boost/eligibility.ts` — pure evaluator (`evaluateAdBoostEligibility`, `AD_BOOST_THRESHOLD=70`, missing-sections sorted by weight w/ edit deep-links).
+- `lib/ad-boost/eligibility.server.ts` — authoritative loader; resolves provider profile + assembles reviews/response-rate like the dashboard endpoint, returns eligibility.
+- `supabase/migrations/104_ad_campaign_requests.sql` — TEXT+CHECK status, RLS service-role-only. **NOT YET APPLIED — ops step.**
+- `app/api/provider/ad-boost/request/route.ts` — POST (server-gated at 70%, validates setup week, blocks dup open requests, inserts, awaits Slack) + GET (eligibility + latest request).
+- `slackAdBoostRequested` builder in `lib/slack.ts`.
+
+Typecheck note: worktree has no node_modules; tsc was run by copying files into ~/Desktop/olera-web (then cleaned up). No ad-boost/slack errors.
+
+**Phase 1 UI SHIPPED:** new `app/provider/boost/page.tsx` (TJ chose a dedicated page; `/provider/pro` left as-is, its off-strategy "Priority Search Placement" copy NOT touched per his call). Three states — gate (<70%, missing sections deep-linked), apply (≥70%, next-4-Mondays picker + Google/Meta/Both channel + submit), in-motion (open request). Reads authoritative state from GET /api/provider/ad-boost/request. Typechecked clean.
+
+**PHASE 1 COMPLETE + LIVE-READY.**
+- Migration 104 APPLIED to Supabase (TJ, 2026-06-13).
+- Entry point wired: `components/provider-dashboard/BoostCard.tsx` — completeness-aware CTA on the dashboard left column (mobile+desktop, hidden in preview). TJ chose dashboard CTA over global nav.
+- `/provider/boost` registered in `app/provider/layout.tsx` HUB_ROUTES (auth-gated).
+
+**Phase 1 committed:** `3e9e6953`.
+
+**PHASE 2 COMPLETE (committed next):**
+- Admin queue: `app/admin/ad-boost/page.tsx` + `app/api/admin/ad-boost/route.ts` (GET list + POST status/tag/note edits, auto campaign_tag=id on go-live). Linked in AdminSidebar (Operations → Ad Boost). Per-row copy-ready UTM landing URL.
+- Attribution: CORRECTION — Door B → `/api/benefits/save-results` (not connections/request = Door A). Wired UTM via `lib/ad-boost/utm.ts` (`readUtmParams` reads window.location.search, no Suspense) → both BenefitsDiscoveryModule variants pass utmSource/utmCampaign → save-results persists into the `benefits_completed` seeker_activity metadata. Same event Phase 3 ROI reads. Limitation: same-page capture only (no first-touch persistence).
+
+**PHASE 3 COMPLETE (committed next):** `lib/ad-boost/delivered.server.ts` counts benefits_completed seeker_activity scoped to utm_source=olera_managed, grouped by utm_campaign. Admin queue shows "N delivered" pill per request; provider /provider/boost in-motion state shows "N families reached out so far" (live + delivered>0) linking to leads; provider GET returns `delivered`.
+
+**ALL 3 PHASES DONE.** Phase 1 `3e9e6953`, Phase 2 `c4780660`, Phase 3 = next commit.
+
+**Remaining before merge:** (1) browser QA click-through (typecheck only so far; client components can throw at runtime); (2) Pro-page "Priority Search Placement" copy still promises internal pay-to-rank — TJ deferred the fix, but it now contradicts the live ads product; (3) PR to staging. Optional polish: sessionStorage first-touch UTM persistence (currently same-page capture only).
+
+### 2026-06-14 — Provider IA rework: Find Families (leads) vs Your Market (intel) [commit 4a076858]
+
+Reorganized the overloaded `/provider/matches` (which forked gated market-intel vs ungated marketplace via the marketGate flag). Plan: `plans/provider-find-families-ia-rework-plan.md`. Decisions (TJ): no-leads FF = managed-ads pitch; managed ads lives in FF (boost = deeper setup); has-leads = nearby ~50mi → cards + slim "even more" banner below; ship to everyone, retire flag; tab name = "Your Market" (city dynamic in header).
+
+Built: new `/provider/market` route (lifted FindFamiliesMarketView) + "Your Market" nav tab; matches rewritten to two states (nearbySeekers>0 → marketplace + banner; else → ManagedAdsPitch); marketGate fork removed from matches (flag KEPT — AnalyticsTeaserCard still uses it); no-leads tracking event de-flagged + preserved (same name, no migration); extracted shared `ManagedAdsPitch` (hero+marquee+pillars, used by boost + no-leads FF) and `ManagedAdsCTA` (banner/empty, `tone` prop); registered /provider/market + /provider/boost in layout HUB_ROUTES + both Navbar provider-nav booleans.
+
+Verification: symlinked ~/Desktop/olera-web/node_modules into the worktree → full `tsc` clean except 4 known baseline missing-deps (@vercel/functions, @react-pdf/renderer, qrcode — newer than Desktop's install). NOT browser-tested yet. Next: /pre-test + QA the preview (FF two states, /provider/market, nav highlight, boost pitch parity).
+
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 
 Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.

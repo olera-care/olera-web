@@ -143,15 +143,15 @@ export function generateNotificationUrl(
  *
  * @param providerSlug - Provider's slug or ID
  * @param email - Provider's email for token generation
- * @param destination - Portal destination: "manage" (dashboard), "settings", "market", or "leads"
- *   ("market" lands on the Find Families market-intelligence / rank view after one-click auth;
- *   "leads" lands on the Find Families connections inbox — the weekly lead-recap CTA)
+ * @param destination - Portal destination: "manage" (dashboard), "settings", "market", "leads", or "ads"
+ *   ("market" lands on the Your Market diagnostic; "leads" lands on the Find Families
+ *   connections inbox; "ads" lands on /provider/boost — the managed-ads pitch + setup)
  * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
  */
 export function generateProviderPortalUrl(
   providerSlug: string,
   email: string,
-  destination: "manage" | "settings" | "market" | "leads",
+  destination: "manage" | "settings" | "market" | "leads" | "ads",
   baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
 ): string {
   const token = generateClaimToken(providerSlug, email);

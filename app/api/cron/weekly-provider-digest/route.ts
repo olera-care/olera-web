@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
@@ -912,6 +912,17 @@ export async function GET(request: NextRequest) {
           )
         : null;
       const marketUrl = generateProviderPortalUrl(providerSlug, bp.email, "market");
+      const adsUrl = generateProviderPortalUrl(providerSlug, bp.email, "ads");
+      // Managed Ads leads the no-leads cohort (mirrors the dashboard hero — it's
+      // the one lever that GENERATES demand vs. waiting on an empty local funnel).
+      // Below real inbound (question/lead) and below the trust-forward cold
+      // first-contact (pitching ads to a stranger who's never heard of us is a
+      // bad first hello). Rotated weekly: ~1 in 3 weeks it yields to their market
+      // read / completion nudge so we don't send the identical pitch every week
+      // (olera.care deliverability — ads-pitch fatigue). Week-based, synchronized.
+      const adsRotationWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 3 === 0;
+      const useManagedAds =
+        !unansweredQuestion && !leadsUrl && !isColdFirstContact && !adsRotationWeek;
       const html = isColdFirstContact
         ? coldProviderRankEmail({
             rank: marketRank!.rank,
@@ -932,6 +943,13 @@ export async function GET(request: NextRequest) {
             ctaUrl: leadsUrl,
             manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
             unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
+          })
+        : useManagedAds
+        ? providerManagedAdsEmail({
+            providerName: displayName,
+            providerSlug,
+            ctaUrl: adsUrl,
+            city: bp.city,
           })
         : completionUrl
         ? providerProfileCompletionEmail({
@@ -967,6 +985,8 @@ export async function GET(request: NextRequest) {
         ? bucket.leads > 1
           ? `${bucket.leads} families reached out about ${displayName} this week`
           : `A family reached out about ${displayName} this week`
+        : useManagedAds
+        ? `More families for ${displayName} — we'll run the ads`
         : completionUrl
         ? `See what families see on ${displayName}`
         : isColdFirstContact
@@ -996,13 +1016,15 @@ export async function GET(request: NextRequest) {
           ? "leads"
           : isColdFirstContact
             ? "cold_rank"
-            : completionUrl
-              ? "completion"
-              : referralTeaser
-                ? "referral_teaser"
-              : marketRank
-                ? "market_rank"
-                : "weekly_digest";
+            : useManagedAds
+              ? "managed_ads"
+              : completionUrl
+                ? "completion"
+                : referralTeaser
+                  ? "referral_teaser"
+                : marketRank
+                  ? "market_rank"
+                  : "weekly_digest";
       const variantMeta = { variant, ledWithRank: !!marketRank };
 
       if (dryRun) {

@@ -302,59 +302,50 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
 
   switch (stakeholder_type) {
     case "student_org":
-      // Org leaders move fast and share natively. Lead with the opportunity +
-      // partner status, make sharing one tap (flyer + the org's application
-      // link), and offer Dr. DuBose as a speaker. No portal in the cold email.
+      // Pilot-as-internship. Lead with the opportunity for members + partner
+      // status, make sharing one tap (flyer + the org's application link), and
+      // offer Dr. DuBose as a speaker.
       return {
-        subject: `Paid healthcare experience for your members`,
+        subject: `A paid caregiving internship for your members`,
         body: [
           greeting,
           ``,
-          `I work with Dr. Logan DuBose, MD, MBA (Texas A&M College of Medicine, NIH-funded). We run a program that places pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule.`,
+          `I work with Dr. Logan DuBose, a physician and NIH-funded researcher who is piloting a structured caregiving internship for pre-health students. Interns provide care to older adults and earn paid healthcare experience, a credential, and references for their medical, PA, and nursing school applications. It is early work toward a National Institute on Aging grant.`,
           ``,
           `I think it could be a great fit for your members, and we would love to partner with ${PLACEHOLDER.orgName} at ${PLACEHOLDER.campus}. A couple of simple ways we could do that:`,
           ``,
           `- Share it with your members. Here is the [flyer](${PLACEHOLDER.programPdf}) and the [application link](${PLACEHOLDER.applyUrl}) for your group chat.`,
-          `- Dr. DuBose would be glad to speak at an org meeting about getting into professional school and building healthcare experience as a pre-health student.`,
+          `- Dr. DuBose would be glad to speak at an org meeting about getting into healthcare careers and the internship.`,
           ``,
-          `Please let me know if you are interested or have any questions. Thanks!`,
+          `If you are interested, take a look at our website and reply to let me know. Interested orgs will get more details and can have Dr. DuBose speak at a meeting.`,
         ].join("\n"),
       };
     case "advisor":
-      // Relationship-first, meeting-led (R1). The cold email's only job is to
-      // earn a meeting. No share ask and no portal here; the flyer is attached
-      // only for context. Sharing + the portal come later (program-info touch +
-      // after the meeting).
+      // Pilot-as-internship, relationship-led. The standardized CTA earns the
+      // meeting with Dr. DuBose. Overview linked for context.
       return {
-        subject: `Paid healthcare experience for your pre-health students`,
+        subject: `A pre-health caregiving internship pilot for your students`,
         body: [
           greeting,
           ``,
-          GRAIZE_INTRO,
+          `I work with Dr. Logan DuBose, a physician and NIH-funded researcher who is piloting a structured caregiving internship for pre-health students. Interns provide care to older adults in the community and earn paid healthcare experience, a credential, and references for their medical, PA, and nursing school applications. The pilot is early work toward a National Institute on Aging grant. I attached a one-page overview so you can see what it offers your students: [overview](${PLACEHOLDER.programPdf}).`,
           ``,
-          `I'm reaching out about a program we run that places ${PLACEHOLDER.campus} pre-health students in paid caregiving roles with local families and agencies. Students earn $10 to $15 per hour and build real healthcare experience for their med, PA, and nursing school applications, on a schedule that works around their classes. I've attached a one-page flyer so you can see exactly what it offers your students: [program flyer](${PLACEHOLDER.programPdf}).`,
-          ``,
-          `Before anything else, Dr. DuBose would value the chance to introduce himself and hear how your office supports its pre-health students. Would you be open to a short call? You can pick a time here: [meet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
-          ``,
-          `Happy to answer questions by email too, and thank you for the work you do for these students.`,
+          `If you are interested, take a look at our website and reply to let me know. Interested advisors will get more details and can meet directly with Dr. DuBose to discuss partnering.`,
         ].join("\n"),
       };
     case "dept_head":
-      // Formal, meeting-led, gateway-framed (R1). The ask is a short Zoom; no
-      // portal, no application link, and no professor-outreach ask in the cold
-      // email (that is earned in the meeting). Flyer linked for context.
+      // Formal, pilot-as-internship, gateway-framed. Standardized CTA earns the
+      // conversation with Dr. DuBose.
       return {
-        subject: `Paid healthcare experience for your pre-health students`,
+        subject: `A pre-health caregiving internship pilot for your students`,
         body: [
           greeting,
           ``,
-          `My name is Graize Belandres, and I am a research assistant working with Dr. Logan DuBose. I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus}, and wanted to share an opportunity for your students.`,
+          `My name is Graize Belandres, and I am a research assistant working with Dr. Logan DuBose, a physician and NIH-funded researcher. I came across your department while identifying pre-health programs at ${PLACEHOLDER.campus}, and wanted to share a pilot we are running.`,
           ``,
-          `We run a program that places pre-health students in paid caregiving roles with local families and agencies: $10 to $15 per hour, real healthcare experience for med, PA, and nursing applications, around their class schedule. I attached a one-page [flyer](${PLACEHOLDER.programPdf}) so you can see what it offers your students.`,
+          `Dr. DuBose is piloting a structured caregiving internship that places pre-health students with older adults in the community. Interns earn paid healthcare experience, a credential, and references for their medical, PA, and nursing school applications. The pilot is preliminary work toward a National Institute on Aging grant. I attached a one-page overview so you can see what it offers your students: [overview](${PLACEHOLDER.programPdf}).`,
           ``,
-          `If you are open to it, Dr. DuBose and I would love to connect to introduce the program and see if we could collaborate. I am also glad to answer any questions or discuss ways to partner to spread the word to your students.`,
-          ``,
-          `Please let me know if you are interested in connecting, or if there is a good time for you for a Zoom call.`,
+          `If you are interested, take a look at our website and reply to let me know. Interested departments will get more details and can meet directly with Dr. DuBose to discuss collaborating.`,
         ].join("\n"),
       };
     case "professor":
@@ -655,7 +646,7 @@ export function providerIntroEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} student caregivers for ${PLACEHOLDER.orgName}`;
+  const subject = `Student caregivers for your recurring shifts (${PLACEHOLDER.campus} pilot)`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -663,13 +654,13 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `My name is Graize Belandres, and I'm a research assistant working with Dr. Logan DuBose, who leads a program connecting ${PLACEHOLDER.campus} pre-med and nursing students with home care agencies that are hiring. We'd like to invite ${PLACEHOLDER.orgName} to review ${PLACEHOLDER.campus} students near campus who want to be hired as caregivers — **an easy way to hire quality staff to help fill your PRN, evening, weekend, and night shifts.**`,
+      `My name is Graize Belandres, and I work with Dr. Logan DuBose, a physician and NIH-funded researcher who is piloting a structured caregiving internship that fills the recurring shifts providers struggle to cover with vetted pre-nursing and pre-medical students from ${PLACEHOLDER.campus}.`,
       ``,
-      `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
+      `Interns commit to a semester of recurring availability, and we match them to your clients whose schedules line up, so you get a reliable recurring caregiver for the term. There is no commitment up front. When you have a client who needs recurring coverage, we match a student and the internship begins.`,
       ``,
-      `More information about what to expect from the program: [program overview](${PLACEHOLDER.programPdf})`,
+      `You get reliable, lower-cost coverage and a pipeline of motivated students you could hire on. The students earn supervised healthcare experience for their medical and nursing school applications. The pilot is early work toward a National Institute on Aging grant, and we are selecting a small founding group of provider partners near ${PLACEHOLDER.campus}.`,
       ``,
-      `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}) to hear more about the program and how ${PLACEHOLDER.campus} student caregivers can help fill your PRN, evening, weekend, and night shifts.`,
+      `If you are interested, [take a look at our website](${PLACEHOLDER.programUrl}) and reply to let me know. Interested providers will get more details on hosting student interns and can meet directly with Dr. DuBose to discuss partnering.`,
     ].join("\n"),
   };
 }
@@ -685,7 +676,7 @@ export function providerFollowupEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} student caregivers for ${PLACEHOLDER.orgName}`;
+  const subject = `Student caregivers for your recurring shifts (${PLACEHOLDER.campus} pilot)`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -693,11 +684,9 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `Following up in case my note got buried. ${PLACEHOLDER.orgName} can review vetted ${PLACEHOLDER.campus} pre-med and nursing students looking for caregiver shifts — an easy way to fill PRN, evening, weekend, and night coverage with quality help.`,
+      `The caregiving internship pilot matches vetted pre-nursing and pre-medical students from ${PLACEHOLDER.campus} to the recurring shifts you struggle to cover. Interns commit to a semester, and there is no commitment on your side until you have a client who needs recurring coverage.`,
       ``,
-      `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
-      ``,
-      `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
+      `If you are interested, [take a look at our website](${PLACEHOLDER.programUrl}) and reply to let me know. Interested providers will get more details on hosting student interns and can meet directly with Dr. DuBose to discuss partnering.`,
     ].join("\n"),
   };
 }
@@ -714,7 +703,7 @@ export function providerFinalEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `${PLACEHOLDER.campus} student caregivers for ${PLACEHOLDER.orgName}`;
+  const subject = `Student caregivers for your recurring shifts (${PLACEHOLDER.campus} pilot)`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -722,13 +711,9 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Circling back one last time. If ${PLACEHOLDER.orgName} could use a simple way to bring on quality ${PLACEHOLDER.campus} students for PRN, evening, weekend, and night shifts, here is the candidate board:`,
+      `If filling your recurring shifts with vetted ${PLACEHOLDER.campus} pre-health students would be useful this term or next, I would be glad to connect. Interns commit to a semester, and there is no commitment on your side until you have a client who needs coverage.`,
       ``,
-      `**[Review ${PLACEHOLDER.campus} student caregivers →](${PLACEHOLDER.welcomeUrl})**`,
-      ``,
-      `To take part, you can reply here to let us know you'd like to participate, or [schedule a meet-and-greet with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
-      ``,
-      `If now isn't the right time, no problem — we'll check back next term. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Thanks for your time.`,
+      `If you are interested, [take a look at our website](${PLACEHOLDER.programUrl}) and reply to let me know. Interested providers will get more details and can meet directly with Dr. DuBose to discuss partnering. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Thanks for your time.`,
     ].join("\n"),
   };
 }

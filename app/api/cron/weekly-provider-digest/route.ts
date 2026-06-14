@@ -679,6 +679,7 @@ export async function GET(request: NextRequest) {
     let marketRankMissingReferralTargets = 0;
     let coldRankSent = 0; // sends to the §1c cold/quiet rank-eligible audience (no weekly activity)
     let completionCount = 0; // sends of the completion ("sell the output") variant
+    let managedAdsCount = 0; // sends of the managed-ads variant (no-leads cohort lead)
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -1035,7 +1036,8 @@ export async function GET(request: NextRequest) {
           marketRankMissingReferralTargets += 1;
         }
         if (preRank.has(providerId)) coldRankSent += 1;
-        if (completionUrl) completionCount += 1;
+        if (variant === "completion") completionCount += 1;
+        if (variant === "managed_ads") managedAdsCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -1062,7 +1064,8 @@ export async function GET(request: NextRequest) {
           marketRankMissingReferralTargets += 1;
         }
         if (preRank.has(providerId)) coldRankSent += 1;
-        if (completionUrl) completionCount += 1;
+        if (variant === "completion") completionCount += 1;
+        if (variant === "managed_ads") managedAdsCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -1096,7 +1099,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} referralTeaser=${referralTeaserCount} marketRankMissingReferralTargets=${marketRankMissingReferralTargets} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} proactiveWarmQueued=${proactiveWarmQueued} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} referralTeaser=${referralTeaserCount} marketRankMissingReferralTargets=${marketRankMissingReferralTargets} coldRank=${coldRankSent} completion=${completionCount} managedAds=${managedAdsCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} proactiveWarmQueued=${proactiveWarmQueued} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -1112,6 +1115,7 @@ export async function GET(request: NextRequest) {
         rankEligibleEnrolled: rankEligible.size,
         coldRankSent,
         completionSent: completionCount,
+        managedAdsSent: managedAdsCount,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,

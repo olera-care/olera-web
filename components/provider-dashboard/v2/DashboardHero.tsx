@@ -650,6 +650,7 @@ export function buildBannerPreviews(): BannerPreview[] {
     { bannerId: "leads", hook: leadsHook(3) },
     { bannerId: "questions", hook: questionsHook(2) },
     { bannerId: "find_families_live", hook: nearbyFamiliesHook(1) },
+    { bannerId: "managed_ads", hook: managedAdsHook() },
     { bannerId: "find_families_intel", hook: marketIntelHook() },
     { bannerId: "view_spike", hook: viewSpikeHook(33, 12, 9) },
   ];

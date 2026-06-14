@@ -340,24 +340,19 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 // generic line at the bottom — admin can edit in PreFlight.
 function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "activation") {
-    // Activation cadence has a single check-in call. Reference the link we
-    // already sent and offer the meeting as the easy alternative.
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the link to get set up to host {campus_name} interns and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through getting started?"`;
+    // Activation cadence has a single check-in call. Reference the eligibility
+    // check we already sent and offer the meeting as the easy alternative.
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the eligibility check to get set up as a {campus_name} host site and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through it?"`;
   }
   if (type === "provider") {
-    if (day === 0) {
-      // v9.1 Graize 05.13 audit (Item 6): Day 0 purpose locked in.
-      // Confirm the email arrived, confirm it reached the right
-      // person, ask for a better leadership/hiring contact if not,
-      // and (briefly) signal that the program info + next steps
-      // are already in the email.
-      return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. We emailed {organization_name} about a caregiving internship pilot that fills your recurring shifts with vetted pre-health students from {campus_name}. I wanted to make sure it reached the right person. Could you point me toward whoever handles caregiver hiring, or a better email to send it to?"`;
-    }
-    if (day === 1) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on the note about the {campus_name} caregiving internship pilot. Just confirming the right contact for caregiver staffing at {organization_name}. Is there a better email I can send the details to?"`;
+    if (day === 3) {
+      // Day 3 call, paired with the Day 3 follow-up email. Confirm the email
+      // reached the right person, gauge host-site interest, and ask for the
+      // caregiver-hiring contact. The eligibility check is the easy next step.
+      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed {organization_name} about a student caregiving internship that places {campus_name} pre-health students in caregiver roles to help cover shifts this fall. I wanted to make sure it reached the right person and see if you'd consider being a host site. Could you point me to whoever handles caregiver hiring, or a better email for the eligibility details?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on the {campus_name} caregiving internship pilot. Just making sure it reached the right person at {organization_name}. Is there someone else I should send it to?"`;
+      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera, circling back on the {campus_name} student caregiving internship. Just making sure it reached the right person at {organization_name}. If you're open to hosting a student this fall, the eligibility check takes about a minute and I'm happy to send the link, or set up a quick call with Dr. DuBose."`;
     }
   }
   if (type === "student_org") {
@@ -392,28 +387,20 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
  */
 export function defaultCallTipsForDay(type: CadenceKey, day: number): string[] {
   if (type === "provider") {
-    if (day === 0) {
+    if (day === 3) {
       return [
-        "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
+        "If a receptionist answers, ask for whoever handles caregiver hiring or staffing.",
         "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Reference today's email from Graize and Olera's {campus_name} pre-health caregiving internship.",
-        "Offer to resend the information packet if useful.",
-      ];
-    }
-    if (day === 1) {
-      return [
-        "Ask for the hiring coordinator if the receptionist answers.",
-        "Confirm who handles caregiver staffing if you're not sure.",
-        "Offer to resend the information packet via email.",
-        "Leave a voicemail if unavailable. Reference prior outreach and Dr. DuBose's calendar.",
+        "The eligibility check is the easy next step; offer to send the link.",
+        "Leave a voicemail if unavailable. Reference today's email from Graize and the {campus_name} internship.",
       ];
     }
     if (day === 5) {
       return [
         "Keep the tone light and non-pushy.",
-        "If there's a better person on the leadership or hiring team, ask for a redirect.",
-        "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Offer Dr. DuBose's calendar as the easy next step.",
+        "If there's a better person for hiring, ask for a redirect.",
+        "Offer the eligibility link or Dr. DuBose's calendar as the easy next step.",
+        "Leave a voicemail if unavailable.",
       ];
     }
   }

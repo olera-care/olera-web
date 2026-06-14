@@ -7,6 +7,23 @@
 
 ## Current Focus
 
+### 2026-06-14 — Provider outreach reframed to host-site / eligibility-screener funnel (branch `claude/keen-mendel-6i8iW`)
+
+**Context:** Long design session (with Logan) reworking the MedJobs **provider funnel** around a lightweight **eligibility screener** as the single converging CTA, an **internship/host-site** framing, a **two-tier terms** model (free non-circumvention "interview terms" = existing `interview_terms_accepted_at` / `PilotTermsModal`, before any interview; paid internship agreement at good-fit), **coarse coverage buckets + PRN** for matching, **term-scoped** availability with finals re-plans, and a **pay-once, guaranteed-until-threshold-hours** fee. Funnel is being designed step-by-step ("inch by inch") before any build.
+
+**Locked + shipped this session — provider outreach copy rewritten in the new voice:**
+- **`lib/student-outreach/templates.ts`** — `providerIntroEmail` (Day 0), `providerFollowupEmail` (Day 3), `providerFinalEmail` (Day 7): new host-site/eligibility copy, bullet list (vetted+PRN / predictable+attestation / lower-cost+experience / evergreen pipeline), subjects aligned to `Host {campus} student caregivers this fall (pilot)`. Activation cadence (`activationIntroEmail/Nudge/Final`, **non-partner branches only**) re-pointed from "get set up → candidate board" to "check your eligibility" + Dr. DuBose call. Legacy `callScript()` Day-0 over-promise ("reliable coverage") removed.
+- **`lib/student-outreach/sequencer.ts`** — `defaultCallScriptForDay` + `defaultCallTipsForDay`: provider call-day keys realigned **0/1 → 3/5** (actual v10 call days), new host-site/eligibility talk tracks; activation check-in call re-pointed to the eligibility check.
+- CTA links: `[check your eligibility]` → `{welcome_url}` (magic-link/authed entry, future screener), `[see our website]` → `{program_url}`. No em dashes. `tsc --noEmit` clean.
+
+**DO NOT FORGET — follow-ups before/at build (Logan flagged):**
+1. **Smartlead campaigns** must be updated with this new copy + CTA. Not live-sending to providers yet, so a dead eligibility link is fine for now — but the campaigns are the source of live sends and must be synced.
+2. **Outreach + activation sequence launch UI** (PreFlight snapshots / launch screen) needs to reflect the new email snapshots + call scripts.
+3. **Cold send pipeline must populate `{welcome_url}` for cold provider sends** — today only the activation path builds a welcome token; cold used `{program_url}`. Until wired, `[check your eligibility]` falls back to `PROGRAM_URL` (acceptable pre-launch).
+4. **The eligibility screener itself (the `{welcome_url}` destination) is the next build (funnel step "S2").** Today the magic link lands on `/medjobs/candidates` with `WelcomeBanner` → `PilotTermsModal`. Plan inserts the screener before the board; screener end-state writes `interview_terms_accepted_at` (reuse existing flag; honors D15/D16, no new enums/actions per G1–G3).
+5. **PDF one-pager** (`lib/program-pdf/configs/texas-am.ts`) still has older "recurring shifts" framing — reframe later; for now it lives in the email signature.
+6. **Single-body-link policy deviation:** emails now carry two body links (eligibility + website) vs the documented one-link-in-body / program-in-signature policy (templates.ts:111). Approved by Logan; revisit if deliverability needs it.
+
 ### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
 
 **Outcome:** Deleted the unused "Submissions by Entry Source" section from the admin analytics panel — TJ confirmed no one uses it. Pure deletion, 213 deletions / 1 insertion.

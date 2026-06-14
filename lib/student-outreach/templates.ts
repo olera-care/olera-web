@@ -644,7 +644,7 @@ export function providerIntroEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Student caregivers for your recurring shifts (${PLACEHOLDER.campus} pilot)`;
+  const subject = `Host ${PLACEHOLDER.campus} student caregivers this fall (pilot)`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -652,13 +652,18 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `My name is Graize Belandres, and I work with Dr. Logan DuBose, a physician and NIH-funded researcher who is piloting a structured caregiving internship that fills the recurring shifts providers struggle to cover with vetted pre-nursing and pre-medical students from ${PLACEHOLDER.campus}.`,
+      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician piloting a Student Caregiving Internship designed to place ${PLACEHOLDER.campus} pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I came across ${PLACEHOLDER.orgName} and wanted to invite you to consider serving as a host site this fall.`,
       ``,
-      `Interns commit to a semester of recurring availability, and we match them to your clients whose schedules line up, so you get a reliable recurring caregiver for the term. There is no commitment up front. When you have a client who needs recurring coverage, we match a student and the internship begins.`,
+      `Being a host site looks like:`,
       ``,
-      `You get reliable, lower-cost coverage and a pipeline of motivated students you could hire on. The students earn supervised healthcare experience for their medical and nursing school applications. The pilot is early work toward a National Institute on Aging grant, and we are selecting a small founding group of provider partners near ${PLACEHOLDER.campus}.`,
+      `• Vetted students matched to your agency based on your client needs, or brought on PRN for coverage when you need it.`,
+      `• Set availability they pledge to keep open for the full semester, giving you predictable coverage. No surprises, weekly re-staffing, or no-shows.`,
+      `• Lower cost. They work mainly for the experience and a recommendation letter. Their care is high quality, and their pay expectations sit at the lower end of your usual rates.`,
+      `• Many stay on for future semesters, or go full-time over winter and summer breaks or during gap years before med or nursing school.`,
       ``,
-      `If you are interested, [take a look at our website](${PLACEHOLDER.programUrl}) and reply to let me know. Interested providers will get more details on hosting student interns and can meet directly with Dr. DuBose to discuss partnering.`,
+      `There's no commitment to get started as a host site. You can check your eligibility, review potential matches, and meet students in online interviews before committing to hosting an intern. The internship begins only when you and a student agree it's a good fit.`,
+      ``,
+      `The eligibility check takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}). You can also [see our website](${PLACEHOLDER.programUrl}) for more details and provider FAQs. For those who are excited and would prefer a formal introduction to the program, please reply with your interest and I'll set up a call with Dr. DuBose, who would love to meet you and walk you through the internship experience for providers and next steps.`,
     ].join("\n"),
   };
 }
@@ -674,7 +679,7 @@ export function providerFollowupEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Student caregivers for your recurring shifts (${PLACEHOLDER.campus} pilot)`;
+  const subject = `Host ${PLACEHOLDER.campus} student caregivers this fall (pilot)`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -682,9 +687,9 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `The caregiving internship pilot matches vetted pre-nursing and pre-medical students from ${PLACEHOLDER.campus} to the recurring shifts you struggle to cover. Interns commit to a semester, and there is no commitment on your side until you have a client who needs recurring coverage.`,
+      `Following up in case my last note got buried. Dr. Logan DuBose, a geriatric-focused physician, is piloting a Student Caregiving Internship that places ${PLACEHOLDER.campus} pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I'd love for ${PLACEHOLDER.orgName} to consider being a host site this fall.`,
       ``,
-      `If you are interested, [take a look at our website](${PLACEHOLDER.programUrl}) and reply to let me know. Interested providers will get more details on hosting student interns and can meet directly with Dr. DuBose to discuss partnering.`,
+      `Checking your eligibility takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}). You can also [see our website](${PLACEHOLDER.programUrl}) for details and provider FAQs, or reply and I'll set up a call with Dr. DuBose.`,
     ].join("\n"),
   };
 }
@@ -701,7 +706,7 @@ export function providerFinalEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Student caregivers for your recurring shifts (${PLACEHOLDER.campus} pilot)`;
+  const subject = `Host ${PLACEHOLDER.campus} student caregivers this fall (pilot)`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -709,9 +714,9 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `If filling your recurring shifts with vetted ${PLACEHOLDER.campus} pre-health students would be useful this term or next, I would be glad to connect. Interns commit to a semester, and there is no commitment on your side until you have a client who needs coverage.`,
+      `Circling back one last time on the ${PLACEHOLDER.campus} Student Caregiving Internship. If hosting a pre-health student to help cover shifts this fall would be useful, the eligibility check takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}). There's no commitment until you meet a student and agree it's a good fit.`,
       ``,
-      `If you are interested, [take a look at our website](${PLACEHOLDER.programUrl}) and reply to let me know. Interested providers will get more details and can meet directly with Dr. DuBose to discuss partnering. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Thanks for your time.`,
+      `If someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Either way, thanks for your time.`,
     ].join("\n"),
   };
 }
@@ -748,17 +753,15 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     };
   }
   return {
-    subject: `Getting your ${PLACEHOLDER.campus} interns set up`,
+    subject: `Next step for hosting ${PLACEHOLDER.campus} student caregivers`,
     body: [
       greeting,
       ``,
-      `Great to connect. Two easy ways forward:`,
+      `Great to hear from you. The next step is a quick eligibility check to confirm you meet the host-site requirements and review the partner terms. It takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
       ``,
-      `**[Get set up to host ${PLACEHOLDER.campus} interns →](${PLACEHOLDER.welcomeUrl})** It takes about two minutes, and we'll start lining up vetted pre-health students to fill the recurring shifts you're working to cover.`,
+      `Once you're through, you can review potential student matches and meet them in online interviews, with no commitment until you find a good fit.`,
       ``,
-      `Or if you'd rather talk it through first, [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}), or just reply with a couple of windows this week or next and I'll set it up.`,
-      ``,
-      `Either way, happy to help.`,
+      `If you'd rather talk it through first, [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}), or just reply with a couple of windows that work and I'll set it up.`,
     ].join("\n"),
   };
 }
@@ -781,15 +784,13 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
     };
   }
   return {
-    subject: `Getting your ${PLACEHOLDER.campus} interns started`,
+    subject: `Your ${PLACEHOLDER.campus} host-site eligibility check`,
     body: [
       greeting,
       ``,
-      `Just making sure this didn't get buried. You can get set up anytime here:`,
+      `Just making sure this didn't get buried. Whenever you're ready, the eligibility check takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
       ``,
-      `**[Set up to host ${PLACEHOLDER.campus} interns →](${PLACEHOLDER.welcomeUrl})**`,
-      ``,
-      `Or grab a time with Dr. DuBose if it's easier to talk first: [Dr. DuBose's calendar](${PLACEHOLDER.calendlyUrl}).`,
+      `Prefer to talk first? Here's Dr. DuBose's calendar: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
     ].join("\n"),
   };
 }
@@ -816,9 +817,7 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `No rush at all. Whenever you're ready, your link to get set up and start hosting ${PLACEHOLDER.campus} interns is here:`,
-      ``,
-      `**[Set up to host ${PLACEHOLDER.campus} interns →](${PLACEHOLDER.welcomeUrl})**`,
+      `No rush at all. Whenever you're ready, your eligibility check to host ${PLACEHOLDER.campus} student caregivers is here and takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
       ``,
       `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
     ].join("\n"),
@@ -903,7 +902,7 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
       script: [
         `"Hi, this is ${ctx.admin_first_name ?? "Graize"} calling from Dr. Logan DuBose's office. I'm a research assistant on Olera's ${ctx.campus_name} pre-health caregiving internship."`,
         ``,
-        `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. We place vetted pre-health students into the recurring shifts that agencies like yours work hardest to cover, as paid healthcare experience for the students and reliable coverage for you."`,
+        `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. We place vetted pre-health students into caregiver roles at host agencies like yours to help cover shifts, as paid healthcare experience for the students. I wanted to see if you'd consider being a host site this fall."`,
       ].join("\n"),
     };
   }

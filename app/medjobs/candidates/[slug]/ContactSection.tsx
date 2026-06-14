@@ -286,7 +286,7 @@ export default function ContactSection({
         {showPilotModal && (
           <PilotTermsModal
             orgName={providerProfile?.display_name ?? undefined}
-            actionVerb="invite this caregiver to interview"
+            actionVerb="invite this intern to interview"
             onCancel={() => setShowPilotModal(false)}
             onSuccess={() => {
               setShowPilotModal(false);

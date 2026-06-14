@@ -154,7 +154,7 @@ export default async function PartnerPortalPage({
         <section className="space-y-4">
           <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-5">
             <p className="text-sm font-semibold text-primary-800">★ You&apos;re an active Recruitment Partner</p>
-            <p className="mt-1 text-sm text-gray-600">Thanks for helping! Here&apos;s how you can help share the program:</p>
+            <p className="mt-1 text-sm text-gray-600">Thanks for helping! Here&apos;s how you can help share the internship:</p>
           </div>
 
           <PartnerFlyerShare
@@ -189,9 +189,9 @@ export default async function PartnerPortalPage({
               NIH-funded researcher · Chief Research Officer, Olera
             </p>
             <p className="mt-2">
-              Olera connects pre-health students with paid, mentored caregiving
-              experience for local seniors — building the next generation of
-              healthcare workers while strengthening care in the community. Your
+              Olera runs a paid, mentored caregiving internship that places
+              pre-health students with local seniors — building the next generation
+              of healthcare workers while strengthening care in the community. Your
               help sharing it with students is what makes it reach them.
             </p>
           </div>

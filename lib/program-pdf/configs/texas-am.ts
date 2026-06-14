@@ -86,9 +86,9 @@ export const TEXAS_AM: ProgramPdfConfig = {
   universityAccent: "#500000", // Aggie maroon
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Local Texas A&M pre-health students ready to supplement your caregiver workforce.",
+    "Local Texas A&M pre-health interns, matched to the recurring shifts you struggle to cover.",
   heroSubhead:
-    "Olera connects pre-nursing and pre-medical students from Texas A&M with home care agencies for paid caregiving experience. Students get the clinical hours and recommendation letters that strengthen their applications to medical, PA, and nursing school. Agencies get reliable, motivated staffing support from a local university talent pool.",
+    "Olera runs a pre-health caregiving internship that places pre-nursing and pre-medical students from Texas A&M with home care agencies. Interns commit to a semester of recurring availability, and we match them to your clients whose schedules line up. You get reliable recurring coverage; students get the supervised hours and recommendation letters that strengthen their applications to medical, PA, and nursing school.",
   // v9.1 Graize 05.13 audit (Item 12): two benefit cards retitled
   // to better fit the program's actual value to operators + clients.
   // "Local Aggie talent pipeline" -> "Local evergreen talent pipeline"
@@ -99,16 +99,16 @@ export const TEXAS_AM: ProgramPdfConfig = {
   // reframes as "Caregivers your clients remember".
   benefits: [
     {
-      title: "Fill vacant shifts and PRN gaps",
-      body: "Reliable student caregivers supplement your team for nights, weekends, and short-notice coverage.",
+      title: "Cover recurring shifts",
+      body: "Interns commit to a semester of recurring availability — reliable coverage for nights, weekends, and standing schedules.",
     },
     {
       title: "Motivated by experience, not just pay",
-      body: "Students prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
+      body: "Interns prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
     },
     {
-      title: "Local evergreen talent pipeline",
-      body: "Pre-nursing and pre-medical students from the Bryan/College Station area, available semester after semester.",
+      title: "Local talent, semester after semester",
+      body: "Pre-nursing and pre-medical interns from the Bryan/College Station area, available term after term.",
     },
     {
       title: "Caregivers your clients remember",
@@ -116,20 +116,20 @@ export const TEXAS_AM: ProgramPdfConfig = {
     },
   ],
   steps: [
-    "Create your account on the program portal.",
-    "Review and acknowledge participation terms.",
-    "Receive screened pre-health student referrals.",
-    "Interview, hire, and onboard the students.",
+    "Create your account and accept the partner terms.",
+    "Tell us about a client who needs recurring coverage.",
+    "We match a committed intern whose availability fits.",
+    "Interview, hire, and the semester internship begins.",
   ],
   vetting: [
-    "Screened pre-nursing and pre-medical applicants.",
-    "Committed to healthcare careers; in it for the experience.",
+    "Screened pre-nursing and pre-medical interns.",
+    "Committed to a semester of recurring availability.",
     "Professionalism and scheduling expectations set up-front.",
     "Background-check support coordinated with your standard onboarding.",
   ],
   pricing: {
-    headline: "1-month free trial. $50/month afterward. Cancel anytime.",
-    body: "The fee supports student outreach, vetting, and operational management. Unlimited student referrals included.",
+    headline: "No commitment up front. Matched only when you have a recurring need.",
+    body: "Matching, vetting, and program management are handled by Olera. We pair you with a committed intern for the semester — you run your standard hiring and onboarding.",
   },
   // v9.1 Graize 05.13 audit (Item 13): shorter CTA so the label
   // doesn't truncate next to the QR code. The QR target URL already

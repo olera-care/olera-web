@@ -1,51 +1,59 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 
 export const metadata: Metadata = {
-  title: "MedJobs for Providers — Student Caregiver Staffing | Olera",
+  title: "Pre-Health Caregiving Internship for Providers | Olera",
   description:
-    "Find reliable, pre-screened student caregivers for your senior care facility. Browse profiles, watch intro videos, and hire directly through Olera MedJobs.",
+    "Vetted pre-nursing and pre-medical interns who commit to a semester of recurring availability. We match them to the clients you struggle to cover — no upfront commitment.",
 };
 
 const PAIN_POINTS = [
   {
-    problem: "High turnover drains your budget",
-    solution: "Healthcare students stay longer — they need consistent hours for their professional school applications.",
+    problem: "Recurring shifts go uncovered",
+    solution:
+      "Interns commit to a semester of recurring availability. We match one to a client whose schedule lines up, so you get a reliable caregiver for the term.",
   },
   {
     problem: "Last-minute call-outs hurt your clients",
-    solution: "Every student completes reliability acknowledgments and commits to a schedule before their profile goes live.",
+    solution:
+      "Every intern completes reliability acknowledgments and commits to a schedule before we match them — they're building a clinical record, not picking up a side gig.",
   },
   {
-    problem: "Agency fees eat into your margins",
-    solution: "Connect directly with students. No placement fees, no markups, no middlemen.",
+    problem: "Agency markups eat your margins",
+    solution:
+      "Match directly with vetted students from a local university. No upfront commitment — the internship begins only when you have a recurring need.",
   },
 ];
 
 const HOW_IT_WORKS = [
   {
     step: "1",
-    title: "Browse pre-screened students",
-    description: "Every student has submitted an intro video, completed acknowledgments, and verified their university enrollment.",
+    title: "Browse vetted interns near you",
+    description:
+      "Every intern has recorded an intro video, completed reliability acknowledgments, and verified their university enrollment.",
   },
   {
     step: "2",
-    title: "Watch their intro video",
-    description: "See who you're hiring before the first interview. Students answer reliability and scenario questions on camera.",
+    title: "Match for the semester",
+    description:
+      "When you have a client who needs recurring coverage, we match an intern whose availability fits and the internship begins.",
   },
   {
     step: "3",
-    title: "Schedule an interview",
-    description: "Reach out directly — no gatekeepers. Students are responsive and eager to start.",
+    title: "Reliable recurring coverage",
+    description:
+      "You get a motivated caregiver for the term — and a pipeline of pre-health students you could hire on.",
   },
 ];
 
-const STATS = [
-  { stat: "85%", label: "Student retention after 90 days" },
-  { stat: "15-20", label: "Average weekly hours per student" },
-  { stat: "70%", label: "Available evenings & weekends" },
-  { stat: "4.8/5", label: "Provider satisfaction" },
+// Honest, pilot-true credibility — no fabricated retention/rating stats.
+const TRUST = [
+  { stat: "Semester", label: "Recurring availability per intern" },
+  { stat: "No upfront cost", label: "Matched only when you have a recurring need" },
+  { stat: "Pre-nursing & pre-med", label: "Vetted students from a local university" },
+  { stat: "NIH-backed", label: "Early work toward a National Institute on Aging grant" },
 ];
 
 export default function MedJobsProvidersPage() {
@@ -58,29 +66,31 @@ export default function MedJobsProvidersPage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div>
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-gray-900 leading-[1.1]">
-                Staff who show up{" "}
-                <span className="text-primary-600">for your clients</span>
+                Vetted pre-health interns{" "}
+                <span className="text-primary-600">for the shifts you struggle to cover</span>
               </h1>
               <p className="mt-5 text-[17px] text-gray-500 leading-relaxed max-w-lg">
-                Pre-screened healthcare students who need consistent hours.
-                Browse profiles, watch intro videos, hire directly.
+                A structured caregiving internship that places pre-nursing and
+                pre-medical students with your clients for a semester of recurring
+                coverage. No commitment up front — we match an intern when you have
+                a recurring need.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
                 <Link
                   href="/medjobs/candidates"
                   className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
                 >
-                  Browse Candidates
+                  Browse interns near you
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-                <Link
-                  href="/medjobs"
+                <a
+                  href={CALENDLY_URL}
                   className="inline-flex items-center px-7 py-3 text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors"
                 >
-                  I&apos;m a student
-                </Link>
+                  Talk with Dr. DuBose
+                </a>
               </div>
             </div>
 
@@ -88,7 +98,7 @@ export default function MedJobsProvidersPage() {
               <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-lg shadow-gray-200/50">
                 <Image
                   src="/images/medjobs/provider-caregiving.jpg"
-                  alt="Student caregiver working with senior client"
+                  alt="Pre-health intern working with a senior client"
                   width={1080}
                   height={1080}
                   className="w-full h-full object-cover"
@@ -108,7 +118,7 @@ export default function MedJobsProvidersPage() {
               The staffing problem
             </p>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-              You need reliable staff.
+              You need reliable coverage.
               <br />Not another agency.
             </h2>
           </div>
@@ -123,13 +133,13 @@ export default function MedJobsProvidersPage() {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Trust / credibility */}
       <section className="py-12 sm:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {STATS.map((item) => (
+            {TRUST.map((item) => (
               <div key={item.label} className="bg-white rounded-xl p-5 border border-gray-100 text-center">
-                <p className="text-3xl font-bold text-gray-900">{item.stat}</p>
+                <p className="text-xl font-bold text-gray-900">{item.stat}</p>
                 <p className="text-sm text-gray-500 mt-1">{item.label}</p>
               </div>
             ))}
@@ -145,7 +155,7 @@ export default function MedJobsProvidersPage() {
               How it works
             </p>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-              From browse to hire in days, not weeks
+              From match to recurring coverage
             </h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -162,27 +172,28 @@ export default function MedJobsProvidersPage() {
         </div>
       </section>
 
-      {/* What makes MedJobs students different */}
+      {/* What makes pre-health interns different */}
       <section className="py-16 sm:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
-                Why MedJobs students
+                Why pre-health interns
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
                 Motivated by more than a paycheck
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                These are students pursuing medicine, nursing, PA, PT, and public health.
-                They need verified healthcare hours for their professional school applications.
-                That means they show up, stay engaged, and build real relationships with your clients.
+                These are students pursuing medicine, nursing, PA, PT, and public
+                health. They need supervised healthcare experience and references
+                for their professional school applications. That means they commit
+                to the semester, show up, and build real relationships with your clients.
               </p>
               <div className="mt-8 space-y-4">
                 {[
                   "Intro video reviewed before profile goes live",
                   "Reliability and professionalism acknowledgments completed",
-                  "Availability and schedule commitment verified",
+                  "Semester availability and schedule commitment verified",
                   "University enrollment confirmed",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
@@ -198,7 +209,7 @@ export default function MedJobsProvidersPage() {
               <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
                 <Image
                   src="/images/medjobs/students-group.jpg"
-                  alt="Healthcare students"
+                  alt="Pre-health students"
                   width={400}
                   height={533}
                   className="w-full h-full object-cover"
@@ -207,7 +218,7 @@ export default function MedJobsProvidersPage() {
               <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 mt-8">
                 <Image
                   src="/images/medjobs/caregiving-support.jpg"
-                  alt="Student supporting senior client"
+                  alt="Intern supporting a senior client"
                   width={400}
                   height={533}
                   className="w-full h-full object-cover"
@@ -218,33 +229,67 @@ export default function MedJobsProvidersPage() {
         </div>
       </section>
 
+      {/* Why this exists — credibility (Dr. DuBose / NIH) */}
+      <section className="py-16 sm:py-20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-4 text-center">
+            Why this exists
+          </p>
+          <div className="flex flex-col sm:flex-row items-start gap-5 rounded-2xl border border-gray-100 bg-gray-50 p-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://olera.care/images/for-providers/team/logan.jpg"
+              alt="Dr. Logan DuBose"
+              width={72}
+              height={72}
+              className="h-18 w-18 shrink-0 rounded-lg object-cover"
+              style={{ height: 72, width: 72 }}
+            />
+            <div className="text-sm text-gray-700 leading-relaxed">
+              <p className="font-semibold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
+              <p className="text-xs text-gray-500">
+                NIH-funded researcher · Chief Research Officer, Olera
+              </p>
+              <p className="mt-2">
+                Dr. DuBose runs this internship as early work toward a National
+                Institute on Aging grant — building the next generation of
+                healthcare workers while strengthening care for local seniors.
+                It&apos;s a matched program, not a staffing marketplace: we select a
+                small founding group of provider partners and pair them with
+                committed interns.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Bottom CTA */}
       <section className="relative py-16 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50/30 to-gray-50/50" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
-            Better staff.{" "}
-            <span className="text-primary-600">Less turnover.</span>
+            Reliable coverage.{" "}
+            <span className="text-primary-600">Future clinicians.</span>
           </h2>
           <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">
-            Browse pre-screened student caregivers near your facility. No fees, no commitment.
+            Browse vetted pre-health interns near your facility. No upfront commitment.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/medjobs/candidates"
               className="inline-flex items-center px-8 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
             >
-              Browse Candidates
+              Browse interns near you
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>
-            <Link
-              href="/medjobs"
+            <a
+              href={CALENDLY_URL}
               className="inline-flex items-center px-8 py-3 text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors"
             >
-              I&apos;m a student
-            </Link>
+              Talk with Dr. DuBose
+            </a>
           </div>
         </div>
       </section>

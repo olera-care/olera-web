@@ -44,7 +44,7 @@ export function PartnerFlyerShare({
 Hi everyone,
 
 Sharing an opportunity that may be a great fit for pre-health students:
-Olera's Student Caregiver opportunity for ${uni} students. It's a paid,
+Olera's Pre-Health Caregiving Internship for ${uni} students. It's a paid,
 mentored caregiving role with local seniors — real patient-facing hours,
 mentorship, and recommendation letters toward med/PA/nursing school.
 
@@ -53,7 +53,7 @@ Program info: ${programUrl}
 
 (Run by Olera with Dr. Logan DuBose — not a university-run program.)`;
 
-  const socialPost = `📣 Pre-health students: get PAID, mentored caregiving experience with local seniors — real hours + recommendation letters toward med/PA/nursing school. Olera's Student Caregiver opportunity for ${uni} students. Apply: ${applyUrl}`;
+  const socialPost = `📣 Pre-health students: get PAID, mentored caregiving experience with local seniors — real hours + recommendation letters toward med/PA/nursing school. Olera's Pre-Health Caregiving Internship for ${uni} students. Apply: ${applyUrl}`;
 
   const waUrl = `https://wa.me/?text=${encodeURIComponent(socialPost)}`;
   const mailto = `mailto:?subject=${encodeURIComponent(

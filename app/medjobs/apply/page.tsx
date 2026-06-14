@@ -719,7 +719,7 @@ export default function MedJobsApplyPage() {
           {step === 1 && (
             <div className="space-y-6">
               <p className="text-sm text-gray-500 leading-relaxed">
-                Students in this program are expected to be available for shifts between classes, evenings, weekends, and overnights. We work around your class schedule and exam periods.
+                Tell us what works for you. We match interns to shifts around their classes — between classes, evenings, weekends, and breaks — and work around your exam periods. You&apos;ll firm up a semester schedule later, when you&apos;re matched.
               </p>
 
               <div className="grid grid-cols-2 gap-6">
@@ -734,14 +734,14 @@ export default function MedJobsApplyPage() {
                   <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">How long can you commit?</label>
                   <SearchDropdown options={DURATION_OPTIONS} value={durationCommitment} onSelect={setDurationCommitment} placeholder="Select" />
                   <ReactiveHint show={durationCommitment === "less_than_3_months" || durationCommitment === "3_to_6_months"}>
-                    Providers strongly prefer 6+ month commitments.
+                    A full semester or more makes you a stronger match.
                   </ReactiveHint>
                 </div>
               </div>
 
               <div className="border-t border-gray-100 pt-5">
                 <p className="text-sm text-gray-500 leading-relaxed mb-3">
-                  These standards are why providers trust MedJobs students. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
+                  These standards are why providers trust our interns. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
               </p>
 
               <div className="space-y-3">

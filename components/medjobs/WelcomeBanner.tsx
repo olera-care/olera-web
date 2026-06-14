@@ -51,7 +51,7 @@ export default function WelcomeBanner({
             onClick={() => setShowTermsModal(true)}
             className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
           >
-            Activate the pilot →
+            Join as a partner →
           </button>
           <p className="text-xs text-gray-500">
             Free for 3 months · No payment info needed
@@ -84,11 +84,11 @@ function DefaultCopy({ isProvider: _isProvider }: { isProvider: boolean }) {
   return (
     <>
       <h2 className="font-serif text-xl text-gray-900">
-        Welcome to the student caregiver board.
+        Welcome to the pre-health intern board.
       </h2>
       <p className="mt-1 text-sm leading-relaxed text-gray-700">
-        Browse the students below. When you&apos;re ready to invite anyone to
-        interview, accept the pilot agreement — it&apos;s a short, plain-language
+        Browse the interns below. When you&apos;re ready to invite anyone to
+        interview, accept the partner agreement — it&apos;s a short, plain-language
         read.
       </p>
     </>

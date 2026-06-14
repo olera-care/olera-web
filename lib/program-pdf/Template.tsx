@@ -317,8 +317,8 @@ export function ProgramPdfTemplate({
   // Provider defaults — the student config overrides each of these.
   const subtitle =
     config.subtitle ??
-    "Pre-nursing and pre-medical student staffing pipeline for home care agencies";
-  const universityTagLine = config.universityTagLine ?? "Pre-health staffing pipeline";
+    "A pre-health caregiving internship that matches vetted interns to your recurring shifts";
+  const universityTagLine = config.universityTagLine ?? "Pre-health caregiving internship";
   const headers = config.sectionHeaders ?? {
     benefits: "Why agencies participate",
     steps: "How it works",
@@ -327,7 +327,7 @@ export function ProgramPdfTemplate({
   };
   return (
     <Document
-      title={`${config.universityShort} Student Caregiver Program`}
+      title={`${config.universityShort} Pre-Health Caregiving Internship`}
       author="Olera"
       subject={config.documentSubject ?? "Provider outreach packet"}
     >
@@ -343,7 +343,7 @@ export function ProgramPdfTemplate({
               ) : null}
               <Text style={styles.brandWord}>Olera</Text>
             </View>
-            <Text style={styles.brandTag}>Student Caregiver Program</Text>
+            <Text style={styles.brandTag}>Pre-Health Caregiving Internship</Text>
           </View>
           <View>
             <Text
@@ -359,14 +359,12 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Title */}
-        {/* v9.1 Graize 05.13 audit (Item 11): title now reads
-            "Olera's {university} Student Caregiver Program" to
-            anchor the brand; subtitle uses "Pre-nursing and pre-
-            medical student staffing pipeline" to match the email
-            terminology and remove the vague "pre-health" framing. */}
+        {/* Title reads "Olera's {university} Pre-Health Caregiving
+            Internship" to anchor the brand and match the outreach
+            emails' internship framing. */}
         <View style={styles.titleBlock}>
           <Text style={styles.programTitle}>
-            Olera&apos;s {config.universityShort} Student Caregiver Program
+            Olera&apos;s {config.universityShort} Pre-Health Caregiving Internship
           </Text>
           <Text style={styles.programSubtitle}>{subtitle}</Text>
         </View>
@@ -432,7 +430,7 @@ export function ProgramPdfTemplate({
                 <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
                 <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
                 <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Director, Olera&apos;s Texas A&M Student Caregiver Program</Text>
+                <Text style={styles.sigCred}>Director, Olera Pre-Health Caregiving Internship</Text>
               </View>
             </View>
             <View style={styles.sigBlock}>

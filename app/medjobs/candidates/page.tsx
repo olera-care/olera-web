@@ -207,28 +207,28 @@ function CandidateBrowseInner() {
           {!isProvider && (
             <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
               <Link href="/medjobs/providers" className="hover:text-primary-600 transition-colors">
-                MedJobs
+                For Providers
               </Link>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="text-gray-600">Caregivers</span>
+              <span className="text-gray-600">Interns</span>
             </nav>
           )}
 
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
-            Hire Local Caregivers
+            Pre-Health Interns Near You
           </h1>
           <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Pre-vetted students pursuing careers in healthcare — ready to
-            provide quality care in your area.
+            Vetted pre-nursing and pre-medical students who commit to a semester
+            of recurring availability — ready to match with your clients.
           </p>
 
           {total > 0 && (
             <div className="mt-4 flex items-center gap-4">
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
                 <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
-                {total} caregiver{total !== 1 ? "s" : ""} available
+                {total} intern{total !== 1 ? "s" : ""} available
               </span>
             </div>
           )}
@@ -325,7 +325,7 @@ function CandidateBrowseInner() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
               </div>
-              <p className="text-gray-500 text-sm font-medium">No caregivers found.</p>
+              <p className="text-gray-500 text-sm font-medium">No interns found.</p>
               <p className="text-gray-400 text-sm mt-1">Try a different university filter.</p>
             </div>
           )
@@ -353,7 +353,7 @@ function CandidateBrowseInner() {
               <div className="mt-8 text-center">
                 <div className="inline-flex flex-col items-center gap-3 px-8 py-6 bg-white rounded-2xl border border-gray-100">
                   <p className="text-base font-medium text-gray-900">
-                    Ready to connect with candidates?
+                    Ready to connect with interns?
                   </p>
                   <button
                     type="button"

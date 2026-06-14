@@ -32,9 +32,9 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     source: "flyer",
     siteUrl: "https://olera.care",
   }),
-  universityTagLine: "Paid experience for pre-health students",
-  subtitle: "Paid caregiving experience for pre-nursing and pre-medical students",
-  documentSubject: "Student program flyer",
+  universityTagLine: "Paid pre-health caregiving internship",
+  subtitle: "A paid pre-health caregiving internship for pre-nursing and pre-medical students",
+  documentSubject: "Student internship flyer",
   sectionHeaders: {
     benefits: "Why students join",
     steps: "How to join",
@@ -43,12 +43,12 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   },
   heroHeadline: "Get paid for real caregiving experience that counts toward your health career.",
   heroSubhead:
-    "Olera connects Texas A&M pre-health students with paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience that strengthens your application to nursing, PA, medical, and other health programs — on a schedule that works around your classes.",
+    "Olera's pre-health caregiving internship places Texas A&M students in paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience — plus a credential and references — that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes.",
   benefits: [
-    { title: "Get paid", body: "Earn an hourly wage doing meaningful work, not another unpaid internship." },
+    { title: "Get paid", body: "Earn an hourly wage doing meaningful work — a paid internship, not a volunteer gig." },
     { title: "Real patient-care hours", body: "Direct experience caring for older adults — exactly what health programs look for." },
-    { title: "Flexible around classes", body: "Pick up shifts that fit your course load; scale up over breaks." },
-    { title: "Mentorship + a resume boost", body: "Guidance from Dr. DuBose's team and experience you can speak to in interviews." },
+    { title: "A credential + references", body: "Earn a credential and recommendation letters for medical, PA, and nursing school applications." },
+    { title: "Mentorship around your classes", body: "Guidance from Dr. DuBose's team, on a schedule that fits your course load." },
   ],
   steps: [
     "Apply online in a few minutes.",

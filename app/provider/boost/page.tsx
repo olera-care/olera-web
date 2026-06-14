@@ -25,7 +25,7 @@ import type {
 
 interface BoostRequest {
   id: string;
-  status: "requested" | "scheduled" | "live" | "ended" | "cancelled";
+  status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled";
   requested_setup_week: string;
   channel: string | null;
   campaign_tag: string | null;
@@ -95,7 +95,14 @@ export default function ProviderBoostPage() {
     if (!state || hasTrackedView.current) return;
     hasTrackedView.current = true;
     const open = !!state.request && OPEN_STATUSES.includes(state.request.status);
-    const viewState = open ? "in_motion" : state.eligibility.eligible ? "apply" : "gate";
+    const pending = state.request?.status === "pending_profile";
+    const viewState = open
+      ? "in_motion"
+      : pending
+        ? "queued"
+        : state.eligibility.eligible
+          ? "apply"
+          : "gate";
     trackProviderEvent(state.provider.slug, "managed_ads_boost_viewed", {
       provider_name: state.provider.displayName,
       state: viewState,
@@ -133,6 +140,8 @@ export default function ProviderBoostPage() {
           provider_name: state.provider.displayName,
           setup_week: selectedWeek,
           channel,
+          // Queued under 70% (standing order) vs. an eligible, actionable request.
+          queued: !!json.queued,
         });
       }
     } catch {
@@ -161,21 +170,32 @@ export default function ProviderBoostPage() {
     state.request && OPEN_STATUSES.includes(state.request.status)
       ? state.request
       : null;
+  const pendingRequest =
+    state.request?.status === "pending_profile" ? state.request : null;
+  // Once they've committed (live campaign OR a queued standing order) we drop
+  // the marketing and get them to the next action.
+  const committed = openRequest || pendingRequest;
 
   return (
     <Shell>
-      {/* The pitch (headline + marquee + pillars) — shown while we're still
-          selling it (gate / apply states). Once a campaign is in motion they've
-          bought in, so we skip the marketing. The picker/gate follows below, so
-          no CTA on the pitch here. */}
-      {!openRequest && <ManagedAdsPitch />}
+      {/* The pitch (headline + marquee + pillars) — shown only while we're still
+          selling it (the apply form). Once they've queued or launched, they've
+          bought in; skip the marketing. The picker follows, so no CTA here. */}
+      {!committed && <ManagedAdsPitch />}
 
-      {/* ── Body: one of three states ── */}
+      {/* ── Body: one of four states ── */}
       <div className="mt-12">
         {openRequest ? (
           <CampaignInMotion request={openRequest} delivered={state.delivered} />
-        ) : state.eligibility.eligible ? (
+        ) : pendingRequest ? (
+          // Standing order queued under 70% — the completion path, reframed as
+          // "one step left to launch the campaign you already set up."
+          <PendingProfile request={pendingRequest} eligibility={state.eligibility} />
+        ) : (
+          // No request yet — EVERYONE can pick a week + channel (the "taste"),
+          // eligible or not. Sub-70% submits queue as pending_profile.
           <ApplyForm
+            eligible={state.eligibility.eligible}
             weekOptions={weekOptions}
             selectedWeek={selectedWeek}
             setSelectedWeek={setSelectedWeek}
@@ -185,8 +205,6 @@ export default function ProviderBoostPage() {
             submitError={submitError}
             onSubmit={submit}
           />
-        ) : (
-          <CompletenessGate eligibility={state.eligibility} />
         )}
       </div>
     </Shell>
@@ -259,36 +277,98 @@ function CampaignInMotion({
   );
 }
 
-function CompletenessGate({ eligibility }: { eligibility: AdBoostEligibility }) {
+/**
+ * Standing order queued under 70%. This is the page that used to be the
+ * dead-end "CompletenessGate" — a flat chore list with no forward action. Now
+ * the provider has already committed (picked a week + channel), so the same
+ * completion work is reframed as the LAST step to launch a campaign they own.
+ * One prominent next action (the highest-impact gap), the rest as a quiet
+ * "what's left" list. Momentum, not homework.
+ */
+function PendingProfile({
+  request,
+  eligibility,
+}: {
+  request: BoostRequest;
+  eligibility: AdBoostEligibility;
+}) {
+  const remaining = Math.max(0, eligibility.threshold - eligibility.overall);
+  const topGap = eligibility.missingSections[0] ?? null;
+  const restGaps = eligibility.missingSections.slice(1);
+
   return (
     <div className="max-w-2xl">
-      <div className="flex items-baseline gap-3">
-        <span className="text-5xl font-display font-bold text-gray-900 tabular-nums">
+      {/* Queued status — mirrors CampaignInMotion's pulse, distinct copy. */}
+      <div className="flex items-center gap-2.5 mb-3">
+        <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+        <span className="text-sm font-semibold text-primary-700">
+          You&apos;re in the queue
+        </span>
+      </div>
+      <h2 className="text-2xl font-display font-semibold text-gray-900">
+        Your campaign is queued.
+      </h2>
+      <p className="text-gray-500 mt-3 leading-relaxed">
+        We&apos;ll launch it the week of{" "}
+        <span className="font-medium text-gray-900">
+          {formatWeek(request.requested_setup_week)}
+        </span>{" "}
+        — the moment your profile&apos;s ready to win the families we send.
+        You&apos;re <span className="font-medium text-gray-900">{remaining}%</span> away.
+      </p>
+
+      {/* Progress toward launch */}
+      <div className="mt-8 flex items-baseline gap-3">
+        <span className="text-4xl font-display font-bold text-gray-900 tabular-nums">
           {eligibility.overall}%
         </span>
         <span className="text-gray-500">
-          complete · {eligibility.threshold}% needed to start
+          complete · {eligibility.threshold}% to launch
         </span>
       </div>
-
-      {/* progress hairline */}
-      <div className="mt-4 h-1.5 w-full rounded-full bg-warm-100 overflow-hidden">
+      <div className="mt-3 h-1.5 w-full rounded-full bg-warm-100 overflow-hidden">
         <div
           className="h-full rounded-full bg-primary-500 transition-all"
           style={{ width: `${Math.min(100, eligibility.overall)}%` }}
         />
       </div>
 
-      <p className="text-gray-500 mt-6 leading-relaxed">
-        Before we spend on ads, your profile needs to be ready to win the families
-        we send. Finish these and you&apos;ll unlock managed ads:
-      </p>
+      {/* THE single next action — the highest-impact gap, as a real button. */}
+      {topGap ? (
+        <Link
+          href={topGap.href}
+          className="inline-flex items-center gap-2.5 mt-8 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
+        >
+          Next: {topGap.label}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </Link>
+      ) : (
+        <Link
+          href="/provider"
+          className="inline-flex items-center gap-2.5 mt-8 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
+        >
+          Finish your profile
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </Link>
+      )}
 
-      <ul className="mt-6 divide-y divide-gray-100 border-t border-gray-100">
-        {eligibility.missingSections.map((s) => (
-          <MissingRow key={s.id} section={s} />
-        ))}
-      </ul>
+      {/* Everything else — secondary, scannable, no longer the hero. */}
+      {restGaps.length > 0 && (
+        <div className="mt-10">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+            What&apos;s left
+          </p>
+          <ul className="divide-y divide-gray-100 border-t border-gray-100">
+            {restGaps.map((s) => (
+              <MissingRow key={s.id} section={s} />
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -316,6 +396,7 @@ function MissingRow({ section }: { section: AdBoostMissingSection }) {
 }
 
 function ApplyForm({
+  eligible,
   weekOptions,
   selectedWeek,
   setSelectedWeek,
@@ -325,6 +406,9 @@ function ApplyForm({
   submitError,
   onSubmit,
 }: {
+  /** True when the provider already clears the 70% gate. False → the submit
+   *  queues a standing order (pending_profile) that launches once they finish. */
+  eligible: boolean;
   weekOptions: { value: string; label: string }[];
   selectedWeek: string | null;
   setSelectedWeek: (v: string) => void;
@@ -339,15 +423,16 @@ function ApplyForm({
       <div className="flex items-center gap-2.5 mb-1">
         <CheckIcon className="w-5 h-5 text-primary-600" />
         <span className="text-sm font-semibold text-primary-700">
-          Your profile is ready
+          {eligible ? "Your profile is ready" : "Set up your campaign"}
         </span>
       </div>
       <h2 className="text-2xl font-display font-semibold text-gray-900 mt-2">
         Pick a week to get set up.
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
-        Choose when you&apos;d like us to launch. We&apos;ll build and run the
-        campaign, then send the families it brings in straight to your dashboard.
+        {eligible
+          ? "Choose when you'd like us to launch. We'll build and run the campaign, then send the families it brings in straight to your dashboard."
+          : "Choose your week now — we'll lock it in and launch the moment your profile's ready for the families we send. Most providers finish in a few minutes."}
       </p>
 
       {/* Week picker */}
@@ -410,7 +495,11 @@ function ApplyForm({
         onClick={onSubmit}
         className="inline-flex items-center gap-2.5 mt-8 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
       >
-        {submitting ? "Sending…" : "Request my campaign"}
+        {submitting
+          ? "Sending…"
+          : eligible
+            ? "Request my campaign"
+            : "Queue my campaign"}
         {!submitting && (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -418,8 +507,9 @@ function ApplyForm({
         )}
       </button>
       <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
-        No charge yet — we&apos;ll confirm pricing and your ad budget with you
-        before anything goes live.
+        {eligible
+          ? "No charge yet — we'll confirm pricing and your ad budget with you before anything goes live."
+          : "No charge to queue, and no charge until we confirm pricing and your ad budget with you before launch."}
       </p>
     </div>
   );

@@ -1297,6 +1297,11 @@ export function slackAdBoostRequested(opts: {
   completeness: number;
   setupWeek: string; // ISO date (Monday of the chosen week)
   channel?: string | null;
+  /** True when this request was queued under 70% and JUST auto-promoted after
+   *  the provider crossed the completeness threshold (the standing-order
+   *  release). Changes the header so the concierge knows it's a fresh,
+   *  now-actionable launch — not a brand-new submission. */
+  launchReady?: boolean;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const where = [opts.city, opts.state].filter(Boolean).join(", ") || "—";
@@ -1310,22 +1315,27 @@ export function slackAdBoostRequested(opts: {
   ];
   if (opts.channel) fields.push({ type: "mrkdwn", text: `*Channel:*\n${opts.channel}` });
 
+  const header = opts.launchReady
+    ? "🚀 Ad Boost now LAUNCH-READY — provider just cleared 70%"
+    : "📣 Ad Boost request — schedule setup";
+  const contextNote = opts.launchReady
+    ? `Request \`${opts.requestId}\` · queued earlier, profile now ready · launch the week of ${opts.setupWeek}`
+    : `Request \`${opts.requestId}\` · set up the campaign the week of ${opts.setupWeek}`;
+
   const blocks: SlackBlock[] = [
     {
       type: "header",
-      text: { type: "plain_text", text: "📣 Ad Boost request — schedule setup", emoji: true },
+      text: { type: "plain_text", text: header, emoji: true },
     },
     { type: "section", fields },
     {
       type: "context",
-      elements: [
-        { type: "mrkdwn", text: `Request \`${opts.requestId}\` · set up the campaign the week of ${opts.setupWeek}` },
-      ],
+      elements: [{ type: "mrkdwn", text: contextNote }],
     },
   ];
 
   return {
-    text: `Ad Boost request: ${opts.providerName} (${where}) — setup week ${opts.setupWeek}`,
+    text: `${opts.launchReady ? "Ad Boost LAUNCH-READY" : "Ad Boost request"}: ${opts.providerName} (${where}) — setup week ${opts.setupWeek}`,
     blocks,
   };
 }

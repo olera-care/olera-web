@@ -19,7 +19,7 @@ interface CampaignRequest {
   delivered?: number;
 }
 
-const STATUSES = ["requested", "scheduled", "live", "ended", "cancelled"];
+const STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
 const CHANNELS = ["", "google", "meta", "both"];
 
 /** Build the canonical managed-ads landing URL with UTM attribution params. */
@@ -246,15 +246,19 @@ function RequestRow({
 
 function StatusBadge({ status }: { status: string }) {
   const tone: Record<string, string> = {
+    // Queued under 70% — not yet actionable; auto-promotes to `requested` when
+    // the provider crosses the threshold. Muted so the queue reads at a glance.
+    pending_profile: "bg-orange-50 text-orange-600",
     requested: "bg-amber-50 text-amber-700",
     scheduled: "bg-blue-50 text-blue-700",
     live: "bg-green-50 text-green-700",
     ended: "bg-gray-100 text-gray-500",
     cancelled: "bg-gray-100 text-gray-400",
   };
+  const label = status === "pending_profile" ? "queued · profile" : status;
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone[status] ?? "bg-gray-100 text-gray-600"}`}>
-      {status}
+      {label}
     </span>
   );
 }

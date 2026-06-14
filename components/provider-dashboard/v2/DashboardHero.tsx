@@ -77,6 +77,7 @@ const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
 const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
 const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
 const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
+const TIER_MANAGED_ADS_IMAGE = "/images/for-providers/dashboard-hero-managed-ads.jpg";
 
 // Every hero image we might render. Preloaded on mount so tier swaps during
 // the session (provider saves a section → completeness changes → picker
@@ -88,6 +89,7 @@ const ALL_HERO_IMAGES: readonly string[] = [
   TIER_QUESTIONS_IMAGE,
   TIER_SPIKE_IMAGE,
   TIER_FALLBACK_IMAGE,
+  TIER_MANAGED_ADS_IMAGE,
   ...Object.values(SECTION_IMAGES),
 ];
 
@@ -564,7 +566,7 @@ function managedAdsHook(): Hook {
     subline:
       "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up.",
     cta: { label: "Get started", href: "/provider/boost" },
-    imageUrl: TIER_LEADS_IMAGE,
+    imageUrl: TIER_MANAGED_ADS_IMAGE,
   };
 }
 

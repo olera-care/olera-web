@@ -560,10 +560,10 @@ function marketIntelHook(): Hook {
 function managedAdsHook(): Hook {
   return {
     bannerId: "managed_ads",
-    headline: "Want more families? We'll run the ads.",
+    headline: "Reach families already searching for care.",
     subline:
-      "We run targeted ads on Google, Meta & Nextdoor and send local families straight to your Olera page — no ad accounts, no agencies, you don't lift a finger.",
-    cta: { label: "See managed ads", href: "/provider/boost" },
+      "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up.",
+    cta: { label: "Get started", href: "/provider/boost" },
     imageUrl: TIER_LEADS_IMAGE,
   };
 }

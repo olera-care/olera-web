@@ -987,7 +987,7 @@ export async function GET(request: NextRequest) {
           ? `${bucket.leads} families reached out about ${displayName} this week`
           : `A family reached out about ${displayName} this week`
         : useManagedAds
-        ? `More families for ${displayName} — we'll run the ads`
+        ? `Reach families already searching for care`
         : completionUrl
         ? `See what families see on ${displayName}`
         : isColdFirstContact

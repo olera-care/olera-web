@@ -150,7 +150,6 @@ export function providerManagedAdsEmail(opts: {
   ctaUrl: string;
   city?: string | null;
 }): string {
-  const name = escapeHtml(opts.providerName);
   const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
   const where = opts.city ? ` near ${escapeHtml(opts.city)}` : "";
   const platforms = ["Google", "Facebook", "Instagram", "Nextdoor"]
@@ -163,11 +162,11 @@ export function providerManagedAdsEmail(opts: {
   return layout(
     `
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Managed Ads</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">Want more families, ${name}? We&rsquo;ll run the ads.</h1>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">Reach families already searching for care.</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Most families looking for care${where} never reach a directory &mdash; they&rsquo;re searching on Google and scrolling Facebook, Instagram, and Nextdoor. We run targeted ads there on your behalf and send them straight to your Olera page.</p>
     <div style="margin:0 0 18px;">${platforms}</div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">No ad accounts, no keywords, no agency retainer. We already have your page and your local market data &mdash; you don&rsquo;t lift a finger.</p>
-    <div>${button("See managed ads →", opts.ctaUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">No ad accounts, no keywords, no agency retainer. We already have your page and your local market data &mdash; nothing for you to set up.</p>
+    <div>${button("Get started →", opts.ctaUrl)}</div>
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
     </div>`,

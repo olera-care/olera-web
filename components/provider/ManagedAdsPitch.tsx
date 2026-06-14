@@ -129,12 +129,12 @@ export default function ManagedAdsPitch({
           <span className="text-sm font-semibold text-primary-700">Managed Ads</span>
         </div>
         <h1 className="text-[clamp(2rem,4.5vw,2.75rem)] font-display font-bold text-gray-900 leading-[1.1] tracking-tight">
-          We&apos;ll bring families<br />
-          <span className="text-primary-600 italic">straight to you</span>.
+          Reach families<br />
+          <span className="text-primary-600 italic">already searching for care</span>.
         </h1>
         <p className="text-lg text-gray-500 mt-5 leading-relaxed">
-          We run targeted ads where families are already looking — and point every
-          one of them straight to your Olera page.
+          We run the ads where families are already looking — and send every one of
+          them straight to your Olera page.
         </p>
       </header>
 

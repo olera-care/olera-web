@@ -98,7 +98,7 @@ function digestVariantSample(variant: string): { subject: string; html: string }
       };
     case "managed_ads":
       return {
-        subject: "More families for Evergreen Home Care — we'll run the ads",
+        subject: "Reach families already searching for care",
         html: providerManagedAdsEmail({
           providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care",
           ctaUrl: `${SAMPLE_LINK}?action=ads`, city: "Austin",

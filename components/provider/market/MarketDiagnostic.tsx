@@ -270,7 +270,7 @@ export default function MarketDiagnostic({
               c.key === "reviews" ? { href: "/provider/reviews" }
               : c.key === "callsheet" ? { href: "#referral" }
               : c.key === "community" ? { requestType: "community_playbook" }
-              : c.key === "ads" ? { requestType: "ads_guidance" }
+              : c.key === "ads" ? { href: "/provider/boost" }
               : {};
             return (
               <div

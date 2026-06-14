@@ -16,12 +16,11 @@ import {
   DEFAULT_FILTERS,
 } from "@/components/provider/matches/MatchesFilterBar";
 import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
-import PinnedSeekerCard from "@/components/provider/matches/PinnedSeekerCard";
 import FiltersModal, { type FiltersState, DEFAULT_FILTERS_STATE, countActiveFilters, type SortOption } from "@/components/provider/matches/FiltersModal";
 import MyOutreach from "@/components/provider/matches/MyOutreach";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
-import FindFamiliesMarketView from "@/components/provider/market/FindFamiliesMarketView";
-import { marketGateEnabled } from "@/lib/market-gate";
+import ManagedAdsCTA from "@/components/provider/ManagedAdsCTA";
+import ManagedAdsPitch from "@/components/provider/ManagedAdsPitch";
 
 // Tab types for the matches view
 type MatchesTab = "best_matches" | "near_you";
@@ -753,61 +752,6 @@ function NearYouEmptyState({
 }
 
 // ---------------------------------------------------------------------------
-// Managed Ads CTA — links to /provider/boost. Find Families is the empty shelf
-// for ~99% of providers, so the paid-ads pitch is the natural answer here:
-// "not enough families showing up on their own? we'll go get them." Slim banner
-// near the top (always) + a prominent block inside the empty states.
-// ---------------------------------------------------------------------------
-
-function ManagedAdsCTA({ variant }: { variant: "banner" | "empty" }) {
-  if (variant === "banner") {
-    return (
-      <Link
-        href="/provider/boost"
-        className="group flex items-center justify-between gap-3 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-4 py-3 transition-colors hover:bg-primary-50/70"
-      >
-        <p className="text-sm text-gray-700 leading-snug">
-          <span className="font-semibold text-gray-900">Want us to bring families to you?</span>{" "}
-          We run paid Google &amp; Meta ads on your behalf.
-        </p>
-        <span className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-primary-600 transition-all group-hover:gap-2">
-          Learn more
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </span>
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      href="/provider/boost"
-      className="group mx-auto mb-8 block max-w-xl rounded-2xl border border-primary-100/70 bg-primary-50/50 p-5 text-left transition-colors hover:bg-primary-50/80"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-600">
-            Managed Ads
-          </p>
-          <h4 className="mt-1.5 text-[16px] font-semibold text-gray-900 leading-snug">
-            Don&apos;t wait for families to find you — we&apos;ll go get them.
-          </h4>
-          <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-            We run paid Google &amp; Meta ads that send local families straight to your page.
-          </p>
-        </div>
-        <span className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white transition-transform group-hover:translate-x-0.5">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </span>
-      </div>
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Activity Summary (prominent 2-column layout)
 // ---------------------------------------------------------------------------
 
@@ -937,13 +881,6 @@ export default function ProviderMatchesPage() {
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MatchesTab>("best_matches");
 
-  // ── "Your Market" gate ──
-  // Find Families defaults to the market diagnostic (the 99.9%-of-providers experience).
-  // Gated to the Aggie test provider / TJ while we dogfood; ?market=1 forces it on for previews.
-  const marketGateOn = useMemo(
-    () => marketGateEnabled({ displayName: providerProfile?.display_name, email: user?.email }),
-    [providerProfile?.display_name, user?.email],
-  );
   const [sortOption, setSortOption] = useState<SortOption>("recommended");
   // Shared state for MyOutreach (syncs mobile + desktop instances)
   const [isOutreachOpen, setIsOutreachOpen] = useState(false);
@@ -1015,14 +952,6 @@ export default function ProviderMatchesPage() {
   const providerPaymentMethods = useMemo(() => {
     const meta = providerProfile?.metadata as ExtendedMetadata | undefined;
     return meta?.accepted_payments || [];
-  }, [providerProfile]);
-
-  // The provider's Google place_id — feeds the market diagnostic's per-provider self-rank
-  // overlay (same metadata path the public provider page uses). Undefined for providers without
-  // a linked Google listing; the diagnostic then falls back to the legacy name-match highlight.
-  const providerPlaceId = useMemo(() => {
-    const meta = providerProfile?.metadata as { google_metadata?: { place_id?: string } } | undefined;
-    return meta?.google_metadata?.place_id || undefined;
   }, [providerProfile]);
 
   // Memoize connections count to avoid recomputing in multiple places
@@ -1446,16 +1375,16 @@ export default function ProviderMatchesPage() {
       .sort((a, b) => a.distanceMi - b.distanceMi);
   }, [families, providerProfile?.lat, providerProfile?.lng]);
 
-  // Track when a provider with NO family within the catchment lands on "Your Market"
-  // (the market-diagnostic default of Find Families). Waits for the families fetch to
-  // resolve so we don't fire on the pre-load empty state, then fires once per visit.
-  // Powers a Slack alert + the Activity Center feed. Providers WITH a nearby family see
-  // the pinned lead and are intentionally not signalled here.
+  // Track when a provider with NO family within the catchment lands on Find Families
+  // (the ~99.9% no-leads case that now shows the Managed Ads pitch). Waits for the
+  // families fetch to resolve so we don't fire on the pre-load empty state, then fires
+  // once per visit. Powers a Slack alert + the Activity Center feed. Providers WITH a
+  // nearby family see the lead cards and are intentionally not signalled here. (Event
+  // name kept as-is to avoid an allowlist migration — see feedback_event_allowlist.)
   const hasTrackedMarketNoLeads = useRef(false);
   useEffect(() => {
     if (
       !providerProfile?.slug ||
-      !marketGateOn ||
       loading ||
       !hasFetchedOnceRef.current ||
       hasTrackedMarketNoLeads.current
@@ -1470,7 +1399,7 @@ export default function ProviderMatchesPage() {
       state: providerProfile.state,
       email: user?.email,
     });
-  }, [providerProfile, marketGateOn, loading, nearbySeekers, user?.email]);
+  }, [providerProfile, loading, nearbySeekers, user?.email]);
 
   // Poll for updates every 45 seconds (family profile changes, new listings)
   // Pass isBackgroundRefresh=true to avoid showing loading skeleton during refresh
@@ -1870,68 +1799,6 @@ export default function ProviderMatchesPage() {
     );
   })();
 
-  // "Your Market" default — render as soon as the profile is ready; the diagnostic
-  // fetches its own data and shows the purposeful MarketLoading state. A real published
-  // care-seeker within ~50 mi pins on top via the existing FamilyMatchCard + reach-out
-  // drawer; otherwise the diagnostic is the whole page.
-  if (providerProfile && marketGateOn) {
-    const careType = providerProfile.category || providerProfile.care_types?.[0] || "";
-    const pinnedSeekers = nearbySeekers.slice(0, 3);
-    const pinned = pinnedSeekers.length > 0 ? (
-      <div className="mb-9">
-        <div className="flex items-center gap-2.5 mb-3.5">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-[#199087] animate-pulse" />
-          <span className="text-[13.5px] font-medium text-stone-700">
-            {pinnedSeekers.length === 1
-              ? "A family near you is looking for care"
-              : `${pinnedSeekers.length} families near you are looking for care`}
-          </span>
-        </div>
-        <div className="flex flex-col gap-3">
-          {pinnedSeekers.map(({ family, distanceMi }) => (
-            <PinnedSeekerCard
-              key={family.id}
-              family={family}
-              distanceMi={distanceMi}
-              hasFullAccess={hasFullAccess}
-              contacted={contactedIds.has(family.id)}
-              onReachOut={handleReachOut}
-            />
-          ))}
-        </div>
-        {pinnedSeekers.some((s) => !contactedIds.has(s.family.id)) && (
-          <p className="mt-3.5 text-[12px] text-stone-400">
-            First to reach out is 3× more likely to connect.
-          </p>
-        )}
-      </div>
-    ) : null;
-    return (
-      <>
-        <FindFamiliesMarketView
-          city={providerProfile.city || ""}
-          state={providerProfile.state || ""}
-          category={careType}
-          providerName={providerProfile.display_name || ""}
-          providerPlaceId={providerPlaceId}
-          providerSourceId={providerProfile.source_provider_id || undefined}
-          pinned={pinned}
-        />
-        {reachOutDrawerNode}
-        {/* Verification modal — the reach-out drawer's "verify" opens this, so it must
-            be mounted in the market view too (not just the browse view below). */}
-        <VerificationMethodModal
-          isOpen={isVerificationModalOpen}
-          onClose={closeVerificationModal}
-          onSubmit={handleVerificationSubmit}
-          onDismiss={handleVerificationDismiss}
-          businessName={providerProfile?.display_name || "Your Business"}
-          profileId={providerProfile?.id}
-        />
-      </>
-    );
-  }
-
   if (!providerProfile || loading) {
     return <MatchesSkeleton />;
   }
@@ -1966,6 +1833,20 @@ export default function ProviderMatchesPage() {
     );
   }
 
+  // No nearby leads (the ~99.9% case) — Find Families becomes the Managed Ads
+  // pitch: "no families showing up on their own? we'll go get them." The pitch
+  // links to /provider/boost for the actual eligibility gate + setup. Market
+  // intelligence now lives on its own tab (/provider/market), not here.
+  if (nearbySeekers.length === 0) {
+    return (
+      <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+          <ManagedAdsPitch ctaHref="/provider/boost" />
+        </div>
+      </div>
+    );
+  }
+
   // Get first name for greeting
   const firstName = providerProfile?.display_name?.split(" ")[0] || "there";
 
@@ -1984,11 +1865,6 @@ export default function ProviderMatchesPage() {
             Connect with families looking for care in your area
           </p>
         </div>
-      </div>
-
-      {/* Managed Ads — slim, always-present pitch under the header */}
-      <div className="mb-6">
-        <ManagedAdsCTA variant="banner" />
       </div>
 
       {/* ── Main layout (matches Profile page grid) ── */}
@@ -2110,6 +1986,12 @@ export default function ProviderMatchesPage() {
               />
             </div>
           )}
+
+          {/* Managed Ads — secondary "get even more" nudge, below the leads so the
+              real (rare) leads stay the focus. */}
+          <div className="mt-6">
+            <ManagedAdsCTA variant="banner" tone="more" />
+          </div>
         </div>
 
         {/* ── RIGHT COLUMN: Profile Snapshot + Sidebar (matches Profile page) ── */}

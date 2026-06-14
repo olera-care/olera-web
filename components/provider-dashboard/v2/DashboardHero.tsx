@@ -420,7 +420,7 @@ export function HeroCard({
           {hook.headline}
         </p>
         {hook.subline && (
-          <p className="mt-2 text-sm text-warm-100/70 leading-relaxed">
+          <p className="mt-2 text-sm text-warm-100/90 leading-relaxed [text-shadow:0_1px_3px_rgba(42,24,16,0.55)]">
             {hook.subline}
           </p>
         )}

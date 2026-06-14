@@ -471,11 +471,14 @@ function PlatformMarquee() {
       style={{ maskImage: MARQUEE_FADE, WebkitMaskImage: MARQUEE_FADE }}
     >
       <style dangerouslySetInnerHTML={{ __html: MARQUEE_CSS }} />
-      <div className="boost-marquee-track flex w-max items-center gap-3">
+      {/* Each pill carries its own trailing margin (mr-3) rather than a flex
+          `gap`, so the two duplicated copies total exactly 2× one copy's width
+          and the translateX(-50%) loop is seamless (no half-gap jump). */}
+      <div className="boost-marquee-track flex w-max items-center">
         {items.map((p, i) => (
           <span
             key={i}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200/80 px-4 py-2 text-gray-600"
+            className="mr-3 inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200/80 px-4 py-2 text-gray-600"
           >
             <p.Icon className="h-[18px] w-[18px]" />
             <span className="text-sm font-medium">{p.name}</span>

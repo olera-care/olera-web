@@ -150,13 +150,15 @@ export default function ProviderBoostPage() {
     }
   };
 
-  if (isLoading || loading) return <BoostSkeleton />;
-
-  if (error || !state) {
+  // Hard failure only. We deliberately do NOT full-page skeleton on load: the
+  // apply hero + week/channel pickers are static (no fetch needed), so they
+  // paint instantly and the transition feels snappy. Only the eligibility-
+  // dependent bits (CTA label, summary status) wait on the fetch via `ready`.
+  if (error) {
     return (
       <Shell>
         <p className="text-gray-500">
-          {error ?? "Couldn't load this page."}{" "}
+          {error}{" "}
           <button onClick={fetchState} className="text-primary-600 font-medium underline-offset-2 hover:underline">
             Try again
           </button>
@@ -165,12 +167,15 @@ export default function ProviderBoostPage() {
     );
   }
 
+  // "Ready" = auth resolved, fetch done, state present. Until then the hero +
+  // pickers still render; only the CTA + summary status hold for `ready`.
+  const ready = !isLoading && !loading && !!state;
   const openRequest =
-    state.request && OPEN_STATUSES.includes(state.request.status)
+    state?.request && OPEN_STATUSES.includes(state.request.status)
       ? state.request
       : null;
   const pendingRequest =
-    state.request?.status === "pending_profile" ? state.request : null;
+    state?.request?.status === "pending_profile" ? state.request : null;
   // Once they've committed (live campaign OR a queued standing order) we drop
   // the marketing and get them to the next action.
   const committed = openRequest || pendingRequest;
@@ -180,7 +185,7 @@ export default function ProviderBoostPage() {
   // spine on the left, a live "your campaign" summary on the right (Airbnb-style
   // transactional split), so the eye runs headline → pick → confirm with one
   // resting point, instead of stacked pitch-then-form sections.
-  if (committed) {
+  if (state && committed) {
     return (
       <Shell>
         <div className="mt-2">
@@ -197,7 +202,8 @@ export default function ProviderBoostPage() {
   return (
     <Shell>
       <ApplyExperience
-        eligible={state.eligibility.eligible}
+        ready={ready}
+        eligible={state?.eligibility.eligible ?? false}
         weekOptions={weekOptions}
         selectedWeek={selectedWeek}
         setSelectedWeek={setSelectedWeek}
@@ -419,6 +425,7 @@ const VALUE_PROPS = [
  * right above the CTA so the summary still pays off without a sticky card.
  */
 function ApplyExperience({
+  ready,
   eligible,
   weekOptions,
   selectedWeek,
@@ -429,6 +436,9 @@ function ApplyExperience({
   submitError,
   onSubmit,
 }: {
+  /** False while the eligibility fetch is still in flight. The hero + pickers
+   *  render regardless (they're static); only the CTA + summary status wait. */
+  ready: boolean;
   /** True when the provider already clears the 70% gate. False → the submit
    *  queues a standing order (pending_profile) that launches once they finish. */
   eligible: boolean;
@@ -451,7 +461,7 @@ function ApplyExperience({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
           Managed Ads
         </p>
-        <h1 className="mt-3 font-display font-bold text-[clamp(1.9rem,4vw,2.6rem)] text-gray-900 leading-[1.1] tracking-tight">
+        <h1 className="mt-3 font-display font-bold text-[clamp(2.2rem,5vw,3.1rem)] text-gray-900 leading-[1.05] tracking-tight">
           Reach families<br />
           <span className="text-primary-600 italic">already searching for care</span>.
         </h1>
@@ -523,9 +533,9 @@ function ApplyExperience({
 
         <button
           type="button"
-          disabled={!selectedWeek || submitting}
+          disabled={!ready || !selectedWeek || submitting}
           onClick={onSubmit}
-          className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+          className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
         >
           {submitting ? "Sending…" : eligible ? "Request my campaign" : "Queue my campaign"}
           {!submitting && (
@@ -544,6 +554,7 @@ function ApplyExperience({
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
       <aside className="lg:sticky lg:top-12 space-y-6">
         <CampaignSummary
+          ready={ready}
           eligible={eligible}
           weekLabel={weekLabel}
           channelLabel={channelLabel}
@@ -569,10 +580,12 @@ function ApplyExperience({
 /** The live "Your campaign" card — fills in as the provider picks. The single
  *  resting point of the page; updates make the choices feel real before commit. */
 function CampaignSummary({
+  ready,
   eligible,
   weekLabel,
   channelLabel,
 }: {
+  ready: boolean;
   eligible: boolean;
   weekLabel: string | null;
   channelLabel: string;
@@ -597,7 +610,9 @@ function CampaignSummary({
       </dl>
 
       <div className="mt-5 pt-5 border-t border-gray-100">
-        {eligible ? (
+        {!ready ? (
+          <div className="h-4 w-2/3 rounded bg-gray-100 animate-pulse" />
+        ) : eligible ? (
           <p className="flex items-center gap-2 text-sm text-primary-700">
             <CheckIcon className="w-4 h-4 shrink-0" />
             Ready to launch when you confirm.
@@ -620,20 +635,6 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 lg:pt-16 pb-24">
         {children}
-      </div>
-    </div>
-  );
-}
-
-function BoostSkeleton() {
-  return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 animate-pulse">
-        <div className="h-8 w-32 bg-warm-100 rounded-full mb-6" />
-        <div className="h-10 w-80 bg-warm-100 rounded mb-3" />
-        <div className="h-10 w-64 bg-warm-50 rounded mb-6" />
-        <div className="h-5 w-full max-w-md bg-warm-50 rounded mb-12" />
-        <div className="h-24 w-full bg-warm-50 rounded-xl" />
       </div>
     </div>
   );

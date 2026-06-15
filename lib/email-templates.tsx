@@ -174,15 +174,25 @@ export function providerManagedAdsEmail(opts: {
   // Lead with the real number when we have it; degrade gracefully when we don't.
   const headline = demand
     ? `${demand.toLocaleString()} ${demand === 1 ? "family" : "families"} searched for ${cat}${where} this week.`
-    : `Families${where} are searching for care &mdash; most never find your page.`;
+    : `Families${where} are searching for care right now.`;
+  // The "where most demand goes" line — non-accusatory (no "your page isn't one
+  // of them"); just describes how families actually search and stall.
+  const elsewhere = demand
+    ? `That&rsquo;s only the demand we saw on Olera. Many more search Google, ask in Facebook groups, check Nextdoor, call an agency or two, and stop.`
+    : `They search Google, ask in Facebook groups, check Nextdoor, call an agency or two, and stop &mdash; most never reach a directory at all.`;
 
   return layout(
     `
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your local market</p>
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${headline}</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${demand ? "And that&rsquo;s only the ones who found Olera. " : ""}Most families looking for care never reach a directory at all &mdash; they search Google, scroll Facebook and Nextdoor, call a name or two, and stop. Your page usually isn&rsquo;t one of them.</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We change that. We build and run targeted ads for your agency on the platforms families actually use, and send everyone who responds straight to your Olera page.</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;"><strong>You&rsquo;re not buying leads from a broker.</strong> You fund your own campaign, we run it for you, and every family who reaches out is yours &mdash; we don&rsquo;t charge per lead and we never resell your inquiries.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${elsewhere}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re testing a simple way to help local agencies show up earlier. You fund a small local campaign, Olera runs it, sends interested families straight to your Olera page, and shows you exactly what happened.</p>
+    <div style="margin:0 0 22px;">
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No per-lead fee.</p>
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No resold inquiries.</p>
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0;line-height:1.5;">No bidding against other agencies for the same family.</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 28px;line-height:1.65;">Just your own campaign, pointed at your own page.</p>
     <div style="margin:0 0 30px;">${button("See how it works →", opts.ctaUrl)}</div>
     <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
       <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
@@ -192,8 +202,8 @@ export function providerManagedAdsEmail(opts: {
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
     </div>`,
     demand
-      ? `${demand.toLocaleString()} families searched for ${cat}${where} this week — most never found your page.`
-      : `The families${opts.city ? ` near ${escapeHtml(opts.city)}` : ""} you&rsquo;re not reaching yet.`,
+      ? `${demand.toLocaleString()} families searched for ${cat}${where} this week`
+      : `Families${opts.city ? ` near ${escapeHtml(opts.city)}` : ""} are searching for care right now.`,
   );
 }
 

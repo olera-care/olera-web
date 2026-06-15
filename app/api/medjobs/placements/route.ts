@@ -73,6 +73,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No provider profile" }, { status: 404 });
   }
 
+  // Idempotent: reuse an active offer for this provider + student.
+  const { data: existing } = await supabase
+    .from("medjobs_placements")
+    .select("*")
+    .eq("provider_profile_id", providerProfileId)
+    .eq("student_profile_id", body.student_profile_id)
+    .in("status", ["offered", "accepted", "confirmed"])
+    .limit(1)
+    .maybeSingle();
+  if (existing) return NextResponse.json({ ok: true, placement: existing, existing: true });
+
   const nowIso = new Date().toISOString();
   const { data, error } = await supabase
     .from("medjobs_placements")

@@ -8,6 +8,7 @@ import Modal from "@/components/ui/Modal";
 import InternshipAgreementModal from "@/components/medjobs/InternshipAgreementModal";
 import type { Interview } from "@/lib/types";
 import type { AccessTier } from "@/lib/medjobs-access";
+import type { Placement } from "@/lib/medjobs/placements";
 
 /* ── Types ── */
 
@@ -48,6 +49,10 @@ interface InterviewCalendarProps {
   isVerified?: boolean;
   /** Called when unverified provider tries to confirm interview */
   onVerifyClick?: () => void;
+  /** Placements (offers) for these interviews, matched by interview_id. */
+  placements?: Placement[];
+  /** Student accept/decline of a placement offer. */
+  onPlacementAction?: (placementId: string, action: "accept" | "decline") => Promise<void>;
 }
 
 /* ── Helpers ── */
@@ -127,6 +132,8 @@ export default function InterviewCalendar({
   initialSelectedId,
   isVerified,
   onVerifyClick,
+  placements,
+  onPlacementAction,
 }: InterviewCalendarProps) {
   const pathname = usePathname();
   const now = new Date();
@@ -454,6 +461,8 @@ export default function InterviewCalendar({
           actionLoading={actionLoading}
           isVerified={isVerified}
           onVerifyClick={onVerifyClick}
+          placements={placements}
+          onPlacementAction={onPlacementAction}
         />
       )}
     </div>
@@ -470,6 +479,8 @@ function InterviewDetailModal({
   actionLoading,
   isVerified,
   onVerifyClick,
+  placements,
+  onPlacementAction,
 }: {
   interview: InterviewWithProfiles;
   perspective: Perspective;
@@ -478,6 +489,8 @@ function InterviewDetailModal({
   actionLoading: string | null;
   isVerified?: boolean;
   onVerifyClick?: () => void;
+  placements?: Placement[];
+  onPlacementAction?: (placementId: string, action: "accept" | "decline") => Promise<void>;
 }) {
   const time = new Date(interview.confirmed_time || interview.proposed_time);
   const isLoading = actionLoading === interview.id;
@@ -504,6 +517,22 @@ function InterviewDetailModal({
   const [resumeError, setResumeError] = useState(false);
   const [showOffer, setShowOffer] = useState(false);
   const [offerSent, setOfferSent] = useState(false);
+  const [placementBusy, setPlacementBusy] = useState(false);
+  const offeredPlacement = placements?.find(
+    (p) => p.interview_id === interview.id && p.status === "offered",
+  );
+  const confirmedPlacement = placements?.find(
+    (p) => p.interview_id === interview.id && p.status === "confirmed",
+  );
+  const runPlacement = async (action: "accept" | "decline") => {
+    if (!offeredPlacement || !onPlacementAction) return;
+    setPlacementBusy(true);
+    try {
+      await onPlacementAction(offeredPlacement.id, action);
+    } finally {
+      setPlacementBusy(false);
+    }
+  };
 
   // Fetch signed URL for resume when needed (provider view, confirmed interview)
   const fetchResumeUrl = async () => {
@@ -662,8 +691,12 @@ function InterviewDetailModal({
     if (interview.status === "confirmed") {
       return (
         <div className="space-y-3">
-          {perspective === "provider" &&
-            (offerSent ? (
+          {confirmedPlacement ? (
+            <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
+              Internship confirmed.
+            </p>
+          ) : perspective === "provider" ? (
+            offerSent || offeredPlacement ? (
               <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
                 Offer sent. {otherName.split(" ")[0]} will be notified to accept.
               </p>
@@ -675,7 +708,30 @@ function InterviewDetailModal({
               >
                 Offer to host {otherName.split(" ")[0]}
               </button>
-            ))}
+            )
+          ) : offeredPlacement ? (
+            <div className="space-y-2 rounded-xl border border-primary-200 bg-primary-50/60 p-3">
+              <p className="text-sm font-medium text-gray-900">
+                {otherName} offered to host you for the internship.
+              </p>
+              <button
+                type="button"
+                onClick={() => runPlacement("accept")}
+                disabled={placementBusy}
+                className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 rounded-xl text-base font-semibold text-white transition-colors"
+              >
+                {placementBusy ? "Accepting…" : "Accept offer"}
+              </button>
+              <button
+                type="button"
+                onClick={() => runPlacement("decline")}
+                disabled={placementBusy}
+                className="w-full py-2 text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
+              >
+                Decline
+              </button>
+            </div>
+          ) : null}
           <button
             type="button"
             onClick={() => handleAction("cancelled")}

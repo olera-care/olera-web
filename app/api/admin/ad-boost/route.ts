@@ -165,3 +165,29 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ request: data });
 }
+
+/**
+ * Remove a campaign request from the queue entirely — for cancelling a queued
+ * boost or clearing test/duplicate rows. Attribution data lives in
+ * seeker_activity (keyed by utm_campaign), not here, so deleting the request
+ * row never deletes delivered-family history. Admin only; id via ?id=.
+ */
+export async function DELETE(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+  const id = request.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+  const db = getServiceClient();
+  const { error } = await db.from("ad_campaign_requests").delete().eq("id", id);
+
+  if (error) {
+    console.error("[admin/ad-boost] delete failed:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

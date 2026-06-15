@@ -160,13 +160,14 @@ export function providerManagedAdsEmail(opts: {
   city?: string | null;
   category?: string | null;
   /** Unique provider-page viewers in the city+category cohort this week. Real
-   *  number from provider_page_view_stats; null/0 → qualitative fallback. */
+   *  number from provider_page_view_stats; below the floor (<5) → qualitative
+   *  fallback, so a thin "1 family" number never undersells the pitch. */
   localDemand?: number | null;
 }): string {
   const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
   const where = opts.city ? ` near ${escapeHtml(opts.city)}` : " in your area";
   const cat = humanCategoryLabel(opts.category ?? null);
-  const demand = opts.localDemand && opts.localDemand > 0 ? opts.localDemand : null;
+  const demand = opts.localDemand && opts.localDemand >= 5 ? opts.localDemand : null;
   const photoUrl =
     "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 

@@ -1103,7 +1103,7 @@ export async function GET(request: NextRequest) {
       const adsDemand = localDemand ?? areaDemandCount;
       const adsWhere = bp.city ? ` near ${bp.city}` : " in your area";
       const managedAdsSubject =
-        adsDemand && adsDemand > 0
+        adsDemand && adsDemand >= 5
           ? `${adsDemand.toLocaleString()} families searched for care${adsWhere} this week`
           : `The families${bp.city ? ` near ${bp.city}` : ""} you're not reaching yet`;
 

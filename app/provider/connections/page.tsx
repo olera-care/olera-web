@@ -243,7 +243,7 @@ function LeadDetailInlineView({
           </div>
           {/* Date + actions - right aligned */}
           <div className="flex items-center gap-1 shrink-0 -mt-1">
-            <span className="text-[13px] text-gray-400 mr-1">{lead.date}</span>
+            <span className="text-[13px] text-gray-400 mr-1 whitespace-nowrap">{lead.date}</span>
             {/* Overflow menu */}
             {lead.status !== "archived" && isVerified && (
               <div className="relative">
@@ -386,7 +386,7 @@ function LeadDetailInlineView({
                     <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                     </svg>
-                    <p className="text-[15px] text-gray-900 truncate max-w-[180px]">{lead.email}</p>
+                    <p className="text-[15px] text-gray-900 truncate max-w-[280px]">{lead.email}</p>
                     <a
                       href={`mailto:${lead.email}`}
                       onClick={() => onEmailClick?.(lead.id)}
@@ -816,7 +816,7 @@ function LeadDetailDrawer({
         </div>
         {/* Care type · Location · Date */}
         <p className="text-[13px] text-gray-500 mt-0.5">
-          {lead.careType?.[0] || "Care"} · {lead.location || "Location"} · {lead.date}
+          {lead.careType?.[0] || "Care"} · {lead.location || "Location"} · <span className="whitespace-nowrap">{lead.date}</span>
         </p>
       </div>
       {/* Overflow menu */}
@@ -933,7 +933,7 @@ function LeadDetailDrawer({
               <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
-              <p className="text-base font-medium text-gray-900 truncate max-w-[180px]">{lead.email}</p>
+              <p className="text-base font-medium text-gray-900 truncate max-w-[280px]">{lead.email}</p>
               <a
                 href={`mailto:${lead.email}`}
                 onClick={() => onEmailClick?.(lead.id)}
@@ -1123,7 +1123,7 @@ function LeadDetailDrawer({
                   <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                   </svg>
-                  <p className="text-[15px] text-gray-900 truncate max-w-[180px]">{lead.email}</p>
+                  <p className="text-[15px] text-gray-900 truncate max-w-[280px]">{lead.email}</p>
                   <a
                     href={`mailto:${lead.email}`}
                     onClick={() => onEmailClick?.(lead.id)}
@@ -2561,7 +2561,7 @@ export default function ProviderLeadsPage() {
                     <p className="text-[13px] text-gray-500 truncate">
                       {lead.location}
                       <span className="text-gray-300 mx-1.5">·</span>
-                      <span className="text-gray-400">{lead.date}</span>
+                      <span className="text-gray-400 whitespace-nowrap">{lead.date}</span>
                     </p>
                   </div>
                 </div>
@@ -2603,7 +2603,7 @@ export default function ProviderLeadsPage() {
                 <span className="text-[14px] font-medium text-gray-700 truncate">{lead.location}</span>
 
                 {/* Received */}
-                <span className="text-[14px] text-gray-400">{lead.date}</span>
+                <span className="text-[14px] text-gray-400 whitespace-nowrap">{lead.date}</span>
 
                 {/* Status badge - New (green), Replied (amber), Archived/Viewed (gray) */}
                 {lead.isNew ? (

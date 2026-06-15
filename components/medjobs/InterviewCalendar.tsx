@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
+import InternshipAgreementModal from "@/components/medjobs/InternshipAgreementModal";
 import type { Interview } from "@/lib/types";
 import type { AccessTier } from "@/lib/medjobs-access";
 
@@ -501,6 +502,8 @@ function InterviewDetailModal({
   const [signedResumeUrl, setSignedResumeUrl] = useState<string | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
   const [resumeError, setResumeError] = useState(false);
+  const [showOffer, setShowOffer] = useState(false);
+  const [offerSent, setOfferSent] = useState(false);
 
   // Fetch signed URL for resume when needed (provider view, confirmed interview)
   const fetchResumeUrl = async () => {
@@ -658,14 +661,30 @@ function InterviewDetailModal({
 
     if (interview.status === "confirmed") {
       return (
-        <button
-          type="button"
-          onClick={() => handleAction("cancelled")}
-          disabled={isLoading}
-          className="w-full py-3.5 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-xl text-base font-semibold text-gray-700 transition-colors"
-        >
-          {isLoading ? "Cancelling..." : "Cancel Interview"}
-        </button>
+        <div className="space-y-3">
+          {perspective === "provider" &&
+            (offerSent ? (
+              <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
+                Offer sent. {otherName.split(" ")[0]} will be notified to accept.
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowOffer(true)}
+                className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-base font-semibold text-white transition-colors"
+              >
+                Offer to host {otherName.split(" ")[0]}
+              </button>
+            ))}
+          <button
+            type="button"
+            onClick={() => handleAction("cancelled")}
+            disabled={isLoading}
+            className="w-full py-3.5 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-xl text-base font-semibold text-gray-700 transition-colors"
+          >
+            {isLoading ? "Cancelling..." : "Cancel Interview"}
+          </button>
+        </div>
       );
     }
 
@@ -681,6 +700,18 @@ function InterviewDetailModal({
       footer={footerActions ? <div className="pt-2">{footerActions}</div> : undefined}
     >
       <div className="py-4 space-y-6">
+        {showOffer && (
+          <InternshipAgreementModal
+            studentProfileId={interview.student_profile_id}
+            studentName={interview.student?.display_name}
+            interviewId={interview.id}
+            onClose={() => setShowOffer(false)}
+            onOffered={() => {
+              setShowOffer(false);
+              setOfferSent(true);
+            }}
+          />
+        )}
         {/* Pending verification banner - provider scheduled but hasn't verified yet */}
         {isPendingVerification && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">

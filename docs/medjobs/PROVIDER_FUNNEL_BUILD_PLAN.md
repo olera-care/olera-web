@@ -199,3 +199,13 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 - **Audit note:** verify the invite → student-notified → confirm → `.ics` path end-to-end in the scenario audit.
 
 **Loops 1–2 are now built end-to-end** (cold email → eligibility → browse w/ match lines → invite → interview). Remaining: **Phase D** (Loop 3 offer/accept/confirm + dual-pay), **Phase E** (Loop 2b re-activation), and deferred comms (welcome email, cold-send `{welcome_url}` wiring).
+
+### Phase D — Loop 3 placements + agreement (shipped 2026-06-15, branch `claude/keen-mendel-6i8iW`; Stripe stubbed)
+- New `supabase/migrations/103_medjobs_placements.sql` — the host–intern **placement** record (`offered/accepted/confirmed/declined/cancelled/completed`), `internship_agreement_signed_at`, and **stubbed** fee/threshold/`*_paid_at` fields. **Must be applied before the API works.**
+- New `lib/medjobs/placements.ts` — `PlacementStatus` + `INTERNSHIP_FEE_USD` (100) + `HOURS_THRESHOLD` (120) + `GUARANTEE_LINE` + `Placement` type.
+- New `app/api/medjobs/placements/route.ts` — POST (provider offers → `offered`, signs agreement at offer), PATCH (student `accept` → `confirmed`; `decline`; provider `cancel`), GET (list for the caller's profiles). Auth + ownership-gated. **Payments stubbed** (no Stripe capture).
+- New `components/medjobs/InternshipAgreementModal.tsx` — the offer step: plain-language agreement + $100 fee + guarantee + the credential line + "Send offer" → POST. States payment isn't collected yet.
+- `components/medjobs/InterviewCalendar.tsx` — provider **"Offer to host {first}"** button on a confirmed interview → `InternshipAgreementModal` → "Offer sent" state.
+- Verified: `tsc --noEmit` clean; new/changed files lint clean.
+- **Remaining for Loop 3 (need app/DB verification):** apply the migration; the **student accept/decline surface** (load placements into the student view); confirmed-placement display + contact unlock; **Stripe** manual-capture (authorize-at-offer/capture-at-confirm) + the student-first refund guard; post-interview emails + reminders.
+- **Audit note:** provider can create an offer from a confirmed interview today; accept currently happens via the API (`PATCH action:"accept"`) until the student-side surface is wired.

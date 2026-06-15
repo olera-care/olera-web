@@ -702,7 +702,6 @@ export default function ConversationPanel({
   // Quick reply request handling
   const quickReplyRequest = getQuickReplyRequest(connMetadata);
   const isQuickReplyAnswered = !!quickReplyRequest?.answered_at;
-  const showQuickReplyCard = !isProviderView && quickReplyRequest && !isQuickReplyAnswered && !quickReplyDismissed;
 
   // For provider view: check if provider has followed up after family's quick reply response
   const familyProfileId = connection.type === "inquiry" ? connection.from_profile_id : connection.to_profile_id;
@@ -1087,35 +1086,94 @@ export default function ConversationPanel({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-end gap-2.5 max-w-[70%]">
-                      {isLastInGroup ? (
-                        imageUrl ? (
-                          <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
-                        ) : (
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
-                            style={{ background: avatarGradient(otherName) }}
-                          >
-                            {otherInitial}
+                    // Family viewing quick reply request - show elegant inline card if not answered
+                    !isQuickReplyAnswered && !quickReplyDismissed ? (
+                      <div className="w-full max-w-md">
+                        <div className="bg-stone-50 rounded-2xl border border-stone-200 overflow-hidden">
+                          {/* Header with avatar and name */}
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200">
+                            <div className="flex items-center gap-3">
+                              {imageUrl ? (
+                                <Image src={imageUrl} alt={otherName} width={36} height={36} className="w-9 h-9 rounded-full object-cover" />
+                              ) : (
+                                <div
+                                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                  style={{ background: avatarGradient(otherName) }}
+                                >
+                                  {otherInitial}
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">{otherName}</p>
+                                <p className="text-xs text-gray-500">Reached out to you</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setQuickReplyDismissed(true)}
+                              className="p-1.5 rounded-full hover:bg-stone-200 transition-colors"
+                              aria-label="Dismiss"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           </div>
-                        )
-                      ) : (
-                        <div className="w-7 shrink-0" />
-                      )}
-                      <div>
-                        {!isGrouped && (
-                          <p className="text-xs text-gray-400 mb-1.5 ml-1">{otherName}</p>
-                        )}
-                        <div className={`bg-gray-100 px-4 py-3 ${
-                          isLastInGroup ? "rounded-2xl rounded-bl-md" : "rounded-2xl"
-                        }`}>
-                          <p className="text-base leading-relaxed text-gray-800">{msg.text}</p>
+                          {/* Question */}
+                          <div className="px-4 pt-3 pb-2">
+                            <p className="text-[15px] font-medium text-gray-900">{msg.text}</p>
+                            <p className="text-xs text-gray-500 mt-1">Tap to reply</p>
+                          </div>
+                          {/* Options */}
+                          <div className="px-4 pb-4 space-y-2">
+                            {quickReplyRequest?.options.map((option) => (
+                              <button
+                                key={option}
+                                onClick={() => handleQuickReplySelect(option)}
+                                disabled={sending}
+                                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200
+                                           hover:border-gray-300 hover:bg-gray-50
+                                           disabled:opacity-50 disabled:cursor-not-allowed
+                                           text-left text-[15px] text-gray-800 transition-all"
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        {isLastInGroup && (
-                          <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
-                        )}
+                        <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
                       </div>
-                    </div>
+                    ) : (
+                      // Already answered - show as regular message
+                      <div className="flex items-end gap-2.5 max-w-[70%]">
+                        {isLastInGroup ? (
+                          imageUrl ? (
+                            <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div
+                              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
+                              style={{ background: avatarGradient(otherName) }}
+                            >
+                              {otherInitial}
+                            </div>
+                          )
+                        ) : (
+                          <div className="w-7 shrink-0" />
+                        )}
+                        <div>
+                          {!isGrouped && (
+                            <p className="text-xs text-gray-400 mb-1.5 ml-1">{otherName}</p>
+                          )}
+                          <div className={`bg-gray-100 px-4 py-3 ${
+                            isLastInGroup ? "rounded-2xl rounded-bl-md" : "rounded-2xl"
+                          }`}>
+                            <p className="text-base leading-relaxed text-gray-800">{msg.text}</p>
+                          </div>
+                          {isLastInGroup && (
+                            <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
               );
@@ -1304,43 +1362,6 @@ export default function ConversationPanel({
                 </div>
               )}
 
-              {/* Quick Reply Card - for families with pending quick reply request */}
-              {showQuickReplyCard && quickReplyRequest && (
-                <div className="mx-4 sm:mx-6 mt-4 bg-gradient-to-r from-primary-50 to-white rounded-2xl border border-primary-100 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-primary-100">
-                    <span className="text-sm font-semibold text-primary-800">
-                      {otherName} asked:
-                    </span>
-                    <button
-                      onClick={() => setQuickReplyDismissed(true)}
-                      className="p-1 rounded-full hover:bg-primary-100 transition-colors"
-                      aria-label="Dismiss"
-                    >
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="px-4 py-3">
-                    <p className="text-base font-medium text-gray-900">{quickReplyRequest.question}</p>
-                  </div>
-                  <div className="px-4 pb-4 space-y-2">
-                    {quickReplyRequest.options.map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => handleQuickReplySelect(option)}
-                        disabled={sending}
-                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200
-                                   hover:border-primary-300 hover:bg-primary-50
-                                   disabled:opacity-50 disabled:cursor-not-allowed
-                                   text-left text-[15px] text-gray-800 transition-all"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Verification hint - minimal, Apple-like */}
               {isProviderView && !isVerified && (

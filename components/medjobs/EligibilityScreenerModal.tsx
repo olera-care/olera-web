@@ -12,7 +12,7 @@ import type { DemandProfile } from "@/lib/medjobs/eligibility";
  * onComplete (the caller reloads so the board re-reads eligibility).
  */
 
-type Step = "intro" | "q1" | "q2" | "q3" | "loading";
+type Step = "q1" | "q2" | "q3" | "loading";
 type Shape = DemandProfile["demand_shape"];
 type Prn = DemandProfile["prn_open"];
 type Bucket = DemandProfile["coverage_buckets"][number];
@@ -39,18 +39,17 @@ const btnPrimary =
 
 export default function EligibilityScreenerModal({
   providerProfileId,
-  campusName,
-  orgName,
   onClose,
   onComplete,
 }: {
   providerProfileId?: string;
+  /** Accepted for caller compatibility; the screener body no longer uses them. */
   campusName?: string | null;
   orgName?: string | null;
   onClose: () => void;
   onComplete: () => void | Promise<void>;
 }) {
-  const [step, setStep] = useState<Step>("intro");
+  const [step, setStep] = useState<Step>("q1");
   const [shape, setShape] = useState<Shape | null>(null);
   const [prn, setPrn] = useState<Prn | null>(null);
   const [buckets, setBuckets] = useState<Bucket[]>([]);
@@ -98,33 +97,26 @@ export default function EligibilityScreenerModal({
             <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
           )}
 
-          {step === "intro" && (
-            <div className="space-y-4">
-              <h3 className="font-serif text-xl text-gray-900">
-                Check your eligibility
-              </h3>
-              <p className="text-sm leading-relaxed text-gray-600">
-                {orgName ? `${orgName}, a` : "A"} quick check to confirm{" "}
-                {campusName ? `${campusName} student caregivers` : "student caregivers near you"}{" "}
-                fit your agency. About a minute, no commitment. You only host when
-                a student is the right fit.
-              </p>
-              <button type="button" onClick={() => setStep("q1")} className={btnPrimary}>
-                Check eligibility →
-              </button>
-            </div>
-          )}
-
           {step === "q1" && (
-            <QuestionFrame dots={1} title="How steady are your staffing needs?">
-              {Q1.map((o) => (
-                <Opt key={o.value} sel={shape === o.value} onClick={() => setShape(o.value)} label={o.label} />
-              ))}
-              {shape && <Reassure text={Q1.find((o) => o.value === shape)!.reassure} />}
-              <button type="button" disabled={!shape} onClick={() => setStep("q2")} className={btnPrimary}>
-                Next →
-              </button>
-            </QuestionFrame>
+            <div className="space-y-4">
+              {/* Intro folded into Q1 so a magic-link arrival lands straight on
+                  the first question (no extra "Check eligibility →" click). */}
+              <div>
+                <h3 className="font-serif text-xl text-gray-900">Check your eligibility</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  A quick check, about a minute. No commitment.
+                </p>
+              </div>
+              <QuestionFrame dots={1} title="How steady are your staffing needs?">
+                {Q1.map((o) => (
+                  <Opt key={o.value} sel={shape === o.value} onClick={() => setShape(o.value)} label={o.label} />
+                ))}
+                {shape && <Reassure text={Q1.find((o) => o.value === shape)!.reassure} />}
+                <button type="button" disabled={!shape} onClick={() => setStep("q2")} className={btnPrimary}>
+                  Next →
+                </button>
+              </QuestionFrame>
+            </div>
           )}
 
           {step === "q2" && (

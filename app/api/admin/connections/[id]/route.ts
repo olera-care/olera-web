@@ -164,7 +164,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         .in("provider_id", engagementKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
 
+      // Filter events to only those for THIS connection (by connection_id or lead_id in metadata)
+      // This prevents provider-wide events from showing on unrelated connections
       for (const e of events ?? []) {
+        const eventMeta = e.metadata as Record<string, unknown> | null;
+        const eventConnectionId = (eventMeta?.connection_id || eventMeta?.lead_id) as string | undefined;
+
+        // Skip events that don't match this connection
+        // Exception: email_click events from provider emails may not have connection_id (legacy)
+        if (eventConnectionId && eventConnectionId !== id && e.event_type !== "email_click") {
+          continue;
+        }
+
         if (e.event_type === "email_click") engagement.email_clicked = true;
         else if (e.event_type === "lead_opened") engagement.lead_opened = true;
         else if (e.event_type === "contact_revealed") {

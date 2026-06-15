@@ -54,14 +54,12 @@ interface ProviderActions {
   viewed: number;
   copiedPhone: number;
   copiedEmail: number;
-  clickedPhone: number;
-  clickedEmail: number;
-  continuedToInbox: number;
+  messaged: number;
+  declined: number;
   copiedPhoneRate: number;
   copiedEmailRate: number;
-  clickedPhoneRate: number;
-  clickedEmailRate: number;
-  continuedToInboxRate: number;
+  messagedRate: number;
+  declinedRate: number;
 }
 
 interface ListResponse {
@@ -514,7 +512,7 @@ export default function ConnectionsTrackerPage() {
   const initialDirection = searchParams.get("direction") === "outbound" ? "outbound" : "inbound";
 
   const [range, setRange] = useState<DateRangeValue>({
-    preset: "30d",
+    preset: "all",
     customFrom: "",
     customTo: "",
   });
@@ -917,37 +915,31 @@ export default function ConnectionsTrackerPage() {
           </button>
 
           {actionsExpanded && list?.providerActions && (
-            <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
               <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
               <FunnelStat
-                label="Copied Phone"
+                label="Called"
                 value={list.providerActions.copiedPhoneRate}
                 format="percent"
-                subtitle={`${list.providerActions.copiedPhone} copied`}
+                subtitle={`${list.providerActions.copiedPhone} called`}
               />
               <FunnelStat
-                label="Copied Email"
+                label="Emailed"
                 value={list.providerActions.copiedEmailRate}
                 format="percent"
-                subtitle={`${list.providerActions.copiedEmail} copied`}
+                subtitle={`${list.providerActions.copiedEmail} emailed`}
               />
               <FunnelStat
-                label="Clicked to Call"
-                value={list.providerActions.clickedPhoneRate}
+                label="Messaged"
+                value={list.providerActions.messagedRate}
                 format="percent"
-                subtitle={`${list.providerActions.clickedPhone} called`}
+                subtitle={`${list.providerActions.messaged} sent`}
               />
               <FunnelStat
-                label="Clicked to Email"
-                value={list.providerActions.clickedEmailRate}
+                label="Declined"
+                value={list.providerActions.declinedRate}
                 format="percent"
-                subtitle={`${list.providerActions.clickedEmail} emailed`}
-              />
-              <FunnelStat
-                label="Continued to Inbox"
-                value={list.providerActions.continuedToInboxRate}
-                format="percent"
-                subtitle={`${list.providerActions.continuedToInbox} clicked`}
+                subtitle={`${list.providerActions.declined} declined`}
               />
             </div>
           )}

@@ -342,17 +342,17 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "activation") {
     // Activation cadence has a single check-in call. Reference the eligibility
     // check we already sent and offer the meeting as the easy alternative.
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the eligibility check to get set up as a host agency for Olera's {campus_name} Student Caregiving Internship and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through it?"`;
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the eligibility check to get set up as a host agency for Olera's {campus_name} Student Caregiver Internship and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through it?"`;
   }
   if (type === "provider") {
     if (day === 3) {
       // Day 3 call, paired with the Day 3 follow-up email. Confirm the email
       // reached the right person, gauge host-site interest, and ask for the
       // caregiver-hiring contact. The eligibility check is the easy next step.
-      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed {organization_name} about Olera's {campus_name} Student Caregiving Internship, which places pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I wanted to make sure it reached the right person and see if you'd consider hosting an intern. Could you point me to whoever handles caregiver hiring, or a better email for the eligibility details?"`;
+      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed {organization_name} about Olera's {campus_name} Student Caregiver Internship, which places pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I wanted to make sure it reached the right person and see if you'd consider hosting an intern. Could you point me to whoever handles caregiver hiring, or a better email for the eligibility details?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera, circling back on Olera's {campus_name} Student Caregiving Internship. Just making sure it reached the right person at {organization_name}. If you're open to hosting an intern this fall, the eligibility check to become a host home care agency takes about a minute and I'm happy to send the link, or set up a quick call with Dr. DuBose."`;
+      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera, circling back on Olera's {campus_name} Student Caregiver Internship. Just making sure it reached the right person at {organization_name}. If you're open to hosting an intern this fall, the eligibility check to become a host home care agency takes about a minute and I'm happy to send the link, or set up a quick call with Dr. DuBose."`;
     }
   }
   if (type === "student_org") {

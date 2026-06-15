@@ -644,7 +644,7 @@ export function providerIntroEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiving Internship`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Internship`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -652,7 +652,7 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician and National Institute on Aging (NIA) researcher. I'm reaching out about a project we're piloting, [Olera's ${PLACEHOLDER.campus} Student Caregiving Internship](${PLACEHOLDER.programUrl}): a new program that places **pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus.** I came across ${PLACEHOLDER.orgName} while researching nearby home care agencies, and I'd like to invite you to learn about the program and check your eligibility to serve as a host agency for local interns.`,
+      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician and National Institute on Aging (NIA) researcher. I'm reaching out about a project we're piloting, [Olera's ${PLACEHOLDER.campus} Student Caregiver Internship](${PLACEHOLDER.programUrl}): a new program that places **pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus.** I came across ${PLACEHOLDER.orgName} while researching nearby home care agencies, and I'd like to invite you to learn about the program and check your eligibility to serve as a host agency for local interns.`,
       ``,
       `We think it's a win-win-win for home care agencies, ${PLACEHOLDER.campus} pre-health students, and the clients you serve. You need reliable staff, students need hands-on experience to get into grad school, and clients need quality caregivers. This program delivers all three.`,
       ``,
@@ -685,7 +685,7 @@ export function providerFollowupEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiving Internship`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Internship`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -693,7 +693,7 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `Following up in case my last note got buried. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric-focused physician and NIA researcher. We're piloting [Olera's ${PLACEHOLDER.campus} Student Caregiving Internship](${PLACEHOLDER.programUrl}), which places pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus.`,
+      `Following up in case my last note got buried. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric-focused physician and NIA researcher. We're piloting [Olera's ${PLACEHOLDER.campus} Student Caregiver Internship](${PLACEHOLDER.programUrl}), which places pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus.`,
       ``,
       `It's a win-win-win: you get reliable, vetted caregivers who pledge their availability for the full semester, the students get hands-on experience and a recommendation letter, and your clients get quality care. Many interns stay on for future semesters or go full-time over breaks.`,
       ``,
@@ -714,7 +714,7 @@ export function providerFinalEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiving Internship`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiver Internship`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -722,7 +722,7 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Circling back one last time on [Olera's ${PLACEHOLDER.campus} Student Caregiving Internship](${PLACEHOLDER.programUrl}). If hosting a vetted pre-health student in a caregiver role would help ${PLACEHOLDER.orgName}, the eligibility check takes about a minute: [check your eligibility to be a host home care agency](${PLACEHOLDER.welcomeUrl}). There's no commitment until you're onboarded and you and an intern agree it's a good fit.`,
+      `Circling back one last time on [Olera's ${PLACEHOLDER.campus} Student Caregiver Internship](${PLACEHOLDER.programUrl}). If hosting a vetted pre-health student in a caregiver role would help ${PLACEHOLDER.orgName}, the eligibility check takes about a minute: [check your eligibility to be a host home care agency](${PLACEHOLDER.welcomeUrl}). There's no commitment until you're onboarded and you and an intern agree it's a good fit.`,
       ``,
       `If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help.`,
       ``,

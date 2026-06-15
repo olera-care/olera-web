@@ -25,6 +25,7 @@ import {
   type LeadQualityResult,
 } from "@/lib/lead-quality-score";
 import type { FamilyMetadata } from "@/lib/types";
+import { QUICK_REPLY_CONFIG } from "@/lib/quick-reply-config";
 
 // ── Lead types (previously from mock file) ──
 
@@ -116,6 +117,8 @@ function LeadDetailInlineView({
   onPhoneClick,
   onEmailClick,
   onContinueInInbox,
+  onQuickReplyRequest,
+  isQuickReplySending,
   onArchiveClick,
   onVerifyClick,
   onRestore,
@@ -126,6 +129,8 @@ function LeadDetailInlineView({
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
+  onQuickReplyRequest?: (leadId: string) => Promise<boolean>;
+  isQuickReplySending?: boolean;
   onArchiveClick?: () => void;
   onVerifyClick?: () => void;
   onRestore?: (leadId: string) => void;
@@ -133,10 +138,12 @@ function LeadDetailInlineView({
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
   const [restored, setRestored] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(false);
+  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
 
-  // Reset collapsed state when lead changes
+  // Reset collapsed state and close menu when lead changes
   useEffect(() => {
     setShowFullDetails(false);
+    setShowOverflowMenu(false);
   }, [lead.id]);
 
   const displayName = isVerified ? lead.name : formatRedactedName(lead.name);
@@ -173,26 +180,6 @@ function LeadDetailInlineView({
       onClose();
     }, 1500);
   };
-
-  // Status tag
-  const statusTag = lead.status === "archived" ? (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
-      Archived
-    </span>
-  ) : lead.isNew ? (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
-      New
-    </span>
-  ) : lead.status === "replied" ? (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
-      Replied
-    </span>
-  ) : (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
-      Viewed
-    </span>
-  );
-
   return (
     <div className="bg-white rounded-xl border border-gray-200 sticky top-6 h-[calc(100vh-6rem)] flex flex-col overflow-hidden">
       {/* Header */}
@@ -212,21 +199,142 @@ function LeadDetailInlineView({
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+            {/* Name + Quality badge inline */}
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
-              {statusTag}
+              {/* Quality tier badge - compact pill */}
+              {lead.leadQuality && (() => {
+                const colors = getLeadQualityColor(lead.leadQuality.tier);
+                const iconType = getLeadQualityIcon(lead.leadQuality.tier);
+                const explanation = getLeadQualityExplanation(lead.leadQuality.tier);
+                return (
+                  <Tooltip content={explanation} position="bottom">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}>
+                      {iconType.type === "flame" && (
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {iconType.type === "star" && (
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {iconType.type === "search" && (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                      )}
+                      {iconType.type === "clock" && (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                      )}
+                      {lead.leadQuality.label}
+                    </span>
+                  </Tooltip>
+                );
+              })()}
             </div>
-            <p className="text-[14px] text-gray-600 mt-0.5">Reached out {lead.date}</p>
+            {/* Care type · Location as subtitle */}
+            <p className="text-[14px] text-gray-600 mt-0.5">
+              {lead.careType?.[0] || "Care"} · {lead.location || "Location unknown"}
+            </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0 -mt-1"
-            aria-label="Close lead details"
-          >
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {/* Date + actions - right aligned */}
+          <div className="flex items-center gap-1 shrink-0 -mt-1">
+            <span className="text-[13px] text-gray-400 mr-1 whitespace-nowrap">{lead.date}</span>
+            {/* Overflow menu */}
+            {lead.status !== "archived" && isVerified && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowOverflowMenu(!showOverflowMenu)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="More options"
+                >
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                  </svg>
+                </button>
+                {showOverflowMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowOverflowMenu(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                      {/* Quick copy actions */}
+                      {lead.phone && (
+                        <button
+                          onClick={() => {
+                            copyToClipboard(lead.phone!, "phone");
+                            // Brief delay to show "Copied!" feedback before closing
+                            setTimeout(() => setShowOverflowMenu(false), 600);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <svg className={`w-4 h-4 ${copiedField === "phone" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            {copiedField === "phone" ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                            )}
+                          </svg>
+                          <span className={copiedField === "phone" ? "text-primary-600 font-medium" : ""}>
+                            {copiedField === "phone" ? "Copied!" : "Copy phone"}
+                          </span>
+                        </button>
+                      )}
+                      {lead.email && (
+                        <button
+                          onClick={() => {
+                            copyToClipboard(lead.email!, "email");
+                            // Brief delay to show "Copied!" feedback before closing
+                            setTimeout(() => setShowOverflowMenu(false), 600);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <svg className={`w-4 h-4 ${copiedField === "email" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            {copiedField === "email" ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                            )}
+                          </svg>
+                          <span className={copiedField === "email" ? "text-primary-600 font-medium" : ""}>
+                            {copiedField === "email" ? "Copied!" : "Copy email"}
+                          </span>
+                        </button>
+                      )}
+                      {/* Divider */}
+                      {(lead.phone || lead.email) && (
+                        <div className="my-1 border-t border-gray-100" />
+                      )}
+                      {/* Decline action */}
+                      <button
+                        onClick={() => {
+                          setShowOverflowMenu(false);
+                          onArchiveClick?.();
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                        </svg>
+                        Decline inquiry
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Close lead details"
+            >
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -249,66 +357,6 @@ function LeadDetailInlineView({
           </div>
         )}
 
-        {/* Quality Summary Card */}
-        {(() => {
-          const quality = lead.leadQuality;
-          const colors = quality ? getLeadQualityColor(quality.tier) : null;
-          const iconType = quality ? getLeadQualityIcon(quality.tier) : null;
-          const explanation = quality ? getLeadQualityExplanation(quality.tier) : "";
-
-          return (
-            <div
-              className={`relative rounded-xl px-3.5 py-2.5 flex items-center gap-3 ${colors?.bg || 'bg-gray-50'} border ${colors?.border || 'border-gray-200'}`}
-            >
-              {/* Tier Icon */}
-              <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${colors?.iconBg || 'bg-gray-100'}`}>
-                {iconType?.type === "flame" ? (
-                  <svg className={`w-[18px] h-[18px] ${colors?.iconText || 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z" clipRule="evenodd" />
-                  </svg>
-                ) : iconType?.type === "star" ? (
-                  <svg className={`w-[18px] h-[18px] ${colors?.iconText || 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
-                  </svg>
-                ) : iconType?.type === "search" ? (
-                  <svg className={`w-[18px] h-[18px] ${colors?.iconText || 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                  </svg>
-                ) : (
-                  <svg className={`w-[18px] h-[18px] ${colors?.iconText || 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <p className={`text-[15px] font-display font-semibold leading-tight ${colors?.text || 'text-gray-900'}`}>
-                  {quality?.label || "Lead"}
-                </p>
-                <p className="text-[13px] text-gray-500 leading-tight mt-0.5">
-                  {lead.careType?.[0] || "Care"} · {lead.location || "Location unknown"}
-                </p>
-              </div>
-
-              {/* Info tooltip */}
-              {explanation && (
-                <Tooltip content={explanation} position="bottom">
-                  <button
-                    type="button"
-                    className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-white/50 text-gray-500 hover:bg-white/80 hover:text-gray-700 transition-colors"
-                    aria-label="What does this mean?"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                    </svg>
-                  </button>
-                </Tooltip>
-              )}
-            </div>
-          );
-        })()}
-
         {/* Contact */}
         {isVerified ? (
           (lead.email || lead.phone) && (
@@ -316,57 +364,39 @@ function LeadDetailInlineView({
               <h4 className="text-base font-display font-bold text-gray-900 mb-1.5">Contact</h4>
               <div className="space-y-1.5">
                 {lead.phone && (
-                  <div className="group flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-700 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
                     </svg>
-                    <p className="text-[15px] text-gray-900 truncate">{lead.phone}</p>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(lead.phone!, "phone")}
-                      className={`p-1.5 rounded-md transition-all shrink-0 ${
-                        copiedField === "phone"
-                          ? "bg-primary-100 text-primary-700"
-                          : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                      }`}
+                    <p className="text-[15px] text-gray-900">{lead.phone}</p>
+                    <a
+                      href={`tel:${lead.phone}`}
+                      onClick={() => onPhoneClick?.(lead.id)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                     >
-                      {copiedField === "phone" ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                        </svg>
-                      )}
-                    </button>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                      </svg>
+                      Call
+                    </a>
                   </div>
                 )}
                 {lead.email && (
-                  <div className="group flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-gray-700 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                     </svg>
-                    <p className="text-[15px] text-gray-900 truncate">{lead.email}</p>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(lead.email!, "email")}
-                      className={`p-1.5 rounded-md transition-all shrink-0 ${
-                        copiedField === "email"
-                          ? "bg-primary-100 text-primary-700"
-                          : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                      }`}
+                    <p className="text-[15px] text-gray-900 truncate max-w-[280px]">{lead.email}</p>
+                    <a
+                      href={`mailto:${lead.email}`}
+                      onClick={() => onEmailClick?.(lead.id)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                     >
-                      {copiedField === "email" ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                        </svg>
-                      )}
-                    </button>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                      </svg>
+                      Email
+                    </a>
                   </div>
                 )}
               </div>
@@ -534,40 +564,61 @@ function LeadDetailInlineView({
             </button>
           )
         ) : isVerified ? (
-          // Active footer - horizontal layout with helper text
+          // Active footer - show "Check if they're a fit" for new leads, "Message" for replied
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onArchiveClick}
-                className="flex-1 px-4 py-3.5 border border-gray-300 bg-white text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
-              >
-                Decline
-              </button>
-              <button
-                type="button"
-                onClick={() => onContinueInInbox?.(lead.id)}
-                className="flex-[2] px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                </svg>
-                {(() => {
-                  if (!lead.name) return 'Message Care Seeker';
-                  const firstName = lead.name.split(' ')[0];
-                  if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
-                    return `Message ${firstName}`;
-                  }
-                  return 'Message Care Seeker';
-                })()}
-              </button>
-            </div>
-            <p className="text-center text-[13px] text-gray-500 flex items-center justify-center gap-1.5">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-              Free to message — you won&apos;t be charged
-            </p>
+            {lead.status === "new" ? (
+              // Quick reply button for leads provider hasn't messaged yet
+              <>
+                <button
+                  type="button"
+                  onClick={() => onQuickReplyRequest?.(lead.id)}
+                  disabled={isQuickReplySending}
+                  className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:bg-primary-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isQuickReplySending ? (
+                    <svg className="w-[18px] h-[18px] animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                    </svg>
+                  )}
+                  {isQuickReplySending ? "Sending..." : "Check if they're a fit"}
+                </button>
+                <p className="text-center text-[13px] text-gray-500">
+                  Free — you won&apos;t be charged
+                </p>
+              </>
+            ) : (
+              // Regular message button for leads that have been replied to
+              <>
+                <button
+                  type="button"
+                  onClick={() => onContinueInInbox?.(lead.id)}
+                  className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                  </svg>
+                  {(() => {
+                    if (!lead.name) return 'Message Care Seeker';
+                    const firstName = lead.name.split(' ')[0];
+                    if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+                      return `Message ${firstName}`;
+                    }
+                    return 'Message Care Seeker';
+                  })()}
+                </button>
+                <p className="text-center text-[13px] text-gray-500 flex items-center justify-center gap-1.5">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  Free to message — you won&apos;t be charged
+                </p>
+              </>
+            )}
           </div>
         ) : (
           // Not verified footer
@@ -597,6 +648,8 @@ function LeadDetailDrawer({
   onPhoneClick,
   onEmailClick,
   onContinueInInbox,
+  onQuickReplyRequest,
+  isQuickReplySending,
   onArchiveClick,
   isVerified = true,
   onVerifyClick,
@@ -608,6 +661,8 @@ function LeadDetailDrawer({
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
+  onQuickReplyRequest?: (leadId: string) => Promise<boolean>;
+  isQuickReplySending?: boolean;
   onArchiveClick?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
@@ -616,6 +671,8 @@ function LeadDetailDrawer({
   const [restored, setRestored] = useState(false);
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
   const [showFullDetails, setShowFullDetails] = useState(false);
+  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
+  const [quickReplyError, setQuickReplyError] = useState(false);
 
   // Display name: full name if verified, redacted if not
   const displayName = lead ? (isVerified ? lead.name : formatRedactedName(lead.name)) : "";
@@ -629,18 +686,20 @@ function LeadDetailDrawer({
   };
 
   // Copy to clipboard with feedback
-  const copyToClipboard = (text: string, field: "phone" | "email") => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(field);
-
-    // Track copy action (marks as connected)
-    if (field === "phone") {
-      onPhoneClick?.(lead?.id || "");
-    } else {
-      onEmailClick?.(lead?.id || "");
+  const copyToClipboard = async (text: string, field: "phone" | "email") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      // Track copy action (marks as connected) - only on successful copy
+      if (field === "phone") onPhoneClick?.(lead?.id || "");
+      if (field === "email") onEmailClick?.(lead?.id || "");
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      // Still show feedback, but copy failed - don't track
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 1000);
     }
-
-    setTimeout(() => setCopiedField(null), 2000);
   };
 
   // Reset state when drawer closes or lead changes
@@ -648,6 +707,8 @@ function LeadDetailDrawer({
     if (!isOpen) {
       setRestored(false);
       setCopiedField(null);
+      setShowOverflowMenu(false);
+      setQuickReplyError(false);
     }
   }, [isOpen]);
 
@@ -656,6 +717,8 @@ function LeadDetailDrawer({
       setRestored(false);
       setCopiedField(null);
       setShowFullDetails(false);
+      setShowOverflowMenu(false);
+      setQuickReplyError(false);
     }
   }, [lead?.id]);
 
@@ -696,25 +759,39 @@ function LeadDetailDrawer({
 
   if (!lead) return null;
 
-  // ── Sticky Header Content ──
-  // Status tag matches list view styling
-  const statusTag = lead.status === "archived" ? (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
-      Archived
-    </span>
-  ) : lead.isNew ? (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">
-      New
-    </span>
-  ) : lead.status === "replied" ? (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
-      Replied
-    </span>
-  ) : (
-    <span className="inline-flex items-center justify-center px-1.5 py-1 rounded-lg text-[11px] font-medium leading-none bg-gray-50 text-gray-500 border border-gray-200 shrink-0">
-      Viewed
-    </span>
-  );
+  // Quality badge for mobile header
+  const qualityBadge = lead.leadQuality ? (() => {
+    const colors = getLeadQualityColor(lead.leadQuality.tier);
+    const iconType = getLeadQualityIcon(lead.leadQuality.tier);
+    const explanation = getLeadQualityExplanation(lead.leadQuality.tier);
+    return (
+      <Tooltip content={explanation} position="bottom">
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border} shrink-0`}>
+          {iconType.type === "flame" && (
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z" clipRule="evenodd" />
+            </svg>
+          )}
+          {iconType.type === "star" && (
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+            </svg>
+          )}
+          {iconType.type === "search" && (
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          )}
+          {iconType.type === "clock" && (
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          )}
+          {lead.leadQuality.label}
+        </span>
+      </Tooltip>
+    );
+  })() : null;
 
   const StickyHeader = (
     <div className="flex items-start gap-3">
@@ -732,12 +809,97 @@ function LeadDetailDrawer({
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        {/* Name + Quality badge */}
+        <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-lg font-semibold text-gray-900 truncate">{displayName}</h2>
-          {statusTag}
+          {qualityBadge}
         </div>
-        <p className="text-[14px] text-gray-600 mt-0.5">Reached out {lead.date}</p>
+        {/* Care type · Location · Date */}
+        <p className="text-[13px] text-gray-500 mt-0.5">
+          {lead.careType?.[0] || "Care"} · {lead.location || "Location"} · <span className="whitespace-nowrap">{lead.date}</span>
+        </p>
       </div>
+      {/* Overflow menu */}
+      {lead.status !== "archived" && isVerified && (
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setShowOverflowMenu(!showOverflowMenu)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors -mt-1"
+            aria-label="More options"
+          >
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+            </svg>
+          </button>
+          {showOverflowMenu && (
+            <>
+              <div className="fixed inset-0 z-[80]" onClick={() => setShowOverflowMenu(false)} />
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[90]">
+                {/* Quick copy actions */}
+                {lead.phone && (
+                  <button
+                    onClick={() => {
+                      copyToClipboard(lead.phone!, "phone");
+                      // Brief delay to show "Copied!" feedback before closing
+                      setTimeout(() => setShowOverflowMenu(false), 600);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <svg className={`w-4 h-4 ${copiedField === "phone" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      {copiedField === "phone" ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                      )}
+                    </svg>
+                    <span className={copiedField === "phone" ? "text-primary-600 font-medium" : ""}>
+                      {copiedField === "phone" ? "Copied!" : "Copy phone"}
+                    </span>
+                  </button>
+                )}
+                {lead.email && (
+                  <button
+                    onClick={() => {
+                      copyToClipboard(lead.email!, "email");
+                      // Brief delay to show "Copied!" feedback before closing
+                      setTimeout(() => setShowOverflowMenu(false), 600);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <svg className={`w-4 h-4 ${copiedField === "email" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      {copiedField === "email" ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                      )}
+                    </svg>
+                    <span className={copiedField === "email" ? "text-primary-600 font-medium" : ""}>
+                      {copiedField === "email" ? "Copied!" : "Copy email"}
+                    </span>
+                  </button>
+                )}
+                {/* Divider */}
+                {(lead.phone || lead.email) && (
+                  <div className="my-1 border-t border-gray-100" />
+                )}
+                {/* Decline action */}
+                <button
+                  onClick={() => {
+                    setShowOverflowMenu(false);
+                    onArchiveClick?.(lead.id);
+                  }}
+                  className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                  </svg>
+                  Decline inquiry
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 
@@ -749,65 +911,39 @@ function LeadDetailDrawer({
         <p className="text-lg font-semibold text-gray-900 mb-2.5">Contact information</p>
         <div className="space-y-1.5">
           {lead.phone && (
-            <div className="group flex items-center gap-1.5">
-              {/* Phone icon */}
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
               </svg>
-              <div className="min-w-0">
-                <p className="text-base font-medium text-gray-900 truncate">{lead.phone}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => copyToClipboard(lead.phone!, "phone")}
-                className={`p-2 md:p-1.5 rounded-md transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
-                  copiedField === "phone"
-                    ? "bg-primary-100 text-primary-700"
-                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
-                }`}
-                aria-label={copiedField === "phone" ? "Copied!" : "Copy phone"}
+              <p className="text-base font-medium text-gray-900">{lead.phone}</p>
+              <a
+                href={`tel:${lead.phone}`}
+                onClick={() => onPhoneClick?.(lead.id)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
               >
-                {copiedField === "phone" ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                  </svg>
-                )}
-              </button>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                </svg>
+                Call
+              </a>
             </div>
           )}
           {lead.email && (
-            <div className="group flex items-center gap-1.5">
-              {/* Email icon */}
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
-              <div className="min-w-0">
-                <p className="text-base font-medium text-gray-900 truncate">{lead.email}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => copyToClipboard(lead.email!, "email")}
-                className={`p-2 md:p-1.5 rounded-md transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
-                  copiedField === "email"
-                    ? "bg-primary-100 text-primary-700"
-                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
-                }`}
-                aria-label={copiedField === "email" ? "Copied!" : "Copy email"}
+              <p className="text-base font-medium text-gray-900 truncate max-w-[280px]">{lead.email}</p>
+              <a
+                href={`mailto:${lead.email}`}
+                onClick={() => onEmailClick?.(lead.id)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
               >
-                {copiedField === "email" ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                  </svg>
-                )}
-              </button>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                Email
+              </a>
             </div>
           )}
         </div>
@@ -958,66 +1094,6 @@ function LeadDetailDrawer({
       {/* Declined banner */}
       {DeclinedBanner}
 
-      {/* Quality Summary Card */}
-      {(() => {
-        const quality = lead.leadQuality;
-        const colors = quality ? getLeadQualityColor(quality.tier) : null;
-        const iconType = quality ? getLeadQualityIcon(quality.tier) : null;
-        const explanation = quality ? getLeadQualityExplanation(quality.tier) : "";
-
-        return (
-          <div
-            className={`relative rounded-xl px-3.5 py-3 flex items-center gap-3 ${colors?.bg || 'bg-gray-50'} border ${colors?.border || 'border-gray-200'}`}
-          >
-            {/* Tier Icon */}
-            <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${colors?.iconBg || 'bg-gray-100'}`}>
-              {iconType?.type === "flame" ? (
-                <svg className={`w-5 h-5 ${colors?.iconText || 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                  <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z" clipRule="evenodd" />
-                </svg>
-              ) : iconType?.type === "star" ? (
-                <svg className={`w-5 h-5 ${colors?.iconText || 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                  <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
-                </svg>
-              ) : iconType?.type === "search" ? (
-                <svg className={`w-5 h-5 ${colors?.iconText || 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                </svg>
-              ) : (
-                <svg className={`w-5 h-5 ${colors?.iconText || 'text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <p className={`text-base font-display font-semibold leading-tight ${colors?.text || 'text-gray-900'}`}>
-                {quality?.label || "Lead"}
-              </p>
-              <p className="text-[13px] text-gray-500 leading-tight mt-0.5">
-                {lead.careType?.[0] || "Care"} · {lead.location || "Location unknown"}
-              </p>
-            </div>
-
-            {/* Info tooltip */}
-            {explanation && (
-              <Tooltip content={explanation} position="bottom">
-                <button
-                  type="button"
-                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-white/50 text-gray-500 hover:bg-white/80 active:bg-white/90 hover:text-gray-700 transition-colors"
-                  aria-label="What does this mean?"
-                >
-                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                  </svg>
-                </button>
-              </Tooltip>
-            )}
-          </div>
-        );
-      })()}
-
       {/* Contact */}
       {isVerified ? (
         (lead.email || lead.phone) && (
@@ -1025,57 +1101,39 @@ function LeadDetailDrawer({
             <h4 className="text-base font-display font-bold text-gray-900 mb-1.5">Contact</h4>
             <div className="space-y-1.5">
               {lead.phone && (
-                <div className="group flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-gray-700 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
                   </svg>
-                  <p className="text-[15px] text-gray-900 truncate">{lead.phone}</p>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(lead.phone!, "phone")}
-                    className={`p-1.5 rounded-md transition-all shrink-0 ${
-                      copiedField === "phone"
-                        ? "bg-primary-100 text-primary-700"
-                        : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                    }`}
+                  <p className="text-[15px] text-gray-900">{lead.phone}</p>
+                  <a
+                    href={`tel:${lead.phone}`}
+                    onClick={() => onPhoneClick?.(lead.id)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                   >
-                    {copiedField === "phone" ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                      </svg>
-                    )}
-                  </button>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                    </svg>
+                    Call
+                  </a>
                 </div>
               )}
               {lead.email && (
-                <div className="group flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-gray-700 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                   </svg>
-                  <p className="text-[15px] text-gray-900 truncate">{lead.email}</p>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(lead.email!, "email")}
-                    className={`p-1.5 rounded-md transition-all shrink-0 ${
-                      copiedField === "email"
-                        ? "bg-primary-100 text-primary-700"
-                        : "text-gray-400 hover:text-gray-700 hover:bg-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                    }`}
+                  <p className="text-[15px] text-gray-900 truncate max-w-[280px]">{lead.email}</p>
+                  <a
+                    href={`mailto:${lead.email}`}
+                    onClick={() => onEmailClick?.(lead.id)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                   >
-                    {copiedField === "email" ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-                      </svg>
-                    )}
-                  </button>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                    </svg>
+                    Email
+                  </a>
                 </div>
               )}
             </div>
@@ -1187,45 +1245,84 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // ── Active Footer (horizontal layout with helper text) ──
+  // Handler for quick reply request - await result, only close on success
+  const handleQuickReplyRequest = async () => {
+    if (!lead) return;
+    setQuickReplyError(false);
+    const success = await onQuickReplyRequest?.(lead.id);
+    if (success) {
+      onClose();
+    } else {
+      setQuickReplyError(true);
+    }
+  };
+
+  // ── Active Footer (full width message button with helper text) ──
   const ActiveFooter = isVerified ? (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        {/* Secondary action - Decline lead */}
-        <button
-          type="button"
-          onClick={() => onArchiveClick?.(lead.id)}
-          className="flex-1 px-4 py-3.5 border border-gray-300 bg-white text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
-        >
-          Decline
-        </button>
-
-        {/* Primary action - Message */}
-        <button
-          type="button"
-          onClick={handleContinueInInbox}
-          className="flex-[2] px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
-        >
-          <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-          </svg>
-          {(() => {
-            if (!lead.name) return 'Message Care Seeker';
-            const firstName = lead.name.split(' ')[0];
-            // Use first name if it looks real (more than 1 char, not a placeholder)
-            if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
-              return `Message ${firstName}`;
-            }
-            return 'Message Care Seeker';
-          })()}
-        </button>
-      </div>
-      <p className="text-center text-[13px] text-gray-500 flex items-center justify-center gap-1.5">
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-        Free to message — you won&apos;t be charged
-      </p>
+      {lead.status === "new" ? (
+        // Quick reply button for leads provider hasn't messaged yet
+        <>
+          <button
+            type="button"
+            onClick={handleQuickReplyRequest}
+            disabled={isQuickReplySending}
+            className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          >
+            {isQuickReplySending ? (
+              <svg className="w-[18px] h-[18px] animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            ) : (
+              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+              </svg>
+            )}
+            {isQuickReplySending ? "Sending..." : "Check if they're a fit"}
+          </button>
+          {quickReplyError ? (
+            <p className="text-center text-[13px] text-red-600 flex items-center justify-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              Something went wrong. Please try again.
+            </p>
+          ) : (
+            <p className="text-center text-[13px] text-gray-500">
+              Free — you won&apos;t be charged
+            </p>
+          )}
+        </>
+      ) : (
+        // Regular message button for leads that have been replied to
+        <>
+          <button
+            type="button"
+            onClick={handleContinueInInbox}
+            className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
+          >
+            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+            </svg>
+            {(() => {
+              if (!lead.name) return 'Message Care Seeker';
+              const firstName = lead.name.split(' ')[0];
+              // Use first name if it looks real (more than 1 char, not a placeholder)
+              if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+                return `Message ${firstName}`;
+              }
+              return 'Message Care Seeker';
+            })()}
+          </button>
+          <p className="text-center text-[13px] text-gray-500 flex items-center justify-center gap-1.5">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Free to message — you won&apos;t be charged
+          </p>
+        </>
+      )}
     </div>
   ) : (
     <button
@@ -1355,17 +1452,17 @@ function timeAgo(dateStr: string): string {
 
   // Spell out time units for readability
   if (diffMins < 1) return "just now";
-  if (diffMins === 1) return "one minute ago";
+  if (diffMins === 1) return "1 minute ago";
   if (diffMins < 60) return `${diffMins} minutes ago`;
-  if (diffHours === 1) return "one hour ago";
+  if (diffHours === 1) return "1 hour ago";
   if (diffHours < 24) return `${diffHours} hours ago`;
-  if (diffDays === 1) return "one day ago";
+  if (diffDays === 1) return "1 day ago";
   if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffWeeks === 1) return "one week ago";
+  if (diffWeeks === 1) return "1 week ago";
   if (diffDays < 30) return `${diffWeeks} weeks ago`;
-  if (diffMonths === 1) return "one month ago";
+  if (diffMonths === 1) return "1 month ago";
   if (diffDays < 365) return `${diffMonths} months ago`;
-  if (diffYears === 1) return "one year ago";
+  if (diffYears === 1) return "1 year ago";
   return `${diffYears} years ago`;
 }
 
@@ -1690,6 +1787,8 @@ export default function ProviderLeadsPage() {
   const [whatsappBannerDismissed, setWhatsappBannerDismissed] = useState(false);
   const [whatsappOptingIn, setWhatsappOptingIn] = useState(false);
   const [freeLeadBannerDismissed, setFreeLeadBannerDismissed] = useState(false);
+  // Track which lead is currently sending quick reply (for loading state)
+  const [quickReplySendingId, setQuickReplySendingId] = useState<string | null>(null);
 
   // Verification state
   const { isVerified } = useProviderVerification();
@@ -2058,6 +2157,62 @@ export default function ProviderLeadsPage() {
     }
   }, [leads]);
 
+  // Handle quick reply request - send pre-written question and navigate to inbox
+  // Returns true on success, false on failure (for drawer to handle)
+  const handleQuickReplyRequest = useCallback(async (leadId: string): Promise<boolean> => {
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+
+    setQuickReplySendingId(leadId);
+    try {
+      const response = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          text: QUICK_REPLY_CONFIG.question,
+          messageType: "quick_reply_request",
+          quickReplyOptions: QUICK_REPLY_CONFIG.options,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[quick-reply] API failed:", await response.text());
+        setQuickReplySendingId(null);
+        return false;
+      }
+
+      // Update lead status optimistically
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === leadId ? { ...l, status: "replied" as LeadStatus } : l
+        )
+      );
+
+      // Track the action
+      if (providerProfile) {
+        const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+        fetch("/api/activity/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: providerKey,
+            event_type: "quick_reply_sent",
+            metadata: { lead_id: leadId },
+          }),
+        }).catch(() => {});
+      }
+
+      // Navigate to inbox
+      router.push(`/provider/inbox?id=${connectionId}`);
+      return true;
+    } catch (err) {
+      console.error("[quick-reply] Failed:", err);
+      setQuickReplySendingId(null);
+      return false;
+    }
+  }, [leads, providerProfile, router]);
+
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
   const showWhatsAppBanner =
@@ -2406,14 +2561,14 @@ export default function ProviderLeadsPage() {
                     <p className="text-[13px] text-gray-500 truncate">
                       {lead.location}
                       <span className="text-gray-300 mx-1.5">·</span>
-                      <span className="text-gray-400">{lead.date}</span>
+                      <span className="text-gray-400 whitespace-nowrap">{lead.date}</span>
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Desktop table layout */}
-              <div className="hidden lg:grid grid-cols-[1.8fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-5 items-center px-6 py-4">
+              <div className="hidden lg:grid grid-cols-[1.8fr_1.5fr_1fr_1fr_0.8fr_auto] gap-5 items-center px-6 py-4">
                 {/* Name */}
                 <div className="flex items-center gap-3 min-w-0">
                   {lead.imageUrl ? (
@@ -2448,7 +2603,7 @@ export default function ProviderLeadsPage() {
                 <span className="text-[14px] font-medium text-gray-700 truncate">{lead.location}</span>
 
                 {/* Received */}
-                <span className="text-[14px] text-gray-400">{lead.date}</span>
+                <span className="text-[14px] text-gray-400 whitespace-nowrap">{lead.date}</span>
 
                 {/* Status badge - New (green), Replied (amber), Archived/Viewed (gray) */}
                 {lead.isNew ? (
@@ -2568,6 +2723,8 @@ export default function ProviderLeadsPage() {
                   router.push(`/provider/inbox?id=${selectedLead.connectionId || selectedLead.id}`);
                   closeDrawer();
                 }}
+                onQuickReplyRequest={handleQuickReplyRequest}
+                isQuickReplySending={quickReplySendingId === selectedLead.id}
                 onArchiveClick={() => setLeadIdToArchive(selectedLead.id)}
                 onVerifyClick={handleVerifyFromDrawer}
                 onRestore={handleRestoreLead}
@@ -2626,6 +2783,8 @@ export default function ProviderLeadsPage() {
             }),
           }).catch(() => {});
         }}
+        onQuickReplyRequest={handleQuickReplyRequest}
+        isQuickReplySending={selectedLead ? quickReplySendingId === selectedLead.id : false}
         isVerified={isVerified}
         onVerifyClick={handleVerifyFromDrawer}
       />

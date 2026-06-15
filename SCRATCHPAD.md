@@ -7,6 +7,31 @@
 
 ## Current Focus
 
+### 2026-06-08 — Board sweep + SBF breadcrumb fix (shipped) + de-indexing investigation (paused at validation gate)
+
+**Two threads. The shippable one is done; the live one is a paused analysis.**
+
+**A) Notion board hygiene + SBF cluster fix (SHIPPED):**
+- **Board sweep** of "Olera Action Items" (Marketing/ops board, `2ef5903a…`): 62→36 open. Archived 26 stale items (7 dead marketing one-offs incl. already-live GA4/Mercury MCP; 19 per-provider SEO micro-cards → consolidated into one rolling batch task). Then audited 3 more "next" candidates and found them done/premature: **provider category stock-image fallback = already shipped** (`getCategoryFallbackImage` in `lib/types/provider.ts`; gradient+initials is now just a last-resort) → archived; **WhatsApp analytics = premature** → downgraded to Backlog (audit: 16 lifetime messages, 0 seeker conversations, Twilio *sandbox* mode, `whatsapp_opted_in` written to a non-existent `business_profiles` column → opt-in likely broken).
+- **PR #961 MERGED** (staging `aacbc840`): all 669 `/benefits` interior pages declared their top breadcrumb "Benefits Hub" → `/benefits`, which 301s to the **quiz** (`/benefits/finder`) — so the real hub (`/senior-benefits`, kept per decision) was **orphaned from its own 669 children** (zero internal links). Repointed visible + JSON-LD breadcrumb + "Explore all 50 states" to `/senior-benefits`; dropped the static `/senior-benefits/forms` sitemap entry. Files: `StatePageV3.tsx`, `ProgramPageV3.tsx`, `app/benefits/[slug]/page.tsx`, `app/benefits/[slug]/[program]/page.tsx`, both sitemaps.
+- **PR #962 OPEN** (`benefits-sitemap-forms-cleanup`, this branch): pre-test review missed that both sitemaps *also* emit ~50 `/senior-benefits/forms/[state]` URLs in a per-state loop (all 301'd) — caught during post-merge verification. Dropped them. **Lesson: grep for dynamic loop emissions, not just static array literals.** Awaiting TJ merge.
+- The "Consolidate benefits across 4 URL roots" framing was already done by April 301s (Google self-canonicalizing on `/benefits`, +2× clicks); rescoped the ticket to this breadcrumb+sitemap hygiene. Close on #962 merge.
+
+**B) De-indexing strategy investigation (PAUSED — analysis only, no code):**
+Followed the "De-indexing: rewrite theory disproven" ticket deep using the fresh GSC **Coverage Drilldown** export (`loving-lehmann/docs/https___olera.care_-Coverage-Drilldown-2026-06-08/`, issue = "Crawled - currently not indexed", ~63.5K, **plateauing late May**).
+- **Established (hard data):** It is a **sameness + scale** problem, NOT per-page quality. A rating×impressions crosstab (74K providers × GSC) showed **rating does NOT predict ranking** — no-rating pages earn impressions at a *higher* rate (26.5%) than 4.5★ pages (19.4%), and the no-rating tier pulls 28% of provider impressions/clicks. This killed my own mid-session "noindex by rating" proposal before building it.
+- **The not-indexed pile is ~76–90% REAL, useful providers** (459-slug sample: 92% phone, 79% rating, 96% contactable, info-availability median 4.3/5; only ~2% dead-ish + ~8% soft-deleted). **Essentially nothing to prune.**
+- **Reframe (TJ's correction, accepted):** the long tail MATTERS — "zero impressions" is circular for non-indexed pages (they *can't* earn impressions). The small-town Kansas family searching local care must find an indexed page; that tail is the highest-intent, lowest-competition, most mission-true traffic, and ties directly to the **connections KPI**.
+- **PAUSED at the validation gate:** the lever is NOT pruning — it's reduce template-sameness + internal linking/crawl paths + crawl hygiene (possibly a domain-authority ceiling). But that's a HYPOTHESIS; per the session's lesson (confident root-cause guesses keep getting killed by data), the next step is to **validate the binding constraint first** — (a) boilerplate ratio on a rendered provider page, (b) internal-link depth to a long-tail provider — THEN propose the fix. Plan before code.
+
+**Decisions:** keep benefits hub at `/senior-benefits`; don't chase the not-indexed *count* (partly vanity) — optimize for connections; prune is off the table (nothing to prune).
+
+**Next up:** (1) merge #962, close the SBF ticket. (2) Run the two de-indexing validation checks → identify binding constraint → plan fix with TJ. (3) Optionally pull "Discovered – currently not indexed" GSC drilldown.
+
+**Blocked / needs input:** de-indexing fix direction gated on the two validation checks (do them next session); "Discovered – not indexed" export must be pulled by TJ.
+
+**Handoff:** Notion Branch Handoff Reports → "De-indexing investigation + SBF breadcrumb/sitemap fixes — Handoff (2026-06-08)" (`3795903a-0ffe-8195-9c00-fc18fd001ac9`).
+
 ### 2026-06-07 — New `/promote-to-main` slash command + shipped #955 to production
 
 **Outcome:** Built a reusable staging→main production-promotion command and used it to ship the pending delta live.

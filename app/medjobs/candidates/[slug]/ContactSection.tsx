@@ -8,6 +8,7 @@ import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/S
 import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
 import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
+import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
@@ -28,9 +29,12 @@ interface CandidateData {
 export default function ContactSection({
   candidate,
   variant = "sidebar",
+  isSample = false,
 }: {
   candidate: CandidateData;
   variant?: "sidebar" | "sticky" | "inline";
+  /** Sample profile — no scheduling; the CTA routes to "grab a time" instead. */
+  isSample?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -173,6 +177,55 @@ export default function ContactSection({
       // Ignore storage errors
     }
   }, [candidate.id]);
+
+  // ── Sample profile ──
+  // No live student to schedule. The universal next step is to meet Dr. DuBose
+  // and get set up; clicking also pings the team ("interested + eligible").
+  if (isSample) {
+    const fireInterest = () => {
+      try {
+        fetch("/api/medjobs/interest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ source: "sample_profile" }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    };
+    const grabTime = (
+      <a
+        href={CALENDLY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={fireInterest}
+        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+      >
+        Grab a time with me →
+      </a>
+    );
+    if (variant === "sticky") {
+      return (
+        <div
+          className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        >
+          {grabTime}
+        </div>
+      );
+    }
+    const isInlineSample = variant === "inline";
+    return (
+      <div className={isInlineSample ? "space-y-3" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3"}>
+        <p className="text-sm text-gray-600">
+          Real caregivers near you are being recruited now. Grab a time with
+          Dr. DuBose and we&apos;ll get you set up to interview them.
+        </p>
+        {grabTime}
+      </div>
+    );
+  }
 
   // ── Own profile preview mode ──
   // Show a disabled preview of what providers see

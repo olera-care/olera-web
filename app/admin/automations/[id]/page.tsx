@@ -78,6 +78,7 @@ interface PreviewResponse {
 const DIGEST_SAMPLES: { key: string; label: string }[] = [
   { key: "family_question", label: "Family question" },
   { key: "leads", label: "Leads recap" },
+  { key: "managed_ads", label: "Managed ads" },
   { key: "referral_teaser", label: "Referral teaser" },
   { key: "weekly_digest_rank", label: "Market rank digest" },
   { key: "weekly_digest_plain", label: "Weekly digest · plain" },
@@ -89,6 +90,7 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
 const VARIANT_TRIGGERS: Record<string, string> = {
   family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
   leads: "Goes to providers who received one or more new family inquiries this week. A weekly recap that nudges them to respond, with a one-click link to their connections inbox. Outranks every variant except an open question — a lead is the hottest weekly signal.",
+  managed_ads: "Goes to the no-leads cohort (no open question, no new lead, not a cold first-contact). Leads with the managed-ads pitch — the one lever that generates demand for an empty local funnel — with a one-click link to /provider/boost. Rotated ~1 in 3 weeks so it yields to the market read / completion nudge. Converts when they view the managed-ads page.",
   referral_teaser: "Goes to providers with a computed market and usable referral targets when there is no hotter lead/question/completion nudge. Leads with curiosity about nearby referral sources instead of asking them to work the call sheet immediately. Converts when they work a referral target in Your Market.",
   market_rank: "Goes to active providers whose local market rank has been computed and who do not have a hotter lead/question/completion nudge. Converts when they work a referral target in Your Market.",
   weekly_digest: "Goes to providers active in the last 14 days — page views or clicks. Providers with a new lead or an open question get the Leads recap / Family question variant instead.",

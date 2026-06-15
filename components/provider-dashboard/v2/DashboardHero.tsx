@@ -12,6 +12,8 @@ import {
   type NudgeSectionId,
   type NextAction,
 } from "@/lib/next-best-action";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -76,6 +78,7 @@ const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
 const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
 const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
 const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
+const TIER_MANAGED_ADS_IMAGE = "/images/for-providers/dashboard-hero-managed-ads.jpg";
 
 // Every hero image we might render. Preloaded on mount so tier swaps during
 // the session (provider saves a section → completeness changes → picker
@@ -87,6 +90,7 @@ const ALL_HERO_IMAGES: readonly string[] = [
   TIER_QUESTIONS_IMAGE,
   TIER_SPIKE_IMAGE,
   TIER_FALLBACK_IMAGE,
+  TIER_MANAGED_ADS_IMAGE,
   ...Object.values(SECTION_IMAGES),
 ];
 
@@ -140,6 +144,10 @@ interface Props {
    *  bar can mirror exactly what the hero shows (same rotation, same tier).
    *  Null when the current tier carries no CTA (e.g. the view-spike moment). */
   onHeroAction?: (action: HeroAction | null) => void;
+  /** Reports the banner the hero resolved to this visit, so the dashboard can
+   *  suppress the redundant post-edit managed-ads nudge when the hero itself
+   *  is already showing the managed-ads banner. */
+  onBannerResolved?: (bannerId: string) => void;
 }
 
 /** The hero's chosen action, flattened for the mobile sticky bar to mirror. */
@@ -193,6 +201,7 @@ export default function DashboardHero({
   onOpenSection,
   providerSlug,
   onHeroAction,
+  onBannerResolved,
 }: Props) {
   // Per-browser visit counter, read once per mount (lazy init runs a single
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
@@ -240,6 +249,15 @@ export default function DashboardHero({
     });
   }, [bannerId, sectionId, sectionWeight, providerSlug]);
 
+  // Tell the dashboard which banner won this visit, so it can suppress the
+  // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
+  // When the managed-ads banner wins, also warm the boost-state cache so the
+  // "Get started" → /provider/boost transition paints instantly (no snap).
+  useEffect(() => {
+    onBannerResolved?.(bannerId);
+    if (bannerId === "managed_ads") prefetchBoostState();
+  }, [bannerId, onBannerResolved]);
+
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
   // the bar mirrors EXACTLY the tier the hero landed on this visit — no
   // duplicated picker logic, no separate rotation roll. Null for no-CTA tiers.
@@ -284,6 +302,14 @@ export default function DashboardHero({
       ...(cta.engagementTier ? { tier: cta.engagementTier } : {}),
       destination: cta.href,
     });
+    // Also feed the managed-ads funnel so hero-origin shows up alongside the
+    // dashboard-card / Find Families sources (the boost page reads source).
+    if (bannerId === "managed_ads") {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: firstName,
+        source: "hero",
+      });
+    }
   };
 
   return (
@@ -398,7 +424,7 @@ export function HeroCard({
           {hook.headline}
         </p>
         {hook.subline && (
-          <p className="mt-2 text-sm text-warm-100/70 leading-relaxed">
+          <p className="mt-2 text-sm text-warm-100/90 leading-relaxed [text-shadow:0_1px_3px_rgba(42,24,16,0.55)]">
             {hook.subline}
           </p>
         )}
@@ -542,6 +568,23 @@ function marketIntelHook(): Hook {
   };
 }
 
+/** Managed Ads banner — the primary cold-tier nudge. The ~99% have no local
+ *  families surfacing organically; managed ads is the one lever that GENERATES
+ *  demand (external paid acquisition), so it leads the empty-handed fallback.
+ *  Shown regardless of completeness — the 70% eligibility gate lives on
+ *  /provider/boost, which routes thin profiles to "finish these to unlock," so
+ *  the ads desire pulls providers into completing. */
+function managedAdsHook(): Hook {
+  return {
+    bannerId: "managed_ads",
+    headline: "Reach families already searching for care.",
+    subline:
+      "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up.",
+    cta: { label: "Get started", href: "/provider/boost" },
+    imageUrl: TIER_MANAGED_ADS_IMAGE,
+  };
+}
+
 function resolveHook(
   data: ProviderDashboardV2Data,
   completeness: ProfileCompleteness,
@@ -579,26 +622,31 @@ function resolveHook(
   // closer to converting and the gap is the higher-leverage fix). With a
   // complete profile, there's nothing to fix, so pull them toward Find Families
   // market intel instead of the old no-CTA filler.
-  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
-    if (next) return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  // Priority 5 — meaningful traffic (≥10 views) with a completion gap. They
+  // already have eyeballs arriving organically, so plugging the profile leak
+  // converts traffic they ALREADY have — higher leverage than paying for more.
+  // No rotation here; this is the strongest activation moment. (Complete + this
+  // much traffic falls through to the managed-ads default below.)
+  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD && next) {
+    return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  }
+
+  // Priorities 6-7 — the cold, empty-handed majority (~99%): no leads, no
+  // questions, no nearby family, sparse traffic. Managed Ads leads here — it's
+  // the one lever that GENERATES demand (external paid acquisition) rather than
+  // waiting on an empty local funnel, so it's the KPI move for this cohort.
+  // Shown regardless of completeness: the 70% gate lives on /provider/boost,
+  // which turns the ads desire into a profile-completion pull.
+  //
+  // Every ROTATE_EVERY-th visit we rotate to a secondary so neither the
+  // activation nudge nor the market insight is lost — alternating completion
+  // (when there's a gap) and the market read across rotations.
+  if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
+    const altCompletion = Math.floor(rotationCount / ROTATE_EVERY) % 2 === 0;
+    if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();
   }
-
-  // Priority 6 — sparse traffic AND a completion gap. Cold provider: completion
-  // is the default (a blank profile won't convert a family even if one shows
-  // up), but every ROTATE_EVERY-th visit we rotate in Find Families market
-  // intel so the capability surfaces early and repeatedly without letting
-  // profile completion collapse.
-  if (next) {
-    if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) return marketIntelHook();
-    return coldCompletionHook(next);
-  }
-
-  // Priority 7 — sparse traffic AND fully complete. Profile is dialed in and
-  // there's no nearby seeker yet, so the most useful evergreen nudge is the
-  // market read — surface the Find Families capability rather than a static
-  // "your page is live" reassurance.
-  return marketIntelHook();
+  return managedAdsHook();
 }
 
 /** One previewable banner: the stable id (matches the leaderboard) + the hook
@@ -619,6 +667,7 @@ export function buildBannerPreviews(): BannerPreview[] {
     { bannerId: "leads", hook: leadsHook(3) },
     { bannerId: "questions", hook: questionsHook(2) },
     { bannerId: "find_families_live", hook: nearbyFamiliesHook(1) },
+    { bannerId: "managed_ads", hook: managedAdsHook() },
     { bannerId: "find_families_intel", hook: marketIntelHook() },
     { bannerId: "view_spike", hook: viewSpikeHook(33, 12, 9) },
   ];

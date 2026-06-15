@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail } from "@/lib/email-templates";
 import { resolveFromAddress } from "@/lib/email";
 
 /** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
@@ -94,6 +94,14 @@ function digestVariantSample(variant: string): { subject: string; html: string }
         html: providerLeadDigestEmail({
           providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care", leadCount: 2,
           ctaUrl: SAMPLE_LINK, manageUrl: SAMPLE_LINK, unsubscribeUrl: `${SAMPLE_LINK}/unsubscribe`,
+        }),
+      };
+    case "managed_ads":
+      return {
+        subject: "Reach families already searching for care",
+        html: providerManagedAdsEmail({
+          providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care",
+          ctaUrl: `${SAMPLE_LINK}?action=ads`, city: "Austin",
         }),
       };
     default:

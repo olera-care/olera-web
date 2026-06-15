@@ -517,11 +517,11 @@ export function slackMarketDiagnosticNoLeads(opts: {
     fields.push({ type: "mrkdwn", text: `*Email:*\n${opts.email}` });
   }
   return {
-    text: `Market view (no leads): ${opts.providerName} — ${where}`,
+    text: `Saw managed-ads pitch: ${opts.providerName} — ${where}`,
     blocks: [
       {
         type: "header",
-        text: { type: "plain_text", text: "🏙️ Provider Viewed Their Market (No Leads)", emoji: true },
+        text: { type: "plain_text", text: "📣 Provider Saw the Managed-Ads Pitch", emoji: true },
       },
       {
         type: "section",
@@ -534,6 +534,211 @@ export function slackMarketDiagnosticNoLeads(opts: {
             type: "mrkdwn",
             text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=market_diagnostic_viewed_no_leads|Activity Center>`,
           },
+        ],
+      },
+    ],
+  };
+}
+
+// ── Managed Ads funnel + Your Market alerts (migration 105) ──────
+// Real-time visibility into the reworked provider funnel: who's clicking
+// toward managed ads, who's viewing the boost page + their market. Mirrors
+// slackMarketDiagnosticNoLeads. The conversion (campaign requested) pings via
+// slackAdBoostRequested at the request route, not here.
+
+const ADS_CTA_SOURCE_LABELS: Record<string, string> = {
+  dashboard_card: "dashboard card",
+  post_edit: "post-edit nudge",
+  ff_pitch: "Find Families pitch",
+  ff_banner: "Find Families banner",
+  your_market_playbook: "Your Market playbook",
+};
+
+/** 📣 Provider tapped a CTA toward managed ads (/provider/boost). */
+export function slackManagedAdsCtaClicked(opts: {
+  providerName: string;
+  providerSlug: string;
+  source: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const sourceLabel = ADS_CTA_SOURCE_LABELS[opts.source] || opts.source;
+  return {
+    text: `Managed Ads CTA: ${opts.providerName} — from ${sourceLabel}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📣 Provider Tapped Managed Ads", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*From:*\n${sourceLabel}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=managed_ads_cta_clicked|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 🚀 Provider viewed the managed-ads page (gate / picker / in-motion). */
+export function slackBoostViewed(opts: {
+  providerName: string;
+  providerSlug: string;
+  state: string;
+  completeness: number | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const stateLabel =
+    opts.state === "gate" ? "below completeness gate"
+    : opts.state === "apply" ? "eligible — picking a week"
+    : opts.state === "in_motion" ? "campaign in motion"
+    : opts.state;
+  const fields: { type: string; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*State:*\n${stateLabel}` },
+  ];
+  if (opts.completeness != null) {
+    fields.push({ type: "mrkdwn", text: `*Completeness:*\n${opts.completeness}%` });
+  }
+  return {
+    text: `Managed Ads page view: ${opts.providerName} — ${stateLabel}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "🚀 Provider Viewed Managed Ads", emoji: true } },
+      { type: "section", fields },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=managed_ads_boost_viewed|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 🏙️ Provider viewed their Your Market diagnostic. */
+export function slackYourMarketViewed(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  covered: boolean;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  return {
+    text: `Your Market view: ${opts.providerName} — ${where}${opts.covered ? "" : " (uncovered)"}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "🏙️ Provider Viewed Your Market", emoji: true } },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Market:*\n${where}${opts.covered ? "" : " _(not yet covered)_"}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=your_market_viewed|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 📋 Provider tapped a Your Market playbook step. */
+export function slackYourMarketPlaybookClicked(opts: {
+  providerName: string;
+  providerSlug: string;
+  item: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Your Market playbook: ${opts.providerName} — ${opts.item}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "📋 Provider Worked Their Playbook", emoji: true } },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Step:*\n${opts.item}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=your_market_playbook_clicked|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 👀 Provider opened the Find Families section. Fires on every visit (TJ's
+ *  call) — the impression matters even when they don't act, because "showed up
+ *  and bounced" is signal at our scale. `tab` is which sub-view they landed on. */
+export function slackMatchesPageViewed(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  tab: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  const fields = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Where:*\n${where}` },
+  ];
+  if (opts.tab) fields.push({ type: "mrkdwn", text: `*Tab:*\n${opts.tab}` });
+  return {
+    text: `Find Families view: ${opts.providerName} — ${where}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "👀 Provider Opened Find Families", emoji: true } },
+      { type: "section", fields },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=matches_page_viewed|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 📨 Provider sent outreach to a family from Find Families — the conversion
+ *  moment. Family kept to an opaque id only (no name/PHI in the alert). */
+export function slackMatchesOutreachSent(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  usedAi: boolean;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  return {
+    text: `Find Families outreach sent: ${opts.providerName} — ${where}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "📨 Provider Reached Out to a Family", emoji: true } },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Where:*\n${where}` },
+          { type: "mrkdwn", text: `*Message:*\n${opts.usedAi ? "AI-assisted" : "Written manually"}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=matches_outreach_sent|Activity Center>` },
         ],
       },
     ],
@@ -1157,6 +1362,11 @@ export function slackAdBoostRequested(opts: {
   completeness: number;
   setupWeek: string; // ISO date (Monday of the chosen week)
   channel?: string | null;
+  /** True when this request was queued under 70% and JUST auto-promoted after
+   *  the provider crossed the completeness threshold (the standing-order
+   *  release). Changes the header so the concierge knows it's a fresh,
+   *  now-actionable launch — not a brand-new submission. */
+  launchReady?: boolean;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const where = [opts.city, opts.state].filter(Boolean).join(", ") || "—";
@@ -1170,22 +1380,27 @@ export function slackAdBoostRequested(opts: {
   ];
   if (opts.channel) fields.push({ type: "mrkdwn", text: `*Channel:*\n${opts.channel}` });
 
+  const header = opts.launchReady
+    ? "🚀 Ad Boost now LAUNCH-READY — provider just cleared 70%"
+    : "📣 Ad Boost request — schedule setup";
+  const contextNote = opts.launchReady
+    ? `Request \`${opts.requestId}\` · queued earlier, profile now ready · launch the week of ${opts.setupWeek}`
+    : `Request \`${opts.requestId}\` · set up the campaign the week of ${opts.setupWeek}`;
+
   const blocks: SlackBlock[] = [
     {
       type: "header",
-      text: { type: "plain_text", text: "📣 Ad Boost request — schedule setup", emoji: true },
+      text: { type: "plain_text", text: header, emoji: true },
     },
     { type: "section", fields },
     {
       type: "context",
-      elements: [
-        { type: "mrkdwn", text: `Request \`${opts.requestId}\` · set up the campaign the week of ${opts.setupWeek}` },
-      ],
+      elements: [{ type: "mrkdwn", text: contextNote }],
     },
   ];
 
   return {
-    text: `Ad Boost request: ${opts.providerName} (${where}) — setup week ${opts.setupWeek}`,
+    text: `${opts.launchReady ? "Ad Boost LAUNCH-READY" : "Ad Boost request"}: ${opts.providerName} (${where}) — setup week ${opts.setupWeek}`,
     blocks,
   };
 }

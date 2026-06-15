@@ -18,7 +18,12 @@ import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
  * Auth: authenticated provider only (handled by loadAdBoostEligibility).
  */
 
+// Truly in-motion (concierge is working it). pending_profile is queued-but-not-
+// yet-actionable and is handled separately (it can still block a duplicate and
+// it auto-promotes when the provider crosses the completeness threshold).
 const OPEN_STATUSES = ["requested", "scheduled", "live"];
+// Anything that should stop a provider from queueing a *second* campaign.
+const ACTIVE_OR_PENDING = ["pending_profile", "requested", "scheduled", "live"];
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 export async function GET() {
@@ -28,13 +33,49 @@ export async function GET() {
   }
 
   const db = getServiceClient();
-  const { data: latest } = await db
+  let { data: latest } = await db
     .from("ad_campaign_requests")
     .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Standing-order release: a campaign queued under 70% auto-promotes the moment
+  // the provider crosses the threshold. We re-check on every boost-page load
+  // (profile saves are client-direct with no server hook, so this is the
+  // promotion point), flip pending_profile -> requested, and page the concierge
+  // now — not at submit — so the queue only ever holds actionable work.
+  if (latest && latest.status === "pending_profile" && elig.eligibility.eligible) {
+    const { data: promoted } = await db
+      .from("ad_campaign_requests")
+      .update({
+        status: "requested",
+        completeness_at_submit: elig.eligibility.overall,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", latest.id)
+      .eq("status", "pending_profile") // guard against a double-promote race
+      .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+      .maybeSingle();
+
+    if (promoted) {
+      latest = promoted;
+      const alert = slackAdBoostRequested({
+        requestId: promoted.id,
+        providerName: elig.displayName ?? elig.slug,
+        providerSlug: elig.slug,
+        city: elig.city,
+        state: elig.state,
+        category: elig.category,
+        completeness: elig.eligibility.overall,
+        setupWeek: promoted.requested_setup_week,
+        channel: promoted.channel,
+        launchReady: true,
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    }
+  }
 
   // Families delivered so far by this provider's campaign (ROI for the
   // "we're on it" state). Effective tag is `campaign_tag || id` — matching the
@@ -60,16 +101,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: elig.error }, { status: elig.status });
   }
 
-  if (!elig.eligibility.eligible) {
-    // Gate: don't spend ad budget driving families to a thin profile.
-    return NextResponse.json(
-      {
-        error: "Profile not complete enough to request a campaign",
-        eligibility: elig.eligibility,
-      },
-      { status: 403 },
-    );
-  }
+  // Standing-order model: a provider can queue a campaign at any completeness.
+  // Under 70% it lands as `pending_profile` (queued, concierge NOT paged); it
+  // auto-promotes to `requested` the moment they cross the threshold (see GET).
+  // The completeness gate still protects ad ROI — it just guards the *launch*,
+  // not entry. No 403; commitment-first is the whole point.
+  const queued = !elig.eligibility.eligible;
 
   let body: { setupWeek?: unknown; channel?: unknown };
   try {
@@ -108,12 +145,12 @@ export async function POST(request: NextRequest) {
 
   const db = getServiceClient();
 
-  // ── Block duplicate open requests ──
+  // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
     .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
     .eq("provider_id", elig.profileId)
-    .in("status", OPEN_STATUSES)
+    .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -135,7 +172,7 @@ export async function POST(request: NextRequest) {
       requested_setup_week: setupWeek,
       completeness_at_submit: elig.eligibility.overall,
       channel,
-      status: "requested",
+      status: queued ? "pending_profile" : "requested",
     })
     .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
     .single();
@@ -145,21 +182,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to save request" }, { status: 500 });
   }
 
-  // ── Notify the concierge team ──
-  // Awaited: Vercel's serverless runtime kills pending promises after the
-  // response returns (memory feedback_serverless_fire_and_forget).
-  const alert = slackAdBoostRequested({
-    requestId: inserted.id,
-    providerName: elig.displayName ?? elig.slug,
-    providerSlug: elig.slug,
-    city: elig.city,
-    state: elig.state,
-    category: elig.category,
-    completeness: elig.eligibility.overall,
-    setupWeek,
-    channel,
-  });
-  await sendSlackAlert(alert.text, alert.blocks);
+  // ── Notify the concierge team — only for actionable (eligible) requests. ──
+  // A pending_profile campaign is intentionally quiet: the team is paged when
+  // it auto-promotes (GET), so the queue never fills with un-runnable work.
+  // Awaited when sent: Vercel kills pending promises after the response returns
+  // (memory feedback_serverless_fire_and_forget).
+  if (!queued) {
+    const alert = slackAdBoostRequested({
+      requestId: inserted.id,
+      providerName: elig.displayName ?? elig.slug,
+      providerSlug: elig.slug,
+      city: elig.city,
+      state: elig.state,
+      category: elig.category,
+      completeness: elig.eligibility.overall,
+      setupWeek,
+      channel,
+    });
+    await sendSlackAlert(alert.text, alert.blocks);
+  }
 
-  return NextResponse.json({ ok: true, request: inserted });
+  return NextResponse.json({ ok: true, request: inserted, queued });
 }

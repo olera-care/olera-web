@@ -60,6 +60,12 @@ const PROVIDER_ACTION_EVENT_TYPES = [
   "matches_outreach_sent",
   "market_diagnostic_viewed_no_leads",
   "market_outreach_status_updated",
+  // Managed Ads funnel + Your Market (migration 105)
+  "managed_ads_cta_clicked",
+  "managed_ads_boost_viewed",
+  "managed_ads_requested",
+  "your_market_viewed",
+  "your_market_playbook_clicked",
 ];
 
 /**

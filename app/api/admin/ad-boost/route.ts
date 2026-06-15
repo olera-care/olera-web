@@ -14,7 +14,7 @@ import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
  * Auth: admin only.
  */
 
-const VALID_STATUSES = ["requested", "scheduled", "live", "ended", "cancelled"];
+const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =

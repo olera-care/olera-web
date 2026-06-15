@@ -39,32 +39,27 @@ export interface AdBoostMissingSection {
 }
 
 export interface AdBoostEligibility {
-  /** Weighted completeness score, 0–100. */
+  /** Completeness over the 7 self-completable sections, 0–100. */
   overall: number;
   /** True when `overall >= threshold`. */
   eligible: boolean;
   /** The threshold this was evaluated against (so the UI can show "70%"). */
   threshold: number;
-  /** Sub-100 sections, highest-weight first — the "complete these to unlock" list. */
+  /** Sub-100 controllable sections, highest-weight first — the "finish these to
+   *  launch" list. Reviews/response-rate are NOT here (they don't gate). */
   missingSections: AdBoostMissingSection[];
+  /** Non-gating quality signals shown as "boost your results" carrots. `null` =
+   *  none yet. We never require these to launch — that would be circular. */
+  boosters: { reviews: number | null; responseRate: number | null };
 }
 
 /**
- * Map a completeness section id to where the provider edits it.
- * Most sections open an inline edit modal on the dashboard via `?edit=`.
- * Reviews and response-rate aren't profile fields — they route to the pages
- * where the provider actually moves those numbers.
+ * Map a completeness section id to where the provider edits it. All gating
+ * sections are self-completable profile fields, so they open the section editor
+ * via `?edit=` (the boost page opens it inline; the param is the fallback).
  */
 function hrefForSection(id: string): string {
-  switch (id) {
-    case "reviews":
-      return "/provider/reviews";
-    case "response_rate":
-      return "/provider/qna";
-    default:
-      // overview, pricing, screening, services, gallery, about, payment
-      return `/provider?edit=${id}`;
-  }
+  return `/provider?edit=${id}`;
 }
 
 /**
@@ -105,5 +100,6 @@ export function evaluateAdBoostEligibility(
     eligible: completeness.overall >= AD_BOOST_THRESHOLD,
     threshold: AD_BOOST_THRESHOLD,
     missingSections,
+    boosters: completeness.boosters,
   };
 }

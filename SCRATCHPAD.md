@@ -25,7 +25,7 @@ Built on top of the merged IA rework (PR #1050). Three layers this session:
 
 **Next:** browser QA on staging-preview (hero banner on Aggie/Boise, the event→Activity Center "Growth"+Slack loop, /provider/market, digest dry-run + email preview). Restore Aggie to College Station after. Then merge to staging.
 
-### 2026-06-15 — Same branch: restraint, standing-order, boost redesign, /punch de-anchor (commits through `d6720056`, PR #1051)
+### 2026-06-15 — Same branch: restraint, standing-order, boost redesign, /punch de-anchor, Find Families Slack, dejank, completion-as-boosters, inline edit (commits through `07281840`, PR #1051)
 
 Continuation of the managed-ads work, layering UX/design polish:
 
@@ -43,7 +43,17 @@ Continuation of the managed-ads work, layering UX/design polish:
 
 **Pre-test (twice):** caught + fixed font inconsistency (boost headline font-serif→font-display brand match) and a sticky summary-card height jump (reserved `min-h-[2.5rem]`). tsc clean throughout (one-tsc-at-a-time discipline — see new memory + postmortem; a gated-on-tsc commit pipeline silently never pushed when concurrent tsc runs starved each other).
 
-**Next:** browser QA the boost flow on preview (eligible → "Ready to launch"; sub-70% → "Queue my campaign" → PendingProfile; cross-70%-then-revisit → auto-promote → CampaignInMotion + Slack). Re-share boost-page screenshots (temp paths kept expiring) for a deeper "cleaner" pass on the week/channel section. Restore Aggie → College Station. Decide on the cold-entry layout-spinner fix. Then merge #1051 to staging.
+**Find Families instrumentation verified + Slack added (`cea1454f`).** TJ "didn't see what I expected" on preview. Audited all 6 layers (client fire → app allowlist → DB CHECK → Slack conditional+builder → admin allowlist → Activity Center category/label) — ALL wired; live DB query proved the full funnel fires (TJ's own aggie preview test recorded). Root cause of "didn't see": `sendSlackAlert` gates on `process.env.SLACK_WEBHOOK_URL`, which Vercel scopes per-env — **preview likely lacks it** (events still write to DB + Activity Center; just no Slack). Separately: `matches_page_viewed` etc. had NO Slack by design. Per TJ ("don't worry about spam; impressions are the data at tens of providers"), added Slack for **`matches_page_viewed`** (every Find Families visit — "showed up and bounced" is signal) + **`matches_outreach_sent`** (conversion; AI-vs-manual; family kept to opaque id, no PHI). Added provider_name/city/state metadata at the call sites. No migration (event types already existed).
+
+**Dejank boost transitions (`6cc0f3b5`).** The "Get Started → snap snap" = the page rendered the apply form optimistically before the fetch, then snapped to PendingProfile/CampaignInMotion for anyone with a request (aggie has `pending_profile`). Fix: hold ONE calm loader until the fetch resolves (never render a guessed sub-view) + a per-session in-memory prefetch cache (`lib/ad-boost/boost-state.ts`) warmed by Find Families mount + the dashboard managed-ads hero, so the common in-app nav initializes from cache and paints the correct page on the first frame. Cold load → loader. Removed the optimistic `ready` shimmer plumbing + dead BoostSkeleton.
+
+**Completion score = controllable; reviews/response = boosters (`624c92c5`, decided via AskUserQuestion).** Reviews was a weighted section scoring 0 when absent → showed as a required to-do + dragged the score. Circular dependency (need families to earn reviews; ads bring families) + asymmetry (response_rate already N/A'd when absent, reviews didn't). Redefined the ONE `calculateProfileCompleteness` so `overall`/`sections` = the 7 self-completable sections (achievable to 100); reviews + response_rate move to a non-gating `boosters` field. System-wide (dashboard meter, hero, onboarding, ad gate). **Effect: scores RISE for low-review providers** (intended). `AdBoostEligibility` exposes `boosters`; removed `WEIGHT_REVIEWS`/`WEIGHT_RESPONSE_RATE`.
+
+**Inline section editing on the boost page (`07281840`, decided via AskUserQuestion).** "Next: Gallery" was a full route change → whole dashboard load → modal, no return (the "snaps me out" jank). New reusable hook `hooks/useProfileSectionEditor.tsx` packages the dashboard edit modals + the verification gate (no loophole, no DashboardPage refactor); the boost page opens editors INLINE; on save → refresh profile + refetch boost state (list updates in place, auto-promotes if they cross 70%). PendingProfile section buttons → inline open; added the "Boost your results" carrot (reviews/response as carrots, not requirements).
+
+**Next:** browser QA on preview — (1) Find Families Slack (confirm SLACK_WEBHOOK_URL scope for Preview, or verify on prod); (2) boost flow eligible→"Ready to launch", sub-70→"Queue my campaign"→PendingProfile, cross-70-then-revisit→auto-promote→CampaignInMotion; (3) inline section edit (open Gallery on the queued page, save, list updates in place, no dashboard jump); (4) confirm Reviews is gone from "what's left" + the boosters carrot shows. Restore Aggie → College Station. Decide cold-entry layout-spinner fix. Re-share boost screenshots for a deeper week/channel polish. Then merge #1051 → staging.
+
+**Watch:** completion-score change is system-wide → the dashboard completeness meter % rises for providers with few/no reviews. Intended (score now = "profile you control"), but visible everywhere, not just the boost gate.
 
 ### 2026-06-13 — Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — PLANNED
 

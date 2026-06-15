@@ -22,7 +22,13 @@
   - **Manual (non-code)**:
     - [ ] Purchase Perplexity AI premium subscription for ops team
 
-- **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
+- **Benefits Pipeline v3** (branch: `plucky-rubin`) — SUPERSEDED BY EAGER-RIDE
+  - Built rendering + prompt upgrades here, but `eager-ride` is where the pipeline actually lives
+  - Vercel build passed, 4-tab pages render correctly, but this branch lost eager-ride's rate limit tuning, state overview generation, draft review workflow, v2 state page rendering
+  - **Decision:** Redo this work on `eager-ride` instead. Context brief saved to `~/.claude/projects/-Users-tfalohun-Desktop-olera-web/memory/project_benefits_v3_context_brief.md`
+  - **What to carry forward:** 5 new fields, few-shot exemplars, BenefitPageShell pattern (not layout.tsx), tab availability rules, pipeline modes (refine/update), null-vs-undefined lesson
+
+- **Senior Benefits Pipeline v2** (branch: `noble-pare`) — MERGED (PR #502)
 
 - **Aging in America** — SHIPPED (PRs #493-498 merged)
 
@@ -50,12 +56,10 @@
 
 ## Next Up
 
-1. **Admin Panel 2.0 QA** — work through all 7 action items (current session)
-2. Run benefits pipeline on FL + CA → compare patterns across 3 states
-3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-4. Rob Arnold YouTube ID (due Apr 7)
-5. MedJobs candidates detail page taste pass
-6. SEO city-specific content sections
+1. **Reopen `eager-ride` branch** — apply v3 context brief (meeting notes, editorial patterns, new fields, rendering, modes)
+2. Feed it: Notion meeting transcript + `gh pr diff 523` + context brief from memory
+3. MedJobs candidates detail page taste pass
+4. SEO city-specific content sections
 7. Merge PR #463 (user account separation)
 8. Continue staging → main promotion
 
@@ -65,6 +69,10 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-04-09 | BenefitPageShell component, not layout.tsx | layout.tsx at `[benefit]/` level wraps ALL child routes (checklist, forms) — causing double hero. Shell component lets each tab page opt in. |
+| 2026-04-09 | Pipeline drafts stay separate from waiver-library.ts | Merge at read-time via `lib/program-data.ts`. Hand-curated always wins. Keeps 11K-line waiver-library stable and 5MB pipeline-drafts regeneratable. |
+| 2026-04-09 | Tab structure adapts to program type | Benefits get 4 tabs, resources/navigators get About+Resources only. Pipeline classifies types; rendering follows. |
+| 2026-04-09 | JSON null tolerance in TypeScript interfaces | JSON has no undefined — pipeline data uses null for absent arrays. All interfaces must accept `| null` for array fields. |
 | 2026-04-06 | Exploration before taxonomy | 5-shape taxonomy derived from 12 TX programs was too small a sample. Pipeline observes what data exists, taxonomy emerges from patterns across states. |
 | 2026-04-06 | Pipeline auto-generates dashboard data | `pipeline-summary.ts` is auto-written after each run. No manual step between pipeline and dashboard. |
 | 2026-04-06 | Dashboard shows pipeline findings inline, not in separate view | Pipeline diffs appear as amber warnings on program rows. Dashboard stays a quality lens, not a pipeline viewer. |
@@ -92,6 +100,48 @@
 ---
 
 ## Session Log
+
+### 2026-04-09 (Session 70) — Benefits Pipeline v3: Editorial Quality + 4-Tab Rendering
+
+**Branch:** `plucky-rubin` | **From Apr 9 meeting with Chantel (Notion: Benefits Hub Next Steps)**
+
+**Context:** Chantel built Texas benefits pages (PR #523) with 4-tab structure and deeply editorial content. TJ's pipeline (eager-ride) had 44 states drafted. Task: extract best of Chantel's editorial quality into the pipeline framework, render through data-driven 4-tab pages.
+
+**Data Model:**
+- Extended `WaiverProgram` + `PipelineDraft` with v3 fields: `documentsNeeded`, `contacts`, `regionalApplications`, `applicationNotes`, `relatedPrograms`
+- Created `lib/program-data.ts` — merge layer combining waiver-library (hand-curated) with pipeline-drafts (generated)
+
+**4-Tab Rendering:**
+- `components/waiver-library/ProgramTabs.tsx` — sticky tab nav, adapts per program type
+- `components/waiver-library/BenefitPageShell.tsx` — shared hero+tabs (not layout.tsx — would break checklist/forms)
+- New pages: `eligibility/page.tsx`, `apply/page.tsx`, `resources/page.tsx`
+- Refactored `page.tsx` (About tab) to use enriched pipeline data
+
+**Pipeline Upgrades:**
+- Draft prompt: added 5 new field schemas + few-shot exemplars from Chantel's TX content
+- Added `--mode refine` (improve weak drafts) and `--mode update` (patch changed data)
+- Ported 44-state pipeline data from `eager-ride`
+
+**Build Fixes:**
+- 2 Vercel failures: JSON `null` vs TypeScript `undefined` for array fields. Fixed by adding `| null` to all array types in both `PipelineDraft` and `WaiverProgram` interfaces.
+
+**Course Correction (Apr 10):**
+- Vercel build passed, 4-tab pages render correctly on preview
+- TJ realized this should have been built on `eager-ride` (where the pipeline actually lives) not `plucky-rubin`
+- `eager-ride` has rate limit tuning, state overview generation, draft review workflow, v2 state page rendering — all lost when we cherry-picked files
+- **Decision:** This branch is reference only. Redo on `eager-ride` with the context brief as guide.
+- Saved context brief to Claude memory: `project_benefits_v3_context_brief.md`
+
+**Key files created/modified:**
+- `lib/program-data.ts` (new) — data merge layer
+- `components/waiver-library/ProgramTabs.tsx` (new)
+- `components/waiver-library/BenefitPageShell.tsx` (new)
+- `app/waiver-library/[state]/[benefit]/{eligibility,apply,resources}/page.tsx` (new)
+- `app/waiver-library/[state]/[benefit]/page.tsx` (refactored)
+- `data/waiver-library.ts` (interface extended)
+- `data/pipeline-drafts.ts` (interface extended + 44-state data)
+- `scripts/benefits-pipeline.js` (v3 prompts + modes)
+- `.claude/commands/benefits-pipeline.md` (updated)
 
 ### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
 

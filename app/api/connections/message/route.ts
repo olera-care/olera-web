@@ -185,9 +185,10 @@ export async function POST(request: Request) {
     }
 
     // Build the new message
+    // text is guaranteed to exist here (validated above, dismiss returns early)
     const newMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: text.trim(),
+      text: text!.trim(),
       created_at: now,
     };
 
@@ -220,7 +221,7 @@ export async function POST(request: Request) {
       }
 
       const quickReplyRequest: QuickReplyRequest = {
-        question: text.trim(),
+        question: text!.trim(),
         options: quickReplyOptions || [],
         sent_at: now,
       };
@@ -328,9 +329,9 @@ export async function POST(request: Request) {
 
         if (recipientEmail) {
           const preview =
-            text.trim().length > 200
-              ? text.trim().slice(0, 200) + "..."
-              : text.trim();
+            text!.trim().length > 200
+              ? text!.trim().slice(0, 200) + "..."
+              : text!.trim();
 
           const isFamily = recipientProfile?.type === "family";
 
@@ -501,9 +502,9 @@ export async function POST(request: Request) {
           if (recipientProfile?.phone && recipientMeta.whatsapp_opted_in) {
             const waNormalized = normalizeUSPhone(recipientProfile.phone);
             if (waNormalized) {
-              const waPreview = text.trim().length > 100
-                ? text.trim().slice(0, 100) + "..."
-                : text.trim();
+              const waPreview = text!.trim().length > 100
+                ? text!.trim().slice(0, 100) + "..."
+                : text!.trim();
 
               const senderLabel = senderProfile?.display_name || "Someone";
               await sendWhatsApp({
@@ -543,7 +544,7 @@ export async function POST(request: Request) {
           eventName: "new_message",
           audience: "seeker",
           eventProperties: {
-            messagePreview: text.trim().slice(0, 100),
+            messagePreview: text!.trim().slice(0, 100),
           },
         });
       }

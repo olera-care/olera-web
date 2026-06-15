@@ -29,13 +29,14 @@ function isoWeek(d: Date): string {
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
   leads: "Leads recap",
+  managed_ads: "Managed ads",
   referral_teaser: "Referral teaser",
   market_rank: "Market rank",
   weekly_digest: "Weekly digest",
   completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "leads", "referral_teaser", "market_rank", "weekly_digest", "completion", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "leads", "managed_ads", "referral_teaser", "market_rank", "weekly_digest", "completion", "cold_rank"];
 
 // ── Per-variant downstream CONVERSION ──
 // Each variant maps to the one provider_activity event that means "this email worked".
@@ -47,6 +48,7 @@ const VARIANT_ORDER = ["family_question", "leads", "referral_teaser", "market_ra
 const CONVERSION_EVENT: Record<string, string> = {
   family_question: "question_responded",
   leads: "lead_opened",
+  managed_ads: "managed_ads_boost_viewed",
   referral_teaser: "market_outreach_status_updated",
   market_rank: "market_outreach_status_updated",
   completion: "profile_published",
@@ -56,6 +58,7 @@ const CONVERSION_EVENT: Record<string, string> = {
 const CONVERSION_LABEL: Record<string, string> = {
   family_question: "Answered",
   leads: "Lead opened",
+  managed_ads: "Viewed managed ads",
   referral_teaser: "Worked market",
   market_rank: "Worked market",
   completion: "Profile published",

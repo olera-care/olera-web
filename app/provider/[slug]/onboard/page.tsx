@@ -53,8 +53,11 @@ function getActionRedirectUrl(
       case "settings":
         return "/account/settings";
       case "market":
-        // Cold/quiet rank email ("See where you rank") → the Find Families market view.
-        return "/provider/matches";
+        // Cold/quiet rank email ("See where you rank") → the Your Market diagnostic.
+        return "/provider/market";
+      case "ads":
+        // Managed-ads digest email ("We'll run the ads") → the boost pitch + setup.
+        return "/provider/boost";
       case "leads":
         // Weekly lead-recap email → the Find Families connections inbox.
         return "/provider/connections";
@@ -69,7 +72,7 @@ export default function ProviderOnboardPage() {
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   // Action params for email notifications (lead/message/review/question) or campaign
-  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | "manage" | "settings" | "market" | "leads" | null;
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | "manage" | "settings" | "market" | "ads" | "leads" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
@@ -452,7 +455,7 @@ export default function ProviderOnboardPage() {
                       switchProfile(ownedProfile.id);
                       console.log("[OneClick] Already signed in as owner");
                       // Auto-redirect for manage/settings (already signed in)
-                      if (actionParam === "manage" || actionParam === "settings" || actionParam === "market" || actionParam === "leads") {
+                      if (actionParam === "manage" || actionParam === "settings" || actionParam === "market" || actionParam === "ads" || actionParam === "leads") {
                         router.replace(getActionRedirectUrl(actionParam, null));
                       }
                       return;
@@ -543,7 +546,7 @@ export default function ProviderOnboardPage() {
 
                   // Auto-redirect for manage/settings actions (no notification card)
                   // These footer links should take the user directly to their destination
-                  if (actionParam === "manage" || actionParam === "settings" || actionParam === "market" || actionParam === "leads") {
+                  if (actionParam === "manage" || actionParam === "settings" || actionParam === "market" || actionParam === "ads" || actionParam === "leads") {
                     router.replace(getActionRedirectUrl(actionParam, null));
                   }
                 } catch (err) {

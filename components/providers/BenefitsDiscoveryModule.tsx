@@ -46,6 +46,7 @@ import { type BenefitsVariant } from "@/lib/analytics/variant";
 import { useIntakeVariant } from "@/hooks/use-intake-variant";
 import { BENEFITS_VARIANT_COPY } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
+import { readUtmParams } from "@/lib/ad-boost/utm";
 import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
 import type { WaiverProgram } from "@/data/waiver-library";
 import EmpathicSingleStep from "@/components/providers/BenefitsDiscoveryModule.empathic";
@@ -396,6 +397,8 @@ export default function BenefitsDiscoveryModule({
     trackStepCompleted("contact");
     setSaving(true);
 
+    const { utmSource, utmCampaign } = readUtmParams();
+
     try {
       const res = await fetch("/api/benefits/save-results", {
         method: "POST",
@@ -415,6 +418,8 @@ export default function BenefitsDiscoveryModule({
           providerSlug: providerSlug || undefined,
           entrySource: entrySource || undefined,
           sessionId: sessionId || undefined,
+          utmSource,
+          utmCampaign,
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
             stateId,

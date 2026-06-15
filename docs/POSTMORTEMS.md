@@ -404,3 +404,21 @@ The pattern is documented in `feedback_schema_text_not_enum.md` (Olera uses TEXT
 **Lesson**: An application allowlist is a design intent. A DB CHECK constraint is the actual gate. Adding to the first without the second produces the worst kind of failure: silent at the user level, silent at the route logs (without inspection), and visible only as "no engagement" in the analytics dashboards we built specifically to detect engagement. Memory existed; I didn't apply it. Next time I add an event type to ANY allowlist, the first reflex is `grep -r "provider_activity_event_type_check" supabase/migrations/`. If the value isn't there, the migration is part of the same PR.
 
 ---
+
+### 2026-06-15: Commit/push silently never happened — gated behind a never-returning tsc
+
+**Symptom**: Across ~4 turns TJ kept saying "the push didn't land, I don't see a Vercel preview." The marquee-logos + hero-subline changes were written and correct, but `git log` showed the branch still at the old commit and the working tree dirty — the commit had never run, so nothing reached the remote and Vercel never built.
+
+**Root Cause**: I wrapped commit+push in a single Bash pipeline gated on a typecheck: `ERR=$(npx tsc --noEmit | grep ...); if [ "$ERR" != 0 ] then exit; fi; git commit; git push`. `tsc --noEmit` on this worktree is slow (~40–60s, full project, no local node_modules — symlinked). The Bash tool auto-backgrounds long commands, so each attempt detached; when output didn't appear I relaunched, and runs began competing for CPU and finishing even slower. Because `tsc` never returned a value, the `if`/`git commit`/`git push` lines after it never executed. The push wasn't failing — it was never being reached.
+
+A secondary self-inflicted wound: I diagnosed "94 zombie tsc processes" from `pgrep -fl "tsc --noEmit" | wc -l`. That count was inflated — `pgrep -fl` also matched my own backgrounded zsh wrappers and grep commands whose command-line *contained* the string "tsc --noEmit". `ps -Ao pid,ppid,command` showed the truth: only ever ~2 real tsc processes (`npm exec tsc` → `node tsc`) per run. So I partly chased a phantom while the real issue (push gated behind an unfinished tsc) sat upstream.
+
+**Fix**: Killed stray runs (`pkill -9 -f "tsc --noEmit"`), then committed and pushed **directly** without gating on tsc — `53b22891` reached `origin/provider-funnel-instrumentation`, confirmed by the push refspec line (`1251a08c..53b22891`), and ran the typecheck separately as confirmation afterward.
+
+**Prevention**:
+- New memory `feedback_one_tsc_at_a_time.md`: run exactly ONE tsc at a time (kill strays first, verify `pgrep` count by inspecting `ps`, not raw count); wait for it, never relaunch a slow run; and **never gate commit/push behind a polled background tsc** — get the push to the remote first (or tsc-then-commit as separate steps), since the push is what unblocks the user's preview.
+- Count processes with `ps -Ao pid,ppid,command | grep` and eyeball the real binaries, not `pgrep -fl ... | wc -l`, which counts the grep/shell wrappers carrying the search string.
+
+**Lesson**: Don't put the slow, flaky thing upstream of the thing the user is waiting for. A verification step that can hang must never sit between the work and the push — commit/push first, verify second.
+
+---

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
 import HostingInfoModal from "@/components/medjobs/HostingInfoModal";
 import DrDuBoseWelcome from "@/components/medjobs/DrDuBoseWelcome";
@@ -34,17 +35,26 @@ export default function WelcomeBanner({
   orgName?: string | null;
   autoOpenScreener?: boolean;
 }) {
+  const { refreshAccountData } = useAuth();
   const [showScreener, setShowScreener] = useState(
     !!autoOpenScreener && !isEligible && !claimConflict,
   );
   const [showHostingInfo, setShowHostingInfo] = useState(false);
 
-  const reload = () => {
+  // On screener completion, refresh auth state in place instead of a full
+  // page reload. The screener already wrote the eligibility flag; pulling fresh
+  // profiles flips isEligible → true so this banner re-renders to the "You're a
+  // fit" state and the modal unmounts, with no white-flash reload. Awaited by
+  // the modal so its spinner stays up until the new state is ready. Strip the
+  // one-shot query params so a manual refresh doesn't re-open the screener.
+  const onScreenerComplete = async () => {
+    await refreshAccountData();
+    setShowScreener(false);
     const url = new URL(window.location.href);
     url.searchParams.delete("welcome");
     url.searchParams.delete("activate");
     url.searchParams.delete("claim_conflict");
-    window.location.assign(url.toString());
+    window.history.replaceState(null, "", url.toString());
   };
 
   if (claimConflict) {
@@ -118,7 +128,7 @@ export default function WelcomeBanner({
           campusName={campusName}
           orgName={orgName}
           onClose={() => setShowScreener(false)}
-          onComplete={reload}
+          onComplete={onScreenerComplete}
         />
       )}
     </div>

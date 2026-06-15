@@ -356,7 +356,7 @@ function normalizeCustomFields(cf: unknown): Record<string, unknown> | null {
 export async function updateLeadInCampaign(
   campaignId: number,
   leadId: number,
-  patch: { custom_fields?: Record<string, unknown>; first_name?: string; last_name?: string }
+  patch: { email?: string; custom_fields?: Record<string, unknown>; first_name?: string; last_name?: string }
 ): Promise<SmartleadResult<{ ok?: boolean }>> {
   return smartleadRequest(
     "POST",

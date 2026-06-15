@@ -21,6 +21,7 @@ interface QuickReplyRequest {
   options: readonly string[];
   sent_at: string;
   answered_at?: string;
+  dismissed_at?: string;
 }
 
 /**
@@ -40,13 +41,21 @@ export async function POST(request: Request) {
       connectionId?: string;
       text?: string;
       claimToken?: string;
-      messageType?: "quick_reply_request" | "quick_reply_response";
+      messageType?: "quick_reply_request" | "quick_reply_response" | "quick_reply_dismiss";
       quickReplyOptions?: readonly string[];
     };
 
-    if (!connectionId || !text?.trim()) {
+    // Quick reply dismiss doesn't require text
+    if (!connectionId) {
       return NextResponse.json(
-        { error: "connectionId and text are required" },
+        { error: "connectionId is required" },
+        { status: 400 }
+      );
+    }
+
+    if (messageType !== "quick_reply_dismiss" && !text?.trim()) {
+      return NextResponse.json(
+        { error: "text is required" },
         { status: 400 }
       );
     }
@@ -138,7 +147,42 @@ export async function POST(request: Request) {
 
     // Check if there's a pending quick reply request
     const existingQuickReply = existingMeta.quick_reply_request as QuickReplyRequest | undefined;
-    const hasPendingQuickReply = existingQuickReply && !existingQuickReply.answered_at;
+    const hasPendingQuickReply = existingQuickReply && !existingQuickReply.answered_at && !existingQuickReply.dismissed_at;
+
+    // Handle quick reply dismiss - no message created, just update metadata
+    if (messageType === "quick_reply_dismiss") {
+      if (!existingQuickReply) {
+        return NextResponse.json(
+          { error: "No quick reply request to dismiss" },
+          { status: 400 }
+        );
+      }
+
+      const dismissedQuickReply = {
+        ...existingQuickReply,
+        dismissed_at: now,
+      };
+
+      const { error: dismissError } = await admin
+        .from("connections")
+        .update({
+          metadata: { ...existingMeta, quick_reply_request: dismissedQuickReply },
+        })
+        .eq("id", connectionId);
+
+      if (dismissError) {
+        console.error("Dismiss error:", dismissError);
+        return NextResponse.json(
+          { error: "Failed to dismiss quick reply" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        thread: existingThread,
+        quick_reply_request: dismissedQuickReply,
+      });
+    }
 
     // Build the new message
     const newMessage: ThreadMessage = {

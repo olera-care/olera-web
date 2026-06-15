@@ -663,6 +663,35 @@ export default function ConversationPanel({
     }
   }, [connection, activeProfile, claimToken, onMessageSent]);
 
+  // Handle quick reply dismiss (for families) - persists to database
+  const handleQuickReplyDismiss = useCallback(async () => {
+    if (!connection) return;
+    // Optimistic UI update
+    setQuickReplyDismissed(true);
+    try {
+      const requestBody: Record<string, string> = {
+        connectionId: connection.id,
+        messageType: "quick_reply_dismiss",
+      };
+      if (claimToken) {
+        requestBody.claimToken = claimToken;
+      }
+
+      const res = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!res.ok) throw new Error("Failed to dismiss");
+      const data = await res.json();
+      onMessageSent(connection.id, data.thread, data.quick_reply_request);
+    } catch {
+      // Revert optimistic update on failure
+      setQuickReplyDismissed(false);
+      setSendError("Couldn't dismiss. Please try again.");
+    }
+  }, [connection, claimToken, onMessageSent]);
+
   // ── Empty state ──
   if (!connection) {
     return (
@@ -702,6 +731,8 @@ export default function ConversationPanel({
   // Quick reply request handling
   const quickReplyRequest = getQuickReplyRequest(connMetadata);
   const isQuickReplyAnswered = !!quickReplyRequest?.answered_at;
+  const isQuickReplyDismissedPersisted = !!quickReplyRequest?.dismissed_at;
+  const hasQuickReplyOptions = (quickReplyRequest?.options?.length ?? 0) > 0;
 
   // For provider view: check if provider has followed up after family's quick reply response
   const familyProfileId = connection.type === "inquiry" ? connection.from_profile_id : connection.to_profile_id;
@@ -1086,8 +1117,8 @@ export default function ConversationPanel({
                       </div>
                     </div>
                   ) : (
-                    // Family viewing quick reply request - show elegant inline card if not answered
-                    !isQuickReplyAnswered && !quickReplyDismissed ? (
+                    // Family viewing quick reply request - show elegant inline card if not answered/dismissed and has options
+                    !isQuickReplyAnswered && !isQuickReplyDismissedPersisted && !quickReplyDismissed && hasQuickReplyOptions ? (
                       <div className="w-full max-w-md">
                         <div className="bg-stone-50 rounded-2xl border border-stone-200 overflow-hidden">
                           {/* Header with avatar and name */}
@@ -1109,7 +1140,7 @@ export default function ConversationPanel({
                               </div>
                             </div>
                             <button
-                              onClick={() => setQuickReplyDismissed(true)}
+                              onClick={handleQuickReplyDismiss}
                               className="p-1.5 rounded-full hover:bg-stone-200 transition-colors"
                               aria-label="Dismiss"
                             >

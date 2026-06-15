@@ -7,6 +7,41 @@
 
 ## Current Focus
 
+### 2026-04-26 — SEO article-ideas methodology + Apr 28 meeting prep
+
+**Built data-driven framework for picking 5-10 net-new editorial articles.** Action item from Apr 24 SEO meeting (TJ + Logan + Chantel each bring 5-10 ideas to Apr 28 meeting). Deliverable: [Article Ideas — TJ's 8 Picks](https://www.notion.so/34f5903a0ffe81a8bc5dce904463f4e2) (child of SEO Command Center).
+
+**Methodology (5-filter scoring, 0-3 each, threshold ≥ 8/12 with no zero):**
+1. Rankability at DA ~5 (judged by SERP shape inference + manual Google check before publish)
+2. Demand signal (GSC impressions on adjacent queries OR demographic case — proxy for missing Ahrefs)
+3. Olera data moat (does article structurally require our provider DB / CMS / reviews / benefit crosswalks?)
+4. Funnel fit (routes to account creation or provider views?)
+5. Writer cost (Low/Med/High)
+
+**Strategic call: lean into the moat thesis.** With DA ~5 + no Ahrefs + limited resources, we cannot win pure Q&A SEO against Aetna/Care.com/benefits.gov. Bet on articles competitors structurally cannot write because they don't have our data. 4 Tier A (data-moat) + 4 Tier B (informational compounders).
+
+**Iteration loop (TJ pushed back hard on V1):**
+- V1 was shallow pattern matching — called "Insurance × caregiver" a winning DNA from N=2, ignored survivorship bias in GSC, no SERP analysis, no conversion model. Exact slow-think violation /seo Working Principle #2 warns against
+- V2 rebuild scored all 8 v1 picks against the framework: 4 survived (Get-paid-AL, VA approval letter, GA SFC, Alzheimer's payment TX), 4 killed/dropped (Aetna insurance — moat=0; AL Medicaid program — redundant; 24/7 live-in — borderline; Medicaid spend-down — wrong audience + moat=0)
+- Replaced with 4 Tier A moat plays: TX STAR+ providers accepting members (11/12 — strongest), Best memory care Houston ranked by reviews+CMS (10/12 — replicable template), TX 5-star Medicare nursing homes list (10/12), Home care rates by state data report (9/12)
+- Portfolio total: 73/96
+
+**Logic captured in Notion page** alongside picks — methodology section is the primary asset, picks are the application. Logan + Chantel can apply same rubric independently.
+
+**Data sources used:** `olera-hq/strategy/seo/2026-04-24_*.csv` (query-page-pairs, pages-movement, organic-landings, striking-distance). No new /seo run — Apr 24 export is fresh. Cross-referenced [SEO Running Thread](https://www.notion.so/3455903a0ffe81888526d1f4bdf7e1f4) Patterns & Principles.
+
+**Open questions raised for Apr 28 meeting:**
+- Does team commit to moat thesis? Reframes editorial strategy from "compete on writing" to "compete on data leverage"
+- Tier A picks 1-3 need template/dev work (data wiring, ranked list components) — scope as dedicated sprint?
+- Refreshes truly out of scope? Refreshing top 3 winners @ ~1hr each may still be highest ROI move on the board
+- Get Ahrefs 1-month trial? Small spend, big methodology unlock (replaces demand proxy with real numbers)
+
+**Validation step required before each piece ships:** Manual SERP check (~5 min/query). Google the target query, look at top 10. Kill if 8+ are DA 60+ informational sites with deep coverage. Cannot proxy this.
+
+**No code changes this session** — analysis + Notion writeup only.
+
+---
+
 ### 2026-04-26 — /product-led-growth bootstrap + Esther/TJ task split shipped
 
 **Built and shipped `/product-led-growth` slash command.** PR #642 merged to staging (squash, commit `0e674a43`). Two PRs total: V1 daily-mode + V1.5 reframe to daily-build / weekly-stats / monthly-strategy after the dry-run revealed daily-pulse produced false signal from Sunday baselines. Files: `.claude/commands/product-led-growth.md`, `scripts/growth-pull.js`. PR #643 open with Working Principle #8 (trust the implementer, don't over-prescribe when writing Notion tasks for the team).

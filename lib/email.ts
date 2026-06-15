@@ -126,6 +126,16 @@ const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
   "student_account_created",
 ]);
 
+// Resend AUP deliverability thresholds live in a dependency-free module so client
+// components (e.g. the admin cockpit) can import them too. Re-exported here for
+// callers already reaching into lib/email.
+export {
+  RESEND_COMPLAINT_LIMIT,
+  RESEND_COMPLAINT_WARN,
+  RESEND_BOUNCE_LIMIT,
+  RESEND_BOUNCE_WARN,
+} from "./email-thresholds";
+
 /**
  * Returns true if we've previously recorded a hard bounce or spam complaint
  * for this exact recipient. Used to suppress non-critical sends so we stop

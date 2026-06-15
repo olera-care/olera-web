@@ -146,10 +146,14 @@ function CandidateBrowseInner() {
     [universityId, sort]
   );
 
+  // Refetch only when the actual query inputs change (university / sort, via
+  // fetchCandidates' own deps). Eligibility no longer affects the result set
+  // (profiles are de-blurred for any provider), so keying off it just caused a
+  // skeleton flash when eligibility flipped after the screener.
   useEffect(() => {
     setPage(0);
     fetchCandidates(0, false);
-  }, [fetchCandidates, isEligible]);
+  }, [fetchCandidates]);
 
   // Infinite scroll
   useEffect(() => {

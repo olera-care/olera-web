@@ -414,12 +414,31 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 ? `/welcome?next=${encodeURIComponent(redirectTo)}`
                 : redirectTo;
 
-              // Redirect to destination
-              // Use window.location for a hard redirect to ensure navigation completes
-              // (router.replace can be interrupted by React re-renders)
-              console.log("[olera] Redirecting to:", finalDestination);
-              window.location.replace(finalDestination);
-              return; // Exit init - we're redirecting
+              // Redirect to destination.
+              // MedJobs magic-link landings ALREADY arrive on their
+              // destination (the candidate board) — the only reason for the
+              // historical hard redirect was to drop the ?next= param. A
+              // window.location.replace back to the same page forces a full
+              // document reload, which is the visible "double load / flash"
+              // jank on arrival. When the destination is the page we're already
+              // on, clean the URL in place and fall through to the normal
+              // session + account load so the board (and the eligibility
+              // screener) render without a reload. The SIGNED_IN listener stays
+              // guarded by initHandlingRef, so falling through does not trigger
+              // a duplicate fetchAccountData.
+              const destUrl = new URL(finalDestination, window.location.origin);
+              const samePage =
+                onMedjobs && destUrl.pathname === window.location.pathname;
+              if (samePage) {
+                window.history.replaceState(null, "", finalDestination);
+                // fall through — no return, no reload
+              } else {
+                // Use window.location for a hard redirect to ensure navigation
+                // completes (router.replace can be interrupted by re-renders).
+                console.log("[olera] Redirecting to:", finalDestination);
+                window.location.replace(finalDestination);
+                return; // Exit init - we're redirecting
+              }
             }
           }
         } catch (err) {

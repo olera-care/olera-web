@@ -48,7 +48,7 @@ export default function EligibilityScreenerModal({
   campusName?: string | null;
   orgName?: string | null;
   onClose: () => void;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
 }) {
   const [step, setStep] = useState<Step>("intro");
   const [shape, setShape] = useState<Shape | null>(null);
@@ -75,7 +75,9 @@ export default function EligibilityScreenerModal({
         const b = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(b.error || "Could not save your answers");
       }
-      onComplete();
+      // Keep the loading spinner up until the caller has refreshed auth state,
+      // so the modal animates straight into the eligible board with no flash.
+      await onComplete();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save your answers");
       setStep("q3");
@@ -84,11 +86,11 @@ export default function EligibilityScreenerModal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4 animate-screener-backdrop"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl"
+        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl animate-screener-pop"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -99,14 +101,16 @@ export default function EligibilityScreenerModal({
           {step === "intro" && (
             <div className="space-y-4">
               <h3 className="font-serif text-xl text-gray-900">
-                {orgName ? `Welcome, ${orgName}.` : "Welcome."}
+                Check your eligibility
               </h3>
               <p className="text-sm leading-relaxed text-gray-600">
-                See if {campusName ? `${campusName} student caregivers` : "student caregivers near you"} fit
-                your agency. About a minute, no commitment. You only commit when a student is the right fit.
+                {orgName ? `${orgName}, a` : "A"} quick check to confirm{" "}
+                {campusName ? `${campusName} student caregivers` : "student caregivers near you"}{" "}
+                fit your agency. About a minute, no commitment. You only host when
+                a student is the right fit.
               </p>
               <button type="button" onClick={() => setStep("q1")} className={btnPrimary}>
-                See if I&apos;m a fit →
+                Check eligibility →
               </button>
             </div>
           )}
@@ -159,6 +163,36 @@ export default function EligibilityScreenerModal({
           )}
         </div>
       </div>
+
+      {/* Entrance animation — backdrop fades, panel pops up (mirrors the
+          CandidateFiltersModal convention). Makes the magic-link arrival feel
+          like an intentional pop-up, not a hard cut. */}
+      <style jsx>{`
+        @keyframes screener-backdrop {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes screener-pop {
+          from {
+            transform: scale(0.96) translateY(8px);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+          }
+        }
+        .animate-screener-backdrop {
+          animation: screener-backdrop 0.18s ease-out;
+        }
+        .animate-screener-pop {
+          animation: screener-pop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+      `}</style>
     </div>
   );
 }

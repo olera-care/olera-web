@@ -1262,9 +1262,18 @@ export default function ProviderMatchesPage() {
 
         setConnectionData(connDataMap);
 
-        // Fetch inactive families that provider has already connected with
-        // These are families whose profiles are paused/deleted but provider has outreach history
-        // Use server API to bypass RLS (client can't read is_active=false profiles)
+        // PAINT NOW. Active families + connections are everything the first
+        // render needs to show leads. Drop the loading skeleton here so the
+        // page appears after just these two parallel queries — the two fetches
+        // below (inactive families, per-card reach-out counts) are non-critical
+        // and fill in after, instead of blocking arrival on extra round-trips.
+        setFamilies(fetchedFamilies);
+        setTotalCount(familiesRes.count || fetchedFamilies.length);
+        setLoading(false);
+        hasFetchedOnceRef.current = true;
+
+        // Background: inactive families the provider previously contacted
+        // (paused/deleted profiles — server API bypasses RLS). Append on arrival.
         const connectedIds = connections.map((c: { to_profile_id: string }) => c.to_profile_id);
         const activeFamilyIds = new Set(fetchedFamilies.map((f) => f.id));
         const missingIds = connectedIds.filter((id: string) => !activeFamilyIds.has(id));
@@ -1279,8 +1288,7 @@ export default function ProviderMatchesPage() {
             if (res.ok) {
               const { profiles: inactiveFamilies } = await res.json();
               if (inactiveFamilies && inactiveFamilies.length > 0) {
-                // Append inactive families to the list
-                fetchedFamilies.push(...(inactiveFamilies as Profile[]));
+                setFamilies((prev) => [...prev, ...(inactiveFamilies as Profile[])]);
               }
             }
           } catch {
@@ -1288,9 +1296,6 @@ export default function ProviderMatchesPage() {
             console.error("[olera] Failed to fetch inactive families");
           }
         }
-
-        setFamilies(fetchedFamilies);
-        setTotalCount(familiesRes.count || fetchedFamilies.length);
 
         // Reach-out counts per family — use server API to bypass RLS
         // (RLS only allows providers to see their own connections, but we need

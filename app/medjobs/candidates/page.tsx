@@ -33,7 +33,7 @@ export default function CandidateBrowsePage() {
 
 function CandidateBrowseInner() {
   const searchParams = useSearchParams();
-  const { openAuth, profiles, refreshAccountData } = useAuth();
+  const { profiles, refreshAccountData, isLoading } = useAuth();
 
   // A provider is any account that owns an organization/caregiver profile.
   const providerProfile = profiles?.find(
@@ -144,15 +144,17 @@ function CandidateBrowseInner() {
       .catch(() => {});
   }, [universityId, universityFromUrl, campusSlugParam]);
 
-  // Auto-open the screener for a magic-link arrival who is a provider but not
-  // yet eligible. (Anon/eligible arrivals don't open it.)
+  // Auto-open the screener for a ?welcome=1 / ?activate=1 arrival who isn't
+  // eligible yet — works for anon (the screener's claim step signs them in) and
+  // for not-eligible providers. Wait for auth to settle so an already-eligible
+  // provider doesn't briefly see it.
   useEffect(() => {
-    if (autoOpenedRef.current) return;
-    if (autoOpenScreener && hasProviderProfile && !isEligible && !claimConflict) {
+    if (autoOpenedRef.current || isLoading) return;
+    if (autoOpenScreener && !isEligible && !claimConflict) {
       autoOpenedRef.current = true;
       setShowScreener(true);
     }
-  }, [autoOpenScreener, hasProviderProfile, isEligible, claimConflict]);
+  }, [autoOpenScreener, isEligible, claimConflict, isLoading]);
 
   const onUniversityChange = useCallback((id: string) => {
     setUniversityId(id);
@@ -232,13 +234,11 @@ function CandidateBrowseInner() {
         ? "happy"
         : "fallback";
 
+  // Both anon and not-eligible providers open the screener; the screener's own
+  // claim step handles anon sign-in + org creation/claim in-modal.
   const onCheckEligibility = useCallback(() => {
-    if (!hasProviderProfile) {
-      openAuth({ intent: "provider", defaultMode: "sign-in" });
-    } else {
-      setShowScreener(true);
-    }
-  }, [hasProviderProfile, openAuth]);
+    setShowScreener(true);
+  }, []);
 
   // On screener completion, refresh auth in place (no reload), close, and strip
   // the one-shot params so a manual refresh doesn't re-open the screener.

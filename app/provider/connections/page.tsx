@@ -129,7 +129,7 @@ function LeadDetailInlineView({
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
-  onQuickReplyRequest?: (leadId: string) => void;
+  onQuickReplyRequest?: (leadId: string) => Promise<boolean>;
   isQuickReplySending?: boolean;
   onArchiveClick?: () => void;
   onVerifyClick?: () => void;
@@ -661,7 +661,7 @@ function LeadDetailDrawer({
   onPhoneClick?: (leadId: string) => void;
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
-  onQuickReplyRequest?: (leadId: string) => void;
+  onQuickReplyRequest?: (leadId: string) => Promise<boolean>;
   isQuickReplySending?: boolean;
   onArchiveClick?: (leadId: string) => void;
   isVerified?: boolean;
@@ -672,6 +672,7 @@ function LeadDetailDrawer({
   const [copiedField, setCopiedField] = useState<"phone" | "email" | null>(null);
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
+  const [quickReplyError, setQuickReplyError] = useState(false);
 
   // Display name: full name if verified, redacted if not
   const displayName = lead ? (isVerified ? lead.name : formatRedactedName(lead.name)) : "";
@@ -707,6 +708,7 @@ function LeadDetailDrawer({
       setRestored(false);
       setCopiedField(null);
       setShowOverflowMenu(false);
+      setQuickReplyError(false);
     }
   }, [isOpen]);
 
@@ -716,6 +718,7 @@ function LeadDetailDrawer({
       setCopiedField(null);
       setShowFullDetails(false);
       setShowOverflowMenu(false);
+      setQuickReplyError(false);
     }
   }, [lead?.id]);
 
@@ -1242,11 +1245,16 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // Handler for quick reply request
-  const handleQuickReplyRequest = () => {
+  // Handler for quick reply request - await result, only close on success
+  const handleQuickReplyRequest = async () => {
     if (!lead) return;
-    onQuickReplyRequest?.(lead.id);
-    onClose();
+    setQuickReplyError(false);
+    const success = await onQuickReplyRequest?.(lead.id);
+    if (success) {
+      onClose();
+    } else {
+      setQuickReplyError(true);
+    }
   };
 
   // ── Active Footer (full width message button with helper text) ──
@@ -1273,9 +1281,18 @@ function LeadDetailDrawer({
             )}
             {isQuickReplySending ? "Sending..." : "Check if they're a fit"}
           </button>
-          <p className="text-center text-[13px] text-gray-500">
-            Free — you won&apos;t be charged
-          </p>
+          {quickReplyError ? (
+            <p className="text-center text-[13px] text-red-600 flex items-center justify-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              Something went wrong. Please try again.
+            </p>
+          ) : (
+            <p className="text-center text-[13px] text-gray-500">
+              Free — you won&apos;t be charged
+            </p>
+          )}
         </>
       ) : (
         // Regular message button for leads that have been replied to
@@ -2141,7 +2158,8 @@ export default function ProviderLeadsPage() {
   }, [leads]);
 
   // Handle quick reply request - send pre-written question and navigate to inbox
-  const handleQuickReplyRequest = useCallback(async (leadId: string) => {
+  // Returns true on success, false on failure (for drawer to handle)
+  const handleQuickReplyRequest = useCallback(async (leadId: string): Promise<boolean> => {
     const lead = leads.find((l) => l.id === leadId);
     const connectionId = lead?.connectionId || leadId;
 
@@ -2161,8 +2179,7 @@ export default function ProviderLeadsPage() {
       if (!response.ok) {
         console.error("[quick-reply] API failed:", await response.text());
         setQuickReplySendingId(null);
-        alert("Couldn't send message. Please try again.");
-        return;
+        return false;
       }
 
       // Update lead status optimistically
@@ -2188,10 +2205,11 @@ export default function ProviderLeadsPage() {
 
       // Navigate to inbox
       router.push(`/provider/inbox?id=${connectionId}`);
+      return true;
     } catch (err) {
       console.error("[quick-reply] Failed:", err);
       setQuickReplySendingId(null);
-      alert("Couldn't send message. Please try again.");
+      return false;
     }
   }, [leads, providerProfile, router]);
 

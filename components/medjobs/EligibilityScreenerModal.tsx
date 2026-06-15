@@ -122,7 +122,10 @@ export default function EligibilityScreenerModal({
   };
 
   // Anon claim/create + instant sign-in + eligibility write.
-  const conflict = !!selectedOrg && selectedOrg.claimState !== "unclaimed";
+  // Only a listing already owned by another account ("claimed") is a conflict;
+  // unclaimed listings come back with claimState null/"unclaimed"/"pending" and
+  // are freely claimable via claim-instant.
+  const conflict = selectedOrg?.claimState === "claimed";
   const creating = !selectedOrg;
   const emailValid = EMAIL_RE.test(email);
   const canContinue =

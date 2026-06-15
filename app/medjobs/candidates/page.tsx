@@ -10,8 +10,7 @@ import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import WelcomeBanner from "@/components/medjobs/WelcomeBanner";
-import { LOGAN_DEMO_CANDIDATE } from "@/lib/medjobs/demo-candidate";
-import type { StudentMetadata } from "@/lib/types";
+import DrDuBoseWelcome from "@/components/medjobs/DrDuBoseWelcome";
 
 const PAGE_SIZE = 20;
 // Session key so the university filter persists across navigation (the
@@ -23,28 +22,6 @@ interface University {
   id: string;
   name: string;
 }
-
-// The sample profile rendered (as a normal card, badged DEMO) when a campus
-// has no real students yet. Same Logan DuBose content as before, just in the
-// standard CandidateCard so the UI stays consistent.
-const DEMO_CARD: CandidateData = {
-  id: LOGAN_DEMO_CANDIDATE.id,
-  slug: LOGAN_DEMO_CANDIDATE.id,
-  display_name: "Logan DuBose",
-  city: LOGAN_DEMO_CANDIDATE.city,
-  state: LOGAN_DEMO_CANDIDATE.state,
-  description: null,
-  care_types: [],
-  image_url: LOGAN_DEMO_CANDIDATE.photo_url,
-  created_at: new Date(0).toISOString(),
-  metadata: {
-    university: "Texas A&M University",
-    intended_professional_school: "medicine",
-    certifications: LOGAN_DEMO_CANDIDATE.certifications,
-    languages: LOGAN_DEMO_CANDIDATE.languages,
-    hours_per_week_range: LOGAN_DEMO_CANDIDATE.hours_per_week,
-  } as unknown as StudentMetadata,
-};
 
 export default function CandidateBrowsePage() {
   return (
@@ -61,9 +38,9 @@ function CandidateBrowseInner() {
     activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
 
   const claimConflict = searchParams?.get("claim_conflict") === "1";
-  const outreachIdFromUrl = searchParams?.get("outreach_id") ?? undefined;
-  // Activation-cadence links carry ?activate=1 → open Terms on arrival.
-  const autoOpenTerms = searchParams?.get("activate") === "1";
+  // Magic-link arrivals (?welcome=1 / ?activate=1) auto-open the eligibility screener.
+  const autoOpenScreener =
+    searchParams?.get("welcome") === "1" || searchParams?.get("activate") === "1";
   // The magic-link landing resolves the provider's campus → university id.
   const universityFromUrl = searchParams?.get("university") ?? null;
 
@@ -73,7 +50,7 @@ function CandidateBrowseInner() {
   const providerProfile = profiles?.find(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  const isPaid = isMedjobsEligible(
+  const isEligible = isMedjobsEligible(
     (providerProfile?.metadata ?? null) as Record<string, unknown> | null
   );
 
@@ -167,7 +144,7 @@ function CandidateBrowseInner() {
   useEffect(() => {
     setPage(0);
     fetchCandidates(0, false);
-  }, [fetchCandidates, isPaid]);
+  }, [fetchCandidates, isEligible]);
 
   // Infinite scroll
   useEffect(() => {
@@ -188,9 +165,9 @@ function CandidateBrowseInner() {
 
   const selectedUniversityName =
     universities.find((u) => u.id === universityId)?.name ?? null;
-  // Welcome banner persists for a signed-in provider until they activate the
-  // pilot (no manual dismiss). Suppressed once pilot-active and for non-providers.
-  const showWelcome = isProvider && !isPaid;
+  // Provider banner: shows for any signed-in provider; the banner itself
+  // branches on eligibility (screener prompt vs "you're a fit").
+  const showWelcome = isProvider;
 
   const selectClass =
     "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";
@@ -239,9 +216,11 @@ function CandidateBrowseInner() {
         {showWelcome && (
           <WelcomeBanner
             claimConflict={claimConflict}
-            isProvider={!!isProvider}
-            outreachId={outreachIdFromUrl}
-            autoOpen={autoOpenTerms}
+            isEligible={isEligible}
+            providerProfileId={providerProfile?.id}
+            campusName={selectedUniversityName}
+            orgName={providerProfile?.display_name ?? null}
+            autoOpenScreener={autoOpenScreener}
           />
         )}
 
@@ -301,22 +280,20 @@ function CandidateBrowseInner() {
           </div>
         ) : candidates.length === 0 ? (
           universityId ? (
-            // No real students at the selected campus yet → recruiting message
-            // + a single DEMO card (normal card design) so the UI stays
-            // consistent and the provider sees what a candidate looks like.
+            // No real students at this campus yet → recruiting state + a warm
+            // welcome from Dr. DuBose (the personal-recommendation fallback).
             <div className="space-y-5">
-              <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5">
+              <div className="rounded-2xl border border-gray-100 bg-white px-6 py-6">
                 <h2 className="font-display text-xl text-gray-900">
-                  We&apos;re actively recruiting at {selectedUniversityName || "your campus"}.
+                  We&apos;re recruiting {selectedUniversityName || "student"} caregivers for you now.
                 </h2>
                 <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                  You&apos;ll be notified when new candidates are posted. In the
-                  meantime, here&apos;s a sample of what a candidate profile looks like.
+                  We&apos;ll email you the moment a student who fits your needs
+                  joins. Want a head start? Meet Dr. DuBose and he&apos;ll
+                  personally recommend a student.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <CandidateCard candidate={DEMO_CARD} basePath="/medjobs/candidates" isDemo />
-              </div>
+              <DrDuBoseWelcome withCalendly />
             </div>
           ) : (
             <div className="text-center py-20">

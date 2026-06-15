@@ -177,3 +177,14 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 - Verified: `tsc --noEmit` clean; changed files lint clean.
 - **Remaining Phase A item:** the welcome email on first auth — deferred to the comms pass / Phase B (placeholder content; it touches the same first-run/eligibility moment), rather than wiring a new send into the critical magic-link auth route blind.
 - **Audit note:** the access changes are runtime-behavioral (board now shows full to any signed-in provider; anonymous stays limited). Worth a quick app-run check during the scenario audit, which couldn't be done in this environment.
+
+### Phase B — Eligibility screener + states (shipped 2026-06-15, branch `claude/keen-mendel-6i8iW`)
+- New `components/medjobs/EligibilityScreenerModal.tsx` — intro → Q1 (demand: regular/varies/unpredictable) → Q2 (PRN) → Q3 (coverage buckets) → "finding your matches" loading; one question per screen with a short reassurance on each pick. Persists, then reloads the board.
+- New `app/api/medjobs/eligibility/route.ts` — writes `medjobs_eligibility_completed_at` + `medjobs_demand_profile` + `platform_terms_accepted_at` to the linked provider profile (service role, gated to an account-owned profile; no re-claim — the magic-link landing already links account ↔ profile).
+- New `components/medjobs/HostingInfoModal.tsx` — "Learn more about hosting" (info only; bullets + Sample Hosting Agreement + Hosting FAQ links; "Interview students" CTA).
+- New `components/medjobs/DrDuBoseWelcome.tsx` — placeholder welcome (photo initials + message + optional Calendly), used in the eligible banner and the recruiting empty state.
+- Reworked `components/medjobs/WelcomeBanner.tsx` — two states keyed on eligibility: **not eligible** → "Check eligibility" + screener (auto-opens on `?welcome=1`/`?activate=1`) + Terms sign-in-wrap; **eligible** → "You're a fit / interview students before you commit" + Learn-more + Dr. DuBose welcome. Replaces the old PilotTermsModal banner (PilotTermsModal still lives at the interview gate in `ContactSection`).
+- `app/medjobs/candidates/page.tsx` — banner now shows for any provider and branches on eligibility; empty state reframed to recruiting + Dr. DuBose (DEMO card removed); `isPaid` → `isEligible`.
+- Verified: `tsc --noEmit` clean; new/changed files lint clean.
+- **Remaining:** welcome email on first auth (comms pass); cold-send pipeline `{welcome_url}` wiring (follow-up). The screener works for any magic-link arrival now.
+- **Audit note:** runtime behavior (screener auto-opens on magic-link arrival → persists eligibility → board reloads into the eligible/"you're a fit" state, with matches or the recruiting fallback) — verify in the scenario audit.

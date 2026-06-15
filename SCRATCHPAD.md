@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-08 — Provider engagement reframe → building (3-pillar model)
+
+**Strategy (Notion canonical: "Provider Engagement Reframe", id `3795903a-0ffe-8194…`; memory `project_engagement_reframe`):** ONE ladder = provider discoverability+chooseability. Three pillars of different kinds — **completion = activation milestone** (juiciest carrot, reward=discoverability not rank), **reviews→rank = recurring engine** (Google-pure), **answering = episodic conversion** (69% of providers get 1 question ever). Weekly digest = the recurring trigger showing each provider their next rung.
+
+**Shipped/validated this session:**
+- **T1 — `question_received` off olera.care:** PR **#967** (split routing set so only cold high-bounce types move to oleracare.com; digest stays on olera.care; inert until env set). **Ops pending TJ:** Resend-verify oleracare.com + MERGE its SPF with Loops + set `PROVIDER_NOTIFY_FROM`/`PROVIDER_NOTIFY_REPLY_TO`. (Resend natively multi-domains; Smartlead is for cold bulk, not this.)
+- **Step 1 (ID resolver) — VALIDATED, no build needed.** `lib/provider-id-variants.ts` `resolveCanonicalProviderKeys` already exists; running the non-answerer join through it collapsed the bogus "85% no-notification" artifact → real per-provider funnel (2,789/90d): unreachable 27.6% · delivered-not-opened 42.2% (dominant) · opened-not-clicked 7.6% · clicked-not-answered 15.1% · answered 7.5%. Apply per-feature.
+
+**In progress — Step 2 (completion carrot):** plan drafted → [`plans/completion-carrot-plan.md`](plans/completion-carrot-plan.md). "Sell the output, not the checklist": show CLAIMED-but-thin providers a ghosted preview of their own page (lead with the magical owner-story card), via a new digest variant + deep-link-to-editor. **Awaiting TJ approval before coding.** Build gets a fresh branch off staging.
+
 ### 2026-06-07 — New `/promote-to-main` slash command + shipped #955 to production
 
 **Outcome:** Built a reusable staging→main production-promotion command and used it to ship the pending delta live.

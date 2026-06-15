@@ -10,6 +10,7 @@ import { generateProviderSlug } from "@/lib/slugify";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
 import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
+import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 
 /**
  * POST /api/inline-answer/capture-email
@@ -115,6 +116,7 @@ export async function POST(req: Request) {
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
+  let existingUser = false;
   const displayName = normalizedEmail.split("@")[0];
 
   // ═══════════════════════════════════════════════════════════════════
@@ -146,23 +148,15 @@ export async function POST(req: Request) {
       createUserErr?.message?.includes("already been registered") ||
       createUserErr?.message?.includes("already exists")
     ) {
-      // User exists — generate magic link to get session
-      const { data: linkData } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
+      // SECURITY: existing account. Never mint a session for a caller-supplied
+      // email (account takeover). Email a magic link instead; the submitted data
+      // still attaches to their account via the resolved userId.
+      const { userId: existingUserId } = await emailReturningUserSignInLink(authClient, {
         email: normalizedEmail,
-        options: { redirectTo: `${siteUrl}/portal` },
+        nextPath: "/portal",
       });
-      if (linkData?.properties?.hashed_token) {
-        const { data: verifyData } = await authClient.auth.verifyOtp({
-          token_hash: linkData.properties.hashed_token,
-          type: "magiclink",
-        });
-        if (verifyData?.session) {
-          accessToken = verifyData.session.access_token;
-          refreshToken = verifyData.session.refresh_token;
-          userId = verifyData.session.user?.id || "";
-        }
-      }
+      userId = existingUserId || "";
+      existingUser = true;
     } else {
       console.error("[inline-answer/capture-email] Failed to create user:", createUserErr);
       return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
@@ -444,6 +438,10 @@ export async function POST(req: Request) {
     profileId: familyProfileId,
     userId,
     isNewUser,
+    // When true, the client should show "check your email to sign in" rather
+    // than expecting an instant session — no session is minted for existing
+    // accounts (security: prevents takeover via a typed email).
+    existingUser,
   });
 
   if (accessToken && refreshToken) {

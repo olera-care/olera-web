@@ -140,8 +140,8 @@ function fmtPct(rate: number, decimals: number): string {
 function Skeleton() {
   return (
     <div className="animate-pulse">
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-[68px] rounded-xl bg-gray-100" />)}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[68px] rounded-xl bg-gray-100" />)}
       </div>
       <div className="mt-5 h-8 w-72 rounded bg-gray-100" />
       <div className="mt-6 space-y-5">
@@ -275,10 +275,10 @@ export default function AutomationsPage() {
               <StatCard
                 value={fmtPct(data.summary.bounceRate30d, 2)}
                 label="Bounce rate"
-                sub={`${data.summary.bounceEvents30d} / ${data.summary.deliveredAll30d.toLocaleString()} · cap 4%`}
+                sub={`${data.summary.bounceEvents30d} / ${data.summary.sentAll30d.toLocaleString()} · cap 4%`}
                 danger={data.summary.bounceRate30d > RESEND_BOUNCE_LIMIT}
                 warn={data.summary.bounceRate30d > RESEND_BOUNCE_WARN && data.summary.bounceRate30d <= RESEND_BOUNCE_LIMIT}
-                muted={data.summary.deliveredAll30d === 0}
+                muted={data.summary.sentAll30d === 0}
               />
             </div>
             <p className="mt-2 text-xs text-gray-400">{data.note}</p>

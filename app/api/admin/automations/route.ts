@@ -194,12 +194,14 @@ export async function GET() {
   const pausedCount = jobs.filter((j) => j.paused).length;
   const erroredCount = jobs.filter((j) => j.lastRun?.status === "error" && now - new Date(j.lastRun.startedAt).getTime() < ERROR_RECENCY_MS).length;
 
-  // Account-wide deliverability rate (30d). Denominator is delivered across ALL
-  // email types — Resend judges the whole account, so the cron-only sends30d
-  // above would understate it. Numerator is real webhook events (above). The
-  // delivered cohort (email_log.created_at window) and event cohort
-  // (email_events.occurred_at window) differ slightly at the window edge — fine
-  // for a directional health KPI, not billing.
+  // Account-wide deliverability rates (30d), computed over ALL email types —
+  // Resend judges the whole account, so the cron-only sends30d above would
+  // understate it. Numerators are real webhook events (above). Denominators
+  // match Resend's own definitions: complaint rate is complaints / delivered
+  // (you can only complain about mail you received), bounce rate is bounces /
+  // sent (bounced mail is by definition NOT in delivered). The event cohort
+  // (email_events.occurred_at) and email_log cohort (created_at) differ slightly
+  // at the window edge — fine for a directional health KPI, not billing.
   let deliveredAll30d = 0;
   let sentAll30d = 0;
   for (const b of byType.values()) {
@@ -207,7 +209,7 @@ export async function GET() {
     deliveredAll30d += b.delivered;
   }
   const complaintRate30d = deliveredAll30d ? complaintEvents30d / deliveredAll30d : 0;
-  const bounceRate30d = deliveredAll30d ? bounceEvents30d / deliveredAll30d : 0;
+  const bounceRate30d = sentAll30d ? bounceEvents30d / sentAll30d : 0;
 
   return NextResponse.json({
     windowDays: 30,

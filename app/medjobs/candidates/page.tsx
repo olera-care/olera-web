@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
+import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import WelcomeBanner from "@/components/medjobs/WelcomeBanner";
 import { LOGAN_DEMO_CANDIDATE } from "@/lib/medjobs/demo-candidate";
 import type { StudentMetadata } from "@/lib/types";
@@ -73,7 +73,7 @@ function CandidateBrowseInner() {
   const providerProfile = profiles?.find(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  const isPaid = medjobsAccessActive(
+  const isPaid = isMedjobsEligible(
     (providerProfile?.metadata ?? null) as Record<string, unknown> | null
   );
 

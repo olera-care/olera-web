@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { getAccessTier, hasFullAccess } from "@/lib/medjobs-access";
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 import { resolveCampusUniversity } from "@/lib/medjobs/campus-university-bridge";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
@@ -218,20 +216,13 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const providerMeta = auth?.providerProfile?.metadata as Record<string, unknown> | undefined;
-    const verificationState = auth?.providerProfile?.verification_state as string | null | undefined;
-    const accessInfo = getAccessTier(isProvider, providerMeta ?? null, verificationState ?? null);
-
-    // Two independent gates (decision 4 / Chunk 4):
-    //  - Full PROFILE view (full name + bio) unlocks with MedJobs access —
-    //    active pilot OR paid subscription. ONE predicate (medjobsAccessActive),
-    //    shared with the candidate board page so UI and server agree (kills the
-    //    old "UI says full / server redacts" contradiction).
-    //  - CONTACT details (email/phone/résumé/LinkedIn) stay behind an actual
-    //    connection — here, paid AND verified — regardless of trial. This is
-    //    the de-platforming moat and is intentionally NOT loosened by the pilot.
-    const canViewFullProfiles = medjobsAccessActive(providerMeta ?? null);
-    const canSeeContact = hasFullAccess(accessInfo);
+    // Phase A: any signed-in provider sees full profiles + contact. Only
+    // anonymous viewers are limited (student-PII privacy). The old pilot/
+    // verified blurring is removed; the de-platforming moat is now the
+    // student's on-platform credential + platform Terms. See
+    // PROVIDER_FUNNEL_BUILD_PLAN.md.
+    const canViewFullProfiles = isProvider;
+    const canSeeContact = isProvider;
 
     if (!canViewFullProfiles || !canSeeContact) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

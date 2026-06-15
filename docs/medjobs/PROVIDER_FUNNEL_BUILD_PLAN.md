@@ -156,3 +156,24 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 6. **Student-fee affordability** — validate; the student is the cash-poor side.
 
 > Throughput is ultimately gated by **student supply** — the provider funnel converts only as fast as recruiting feeds matching students.
+
+---
+
+## 10. Build log
+
+### Phase D inputs (approved 2026-06-15)
+- Internship fee: **$100 per party** (provider + student) — *confirm if $100 total was intended.*
+- Hours threshold for the guarantee: **120 hours**.
+- Contact info is **not hidden** — the old pilot/verified blurring is removed entirely.
+- **No video-call tool** for now (minimal placeholder UI only).
+- SMS/email reminders beyond native calendar: **later**.
+
+### Phase A — Foundations (shipped 2026-06-15, branch `claude/keen-mendel-6i8iW`)
+- New `lib/medjobs/eligibility.ts` — `isMedjobsEligible()` + `DemandProfile` type + metadata keys (`medjobs_eligibility_completed_at`, `medjobs_demand_profile`, `platform_terms_accepted_at`). The new access gate; grandfathers legacy pilot/subscription holders so nobody is locked out.
+- **Blurring/redaction removed (tech-debt purge):** `lib/medjobs-access.ts` now grants full access (names + contact) to any authenticated provider; only anonymous viewers are limited (student-PII privacy). The candidates API and the candidate detail page redaction are simplified to anonymous-only. Billing flags (Stripe-written) untouched.
+- **Invite re-keyed to eligibility** — `POST /api/medjobs/interviews` returns `eligibility_required` instead of `pilot_required`.
+- **Banner + invite-CTA re-keyed to eligibility** — `candidates/page.tsx` and `ContactSection.tsx`.
+- **Terms sign-in-wrap** added to `WelcomeBanner` ("By continuing, you agree to our Terms, including keeping placements on Olera").
+- Verified: `tsc --noEmit` clean; changed files lint clean.
+- **Remaining Phase A item:** the welcome email on first auth — deferred to the comms pass / Phase B (placeholder content; it touches the same first-run/eligibility moment), rather than wiring a new send into the critical magic-link auth route blind.
+- **Audit note:** the access changes are runtime-behavioral (board now shows full to any signed-in provider; anonymous stays limited). Worth a quick app-run check during the scenario audit, which couldn't be done in this environment.

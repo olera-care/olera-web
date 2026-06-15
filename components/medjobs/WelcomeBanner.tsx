@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import PilotTermsModal from "@/components/medjobs/PilotTermsModal";
 
 // The banner has no dismiss affordance — it persists until the provider
@@ -57,6 +58,14 @@ export default function WelcomeBanner({
             Free for 3 months · No payment info needed
           </p>
         </div>
+      )}
+
+      {!claimConflict && (
+        <p className="mt-2 text-[11px] text-gray-400">
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="underline hover:text-gray-600">Terms</Link>,
+          including keeping placements on Olera.
+        </p>
       )}
 
       {showTermsModal && (

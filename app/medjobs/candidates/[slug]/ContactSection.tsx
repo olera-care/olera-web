@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
 import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
 import PilotTermsModal from "@/components/medjobs/PilotTermsModal";
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
+import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
@@ -60,9 +60,9 @@ export default function ContactSection({
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
-  // G3 pilot gate: inviting a student to interview requires an active pilot.
+  // Phase A: inviting requires eligibility (completed screener), not a pilot.
   const providerProfile = profiles.find((p) => p.type === "organization");
-  const hasPilot = medjobsAccessActive(
+  const hasPilot = isMedjobsEligible(
     (providerProfile?.metadata ?? null) as Record<string, unknown> | null,
   );
 

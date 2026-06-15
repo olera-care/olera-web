@@ -5,6 +5,7 @@ import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
 import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
 import { getAccessTier } from "@/lib/medjobs-access";
+import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
 import type { InterviewStatus } from "@/lib/types";
@@ -144,9 +145,8 @@ export async function POST(request: NextRequest) {
         .eq("id", callerProvider.id)
         .single();
       const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
-      const access = getAccessTier(true, providerMeta);
-      if (!access.isPaid) {
-        return NextResponse.json({ error: "pilot_required", tier: access.tier }, { status: 402 });
+      if (!isMedjobsEligible(providerMeta)) {
+        return NextResponse.json({ error: "eligibility_required" }, { status: 402 });
       }
 
       // Check verification state - if not verified, hold the interview

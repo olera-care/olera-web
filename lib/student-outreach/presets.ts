@@ -107,19 +107,25 @@ export const PROVIDER_CONTACT_ROLES: string[] = [
   OTHER,
 ];
 
-/** Common pre-health-relevant academic departments. */
+/** Common pre-health-relevant academic departments — broad on purpose: any
+ *  undergraduate department that commonly serves pre-med / pre-nursing / pre-PA
+ *  / pre-PT / pre-pharmacy / allied-health prerequisite coursework. */
 export const DEPARTMENTS: string[] = [
   "Biology",
   "Chemistry",
   "Biochemistry",
+  "Microbiology",
   "Neuroscience",
   "Psychology",
   "Public Health",
-  "Kinesiology / Exercise Science",
   "Health Sciences",
-  "Microbiology",
-  "Physiology",
-  "Anatomy",
+  "Kinesiology / Exercise Science",
+  "Nutrition / Dietetics",
+  "Biomedical Sciences",
+  "Human Development / Family Sciences",
+  "Nursing",
+  "Allied Health",
+  "Physiology / Anatomy",
   OTHER,
 ];
 

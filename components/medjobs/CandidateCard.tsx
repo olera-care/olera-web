@@ -42,6 +42,32 @@ function formatAvailabilityTruncated(
   return { display: `${shown.join(", ")}, +${remaining} more`, count: mapped.length };
 }
 
+// Provider coverage buckets (day/evening/overnight/weekend) → student
+// availability_types, for the "Covers your …" match line.
+const BUCKET_TO_AVAIL: Record<string, string> = {
+  day: "in_between_classes",
+  evening: "evenings",
+  overnight: "overnights",
+  weekend: "weekends",
+};
+const BUCKET_LABEL: Record<string, string> = {
+  day: "days",
+  evening: "evenings",
+  overnight: "overnights",
+  weekend: "weekends",
+};
+function matchLine(matchBuckets: string[] | undefined, types: string[]): string | null {
+  if (!matchBuckets || matchBuckets.length === 0) return null;
+  const covered = matchBuckets.filter((b) => types.includes(BUCKET_TO_AVAIL[b]));
+  if (covered.length === 0) return null;
+  const labels = covered.map((b) => BUCKET_LABEL[b] ?? b);
+  const list =
+    labels.length === 1
+      ? labels[0]
+      : `${labels.slice(0, -1).join(", ")} & ${labels[labels.length - 1]}`;
+  return `Covers your ${list}`;
+}
+
 // Softer, more muted colors for avatar fallbacks
 const AVATAR_COLORS = [
   "bg-slate-100 text-slate-600",
@@ -73,6 +99,9 @@ interface CandidateCardProps {
   /** Renders a DEMO badge — used for the sample profile shown when a
    *  campus has no real students yet. */
   isDemo?: boolean;
+  /** Provider's coverage buckets (day/evening/overnight/weekend) — drives
+   *  the "Covers your …" match line. */
+  matchBuckets?: string[];
 }
 
 export default function CandidateCard({
@@ -80,6 +109,7 @@ export default function CandidateCard({
   basePath,
   isContacted = false,
   isDemo = false,
+  matchBuckets,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
@@ -89,6 +119,7 @@ export default function CandidateCard({
   const videoAvailable = hasVideo(meta);
   const location = [candidate.city, candidate.state].filter(Boolean).join(", ");
   const verifiedHours = meta.total_verified_hours ?? 0;
+  const match = matchLine(matchBuckets, meta.availability_types ?? []);
 
   const profileUrl = `${basePath}/${candidate.slug}`;
   const firstName = getFirstName(candidate.display_name);
@@ -162,6 +193,10 @@ export default function CandidateCard({
           {hoursLabel && <span className="shrink-0">{hoursLabel}</span>}
         </div>
       </div>
+
+      {match && (
+        <p className="mb-2 text-xs font-medium text-emerald-600">✓ {match}</p>
+      )}
 
       {/* Spacer */}
       <div className="flex-1" />

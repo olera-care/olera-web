@@ -15,8 +15,6 @@
  * (always 0 / Infinity) and `"free_exhausted"` is no longer produced.
  */
 
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
-
 export type AccessTier = "anonymous" | "free_active" | "free_exhausted" | "paid";
 
 export interface AccessInfo {
@@ -49,13 +47,14 @@ export function getAccessTier(
     return { tier: "anonymous", creditsUsed: 0, creditsRemaining: 0, isPaid: false, isVerified: false };
   }
 
-  // Pilot (active MedJobs access) = full access. No credit tiers anymore.
-  const isPaid = medjobsAccessActive(providerMeta);
+  // Phase A: any authenticated provider has full access. Contact is no longer
+  // hidden behind pilot/verification — the de-platforming moat is the student
+  // credential + platform Terms, not blurring. See PROVIDER_FUNNEL_BUILD_PLAN.md.
   return {
-    tier: isPaid ? "paid" : "free_active",
+    tier: "paid",
     creditsUsed: 0,
     creditsRemaining: Infinity,
-    isPaid,
+    isPaid: true,
     isVerified,
   };
 }
@@ -74,7 +73,8 @@ export function canScheduleInterview(access: AccessInfo): boolean {
  * Requires MedJobs access AND verified status — the de-platforming gate.
  */
 export function hasFullAccess(access: AccessInfo): boolean {
-  return access.isPaid && access.isVerified;
+  // Phase A: full access for any authenticated provider (no verified gate).
+  return access.isPaid;
 }
 
 /** Contact info (email, phone) visible only with full access. */

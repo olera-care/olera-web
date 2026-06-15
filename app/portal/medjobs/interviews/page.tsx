@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import type { Interview } from "@/lib/types";
+import type { Placement } from "@/lib/medjobs/placements";
 
 type InterviewWithProfiles = Interview & {
   provider?: { id: string; display_name: string; image_url?: string; city?: string; state?: string; email?: string; phone?: string };
@@ -13,6 +14,7 @@ type InterviewWithProfiles = Interview & {
 export default function InterviewsPage() {
   const { isLoading: authLoading } = useAuth();
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
+  const [placements, setPlacements] = useState<Placement[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -25,12 +27,21 @@ export default function InterviewsPage() {
     finally { setLoading(false); }
   }, []);
 
-  // Wait for auth to complete before fetching interviews
+  const fetchPlacements = useCallback(async () => {
+    try {
+      const res = await fetch("/api/medjobs/placements");
+      const data = await res.json();
+      if (data.placements) setPlacements(data.placements);
+    } catch { /* ignore */ }
+  }, []);
+
+  // Wait for auth before fetching.
   useEffect(() => {
     if (!authLoading) {
       fetchInterviews();
+      fetchPlacements();
     }
-  }, [fetchInterviews, authLoading]);
+  }, [fetchInterviews, fetchPlacements, authLoading]);
 
   const updateStatus = async (interviewId: string, status: string) => {
     setActionLoading(interviewId);
@@ -43,6 +54,17 @@ export default function InterviewsPage() {
       await fetchInterviews();
     } catch { /* ignore */ }
     finally { setActionLoading(null); }
+  };
+
+  const handlePlacementAction = async (placementId: string, action: "accept" | "decline") => {
+    try {
+      await fetch("/api/medjobs/placements", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ placement_id: placementId, action }),
+      });
+      await fetchPlacements();
+    } catch { /* ignore */ }
   };
 
   return (
@@ -59,6 +81,8 @@ export default function InterviewsPage() {
           loading={loading || authLoading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
+          placements={placements}
+          onPlacementAction={handlePlacementAction}
         />
       </div>
     </main>

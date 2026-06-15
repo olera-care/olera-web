@@ -14,7 +14,8 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
-import { PROGRAM_URL, CALENDLY_URL } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL } from "@/lib/student-outreach/templates";
+import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import { PartnerPortalActivate } from "@/components/medjobs/PartnerPortalActivate";
 import { PartnerFlyerShare } from "@/components/medjobs/PartnerFlyerShare";
 import { PartnerAddColleague } from "@/components/medjobs/PartnerAddColleague";
@@ -67,21 +68,34 @@ export default async function PartnerPortalPage({
   });
   const { data: rowRaw } = await db
     .from("student_outreach")
-    .select("id, organization_name, status, kind, campuses:campus_id ( name )")
+    .select("id, organization_name, status, kind, campuses:campus_id ( name, slug )")
     .eq("id", verified.payload.outreach_id)
     .maybeSingle();
   const row = rowRaw as unknown as {
     organization_name: string | null;
     status: string;
     kind: string;
-    campuses: { name: string | null } | null;
+    campuses: { name: string | null; slug: string | null } | null;
   } | null;
   if (!row || !STAKEHOLDER_KINDS.includes(row.kind)) return <Expired reason="is invalid" />;
 
   const orgName = row.organization_name ?? "Partner";
   const university = row.campuses?.name ?? null;
+  const campusSlug = row.campuses?.slug ?? null;
   const isActive = row.status === "active_partner";
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://olera.care").replace(/\/+$/, "");
+  // Canonical apply link, attributed to THIS partner (pid) so applies they drive
+  // are traceable. The "flyer" the partner shares is the campus student PDF.
+  const partnerApplyUrl = studentApplyUrl({
+    campusSlug,
+    universityName: university,
+    partnerOutreachId: verified.payload.outreach_id,
+    source: "partner_share",
+    siteUrl,
+  });
+  const studentFlyerUrl = campusSlug
+    ? `${siteUrl}/api/medjobs/program-pdf?university=${encodeURIComponent(campusSlug)}&audience=student`
+    : `${siteUrl}/medjobs`;
 
   return (
     <Shell>
@@ -140,13 +154,13 @@ export default async function PartnerPortalPage({
         <section className="space-y-4">
           <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-5">
             <p className="text-sm font-semibold text-primary-800">★ You&apos;re an active Recruitment Partner</p>
-            <p className="mt-1 text-sm text-gray-600">Thanks for helping! Here&apos;s how you can help share the program:</p>
+            <p className="mt-1 text-sm text-gray-600">Thanks for helping! Here&apos;s how you can help share the internship:</p>
           </div>
 
           <PartnerFlyerShare
             university={university}
-            applyUrl={`${siteUrl}/medjobs/apply`}
-            programUrl={PROGRAM_URL}
+            applyUrl={partnerApplyUrl}
+            programUrl={studentFlyerUrl}
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -175,9 +189,9 @@ export default async function PartnerPortalPage({
               NIH-funded researcher · Chief Research Officer, Olera
             </p>
             <p className="mt-2">
-              Olera connects pre-health students with paid, mentored caregiving
-              experience for local seniors — building the next generation of
-              healthcare workers while strengthening care in the community. Your
+              Olera runs a paid, mentored caregiving internship that places
+              pre-health students with local seniors — building the next generation
+              of healthcare workers while strengthening care in the community. Your
               help sharing it with students is what makes it reach them.
             </p>
           </div>

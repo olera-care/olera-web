@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import type { PartnerSubtype, ExtractedOffice } from "@/lib/medjobs/partner-sourcing";
+import type { PartnerSubtype, ExtractedOffice, SocialLink } from "@/lib/medjobs/partner-sourcing";
 import {
   emptyWorkspace,
   mergeSearches,
@@ -38,6 +38,20 @@ const STEPS: { key: Step; label: string }[] = [
   { key: "offices", label: "Verify offices" },
   { key: "generate", label: "Generate" },
 ];
+
+// Dept heads are person-shaped (one chair per department), so the office-centric
+// labels read wrong for them. Relabel without forking the step machinery.
+function stepLabel(key: Step, subtype: PartnerSubtype): string {
+  if (subtype === "dept_head") {
+    if (key === "links") return "Find departments";
+    if (key === "offices") return "Verify chairs";
+  }
+  if (subtype === "student_org") {
+    if (key === "links") return "Find organizations";
+    if (key === "offices") return "Verify orgs";
+  }
+  return STEPS.find((s) => s.key === key)?.label ?? key;
+}
 
 const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
   { key: "advisor", label: "Advising" },
@@ -220,13 +234,20 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
             website: eo.website ?? null,
             ask_for: [...eo.ask_for],
             notes: null,
+            socials: eo.socials ? [...eo.socials] : [],
             source_link_ids: linkId ? [linkId] : [],
+            person_name: eo.person_name ?? null,
+            person_title: eo.person_title ?? null,
           };
           offices.push(office);
         } else {
           if (!office.email) office.email = eo.email ?? null;
           if (!office.phone) office.phone = eo.phone ?? null;
           if (!office.website) office.website = eo.website ?? null;
+          if (!office.person_name) office.person_name = eo.person_name ?? null;
+          if (!office.person_title) office.person_title = eo.person_title ?? null;
+          if ((!office.socials || office.socials.length === 0) && eo.socials?.length)
+            office.socials = [...eo.socials];
           office.ask_for = [...new Set([...office.ask_for, ...eo.ask_for])].slice(0, 3);
           if (linkId && !office.source_link_ids.includes(linkId)) office.source_link_ids.push(linkId);
         }
@@ -328,7 +349,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   const addOffice = () =>
     setWs((w) => ({
       ...w,
-      offices: [...w.offices, { id: wsId(), name: "", tag: "advising_office", ask_for: [], source_link_ids: [] }],
+      offices: [...w.offices, { id: wsId(), name: "", tag: defaultTag, ask_for: [], source_link_ids: [] }],
     }));
   const addAdvisor = (officeId: string) =>
     setWs((w) => ({ ...w, advisors: [...w.advisors, { id: wsId(), office_id: officeId, name: "", role: "", email: "", phone: "" }] }));
@@ -457,7 +478,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               }`}
             >
               <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${i <= stepIndex ? "bg-primary-600 text-white" : "bg-gray-200 text-gray-500"}`}>{i + 1}</span>
-              {s.label}
+              {stepLabel(s.key, subtype)}
             </button>
           ))}
           <span className="ml-auto shrink-0 text-[11px] text-gray-400">{savedAt ? `Saved ${savedAt}` : "Autosaves"}</span>
@@ -470,11 +491,15 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         <div className="py-16 text-center">
           <p className="text-4xl">✓</p>
           <p className="mt-3 text-lg font-semibold text-gray-900">
-            {done.created} office prospect{done.created === 1 ? "" : "s"} created
+            {done.created} {subtype === "dept_head" ? "chair" : subtype === "student_org" ? "organization" : "office"} prospect{done.created === 1 ? "" : "s"} created
           </p>
           <p className="mt-1 text-sm text-gray-500">
-            They&apos;re in your In-Basket for {universityName}. Next: confirm each office by a quick call,
-            then launch outreach.
+            They&apos;re in your In-Basket for {universityName}. Next:{" "}
+            {subtype === "dept_head"
+              ? "an optional intro call, then launch outreach."
+              : subtype === "student_org"
+                ? "review each org, then launch outreach."
+                : "confirm each office by a quick call, then launch outreach."}
           </p>
           <div className="mt-5 flex items-center justify-center gap-2">
             <Button size="sm" onClick={finish}>View {universityName} prospects →</Button>
@@ -491,6 +516,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
           {step === "offices" && (
             <OfficesStep
               ws={ws}
+              subtype={subtype}
               reading={reading}
               canGenerate={canGenerate}
               onReadLinks={() => void readLinks(false)}
@@ -621,6 +647,7 @@ function LinksStep({
 // ───────────────────────────────────────────────────────────────────────────
 function OfficesStep({
   ws,
+  subtype,
   reading,
   canGenerate,
   onReadLinks,
@@ -635,6 +662,7 @@ function OfficesStep({
   onNext,
 }: {
   ws: WorkspaceState;
+  subtype: PartnerSubtype;
   reading: boolean;
   canGenerate: boolean;
   onReadLinks: () => void;
@@ -648,6 +676,8 @@ function OfficesStep({
   onParseAdvisor: (officeId: string, text: string) => void;
   onNext: () => void;
 }) {
+  const isDeptHead = subtype === "dept_head";
+  const isOrg = subtype === "student_org";
   const linkById = new Map(ws.links.map((l) => [l.id, l]));
   // Verified offices collapse to a one-line summary for a sense of completion;
   // expand to edit again.
@@ -656,15 +686,34 @@ function OfficesStep({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
-          The office is the prospect. Confirm each office’s <b>email</b> and <b>tag</b> — that’s all outreach needs.
-          Advisors are optional and only when they have their own contact.
+          {isDeptHead ? (
+            <>
+              The department <b>chair</b> is the prospect — one person per department. Confirm the chair’s
+              <b> name</b> and <b>email</b> (their direct address, not a general advising inbox).
+            </>
+          ) : isOrg ? (
+            <>
+              The student <b>organization</b> is the prospect. Confirm a way to reach a rep — an <b>email</b>,
+              an officer / faculty advisor with their own contact, or a <b>social</b> channel (clubs often
+              reply fastest on Instagram / GroupMe).
+            </>
+          ) : (
+            <>
+              The office is the prospect. Confirm each office’s <b>email</b> and <b>tag</b> — that’s all outreach needs.
+              Advisors are optional and only when they have their own contact.
+            </>
+          )}
         </p>
         <Button size="sm" variant="ghost" onClick={onReadLinks} loading={reading}>✦ Re-read links</Button>
       </div>
 
       {ws.offices.length === 0 && !reading && (
         <p className="rounded-md border border-dashed border-gray-200 py-8 text-center text-sm text-gray-400">
-          No offices found yet. Re-read links, paste an office page, or add one by hand.
+          {isDeptHead
+            ? "No chairs found yet. Re-read links, paste a department page, or add one by hand."
+            : isOrg
+              ? "No organizations found yet. Re-read links, paste a club / directory page, or add one by hand."
+              : "No offices found yet. Re-read links, paste an office page, or add one by hand."}
         </p>
       )}
 
@@ -675,7 +724,11 @@ function OfficesStep({
             <div key={o.id} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/40 px-3 py-2">
               <span className="flex min-w-0 items-center gap-2 text-sm">
                 <span className="text-emerald-600">✓</span>
-                <span className="truncate font-medium text-gray-900">{o.name || "(unnamed office)"}</span>
+                <span className="truncate font-medium text-gray-900">
+                  {isDeptHead
+                    ? `${o.person_name || "(no chair)"}${o.name ? ` — ${o.name}` : ""}`
+                    : o.name || "(unnamed office)"}
+                </span>
                 <span className="shrink-0 text-[11px] text-gray-500">{o.email || (o.call_only ? "☎ call-only" : "")}</span>
               </span>
               <button onClick={() => setExpanded((s) => new Set(s).add(o.id))} className="shrink-0 text-xs text-primary-600 hover:underline">edit</button>
@@ -686,6 +739,8 @@ function OfficesStep({
           <OfficeCard
             key={o.id}
             office={o}
+            isDeptHead={isDeptHead}
+            isOrg={isOrg}
             advisors={ws.advisors.filter((a) => a.office_id === o.id)}
             sources={o.source_link_ids.map((id) => linkById.get(id)).filter(Boolean) as WorkspaceLink[]}
             reading={reading}
@@ -703,8 +758,10 @@ function OfficesStep({
       })}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="ghost" onClick={onAddOffice}>+ Add office by hand</Button>
-        <PasteOfficePage reading={reading} onParse={onParsePage} />
+        <Button size="sm" variant="ghost" onClick={onAddOffice}>
+          {isDeptHead ? "+ Add chair by hand" : isOrg ? "+ Add organization by hand" : "+ Add office by hand"}
+        </Button>
+        <PasteOfficePage reading={reading} onParse={onParsePage} isDeptHead={isDeptHead} isOrg={isOrg} />
       </div>
 
       <div className="flex items-center justify-between border-t border-gray-100 pt-3">
@@ -717,6 +774,8 @@ function OfficesStep({
 
 function OfficeCard({
   office: o,
+  isDeptHead,
+  isOrg,
   advisors,
   sources,
   reading,
@@ -728,6 +787,8 @@ function OfficeCard({
   onParseAdvisor,
 }: {
   office: WorkspaceOffice;
+  isDeptHead: boolean;
+  isOrg: boolean;
   advisors: WorkspaceAdvisor[];
   sources: WorkspaceLink[];
   reading: boolean;
@@ -740,10 +801,58 @@ function OfficeCard({
 }) {
   const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
   const reachable = Boolean(o.email) || Boolean(o.call_only);
+
+  // ── Department-head card: ONE chair per department (person-shaped) ──
+  if (isDeptHead) {
+    const chairReachable = Boolean(o.email) || Boolean(o.phone) || Boolean(o.call_only);
+    return (
+      <div className="rounded-lg border border-gray-200 p-3">
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <input value={o.name} onChange={(e) => onPatch(o.id, { name: e.target.value })} placeholder="Department (e.g. Department of Biology)" className={`${input} flex-1 font-medium`} />
+          <div className="flex shrink-0 items-center gap-2">
+            {sources.map((s) => (
+              <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">source ↗</a>
+            ))}
+            <button onClick={() => onRemove(o.id)} className="text-[11px] text-gray-400 hover:text-red-600">remove</button>
+          </div>
+        </div>
+
+        <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <input value={o.person_name ?? ""} onChange={(e) => onPatch(o.id, { person_name: e.target.value })} placeholder="Chair / head name (e.g. Dr. Jane Smith)" className={`${input} ${!o.person_name ? "border-amber-300 bg-amber-50" : ""}`} />
+          <input value={o.person_title ?? ""} onChange={(e) => onPatch(o.id, { person_title: e.target.value })} placeholder="Title / role (e.g. Department Chair)" className={input} />
+          <input value={o.email ?? ""} onChange={(e) => onPatch(o.id, { email: e.target.value })} placeholder="✉ Chair's direct email" className={`${input} ${!o.email && !o.call_only ? "border-amber-300 bg-amber-50" : ""}`} />
+          <input value={o.phone ?? ""} onChange={(e) => onPatch(o.id, { phone: e.target.value })} placeholder="☎ Phone" className={input} />
+        </div>
+
+        {!o.person_name && (
+          <p className="mb-2 text-[11px] text-amber-700">No chair named yet — add the chair/head, or paste the department page.</p>
+        )}
+        {!o.email && (
+          <p className="mb-2 text-[11px] text-amber-700">
+            No email yet — add the chair&apos;s address, or{" "}
+            <button onClick={() => onPatch(o.id, { call_only: !o.call_only })} className="font-medium underline">
+              {o.call_only ? "unmark Call-only" : "mark Call-only (phone lead)"}
+            </button>
+          </p>
+        )}
+
+        <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${chairReachable ? "border-gray-200 text-gray-800" : "border-gray-100 text-gray-400"}`} title={chairReachable ? undefined : "Add an email/phone or mark Call-only first."}>
+          <input type="checkbox" checked={!!o.verified} disabled={!chairReachable} onChange={(e) => onPatch(o.id, { verified: e.target.checked })} />
+          Verified — this chair is correct and ready
+        </label>
+      </div>
+    );
+  }
+
+  const nameLabel = isOrg ? "Organization name" : "Office name";
+  const emailLabel = isOrg ? "✉ Club / officer email" : "✉ Office email (required for outreach)";
+  const phoneLabel = isOrg ? "☎ Phone (optional)" : "☎ Office phone";
+  const rosterLabel = isOrg ? "Officers & faculty advisor" : "Advisors";
+  const addRosterLabel = isOrg ? "+ add officer / advisor" : "+ add advisor";
   return (
     <div className="rounded-lg border border-gray-200 p-3">
       <div className="mb-2 flex items-start justify-between gap-2">
-        <input value={o.name} onChange={(e) => onPatch(o.id, { name: e.target.value })} placeholder="Office name" className={`${input} flex-1 font-medium`} />
+        <input value={o.name} onChange={(e) => onPatch(o.id, { name: e.target.value })} placeholder={nameLabel} className={`${input} flex-1 font-medium`} />
         <div className="flex shrink-0 items-center gap-2">
           {sources.map((s) => (
             <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-600 hover:underline">source ↗</a>
@@ -753,31 +862,45 @@ function OfficeCard({
       </div>
 
       <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <label className="flex items-center gap-1 text-[11px] text-gray-600">
-          Tag
-          <select value={o.tag} onChange={(e) => onPatch(o.id, { tag: e.target.value as OfficeTag })} className="flex-1 rounded border border-gray-200 bg-white px-1 py-1 text-sm">
-            {OFFICE_TAGS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
-          </select>
-        </label>
-        <input value={o.website ?? ""} onChange={(e) => onPatch(o.id, { website: e.target.value })} placeholder="Website (optional)" className={input} />
-        <input value={o.email ?? ""} onChange={(e) => onPatch(o.id, { email: e.target.value })} placeholder="✉ Office email (required for outreach)" className={`${input} ${!o.email && !o.call_only ? "border-amber-300 bg-amber-50" : ""}`} />
-        <input value={o.phone ?? ""} onChange={(e) => onPatch(o.id, { phone: e.target.value })} placeholder="☎ Office phone" className={input} />
+        {/* Tag is only meaningful for the advisor flow (which can encounter an
+            advising office vs a department vs a club). Orgs are always orgs. */}
+        {!isOrg && (
+          <label className="flex items-center gap-1 text-[11px] text-gray-600">
+            Tag
+            <select value={o.tag} onChange={(e) => onPatch(o.id, { tag: e.target.value as OfficeTag })} className="flex-1 rounded border border-gray-200 bg-white px-1 py-1 text-sm">
+              {OFFICE_TAGS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </label>
+        )}
+        <input value={o.website ?? ""} onChange={(e) => onPatch(o.id, { website: e.target.value })} placeholder={isOrg ? "Website / Linktree (optional)" : "Website (optional)"} className={input} />
+        <input value={o.email ?? ""} onChange={(e) => onPatch(o.id, { email: e.target.value })} placeholder={emailLabel} className={`${input} ${!o.email && !o.call_only ? "border-amber-300 bg-amber-50" : ""}`} />
+        <input value={o.phone ?? ""} onChange={(e) => onPatch(o.id, { phone: e.target.value })} placeholder={phoneLabel} className={input} />
       </div>
+
+      {/* Socials — a PRIMARY reach channel for clubs, so they're first-class
+          here (view + edit), not buried. Shown for student orgs only. */}
+      {isOrg && (
+        <SocialsEditor
+          socials={o.socials ?? []}
+          onChange={(socials) => onPatch(o.id, { socials })}
+        />
+      )}
 
       {!o.email && (
         <p className="mb-2 text-[11px] text-amber-700">
-          No email yet — add one, or{" "}
+          {isOrg ? "No email yet — add a club/officer email or a social handle above, or " : "No email yet — add one, or "}
           <button onClick={() => onPatch(o.id, { call_only: !o.call_only })} className="font-medium underline">
             {o.call_only ? "unmark Call-only" : "mark Call-only (phone lead)"}
           </button>
         </p>
       )}
 
-      {/* Latched advisors — optional, only when they have their own contact */}
+      {/* Roster — officers + faculty advisor (orgs) / advisors (offices); only
+          people with their own contact. */}
       <div className="mb-2">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Advisors ({advisors.length}) — optional, with their own email/phone</p>
-          <button onClick={() => onAddAdvisor(o.id)} className="text-[11px] font-medium text-primary-600 hover:underline">+ add advisor</button>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{rosterLabel} ({advisors.length}) — optional, with their own email/phone</p>
+          <button onClick={() => onAddAdvisor(o.id)} className="text-[11px] font-medium text-primary-600 hover:underline">{addRosterLabel}</button>
         </div>
         {advisors.map((a) => (
           <div key={a.id} className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -793,8 +916,30 @@ function OfficeCard({
 
       <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${reachable ? "border-gray-200 text-gray-800" : "border-gray-100 text-gray-400"}`} title={reachable ? undefined : "Add an email or mark Call-only first."}>
         <input type="checkbox" checked={!!o.verified} disabled={!reachable} onChange={(e) => onPatch(o.id, { verified: e.target.checked })} />
-        Verified — this office is correct and ready
+        {isOrg ? "Verified — this organization is correct and ready" : "Verified — this office is correct and ready"}
       </label>
+    </div>
+  );
+}
+
+/** Inline editor for a club's social channels (Instagram / Discord / GroupMe …).
+ *  Surfaced for student orgs since social is often the only reliable reach. */
+function SocialsEditor({ socials, onChange }: { socials: SocialLink[]; onChange: (next: SocialLink[]) => void }) {
+  const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
+  const patch = (i: number, p: Partial<SocialLink>) => onChange(socials.map((s, j) => (j === i ? { ...s, ...p } : s)));
+  return (
+    <div className="mb-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Socials ({socials.length}) — Instagram / Discord / GroupMe / Linktree</p>
+        <button onClick={() => onChange([...socials, { platform: "", url: "" }])} className="text-[11px] font-medium text-primary-600 hover:underline">+ add social</button>
+      </div>
+      {socials.map((s, i) => (
+        <div key={i} className="mt-1 flex flex-wrap items-center gap-1.5">
+          <input value={s.platform ?? ""} onChange={(e) => patch(i, { platform: e.target.value })} placeholder="Platform (e.g. Instagram)" className={`${input} w-36`} />
+          <input value={s.url ?? ""} onChange={(e) => patch(i, { url: e.target.value })} placeholder="Handle or URL" className={`${input} w-56`} />
+          <button onClick={() => onChange(socials.filter((_, j) => j !== i))} className="text-[11px] text-gray-400 hover:text-red-600">remove</button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -819,16 +964,17 @@ function PasteAdvisor({ officeId, reading, onParse }: { officeId: string; readin
   );
 }
 
-function PasteOfficePage({ reading, onParse }: { reading: boolean; onParse: (url: string, text: string) => void }) {
+function PasteOfficePage({ reading, onParse, isDeptHead, isOrg }: { reading: boolean; onParse: (url: string, text: string) => void; isDeptHead?: boolean; isOrg?: boolean }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
+  const label = isDeptHead ? "Paste a department page →" : isOrg ? "Paste a club / directory page →" : "Paste an office page →";
   if (!open) {
-    return <button onClick={() => setOpen(true)} className="text-xs font-medium text-primary-600 hover:underline">Paste an office page →</button>;
+    return <button onClick={() => setOpen(true)} className="text-xs font-medium text-primary-600 hover:underline">{label}</button>;
   }
   return (
     <div className="w-full rounded-md border border-primary-200 bg-primary-50/40 p-2">
-      <p className="mb-1 text-[11px] font-semibold text-primary-800">Paste an office page — we’ll pull its name, email & phone</p>
+      <p className="mb-1 text-[11px] font-semibold text-primary-800">{isDeptHead ? "Paste a department page — we’ll pull the chair’s name, email & phone" : isOrg ? "Paste a club or org-directory page — we’ll pull the club’s contact + socials" : "Paste an office page — we’ll pull its name, email & phone"}</p>
       <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Page URL (optional, becomes a source link)" className="mb-1 w-full rounded border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3} placeholder={"Health Professions Advising Office\nContact: hpo@uni.edu · (512) 471-3172"} className="w-full rounded border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
       <div className="mt-1 flex justify-end gap-2">

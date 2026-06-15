@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
+import InternshipAgreementModal from "@/components/medjobs/InternshipAgreementModal";
 import type { Interview } from "@/lib/types";
 import type { AccessTier } from "@/lib/medjobs-access";
+import type { Placement } from "@/lib/medjobs/placements";
 
 /* ── Types ── */
 
@@ -47,6 +49,10 @@ interface InterviewCalendarProps {
   isVerified?: boolean;
   /** Called when unverified provider tries to confirm interview */
   onVerifyClick?: () => void;
+  /** Placements (offers) for these interviews, matched by interview_id. */
+  placements?: Placement[];
+  /** Student accept/decline of a placement offer. */
+  onPlacementAction?: (placementId: string, action: "accept" | "decline") => Promise<void>;
 }
 
 /* ── Helpers ── */
@@ -126,6 +132,8 @@ export default function InterviewCalendar({
   initialSelectedId,
   isVerified,
   onVerifyClick,
+  placements,
+  onPlacementAction,
 }: InterviewCalendarProps) {
   const pathname = usePathname();
   const now = new Date();
@@ -453,6 +461,8 @@ export default function InterviewCalendar({
           actionLoading={actionLoading}
           isVerified={isVerified}
           onVerifyClick={onVerifyClick}
+          placements={placements}
+          onPlacementAction={onPlacementAction}
         />
       )}
     </div>
@@ -469,6 +479,8 @@ function InterviewDetailModal({
   actionLoading,
   isVerified,
   onVerifyClick,
+  placements,
+  onPlacementAction,
 }: {
   interview: InterviewWithProfiles;
   perspective: Perspective;
@@ -477,6 +489,8 @@ function InterviewDetailModal({
   actionLoading: string | null;
   isVerified?: boolean;
   onVerifyClick?: () => void;
+  placements?: Placement[];
+  onPlacementAction?: (placementId: string, action: "accept" | "decline") => Promise<void>;
 }) {
   const time = new Date(interview.confirmed_time || interview.proposed_time);
   const isLoading = actionLoading === interview.id;
@@ -501,6 +515,24 @@ function InterviewDetailModal({
   const [signedResumeUrl, setSignedResumeUrl] = useState<string | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
   const [resumeError, setResumeError] = useState(false);
+  const [showOffer, setShowOffer] = useState(false);
+  const [offerSent, setOfferSent] = useState(false);
+  const [placementBusy, setPlacementBusy] = useState(false);
+  const offeredPlacement = placements?.find(
+    (p) => p.interview_id === interview.id && p.status === "offered",
+  );
+  const confirmedPlacement = placements?.find(
+    (p) => p.interview_id === interview.id && p.status === "confirmed",
+  );
+  const runPlacement = async (action: "accept" | "decline") => {
+    if (!offeredPlacement || !onPlacementAction) return;
+    setPlacementBusy(true);
+    try {
+      await onPlacementAction(offeredPlacement.id, action);
+    } finally {
+      setPlacementBusy(false);
+    }
+  };
 
   // Fetch signed URL for resume when needed (provider view, confirmed interview)
   const fetchResumeUrl = async () => {
@@ -658,14 +690,57 @@ function InterviewDetailModal({
 
     if (interview.status === "confirmed") {
       return (
-        <button
-          type="button"
-          onClick={() => handleAction("cancelled")}
-          disabled={isLoading}
-          className="w-full py-3.5 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-xl text-base font-semibold text-gray-700 transition-colors"
-        >
-          {isLoading ? "Cancelling..." : "Cancel Interview"}
-        </button>
+        <div className="space-y-3">
+          {confirmedPlacement ? (
+            <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
+              Internship confirmed.
+            </p>
+          ) : perspective === "provider" ? (
+            offerSent || offeredPlacement ? (
+              <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
+                Offer sent. {otherName.split(" ")[0]} will be notified to accept.
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowOffer(true)}
+                className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-base font-semibold text-white transition-colors"
+              >
+                Offer to host {otherName.split(" ")[0]}
+              </button>
+            )
+          ) : offeredPlacement ? (
+            <div className="space-y-2 rounded-xl border border-primary-200 bg-primary-50/60 p-3">
+              <p className="text-sm font-medium text-gray-900">
+                {otherName} offered to host you for the internship.
+              </p>
+              <button
+                type="button"
+                onClick={() => runPlacement("accept")}
+                disabled={placementBusy}
+                className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 rounded-xl text-base font-semibold text-white transition-colors"
+              >
+                {placementBusy ? "Accepting…" : "Accept offer"}
+              </button>
+              <button
+                type="button"
+                onClick={() => runPlacement("decline")}
+                disabled={placementBusy}
+                className="w-full py-2 text-gray-500 hover:text-red-600 text-sm font-medium transition-colors"
+              >
+                Decline
+              </button>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => handleAction("cancelled")}
+            disabled={isLoading}
+            className="w-full py-3.5 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-xl text-base font-semibold text-gray-700 transition-colors"
+          >
+            {isLoading ? "Cancelling..." : "Cancel Interview"}
+          </button>
+        </div>
       );
     }
 
@@ -681,6 +756,18 @@ function InterviewDetailModal({
       footer={footerActions ? <div className="pt-2">{footerActions}</div> : undefined}
     >
       <div className="py-4 space-y-6">
+        {showOffer && (
+          <InternshipAgreementModal
+            studentProfileId={interview.student_profile_id}
+            studentName={interview.student?.display_name}
+            interviewId={interview.id}
+            onClose={() => setShowOffer(false)}
+            onOffered={() => {
+              setShowOffer(false);
+              setOfferSent(true);
+            }}
+          />
+        )}
         {/* Pending verification banner - provider scheduled but hasn't verified yet */}
         {isPendingVerification && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">

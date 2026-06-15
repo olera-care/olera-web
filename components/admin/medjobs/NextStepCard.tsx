@@ -221,34 +221,62 @@ function InOutreachBody({
     .filter((t) => t.touchpoint_type === "email_replied")
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
-  const subline = nextEmail
-    ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
-    : lastEmailSent
-      ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
-      : "Outreach in flight";
+  // Which cadence are we awaiting a reply to — the cold outreach drip or the
+  // warm activation cadence? Drives the headline copy (replaces the old green
+  // "Activation cadence running" box).
+  const activationRunning = isActivationRunning(ctx);
+  const nextActivationCall = ctx.pending_tasks
+    .filter(
+      (t) =>
+        t.task_type === "outreach_followup_call" &&
+        (t.payload as Record<string, unknown> | null)?.cadence === "activation",
+    )
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+
+  const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
+  const subline = activationRunning
+    ? nextActivationCall
+      ? `Next call ${formatRelative(nextActivationCall.due_at)}`
+      : "Follow-ups queued"
+    : nextEmail
+      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
+      : lastEmailSent
+        ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
+        : "Outreach in flight";
 
   return (
     <>
-      {latestReply ? (
-        <ReplyPreview reply={latestReply} />
-      ) : (
-        <>
-          <p className="text-sm text-gray-700">Awaiting reply.</p>
-          <p className="mt-1 text-xs text-gray-500">{subline}</p>
-        </>
-      )}
-      {/* Manual-reply escape hatch — jump into the Smartlead inbox to answer
-          this thread by hand instead of waiting on the cadence. */}
-      <p className="mt-1.5">
-        <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
-      </p>
-      <ActivationActions ctx={ctx} action={action} setError={setError} source="reply" />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <BookMeetingLink ctx={ctx} inline />
-        {isPartnerRow(ctx) && (
-          <PartnerActivate ctx={ctx} action={action} setError={setError} />
-        )}
+      {/* Headline on the left; the manual-reply Smartlead escape hatch pinned
+          to the card's top-right corner. */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {latestReply ? (
+            <ReplyPreview reply={latestReply} />
+          ) : (
+            <>
+              <p className="text-sm text-gray-700">{headline}</p>
+              <p className="mt-1 text-xs text-gray-500">{subline}</p>
+            </>
+          )}
+        </div>
+        <span className="shrink-0">
+          <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
+        </span>
       </div>
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="reply"
+        trailing={
+          <>
+            <BookMeetingLink ctx={ctx} inline />
+            {isPartnerRow(ctx) && (
+              <PartnerActivate ctx={ctx} action={action} setError={setError} />
+            )}
+          </>
+        }
+      />
     </>
   );
 }
@@ -256,6 +284,31 @@ function InOutreachBody({
 /** Stakeholder (non-provider) row → can be promoted to a Recruitment Partner. */
 function isPartnerRow(ctx: DrawerContext): boolean {
   return ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
+}
+
+/**
+ * Is an activation cadence currently running? Derived from the timeline:
+ * a launch with no later stop. A hard "stop all outreach" (outreach_stopped)
+ * counts as a stop too, so the drawer stops reading as activation-in-flight.
+ */
+function isActivationRunning(ctx: DrawerContext): boolean {
+  const latestReasonAt = (reason: string): string | null =>
+    ctx.touchpoints
+      .filter(
+        (t) =>
+          t.touchpoint_type === "note_added" &&
+          (t.payload as Record<string, unknown> | null)?.reason === reason,
+      )
+      .map((t) => t.created_at)
+      .sort()
+      .at(-1) ?? null;
+  const launchedAt = latestReasonAt("activation_launched");
+  const stoppedAt =
+    [latestReasonAt("activation_stopped"), latestReasonAt("outreach_stopped")]
+      .filter((d): d is string => d != null)
+      .sort()
+      .at(-1) ?? null;
+  return !!launchedAt && (!stoppedAt || stoppedAt < launchedAt);
 }
 
 // ── call_due ─────────────────────────────────────────────────────────────
@@ -348,13 +401,20 @@ function CallDueBody({
           </pre>
         </details>
       )}
-      <ActivationActions ctx={ctx} action={action} setError={setError} source="phone" />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <BookMeetingLink ctx={ctx} inline />
-        {isPartnerRow(ctx) && (
-          <PartnerActivate ctx={ctx} action={action} setError={setError} />
-        )}
-      </div>
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="phone"
+        trailing={
+          <>
+            <BookMeetingLink ctx={ctx} inline />
+            {isPartnerRow(ctx) && (
+              <PartnerActivate ctx={ctx} action={action} setError={setError} />
+            )}
+          </>
+        }
+      />
       <div className="mt-2">
         <button
           onClick={couldntReach}
@@ -388,12 +448,17 @@ function MeetingSetBody({
   return (
     <>
       <p className="text-sm font-medium text-gray-900">{sublineCopy}</p>
-      <ActivationActions ctx={ctx} action={action} setError={setError} source="meeting" />
-      {isPartnerRow(ctx) && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <PartnerActivate ctx={ctx} action={action} setError={setError} />
-        </div>
-      )}
+      <ActivationActions
+        ctx={ctx}
+        action={action}
+        setError={setError}
+        source="meeting"
+        trailing={
+          isPartnerRow(ctx) ? (
+            <PartnerActivate ctx={ctx} action={action} setError={setError} />
+          ) : null
+        }
+      />
     </>
   );
 }
@@ -671,11 +736,16 @@ function ActivationActions({
   action,
   setError,
   source,
+  trailing,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (m: string | null) => void;
   source: "reply" | "phone" | "meeting";
+  /** Extra buttons (Book a meeting / Make a partner) rendered in the SAME
+   *  horizontal row as Interested / Not interested, so the whole face shows
+   *  one row of actions rather than a 2x2 stack. */
+  trailing?: React.ReactNode;
 }) {
   const [showLaunch, setShowLaunch] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -709,31 +779,13 @@ function ActivationActions({
     null;
   const recipientLastName = primary?.last_name ?? null;
 
-  const [stopping, setStopping] = useState(false);
-
-  // Detect a running activation cadence from the timeline: launched with no
-  // later stop. Converted rows render ConvertedBody, so this never shows after
-  // Trial Active (the conversion cleanup also cancels the cadence's tasks).
-  const latestReasonAt = (reason: string): string | null =>
-    ctx.touchpoints
-      .filter(
-        (t) =>
-          t.touchpoint_type === "note_added" &&
-          (t.payload as Record<string, unknown> | null)?.reason === reason,
-      )
-      .map((t) => t.created_at)
-      .sort()
-      .at(-1) ?? null;
-  const launchedAt = latestReasonAt("activation_launched");
-  const stoppedAt = latestReasonAt("activation_stopped");
-  const isRunning = !!launchedAt && (!stoppedAt || stoppedAt < launchedAt);
-  const nextActivationCall = ctx.pending_tasks
-    .filter(
-      (t) =>
-        t.task_type === "outreach_followup_call" &&
-        (t.payload as Record<string, unknown> | null)?.cadence === "activation",
-    )
-    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  // A running activation cadence is now reflected in the headline copy
+  // ("Awaiting reply to activation cadence") rather than a heavy green box,
+  // and the off-switch lives in the drawer's overflow menu (Stop all
+  // outreach). Once running, the Interested/Not-interested decision is moot,
+  // so this face shows just the trailing actions (Book a meeting / Make a
+  // partner).
+  const isRunning = isActivationRunning(ctx);
 
   const markNotInterested = async () => {
     setClosing(true);
@@ -747,38 +799,10 @@ function ActivationActions({
     }
   };
 
-  const stopActivation = async () => {
-    setStopping(true);
-    setError(null);
-    try {
-      await action("stop_activation", {});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to stop");
-    } finally {
-      setStopping(false);
-    }
-  };
-
   if (isRunning) {
-    return (
-      <div className="mt-3 rounded-md border border-primary-200 bg-primary-50/60 px-3 py-2.5">
-        <p className="text-sm font-semibold text-primary-800">
-          Activation cadence running
-        </p>
-        <p className="mt-0.5 text-xs text-gray-600">
-          {nextActivationCall
-            ? `Next call ${formatRelative(nextActivationCall.due_at)}.`
-            : "Follow-ups queued."}
-        </p>
-        <button
-          onClick={stopActivation}
-          disabled={stopping}
-          className="mt-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-        >
-          {stopping ? "Stopping…" : "Stop activation"}
-        </button>
-      </div>
-    );
+    return trailing ? (
+      <div className="mt-3 flex flex-wrap items-center gap-2">{trailing}</div>
+    ) : null;
   }
 
   return (
@@ -799,6 +823,7 @@ function ActivationActions({
         >
           Not interested
         </button>
+        {trailing}
       </div>
       {showLaunch && (
         <CadenceLaunchModal

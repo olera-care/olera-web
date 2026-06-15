@@ -154,6 +154,10 @@ export async function POST(request: Request) {
       provider_id: providerId,
       claim_session: claimSession,
       code,
+      // Record the email the code was sent to (email method only) so a later
+      // auto-sign-in mints a session for THIS email, not a caller-supplied one.
+      // SMS verifications prove phone control, not email — leave null.
+      email: method === "email" ? provider.email : null,
       expires_at: expiresAt,
     });
 

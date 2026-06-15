@@ -196,7 +196,7 @@ export function providerManagedAdsEmail(opts: {
     <div style="margin:0 0 30px;">${button("See how it works →", opts.ctaUrl)}</div>
     <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
       <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
-      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;"><p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p><p style="margin:2px 0 0;color:#6b7280;">CRO, Olera &middot; NIH-backed senior care platform</p></td>
+      <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care less opaque for families and providers.</td>
     </tr></table>
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>

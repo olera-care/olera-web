@@ -96,8 +96,9 @@ interface CandidateCardProps {
   basePath: string;
   /** Whether the provider has already contacted this candidate */
   isContacted?: boolean;
-  /** Renders a DEMO badge — used for the sample profile shown when a
-   *  campus has no real students yet. */
+  /** Renders the "Sample profile" treatment — used for the curated sample
+   *  candidates shown when a campus has no real students yet. Suppresses the
+   *  location + university lines (campus-honesty) and muted styling. */
   isDemo?: boolean;
   /** Provider's coverage buckets (day/evening/overnight/weekend) — drives
    *  the "Covers your …" match line. */
@@ -164,7 +165,7 @@ export default function CandidateCard({
             {candidate.display_name}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5 truncate">
-            {location || "Location not specified"}
+            {isDemo ? "Pre-health student" : location || "Location not specified"}
           </p>
         </div>
       </div>
@@ -176,10 +177,10 @@ export default function CandidateCard({
           {trackLabel && (
             <span className="font-medium text-gray-900 shrink-0">{trackLabel}</span>
           )}
-          {trackLabel && meta.university && (
+          {trackLabel && meta.university && !isDemo && (
             <span className="text-gray-300 shrink-0">·</span>
           )}
-          {meta.university && (
+          {meta.university && !isDemo && (
             <span className="text-gray-500 truncate">{meta.university}</span>
           )}
         </div>
@@ -243,7 +244,11 @@ export default function CandidateCard({
   return (
     <Link
       href={profileUrl}
-      className="group relative flex flex-col bg-white rounded-2xl border border-gray-200/80 hover:border-gray-300 transition-colors duration-200 overflow-hidden"
+      className={`group relative flex flex-col bg-white rounded-2xl border transition-colors duration-200 overflow-hidden ${
+        isDemo
+          ? "border-dashed border-slate-200 hover:border-slate-300"
+          : "border-gray-200/80 hover:border-gray-300"
+      }`}
     >
       {/* Contacted badge */}
       {isContacted && (

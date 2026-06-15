@@ -23,6 +23,14 @@ export const ELIGIBILITY_COMPLETED_KEY = "medjobs_eligibility_completed_at";
 export const DEMAND_PROFILE_KEY = "medjobs_demand_profile";
 export const PLATFORM_TERMS_KEY = "platform_terms_accepted_at";
 
+/**
+ * The host (caregiving internship) agreement a provider reads before/while
+ * getting set up. Placeholder sample PDF for now — swap in the real file at
+ * this path when legal sign-off lands. Opened in a new tab; no acceptance is
+ * recorded (soft read, not a gate).
+ */
+export const HOST_AGREEMENT_URL = "/docs/host-agreement-sample.pdf";
+
 /** What the eligibility screener captures, stored at DEMAND_PROFILE_KEY. */
 export interface DemandProfile {
   /** Q1 — how steady their client staffing needs are. */

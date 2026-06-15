@@ -4,21 +4,21 @@ import Image from "next/image";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 
 export const metadata: Metadata = {
-  title: "Pre-Health Caregiving Internship for Providers | Olera",
+  title: "Student Caregiver Internship for Providers | Olera",
   description:
-    "Vetted pre-nursing and pre-medical interns who commit to a semester of recurring availability. We match them to the clients you struggle to cover — no upfront commitment.",
+    "Vetted pre-nursing and pre-medical student caregivers who commit to a semester of recurring availability. We match them to the clients you struggle to cover — no upfront commitment.",
 };
 
 const PAIN_POINTS = [
   {
     problem: "Recurring shifts go uncovered",
     solution:
-      "Interns commit to a semester of recurring availability. We match one to a client whose schedule lines up, so you get a reliable caregiver for the term.",
+      "Student caregivers commit to a semester of recurring availability. We match one to a client whose schedule lines up, so you get a reliable caregiver for the term.",
   },
   {
     problem: "Last-minute call-outs hurt your clients",
     solution:
-      "Every intern completes reliability acknowledgments and commits to a schedule before we match them — they're building a clinical record, not picking up a side gig.",
+      "Every caregiver completes reliability acknowledgments and commits to a schedule before we match them — they're building a clinical record, not picking up a side gig.",
   },
   {
     problem: "Agency markups eat your margins",
@@ -30,15 +30,15 @@ const PAIN_POINTS = [
 const HOW_IT_WORKS = [
   {
     step: "1",
-    title: "Browse vetted interns near you",
+    title: "Browse vetted caregivers near you",
     description:
-      "Every intern has recorded an intro video, completed reliability acknowledgments, and verified their university enrollment.",
+      "Every caregiver has recorded an intro video, completed reliability acknowledgments, and verified their university enrollment.",
   },
   {
     step: "2",
     title: "Match for the semester",
     description:
-      "When you have a client who needs recurring coverage, we match an intern whose availability fits and the internship begins.",
+      "When you have a client who needs recurring coverage, we match a caregiver whose availability fits and the internship begins.",
   },
   {
     step: "3",
@@ -50,13 +50,25 @@ const HOW_IT_WORKS = [
 
 // Honest, pilot-true credibility — no fabricated retention/rating stats.
 const TRUST = [
-  { stat: "Semester", label: "Recurring availability per intern" },
+  { stat: "Semester", label: "Recurring availability per caregiver" },
   { stat: "No upfront cost", label: "Matched only when you have a recurring need" },
   { stat: "Pre-nursing & pre-med", label: "Vetted students from a local university" },
   { stat: "NIH-backed", label: "Early work toward a National Institute on Aging grant" },
 ];
 
-export default function MedJobsProvidersPage() {
+export default async function MedJobsProvidersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ campus?: string }>;
+}) {
+  // Thread the campus from the cold email (/medjobs/providers?campus=slug) into
+  // both board CTAs so the board lands filtered to their campus. Geo is the
+  // fallback when no campus is present.
+  const sp = await searchParams;
+  const campus = typeof sp.campus === "string" ? sp.campus : null;
+  const campusQ = campus ? `&campus=${encodeURIComponent(campus)}` : "";
+  const eligibilityHref = `/medjobs/candidates?welcome=1${campusQ}`;
+  const browseHref = `/medjobs/candidates${campus ? `?campus=${encodeURIComponent(campus)}` : ""}`;
   return (
     <main className="bg-white">
       {/* Hero */}
@@ -66,31 +78,31 @@ export default function MedJobsProvidersPage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div>
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-gray-900 leading-[1.1]">
-                Vetted pre-health interns{" "}
+                Vetted student caregivers{" "}
                 <span className="text-primary-600">for the shifts you struggle to cover</span>
               </h1>
               <p className="mt-5 text-[17px] text-gray-500 leading-relaxed max-w-lg">
                 A structured caregiving internship that places pre-nursing and
                 pre-medical students with your clients for a semester of recurring
-                coverage. No commitment up front — we match an intern when you have
-                a recurring need.
+                coverage. No commitment up front. We match a student caregiver when
+                you have a recurring need.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
                 <Link
-                  href="/medjobs/candidates"
+                  href={eligibilityHref}
                   className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
                 >
-                  Browse interns near you
+                  Check your eligibility to host
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-                <a
-                  href={CALENDLY_URL}
+                <Link
+                  href={browseHref}
                   className="inline-flex items-center px-7 py-3 text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors"
                 >
-                  Talk with Dr. DuBose
-                </a>
+                  Hire local caregivers
+                </Link>
               </div>
             </div>
 
@@ -98,7 +110,7 @@ export default function MedJobsProvidersPage() {
               <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-lg shadow-gray-200/50">
                 <Image
                   src="/images/medjobs/provider-caregiving.jpg"
-                  alt="Pre-health intern working with a senior client"
+                  alt="Pre-health student caregiver working with a senior client"
                   width={1080}
                   height={1080}
                   className="w-full h-full object-cover"
@@ -172,13 +184,13 @@ export default function MedJobsProvidersPage() {
         </div>
       </section>
 
-      {/* What makes pre-health interns different */}
+      {/* What makes pre-health caregivers different */}
       <section className="py-16 sm:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
-                Why pre-health interns
+                Why pre-health caregivers
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
                 Motivated by more than a paycheck
@@ -218,7 +230,7 @@ export default function MedJobsProvidersPage() {
               <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 mt-8">
                 <Image
                   src="/images/medjobs/caregiving-support.jpg"
-                  alt="Intern supporting a senior client"
+                  alt="Caregiver supporting a senior client"
                   width={400}
                   height={533}
                   className="w-full h-full object-cover"
@@ -256,7 +268,7 @@ export default function MedJobsProvidersPage() {
                 healthcare workers while strengthening care for local seniors.
                 It&apos;s a matched program, not a staffing marketplace: we select a
                 small founding group of provider partners and pair them with
-                committed interns.
+                committed caregivers.
               </p>
             </div>
           </div>
@@ -272,14 +284,14 @@ export default function MedJobsProvidersPage() {
             <span className="text-primary-600">Future clinicians.</span>
           </h2>
           <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">
-            Browse vetted pre-health interns near your facility. No upfront commitment.
+            Check your eligibility to host vetted student caregivers near your facility. No upfront commitment.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/medjobs/candidates"
+              href={eligibilityHref}
               className="inline-flex items-center px-8 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
             >
-              Browse interns near you
+              Check your eligibility to host
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>

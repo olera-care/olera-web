@@ -1064,6 +1064,8 @@ export async function GET(request: NextRequest) {
             providerSlug,
             ctaUrl: adsUrl,
             city: bp.city,
+            category: bp.category,
+            localDemand: localDemand ?? areaDemandCount,
           })
         : completionUrl
         ? providerProfileCompletionEmail({
@@ -1093,6 +1095,18 @@ export async function GET(request: NextRequest) {
             marketUrl,
           });
 
+      // Diagnosis-led managed-ads subject: lead with the real local-demand
+      // number when we have it, else a qualitative "families you're not reaching"
+      // line. Deliberately distinct from the find_families subject ("looking for
+      // care") so the two cascade variants never read alike or cross the
+      // classifier's subject fallback.
+      const adsDemand = localDemand ?? areaDemandCount;
+      const adsWhere = bp.city ? ` near ${bp.city}` : " in your area";
+      const managedAdsSubject =
+        adsDemand && adsDemand > 0
+          ? `${adsDemand.toLocaleString()} families searched for care${adsWhere} this week`
+          : `The families${bp.city ? ` near ${bp.city}` : ""} you're not reaching yet`;
+
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
         : leadsUrl
@@ -1104,7 +1118,7 @@ export async function GET(request: NextRequest) {
           ? `${nearbySeekers.length} families near you are looking for care`
           : `A family near you is looking for care`
         : useManagedAds
-        ? `Reach families already searching for care`
+        ? managedAdsSubject
         : completionUrl
         ? `See what families see on ${displayName}`
         : isColdFirstContact

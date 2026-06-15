@@ -139,38 +139,60 @@ export function providerProfileCompletionEmail(opts: {
 
 /**
  * Managed Ads digest email — the weekly nudge for the no-leads cohort (~99%).
- * Mirrors the dashboard hero's managed-ads banner + the /provider/boost pitch:
- * the one lever that GENERATES demand rather than waiting on an empty local
- * funnel. One-click magic link (action="ads") auth-lands them on /provider/boost,
- * where the 70% completeness gate turns the ads desire into a completion pull.
+ *
+ * Diagnosis-led, not offer-led: it opens with a TRUE local-demand fact about the
+ * reader's own market (`localDemand` = unique provider-page viewers in their
+ * city+category this week, the same number the weekly digest already uses) and
+ * lets that visible gap motivate the paid ads, rather than pitching the product
+ * cold. Three deliberate moves separate it from the lead-gen vendors providers
+ * distrust: (1) reader-first hook, not "we run ads"; (2) an explicit anti-broker
+ * line — they fund their own campaign, the families are theirs, no per-lead
+ * charge, no resale (honest that it's PAID; we do NOT claim it's free or that
+ * there's "nothing to set up"); (3) Dr. Logan's trust signature, same as the
+ * cold-rank email. One-click magic link (action="ads") auth-lands them on
+ * /provider/boost; the CTA stays honest about that page's 70% completeness gate
+ * ("See how it works") instead of promising zero setup.
  */
 export function providerManagedAdsEmail(opts: {
   providerName: string;
   providerSlug: string;
   ctaUrl: string;
   city?: string | null;
+  category?: string | null;
+  /** Unique provider-page viewers in the city+category cohort this week. Real
+   *  number from provider_page_view_stats; null/0 → qualitative fallback. */
+  localDemand?: number | null;
 }): string {
   const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
-  const where = opts.city ? ` near ${escapeHtml(opts.city)}` : "";
-  const platforms = ["Google", "Facebook", "Instagram", "Nextdoor"]
-    .map(
-      (p) =>
-        `<span style="display:inline-block;padding:6px 12px;margin:0 6px 6px 0;border:1px solid #e5e7eb;border-radius:999px;font-size:13px;color:#6b7280;">${p}</span>`,
-    )
-    .join("");
+  const where = opts.city ? ` near ${escapeHtml(opts.city)}` : " in your area";
+  const cat = humanCategoryLabel(opts.category ?? null);
+  const demand = opts.localDemand && opts.localDemand > 0 ? opts.localDemand : null;
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+
+  // Lead with the real number when we have it; degrade gracefully when we don't.
+  const headline = demand
+    ? `${demand.toLocaleString()} ${demand === 1 ? "family" : "families"} searched for ${cat}${where} this week.`
+    : `Families${where} are searching for care &mdash; most never find your page.`;
 
   return layout(
     `
-    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Managed Ads</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">Reach families already searching for care.</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Most families looking for care${where} never reach a directory &mdash; they&rsquo;re searching on Google and scrolling Facebook, Instagram, and Nextdoor. We run targeted ads there on your behalf and send them straight to your Olera page.</p>
-    <div style="margin:0 0 18px;">${platforms}</div>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">No ad accounts, no keywords, no agency retainer. We already have your page and your local market data &mdash; nothing for you to set up.</p>
-    <div>${button("Get started →", opts.ctaUrl)}</div>
-    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your local market</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${headline}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${demand ? "And that&rsquo;s only the ones who found Olera. " : ""}Most families looking for care never reach a directory at all &mdash; they search Google, scroll Facebook and Nextdoor, call a name or two, and stop. Your page usually isn&rsquo;t one of them.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We change that. We build and run targeted ads for your agency on the platforms families actually use, and send everyone who responds straight to your Olera page.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;"><strong>You&rsquo;re not buying leads from a broker.</strong> You fund your own campaign, we run it for you, and every family who reaches out is yours &mdash; we don&rsquo;t charge per lead and we never resell your inquiries.</p>
+    <div style="margin:0 0 30px;">${button("See how it works →", opts.ctaUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
+      <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
+      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;"><p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p><p style="margin:2px 0 0;color:#6b7280;">CRO, Olera &middot; NIH-backed senior care platform</p></td>
+    </tr></table>
+    <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
     </div>`,
-    `We'll run targeted ads and send local families straight to ${opts.providerName}.`,
+    demand
+      ? `${demand.toLocaleString()} families searched for ${cat}${where} this week — most never found your page.`
+      : `The families${opts.city ? ` near ${escapeHtml(opts.city)}` : ""} you&rsquo;re not reaching yet.`,
   );
 }
 

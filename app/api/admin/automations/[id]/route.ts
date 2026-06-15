@@ -160,7 +160,7 @@ function classifyVariant(subject: string | null, metadata: Record<string, unknow
   if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
   if (/reached out about .+ this week$/i.test(s)) return { variant: "leads", ledWithRank: false };
   if (/near you (is|are) looking for care$/i.test(s)) return { variant: "find_families", ledWithRank: false };
-  if (/^Reach families already searching for care$/i.test(s)) return { variant: "managed_ads", ledWithRank: false };
+  if (/searched for care .+ this week$/i.test(s) || /you're not reaching yet$/i.test(s)) return { variant: "managed_ads", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
   if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
   if (/^\d+ (.+-area places families may ask (about care|who to call)|.+ teams families may ask about care|local teams families may ask about care|referral sources near )/i.test(s) || /^See (who families may ask|the referral map) /i.test(s)) return { variant: "referral_teaser", ledWithRank: true };

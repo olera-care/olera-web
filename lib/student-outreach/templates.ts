@@ -644,7 +644,7 @@ export function providerIntroEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Host ${PLACEHOLDER.campus} student caregivers this fall (pilot)`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiving Internship`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -652,18 +652,24 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician piloting a Student Caregiving Internship designed to place ${PLACEHOLDER.campus} pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I came across ${PLACEHOLDER.orgName} and wanted to invite you to consider serving as a host site this fall.`,
+      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician and National Institute on Aging (NIA) researcher. I'm reaching out about a project we're piloting, [Olera's ${PLACEHOLDER.campus} Student Caregiving Internship](${PLACEHOLDER.programUrl}): a new program that places **pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus.** I came across ${PLACEHOLDER.orgName} while researching nearby home care agencies, and I'd like to invite you to learn about the program and check your eligibility to serve as a host agency for local interns.`,
       ``,
-      `Being a host site looks like:`,
+      `We think it's a win-win-win for home care agencies, ${PLACEHOLDER.campus} pre-health students, and the clients you serve. You need reliable staff, students need hands-on experience to get into grad school, and clients need quality caregivers. This program delivers all three.`,
       ``,
-      `• Vetted students matched to your agency based on your client needs, or brought on PRN for coverage when you need it.`,
-      `• Set availability they pledge to keep open for the full semester, giving you predictable coverage. No surprises, weekly re-staffing, or no-shows.`,
-      `• Lower cost. They work mainly for the experience and a recommendation letter. Their care is high quality, and their pay expectations sit at the lower end of your usual rates.`,
-      `• Many stay on for future semesters, or go full-time over winter and summer breaks or during gap years before med or nursing school.`,
+      `Here is what hosting looks like:`,
       ``,
-      `There's no commitment to get started as a host site. You can check your eligibility, review potential matches, and meet students in online interviews before committing to hosting an intern. The internship begins only when you and a student agree it's a good fit.`,
+      `• Vetted caregiving interns matched to your agency based on your client needs, or brought on PRN for coverage when you need it.`,
+      `• Interns set availability they pledge to keep open for the full semester, giving you predictable coverage for client assignments.`,
+      `• Interns work mainly for the experience and a recommendation letter, and their pay expectations sit at the lower end of your usual rates.`,
+      `• Many interns stay on for future semesters, or go full-time over winter and summer breaks or during gap years before grad school.`,
       ``,
-      `The eligibility check takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}). You can also [see our website](${PLACEHOLDER.programUrl}) for more details and provider FAQs. For those who are excited and would prefer a formal introduction to the program, please reply with your interest and I'll set up a call with Dr. DuBose, who would love to meet you and walk you through the internship experience for providers and next steps.`,
+      `The eligibility check takes about a minute: [check your eligibility to be a host home care agency](${PLACEHOLDER.welcomeUrl}).`,
+      ``,
+      `There is no commitment to check your eligibility. The commitment begins only once you are fully onboarded as a host agency and you and an intern agree it's a good fit.`,
+      ``,
+      `We hope you'll consider learning about the program and hosting an intern. If you are interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps (onboarding call, program costs, set-up).`,
+      ``,
+      `Thank you for your service to the community. Have a great day!`,
     ].join("\n"),
   };
 }
@@ -679,7 +685,7 @@ export function providerFollowupEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Host ${PLACEHOLDER.campus} student caregivers this fall (pilot)`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiving Internship`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -687,9 +693,11 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `Following up in case my last note got buried. Dr. Logan DuBose, a geriatric-focused physician, is piloting a Student Caregiving Internship that places ${PLACEHOLDER.campus} pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I'd love for ${PLACEHOLDER.orgName} to consider being a host site this fall.`,
+      `Following up in case my last note got buried. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric-focused physician and NIA researcher. We're piloting [Olera's ${PLACEHOLDER.campus} Student Caregiving Internship](${PLACEHOLDER.programUrl}), which places pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus.`,
       ``,
-      `Checking your eligibility takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}). You can also [see our website](${PLACEHOLDER.programUrl}) for details and provider FAQs, or reply and I'll set up a call with Dr. DuBose.`,
+      `It's a win-win-win: you get reliable, vetted caregivers who pledge their availability for the full semester, the students get hands-on experience and a recommendation letter, and your clients get quality care. Many interns stay on for future semesters or go full-time over breaks.`,
+      ``,
+      `The eligibility check takes about a minute: [check your eligibility to be a host home care agency](${PLACEHOLDER.welcomeUrl}). There's no commitment to check. If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps.`,
     ].join("\n"),
   };
 }
@@ -706,7 +714,7 @@ export function providerFinalEmail(
   contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
-  const subject = `Host ${PLACEHOLDER.campus} student caregivers this fall (pilot)`;
+  const subject = `Olera's ${PLACEHOLDER.campus} Student Caregiving Internship`;
   const greeting =
     variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
   return {
@@ -714,9 +722,11 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Circling back one last time on the ${PLACEHOLDER.campus} Student Caregiving Internship. If hosting a pre-health student to help cover shifts this fall would be useful, the eligibility check takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}). There's no commitment until you meet a student and agree it's a good fit.`,
+      `Circling back one last time on [Olera's ${PLACEHOLDER.campus} Student Caregiving Internship](${PLACEHOLDER.programUrl}). If hosting a vetted pre-health student in a caregiver role would help ${PLACEHOLDER.orgName}, the eligibility check takes about a minute: [check your eligibility to be a host home care agency](${PLACEHOLDER.welcomeUrl}). There's no commitment until you're onboarded and you and an intern agree it's a good fit.`,
       ``,
-      `If someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help. Either way, thanks for your time.`,
+      `If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help.`,
+      ``,
+      `Thank you for your service to the community. Have a great day!`,
     ].join("\n"),
   };
 }
@@ -757,7 +767,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Great to hear from you. The next step is a quick eligibility check to confirm you meet the host-site requirements and review the partner terms. It takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
+      `Great to hear from you. The next step is a quick eligibility check to confirm you meet the host home care agency requirements and review the partner terms. It takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
       ``,
       `Once you're through, you can review potential student matches and meet them in online interviews, with no commitment until you find a good fit.`,
       ``,
@@ -784,7 +794,7 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
     };
   }
   return {
-    subject: `Your ${PLACEHOLDER.campus} host-site eligibility check`,
+    subject: `Your ${PLACEHOLDER.campus} host agency eligibility check`,
     body: [
       greeting,
       ``,
@@ -902,7 +912,7 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
       script: [
         `"Hi, this is ${ctx.admin_first_name ?? "Graize"} calling from Dr. Logan DuBose's office. I'm a research assistant on Olera's ${ctx.campus_name} pre-health caregiving internship."`,
         ``,
-        `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. We place vetted pre-health students into caregiver roles at host agencies like yours to help cover shifts, as paid healthcare experience for the students. I wanted to see if you'd consider being a host site this fall."`,
+        `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. We place vetted pre-health students into caregiver roles at host home care agencies like yours, as paid healthcare experience for the students. I wanted to see if you'd consider hosting an intern this fall."`,
       ].join("\n"),
     };
   }

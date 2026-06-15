@@ -24,6 +24,8 @@
 5. **PDF one-pager** (`lib/program-pdf/configs/texas-am.ts`) still has older "recurring shifts" framing — reframe later; for now it lives in the email signature.
 6. **Single-body-link policy deviation:** emails now carry two body links (eligibility + website) vs the documented one-link-in-body / program-in-signature policy (templates.ts:111). Approved by Logan; revisit if deliverability needs it.
 
+**Full build plan (durable source of truth):** the end-to-end provider funnel — Loops 1 (cold→eligibility→board), 2 (browse→interview), 2b (re-activation), 3 (offer→accept→confirm) — is now written up in **`docs/medjobs/PROVIDER_FUNNEL_BUILD_PLAN.md`**: every flag, screen, reuse/adapt/build, the dual-pay (authorize-at-offer/capture-at-confirm) model, the `placements`-table + Stripe schema decisions flagged for approval, discipline/deferred checks, and a 5-phase build sequence.
+
 ### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
 
 **Outcome:** Deleted the unused "Submissions by Entry Source" section from the admin analytics panel — TJ confirmed no one uses it. Pure deletion, 213 deletions / 1 insertion.

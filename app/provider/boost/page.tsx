@@ -8,6 +8,12 @@ import type {
   AdBoostEligibility,
   AdBoostMissingSection,
 } from "@/lib/ad-boost/eligibility";
+import {
+  cacheBoostState,
+  getCachedBoostState,
+  type BoostRequest,
+  type BoostStateResponse,
+} from "@/lib/ad-boost/boost-state";
 
 /**
  * Provider Ad Boost — Managed Lead-Gen (concierge v1).
@@ -20,24 +26,13 @@ import type {
  * All eligibility + request state comes from GET /api/provider/ad-boost/request
  * (authoritative server compute — no client/server drift). Auth is gated by
  * the /provider layout, so by the time this renders the user is signed in.
+ *
+ * To avoid the wrong-page flash (apply form → queued/live snap), we never render
+ * a sub-view until the fetch resolves — and entry points prefetch the state into
+ * an in-memory cache so the common in-app path initializes from it and paints
+ * the correct page on the first frame (no loader, no snap). See lib/ad-boost/
+ * boost-state.ts.
  */
-
-interface BoostRequest {
-  id: string;
-  status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled";
-  requested_setup_week: string;
-  channel: string | null;
-  campaign_tag: string | null;
-  created_at: string;
-}
-
-interface BoostStateResponse {
-  eligibility: AdBoostEligibility;
-  provider: { slug: string; displayName: string | null };
-  request: BoostRequest | null;
-  /** Families delivered so far by this provider's campaign. */
-  delivered: number;
-}
 
 const CHANNELS = [
   { value: "both", label: "Google + Meta" },
@@ -49,8 +44,11 @@ const OPEN_STATUSES = ["requested", "scheduled", "live"];
 
 export default function ProviderBoostPage() {
   const { isLoading, user } = useAuth();
-  const [state, setState] = useState<BoostStateResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize from the prefetch cache so a warm in-app navigation paints the
+  // correct page on the first frame (no loader, no wrong-page snap). Cold load
+  // starts null → the loader holds until the fetch resolves.
+  const [state, setState] = useState<BoostStateResponse | null>(() => getCachedBoostState());
+  const [loading, setLoading] = useState(() => !getCachedBoostState());
   const [error, setError] = useState<string | null>(null);
 
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
@@ -75,6 +73,7 @@ export default function ProviderBoostPage() {
         return;
       }
       const json = (await res.json()) as BoostStateResponse;
+      cacheBoostState(json); // keep the cache warm for the next in-app nav
       setState(json);
       setLoading(false);
     } catch {
@@ -150,10 +149,6 @@ export default function ProviderBoostPage() {
     }
   };
 
-  // Hard failure only. We deliberately do NOT full-page skeleton on load: the
-  // apply hero + week/channel pickers are static (no fetch needed), so they
-  // paint instantly and the transition feels snappy. Only the eligibility-
-  // dependent bits (CTA label, summary status) wait on the fetch via `ready`.
   if (error) {
     return (
       <Shell>
@@ -167,33 +162,45 @@ export default function ProviderBoostPage() {
     );
   }
 
-  // "Ready" = auth resolved, fetch done, state present. Until then the hero +
-  // pickers still render; only the CTA + summary status hold for `ready`.
-  const ready = !isLoading && !loading && !!state;
+  // Hold on ONE calm loader until the fetch resolves, so we never flash a
+  // guessed sub-view (the apply form) and then snap to another (queued / live).
+  // A warm prefetch cache initializes `state` synchronously, so the common
+  // in-app navigation skips this entirely and paints the right page instantly.
+  if (isLoading || loading || !state) {
+    return (
+      <Shell>
+        <div className="min-h-[55vh] flex items-center justify-center">
+          <div className="animate-spin w-7 h-7 border-[3px] border-primary-500 border-t-transparent rounded-full" />
+        </div>
+      </Shell>
+    );
+  }
+
+  // `state` is resolved below — pick exactly one view, once.
   const openRequest =
-    state?.request && OPEN_STATUSES.includes(state.request.status)
+    state.request && OPEN_STATUSES.includes(state.request.status)
       ? state.request
       : null;
   const pendingRequest =
-    state?.request?.status === "pending_profile" ? state.request : null;
-  // Once they've committed (live campaign OR a queued standing order) we drop
-  // the marketing and get them to the next action.
-  const committed = openRequest || pendingRequest;
+    state.request?.status === "pending_profile" ? state.request : null;
 
   // Committed states (queued / live) keep the focused single-column treatment.
-  // The apply state is the one the redesign targets: a two-column flow — action
-  // spine on the left, a live "your campaign" summary on the right (Airbnb-style
-  // transactional split), so the eye runs headline → pick → confirm with one
-  // resting point, instead of stacked pitch-then-form sections.
-  if (state && committed) {
+  // The apply state is the redesign's two-column flow — action spine on the
+  // left, a live "your campaign" summary on the right (Airbnb-style).
+  if (openRequest) {
     return (
       <Shell>
         <div className="mt-2">
-          {openRequest ? (
-            <CampaignInMotion request={openRequest} delivered={state.delivered} />
-          ) : (
-            <PendingProfile request={pendingRequest!} eligibility={state.eligibility} />
-          )}
+          <CampaignInMotion request={openRequest} delivered={state.delivered} />
+        </div>
+      </Shell>
+    );
+  }
+  if (pendingRequest) {
+    return (
+      <Shell>
+        <div className="mt-2">
+          <PendingProfile request={pendingRequest} eligibility={state.eligibility} />
         </div>
       </Shell>
     );
@@ -202,8 +209,7 @@ export default function ProviderBoostPage() {
   return (
     <Shell>
       <ApplyExperience
-        ready={ready}
-        eligible={state?.eligibility.eligible ?? false}
+        eligible={state.eligibility.eligible}
         weekOptions={weekOptions}
         selectedWeek={selectedWeek}
         setSelectedWeek={setSelectedWeek}
@@ -425,7 +431,6 @@ const VALUE_PROPS = [
  * right above the CTA so the summary still pays off without a sticky card.
  */
 function ApplyExperience({
-  ready,
   eligible,
   weekOptions,
   selectedWeek,
@@ -436,9 +441,6 @@ function ApplyExperience({
   submitError,
   onSubmit,
 }: {
-  /** False while the eligibility fetch is still in flight. The hero + pickers
-   *  render regardless (they're static); only the CTA + summary status wait. */
-  ready: boolean;
   /** True when the provider already clears the 70% gate. False → the submit
    *  queues a standing order (pending_profile) that launches once they finish. */
   eligible: boolean;
@@ -533,7 +535,7 @@ function ApplyExperience({
 
         <button
           type="button"
-          disabled={!ready || !selectedWeek || submitting}
+          disabled={!selectedWeek || submitting}
           onClick={onSubmit}
           className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
         >
@@ -554,7 +556,6 @@ function ApplyExperience({
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
       <aside className="lg:sticky lg:top-12 space-y-6">
         <CampaignSummary
-          ready={ready}
           eligible={eligible}
           weekLabel={weekLabel}
           channelLabel={channelLabel}
@@ -580,12 +581,10 @@ function ApplyExperience({
 /** The live "Your campaign" card — fills in as the provider picks. The single
  *  resting point of the page; updates make the choices feel real before commit. */
 function CampaignSummary({
-  ready,
   eligible,
   weekLabel,
   channelLabel,
 }: {
-  ready: boolean;
   eligible: boolean;
   weekLabel: string | null;
   channelLabel: string;
@@ -609,12 +608,8 @@ function CampaignSummary({
         </div>
       </dl>
 
-      {/* min-h reserves space for the (taller, 2-line) non-eligible status so
-          the sticky card doesn't grow when the shimmer resolves — no jump. */}
-      <div className="mt-5 pt-5 border-t border-gray-100 min-h-[2.5rem]">
-        {!ready ? (
-          <div className="h-4 w-2/3 rounded bg-gray-100 animate-pulse" />
-        ) : eligible ? (
+      <div className="mt-5 pt-5 border-t border-gray-100">
+        {eligible ? (
           <p className="flex items-center gap-2 text-sm text-primary-700">
             <CheckIcon className="w-4 h-4 shrink-0" />
             Ready to launch when you confirm.

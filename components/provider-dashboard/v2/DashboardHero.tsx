@@ -13,6 +13,7 @@ import {
   type NextAction,
 } from "@/lib/next-best-action";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -250,8 +251,11 @@ export default function DashboardHero({
 
   // Tell the dashboard which banner won this visit, so it can suppress the
   // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
+  // When the managed-ads banner wins, also warm the boost-state cache so the
+  // "Get started" → /provider/boost transition paints instantly (no snap).
   useEffect(() => {
     onBannerResolved?.(bannerId);
+    if (bannerId === "managed_ads") prefetchBoostState();
   }, [bannerId, onBannerResolved]);
 
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so

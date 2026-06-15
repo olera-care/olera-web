@@ -27,6 +27,7 @@ type MatchesTab = "best_matches" | "near_you";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
+import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
 import { Star, Briefcase, LinkSimple, Check } from "@phosphor-icons/react";
 
 
@@ -1362,6 +1363,9 @@ export default function ProviderMatchesPage() {
         city: providerProfile.city,
         state: providerProfile.state,
       });
+      // Warm the boost-state cache so "Get Started" → /provider/boost paints the
+      // correct page on the first frame (no loader, no wrong-page snap).
+      prefetchBoostState();
     }
   }, [providerProfile?.slug, activeTab]);
 

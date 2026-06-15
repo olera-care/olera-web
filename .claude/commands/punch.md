@@ -14,12 +14,26 @@ The reference set lives here and **grows over time** — read what's actually in
 ~/Desktop/olera-hq/docs/Design Inspirations/
 ```
 
-As of this writing it holds **Airbnb, Perena, Wispr Flow, Robinhood (mobile), Wise (mobile)**, with more coming (e.g. Grok). Before forming any opinion:
+As of this writing it holds **Airbnb, Perena, Wispr Flow, Robinhood, Wise, Grok, Open AI, Day One, Duolingo** — and it keeps growing. Open what's actually there; don't trust this list. Before forming any opinion:
 
-1. `ls` the folder and **open a representative sample across MULTIPLE subfolders** — not one. At least 3–4 different apps, 1–2 frames each.
+1. `ls` the folder and **open a real spread across the subfolders** — not one or two. Several different apps, multiple frames each. This is the input that makes the critique non-generic; skimming it is the failure mode.
 2. Notice what they have *in common* (that's the transferable DNA) and where they *differ* (that's proof there's no single right answer).
 
-> ⚠️ **The anti-anchor rule.** No single app is "the template." Perena is warm/cream/centered; Airbnb is clean/white/two-column; Robinhood and Wise are dark with a bright accent; Wispr is a warm split-flow. They're all excellent and they contradict each other on surface choices. **Treat any one example as ONE data point, never as the rule.** If you catch yourself making everything cream because Perena is cream, stop — that's the failure this command exists to prevent. Pull the *principle*, then choose the surface treatment that fits *this* screen.
+> ⚠️ **The anti-anchor rule.** No single app is "the template." Look at how much they contradict each other on surface choices:
+>
+> | App | Ground | Composition | Accent | Headline |
+> |---|---|---|---|---|
+> | Perena | warm cream | centered single card | purple | serif |
+> | Airbnb | clean white | two-column action + summary | coral/black | serif |
+> | Wispr Flow | cream / colored panel | split (action ‖ visual) | purple/teal | bold sans + italic |
+> | Robinhood | **dark** | centered, hero stat row | gold | serif |
+> | Wise | **dark** | calc card, big number | green | bold sans |
+> | Grok | **dark** | rounded cards | orange | bold sans |
+> | Open AI | **dark** | one icon, one line, one button | blue/white | bold sans |
+> | Day One | **dark** | list + dismissible promo | pink | bold sans |
+> | Duolingo | **dark / vibrant** | one big illustration | green/varies | heavy sans |
+>
+> They're all excellent and they disagree on nearly every surface choice. **Treat any one example as ONE data point, never the rule.** If you catch yourself making everything warm cream because Perena is cream — stop. That's the exact failure this command exists to prevent. Note how many of the polished MOBILE products are **dark**: dark is a common, premium choice, not an exception. Pull the *principle*, then pick the surface treatment that fits *this* screen.
 
 ---
 
@@ -31,6 +45,8 @@ These are the things that are true whether the screen is warm, white, or dark. T
 - **Headlines that command.** Big, tight leading, imperative/conversational. "Open your accounts." "Welcome TJ! A few questions to get started." The headline *is* the page — not "Eligibility Information."
 - **Proof is scannable, never paragraphs.** A 3-up row works when each item is a *number or 2–3 words* (Robinhood: `4.25% · $2.5M · $0`). The same 3-up fails as three sentences. If you keep value props, compress them to label-scale.
 - **Intentional composition.** Rarely everything-stacked-at-one-width. Split layouts (action left, support/visual right — Wispr, Airbnb), or a single hero number that dominates (Perena, Wise). Pick a composition; don't default to a vertical list.
+- **Transactions get a live summary.** For "confirm / pick options" screens, the canonical pattern is Airbnb's *Confirm and pay*: choices on the left, a summary card on the right that reflects them back (editable rows, a total, one warm callout). The summary is the resting point and the trust signal.
+- **One focused screen, one job.** The most disciplined frames (Open AI, Duolingo) are a single icon/illustration + one line + one button. If a screen is doing two jobs, it's two screens.
 - **One accent, used sparingly.** Whether it's Robinhood gold, Perena purple, or Olera teal — interactive emphasis is *one* color, not three.
 - **A single high-contrast CTA.** Black on light, bright on dark — the heaviest, most unmissable element. Pinned or prominent. Never a polite, forgettable link.
 - **Atmosphere = confidence.** Every example has a deliberate ground: warm cream, clean white, or rich dark — chosen, not accidental. Plus restraint: generous space, soft elevation, nothing sharp or loud.
@@ -41,7 +57,7 @@ These are the things that are true whether the screen is warm, white, or dark. T
 
 The DNA above is fixed; the *aesthetic* is a choice. Decide it from the screen's job and the closest-fitting reference — not from habit:
 
-- **Background:** warm cream (welcoming, editorial — Perena/Wispr) vs. clean white (transactional clarity — Airbnb) vs. confident dark (focused, premium, data-forward — Robinhood/Wise). Match the *mood the task wants*.
+- **Background:** warm cream (welcoming, editorial — Perena/Wispr) vs. clean white (transactional clarity — Airbnb) vs. confident dark (focused, premium, data-forward — Robinhood, Wise, Grok, Open AI, Day One, Duolingo). Most of the polished mobile products in the set are dark — it's a first-class choice, not a fallback. Match the *mood the task wants*.
 - **Composition:** split flow for "pick options + continue"; single hero number when a number is the message; centered single card for one focused action.
 - **Accent:** one color. In the Olera repo, the brand palette is teal (`#96c8c8` / `primary-*`) + warm amber (`#e9bd91`) on vanilla/warm neutrals — use it *when warmth fits*, but don't force warmth onto a screen that wants crisp white or focused dark.
 

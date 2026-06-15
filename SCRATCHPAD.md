@@ -387,6 +387,28 @@
 
 ## Session Log
 
+### 2026-03-31 (Session 66) — 78-City Expansion Batch
+
+**Branch:** `fresh-williams` (pipeline-only, no code changes)
+
+**Batch:** 78 cities from map.olera.care expansion tool (pop 30K-40K, all missing from DB)
+
+**Pipeline Results:**
+- Discovery: 16,884 raw providers across 78 cities (49 min, $45 Google Places)
+- Clean: AI classification + keyword filter + dedup → ~3,900 providers ready
+- Upload: Supabase import + geocoding with out-of-area cleanup
+- Enrichment: 3,932 descriptions, 3,249 reviews hydrated, 2,753 images, 1,142 trust signals verified, 1,248 false positives soft-deleted
+- **Total cost: $311 | Total time: 3h 28m**
+
+**Top cities by provider count:** Timberwood Park TX (137), South Valley NM (129), Redan GA (114), University City MO (109), University Place WA (103), Hampden PA (103), Sun City AZ (100)
+
+**Notion:** 78 pages created in Planning status. Checkboxes NOT yet updated (no NOTION_TOKEN in env for batch script). Need to mark all checkboxes + set status to Complete.
+
+**Next Up:**
+- Update 78 Notion pages (check all boxes, set Complete)
+- Spot-check live site pages after ISR cache expires (~1hr)
+- Export fresh dedup CSV for next batch
+
 ### 2026-03-31 (Session 65) — Worktree Cleanup + URL/Breadcrumb System Docs
 
 **Branch:** `speedy-jemison` | **1 commit**

@@ -25,6 +25,26 @@ Built on top of the merged IA rework (PR #1050). Three layers this session:
 
 **Next:** browser QA on staging-preview (hero banner on Aggie/Boise, the event→Activity Center "Growth"+Slack loop, /provider/market, digest dry-run + email preview). Restore Aggie to College Station after. Then merge to staging.
 
+### 2026-06-15 — Same branch: restraint, standing-order, boost redesign, /punch de-anchor (commits through `d6720056`, PR #1051)
+
+Continuation of the managed-ads work, layering UX/design polish:
+
+**Restraint — sidebar card → post-edit nudge.** Removed the always-on `BoostCard` from the dashboard (felt "upgrade now"); deleted the component. Added `components/provider/PostEditAdsNudge.tsx` — fires **once per session after a profile save** (the earned, high-intent moment; ~50 real editors), wired via `DashboardPage` `handleSaved`. Suppressed when the hero already resolved to the managed_ads banner (added `onBannerResolved` callback to `DashboardHero`) so the pitch never doubles on one screen. New `source:post_edit` Slack label.
+
+**Standing-order flow (key product change).** Boost page no longer slams a 70% door. Migration **`106_ad_campaign_pending_profile.sql`** adds `pending_profile` to the status CHECK — **APPLIED + probed (pending_profile/requested accepted, bogus rejected)**. POST: drops the 403; <70% queues as `pending_profile` (quiet, concierge NOT paged), ≥70% inserts `requested` + pings. GET: auto-promotes `pending_profile`→`requested` + pings concierge (`launchReady`) the moment they cross 70% (re-checked on every boost load — profile saves are client-direct, no server hook; GET is the promotion point). New `PendingProfile` state ("your campaign is queued · 1 step to launch") replaces the dead-end CompletenessGate; everyone can pick week+channel (the "taste") regardless of completeness. Admin badge/dropdown/VALID_STATUSES updated.
+
+**Boost apply-page redesign.** Replaced stacked pitch→form sections with a **two-column transactional split** (chosen treatment: **white, two-column, teal accent — Airbnb Confirm-and-pay-leaning, NOT Perena cream**). Left = action spine (headline→week→channel→black CTA); right = **live "Your campaign" summary** (`CampaignSummary`) that fills in as they pick + value props compressed to scannable label-scale. Mobile: stacks, one-line live confirmation above CTA.
+
+**Real brand logos** in `PlatformMarquee` (Google 4-color / FB / IG gradient / Nextdoor / YouTube / X) — local SVGs in `public/images/platform-logos/` (vectorlogo.zone), `<img>` on white chips, no CDN dep. Hero subline readability bump (`warm-100/70`→`/90` + text-shadow). Boost hero image swapped to a unique seniors photo (earlier).
+
+**Snappiness.** Boost page no longer full-page-skeletons on load — hero+pickers paint instantly; only CTA (disabled) + summary status wait on `ready`. **In-app nav is snappy; cold/magic-link entry still hits the shared `/provider` layout auth spinner** (untouched — shared across all hub routes; offered the surgical fix, not yet done).
+
+**`/punch` de-anchored (meta).** TJ flagged it over-anchored on Perena/warm-cream. Went through ALL 109 inspiration frames across 9 folders (incl. new Grok/OpenAI/DayOne/Duolingo). Rewrote `.claude/commands/punch.md`: reads the folder fresh each run, contradiction table (each app's ground/composition/accent/headline), explicit anti-anchor rule, **dark called out as a first-class/common mobile treatment**, app-agnostic DNA separated from per-screen surface choice. Docs-only.
+
+**Pre-test (twice):** caught + fixed font inconsistency (boost headline font-serif→font-display brand match) and a sticky summary-card height jump (reserved `min-h-[2.5rem]`). tsc clean throughout (one-tsc-at-a-time discipline — see new memory + postmortem; a gated-on-tsc commit pipeline silently never pushed when concurrent tsc runs starved each other).
+
+**Next:** browser QA the boost flow on preview (eligible → "Ready to launch"; sub-70% → "Queue my campaign" → PendingProfile; cross-70%-then-revisit → auto-promote → CampaignInMotion + Slack). Re-share boost-page screenshots (temp paths kept expiring) for a deeper "cleaner" pass on the week/channel section. Restore Aggie → College Station. Decide on the cold-entry layout-spinner fix. Then merge #1051 to staging.
+
 ### 2026-06-13 — Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — PLANNED
 
 Explored + planned TJ's "Sri Lanka" idea: Olera runs paid **external** ads (Google/Meta) on a provider's behalf → families land on the provider's Door B intake. Providers pay. Profile must clear a completeness threshold first; "select next week" = concierge setup window. Exploration killed the two objections: external ads make their own demand (no empty-theater) and we never touch internal browse ranking (no collision with the resolved no-pay-to-win-rank decision). Dropped the "not enough families" scarcity message at TJ's direction.

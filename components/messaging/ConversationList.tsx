@@ -98,15 +98,21 @@ function getCareType(connection: ConnectionWithProfile): string | null {
 
 /**
  * Transform system message text for the viewer's perspective.
- * E.g., "This provider has declined..." → "You declined..." for provider view
+ * - Provider view: "You declined this inquiry"
+ * - Family view: "Unable to help at this time" (gentler tone)
  */
 function transformPreviewText(text: string, variant: "family" | "provider"): string {
   // Check if this is a provider declined/passed message
   const isProviderDeclined = text.includes("declined this inquiry") || text.includes("passed on this inquiry");
 
-  if (isProviderDeclined && variant === "provider") {
-    // Provider viewing their own declined message → use first person
-    return "You declined this inquiry";
+  if (isProviderDeclined) {
+    if (variant === "provider") {
+      // Provider viewing their own declined message → use first person
+      return "You declined this inquiry";
+    } else {
+      // Family viewing → gentler tone, consistent with message thread
+      return "Unable to help at this time";
+    }
   }
 
   return text;

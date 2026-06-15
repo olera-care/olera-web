@@ -586,6 +586,7 @@ export default function ConversationPanel({
     setSending(true);
     try {
       let thread: ThreadMessage[];
+      let quickReplyRequestUpdate: QuickReplyRequest | null | undefined;
       if (onSendMessage) {
         // Mock-aware send — bypasses API
         thread = await onSendMessage(connection.id, messageText.trim());
@@ -607,10 +608,11 @@ export default function ConversationPanel({
         if (!res.ok) throw new Error("Failed to send");
         const data = await res.json();
         thread = data.thread;
+        quickReplyRequestUpdate = data.quick_reply_request;
       }
       setMessageText("");
       if (messageInputRef.current) messageInputRef.current.style.height = 'auto';
-      onMessageSent(connection.id, thread);
+      onMessageSent(connection.id, thread, quickReplyRequestUpdate);
       requestAnimationFrame(() => {
         conversationRef.current?.scrollTo({
           top: conversationRef.current.scrollHeight,

@@ -7,6 +7,31 @@
 
 ## Current Focus
 
+- **WhatsApp Business Notifications** (branch: `fine-mirzakhani`) — MERGED TO STAGING, AWAITING META APPROVAL
+  - Built WhatsApp notification channel via Twilio for P1 notifications (new lead + new message)
+  - PRs merged: #469 (main implementation), #470 (sandbox fix), #471 (auth flow fix), #472 (URL fix)
+  - **Files created**: `lib/whatsapp.ts`, `supabase/migrations/031_whatsapp_log.sql`
+  - **Files modified**: `lib/types.ts`, `app/api/connections/request/route.ts`, `app/api/connections/message/route.ts`, `app/provider/connections/page.tsx`, `app/portal/settings/page.tsx`, `components/welcome/ProfileWizard.tsx`
+  - **Sandbox testing complete**: WhatsApp message delivered to TJ's phone via Twilio sandbox (+14155238886)
+  - **Bugs caught and fixed**:
+    1. WhatsApp only wired into guest flow, not authenticated flow — PR #471
+    2. Template env var guard blocked sandbox sends — PR #470
+    3. WhatsApp URLs pointed to generic /provider/connections instead of specific onboard page — PR #472
+  - **Twilio env vars added to Vercel**: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, TWILIO_WHATSAPP_NUMBER
+  - **Production WhatsApp sender**: Meta Business Manager linked, phone number (+12137722970) verified via voice call recording (code 527044), account now under Meta review (up to 24h)
+  - **Twilio number webhook configured**: Voice → voicemail TwiML that records + emails to tfalohun@gmail.com (set during Meta verification)
+  - **Decisions**:
+    - Sandbox mode uses free-form body text; production will use Twilio Content API templates with CTA buttons
+    - Both WhatsApp + email send for v1 (no email suppression) — safer for launch
+    - Provider opt-in via banner on connections page (no provider settings page exists)
+    - Category: "Professional services" (not Medical/Health) to avoid extra Meta scrutiny
+    - Sticking with Twilio (not switching providers) — WhatsApp Business API requires Meta approval regardless of BSP
+  - **Next (after Meta approves)**:
+    1. Create message templates in Twilio Console > Content Template Builder (`olera_new_lead` + `olera_new_message` with CTA buttons)
+    2. Update `TWILIO_WHATSAPP_NUMBER` in Vercel from sandbox (`+14155238886`) to production (`+12137722970`)
+    3. Add template Content SIDs as env vars (`TWILIO_WA_TEMPLATE_NEW_LEAD`, `TWILIO_WA_TEMPLATE_NEW_MESSAGE`)
+    4. Code auto-switches to template mode when SIDs start with `HX`
+
 - **Demand Map + Public Profile Tracking** (branch: `tidy-wiles`) — TESTED ✅, PR OPEN
   - New `/admin/demand` page: city-grouped table of public care seeker profiles
   - Sortable on 5 columns (count, new this week, latest go-live, city, state), city search

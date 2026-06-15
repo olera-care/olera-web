@@ -10,7 +10,7 @@
  * [subtype] (no student_outreach rows until Generate).
  */
 
-import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
+import type { PartnerSubtype, SocialLink } from "@/lib/medjobs/partner-sourcing";
 
 /** Required type tag on every office prospect. Orgs only — individuals (advisor
  *  / professor) are latched under an org and derive their kind from it. */
@@ -57,11 +57,23 @@ export interface WorkspaceOffice {
    *  personalize the office email ("ask for X"), NOT prospects. */
   ask_for: string[];
   notes?: string | null;
+  /** Social channels (Instagram / Discord / GroupMe …) the AI surfaced. Carried
+   *  through to research_data.socials at Generate; shown read-only in the drawer.
+   *  Especially relevant for student orgs whose primary reach is social. */
+  socials?: SocialLink[];
   /** Kept links that support this office record. */
   source_link_ids: string[];
   verified?: boolean;
   /** No email found — kept as a phone "call" lead, out of the email funnel. */
   call_only?: boolean;
+  // ── Department-head (person-shaped) fields ──────────────────────────────
+  // For the dept_head subtype the "office" IS a department and the prospect is
+  // ONE person (the chair). `name` is the department; these carry the chair,
+  // and email/phone above are the chair's direct contact.
+  /** The department chair/head/dean's full name. */
+  person_name?: string | null;
+  /** The chair's title/role as shown (e.g. "Department Chair", "Dean"). */
+  person_title?: string | null;
 }
 
 export interface SearchState {
@@ -142,14 +154,22 @@ export function predefinedSearches(subtype: PartnerSubtype, uni: string): Search
   }
   if (subtype === "dept_head") {
     return [
-      { key: "dept_bio", label: `Google: ${uni} biology department contact`, url: g(`${uni} biology department contact`), ran: false },
-      { key: "dept_chem", label: `Google: ${uni} chemistry department contact`, url: g(`${uni} chemistry department contact`), ran: false },
-      { key: "dept_health", label: `Google: ${uni} public health / kinesiology department contact`, url: g(`${uni} public health kinesiology department contact`), ran: false },
+      { key: "dept_bio", label: `Google: ${uni} biology department chair`, url: g(`${uni} biology department chair`), ran: false },
+      { key: "dept_chem", label: `Google: ${uni} chemistry department chair`, url: g(`${uni} chemistry department chair`), ran: false },
+      { key: "dept_kin", label: `Google: ${uni} kinesiology OR exercise science department chair`, url: g(`${uni} kinesiology OR exercise science department chair`), ran: false },
+      { key: "dept_pubh", label: `Google: ${uni} public health department chair`, url: g(`${uni} public health department chair`), ran: false },
+      { key: "dept_nursing", label: `Google: ${uni} nursing dean`, url: g(`${uni} nursing dean`), ran: false },
+      { key: "dept_hsci", label: `Google: ${uni} health sciences dean`, url: g(`${uni} health sciences dean`), ran: false },
+      { key: "dept_biomed", label: `Google: ${uni} biomedical sciences department head`, url: g(`${uni} biomedical sciences department head`), ran: false },
     ];
   }
   return [
-    { key: "org_premed", label: `Google: ${uni} pre-med society contact`, url: g(`${uni} pre-med society contact`), ran: false },
     { key: "org_dir", label: `Google: ${uni} student organizations directory pre-health`, url: g(`${uni} student organizations directory pre-health`), ran: false },
+    { key: "org_premed", label: `Google: ${uni} pre-med society OR AMSA chapter contact`, url: g(`${uni} pre-med society OR AMSA chapter contact`), ran: false },
+    { key: "org_prenursing_pa", label: `Google: ${uni} pre-nursing OR pre-PA OR pre-dental club contact`, url: g(`${uni} pre-nursing OR pre-PA OR pre-dental club contact`), ran: false },
+    { key: "org_hosa", label: `Google: ${uni} HOSA OR public health student club`, url: g(`${uni} HOSA OR public health student club`), ran: false },
+    { key: "org_identity", label: `Google: ${uni} MAPS OR SNMA OR minority pre-health organization`, url: g(`${uni} MAPS OR SNMA OR minority pre-health organization`), ran: false },
+    { key: "org_ig", label: `Google: ${uni} pre-health club Instagram`, url: g(`${uni} pre-health club Instagram`), ran: false },
   ];
 }
 

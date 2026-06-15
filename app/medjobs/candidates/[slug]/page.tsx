@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,17 +62,10 @@ async function checkHasFullAccess(): Promise<boolean> {
 
     if (!profile) return false;
 
-    // v10 Phase 2+3 Bullet 2 (2026-06-04): paid OR active-pilot unlocks
-    // full candidate detail. medjobsAccessActive OR's the two paths.
-    const meta = (profile.metadata || {}) as Record<string, unknown>;
-    const isPaid = medjobsAccessActive(meta);
-
-    // Check verification state (verified or not_required)
-    const verificationState = profile.verification_state as string | null;
-    const isVerified = verificationState === "verified" || verificationState === "not_required";
-
-    // Require BOTH paid AND verified for full access
-    return isPaid && isVerified;
+    // Phase A: any signed-in provider gets full candidate detail (incl.
+    // contact). The old pilot + verified blurring is removed. See
+    // docs/medjobs/PROVIDER_FUNNEL_BUILD_PLAN.md.
+    return true;
   } catch {
     return false;
   }
@@ -126,7 +118,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .eq("is_active", true)
     .single();
 
-  if (!data) return { title: "Candidate Not Found | Olera MedJobs" };
+  if (!data) return { title: "Candidate Not Found | Olera" };
 
   const meta = data.metadata as StudentMetadata;
   const trackLabel = getTrackLabel(meta);
@@ -136,7 +128,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const redactedName = parts.length <= 1 ? parts[0] : `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
 
   return {
-    title: `${redactedName} — Student Caregiver | Olera MedJobs`,
+    title: `${redactedName} — Pre-Health Intern | Olera`,
     description: `${redactedName} is a ${trackLabel || "healthcare"} student${meta.university ? ` at ${meta.university}` : ""} seeking healthcare experience${data.city ? ` in ${data.city}, ${data.state}` : ""}.`,
   };
 }

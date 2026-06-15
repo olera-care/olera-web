@@ -112,25 +112,25 @@ function StaffingPilotContent() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Welcome to the Pilot!</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">Welcome aboard!</h1>
           <p className="text-lg text-gray-600 mb-6">
-            <span className="font-semibold text-gray-900">{enrollmentData.providerName}</span> is now enrolled
-            in the {enrollmentData.universityName} Student Caregiver Program.
+            <span className="font-semibold text-gray-900">{enrollmentData.providerName}</span> is now a partner
+            in the {enrollmentData.universityName} Pre-Health Caregiving Internship.
           </p>
           <div className="bg-white rounded-xl border border-gray-200 p-6 text-left mb-8">
             <h2 className="font-semibold text-gray-900 mb-3">What happens next?</h2>
             <ul className="space-y-3 text-gray-600">
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-medium">1</span>
-                <span>We&apos;ll begin recruiting pre-nursing students for your agency</span>
+                <span>Tell us about a client who needs recurring coverage</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-medium">2</span>
-                <span>You&apos;ll receive vetted candidate profiles via email</span>
+                <span>We match a committed pre-health intern whose availability fits</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-medium">3</span>
-                <span>Interview and hire students who fit your needs</span>
+                <span>Interview, hire, and the semester internship begins</span>
               </li>
             </ul>
           </div>
@@ -154,51 +154,52 @@ function StaffingPilotContent() {
           <div className="flex justify-center mb-4">
             <Image src="/images/olera-logo.png" alt="Olera" width={120} height={40} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Caregiver Pilot</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Pre-Health Caregiving Internship</h1>
           <p className="text-lg text-gray-600">
-            Join our pilot program connecting pre-nursing students with caregiving opportunities.
+            Partner with us to host vetted pre-health interns for a semester of recurring care.
           </p>
         </div>
 
         {/* T&C Card */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900">Pilot Agreement</h2>
-            <p className="text-sm text-gray-500 mt-1">Please review and accept to enroll</p>
+            <h2 className="text-xl font-semibold text-gray-900">Partner Agreement</h2>
+            <p className="text-sm text-gray-500 mt-1">Please review and accept to join</p>
           </div>
 
           <div className="p-6 max-h-80 overflow-y-auto bg-gray-50 text-sm text-gray-700 space-y-4">
             <p>
-              <strong>Program Overview:</strong> The Olera Student Caregiver Pilot Program connects
-              pre-nursing and pre-medical students with home care agencies for paid caregiving positions.
-              This pilot is designed to help address caregiver shortages while providing students with
-              valuable healthcare experience.
+              <strong>Program Overview:</strong> The Olera Pre-Health Caregiving Internship places
+              pre-nursing and pre-medical students with home care agencies for paid, supervised
+              caregiving. Interns commit to a semester of recurring availability, and we match them
+              to your clients whose schedules line up — giving you reliable coverage while students
+              earn the experience and references their health-career applications need.
             </p>
 
             <p>
               <strong>What You&apos;ll Receive:</strong>
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Vetted student candidate profiles sent to your email</li>
-              <li>Students who have completed background checks and are actively seeking caregiving work</li>
-              <li>Goal of 5 new candidates per week with 1-3 solid hires per month</li>
-              <li>During the pilot period, this service is provided at no cost</li>
+              <li>Vetted intern profiles matched to your recurring coverage needs</li>
+              <li>Students who have completed background checks and committed to a semester of availability</li>
+              <li>A motivated pre-health pipeline you could hire on after the term</li>
+              <li>No commitment up front — matching begins only when you have a recurring need</li>
             </ul>
 
             <p>
               <strong>Your Commitment:</strong>
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Review candidate profiles in a timely manner</li>
-              <li>Provide feedback on candidates to help us improve matching</li>
+              <li>Review matched intern profiles in a timely manner</li>
+              <li>Provide feedback to help us improve matching</li>
               <li>Conduct your standard hiring and onboarding process</li>
-              <li>Share occasional feedback about the pilot program</li>
+              <li>Share occasional feedback about the internship</li>
             </ul>
 
             <p>
-              <strong>Pilot Terms:</strong> This is a pilot program. Olera may modify or discontinue
-              the program at any time. You may opt out at any time by contacting us. During the pilot,
-              there are no fees or long-term commitments.
+              <strong>Program Terms:</strong> This internship is early-stage. Olera may modify or
+              discontinue it at any time. You may opt out at any time by contacting us. There are no
+              fees or long-term commitments during the program.
             </p>
 
             <p>
@@ -219,11 +220,11 @@ function StaffingPilotContent() {
               disabled={loading}
               className="w-full rounded-lg bg-primary-600 py-3 text-white font-semibold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? "Enrolling..." : "I Accept — Enroll My Agency"}
+              {loading ? "Joining..." : "I Accept — Join as a Partner"}
             </button>
 
             <p className="mt-4 text-xs text-center text-gray-500">
-              By clicking above, you agree to participate in the pilot program under these terms.
+              By clicking above, you agree to participate in the internship program under these terms.
             </p>
           </div>
         </div>

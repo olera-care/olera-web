@@ -18,7 +18,7 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import React, { type ReactElement } from "react";
 import { ProgramPdfTemplate, type ProgramPdfAssets } from "./Template";
-import { getProgramPdfConfig, type ProgramPdfConfig } from "./configs";
+import { getProgramPdfConfig, type PdfAudience, type ProgramPdfConfig } from "./configs";
 
 /**
  * Read a file from /public as a base64 data URI. Returns undefined
@@ -63,10 +63,15 @@ async function loadAssets(config: ProgramPdfConfig): Promise<ProgramPdfAssets> {
  * as a Buffer ready for attachment / HTTP response. Throws if the
  * slug isn't registered in configs/index.ts.
  */
-export async function renderProgramPdf(universitySlug: string): Promise<Buffer> {
-  const config = getProgramPdfConfig(universitySlug);
+export async function renderProgramPdf(
+  universitySlug: string,
+  audience: PdfAudience = "provider",
+): Promise<Buffer> {
+  const config = getProgramPdfConfig(universitySlug, audience);
   if (!config) {
-    throw new Error(`No Program PDF config for university slug: ${universitySlug}`);
+    throw new Error(
+      `No ${audience} Program PDF config for university slug: ${universitySlug}`,
+    );
   }
   const assets = await loadAssets(config);
   // @react-pdf/renderer's renderToBuffer is typed against
@@ -81,9 +86,13 @@ export async function renderProgramPdf(universitySlug: string): Promise<Buffer> 
   return buffer;
 }
 
-/** Suggested attachment filename for the given university. */
-export function programPdfFilename(universitySlug: string): string {
-  const config = getProgramPdfConfig(universitySlug);
-  if (!config) return "student-caregiver-program.pdf";
-  return `${config.slug}-student-caregiver-program.pdf`;
+/** Suggested attachment filename for the given university + audience. */
+export function programPdfFilename(
+  universitySlug: string,
+  audience: PdfAudience = "provider",
+): string {
+  const config = getProgramPdfConfig(universitySlug, audience);
+  const suffix = audience === "student" ? "student-program" : "student-caregiver-program";
+  if (!config) return `${suffix}.pdf`;
+  return `${config.slug}-${suffix}.pdf`;
 }

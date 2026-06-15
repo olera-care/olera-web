@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { studentAccountCreatedEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
+import { sanitizeReferral } from "@/lib/medjobs/apply-link";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
 function getSupabaseAdmin() {
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { displayName, email, phone, city, state, website: honeypot } = body;
+    const referral = sanitizeReferral(body.referral);
 
     // Honeypot check
     if (honeypot) {
@@ -68,6 +70,8 @@ export async function POST(req: NextRequest) {
       application_completed: false,
       seeking_status: "actively_looking" as const,
       profile_completeness: 0,
+      // Attribution — where this applicant came from (campus + partner + channel).
+      ...(referral ? { referral: { ...referral, captured_at: new Date().toISOString() } } : {}),
     };
 
     // Profile starts inactive — will be activated when student submits intro video

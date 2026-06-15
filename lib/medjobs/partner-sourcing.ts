@@ -29,15 +29,25 @@ export type PartnerSubtype = "advisor" | "student_org" | "dept_head";
 export const PARTNER_SUBTYPES: PartnerSubtype[] = ["advisor", "student_org", "dept_head"];
 
 /** Default prerequisite departments to sweep for dept heads when the admin
- *  doesn't scope explicitly. */
+ *  doesn't scope explicitly. Broad on purpose — any undergraduate department
+ *  that commonly serves pre-med / pre-nursing / pre-PA / pre-PT / pre-pharmacy
+ *  / allied-health prerequisite coursework. */
 const DEFAULT_DEPARTMENTS = [
   "biology",
   "chemistry",
+  "biochemistry",
+  "microbiology",
   "psychology",
+  "neuroscience",
   "public health",
-  "kinesiology",
+  "health sciences",
+  "kinesiology / exercise science",
+  "nutrition / dietetics",
+  "biomedical sciences",
+  "human development / family sciences",
   "nursing",
   "allied health",
+  "physiology / anatomy",
 ];
 
 export interface UniversityContext {
@@ -133,9 +143,20 @@ export interface ExtractedOffice {
   email: string | null;
   phone: string | null;
   website: string | null;
+  /** Social channels (Instagram / Discord / GroupMe …) — populated for student
+   *  orgs; empty for advising offices / departments. */
+  socials?: SocialLink[];
   ask_for: string[];
   advisors: ExtractedAdvisor[];
   source_url: string | null;
+  // ── Department-head (person-shaped) fields ──────────────────────────────
+  // For dept_head, the "office" IS a department and the prospect is ONE person
+  // (the chair/head/dean). These carry that person; email/phone above are the
+  // CHAIR's direct contact, and `name` is the department. Empty for other tags.
+  /** The department chair/head/dean's full name. */
+  person_name?: string | null;
+  /** The chair's title/role as shown (e.g. "Department Chair", "Dean"). */
+  person_title?: string | null;
 }
 
 export interface OfficeExtractResult {
@@ -182,6 +203,12 @@ function url(v: unknown): string | null {
 
 function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): string {
   const where = [ctx.university, ctx.city, ctx.state].filter(Boolean).join(", ");
+  if (subtype === "dept_head") {
+    return deptHeadSourceMapPrompt(ctx, where);
+  }
+  if (subtype === "student_org") {
+    return studentOrgSourceMapPrompt(ctx, where);
+  }
   if (subtype === "advisor") {
     return [
       `Find the BEST official web pages to identify and CONTACT the advising`,
@@ -208,25 +235,105 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
       `"primary" = most likely to show an office name + email + phone.`,
     ].join("\n");
   }
-  const pageTypes: Record<Exclude<PartnerSubtype, "advisor">, string> = {
-    student_org:
-      "student-organization directories, pre-health / pre-med / pre-nursing / allied-health club pages, " +
-      "and student affairs org listings (prefer pages with a club contact email)",
-    dept_head:
-      "department home pages and 'Contact' pages for biology, chemistry, public health, " +
-      "kinesiology, nursing, and allied-health departments (chair / department contact info)",
-  };
+  // Unreachable: advisor / dept_head / student_org are all handled above.
+  return advisorFallbackSourceMapPrompt(ctx, where);
+}
+
+/**
+ * Student-organization source map (Stage 1). Goal: a COMPREHENSIVE list of
+ * pages to reach pre-health CLUBS — and a representative's contact. Unlike
+ * advisor/dept_head sourcing, the richest sources are often OFF the .edu domain
+ * (the campus engagement platform, Instagram, Linktree), so we ASK for those
+ * and the domain filter is relaxed for this subtype (see buildSourceMap).
+ */
+function studentOrgSourceMapPrompt(ctx: UniversityContext, where: string): string {
+  const loc = [ctx.city, ctx.state].filter(Boolean).join(", ");
   return [
-    `Find the BEST real web pages to research ${subtype.replace("_", " ")} contacts at ${where}.`,
-    `Focus on: ${pageTypes[subtype as "student_org" | "dept_head"]}.`,
+    `Goal: a COMPREHENSIVE list of pages to reach PRE-HEALTH STUDENT ORGANIZATIONS`,
+    `(student-run clubs) at ${where}, each with a way to contact a representative.`,
+    ``,
+    `Look for clubs serving pre-med, pre-nursing, pre-PA, pre-dental, pre-pharmacy,`,
+    `pre-PT/OT, public-health, and allied-health students — e.g. a Pre-Med Society or`,
+    `AMSA chapter, Pre-PA / Pre-Nursing / Pre-Dental clubs, HOSA, MAPS / SNMA or other`,
+    `identity-based health orgs, a Public Health or Global/Community Health club.`,
+    ``,
+    `Strongly prefer, in order:`,
+    ` 1. The university's STUDENT-ORG DIRECTORY / engagement platform listing (Engage /`,
+    `    CampusGroups / Presence / Anthology — often <school>.campuslabs.com or a`,
+    `    "getinvolved"/"orgs" subsite) where each club shows a contact email + officers`,
+    ` 2. A club's own page, Linktree, or Instagram that shows a contact email or DM handle`,
+    ` 3. A department or pre-health office page that lists affiliated student clubs`,
+    ``,
+    `Prefer pages that show a CONTACT — an org email, a named officer, a faculty advisor,`,
+    `or a social handle (Instagram / Discord / GroupMe / Slack). AVOID dead/expired club`,
+    `pages, generic news/events, and one-off flyers. If a directory listing exists,`,
+    `include it — it is the single richest source.`,
+    ``,
+    `Every club MUST be a ${ctx.university}${loc ? ` (${loc})` : ""} student organization —`,
+    `NOT another school's club, and NOT a different campus of the same system. The PAGE`,
+    `itself may live on the university site OR on the club's own social / Linktree /`,
+    `engagement-platform page — that is expected and welcome.`,
+    ``,
+    `Be comprehensive: 6-12 links across the different pre-health club types. For each,`,
+    `"why" = which club it reveals, "likely" = e.g. "org email + Instagram".`,
+    ``,
+    `Return ONLY valid JSON shaped exactly:`,
+    `{"domain":"<this university's primary website domain>",`,
+    ` "sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+    `"primary" = a directory or club page that shows a contact email or social handle.`,
+  ].join("\n");
+}
+
+function advisorFallbackSourceMapPrompt(ctx: UniversityContext, where: string): string {
+  return [
+    `Find the BEST real web pages to research partner contacts at ${where}.`,
     `Prefer official .edu pages. 4-7 links, quality over quantity.`,
-    `For each give "why" and "likely" (e.g. "org contact email").`,
     ``,
     ...institutionConstraint(ctx),
     ``,
     `Return ONLY valid JSON shaped exactly:`,
     `{"domain":"<this university's primary website domain>",`,
     ` "sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+  ].join("\n");
+}
+
+/**
+ * Department-head source map (Stage 1). The goal is a COMPREHENSIVE set of pages
+ * that each reveal a NAMED department chair/head (or dean) we can then extract —
+ * not generic department landing pages (which tend to be dead ends with no
+ * person). We point the model at the page types that actually list leadership.
+ */
+function deptHeadSourceMapPrompt(ctx: UniversityContext, where: string): string {
+  const depts = (ctx.departments?.length ? ctx.departments : DEFAULT_DEPARTMENTS).join(", ");
+  return [
+    `Goal: build a COMPREHENSIVE list of the department CHAIRS / HEADS (and DEANS of`,
+    `Nursing or Health Sciences colleges) at ${where} for the undergraduate departments`,
+    `that serve pre-health students (pre-med, pre-nursing, pre-PA, pre-PT, pre-pharmacy,`,
+    `allied health). Consider these departments — include every one that exists here:`,
+    `${depts}.`,
+    ``,
+    `For EACH department, return the SINGLE page most likely to NAME the chair/head and`,
+    `show their contact. Strongly prefer, in order:`,
+    ` 1. The department's "People" / "Faculty & Staff" / "Directory" page`,
+    ` 2. The department's "Leadership" / "Administration" / "About > Chair" page`,
+    ` 3. The chair's individual faculty profile page (often .../people/<name>)`,
+    ` 4. As a last resort, the department home page IF it shows the chair by name`,
+    ``,
+    `AVOID (do not return): news/announcement posts, event pages, course catalogs,`,
+    `degree/program-overview pages, admissions pages, and any page that does not name a`,
+    `specific person. Prefer canonical, stable .edu pages over deep ad-hoc URLs that`,
+    `often 404. If unsure a page is live + names a person, leave it out.`,
+    ``,
+    ...institutionConstraint(ctx),
+    ``,
+    `Be comprehensive: aim for one strong link PER department that exists here`,
+    `(roughly 8-15 links total). For each, "why" = which chair/department it reveals,`,
+    `"likely" = e.g. "names the Biology chair + email".`,
+    ``,
+    `Return ONLY valid JSON shaped exactly:`,
+    `{"domain":"<this university's primary website domain, e.g. ufl.edu>",`,
+    ` "sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
+    `"primary" = a page that clearly names the chair + shows their email.`,
   ].join("\n");
 }
 
@@ -268,11 +375,15 @@ export async function buildSourceMap(
   const domain = domainRaw && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(domainRaw) ? domainRaw : null;
   const sources: SourceLink[] = [];
   const seen = new Set<string>();
+  // Student orgs are frequently reachable only off the .edu domain (the campus
+  // engagement platform, Instagram, Linktree), so the strict same-domain filter
+  // would drop the richest sources. Keep the filter for advisor/dept_head only.
+  const enforceDomain = subtype !== "student_org";
   for (const raw of arr(out?.sources)) {
     const o = raw as Record<string, unknown>;
     const u = url(o.url);
     if (!u || seen.has(u)) continue;
-    if (domain && !hostInDomain(u, domain)) continue; // off-institution — drop
+    if (enforceDomain && domain && !hostInDomain(u, domain)) continue; // off-institution — drop
     seen.add(u);
     sources.push({
       title: str(o.title) ?? u,
@@ -319,10 +430,16 @@ function extractPrompt(
 
   if (subtype === "dept_head") {
     return [
-      `Find the DEPARTMENT CHAIR / HEAD for these departments at ${where}: ${depts}.`,
+      `Identify the most senior STUDENT-FACING leader for the undergraduate departments at`,
+      `${where} that serve pre-health prerequisite coursework (pre-med, pre-nursing, pre-PA,`,
+      `pre-PT, pre-pharmacy, and allied health). Reason about which of these departments actually`,
+      `exist at this university, then find ONE leader each: the department CHAIR / HEAD, or the`,
+      `DEAN for a college of Nursing or Health Sciences. Departments to consider: ${depts}.`,
       sourceHint,
-      `For each: department, name, title, email, phone, profile_url, source_url, confidence (high/medium/low), notes.`,
-      `Only include real, named chairs/heads with a source. Skip departments you cannot verify.`,
+      `Return ONE person per department (the chair/head/dean — not professors or staff).`,
+      `For each: department, name, title (e.g. "Chair", "Department Head", "Dean", "Dr."),`,
+      `email, phone, profile_url, source_url, confidence (high/medium/low), notes.`,
+      `Only include real, named leaders with a source. Skip departments you cannot verify.`,
       ``,
       `Return ONLY valid JSON shaped exactly:`,
       `{"candidates":[{"department":"...","name":"...","title":"...","email":"...","phone":"...","profile_url":"...","source_url":"...","confidence":"...","notes":"..."}]}`,
@@ -511,6 +628,7 @@ function parseOffices(raw: Record<string, unknown> | null, sourceUrl: string): E
       email: str(o.email),
       phone: str(o.phone),
       website: url(o.website),
+      socials: parseSocials(o.socials),
       ask_for: parseAskFor(o.ask_for),
       advisors: parseAdvisors(o.advisors),
       source_url: url(o.source_url) ?? sourceUrl,
@@ -538,6 +656,9 @@ function officeSchema(sourceUrl: string): string {
     ` - "ask_for": up to 3 names clearly tied to this office and relevant to`,
     `   pre-health (e.g. "An-Janet Smith — Pre-Health Advisor") who DON'T have`,
     `   their own contact — for email personalization only. [] if none.`,
+    ` - "socials": for a student organization, an array of {platform,url} for any`,
+    `   Instagram / Discord / GroupMe / Slack / LinkedIn shown on the page; []`,
+    `   for advising offices / departments.`,
     ` - "source_url": "${sourceUrl}"`,
   ].join("\n");
 }
@@ -553,14 +674,151 @@ function officeRules(): string[] {
   ];
 }
 
-/** Extract OFFICES by having the AI browse a page. Fallback for when the page
- *  can't be fetched server-side (see the source-partners route). */
+// ── Department-head (person-shaped) extraction ───────────────────────────
+// For dept_head the "office" is a department and the prospect is ONE person:
+// the chair / head / dean. We extract that person's name, title, and DIRECT
+// contact — never an advising-staff roster or a generic inbox.
+
+function deptHeadRules(): string[] {
+  return [
+    `- ONE person per department: the CHAIR / HEAD (or the DEAN of a Nursing /`,
+    `  Health Sciences college). NOT advising staff, NOT professors who aren't the`,
+    `  chair, NOT a roster.`,
+    `- Identify the chair as the person whose title contains "Chair", "Head",`,
+    `  "Department Head", or "Dean".`,
+    `- Use ONLY what is literally present; NEVER invent or construct an email/phone`,
+    `  (no "first.last@domain"); if a field is absent use null.`,
+    `- Prefer the chair's OWN direct email. If only a shared department / advising`,
+    `  inbox is shown (e.g. "bio-advising@..."), set email null — the admin will`,
+    `  confirm the chair's address by phone.`,
+    `- Skip a department if you cannot identify a NAMED chair/head/dean.`,
+    `- IGNORE generic site nav / legal links (Title IX, Accessibility, Privacy).`,
+  ];
+}
+
+function deptHeadSchema(sourceUrl: string): string {
+  return [
+    `For EACH department present, return the ONE leader:`,
+    ` - "department": the department/college name (e.g. "Department of Biology")`,
+    ` - "chair_name": the chair/head/dean's FULL name, or null if none is named`,
+    ` - "chair_title": their title as shown (e.g. "Professor & Chair", "Department`,
+    `   Head", "Dean"), or null`,
+    ` - "email": the CHAIR'S OWN direct email — NOT a generic department/advising`,
+    `   inbox; null if only a shared inbox is shown`,
+    ` - "phone": the chair's or department office phone, or null`,
+    ` - "source_url": "${sourceUrl}"`,
+  ].join("\n");
+}
+
+/** Parse the model's `{departments:[...]}` into person-shaped ExtractedOffice
+ *  records (name = department, person_* = the chair, email/phone = chair direct). */
+function parseDeptHeads(raw: Record<string, unknown> | null, sourceUrl: string): ExtractedOffice[] {
+  const out: ExtractedOffice[] = [];
+  for (const item of arr(raw?.departments)) {
+    const o = item as Record<string, unknown>;
+    const department = str(o.department) ?? str(o.name);
+    const personName = str(o.chair_name) ?? str(o.person_name);
+    if (!department && !personName) continue;
+    out.push({
+      name: department ?? personName ?? "",
+      tag: "department",
+      email: str(o.email),
+      phone: str(o.phone),
+      website: url(o.website),
+      socials: [],
+      ask_for: [],
+      advisors: [],
+      source_url: url(o.source_url) ?? sourceUrl,
+      person_name: personName,
+      person_title: str(o.chair_title) ?? str(o.title),
+    });
+  }
+  return out;
+}
+
+// ── Student-organization (club) extraction ───────────────────────────────
+// Clubs are office-shaped (a parent with a roster) so they reuse the {offices}
+// JSON shape + parseOffices, but the framing + emphasis differ: capture the
+// club's contact + SOCIALS, and treat the faculty advisor / officers as the
+// roster (advisors with their own contact; everyone else as ask_for).
+
+function orgRules(): string[] {
+  return [
+    `- The student ORGANIZATION (club) is the target — capture a way to reach a rep.`,
+    `- Clubs are often reachable ONLY via social, so ALWAYS capture social channels`,
+    `  (Instagram / Discord / GroupMe / Slack / LinkedIn / Linktree) when shown.`,
+    `- Use ONLY what is literally present; NEVER invent or construct an email/phone`,
+    `  (no "first.last@domain"); if a field is absent use null.`,
+    `- A person becomes an "advisor" ONLY with their own email/phone; otherwise at`,
+    `  most an "ask_for" name. ALWAYS include the FACULTY ADVISOR when shown — it is`,
+    `  the highest-value, year-to-year contact.`,
+    `- IGNORE generic site nav / legal links (Title IX, Accessibility, Privacy).`,
+  ];
+}
+
+function orgSchema(sourceUrl: string): string {
+  return [
+    `For EACH student organization return:`,
+    ` - "name": the club name (e.g. "Pre-Medical Society", "AMSA Chapter")`,
+    ` - "tag": "student_org"`,
+    ` - "email": the club's contact email (a shared club address OR a named officer's`,
+    `   email), or null if none is shown`,
+    ` - "phone": a phone if shown, or null`,
+    ` - "website": the club page / Linktree URL, or null`,
+    ` - "socials": array of {platform,url} for any Instagram / Discord / GroupMe /`,
+    `   Slack / LinkedIn / Linktree shown; [] if none`,
+    ` - "advisors": the FACULTY ADVISOR + any officer (President, VP, Recruitment`,
+    `   Chair) who has their OWN email/phone → [{ "name","role","email","phone" }]; []`,
+    `   if nobody qualifies`,
+    ` - "ask_for": up to 3 named officers/advisor WITHOUT their own contact, for`,
+    `   personalization only; [] if none`,
+    ` - "source_url": "${sourceUrl}"`,
+  ].join("\n");
+}
+
+/** Extract OFFICES (or, for dept_head, department CHAIRS; for student_org,
+ *  CLUBS) by having the AI browse a page. Fallback for when the page can't be
+ *  fetched server-side. */
 export async function extractFromUrl(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
   pageUrl: string,
 ): Promise<OfficeExtractResult> {
   const cost = new CostTracker();
+  if (subtype === "student_org") {
+    const prompt = [
+      `Read the web page at ${pageUrl} (University: ${ctx.university}).`,
+      `Identify the pre-health STUDENT ORGANIZATION(s) (student-run clubs) on the page`,
+      `and capture each club's contact + social channels.`,
+      ``,
+      ...orgRules(),
+      `- If you cannot actually read the page, return {"offices":[]} — never guess.`,
+      ``,
+      orgSchema(pageUrl),
+      ``,
+      `If no student organization is present, return {"offices":[]}.`,
+      `Return ONLY valid JSON: {"offices":[ ... ]}`,
+    ].join("\n");
+    const out = await perplexityJson(prompt, cost, 4000);
+    return { offices: parseOffices(out, pageUrl), cost: cost.cost };
+  }
+  if (subtype === "dept_head") {
+    const prompt = [
+      `Read the web page at ${pageUrl} (University: ${ctx.university}).`,
+      `Identify the academic DEPARTMENT(S) on this page and, for each, the`,
+      `department CHAIR / HEAD (or DEAN) plus their contact info.`,
+      ``,
+      ...deptHeadRules(),
+      `- If you cannot actually read the page, return {"departments":[]} — never guess.`,
+      ``,
+      deptHeadSchema(pageUrl),
+      ``,
+      `If no named department chair/head is present, return {"departments":[]}.`,
+      `Return ONLY valid JSON: {"departments":[ ... ]}`,
+    ].join("\n");
+    const out = await perplexityJson(prompt, cost, 4000);
+    return { offices: parseDeptHeads(out, pageUrl), cost: cost.cost };
+  }
   const prompt = [
     `Read the web page at ${pageUrl} (University: ${ctx.university}).`,
     `Identify the advising OFFICE(s) relevant to health-profession students and`,
@@ -578,8 +836,8 @@ export async function extractFromUrl(
   return { offices: parseOffices(out, pageUrl), cost: cost.cost };
 }
 
-/** Organize text the admin copy/pasted (an office page / contact block) into
- *  office records. The primary capture path when a page can't be fetched. */
+/** Organize text the admin copy/pasted into office (or dept-head chair) records.
+ *  The primary capture path when a page can't be fetched server-side. */
 export async function extractFromText(
   ctx: UniversityContext,
   subtype: PartnerSubtype,
@@ -587,6 +845,43 @@ export async function extractFromText(
   sourceUrl: string,
 ): Promise<OfficeExtractResult> {
   const cost = new CostTracker();
+  if (subtype === "student_org") {
+    const prompt = [
+      `Below is text copied from a ${ctx.university} web page. Identify the pre-health`,
+      `STUDENT ORGANIZATION(s) (clubs) it describes and capture each club's contact +`,
+      `social channels.`,
+      ``,
+      ...orgRules(),
+      ``,
+      orgSchema(sourceUrl || "the page"),
+      ``,
+      `If the text describes no student organization, return {"offices":[]}.`,
+      `Return ONLY valid JSON: {"offices":[ ... ]}`,
+      ``,
+      `--- PAGE TEXT ---`,
+      text.slice(0, 18000),
+    ].join("\n");
+    const out = await perplexityJson(prompt, cost, 4000);
+    return { offices: parseOffices(out, sourceUrl), cost: cost.cost };
+  }
+  if (subtype === "dept_head") {
+    const prompt = [
+      `Below is text copied from a ${ctx.university} web page. Identify the academic`,
+      `DEPARTMENT(S) it describes and, for each, the department CHAIR / HEAD (or DEAN).`,
+      ``,
+      ...deptHeadRules(),
+      ``,
+      deptHeadSchema(sourceUrl || "the page"),
+      ``,
+      `If the text names no department chair/head, return {"departments":[]}.`,
+      `Return ONLY valid JSON: {"departments":[ ... ]}`,
+      ``,
+      `--- PAGE TEXT ---`,
+      text.slice(0, 18000),
+    ].join("\n");
+    const out = await perplexityJson(prompt, cost, 4000);
+    return { offices: parseDeptHeads(out, sourceUrl), cost: cost.cost };
+  }
   const prompt = [
     `Below is text copied from a ${ctx.university} web page. Identify the advising`,
     `OFFICE(s) it describes and capture each office's CONTACT info.`,

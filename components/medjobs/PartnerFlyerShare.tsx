@@ -44,7 +44,7 @@ export function PartnerFlyerShare({
 Hi everyone,
 
 Sharing an opportunity that may be a great fit for pre-health students:
-Olera's Student Caregiver opportunity for ${uni} students. It's a paid,
+Olera's Pre-Health Caregiving Internship for ${uni} students. It's a paid,
 mentored caregiving role with local seniors — real patient-facing hours,
 mentorship, and recommendation letters toward med/PA/nursing school.
 
@@ -53,7 +53,7 @@ Program info: ${programUrl}
 
 (Run by Olera with Dr. Logan DuBose — not a university-run program.)`;
 
-  const socialPost = `📣 Pre-health students: get PAID, mentored caregiving experience with local seniors — real hours + recommendation letters toward med/PA/nursing school. Olera's Student Caregiver opportunity for ${uni} students. Apply: ${applyUrl}`;
+  const socialPost = `📣 Pre-health students: get PAID, mentored caregiving experience with local seniors — real hours + recommendation letters toward med/PA/nursing school. Olera's Pre-Health Caregiving Internship for ${uni} students. Apply: ${applyUrl}`;
 
   const waUrl = `https://wa.me/?text=${encodeURIComponent(socialPost)}`;
   const mailto = `mailto:?subject=${encodeURIComponent(
@@ -74,7 +74,7 @@ Program info: ${programUrl}
           rel="noopener noreferrer"
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          View flyer ↗
+          View / download flyer ↗
         </a>
         <CopyButton label="Copy email template" text={emailTemplate} />
         <CopyButton label="Copy social post" text={socialPost} />
@@ -92,7 +92,7 @@ Program info: ${programUrl}
           <CopyButton label="Slack" text={socialPost} />
         </div>
         <p className="mt-2 text-[11px] text-gray-400">
-          A designed, campus-specific flyer PDF is coming soon — for now the link above is shareable everywhere.
+          Every link here is unique to you — students who apply through it are counted as yours.
         </p>
       </div>
     </section>

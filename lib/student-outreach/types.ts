@@ -40,6 +40,31 @@ export type DistributionEvidence =
   | "observed_external"
   | "self_reported";
 
+// ── Department-Head partnership documentation ────────────────────────────
+// Dept heads convert differently from other partners: the terminal step is
+// NOT a portal hand-off but a documented decision about whether (and how) we
+// may reach the department's professors. Captured at mark-partner time.
+export type DeptHeadConfirmedVia = "verbal" | "email" | "meeting" | "other";
+export type ProfessorPermission = "yes" | "no" | "not_yet" | "unclear";
+export type DeptHeadNextStep =
+  | "email_professors"
+  | "will_forward"
+  | "will_introduce"
+  | "need_followup"
+  | "do_not_contact_yet"
+  | "other";
+
+export interface DeptHeadPartnership {
+  /** How the partnership was confirmed. */
+  confirmed_via: DeptHeadConfirmedVia;
+  /** Whether we may contact professors in this department. */
+  professor_permission: ProfessorPermission;
+  /** The agreed next step for (eventual) professor outreach. */
+  next_step: DeptHeadNextStep;
+  /** Free-text scope / context. */
+  notes: string;
+}
+
 export type PartnerHealth = "healthy" | "at_risk" | "dormant";
 
 export type ContactStatus = "active" | "stale" | "incorrect" | "no_longer_valid";
@@ -170,6 +195,10 @@ export interface ResearchData {
     email_unavailable?: boolean;
     address_unavailable?: boolean;
   };
+  /** Social channels (Instagram / Discord / GroupMe …) surfaced by the AI for
+   *  an organization (mainly student orgs). Set at Generate; read-only in the
+   *  drawer. */
+  socials?: { platform: string; url: string }[];
   /** v9.x single Decision Maker slot — the named person on the team admin
    *  identified as the right recipient (owner, hiring manager, etc.). Stored
    *  here (not in `student_outreach_contacts`) so the Pre-Flight UI surfaces

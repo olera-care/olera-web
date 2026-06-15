@@ -7,6 +7,37 @@
 
 ## Current Focus
 
+### 2026-06-14 — Provider outreach reframed to host-site / eligibility-screener funnel (branch `claude/keen-mendel-6i8iW`)
+
+**Context:** Long design session (with Logan) reworking the MedJobs **provider funnel** around a lightweight **eligibility screener** as the single converging CTA, an **internship/host-site** framing, a **two-tier terms** model (free non-circumvention "interview terms" = existing `interview_terms_accepted_at` / `PilotTermsModal`, before any interview; paid internship agreement at good-fit), **coarse coverage buckets + PRN** for matching, **term-scoped** availability with finals re-plans, and a **pay-once, guaranteed-until-threshold-hours** fee. Funnel is being designed step-by-step ("inch by inch") before any build.
+
+**Locked + shipped this session — provider outreach copy rewritten in the new voice:**
+- **`lib/student-outreach/templates.ts`** — `providerIntroEmail` (Day 0), `providerFollowupEmail` (Day 3), `providerFinalEmail` (Day 7): new host-site/eligibility copy, bullet list (vetted+PRN / predictable+attestation / lower-cost+experience / evergreen pipeline), subjects aligned to `Host {campus} student caregivers this fall (pilot)`. Activation cadence (`activationIntroEmail/Nudge/Final`, **non-partner branches only**) re-pointed from "get set up → candidate board" to "check your eligibility" + Dr. DuBose call. Legacy `callScript()` Day-0 over-promise ("reliable coverage") removed.
+- **`lib/student-outreach/sequencer.ts`** — `defaultCallScriptForDay` + `defaultCallTipsForDay`: provider call-day keys realigned **0/1 → 3/5** (actual v10 call days), new host-site/eligibility talk tracks; activation check-in call re-pointed to the eligibility check.
+- CTA links: `[check your eligibility]` → `{welcome_url}` (magic-link/authed entry, future screener), `[see our website]` → `{program_url}`. No em dashes. `tsc --noEmit` clean.
+
+**DO NOT FORGET — follow-ups before/at build (Logan flagged):**
+1. **Smartlead campaigns** must be updated with this new copy + CTA. Not live-sending to providers yet, so a dead eligibility link is fine for now — but the campaigns are the source of live sends and must be synced.
+2. **Outreach + activation sequence launch UI** (PreFlight snapshots / launch screen) needs to reflect the new email snapshots + call scripts.
+3. **Cold send pipeline must populate `{welcome_url}` for cold provider sends** — today only the activation path builds a welcome token; cold used `{program_url}`. Until wired, `[check your eligibility]` falls back to `PROGRAM_URL` (acceptable pre-launch).
+4. **The eligibility screener itself (the `{welcome_url}` destination) is the next build (funnel step "S2").** Today the magic link lands on `/medjobs/candidates` with `WelcomeBanner` → `PilotTermsModal`. Plan inserts the screener before the board; screener end-state writes `interview_terms_accepted_at` (reuse existing flag; honors D15/D16, no new enums/actions per G1–G3).
+5. **PDF one-pager** (`lib/program-pdf/configs/texas-am.ts`) still has older "recurring shifts" framing — reframe later; for now it lives in the email signature.
+6. **Single-body-link policy deviation:** emails now carry two body links (eligibility + website) vs the documented one-link-in-body / program-in-signature policy (templates.ts:111). Approved by Logan; revisit if deliverability needs it.
+
+**Full build plan (durable source of truth):** the end-to-end provider funnel — Loops 1 (cold→eligibility→board), 2 (browse→interview), 2b (re-activation), 3 (offer→accept→confirm) — is now written up in **`docs/medjobs/PROVIDER_FUNNEL_BUILD_PLAN.md`**: every flag, screen, reuse/adapt/build, the dual-pay (authorize-at-offer/capture-at-confirm) model, the `placements`-table + Stripe schema decisions flagged for approval, discipline/deferred checks, and a 5-phase build sequence.
+
+### 2026-06-15 — Real email complaint/bounce rate in admin (branch `complaint-rate-instrumentation`, off staging, PR'd→staging)
+
+Closed the Notion card "Fix complaint-rate instrumentation (reads 0.00% = blind, not healthy)". **/explore reframed the premise:** the complaint path is NOT blind. The Resend webhook (`supabase/functions/resend-webhook/index.ts`) handles `email.complained` correctly and writes `email_events` + `email_log.complained_at` in real time (`received_at` ~2s after `occurred_at`; 53,623 events captured). The real gap was **display**: no percentage was computed anywhere — admin showed only raw counts, which read as a healthy "0.00%" by absence. **The actual number is uncomfortable:** complaint rate **0.041%** (over the 0.04% warn line, ~half Resend's 0.08% suspension line), riding there for weeks unseen on the crown-jewel account.
+
+**Built (PR, `/admin/automations` = email cockpit):** account-wide Complaint rate (30d) + Bounce rate (30d) as colored % StatCards, replacing the combined raw-count card. Numerator = **`email_events`** distinct webhook events (Resend's own count, =4 complaints) — NOT `email_log.complained_at` (=12, inflated). Denominators match Resend's defs: complaint = /delivered, bounce = /sent. Colors: yellow at half-threshold (0.04% / 2%), red at AUP line (0.08% / 4%); both currently yellow. Thresholds extracted to dependency-free `lib/email-thresholds.ts` (client can import w/o pulling in Resend); `lib/email.ts` re-exports. Plan at `plans/complaint-rate-instrumentation-plan.md`.
+
+**The 4-vs-12 discrepancy — investigated, BENIGN.** `email_events` complained=4, `email_log.complained_at`=12; the gap is 8 rows for one provider (`rdoyle@rlcommunities.com`), identical sub-second timestamp, zero `email_events` complained (but 60 other events — webhook healthy for them). No code writes `complained_at` except the webhook → these are **manual/out-of-band suppressions** (flagged by direct DB edit). So `email_events` = Resend-counted (canonical), `email_log.complained_at` = superset incl. manual flags. No lost webhook events. **Filed Notion follow-up card** (P3, Backend, Owner TJ): "Reconcile email_events vs email_log complaint counts" — decision = accept divergence as by-design vs add provenance flag. **TJ wants both cards closed together.**
+
+**Pre-test (/pre-test) caught 2 real bugs, both fixed:** (1) 🟡 bounce rate divided by `delivered` — but bounced mail is by definition not delivered → overstated ~17% (3.14% vs correct 2.68%); switched to /sent to match Resend's 4% math. (2) 🟢 skeleton showed 5 cards/5-col vs the real 6/6-col → load reflow; matched it. tsc clean (0 errors; ran `npm ci` in the worktree — had no node_modules). Numbers verified by replaying the route's exact queries against live DB.
+
+**NOT browser-tested** (admin-auth-gated) — verified data + computation, not render. Staging QA: load `/admin/automations`, eyeball the two rate cards.
+
 ### 2026-06-15 (PM) — Find Families digest rung + managed-ads email overhaul (branch `find-families-digest-rung`, PR #1052 → staging, built off staging AFTER #1051 landed)
 
 Started as an audit ("are Find Families emails in the digest tracker?"), became a build. Commits through `69b463bf`, all pushed, tsc clean (node_modules symlinked from keen-stonebraker for tsc).
@@ -269,7 +300,6 @@ The arc TJ set out on — distribute provider emails through the week + learn ra
 **Decisions:** completion is claimed-only (warm; keeps cold volume off the crown jewel); preview reuses public-page section pieces, NOT the public server component (SEO/CTA-router/reverted-mobile-nav-500 traps); mobile = no card-in-card, dividers do the work; rank stays Google-pure (never inflated by completion).
 
 **Next up:** (1) **T1 is THE open thread** — merge #967 (clean+inert) AND do the oleracare.com ops (NOT done; TJ-only dashboard/DNS work; the WAF blocks the assistant from the cron) — or reconsider the domain (oleracare.com mixes with Loops; seniorlistings.net is cleaner). Until the ops are done, `question_received` still bounces 7.2% on the crown jewel. (2) Completion carrot is otherwise live end-to-end on staging (Ph1 #978 + Ph2 preview #984) — NOT yet promoted to main. (3) Follow-ups: heavier preview sections, "see your page" link from the completion email, dedicated dormant-claimer audience source, non-answerer diagnose-then-respond system (data now legible via the resolver). Variant-stamp + admin variant-visibility already shipped to staging in TJ's parallel branch (#982).
-
 
 ### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
 

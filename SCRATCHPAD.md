@@ -40,6 +40,8 @@
 
 - **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
 
+- **MedJobs Monetization Proposal** — DONE (Notion doc created, ready for team review)
+
 ---
 
 ## Blocked / Needs Input
@@ -50,14 +52,15 @@
 
 ## Next Up
 
-1. **Admin Panel 2.0 QA** — work through all 7 action items (current session)
-2. Run benefits pipeline on FL + CA → compare patterns across 3 states
-3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-4. Rob Arnold YouTube ID (due Apr 7)
-5. MedJobs candidates detail page taste pass
-6. SEO city-specific content sections
-7. Merge PR #463 (user account separation)
-8. Continue staging → main promotion
+1. Logan builds Stripe payment integration for MedJobs (Apr 10)
+2. Team meeting 8am Eastern (Apr 10) — present monetization proposal
+3. Fix provider search/detection (franchise chains, city filter)
+4. MedJobs candidates detail page taste pass
+5. Run benefits pipeline on FL + CA → compare patterns across 3 states
+6. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
+7. SEO city-specific content sections
+8. Merge PR #463 (user account separation)
+9. Continue staging → main promotion
 
 ---
 
@@ -74,6 +77,7 @@
 | 2026-03-28 | Onboard page is platform showcase, not profile editor | Provider's first impression should be "here's what Olera can do" not "fill out these 7 forms." |
 | 2026-03-27 | Rename `token` query param to `otk` in email links | Apple Mail strips params named "token". |
 | 2026-03-25 | Quick discovery mode (3 terms/category) sufficient for batch | Standard mode costs 4x more but yields mostly duplicates. |
+| 2026-04-09 | MedJobs monetization: $49/mo after 1 free interview | Lowest friction for small providers. Scarce asset is candidates, not attention. Free first interview de-risks unproven supply quality. |
 | 2026-03-24 | Highlights are earned, not defaulted | Users see through templated labels. 1 verified fact > 4 defaults. |
 
 ---
@@ -92,6 +96,34 @@
 ---
 
 ## Session Log
+
+### 2026-04-09 (Session 70) — MedJobs Monetization Strategy
+
+**No code changes — strategy/research session**
+
+**Context:** Morning meeting with Logan & Esther on provider onboarding, staffing, and questions. Key data: 75 questions/day (15x increase), 7 provider responses in one day — first real two-way marketplace signal.
+
+**Monetization proposal developed through iterative discussion:**
+- Started with tiered subscription → TJ pushed for lower friction
+- Moved to pay-per-interview ($15-25 each) → simplest transaction
+- Considered bundles of 5 to absorb candidate quality variance
+- TJ cut through: one price, no tiers → **$49/mo unlimited after 1 free interview**
+- Free first interview de-risks unproven candidate quality
+- If bad candidate on free trial, provider can email support for another credit
+
+**Competitive justification (scarce asset framework):**
+- Indeed/Monster: scarce = employer attention → PPC model
+- LinkedIn: scarce = candidate attention → expensive subscriptions
+- ZipRecruiter: scarce = matching → AI subscription
+- **Olera: scarce = the candidates themselves** → gate access to them
+
+**Notion doc created:** [MedJobs Monetization Proposal](https://www.notion.so/33d5903a0ffe8115800bcdef0d642f58) under today's meeting notes
+
+**Action items from meeting:**
+- TJ: payment model research (done) + fix provider search/detection
+- Esther: debug/stabilize staffing feature for QA
+- Logan: QA audit today, build Stripe payment integration tomorrow
+- Team meeting tomorrow 8am Eastern
 
 ### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
 

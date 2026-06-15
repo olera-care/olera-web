@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  RESEND_COMPLAINT_LIMIT,
+  RESEND_COMPLAINT_WARN,
+  RESEND_BOUNCE_LIMIT,
+  RESEND_BOUNCE_WARN,
+} from "@/lib/email-thresholds";
 
 type Fn = "nudge" | "alert" | "digest" | "outreach" | "refresh" | "maintenance";
 interface Rollup {
@@ -43,7 +49,21 @@ interface Job {
 }
 interface ApiResponse {
   windowDays: number;
-  summary: { total: number; active: number; paused: number; errored: number; sends30d: number; bounces30d: number; complaints30d: number };
+  summary: {
+    total: number;
+    active: number;
+    paused: number;
+    errored: number;
+    sends30d: number;
+    bounces30d: number;
+    complaints30d: number;
+    deliveredAll30d: number;
+    sentAll30d: number;
+    complaintEvents30d: number;
+    bounceEvents30d: number;
+    complaintRate30d: number;
+    bounceRate30d: number;
+  };
   jobs: Job[];
   note: string;
 }
@@ -95,7 +115,7 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-function StatCard({ value, label, sub, danger, muted, onClick, active }: { value: ReactNode; label: string; sub?: string; danger?: boolean; muted?: boolean; onClick?: () => void; active?: boolean }) {
+function StatCard({ value, label, sub, danger, warn, muted, onClick, active }: { value: ReactNode; label: string; sub?: string; danger?: boolean; warn?: boolean; muted?: boolean; onClick?: () => void; active?: boolean }) {
   const clickable = !!onClick;
   return (
     <div
@@ -105,17 +125,23 @@ function StatCard({ value, label, sub, danger, muted, onClick, active }: { value
       onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick!(); } } : undefined}
       className={`rounded-xl border bg-white px-4 py-3 ${active ? "border-gray-900" : "border-gray-200"} ${clickable ? "cursor-pointer transition-colors hover:bg-gray-50" : ""}`}
     >
-      <div className={`text-2xl font-semibold leading-none tabular-nums ${danger ? "text-red-600" : muted ? "text-gray-300" : "text-gray-900"}`}>{value}</div>
+      <div className={`text-2xl font-semibold leading-none tabular-nums ${danger ? "text-red-600" : warn ? "text-amber-600" : muted ? "text-gray-300" : "text-gray-900"}`}>{value}</div>
       <div className="mt-1.5 text-xs text-gray-500">{label}{sub && <span className="text-gray-400"> · {sub}</span>}</div>
     </div>
   );
 }
 
+// Rate is a fraction (e.g. 0.00039). Render as a percentage; complaint rates live
+// in the third decimal, bounce rates in the second.
+function fmtPct(rate: number, decimals: number): string {
+  return `${(rate * 100).toFixed(decimals)}%`;
+}
+
 function Skeleton() {
   return (
     <div className="animate-pulse">
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-[68px] rounded-xl bg-gray-100" />)}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[68px] rounded-xl bg-gray-100" />)}
       </div>
       <div className="mt-5 h-8 w-72 rounded bg-gray-100" />
       <div className="mt-6 space-y-5">
@@ -233,12 +259,27 @@ export default function AutomationsPage() {
         <>
           {/* fleet stats */}
           <div>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               <StatCard value={activeCount} label="Active" sub={`of ${data.summary.total}`} />
               <StatCard value={pausedCount} label="Paused" muted={pausedCount === 0} onClick={pausedCount > 0 ? () => setFilter((f) => (f === "paused" ? "all" : "paused")) : undefined} active={filter === "paused"} />
               <StatCard value={erroredCount} label="Errored" danger={erroredCount > 0} muted={erroredCount === 0} onClick={erroredCount > 0 ? () => setFilter((f) => (f === "errored" ? "all" : "errored")) : undefined} active={filter === "errored"} />
               <StatCard value={data.summary.sends30d.toLocaleString()} label="Sent" sub="last 30 days" muted={data.summary.sends30d === 0} />
-              <StatCard value={data.summary.bounces30d + data.summary.complaints30d} label={data.summary.complaints30d > 0 ? "Bounced / complained" : "Bounced"} sub="last 30 days" danger={data.summary.bounces30d + data.summary.complaints30d > 0} muted={data.summary.bounces30d + data.summary.complaints30d === 0} />
+              <StatCard
+                value={fmtPct(data.summary.complaintRate30d, 3)}
+                label="Complaint rate"
+                sub={`${data.summary.complaintEvents30d} / ${data.summary.deliveredAll30d.toLocaleString()} · cap 0.08%`}
+                danger={data.summary.complaintRate30d > RESEND_COMPLAINT_LIMIT}
+                warn={data.summary.complaintRate30d > RESEND_COMPLAINT_WARN && data.summary.complaintRate30d <= RESEND_COMPLAINT_LIMIT}
+                muted={data.summary.deliveredAll30d === 0}
+              />
+              <StatCard
+                value={fmtPct(data.summary.bounceRate30d, 2)}
+                label="Bounce rate"
+                sub={`${data.summary.bounceEvents30d} / ${data.summary.sentAll30d.toLocaleString()} · cap 4%`}
+                danger={data.summary.bounceRate30d > RESEND_BOUNCE_LIMIT}
+                warn={data.summary.bounceRate30d > RESEND_BOUNCE_WARN && data.summary.bounceRate30d <= RESEND_BOUNCE_LIMIT}
+                muted={data.summary.sentAll30d === 0}
+              />
             </div>
             <p className="mt-2 text-xs text-gray-400">{data.note}</p>
           </div>

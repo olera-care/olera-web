@@ -7,6 +7,19 @@
 
 ## Current Focus
 
+### 2026-05-21 (Thu) — Parked Chantel's three stale Care Shifts PRs
+
+**Context:** Care Shifts is a volatile early mockup (per `feedback_care_shifts_mockup_dont_overoptimize`). Three of Chantel's older Care Shifts PRs were still cluttering the open-PR queue. TJ's call: archive them for now — might pick up later, not using them currently.
+
+**Done:** Closed all three with parking notes (branches preserved, reopen is one `gh pr reopen`):
+- **#778** Add Care Shifts product (`care-shifts`) — superseded by #824, which already landed the care-shifts work on staging; family front door is the `/care-shifts` browse page.
+- **#675** Add Care Shifts banner to provider detail page (`care-shift-provider-banner`) — not surfacing a provider-detail banner yet.
+- **#674** Add Care Shifts waitlist landing page with lead capture (`care-shift-lead`) — product call is the browse page, not a pre-launch waitlist.
+
+**Resume next session here →** Care Shifts queue is cleared. Remaining open PRs from prior sessions: **#850** (mobilize on benefits program pages) and **`easy-wozniak`** (GSC `reviewCount:0` JSON-LD fix). Benefits-publish follow-ups still standing: Notion Status→Approved for 25 CA+TX rows, CA stragglers (SSP + Property Tax Postponement), delete `tx-cba-waiver` draft, NY next in queue.
+
+---
+
 ### 2026-05-21 (Thu) — TX benefits QA published; CA + TX promoted to PRODUCTION (decoupled)
 
 **Context:** Continuation of the CA publish (entry below). Cess re-reviewed Texas under the same per-program audit paradigm. Shipped TX, merged both states to staging, and promoted only the benefits content to production.

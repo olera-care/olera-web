@@ -609,7 +609,9 @@ function CampaignSummary({
         </div>
       </dl>
 
-      <div className="mt-5 pt-5 border-t border-gray-100">
+      {/* min-h reserves space for the (taller, 2-line) non-eligible status so
+          the sticky card doesn't grow when the shimmer resolves — no jump. */}
+      <div className="mt-5 pt-5 border-t border-gray-100 min-h-[2.5rem]">
         {!ready ? (
           <div className="h-4 w-2/3 rounded bg-gray-100 animate-pulse" />
         ) : eligible ? (

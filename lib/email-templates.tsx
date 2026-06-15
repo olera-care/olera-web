@@ -175,6 +175,68 @@ export function providerManagedAdsEmail(opts: {
 }
 
 /**
+ * Find Families digest variant — a provider with a real published care-seeker
+ * within ~50mi (the scarce, high-intent signal). Distinct from the managed-ads
+ * pitch (no-leads cohort): this fires only when there's an actual nearby family,
+ * so the copy is concrete and warm, not a sales pitch. The CTA is a one-click
+ * "matches" magic link straight to /provider/matches. Goal action: reaching out
+ * (provider_activity matches_outreach_sent). No PHI — town + care need only,
+ * never the family's name (subject + body), matching the page's framing.
+ */
+export function providerFindFamiliesDigestEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  ctaUrl: string;          // one-click magic link → /provider/matches
+  nearbyCount: number;
+  nearestTown?: string | null;
+  careNeed?: string | null;
+  timeline?: string | null;
+}): string {
+  const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const many = opts.nearbyCount > 1;
+
+  const TIMELINE_PHRASE: Record<string, string> = {
+    immediate: "and needs care right away",
+    within_1_month: "within the next month",
+    within_3_months: "within the next few months",
+    exploring: "and is exploring options",
+  };
+  const prettyCare = opts.careNeed
+    ? escapeHtml(opts.careNeed.replace(/[_-]+/g, " ").trim().toLowerCase())
+    : null;
+  const town = opts.nearestTown ? escapeHtml(opts.nearestTown) : null;
+  const timelinePhrase = opts.timeline ? TIMELINE_PHRASE[opts.timeline] ?? "" : "";
+
+  const heading = many
+    ? `${opts.nearbyCount} families near you are looking for care`
+    : "A family near you is looking for care";
+
+  // One concrete line about the nearest family — town + care need + timing when we
+  // have them, gracefully degrading to a plain line when we don't.
+  const lead = town
+    ? `A family in ${town} is looking for ${prettyCare ?? "care"} ${timelinePhrase}`.trim() + "."
+    : `A family within driving distance is looking for ${prettyCare ?? "care"} ${timelinePhrase}`.trim() + ".";
+  const detail = many
+    ? `${lead} ${opts.nearbyCount - 1} more ${opts.nearbyCount - 1 === 1 ? "family is" : "families are"} searching nearby too.`
+    : lead;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${heading}.</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${detail}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;"><strong>The first provider to reach out is 3&times; more likely to connect.</strong> They&rsquo;re comparing their options now &mdash; a short, warm note from you goes a long way.</p>
+    <div>${button(many ? "See the families →" : "See the family →", opts.ctaUrl)}</div>
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
+    </div>`,
+    many
+      ? `${opts.nearbyCount} families near ${opts.providerName} are looking for care right now.`
+      : `A family near ${opts.providerName} is looking for care right now.`,
+  );
+}
+
+/**
  * Escape HTML special characters to prevent XSS and layout issues.
  * Use this for any user-generated content inserted into email HTML.
  */

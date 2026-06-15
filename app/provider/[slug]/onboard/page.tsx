@@ -61,6 +61,9 @@ function getActionRedirectUrl(
       case "leads":
         // Weekly lead-recap email → the Find Families connections inbox.
         return "/provider/connections";
+      case "matches":
+        // Find Families digest email ("a family near you") → the nearby-seeker leads view.
+        return "/provider/matches";
     }
   }
   return "/provider";
@@ -72,7 +75,7 @@ export default function ProviderOnboardPage() {
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   // Action params for email notifications (lead/message/review/question) or campaign
-  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | "manage" | "settings" | "market" | "ads" | "leads" | null;
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | "manage" | "settings" | "market" | "ads" | "leads" | "matches" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's

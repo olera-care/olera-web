@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail, providerFindFamiliesDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
@@ -24,6 +24,18 @@ const QUESTION_FRESH_DAYS = 30; // ≤ this old → still leads (≈4 weekly nud
 const QUESTION_RESURFACE_DAYS = 90; // demoted questions resurface ~once per quarter
 const RUN_INTERVAL_DAYS = 7; // weekly cadence — the look-back for the resurface-boundary crossing
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Great-circle distance in miles — same formula the Find Families page uses, so
+ *  the digest's ~50mi "nearby family" gate matches what the provider sees there. */
+function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3959; // miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 // Through-the-week cadence: each provider is assigned a fixed weekday (Mon–Fri) by hashing their id,
 // so the digest distributes across the work-week instead of a single Monday blast. Deterministic +
@@ -480,6 +492,8 @@ export async function GET(request: NextRequest) {
       email: string | null;
       city: string | null;
       state: string | null;
+      lat: number | null; // for the Find Families ~50mi nearby-seeker gate (null on synthesized unclaimed rows)
+      lng: number | null;
       category: string | null;
       metadata: Record<string, unknown> | null;
       account_id: string | null; // non-null = a claimed/owned listing → keep the punchy digest, not the cold note
@@ -497,7 +511,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySlug } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id, claim_state")
+        .select("id, slug, source_provider_id, display_name, email, city, state, lat, lng, category, metadata, account_id, claim_state")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySlug ?? []) as BP[]) {
@@ -510,7 +524,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySourceId } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id, claim_state")
+        .select("id, slug, source_provider_id, display_name, email, city, state, lat, lng, category, metadata, account_id, claim_state")
         .in("source_provider_id", stillMissing)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySourceId ?? []) as BP[]) {
@@ -564,6 +578,8 @@ export async function GET(request: NextRequest) {
             email: ip.email,
             city: ip.city,
             state: ip.state,
+            lat: null, // olera-providers synthesized rows have no coords here → never qualify for Find Families (they can't reach out unclaimed anyway)
+            lng: null,
             category: null,
             metadata: null,
             account_id: null,
@@ -594,6 +610,8 @@ export async function GET(request: NextRequest) {
             email: ip.email,
             city: ip.city,
             state: ip.state,
+            lat: null, // olera-providers synthesized rows have no coords here → never qualify for Find Families (they can't reach out unclaimed anyway)
+            lng: null,
             category: null,
             metadata: null,
             account_id: null,
@@ -672,6 +690,43 @@ export async function GET(request: NextRequest) {
       if (row.city) areaDemand.set(areaKey(row.city, row.state), (areaDemand.get(areaKey(row.city, row.state)) ?? 0) + views);
     }
 
+    // ── 3b. Published care-seekers (the Find Families "nearby family" signal) ──
+    // Load every active published family care-post once (a tiny set — roughly one
+    // per city nationwide), then haversine each provider against it in the loop.
+    // Same ≤50mi catchment + active-only rule as /provider/matches, so the email
+    // matches what the provider sees on the page. Seekers without coordinates or
+    // with a paused care_post are dropped.
+    type NearbySeeker = { lat: number; lng: number; town: string | null; careNeed: string | null; timeline: string | null };
+    const seekers: NearbySeeker[] = [];
+    {
+      const { data: seekerRows, error: seekerErr } = await db
+        .from("business_profiles")
+        .select("city, lat, lng, care_types, metadata")
+        .eq("type", "family")
+        .eq("is_active", true)
+        .not("metadata->care_post", "is", null);
+      if (seekerErr) {
+        console.error("[weekly-provider-digest] seeker query failed:", seekerErr);
+      }
+      for (const r of (seekerRows ?? []) as Array<{
+        city: string | null;
+        lat: number | null;
+        lng: number | null;
+        care_types: string[] | null;
+        metadata: Record<string, unknown> | null;
+      }>) {
+        if (r.lat == null || r.lng == null) continue;
+        const meta = (r.metadata ?? {}) as {
+          care_post?: { status?: string };
+          care_needs?: string[];
+          timeline?: string;
+        };
+        if (meta.care_post?.status !== "active") continue;
+        const careNeed = meta.care_needs?.[0] ?? r.care_types?.[0] ?? null;
+        seekers.push({ lat: r.lat, lng: r.lng, town: r.city, careNeed, timeline: meta.timeline ?? null });
+      }
+    }
+
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
     let marketHeroCount = 0;
@@ -680,6 +735,7 @@ export async function GET(request: NextRequest) {
     let coldRankSent = 0; // sends to the §1c cold/quiet rank-eligible audience (no weekly activity)
     let completionCount = 0; // sends of the completion ("sell the output") variant
     let managedAdsCount = 0; // sends of the managed-ads variant (no-leads cohort lead)
+    let findFamiliesCount = 0; // sends of the find-families variant (real nearby published seeker)
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -921,9 +977,28 @@ export async function GET(request: NextRequest) {
       // bad first hello). Rotated weekly: ~1 in 3 weeks it yields to their market
       // read / completion nudge so we don't send the identical pitch every week
       // (olera.care deliverability — ads-pitch fatigue). Week-based, synchronized.
+      // Find Families: a real published care-seeker within ~50mi — the scarce,
+      // high-intent signal. Sits below real inbound (question/lead) and the cold
+      // first-contact, but ABOVE the managed-ads pitch: an actual nearby family
+      // beats "let us run ads." Only rows with coordinates qualify (synthesized
+      // unclaimed rows are lat/lng-null and fall through — they can't reach out
+      // without claiming anyway). Bounded to providers already in the digest pool;
+      // a nearby seeker does NOT pull a fully-silent provider in (v1 follow-up).
+      const nearbySeekers =
+        bp.lat != null && bp.lng != null
+          ? seekers
+              .map((s) => ({ s, d: haversineMiles(bp.lat as number, bp.lng as number, s.lat, s.lng) }))
+              .filter((x) => x.d <= 50)
+              .sort((a, b) => a.d - b.d)
+          : [];
+      const findFamiliesUrl =
+        nearbySeekers.length > 0 && !unansweredQuestion && !leadsUrl && !isColdFirstContact
+          ? generateProviderPortalUrl(providerSlug, bp.email, "matches")
+          : null;
+
       const adsRotationWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 3 === 0;
       const useManagedAds =
-        !unansweredQuestion && !leadsUrl && !isColdFirstContact && !adsRotationWeek;
+        !unansweredQuestion && !leadsUrl && !isColdFirstContact && !findFamiliesUrl && !adsRotationWeek;
       const html = isColdFirstContact
         ? coldProviderRankEmail({
             rank: marketRank!.rank,
@@ -944,6 +1019,16 @@ export async function GET(request: NextRequest) {
             ctaUrl: leadsUrl,
             manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
             unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
+          })
+        : findFamiliesUrl
+        ? providerFindFamiliesDigestEmail({
+            providerName: displayName,
+            providerSlug,
+            ctaUrl: findFamiliesUrl,
+            nearbyCount: nearbySeekers.length,
+            nearestTown: nearbySeekers[0]?.s.town ?? null,
+            careNeed: nearbySeekers[0]?.s.careNeed ?? null,
+            timeline: nearbySeekers[0]?.s.timeline ?? null,
           })
         : useManagedAds
         ? providerManagedAdsEmail({
@@ -986,6 +1071,10 @@ export async function GET(request: NextRequest) {
         ? bucket.leads > 1
           ? `${bucket.leads} families reached out about ${displayName} this week`
           : `A family reached out about ${displayName} this week`
+        : findFamiliesUrl
+        ? nearbySeekers.length > 1
+          ? `${nearbySeekers.length} families near you are looking for care`
+          : `A family near you is looking for care`
         : useManagedAds
         ? `Reach families already searching for care`
         : completionUrl
@@ -1017,6 +1106,8 @@ export async function GET(request: NextRequest) {
           ? "leads"
           : isColdFirstContact
             ? "cold_rank"
+            : findFamiliesUrl
+              ? "find_families"
             : useManagedAds
               ? "managed_ads"
               : completionUrl
@@ -1038,6 +1129,7 @@ export async function GET(request: NextRequest) {
         if (preRank.has(providerId)) coldRankSent += 1;
         if (variant === "completion") completionCount += 1;
         if (variant === "managed_ads") managedAdsCount += 1;
+        if (variant === "find_families") findFamiliesCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
@@ -1066,6 +1158,7 @@ export async function GET(request: NextRequest) {
         if (preRank.has(providerId)) coldRankSent += 1;
         if (variant === "completion") completionCount += 1;
         if (variant === "managed_ads") managedAdsCount += 1;
+        if (variant === "find_families") findFamiliesCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -1099,7 +1192,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} referralTeaser=${referralTeaserCount} marketRankMissingReferralTargets=${marketRankMissingReferralTargets} coldRank=${coldRankSent} completion=${completionCount} managedAds=${managedAdsCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} proactiveWarmQueued=${proactiveWarmQueued} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} referralTeaser=${referralTeaserCount} marketRankMissingReferralTargets=${marketRankMissingReferralTargets} coldRank=${coldRankSent} completion=${completionCount} managedAds=${managedAdsCount} findFamilies=${findFamiliesCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} proactiveWarmQueued=${proactiveWarmQueued} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -1116,6 +1209,7 @@ export async function GET(request: NextRequest) {
         coldRankSent,
         completionSent: completionCount,
         managedAdsSent: managedAdsCount,
+        findFamiliesSent: findFamiliesCount,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,

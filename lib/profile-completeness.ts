@@ -148,10 +148,13 @@ function scoreCareServices(profile: Profile): number {
 
 function scoreGallery(meta: ExtendedMetadata): number {
   const count = meta.images?.length ?? 0;
-  if (count >= 8) return 100;
-  if (count >= 5) return 75;
-  if (count >= 3) return 50;
-  if (count >= 1) return 25;
+  // A real, presentable gallery is "complete" at 3 photos — demanding 8 made
+  // providers who'd clearly filled in their gallery read as half-done and got
+  // nagged to "complete" it (confusing during setup). More photos help, but
+  // that's a strength signal, not a completeness requirement.
+  if (count >= 3) return 100;
+  if (count >= 2) return 70;
+  if (count >= 1) return 40;
   return 0;
 }
 

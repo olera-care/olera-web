@@ -86,7 +86,10 @@ export function evaluateAdBoostEligibility(
 
   const missingSections: AdBoostMissingSection[] = completeness.sections
     .filter((s) => s.percent < 100)
-    .sort((a, b) => b.weight - a.weight)
+    // Rank by REMAINING impact (weight × how-incomplete), not raw weight — so the
+    // headline "Next" is the gap that moves the score most, and a high-weight
+    // section that's nearly done never outranks a genuinely empty lower-weight one.
+    .sort((a, b) => b.weight * (100 - b.percent) - a.weight * (100 - a.percent))
     .map((s) => ({
       id: s.id,
       label: s.label,

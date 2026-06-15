@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import MarketDiagnostic, { type MarketDiagnosticData } from "./MarketDiagnostic";
 import MarketLoading from "./MarketLoading";
 import type { SelfRank } from "@/lib/market-diagnostic/self-rank";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
  * Find Families — "Your Market" default experience.
@@ -15,12 +16,14 @@ import type { SelfRank } from "@/lib/market-diagnostic/self-rank";
  * passes it in via `pinned` and it renders on top of the diagnostic.
  */
 export default function FindFamiliesMarketView({
-  city, state, category, providerName, providerPlaceId, providerSourceId, pinned,
+  city, state, category, providerName, providerSlug, providerPlaceId, providerSourceId, pinned,
 }: {
   city: string;
   state: string;
   category: string;
   providerName?: string;
+  /** Provider slug — the activity tracking key for your_market_* events. */
+  providerSlug?: string;
   /** The viewing provider's Google place_id (from metadata) — powers the self-rank overlay. */
   providerPlaceId?: string;
   /** olera-providers link (source_provider_id) — higher-coverage server-side place_id fallback. */
@@ -68,6 +71,22 @@ export default function FindFamiliesMarketView({
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [city, state, category, providerPlaceId, providerSourceId]);
 
+  // Fire one your_market_viewed event per visit, once the diagnostic settles
+  // (ready = covered; unavailable+uncovered = not covered). We wait for the
+  // outcome so `covered` is accurate rather than firing on the loading frame.
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (!providerSlug || hasTrackedView.current) return;
+    if (status !== "ready" && status !== "unavailable") return;
+    hasTrackedView.current = true;
+    trackProviderEvent(providerSlug, "your_market_viewed", {
+      provider_name: providerName,
+      city: city || null,
+      state: state || null,
+      covered: !(status === "unavailable" && uncovered),
+    });
+  }, [status, uncovered, providerSlug, providerName, city, state]);
+
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
@@ -101,7 +120,7 @@ export default function FindFamiliesMarketView({
           </div>
         )}
 
-        {status === "ready" && data && <MarketDiagnostic data={data} interactive providerName={providerName} self={self} />}
+        {status === "ready" && data && <MarketDiagnostic data={data} interactive providerName={providerName} providerSlug={providerSlug} self={self} />}
       </div>
     </div>
   );

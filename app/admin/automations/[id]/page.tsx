@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
@@ -13,6 +13,18 @@ interface Rollup {
   clicked: number;
   bounced: number;
   complained: number;
+}
+interface VariantRow extends Rollup {
+  key: string;
+  label: string;
+  // weekly_digest only: rank-led vs plain split
+  split?: { withRank: Rollup; plain: Rollup };
+  // Downstream conversion (share of delivered sends whose provider took the variant's goal action
+  // within 14 days). converted = count, convRate = converted/delivered, convLabel = the action.
+  converted?: number;
+  convRate?: number;
+  convEvent?: string;
+  convLabel?: string;
 }
 interface RunRow {
   id: string;
@@ -43,18 +55,52 @@ interface DetailResponse {
   pause: { reason: string | null; by: string | null; at: string | null; until: string | null } | null;
   rollup30d: Rollup | null;
   trend: Array<{ week: string; sent: number; delivered: number; opened: number; clicked: number }>;
+  variants: VariantRow[];
   previewTypes: string[];
   runs: RunRow[];
   windowDays: number;
 }
 interface PreviewResponse {
-  type: string;
+  type?: string;
   html: string;
-  recipient: string;
+  recipient?: string;
   subject: string;
-  sentAt: string;
-  metadata: Record<string, unknown> | null;
+  sentAt?: string;
+  metadata?: Record<string, unknown> | null;
+  from?: string;
+  preheader?: string | null;
+  // Variant-sample mode (digest): synthetic sample rendered from the template, no real recipient.
+  variant?: string;
+  sample?: boolean;
 }
+
+// The weekly digest's distinct email looks, for the sample preview picker.
+const DIGEST_SAMPLES: { key: string; label: string }[] = [
+  { key: "family_question", label: "Family question" },
+  { key: "leads", label: "Leads recap" },
+  { key: "managed_ads", label: "Managed ads" },
+  { key: "referral_teaser", label: "Referral teaser" },
+  { key: "weekly_digest_rank", label: "Market rank digest" },
+  { key: "weekly_digest_plain", label: "Weekly digest · plain" },
+  { key: "completion", label: "Completion nudge" },
+  { key: "cold_rank", label: "Cold rank note" },
+];
+
+// What triggers each variant — shown in the breakdown table via a hover/tap tooltip.
+const VARIANT_TRIGGERS: Record<string, string> = {
+  family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
+  leads: "Goes to providers who received one or more new family inquiries this week. A weekly recap that nudges them to respond, with a one-click link to their connections inbox. Outranks every variant except an open question — a lead is the hottest weekly signal.",
+  managed_ads: "Goes to the no-leads cohort (no open question, no new lead, not a cold first-contact). Leads with the managed-ads pitch — the one lever that generates demand for an empty local funnel — with a one-click link to /provider/boost. Rotated ~1 in 3 weeks so it yields to the market read / completion nudge. Converts when they view the managed-ads page.",
+  referral_teaser: "Goes to providers with a computed market and usable referral targets when there is no hotter lead/question/completion nudge. Leads with curiosity about nearby referral sources instead of asking them to work the call sheet immediately. Converts when they work a referral target in Your Market.",
+  market_rank: "Goes to active providers whose local market rank has been computed and who do not have a hotter lead/question/completion nudge. Converts when they work a referral target in Your Market.",
+  weekly_digest: "Goes to providers active in the last 14 days — page views or clicks. Providers with a new lead or an open question get the Leads recap / Family question variant instead.",
+  completion: "Goes to claimed providers with an incomplete profile (e.g. no owner story). Nudges them to finish it with a one-click deep link to the editor.",
+  cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",
+};
+const SPLIT_TRIGGERS: Record<string, string> = {
+  withRank: "When we've computed their local market, the digest opens with where they rank.",
+  plain: "When their market isn't computed yet, it's the plain weekly recap.",
+};
 
 type RecipientStatus = "all" | "delivered" | "opened" | "clicked" | "bounced" | "complained" | "undelivered";
 interface RecipientRow {
@@ -122,6 +168,77 @@ function duration(start: string, end: string | null): string {
 function pct(n: number, of: number): string {
   return of <= 0 ? "—" : `${Math.round((n / of) * 100)}%`;
 }
+// ── Next-run forecast (display-only; derived entirely from data already loaded — no backend) ──
+// Parse one cron field into the set of allowed values, or null for `*` (matches anything).
+// Supports `*`, lists (`1,2,3`), steps (`*/6`, `a/n`), and ranges (`a-b`) — the forms used in vercel.json.
+function parseCronField(field: string, min: number, max: number): Set<number> | null {
+  if (field === "*") return null;
+  const out = new Set<number>();
+  for (const part of field.split(",")) {
+    if (part.includes("/")) {
+      const [range, stepStr] = part.split("/");
+      const step = parseInt(stepStr, 10) || 1;
+      let lo = min, hi = max;
+      if (range !== "*") {
+        if (range.includes("-")) { const [a, b] = range.split("-"); lo = parseInt(a, 10); hi = parseInt(b, 10); }
+        else { lo = parseInt(range, 10); }
+      }
+      for (let v = lo; v <= hi; v += step) out.add(v);
+    } else if (part.includes("-")) {
+      const [a, b] = part.split("-"); for (let v = parseInt(a, 10); v <= parseInt(b, 10); v++) out.add(v);
+    } else {
+      out.add(parseInt(part, 10));
+    }
+  }
+  return out;
+}
+/** Next UTC fire time for a 5-field cron, found by forward iteration (capped at 8 days). UTC-based. */
+function nextCronRun(schedule: string, from: Date): Date | null {
+  const f = schedule.trim().split(/\s+/);
+  if (f.length !== 5) return null;
+  const min = parseCronField(f[0], 0, 59), hour = parseCronField(f[1], 0, 23);
+  const dom = parseCronField(f[2], 1, 31), mon = parseCronField(f[3], 1, 12), dow = parseCronField(f[4], 0, 6);
+  const t = new Date(from.getTime());
+  t.setUTCSeconds(0, 0);
+  t.setUTCMinutes(t.getUTCMinutes() + 1);
+  for (let i = 0; i < 216_000; i++) { // up to ~150 days — covers the quarterly cron; null beyond
+    const okDom = !dom || dom.has(t.getUTCDate()), okDow = !dow || dow.has(t.getUTCDay());
+    // Standard cron: when BOTH day-of-month and day-of-week are restricted, a match on either fires.
+    const okDay = dom && dow ? okDom || okDow : okDom && okDow;
+    if ((!min || min.has(t.getUTCMinutes())) && (!hour || hour.has(t.getUTCHours())) && (!mon || mon.has(t.getUTCMonth() + 1)) && okDay) {
+      return new Date(t.getTime());
+    }
+    t.setUTCMinutes(t.getUTCMinutes() + 1);
+  }
+  return null;
+}
+/**
+ * Rough forecast for the next run: when it fires, ~how many it'll send, ~how long it takes.
+ * Sends/duration are the trailing average of recent post-cadence runs (those carrying a numeric
+ * `dayBucket` in their summary — set once the digest moved to per-weekday cadence), which is current
+ * (a fresh run lands every weekday) and free (already-loaded data). Cold-start: if no weekday run
+ * exists yet, bootstrap sends from the last run's count ÷ 5. Returns null if the schedule can't parse.
+ */
+function nextRunForecast(schedule: string, runs: RunRow[]): { rel: string; clock: string; sends: number | null; durMin: number | null } | null {
+  const next = nextCronRun(schedule, new Date());
+  if (!next) return null;
+  const hrs = (next.getTime() - Date.now()) / 3_600_000;
+  const rel = hrs < 1 ? "soon" : hrs < 24 ? `in ${Math.round(hrs)}h` : `in ${Math.round(hrs / 24)}d`;
+  const clock = next.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }) + " ET";
+  const recent = runs.filter((r) => typeof r.summary?.dayBucket === "number" && r.status !== "error").slice(0, 3);
+  let sends: number | null = null;
+  if (recent.length > 0) {
+    sends = Math.round(recent.reduce((a, r) => a + (Number(r.summary?.sent) || 0), 0) / recent.length);
+  } else {
+    const last = runs.find((r) => typeof r.summary?.sent === "number");
+    if (last) sends = Math.round((Number(last.summary?.sent) || 0) / 5); // bootstrap from pre-cadence run
+  }
+  const durRuns = recent.filter((r) => r.finished_at);
+  const durMin = durRuns.length > 0
+    ? Math.max(1, Math.round(durRuns.reduce((a, r) => a + (new Date(r.finished_at as string).getTime() - new Date(r.started_at).getTime()) / 60_000, 0) / durRuns.length))
+    : null;
+  return { rel, clock, sends, durMin };
+}
 /** Readable one-liner for a run's result — sends/skips first, noise (skipReasons) goes to the title. */
 function runResult(s: Record<string, unknown> | null): string {
   if (!s) return "";
@@ -148,6 +265,27 @@ function runOptionLabel(r: { started_at: string; status: string; summary: Record
   const sent = typeof rawSent === "number" ? rawSent : null;
   const when = new Date(r.started_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   return `${when}${sent != null ? ` · ${sent.toLocaleString()} sent` : ` · ${r.status}`}`;
+}
+
+/** Small info dot with a tooltip (hover on desktop, tap to toggle on touch). Used to explain variant triggers. */
+function InfoDot({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="group relative ml-1 inline-flex align-middle">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setOpen(false)}
+        aria-label="What triggers this variant"
+        className="inline-flex text-gray-300 transition-colors hover:text-gray-500"
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 4.75a1 1 0 112 0 1 1 0 01-2 0zM6.75 7h1.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0V8.5h-.75a.75.75 0 010-1.5z" /></svg>
+      </button>
+      <span role="tooltip" className={`pointer-events-none absolute left-0 top-full z-30 mt-1 w-60 rounded-lg bg-gray-900 px-3 py-2 text-left text-[11px] font-normal normal-case leading-snug tracking-normal text-white shadow-lg transition-opacity ${open ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+        {text}
+      </span>
+    </span>
+  );
 }
 
 function Sparkline({ values, className = "" }: { values: number[]; className?: string }) {
@@ -200,6 +338,8 @@ export default function AutomationDetailPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<Tab>("overview");
+  // Next-run forecast — computed once per data load (the cron scan can be long for infrequent jobs).
+  const forecast = useMemo(() => (data ? nextRunForecast(data.job.schedule, data.runs) : null), [data]);
   const [previewType, setPreviewType] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewResponse | "loading" | "none" | null>(null);
   const [previewExpanded, setPreviewExpanded] = useState(false);
@@ -208,32 +348,41 @@ export default function AutomationDetailPage() {
   const [recipientPage, setRecipientPage] = useState(1);
   const [recipients, setRecipients] = useState<RecipientsResponse | "loading" | "error" | null>(null);
   const [showAllRuns, setShowAllRuns] = useState(false);
+  const [windowDays, setWindowDays] = useState(30);
+  const reqSeq = useRef(0);
 
   const load = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
+    // Don't flip to the full-page loading state on window-change refetches — keep the current
+    // numbers visible and let them update in place. The initial useState(true) covers first load.
     setErr(null);
+    const reqId = ++reqSeq.current;
     try {
-      const r = await fetch(`/api/admin/automations/${id}`);
+      const r = await fetch(`/api/admin/automations/${id}?days=${windowDays}`);
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       const d: DetailResponse = await r.json();
+      if (reqId !== reqSeq.current) return; // a newer window selection superseded this fetch
       setData(d);
-      setPreviewType((prev) => prev ?? (d.previewTypes[0] ?? null));
+      const isDigestJob = d.job.id === "weekly-provider-digest";
+      setPreviewType((prev) => prev ?? (isDigestJob ? DIGEST_SAMPLES[0].key : (d.previewTypes[0] ?? null)));
       const bestRun = d.runs.find((rr) => { const s = rr.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
       setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
+      if (reqId === reqSeq.current) setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, windowDays]);
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     if (!id || !previewType) return;
     setPreview("loading");
     let cancelled = false;
-    fetch(`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}`)
+    // Digest sample keys fetch a rendered variant sample; other jobs fetch their latest real email.
+    const isSample = DIGEST_SAMPLES.some((s) => s.key === previewType);
+    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`;
+    fetch(`/api/admin/automations/${id}/preview?${qs}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
       .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
       .catch(() => { if (!cancelled) setPreview("none"); });
@@ -317,13 +466,32 @@ export default function AutomationDetailPage() {
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
                 )}
               </div>
-              <div className="mt-1 text-sm text-gray-500">
-                {data.job.audience}
-                <span className="mx-1.5 text-gray-300">·</span>
-                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{data.job.fn}</span>
-                <span className="mx-1.5 text-gray-300">·</span>
-                {data.job.humanSchedule}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm text-gray-500">
+                <span>{data.job.audience}</span>
+                <span className="text-gray-300">·</span>
+                <span className="rounded-md bg-gray-100/70 px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-inset ring-gray-200/60">{data.job.fn}</span>
+                <span className="text-gray-300">·</span>
+                {/* Keep the meta line scannable — just the cadence; the verbose schedule lives in Details. */}
+                <span>{data.job.humanSchedule.split(",")[0]}</span>
               </div>
+              {!data.paused && forecast && (() => {
+                const f = forecast;
+                return (
+                  <div className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-gray-50/80 px-3 py-2 ring-1 ring-inset ring-gray-100">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Next run</span>
+                    <span className="text-sm text-gray-600">{f.rel}</span>
+                    <span className="text-xs text-gray-400">{f.clock}</span>
+                    {f.sends != null && (
+                      <>
+                        <span className="text-gray-300">·</span>
+                        <span className="flex items-baseline gap-1"><span className="text-base font-semibold text-teal-700">~{f.sends.toLocaleString()}</span><span className="text-xs text-gray-400">sends</span></span>
+                      </>
+                    )}
+                    {f.durMin != null && (<><span className="text-gray-300">·</span><span className="text-xs text-gray-400">~{f.durMin} min</span></>)}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {data.job.relatedAdminPath && <Link href={data.job.relatedAdminPath} className={ghostBtn}>Related queue →</Link>}
@@ -333,7 +501,7 @@ export default function AutomationDetailPage() {
             </div>
           </div>
 
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-gray-600">{data.job.description}</p>
+          <p className="mt-3 max-w-3xl text-[13px] leading-relaxed text-gray-400">{data.job.description}</p>
 
           {data.paused && data.pause && (
             <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 ring-1 ring-inset ring-amber-200">
@@ -356,6 +524,7 @@ export default function AutomationDetailPage() {
                   {data.job.emailTypes.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
                 </div>
               )}
+              <div className="text-gray-600"><span className="text-gray-400">Schedule</span><br />{data.job.humanSchedule}</div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 pt-1 text-xs text-gray-400">
                 <span>Route <code className="text-gray-500">{data.job.path}</code></span>
                 <span>Cron <code className="text-gray-500">{data.job.schedule}</code></span>
@@ -376,11 +545,26 @@ export default function AutomationDetailPage() {
           {/* ── OVERVIEW ── */}
           {tab === "overview" && (
             <div className="mt-5 space-y-6">
+              {data.job.isEmail && (
+                <div className="flex items-center justify-end">
+                  <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs">
+                    {[7, 30, 90].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setWindowDays(d)}
+                        className={`rounded-md px-3 py-1 font-medium transition-colors ${windowDays === d ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}
+                      >
+                        {d}d
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {data.rollup30d ? (
                 <>
                   <div>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub="last 30 days">
+                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub={`last ${data.windowDays} days`}>
                         {data.trend.length >= 2 && <Sparkline values={data.trend.map((w) => w.sent)} className="text-gray-300" />}
                       </StatCard>
                       <StatCard value={pct(data.rollup30d.delivered, data.rollup30d.sent)} label="Delivered" />
@@ -412,6 +596,71 @@ export default function AutomationDetailPage() {
                       })()}
                     </p>
                   </div>
+
+                  {data.variants && data.variants.length > 1 && (
+                    <div className="mt-6">
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last {data.windowDays} days</h3>
+                      {/* No overflow-hidden here: the per-row trigger tooltips are absolutely positioned and must escape the wrapper. */}
+                      <div className="rounded-xl border border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
+                              <th className="px-4 py-2 font-medium">Variant</th>
+                              <th className="px-4 py-2 text-right font-medium">Sent</th>
+                              <th className="px-4 py-2 text-right font-medium">Delivered</th>
+                              <th className="px-4 py-2 text-right font-medium">Opened</th>
+                              <th className="px-4 py-2 text-right font-medium">Clicked</th>
+                              <th className="px-4 py-2 text-right font-medium">
+                                <span className="inline-flex items-center">Converted<InfoDot text="Share of delivered emails where the provider took that variant's goal action (answered, opened a lead, worked the market, claimed, published, or re-visited the portal) within 14 days of the send — last-touch, so a single action is never double-counted across consecutive weekly sends. This is the honest signal: opens are inflated by Apple Mail's privacy proxy. Note: very recent sends may still be inside their 14-day window." /></span>
+                              </th>
+                              <th className="px-4 py-2 text-right font-medium">Bounced</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.variants.map((v) => (
+                              <Fragment key={v.key}>
+                                <tr className={`border-b border-gray-100 ${v.sent === 0 ? "text-gray-300" : ""}`}>
+                                  <td className={`px-4 py-2 font-medium ${v.sent === 0 ? "" : "text-gray-800"}`}>
+                                    {v.label}
+                                    {VARIANT_TRIGGERS[v.key] && <InfoDot text={VARIANT_TRIGGERS[v.key]} />}
+                                    {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
+                                  </td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right">
+                                    {v.sent > 0 && v.delivered > 0 ? (
+                                      <div className="leading-tight">
+                                        <span className={`tabular-nums font-semibold ${(v.converted ?? 0) > 0 ? "text-emerald-700" : "text-gray-400"}`}>{pct(v.converted ?? 0, v.delivered)}</span>
+                                        <span className="block text-[10px] font-normal text-gray-400">{(v.converted ?? 0).toLocaleString()} {(v.convLabel ?? "").toLowerCase()}</span>
+                                      </div>
+                                    ) : "—"}
+                                  </td>
+                                  <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.sent > 0 ? (v.bounced + v.complained || "—") : "—"}</td>
+                                </tr>
+                                {v.split && (["withRank", "plain"] as const).map((sk) => {
+                                  const s = v.split![sk];
+                                  return (
+                                    <tr key={`${v.key}-${sk}`} className="border-b border-gray-100 bg-gray-50/40 text-xs text-gray-400">
+                                      <td className="py-1.5 pl-8 pr-4">{sk === "withRank" ? "↳ led with rank hero" : "↳ no rank hero"}<InfoDot text={SPLIT_TRIGGERS[sk]} /></td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent.toLocaleString()}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.delivered, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.opened, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.clicked, s.sent) : "—"}</td>
+                                      <td className="px-4 py-1.5 text-right text-gray-300">—</td>
+                                      <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.sent > 0 ? (s.bounced + s.complained || "—") : "—"}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">Open/click rates are % of sent. Converted is % of delivered who took the variant&apos;s goal action within 14 days. Variants are inferred from the email for sends before tagging was added.</p>
+                    </div>
+                  )}
 
                   {data.trend.length >= 2 && (
                     <details className="group">
@@ -446,40 +695,67 @@ export default function AutomationDetailPage() {
                 </div>
               )}
 
-              {/* Latest email */}
-              {data.previewTypes.length > 0 && (
-                <div className="overflow-hidden rounded-xl border border-gray-200">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
-                    <div className="flex min-w-0 items-center gap-2 text-sm">
-                      <span className="font-medium text-gray-700">Latest email</span>
-                      {preview && typeof preview === "object" && (
-                        <span className="truncate text-xs text-gray-400">to <code className="text-gray-500">{preview.recipient}</code> · &ldquo;{preview.subject}&rdquo; · {timeAgo(preview.sentAt)}</span>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      {data.previewTypes.length > 1 && (
-                        <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
-                          {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      )}
-                      {previewType && <a href={`/api/admin/automations/${id}/preview?type=${encodeURIComponent(previewType)}&raw=1`} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
-                    </div>
-                  </div>
-                  {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
-                  {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">No rendered email on file yet for this type.</div>}
-                  {preview && typeof preview === "object" && (
-                    <div className="relative bg-white">
-                      <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
-                      {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
-                      <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
-                        <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
-                          {previewExpanded ? "Collapse" : "Expand"}
-                        </button>
+              {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
+              {(() => {
+                const isDigest = data.job.id === "weekly-provider-digest";
+                if (!isDigest && data.previewTypes.length === 0) return null;
+                const sampleSel = DIGEST_SAMPLES.some((s) => s.key === previewType);
+                const fullUrl = previewType
+                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`}&raw=1`
+                  : null;
+                return (
+                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
+                      <div className="flex min-w-0 items-center gap-2 text-sm">
+                        <span className="font-medium text-gray-700">{isDigest ? "Email samples" : "Latest email"}</span>
+                        {preview && typeof preview === "object" && (
+                          <span className="truncate text-xs text-gray-400">
+                            {preview.sample
+                              ? <>sample &middot; &ldquo;{preview.subject}&rdquo;</>
+                              : <>to <code className="text-gray-500">{preview.recipient}</code> &middot; &ldquo;{preview.subject}&rdquo;{preview.sentAt ? ` · ${timeAgo(preview.sentAt)}` : ""}</>}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        {!isDigest && data.previewTypes.length > 1 && (
+                          <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                            {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        )}
+                        {fullUrl && <a href={fullUrl} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    {isDigest && (
+                      <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
+                        {DIGEST_SAMPLES.map((s) => (
+                          <button key={s.key} onClick={() => { setPreviewType(s.key); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.key ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {preview && typeof preview === "object" && (preview.from || preview.preheader) && (
+                      <div className="space-y-0.5 border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
+                        {preview.from && <div className="truncate"><span className="font-medium text-gray-500">From</span> <code className="text-gray-600">{preview.from}</code></div>}
+                        {preview.preheader && <div className="truncate"><span className="font-medium text-gray-500">Preview text</span> {preview.preheader}</div>}
+                      </div>
+                    )}
+                    {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
+                    {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">{isDigest ? "Couldn't render this sample." : "No rendered email on file yet for this type."}</div>}
+                    {preview && typeof preview === "object" && (
+                      <div className="relative bg-white">
+                        <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />
+                        {!previewExpanded && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />}
+                        <div className="absolute inset-x-0 bottom-0 flex justify-center pb-2">
+                          <button onClick={() => setPreviewExpanded((v) => !v)} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
+                            {previewExpanded ? "Collapse" : "Expand"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 

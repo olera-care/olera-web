@@ -185,15 +185,29 @@ const FAQS = [
 // ============================================================
 
 export default async function FreeServicesForSeniorsPage() {
-  const supabase = await createClient();
-  const { data: related } = await supabase
-    .from("content_articles")
-    .select("id, slug, title, cover_image_url, care_types, reading_time")
-    .eq("status", "published")
-    .not("published_at", "is", null)
-    .containedBy("care_types", ["home-care"])
-    .order("published_at", { ascending: false })
-    .limit(3);
+  // Fetch related articles if Supabase is configured (fails gracefully during build)
+  let related = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("content_articles")
+      .select("id, slug, title, cover_image_url, care_types, reading_time")
+      .eq("status", "published")
+      .not("published_at", "is", null)
+      .containedBy("care_types", ["home-care"])
+      .order("published_at", { ascending: false })
+      .limit(3);
+    related = data;
+  } catch (error) {
+    // Only catch Supabase configuration errors during build
+    // Re-throw other errors so we see them
+    if (error instanceof Error && error.message.includes("Supabase is not configured")) {
+      // Expected during static generation without env vars
+    } else {
+      console.error("[article] Failed to fetch related articles:", error);
+      // Don't throw - degrade gracefully, but log it
+    }
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -326,7 +340,7 @@ export default async function FreeServicesForSeniorsPage() {
             <SnapshotBox phone="(800) 622-2520" phoneLabel="(800) 622-2520, ext. 3" cost="Free" qualifier="No income requirement" />
             <p>Legal questions don&apos;t always wait for business hours, and hiring an attorney isn&apos;t always an option. The Legal Hotline at the Texas Legal Services Center connects you with a real attorney who can answer your questions over the phone, at no cost.</p>
             <h3>What they help with</h3>
-            <p>Attorneys on the hotline can walk you through questions about Medicaid and Medicare, powers of attorney and advance directives, long-term care planning, homeownership and property issues, and debt collection or consumer concerns.</p>
+            <p>Attorneys on the hotline can walk you through questions about Medicaid and Medicare (including the <Link href="/caregiver-support/medicaid-5-year-look-back-rule" className="text-primary-700 underline underline-offset-2 hover:text-primary-900 font-medium">5-year look-back rule</Link>), powers of attorney and advance directives, long-term care planning, homeownership and property issues, and debt collection or consumer concerns.</p>
             <h3>Who qualifies</h3>
             <p>Texans 60 and older can call about any covered topic. Anyone on Medicare, regardless of age, can get help with Medicaid, Medicare, and long-term care questions.</p>
             <p>Think of it like a free first consultation with an elder law attorney. They won&apos;t represent you in court, but they will help you understand whether you have a real legal issue and what to do next. <Link href="/benefits/texas/legal-aid-seniors-aaa" className="text-primary-700 underline underline-offset-2 hover:text-primary-900 font-medium">Learn more about this program &rarr;</Link></p>

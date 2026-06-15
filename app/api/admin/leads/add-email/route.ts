@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
+import { verifyAndCache } from "@/lib/email-verification";
 
 /**
  * POST /api/admin/leads/add-email
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const { profileId, email } = await request.json();
+    const { profileId, email, force } = await request.json();
 
     if (!profileId || !email) {
       return NextResponse.json({ error: "Missing profileId or email" }, { status: 400 });
@@ -36,17 +37,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
+    // Instant deliverability check on the freshly-fetched address. This endpoint
+    // saves the email AND immediately fires the deferred question/lead
+    // notification to it — so a dead address here means a guaranteed bounce on
+    // a brand-new domain. ZeroBounce verifies + caches the verdict (so the
+    // subsequent send is a warm cache hit, never re-checked). If it's invalid,
+    // don't save or send — tell the operator to find another address. Force
+    // through with { force: true } for the rare case the operator is certain.
+    // Fails OPEN: a verification error returns 'unknown' and we proceed.
+    if (!force) {
+      const verdict = await verifyAndCache(email);
+      if (verdict.status === "invalid") {
+        return NextResponse.json(
+          {
+            error: "undeliverable",
+            message: "That address can't receive mail — it would bounce. Try another.",
+          },
+          { status: 422 },
+        );
+      }
+    }
+
     const db = getServiceClient();
 
     // Get the business profile
     const { data: profile, error: profileErr } = await db
       .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug, metadata")
+      .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
       .eq("id", profileId)
       .single();
 
     if (profileErr || !profile) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    // Protection: If this account is claimed (has account_id) AND already has an email,
+    // block the change. The provider owns this email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    if (profile.account_id && profile.email) {
+      return NextResponse.json(
+        {
+          error: "claimed_account",
+          message: "This provider has claimed their account. Their email cannot be changed by admins.",
+        },
+        { status: 403 }
+      );
     }
 
     // Use submitted email, or fall back to existing email on file

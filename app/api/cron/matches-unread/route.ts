@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmailForFamily, newMessageEmailForProvider } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
@@ -108,7 +109,9 @@ export async function GET(request: NextRequest) {
       const [{ data: recipient }, { data: sender }] = await Promise.all([
         db
           .from("business_profiles")
-          .select("display_name, email, type")
+          // slug / source_provider_id → stamp email_log.provider_id in the canonical slug space so
+          // this cron's nudges count against the same per-provider budget as the digest / unread cron.
+          .select("display_name, email, type, slug, source_provider_id")
           .eq("id", recipientProfileId)
           .single(),
         db
@@ -130,12 +133,21 @@ export async function GET(request: NextRequest) {
 
       const senderName = sender?.display_name || "Someone";
       const isFamily = recipient.type === "family";
+      // Canonical provider key (olera-providers.slug, via shared resolver) so this cron's nudges
+      // aggregate with the digest + dashboard rather than fragmenting under bp.slug / a UUID.
+      const providerKey = isFamily
+        ? undefined
+        : (await resolveCanonicalProviderId(db, {
+            sourceProviderId: recipient.source_provider_id,
+            profileSlug: recipient.slug,
+          })) ?? recipientProfileId;
       const urSubject = `New message from ${senderName}`;
       const urLogId = await reserveEmailLogId({
         to: recipient.email,
         subject: urSubject,
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
+        providerId: providerKey,
       });
 
       // Route based on recipient type
@@ -143,7 +155,7 @@ export async function GET(request: NextRequest) {
         ? appendTrackingParams(`${siteUrl}/portal/inbox`, urLogId)
         : appendTrackingParams(`${siteUrl}/provider/connections`, urLogId);
 
-      await sendEmail({
+      const { skipped, skipReason } = await sendEmail({
         to: recipient.email,
         subject: urSubject,
         html: isFamily
@@ -161,8 +173,15 @@ export async function GET(request: NextRequest) {
             }),
         emailType: "unread_reminder",
         recipientType: isFamily ? "family" : "provider",
+        providerId: providerKey,
         emailLogId: urLogId ?? undefined,
       });
+
+      // Frequency gate held this nudge: don't stamp the reminder timestamp, so the provider is
+      // re-evaluated next run once their nudge budget frees up. Other skips fall through as before.
+      if (skipped && skipReason === "nudge_cap") {
+        continue;
+      }
 
       // Mark as reminded
       await db

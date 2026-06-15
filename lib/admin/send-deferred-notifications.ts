@@ -56,6 +56,15 @@ export async function sendDeferredNotificationsForProvider(
   const db = getServiceClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
+  // Validation: warn if profileId is empty
+  // This is valid for olera-providers-only cases (questions only), but worth logging
+  if (!profileId) {
+    console.warn(
+      `[send-deferred] profileId is empty for provider ${providerSlug}. ` +
+      `Connection notifications will be skipped (questions will still be sent if applicable).`
+    );
+  }
+
   const result: NotificationResult = {
     leadEmailsSent: 0,
     questionEmailsSent: 0,
@@ -63,10 +72,32 @@ export async function sendDeferredNotificationsForProvider(
   };
 
   // ─────────────────────────────────────────────────────────────────────────
+  // 0. Check if provider is admin-archived (skip all notifications)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (profileId) {
+    const { data: providerProfile } = await db
+      .from("business_profiles")
+      .select("metadata")
+      .eq("id", profileId)
+      .maybeSingle();
+
+    const providerMeta = (providerProfile?.metadata as Record<string, unknown>) ?? {};
+    if (providerMeta.admin_archived === true) {
+      console.log(
+        `[send-deferred] Skipping notifications for admin-archived provider ${providerSlug}`
+      );
+      return result;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // 1. Send deferred LEAD notifications
   // ─────────────────────────────────────────────────────────────────────────
 
   // Only query leads if we have a valid profileId (UUID)
+  // Note: profileId can be empty for olera-providers-only cases (no business_profiles row)
+  // This is valid because connections MUST reference business_profiles.id (FK constraint)
+  // So olera-providers-only providers can't have pending connections, only questions
   if (profileId) {
     // Find all pending, non-archived inquiry/request connections for this provider
     const { data: pendingConnections } = await db
@@ -213,7 +244,7 @@ export async function sendDeferredNotificationsForProvider(
           settingsUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=settings`;
         }
 
-        await sendEmail({
+        const { success: emailSuccess } = await sendEmail({
           to: email,
           subject: emailSubject,
           html: connectionRequestEmail({
@@ -231,6 +262,12 @@ export async function sendDeferredNotificationsForProvider(
           providerId: profileId,
           emailLogId: emailLogId ?? undefined,
         });
+
+        // Only mark as sent if email actually succeeded
+        if (!emailSuccess) {
+          console.error(`[send-deferred] Email send failed for connection ${conn.id}, skipping metadata update`);
+          continue;
+        }
 
         // Mark as sent and reset follow-up sequence
         // This ensures providers who got email added later start fresh from Day 0
@@ -350,7 +387,7 @@ export async function sendDeferredNotificationsForProvider(
           providerUrl = appendTrackingParams(`${siteUrl}/provider/${slug}/onboard?action=question&actionId=${q.id}`, emailLogId);
         }
 
-        await sendEmail({
+        const { success: questionEmailSuccess } = await sendEmail({
           to: email,
           subject: qaInbox.subject,
           html: questionReceivedEmail({
@@ -367,6 +404,13 @@ export async function sendDeferredNotificationsForProvider(
           emailLogId: emailLogId ?? undefined,
           metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
+
+        // Only mark as sent if email actually succeeded
+        if (!questionEmailSuccess) {
+          console.error(`[send-deferred] Question email send failed for question ${q.id}, skipping metadata update`);
+          processedQuestionIds.add(q.id);
+          continue;
+        }
 
         // Mark as sent
         delete meta.needs_provider_email;

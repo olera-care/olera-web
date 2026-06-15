@@ -142,20 +142,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
 
-    // Log family engagement event (fire-and-forget, authenticated users only)
-    if (askerProfileId) {
-      db.from("seeker_activity").insert({
-        profile_id: askerProfileId,
-        event_type: "question_asked",
-        related_provider_id: provider_id,
-        metadata: {
-          question_id: newQuestion.id,
-          question_preview: question.trim().substring(0, 100),
-        },
-      }).then(({ error: actErr }: { error: { message: string } | null }) => {
-        if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
-      });
-    }
+    // Log family engagement event (fire-and-forget, ALL questions including
+    // guests). Guests have no profile yet, so profile_id is null — same pattern
+    // as other guest seeker_activity events (save_nudge_*, qa_email_capture_*).
+    // Gating this on askerProfileId previously dropped ~96% of asks (the vast
+    // majority are guests), making the admin "Asking questions" metric read ~0.
+    db.from("seeker_activity").insert({
+      profile_id: askerProfileId,
+      event_type: "question_asked",
+      related_provider_id: provider_id,
+      metadata: {
+        question_id: newQuestion.id,
+        question_preview: question.trim().substring(0, 100),
+        is_guest: !user,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
+    });
 
     // Log provider-side activity (fire-and-forget, ALL questions including guests)
     db.from("provider_activity").insert({
@@ -317,7 +320,7 @@ export async function POST(request: NextRequest) {
           question: question.trim(),
           variant: qaVariant,
         });
-        await sendEmail({
+        const qSendResult = await sendEmail({
           to: pEmail,
           subject: qaInbox.subject,
           html: questionReceivedEmail({
@@ -334,6 +337,17 @@ export async function POST(request: NextRequest) {
           recipientProfileId: providerIdForLogs,
           metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
+        // If the provider's on-file address is undeliverable, the send path
+        // suppresses it (prior bounce or ZeroBounce 'invalid'). Flag the question
+        // for the admin "Needs Email" tab — same as if there were no email — so the
+        // team re-fetches a live address instead of it silently going dark. The
+        // email_dead marker lets the queue keep it despite an address being on file.
+        if (qSendResult?.skipped && qSendResult.skipReason === "suppressed" && newQuestion?.id) {
+          await db
+            .from("provider_questions")
+            .update({ metadata: { needs_provider_email: true, email_dead: true } })
+            .eq("id", newQuestion.id);
+        }
       } else if (newQuestion?.id) {
         // No provider email — flag for admin "Needs Email" tab
         await db

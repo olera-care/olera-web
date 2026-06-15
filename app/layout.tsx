@@ -14,7 +14,7 @@ const dmSerifDisplay = DM_Serif_Display({
   variable: "--font-dm-serif-display",
 });
 
-const GA_MEASUREMENT_ID = "G-ZLP95NWSZW";
+const GA_MEASUREMENT_ID = "G-XX0KRLT4FE";
 
 export const metadata: Metadata = {
   title: {

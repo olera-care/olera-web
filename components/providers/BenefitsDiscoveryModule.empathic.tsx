@@ -32,6 +32,7 @@ import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { EMPATHIC_INTENT_H2 } from "@/lib/analytics/variant-copy";
 import { matchesCareNeed } from "@/lib/benefits/match-care-need";
 import { inferCareNeedAndIntent } from "@/lib/benefits/infer-care-need-from-question";
+import { readUtmParams } from "@/lib/ad-boost/utm";
 import {
   useReducedMotion,
   tapHaptic,
@@ -259,6 +260,8 @@ export default function EmpathicSingleStep({
     tapHaptic(10);
     setSaving(true);
 
+    const { utmSource, utmCampaign } = readUtmParams();
+
     try {
       const res = await fetch("/api/benefits/save-results", {
         method: "POST",
@@ -274,6 +277,8 @@ export default function EmpathicSingleStep({
           providerSlug: providerSlug ?? undefined,
           entrySource: entrySource ?? undefined,
           sessionId: sessionId || undefined,
+          utmSource,
+          utmCampaign,
           matchedPrograms: matchingPrograms.map((p) => ({
             programId: p.id,
             stateId,

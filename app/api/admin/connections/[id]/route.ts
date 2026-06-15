@@ -364,6 +364,21 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
     }
 
+    // Extract archive information
+    // archived = true for both provider-declined AND admin-archived leads
+    // archiveReason = only set for provider-declined (valid decline reasons)
+    // Admin archives have free-text reasons that don't match valid decline reasons
+    const archived = meta.archived === true;
+    const rawArchiveReason = meta.archive_reason as string | null;
+    // Only recognize valid provider decline reasons - admin archives should not show "Provider Declined" banner
+    const VALID_DECLINE_REASONS = ["not_a_fit", "not_accepting_clients", "unable_to_reach", "other"];
+    const archiveReason = archived && rawArchiveReason && VALID_DECLINE_REASONS.includes(rawArchiveReason)
+      ? rawArchiveReason
+      : null;
+    const archiveMessage = archived ? (meta.archive_message as string | null) : null;
+    const archivedBy = archived ? (meta.archived_by as string | null) : null;
+    const archivedAt = archived ? (meta.archived_at as string | null) : null;
+
     return NextResponse.json({
       id: c.id,
       type: c.type,
@@ -397,6 +412,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       engagement,
       temperature,
       nextStep,
+      // Archive information (when provider declined the lead)
+      archived,
+      archiveReason,
+      archiveMessage,
+      archivedBy,
+      archivedAt,
     });
   } catch (err) {
     console.error("[connections/:id] fatal:", err);

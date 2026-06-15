@@ -95,6 +95,28 @@ export async function verifyEmailAddress(email: string): Promise<VerificationRes
   }
 }
 
+/**
+ * Current ZeroBounce credit balance, or null if no key / on error. Used by the
+ * admin Email Verifier so the team can see when credits are running low (a 0
+ * balance silently turns verification into a no-op — fail-open).
+ */
+export async function getZeroBounceCredits(): Promise<number | null> {
+  const apiKey = process.env.ZEROBOUNCE_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const res = await fetch(
+      `https://api.zerobounce.net/v2/getcredits?api_key=${encodeURIComponent(apiKey)}`
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { Credits?: string };
+    const n = parseInt(data?.Credits ?? "", 10);
+    // ZeroBounce returns "-1" for an invalid key; treat anything < 0 as unknown.
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Read a cached verdict. Returns null if none, the table is missing, or on error. */
 export async function getCachedVerification(
   email: string

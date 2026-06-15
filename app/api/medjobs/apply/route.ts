@@ -201,6 +201,9 @@ export async function POST(req: NextRequest) {
         const supabaseAdmin = getSupabaseAdmin();
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         let autoSignInToken: string | undefined;
+        // SECURITY: only auto-sign-in a NEWLY-created auth user. Existing users
+        // receive a magic link via the welcome email instead (anti-takeover).
+        let isNewAuthUser = false;
 
         if (!existingProfile.account_id) {
           console.log("[medjobs/apply] update path: account_id is null, creating account");
@@ -230,6 +233,7 @@ export async function POST(req: NextRequest) {
               }
             } else {
               authUserId = newUser.user.id;
+              isNewAuthUser = true;
               console.log("[medjobs/apply] update path: new auth user created:", authUserId);
             }
 
@@ -263,18 +267,22 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Generate auto-sign-in token for client session
-        try {
-          const { data: signInLink } = await supabaseAdmin.auth.admin.generateLink({
-            type: "magiclink",
-            email: normalizedEmailEarly,
-            options: { redirectTo: `${siteUrl}/portal/medjobs` },
-          });
-          if (signInLink?.properties?.hashed_token) {
-            autoSignInToken = signInLink.properties.hashed_token;
+        // Generate auto-sign-in token for client session — ONLY for a brand-new
+        // auth user. For an existing account, returning a token would let anyone
+        // who typed this email take it over; they get the welcome-email link.
+        if (isNewAuthUser) {
+          try {
+            const { data: signInLink } = await supabaseAdmin.auth.admin.generateLink({
+              type: "magiclink",
+              email: normalizedEmailEarly,
+              options: { redirectTo: `${siteUrl}/portal/medjobs` },
+            });
+            if (signInLink?.properties?.hashed_token) {
+              autoSignInToken = signInLink.properties.hashed_token;
+            }
+          } catch (err) {
+            console.error("[medjobs/apply] update path: sign-in token error:", err);
           }
-        } catch (err) {
-          console.error("[medjobs/apply] update path: sign-in token error:", err);
         }
 
         // Fire-and-forget: welcome email (first email student receives — partial creation didn't send one)
@@ -330,8 +338,8 @@ export async function POST(req: NextRequest) {
       // Generate auto-sign-in token so they can access dashboard immediately
       const supabaseAdmin = getSupabaseAdmin();
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-      let returningUserToken: string | undefined;
-
+      // SECURITY: returning (existing) user — never return a session token for a
+      // caller-supplied email. The magic link is delivered via email only.
       try {
         const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
           type: "magiclink",
@@ -339,7 +347,6 @@ export async function POST(req: NextRequest) {
           options: { redirectTo: `${siteUrl}/portal/medjobs` },
         });
         const magicLink = linkData?.properties?.action_link;
-        returningUserToken = linkData?.properties?.hashed_token;
 
         await sendEmail({
           to: normalizedEmailEarly,
@@ -360,7 +367,8 @@ export async function POST(req: NextRequest) {
         profileId: existingProfile.id,
         slug: existingProfile.slug,
         existing: true,
-        tokenHash: returningUserToken,
+        // No tokenHash — existing accounts must sign in via the emailed link.
+        existingUser: true,
       });
     }
 
@@ -442,6 +450,9 @@ export async function POST(req: NextRequest) {
     const normalizedEmail = email.trim().toLowerCase();
     let magicLink: string | undefined;
     let insertPathSignInToken: string | undefined;
+    // SECURITY: only auto-sign-in a NEWLY-created auth user. An existing account
+    // receives the magic link via the welcome email instead (anti-takeover).
+    let isNewAuthUser = false;
 
     try {
       // Try to create auth user — if email already exists, look up the existing one
@@ -476,6 +487,7 @@ export async function POST(req: NextRequest) {
         }
       } else {
         authUserId = newUser.user.id;
+        isNewAuthUser = true;
       }
 
       // Check if accounts row exists (existing care seeker may already have one)
@@ -519,7 +531,8 @@ export async function POST(req: NextRequest) {
       if (!linkError && linkData?.properties?.action_link) {
         magicLink = linkData.properties.action_link;
       }
-      if (!linkError && linkData?.properties?.hashed_token) {
+      // Only return an auto-sign-in token for a newly-created auth user.
+      if (isNewAuthUser && !linkError && linkData?.properties?.hashed_token) {
         insertPathSignInToken = linkData.properties.hashed_token;
       }
     } catch (err) {

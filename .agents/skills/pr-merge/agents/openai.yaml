@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Merge"
+  short_description: "Analyze PR merge safety before merging to staging, including conflict and regression checks."
+  default_prompt: "Analyze whether this PR is safe to merge into staging."

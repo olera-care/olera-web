@@ -30,6 +30,7 @@ const navSections: NavSection[] = [
     items: [
       { label: "Activity Center", href: "/admin/activity" },
       { label: "Demand", href: "/admin/demand" },
+      { label: "Market Outreach", href: "/admin/market-outreach" },
       { label: "Connections", href: "/admin/connections" },
       { label: "Leads", href: "/admin/leads" },
       // Outreach merged into Connections (direction=outbound toggle)
@@ -45,6 +46,7 @@ const navSections: NavSection[] = [
       { label: "Care Seekers", href: "/admin/care-seekers" },
       { label: "Reviews", href: "/admin/reviews" },
       { label: "Emails", href: "/admin/emails" },
+      { label: "Email Verifier", href: "/admin/email-verifier" },
     ],
   },
   {
@@ -63,6 +65,7 @@ const navSections: NavSection[] = [
     defaultOpen: true,
     items: [
       { label: "Analytics", href: "/admin/analytics" },
+      { label: "Ad Boost", href: "/admin/ad-boost" },
       { label: "Automations", href: "/admin/automations" },
       { label: "Benefits", href: "/admin/benefits" },
       { label: "Content", href: "/admin/content" },

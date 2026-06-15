@@ -92,9 +92,30 @@ export async function POST(req: NextRequest) {
   const providerProfile = isInquiry ? toProfile : fromProfile;
   const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;
 
-  if (!providerProfile?.email?.trim()) {
+  // Check provider email - first from business_profiles, then fallback to olera-providers
+  let providerEmail = providerProfile?.email?.trim() || null;
+  if (!providerEmail && providerProfile?.source_provider_id) {
+    const { data: iosProvider } = await db
+      .from("olera-providers")
+      .select("email")
+      .eq("provider_id", providerProfile.source_provider_id)
+      .not("deleted", "is", true)
+      .maybeSingle();
+    providerEmail = iosProvider?.email?.trim() || null;
+  }
+
+  if (!providerEmail) {
     return NextResponse.json(
       { error: "Provider has no email address" },
+      { status: 400 }
+    );
+  }
+
+  // Check if provider is admin-archived
+  const providerMeta = (providerProfile?.metadata as Record<string, unknown>) ?? {};
+  if (providerMeta.admin_archived === true) {
+    return NextResponse.json(
+      { error: "This provider is archived. No emails can be sent to them." },
       { status: 400 }
     );
   }
@@ -240,8 +261,8 @@ export async function POST(req: NextRequest) {
   if (isPreview) {
     // Check if email would be suppressed
     let warning: string | null = null;
-    const suppressed = await isSuppressedRecipient(providerProfile.email);
-    const undeliverable = await isUndeliverable(providerProfile.email);
+    const suppressed = await isSuppressedRecipient(providerEmail);
+    const undeliverable = await isUndeliverable(providerEmail);
 
     if (suppressed) {
       warning = "This email may be suppressed due to prior bounces or spam complaints on record.";
@@ -252,7 +273,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       preview: true,
       from: fromAddress,
-      to: providerProfile.email,
+      to: providerEmail,
       subject,
       html,
       warning,
@@ -261,7 +282,7 @@ export async function POST(req: NextRequest) {
 
   // Reserve email log ID for tracking (only when actually sending)
   const emailLogId = await reserveEmailLogId({
-    to: providerProfile.email,
+    to: providerEmail,
     subject,
     emailType: "provider_nudge",
     recipientType: "provider",
@@ -291,7 +312,7 @@ export async function POST(req: NextRequest) {
 
   // Send email with tracked HTML
   const { success, error: sendError } = await sendEmail({
-    to: providerProfile.email,
+    to: providerEmail,
     subject,
     html: trackedHtml,
     emailType: "provider_nudge",
@@ -335,6 +356,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     nudged_at: nudgedAt,
-    provider_email: providerProfile.email,
+    provider_email: providerEmail,
   });
 }

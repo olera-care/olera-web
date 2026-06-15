@@ -14,6 +14,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { syncIntentToProfile, recipientMap, timelineMap, careTypeMap } from "@/lib/sync-intent-to-profile";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -159,6 +160,7 @@ async function handleGuestConnection({
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
+  let existingUser = false;
   const displayName = guestFullName?.trim() || "Care Seeker";
 
   // Try to create user — if already exists, we'll handle that case
@@ -198,77 +200,24 @@ async function handleGuestConnection({
 
         userId = accountData?.user_id || "";
 
-        // Generate magic link token and verify server-side for instant session
-        const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
-          type: "magiclink",
+        // SECURITY: existing account — email a sign-in link instead of minting
+        // a session for a caller-supplied email (prevents account takeover).
+        // tokenHash / actionLink / tokens are intentionally left null.
+        await emailReturningUserSignInLink(authClient, {
           email: normalizedEmail,
-          options: {
-            redirectTo: `${siteUrl}/welcome`,
-          },
+          nextPath: "/welcome",
         });
-
-        if (!linkError && linkData?.properties) {
-          tokenHash = linkData.properties.hashed_token || null;
-          actionLink = linkData.properties.action_link || null;
-
-          // Verify server-side to get session tokens
-          try {
-            const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
-              token_hash: linkData.properties.hashed_token,
-              type: "magiclink",
-            });
-
-            if (!verifyError && verifyData?.session) {
-              accessToken = verifyData.session.access_token;
-              refreshToken = verifyData.session.refresh_token;
-              console.log("[guest-connection] Server-side session created for existing user:", normalizedEmail);
-            } else {
-              console.warn("[guest-connection] Server-side verify failed for existing user:", verifyError?.message);
-            }
-          } catch (verifyErr) {
-            console.error("[guest-connection] Server-side verify error for existing user:", verifyErr);
-          }
-        }
+        existingUser = true;
       } else {
-        // Edge case: auth user exists but no profile in our DB
-        // Generate magic link and verify server-side for instant session
-        const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
-          type: "magiclink",
+        // Edge case: auth user exists but no profile in our DB.
+        // SECURITY: never mint a session for a caller-supplied email. Resolve
+        // their id and email a sign-in link instead (prevents account takeover).
+        const { userId: resolvedUserId } = await emailReturningUserSignInLink(authClient, {
           email: normalizedEmail,
-          options: {
-            redirectTo: `${siteUrl}/welcome`,
-          },
+          nextPath: "/welcome",
         });
-
-        if (linkError) {
-          console.error("Failed to generate link for existing user:", linkError);
-          return NextResponse.json({ error: "Failed to create session." }, { status: 500 });
-        }
-
-        tokenHash = linkData?.properties?.hashed_token || null;
-        actionLink = linkData?.properties?.action_link || null;
-        userId = ""; // We don't have easy access to the user ID here
-
-        // Verify server-side to get session tokens
-        if (linkData?.properties?.hashed_token) {
-          try {
-            const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
-              token_hash: linkData.properties.hashed_token,
-              type: "magiclink",
-            });
-
-            if (!verifyError && verifyData?.session) {
-              accessToken = verifyData.session.access_token;
-              refreshToken = verifyData.session.refresh_token;
-              userId = verifyData.session.user?.id || "";
-              console.log("[guest-connection] Server-side session created for auth-only user:", normalizedEmail);
-            } else {
-              console.warn("[guest-connection] Server-side verify failed for auth-only user:", verifyError?.message);
-            }
-          } catch (verifyErr) {
-            console.error("[guest-connection] Server-side verify error for auth-only user:", verifyErr);
-          }
-        }
+        userId = resolvedUserId || "";
+        existingUser = true;
 
         // Check if this auth user has a provider profile on their account
         // If so, block them instead of creating a family profile
@@ -578,6 +527,9 @@ async function handleGuestConnection({
       actionLink: accessToken ? null : (actionLink || null),
       accessToken: accessToken || null,
       refreshToken: refreshToken || null,
+      // When true, an existing account was found — no session minted, a sign-in
+      // link was emailed. Client should show "check your email" (anti-takeover).
+      existingUser,
       providerSlug,
     });
   }
@@ -809,6 +761,7 @@ async function handleGuestConnection({
         emailType: "connection_request",
         recipientType: "provider",
         providerId: toProfileId,
+        metadata: { connection_id: newConnection.id },
       });
 
       // Generate one-click claim URLs with signed tokens
@@ -870,6 +823,7 @@ async function handleGuestConnection({
           emailType: "first_lead_celebration",
           recipientType: "provider",
           providerId: toProfileId,
+          metadata: { connection_id: newConnection.id },
         });
 
         let celebrationViewUrl: string;
@@ -1239,6 +1193,9 @@ async function handleGuestConnection({
     refreshToken: refreshToken || null,
     providerSlug,
     isNewUser,
+    // When true, an existing account was found — no session minted, a sign-in
+    // link was emailed. Client should show "check your email" (anti-takeover).
+    existingUser,
   });
 }
 
@@ -1894,6 +1851,7 @@ export async function POST(request: Request) {
           emailType: "connection_request",
           recipientType: "provider",
           providerId: toProfileId,
+          metadata: { connection_id: newConnection.id },
         });
 
         // Generate one-click claim URLs with signed tokens
@@ -1954,6 +1912,7 @@ export async function POST(request: Request) {
             emailType: "first_lead_celebration",
             recipientType: "provider",
             providerId: toProfileId,
+            metadata: { connection_id: newConnection.id },
           });
 
           let celebrationViewUrl: string;

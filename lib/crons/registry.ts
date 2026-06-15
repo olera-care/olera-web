@@ -55,17 +55,17 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "weekly-provider-digest",
     name: "Weekly provider digest",
     description:
-      "Demand email leading with a provider's newest unanswered question + a one-click answer link; page views / area demand are a personalization line. Recipients ordered by freshest question, then views.",
+      "Provider re-engagement digest that routes to the highest-value weekly hook: unanswered questions, fresh leads, profile completion, market/referral-source curiosity, then the plain analytics recap.",
     recipientCohort:
-      "Every provider with a live unanswered question, plus any provider with recent page-view / lead / question activity (~2,700; ~1,300 with an email on file). The Monday cron uses limit=2000 (covers the full reachable pool); a ?limit=N on a manual fire overrides it.",
+      "Every provider with a live unanswered question, plus any provider with recent page-view / lead / question activity (~2,700; ~1,300 with an email on file). Also proactively warms a small bounded set of email-reachable provider markets so future runs can send market/referral hooks without waiting for providers to discover Find Families first.",
     audience: "Providers",
     fn: "digest",
-    schedule: "0 13 * * 1",
-    humanSchedule: "Mondays, 13:00 UTC (~8–9 AM ET)",
+    schedule: "0 13 * * 1,2,3,4,5",
+    humanSchedule: "Weekdays (Mon–Fri), 13:00 UTC (~8–9 AM ET) — each provider on a fixed weekday",
     path: "/api/cron/weekly-provider-digest",
     emailTypes: ["weekly_analytics_digest"],
-    successSignal: "Provider lands on the answer flow and answers a question (see /admin/questions).",
-    relatedAdminPath: "/admin/questions",
+    successSignal: "Provider answers a question, opens a lead, completes profile, works a referral target, or returns to the portal depending on the variant.",
+    relatedAdminPath: "/admin/activity?actor=providers",
   },
   {
     id: "verification-reminders",

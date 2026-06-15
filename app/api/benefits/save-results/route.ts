@@ -11,6 +11,7 @@ import { validateEmailStrict } from "@/lib/email-validation";
 import { generateBenefitsToken } from "@/lib/benefits-token";
 import { getStateSlug } from "@/lib/program-data";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
+import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 
 // ─── Email + SMS body helpers ────────────────────────────────────────────
 //
@@ -148,6 +149,12 @@ interface SaveResultsPayload {
    *  accounts.session_id so the admin Family Intake drill-in can join an
    *  account back to its impression / started events on provider_activity. */
   sessionId?: string;
+  /** UTM attribution from a managed-ads landing link
+   *  (`utm_source=olera_managed&utm_campaign=<tag>`). Persisted to the
+   *  benefits_completed event metadata so families delivered by a paid Ad Boost
+   *  campaign can be attributed back to it (see /admin/ad-boost). */
+  utmSource?: string;
+  utmCampaign?: string;
   matchedPrograms: SavedProgramInput[];
   matchCount: number;
 }
@@ -181,6 +188,8 @@ export async function POST(req: Request) {
     relationship,
     entrySource,
     sessionId,
+    utmSource,
+    utmCampaign,
     matchedPrograms,
     matchCount,
   } = payload;
@@ -287,6 +296,7 @@ export async function POST(req: Request) {
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
+  let existingUser = false;
   const hasRealName = !!firstName?.trim();
   const displayName = hasRealName ? firstName!.trim() : "Care Seeker";
 
@@ -360,23 +370,15 @@ export async function POST(req: Request) {
       isNewUser = true;
     } else if (createUserErr?.message?.includes("already been registered") ||
                createUserErr?.message?.includes("already exists")) {
-      // User exists — generate magic link to get session
-      const { data: linkData } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
+      // SECURITY: existing account. Never mint a session for a caller-supplied
+      // email (account takeover). Email a magic link instead; the saved results
+      // still attach to their account via the resolved userId.
+      const { userId: existingUserId } = await emailReturningUserSignInLink(authClient, {
         email: normalizedEmail,
-        options: { redirectTo: `${siteUrl}/portal` },
+        nextPath: "/portal",
       });
-      if (linkData?.properties?.hashed_token) {
-        const { data: verifyData } = await authClient.auth.verifyOtp({
-          token_hash: linkData.properties.hashed_token,
-          type: "magiclink",
-        });
-        if (verifyData?.session) {
-          accessToken = verifyData.session.access_token;
-          refreshToken = verifyData.session.refresh_token;
-          userId = verifyData.session.user?.id || "";
-        }
-      }
+      userId = existingUserId || "";
+      existingUser = true;
     } else {
       console.error("[save-results] Failed to create user:", createUserErr);
       return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
@@ -662,6 +664,14 @@ export async function POST(req: Request) {
       is_new_user: isNewUser,
       top_program: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       top_savings: matchedPrograms[0]?.savingsRange || null,
+      // Attribution — where the intake was submitted from. Surfaced in the
+      // admin Activity Center + the Slack alert so leads are traceable to
+      // the page that produced them (program page, article, provider page).
+      entry_source: entrySource || null,
+      provider_slug: providerSlug || null,
+      // Managed-ads attribution: which paid campaign (if any) drove this family.
+      utm_source: utmSource || null,
+      utm_campaign: utmCampaign || null,
     },
   }).then(({ error }: { error: { message: string } | null }) => {
     if (error) console.error("[seeker_activity] benefits_completed insert failed:", error);
@@ -703,6 +713,8 @@ export async function POST(req: Request) {
       topProgramName: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       topSavings,
       isNewUser,
+      entrySource: entrySource || null,
+      providerSlug: providerSlug || null,
     });
     // Awaited via Promise.allSettled — fire-and-forget gets killed by
     // Vercel's serverless runtime once the response goes out (cost a 7h
@@ -873,6 +885,10 @@ export async function POST(req: Request) {
     profileId: familyProfileId,
     userId,
     isNewUser,
+    // When true, no session is minted — an existing account was found and a
+    // sign-in link was emailed. The client should show "check your email"
+    // instead of treating the user as logged in (security: prevents takeover).
+    existingUser,
     matchCount,
     programsSaved: matchedPrograms.length,
     token: benefitsToken,

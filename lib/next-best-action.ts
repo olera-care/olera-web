@@ -131,6 +131,19 @@ function getCopy(section: NudgeSectionId, category: ProfileCategory | null | und
   return entry.default;
 }
 
+/**
+ * Resolved copy for a section without a ProfileCompleteness — used by the admin
+ * banner preview to render each completion banner's headline/subline/CTA from
+ * the same source the live picker uses (no drift). Defaults to the generic
+ * (service) copy; pass a category to see the place-based wording.
+ */
+export function previewCopy(
+  section: NudgeSectionId,
+  category?: ProfileCategory | null,
+): NudgeCopy {
+  return getCopy(section, category ?? null);
+}
+
 export interface NextAction {
   sectionId: NudgeSectionId;
   /** Section weight (existing impact heuristic from profile-completeness). */

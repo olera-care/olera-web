@@ -23,6 +23,7 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import VerificationStatusCard from "./VerificationStatusCard";
+import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -32,8 +33,9 @@ import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
-import DashboardHero from "./v2/DashboardHero";
+import DashboardHero, { type HeroAction } from "./v2/DashboardHero";
 import DashboardHeroSkeleton from "./v2/DashboardHeroSkeleton";
+import FamilyViewPreview from "./FamilyViewPreview";
 
 // Editable profile sections a `?edit=<section>` deep-link may target (e.g. from
 // completion-carrot emails). Mirrors the SectionId union; needed at runtime to
@@ -227,6 +229,20 @@ function DashboardContent({
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  // Mirrors the hero's chosen next-action so the mobile sticky bar shows the
+  // same CTA the hero landed on this visit (set via DashboardHero's callback).
+  const [heroAction, setHeroAction] = useState<HeroAction | null>(null);
+  // "See your page as families do" — swaps the edit cards for the family-framed
+  // ghosted preview (FamilyViewPreview). Ghost CTAs reuse handleEdit, so tapping
+  // a gap opens that section's editor right over the preview.
+  const [previewMode, setPreviewMode] = useState(false);
+
+  // Post-edit Managed Ads nudge: shown once per session after a profile save.
+  // Suppressed when the hero already resolved to the managed-ads banner this
+  // visit, so the two managed-ads prompts never stack on one screen.
+  const [showEditNudge, setShowEditNudge] = useState(false);
+  const editNudgeShownRef = useRef(false);
+  const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
 
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
@@ -281,18 +297,30 @@ function DashboardContent({
 
   const handleSaved = useCallback(async () => {
     await refreshAccountData();
+    let finishedEditing = false;
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);
       if (next) {
         setEditingSection(next);
       } else {
+        // Guided run fully complete — that's a finish too.
         setEditingSection(null);
         guided.stopGuided();
+        finishedEditing = true;
       }
     } else {
       setEditingSection(null);
+      finishedEditing = true;
     }
-  }, [refreshAccountData, guided, editingSection, setEditingSection]);
+    // Just-polished-my-page moment: surface the Managed Ads nudge once per
+    // session. Editing is the one in-app action the engaged minority takes, so
+    // it's the earned, high-intent time to pitch getting the page seen — vs an
+    // always-on sidebar fixture.
+    if (finishedEditing && !editNudgeShownRef.current && !previewMode) {
+      editNudgeShownRef.current = true;
+      setShowEditNudge(true);
+    }
+  }, [refreshAccountData, guided, editingSection, setEditingSection, previewMode]);
 
   const handleGuidedBack = useCallback(() => {
     if (editingSection) {
@@ -329,26 +357,8 @@ function DashboardContent({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Mobile-only components */}
-      {(() => {
-        const meta = profile.metadata as { badge_approved?: boolean; badge_rejected?: boolean; verification_submission?: unknown } | null;
-        const wasRejected = meta?.badge_rejected === true;
-        const hasSubmission = !!meta?.verification_submission;
-        const shouldShowMobileBadgeCard = !meta?.badge_approved && (!hasSubmission || wasRejected);
-        return shouldShowMobileBadgeCard ? (
-          <div className="lg:hidden mb-4">
-            <MobileBadgeRequestCard onRequestBadge={() => handleOpenVerificationModal()} wasRejected={wasRejected} />
-          </div>
-        ) : null;
-      })()}
-
-      <MobileProgressBanner
-        completeness={completeness}
-        onTap={() => setShowCompletenessSheet(true)}
-      />
-
+    <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
       <MobileCompletenessSheet
         isOpen={showCompletenessSheet}
         onClose={() => setShowCompletenessSheet(false)}
@@ -356,16 +366,48 @@ function DashboardContent({
         lastUpdated={profile.updated_at}
       />
 
-      {/* Page header - outside grid so both columns align */}
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
-            Your profile
-          </h1>
-          <p className="text-sm lg:text-[15px] text-gray-500">
-            Manage your profile and how families find you
-          </p>
+      {/* Page header — actions live in a utility bar ABOVE the title (never beside
+          it), so the H1 is a full-width block and can't ladder one-word-per-line.
+          In preview mode the editing header is hidden: the provider's name inside
+          the preview is the de-facto title (it's their page). */}
+      <div className="mb-6">
+        {/* Preview-as-families is desktop-only: on mobile the "View public
+            profile" link in the overview card opens the real live page — a
+            better, more honest preview than the in-app ghost — so this button
+            is redundant chrome stealing prime top space. hidden lg:flex keeps
+            it off phones and collapses the row so the title leads cleanly. */}
+        <div className={previewMode ? "hidden lg:flex lg:justify-start" : "hidden lg:flex lg:justify-end"}>
+          <button
+            onClick={() => setPreviewMode((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 lg:px-4 py-2.5 text-sm font-medium text-gray-600 shadow-xs transition-all hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100"
+          >
+            {previewMode ? (
+              <>
+                <span aria-hidden>&larr;</span>
+                <span>Back to editing</span>
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="hidden sm:inline">Preview as families</span>
+                <span className="sm:hidden">Preview</span>
+              </>
+            )}
+          </button>
         </div>
+        {!previewMode && (
+          <div className="lg:mt-4">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">
+              Your profile
+            </h1>
+            <p className="text-sm lg:text-[15px] text-gray-500">
+              Manage your profile and how families find you
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -373,6 +415,9 @@ function DashboardContent({
           - LEFT: Hero + all profile cards (scrolls)
           - RIGHT: Stats + Activity + Completeness (sticky)
           ═══════════════════════════════════════════════════════════════════ */}
+      {previewMode ? (
+        <FamilyViewPreview profile={profile} meta={meta} onEdit={handleEdit} />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
 
         {/* ─── LEFT COLUMN: scrollable profile content ─── */}
@@ -397,6 +442,8 @@ function DashboardContent({
                 category={profile.category}
                 onOpenSection={setEditingSection}
                 providerSlug={profile.slug}
+                onHeroAction={setHeroAction}
+                onBannerResolved={setHeroBannerId}
               />
             </div>
           ) : (
@@ -404,6 +451,40 @@ function DashboardContent({
               firstName={deriveFirstName(profile.display_name)}
             />
           )}
+
+          {/* Post-edit Managed Ads nudge — fires once per session after a save,
+              not as an always-on card. The earned, high-intent moment. Hidden
+              when the hero already resolved to the managed-ads banner, so the
+              pitch never doubles on one screen. */}
+          {showEditNudge && heroBannerId !== "managed_ads" && (
+            <PostEditAdsNudge
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              onDismiss={() => setShowEditNudge(false)}
+            />
+          )}
+
+          {/* Mobile completeness + verification (lg:hidden) — these sit in the
+              desktop sticky sidebar; on mobile they live here, just under the
+              hero, so the flow reads: numbers → next action → your progress.
+              Progress banner hidden in preview (it's editing chrome). */}
+          {!previewMode && (
+            <MobileProgressBanner
+              completeness={completeness}
+              onTap={() => setShowCompletenessSheet(true)}
+            />
+          )}
+          {(() => {
+            const m = profile.metadata as { badge_approved?: boolean; badge_rejected?: boolean; verification_submission?: unknown } | null;
+            const wasRejected = m?.badge_rejected === true;
+            const hasSubmission = !!m?.verification_submission;
+            const shouldShowMobileBadgeCard = !m?.badge_approved && (!hasSubmission || wasRejected);
+            return shouldShowMobileBadgeCard ? (
+              <div className="lg:hidden">
+                <MobileBadgeRequestCard onRequestBadge={() => handleOpenVerificationModal()} wasRejected={wasRejected} />
+              </div>
+            ) : null;
+          })()}
 
           {/* Recent Activity card in left column */}
           {v2Data && v2Data.recentActivity.length > 0 && (
@@ -415,7 +496,11 @@ function DashboardContent({
             </div>
           )}
 
-          {/* Profile cards - all scrollable */}
+          {/* Profile sections. On mobile they're a flat list: chromeless
+              sections separated by hairlines (divide-y) + whitespace — the
+              narrow screen is the container. On desktop they're carded with
+              space-y-6 gaps. */}
+          <div className="divide-y divide-gray-100 lg:divide-y-0 lg:space-y-6">
           {[
             <ProfileOverviewCard
               key="overview"
@@ -479,6 +564,7 @@ function DashboardContent({
               {card}
             </div>
           ))}
+          </div>
         </div>
 
         {/* ─── RIGHT COLUMN: Sticky stats & completeness ─── */}
@@ -515,6 +601,10 @@ function DashboardContent({
           </div>
         </div>
       </div>
+      )}
+
+      {/* Spacer so the last card clears the fixed mobile action bar. */}
+      {!previewMode && heroAction && <div className="lg:hidden h-20" aria-hidden />}
 
       {/* Edit Modals */}
       {editingSection === "overview" && <EditOverviewModal {...modalProps} />}
@@ -545,7 +635,61 @@ function DashboardContent({
         />
       )}
 
+      {/* Sticky mobile action bar — keeps the hero's chosen next-action in
+          thumb reach across the whole scroll (Airbnb Reserve / Wise Send /
+          Robinhood Buy). Hidden in preview and when the tier carries no CTA. */}
+      {!previewMode && heroAction && (
+        <MobileActionBar action={heroAction} onOpenSection={setEditingSection} />
+      )}
+
     </div>
+    </div>
+  );
+}
+
+// ── Sticky mobile action bar (mirrors the hero's chosen next-action) ──
+
+function MobileActionBar({
+  action,
+  onOpenSection,
+}: {
+  action: HeroAction;
+  onOpenSection: (s: SectionId) => void;
+}) {
+  const className =
+    "flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-5 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-transform active:scale-[0.98]";
+  const arrow = (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+    </svg>
+  );
+
+  return (
+    <div
+      className="fixed inset-x-0 bottom-0 z-30 lg:hidden border-t border-gray-200 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm"
+      style={{ animation: "slide-up 0.3s ease-out both" }}
+    >
+      {action.kind === "section" && action.sectionId ? (
+        <button
+          type="button"
+          onClick={() => onOpenSection(action.sectionId as SectionId)}
+          className={className}
+        >
+          {action.label}
+          {arrow}
+        </button>
+      ) : (
+        <Link href={action.href ?? "#"} className={className}>
+          {action.label}
+          {arrow}
+        </Link>
+      )}
+      <style jsx>{`
+        @keyframes slide-up {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -568,7 +712,7 @@ function MobileProgressBanner({
     <button
       type="button"
       onClick={onTap}
-      className="lg:hidden w-full mb-5 bg-white rounded-xl border border-gray-200 px-4 py-3 text-left active:bg-gray-50 transition-colors"
+      className="lg:hidden w-full bg-vanilla-50/70 rounded-2xl px-4 py-3.5 text-left active:bg-vanilla-100 transition-colors"
     >
       <div className="flex items-center gap-3">
         {/* Progress ring */}
@@ -612,7 +756,7 @@ function MobileBadgeRequestCard({
   wasRejected?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className={`rounded-2xl p-4 ${wasRejected ? "bg-amber-50/60" : "bg-primary-50/50"}`}>
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${wasRejected ? "bg-amber-100" : "bg-primary-100"}`}>

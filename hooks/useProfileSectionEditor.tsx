@@ -2,9 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import type { Profile } from "@/lib/types";
-import type { ExtendedMetadata } from "@/lib/profile-completeness";
 import type { SectionId } from "@/components/provider-dashboard/edit-modals/types";
 import EditOverviewModal from "@/components/provider-dashboard/edit-modals/EditOverviewModal";
 import EditGalleryModal from "@/components/provider-dashboard/edit-modals/EditGalleryModal";
@@ -32,6 +32,9 @@ export function useProfileSectionEditor(
   { onSaved }: { onSaved: () => void },
 ): { openEditor: (sectionId: SectionId) => void; editorModals: React.ReactNode } {
   const { refreshAccountData } = useAuth();
+  // Same enriched metadata the dashboard feeds its editors (e.g. gallery
+  // backfilled from iOS images) so an inline edit shows identical state.
+  const { metadata } = useProviderDashboardData(profile);
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
 
@@ -77,7 +80,7 @@ export function useProfileSectionEditor(
       {(() => {
         const modalProps = {
           profile,
-          metadata: (profile.metadata ?? {}) as ExtendedMetadata,
+          metadata,
           onClose: () => setEditingSection(null),
           onSaved: handleSaved,
           isVerified,

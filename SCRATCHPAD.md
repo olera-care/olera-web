@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+- **Resend Audiences Strategy** (branch: `sparky-planck`) — PLAN COMPLETE, READY TO IMPLEMENT
+  - 6 audiences designed, mapped to existing email flows
+  - Resend MCP server available for querying audiences via Claude
+  - Priority order: Unclaimed Providers → Students → Claimed Providers → Families → Ops Team → Digest Recipients
+  - Notion doc: [Resend Audiences Strategy — April 2026](https://www.notion.so/33e5903a0ffe8117bc80fb3a8be0af4b)
+
 - **City Expansion Batch (Apr 9)** — COMPLETE
   - 154 cities, 2,639 providers added to Supabase
   - Cost: $260 (7,880 Google + 1,569 Perplexity calls), 4h4m runtime
@@ -48,7 +54,9 @@
 
 ## Next Up
 
-1. Run benefits pipeline on FL + CA → compare patterns across 3 states
+1. Implement Resend Audience #1: "Unclaimed Providers With Leads" — hook into `/api/connections/request`
+2. Implement Resend Audience #2: "MedJobs Students — Incomplete" — hook into `medjobs-nudge` cron
+3. Run benefits pipeline on FL + CA → compare patterns across 3 states
 2. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
 3. MedJobs candidates detail page taste pass
 4. SEO city-specific content sections
@@ -89,6 +97,32 @@
 ---
 
 ## Session Log
+
+### 2026-04-10 (Session 72) — Resend Audit + Audiences Strategy
+
+**Branch:** `sparky-planck` | **No code changes — strategy session**
+
+**Resend Outage:**
+- User hit "Sign in required" on `/provider` — root cause was Resend outage (Email Sending + SMTP + General API all down)
+- Password sign-in unaffected (goes through Supabase directly), only OTP/magic link flows broken
+- No code fix needed — third-party issue
+
+**Resend Codebase Audit:**
+- 47+ email types sent through single `sendEmail()` in `lib/email.ts`
+- 40+ API routes/cron jobs send emails
+- 37+ template generators in `lib/email-templates.tsx` + `lib/medjobs-email-templates.tsx`
+- Full audit logging via `email_log` Supabase table
+- Only using `resend.emails.send()` — no audiences, batch, webhooks, or templates
+
+**Resend Audiences Strategy (6 audiences designed):**
+1. **Unclaimed Providers With Leads** — visibility into biggest conversion gap (providers getting leads but no one's reading them)
+2. **MedJobs Students — Incomplete** — segment by completeness %, target nudges by drop-off point
+3. **Families — Pre-Connection** — funnel visibility (incomplete → complete → live → connected → dormant)
+4. **Claimed Providers — Active** — churn prevention, response rate tracking, cross-feature adoption
+5. **Olera Ops Team** — replace hardcoded `ADMIN_NOTIFICATION_EMAIL`, scale to team of 2+
+6. **Weekly Digest Recipients** — track open/click rates, stop sending to disengaged providers
+
+**Resend MCP Server:** Announced Apr 7 — enables querying audiences in plain English via Claude. Recommended for day-to-day funnel visibility without SQL.
 
 ### 2026-04-09 (Session 71) — City Expansion Batch (154 Cities)
 

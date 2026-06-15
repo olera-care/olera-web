@@ -680,6 +680,71 @@ export function slackYourMarketPlaybookClicked(opts: {
   };
 }
 
+/** 👀 Provider opened the Find Families section. Fires on every visit (TJ's
+ *  call) — the impression matters even when they don't act, because "showed up
+ *  and bounced" is signal at our scale. `tab` is which sub-view they landed on. */
+export function slackMatchesPageViewed(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  tab: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  const fields = [
+    { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+    { type: "mrkdwn", text: `*Where:*\n${where}` },
+  ];
+  if (opts.tab) fields.push({ type: "mrkdwn", text: `*Tab:*\n${opts.tab}` });
+  return {
+    text: `Find Families view: ${opts.providerName} — ${where}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "👀 Provider Opened Find Families", emoji: true } },
+      { type: "section", fields },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=matches_page_viewed|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
+/** 📨 Provider sent outreach to a family from Find Families — the conversion
+ *  moment. Family kept to an opaque id only (no name/PHI in the alert). */
+export function slackMatchesOutreachSent(opts: {
+  providerName: string;
+  providerSlug: string;
+  city: string | null;
+  state: string | null;
+  usedAi: boolean;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
+  return {
+    text: `Find Families outreach sent: ${opts.providerName} — ${where}`,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: "📨 Provider Reached Out to a Family", emoji: true } },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Where:*\n${where}` },
+          { type: "mrkdwn", text: `*Message:*\n${opts.usedAi ? "AI-assisted" : "Written manually"}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing> • <${siteUrl}/admin/activity?actor=providers&event_type=matches_outreach_sent|Activity Center>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── Post-answer engagement chain alerts ──────────────────────────
 // These three fire across the redirect → hero → action flow that ships
 // providers from the question email into profile activation. Real-time

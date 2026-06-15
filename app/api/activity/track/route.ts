@@ -566,6 +566,43 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 👀 Provider opened Find Families. Pinged on every visit (TJ's call —
+    // impressions matter at our scale; "showed up and bounced" is signal).
+    if (event_type === "matches_page_viewed") {
+      try {
+        const { sendSlackAlert, slackMatchesPageViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMatchesPageViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          tab: (meta.tab as string) || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 📨 Provider sent outreach to a family — the Find Families conversion.
+    if (event_type === "matches_outreach_sent") {
+      try {
+        const { sendSlackAlert, slackMatchesOutreachSent } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMatchesOutreachSent({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          usedAi: meta.used_ai === true,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[activity/track] Error:", err);

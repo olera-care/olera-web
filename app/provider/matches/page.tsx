@@ -1094,6 +1094,9 @@ export default function ProviderMatchesPage() {
             family_id: toProfileId,
             connection_id: insertedConn.id,
             used_ai: usedAi,
+            provider_name: providerProfile.display_name,
+            city: providerProfile.city,
+            state: providerProfile.state,
           });
         }
 
@@ -1355,6 +1358,9 @@ export default function ProviderMatchesPage() {
       hasTrackedPageView.current = true;
       trackMatchesEvent(providerProfile.slug, "matches_page_viewed", {
         tab: activeTab,
+        provider_name: providerProfile.display_name,
+        city: providerProfile.city,
+        state: providerProfile.state,
       });
     }
   }, [providerProfile?.slug, activeTab]);

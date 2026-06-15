@@ -124,11 +124,16 @@ function scoreProfileOverview(profile: Profile): number {
 }
 
 function scorePricing(meta: ExtendedMetadata): number {
-  let score = 0;
-  // Check for pricing display option (either showing rates or contact for pricing)
-  if (meta.contact_for_pricing || meta.lower_price || meta.price_range?.trim()) score += 50;
-  if (meta.pricing_details && meta.pricing_details.length > 0) score += 50;
-  return clamp(score);
+  // Pricing is a DECISION, not a wall. Some providers can't publish rates
+  // (franchise rules, ahead-of-market positioning), so an explicit "Contact for
+  // pricing" is a complete, valid choice — we never nag them to disclose.
+  // Showing actual rates is preferred (listings with prices get more inquiries)
+  // and encouraged in the editor, but it's a strength signal, not a completeness
+  // requirement. Any deliberate pricing input completes the section.
+  if (meta.contact_for_pricing) return 100;
+  if (meta.lower_price || meta.price_range?.trim() || (meta.pricing_details?.length ?? 0) > 0)
+    return 100;
+  return 0;
 }
 
 function scoreStaffScreening(meta: ExtendedMetadata): number {

@@ -7,22 +7,24 @@
 
 ## Current Focus
 
-- **CTA Experimentation Infrastructure** (branch: `glad-wu`) — PUSHED, DB MIGRATED, NEEDS PR + PREVIEW TEST
+- **CTA Experimentation Infrastructure** (branch: `glad-wu`) — LIVE, COLLECTING DATA, PAUSED FOR MERGE
   - Plan: `plans/cta-experimentation-plan.md`
-  - **DB migration ran successfully** in Supabase (tables + seed data live)
-  - Bug fix: `update_updated_at()` function didn't exist — added `create or replace` to migration script
-  - Branch pushed to origin (3 commits: infrastructure, scratchpad, migration fix)
-  - **Next: create PR to staging → get Vercel preview → test 3 variants → activate experiment**
-  - **All Phase 1-3 code complete + build passing**
-  - Committed: `77d54994` — 18 files, 1805 insertions
+  - **Experiment is live in production** — 3 leads already as of 2026-04-06, letting it run for a few days
+  - **Bug fixes applied (2026-04-06 session):**
+    - Admin dashboard RLS bug: `toggleStatus()` and `updateWeight()` used anon client, blocked by RLS. Fixed by routing writes through `/api/experiments/admin` endpoint using service role client.
+    - Impression tracking: API route used browser client in server context. Switched to service role client. Removed broken `increment_impression` RPC call (never created in migration).
+    - Added activate/pause buttons to "All Experiments" list (draft experiments were missing toggle).
+  - **PR merge to staging PAUSED** — branch is 54 commits behind staging. Content regression check found 6 critical files with staging-side changes (QASectionV2 redesign, UnifiedAuthModal, Navbar, Footer, AuthProvider, provider page). Need rebase before merge.
+  - **Worktree path:** `/Users/tfalohun/.claude-worktrees/olera-web/glad-wu`
+  - **Next (after data collection):**
+    1. Rebase `glad-wu` onto latest staging
+    2. Resolve conflicts (especially `app/provider/[slug]/page.tsx` — both PR and staging modified)
+    3. Create PR to staging, get preview, verify all 3 variants work
+    4. If results are clear, promote winning variant; if not, continue experiment
   - 3 variants seeded (33/33/34 traffic split):
     - `contact` (control): old "Get in Touch" with 4 fields, no enrichment
     - `pricing`: current "What does this cost?" email-only, pricing post-submit
     - `eligibility`: "See if you qualify" email-only, eligibility-framed post-submit with funding options shown expanded
-  - **To go live:**
-    1. Push branch + create PR to staging
-    2. Run `scripts/migrate-experiments.sql` in Supabase SQL editor
-    3. Set experiment to `active` via `/admin/experiments` or SQL
   - **Key files created:**
     - `lib/experiments.ts` — core library (assignment, cookies, stats)
     - `components/providers/ExperimentProvider.tsx` — `useExperiment()` hook

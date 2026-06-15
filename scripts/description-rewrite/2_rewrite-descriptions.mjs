@@ -44,6 +44,14 @@ const WAVE = parseInt(arg("--wave", "1"), 10);
 const LIMIT = parseInt(arg("--limit", "0"), 10); // 0 = no limit
 const DRY_RUN = process.argv.includes("--dry-run");
 const CONCURRENCY = parseInt(arg("--concurrency", "4"), 10);
+// --variant-lock C: force a single variant for every record instead of the
+// A/B/C index rotation. Wave 2 is Senior Communities × variant C only, the
+// only cell that won across both the 3-week and 4-week wave-1 reads.
+const VARIANT_LOCK = arg("--variant-lock", null);
+if (VARIANT_LOCK && !["A", "B", "C"].includes(VARIANT_LOCK)) {
+  console.error(`Error: --variant-lock must be one of A, B, C (got "${VARIANT_LOCK}")`);
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
@@ -95,8 +103,8 @@ HARD RULES
    - "Nursing Home" → "nursing home" or "skilled nursing facility"
    - "Hospice" → "hospice provider"
    - "Independent Living" → "independent living community"
-4. Preserve at least one distinctive fact from the original first sentence if one exists (specific service, accreditation, year founded, population served). If the original is generic filler, skip.
-5. Do NOT invent services, certifications, or specialties not present in the data above or the original.
+4. Preserve at least one distinctive fact from the original first sentence ONLY if it appears verbatim there (a specific service, accreditation, year founded, or population served). If the original is generic filler, skip — do not manufacture a distinctive fact to fill the gap.
+5. State ONLY facts that appear verbatim in the provider data or the original sentence. Do NOT invent or infer services, certifications, specialties, languages, amenities, or descriptors. Inference counts as invention: if the original says "Indian inspired," you may NOT write "multilingual" or "culturally familiar care" — those are claims we cannot verify. When you have nothing verifiable beyond name, category, and location, write a clean sentence with just those three and a neutral closing phrase (e.g. "serving seniors in the area"). A shorter, fully-grounded sentence is always better than a longer one with an unverified claim.
 6. Do NOT mention ratings, star counts, or review scores. Those are shown elsewhere on the page and change over time — baking them into static copy creates stale claims.
 7. Do NOT mention prices, price ranges, or dollar amounts.
 8. Do NOT use clickbait ("Discover...", "Find the best...", rhetorical questions).
@@ -218,7 +226,7 @@ async function rewriteOne(candidate, variant) {
     const msg = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 300,
-      temperature: 0.4,
+      temperature: 0.2,
       messages: [{ role: "user", content: prompt }],
     });
     const text = msg.content
@@ -263,7 +271,7 @@ async function main() {
     const results = await Promise.all(
       batch.map(async (c, idx) => {
         const globalIdx = i + idx;
-        const variant = STYLE_VARIANTS[globalIdx % STYLE_VARIANTS.length];
+        const variant = VARIANT_LOCK || STYLE_VARIANTS[globalIdx % STYLE_VARIANTS.length];
         // Pre-LLM guard: if the original description's first sentence asserts
         // a category that disagrees with Supabase's provider_category, skip.
         // Either Supabase is wrong (stale data) or the original prose was

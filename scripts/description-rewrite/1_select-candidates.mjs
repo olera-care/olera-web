@@ -15,7 +15,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { createReadStream } from "node:fs";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
 import { parse } from "csv-parse";
 
 const SUPABASE_URL = "https://ocaabzfiiikjcgqwhbwr.supabase.co";
@@ -48,8 +48,49 @@ const MIN_IMPRESSIONS = parseInt(arg("--min-impressions", "100"), 10);
 // pages that drive our /provider/ traffic today.
 const SKIP_TOP = parseInt(arg("--skip-top", "0"), 10);
 const OUTPUT = arg("--output", "scripts/description-rewrite/candidates.json");
+// Wave 2 additions (all optional, default-off = wave-1 behavior):
+// --category-filter "Senior Communities": keep only rows in that main_category
+//   group. NULL main_category rows are inferred from provider_category text.
+// --exclude-audit <path>: drop any provider_id already present in a prior
+//   wave's audit JSON, so we never double-rewrite a page.
+// --holdback-pct N + --holdback-output <path>: randomly split N% of the final
+//   cohort into a no-touch control group written to a separate file.
+const CATEGORY_FILTER = arg("--category-filter", null);
+const EXCLUDE_AUDIT = arg("--exclude-audit", null);
+const HOLDBACK_PCT = parseInt(arg("--holdback-pct", "0"), 10);
+const HOLDBACK_OUTPUT = arg("--holdback-output", null);
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Senior Communities inference for rows whose main_category is NULL. Mirrors
+// the canonical grouping the measurement script uses (main_category drives the
+// cohort; these tokens recover the NULL rows from provider_category text).
+const SENIOR_COMMUNITY_TOKENS = [
+  "assisted living", "independent living", "nursing home", "skilled nursing",
+  "memory care", "continuing care", "ccrc", "retirement community", "senior living",
+];
+const HOME_CARE_TOKENS = ["home health", "home care", "in-home", "non-medical"];
+
+function inferMainCategory(c) {
+  if (c.main_category) return c.main_category;
+  const pc = (c.provider_category || "").toLowerCase();
+  if (SENIOR_COMMUNITY_TOKENS.some((t) => pc.includes(t))) return "Senior Communities";
+  if (HOME_CARE_TOKENS.some((t) => pc.includes(t))) return "Home Care";
+  return null; // genuinely unknown — excluded by any category filter
+}
+
+// Deterministic-ish shuffle seeded off provider_id so re-runs are stable for a
+// given cohort (no Math.random nondeterminism between dry-run and live).
+function seededShuffle(arr) {
+  const withKey = arr.map((x) => {
+    let h = 0;
+    const s = String(x.provider_id);
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return { x, h };
+  });
+  withKey.sort((a, b) => a.h - b.h);
+  return withKey.map((w) => w.x);
+}
 
 // --- Step 1: read the GSC CSV, filter to /provider/ rows ---
 async function readGSCRows() {
@@ -151,29 +192,76 @@ async function main() {
   console.log("1. Reading GSC pages-movement CSV...");
   const gscRows = await readGSCRows();
   console.log(`   ${gscRows.length} /provider/ URLs at >=${MIN_IMPRESSIONS} impressions`);
-  const sliced = gscRows.slice(SKIP_TOP, SKIP_TOP + LIMIT);
+
+  // When filtering by category we don't know up front how many of the top rows
+  // belong to the target group, so hydrate a larger pool and trim after the
+  // filter. Without a category filter, behaviour is unchanged from wave 1.
+  const POOL = CATEGORY_FILTER ? Math.min(gscRows.length, (SKIP_TOP + LIMIT) * 8) : SKIP_TOP + LIMIT;
+  const sliced = gscRows.slice(SKIP_TOP, POOL);
   const impRange =
     sliced.length > 0
       ? `${sliced[sliced.length - 1].impressions_current}-${sliced[0].impressions_current} impressions`
       : "empty";
-  console.log(`   Taking rank ${SKIP_TOP + 1}-${SKIP_TOP + sliced.length} (${impRange})`);
+  console.log(`   Hydration pool: rank ${SKIP_TOP + 1}-${SKIP_TOP + sliced.length} (${impRange})`);
 
   console.log();
   console.log("2. Hydrating from Supabase olera-providers...");
-  const { hydrated, missed } = await hydrateFromSupabase(sliced);
+  let { hydrated, missed } = await hydrateFromSupabase(sliced);
   console.log();
   console.log(`   Hydrated:      ${hydrated.length}`);
   console.log(`   Unresolved:    ${missed.length}`);
-  if (missed.length > 0) {
-    console.log(`   Sample misses:`);
-    for (const m of missed.slice(0, 5)) {
-      console.log(`     ${m.slug}  — ${m.reason || "no description"}`);
-    }
+
+  // --- Wave 2 filters ---
+  if (CATEGORY_FILTER) {
+    const before = hydrated.length;
+    hydrated = hydrated.filter((c) => inferMainCategory(c) === CATEGORY_FILTER);
+    const inferred = hydrated.filter((c) => !c.main_category).length;
+    console.log(
+      `   Category filter "${CATEGORY_FILTER}": ${hydrated.length}/${before} kept ` +
+        `(${inferred} recovered from NULL main_category via provider_category)`
+    );
   }
 
-  writeFileSync(OUTPUT, JSON.stringify(hydrated, null, 2));
+  if (EXCLUDE_AUDIT) {
+    const prior = JSON.parse(readFileSync(EXCLUDE_AUDIT, "utf8"));
+    const priorIds = new Set(prior.map((r) => r.provider_id));
+    const before = hydrated.length;
+    hydrated = hydrated.filter((c) => !priorIds.has(c.provider_id));
+    console.log(`   Excluded ${before - hydrated.length} provider_ids already in ${EXCLUDE_AUDIT}`);
+  }
+
+  // Supabase batch hydration returns rows in DB order, not impression order —
+  // re-sort by impressions desc so the trim keeps the genuine top cohort.
+  hydrated.sort((a, b) => b.impressions_current - a.impressions_current);
+  if (hydrated.length > LIMIT) {
+    hydrated = hydrated.slice(0, LIMIT);
+    console.log(`   Trimmed to top ${LIMIT} by impressions`);
+  }
+  const cohortRange =
+    hydrated.length > 0
+      ? `${hydrated[hydrated.length - 1].impressions_current}-${hydrated[0].impressions_current} impressions`
+      : "empty";
+  console.log(`   Final cohort: ${hydrated.length} (${cohortRange})`);
+
+  // --- Hold-back split ---
+  let applyCohort = hydrated;
+  let holdback = [];
+  if (HOLDBACK_PCT > 0) {
+    const shuffled = seededShuffle(hydrated);
+    const nHold = Math.round((hydrated.length * HOLDBACK_PCT) / 100);
+    holdback = shuffled.slice(0, nHold).map((c) => ({ ...c, holdback: true }));
+    const holdIds = new Set(holdback.map((c) => c.provider_id));
+    applyCohort = hydrated.filter((c) => !holdIds.has(c.provider_id));
+    console.log(`   Hold-back split: ${applyCohort.length} apply / ${holdback.length} control (${HOLDBACK_PCT}%)`);
+  }
+
+  writeFileSync(OUTPUT, JSON.stringify(applyCohort, null, 2));
   console.log();
-  console.log(`Wrote ${hydrated.length} candidates to ${OUTPUT}`);
+  console.log(`Wrote ${applyCohort.length} apply candidates to ${OUTPUT}`);
+  if (HOLDBACK_OUTPUT && holdback.length > 0) {
+    writeFileSync(HOLDBACK_OUTPUT, JSON.stringify(holdback, null, 2));
+    console.log(`Wrote ${holdback.length} hold-back control rows to ${HOLDBACK_OUTPUT}`);
+  }
 }
 
 main().catch((err) => {

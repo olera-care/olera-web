@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useProfileSectionEditor } from "@/hooks/useProfileSectionEditor";
+import type { SectionId } from "@/components/provider-dashboard/edit-modals/types";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import type {
   AdBoostEligibility,
@@ -43,7 +46,8 @@ const CHANNELS = [
 const OPEN_STATUSES = ["requested", "scheduled", "live"];
 
 export default function ProviderBoostPage() {
-  const { isLoading, user } = useAuth();
+  const { isLoading, user, refreshAccountData } = useAuth();
+  const providerProfile = useProviderProfile();
   // Initialize from the prefetch cache so a warm in-app navigation paints the
   // correct page on the first frame (no loader, no wrong-page snap). Cold load
   // starts null → the loader holds until the fetch resolves.
@@ -149,6 +153,17 @@ export default function ProviderBoostPage() {
     }
   };
 
+  // Inline section editing — finish a profile section without leaving the boost
+  // flow. On save, refresh the profile + re-fetch boost state (recomputes
+  // eligibility + auto-promotes the queued campaign if they just crossed 70%).
+  const handleSectionSaved = useCallback(async () => {
+    await refreshAccountData();
+    fetchState();
+  }, [refreshAccountData, fetchState]);
+  const { openEditor, editorModals } = useProfileSectionEditor(providerProfile, {
+    onSaved: handleSectionSaved,
+  });
+
   if (error) {
     return (
       <Shell>
@@ -200,8 +215,14 @@ export default function ProviderBoostPage() {
     return (
       <Shell>
         <div className="mt-2">
-          <PendingProfile request={pendingRequest} eligibility={state.eligibility} />
+          <PendingProfile
+            request={pendingRequest}
+            eligibility={state.eligibility}
+            onEditSection={openEditor}
+          />
         </div>
+        {/* Inline section editors — finish a section without leaving this page. */}
+        {editorModals}
       </Shell>
     );
   }
@@ -300,13 +321,18 @@ function CampaignInMotion({
 function PendingProfile({
   request,
   eligibility,
+  onEditSection,
 }: {
   request: BoostRequest;
   eligibility: AdBoostEligibility;
+  /** Opens the section editor inline on this page (no navigation). */
+  onEditSection: (sectionId: SectionId) => void;
 }) {
   const remaining = Math.max(0, eligibility.threshold - eligibility.overall);
   const topGap = eligibility.missingSections[0] ?? null;
   const restGaps = eligibility.missingSections.slice(1);
+  const hasBoosters =
+    eligibility.boosters.reviews === null || eligibility.boosters.responseRate === null;
 
   return (
     <div className="max-w-2xl">
@@ -345,27 +371,19 @@ function PendingProfile({
         />
       </div>
 
-      {/* THE single next action — the highest-impact gap, as a real button. */}
-      {topGap ? (
-        <Link
-          href={topGap.href}
+      {/* THE single next action — the highest-impact gap. Opens the editor
+          INLINE (no navigation), so they never leave the campaign-setup flow. */}
+      {topGap && (
+        <button
+          type="button"
+          onClick={() => onEditSection(topGap.id as SectionId)}
           className="inline-flex items-center gap-2.5 mt-8 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
         >
           Next: {topGap.label}
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
-        </Link>
-      ) : (
-        <Link
-          href="/provider"
-          className="inline-flex items-center gap-2.5 mt-8 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
-        >
-          Finish your profile
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
+        </button>
       )}
 
       {/* Everything else — secondary, scannable, no longer the hero. */}
@@ -376,21 +394,66 @@ function PendingProfile({
           </p>
           <ul className="divide-y divide-gray-100 border-t border-gray-100">
             {restGaps.map((s) => (
-              <MissingRow key={s.id} section={s} />
+              <MissingRow key={s.id} section={s} onEdit={onEditSection} />
             ))}
           </ul>
         </div>
       )}
+
+      {/* Boost your results — reviews / response rate as carrots, never gating.
+          Asking for reviews to RUN ads would be circular, so we frame them as
+          conversion lift, not requirements. */}
+      {hasBoosters && (
+        <div className="mt-10 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-5 py-4">
+          <p className="text-sm font-semibold text-gray-900">Boost your results</p>
+          <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+            Not required to launch — but providers with reviews and fast replies
+            convert more of the families we send.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2.5">
+            {eligibility.boosters.reviews === null && (
+              <Link
+                href="/provider/reviews"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3.5 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-50/60 transition-colors"
+              >
+                Ask for reviews
+              </Link>
+            )}
+            {eligibility.boosters.responseRate === null && (
+              <Link
+                href="/provider/qna"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-3.5 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-50/60 transition-colors"
+              >
+                Answer questions fast
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Link
+        href="/provider"
+        className="inline-flex items-center gap-2 mt-8 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        Back to dashboard
+      </Link>
     </div>
   );
 }
 
-function MissingRow({ section }: { section: AdBoostMissingSection }) {
+function MissingRow({
+  section,
+  onEdit,
+}: {
+  section: AdBoostMissingSection;
+  onEdit: (sectionId: SectionId) => void;
+}) {
   return (
     <li>
-      <Link
-        href={section.href}
-        className="flex items-center justify-between gap-4 py-4 group"
+      <button
+        type="button"
+        onClick={() => onEdit(section.id as SectionId)}
+        className="flex w-full items-center justify-between gap-4 py-4 text-left group"
       >
         <div className="min-w-0">
           <p className="font-medium text-gray-900">{section.label}</p>
@@ -402,7 +465,7 @@ function MissingRow({ section }: { section: AdBoostMissingSection }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
         </span>
-      </Link>
+      </button>
     </li>
   );
 }

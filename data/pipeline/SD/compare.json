@@ -1,0 +1,457 @@
+{
+  "state": "SD",
+  "stateName": "South Dakota",
+  "comparedAt": "2026-04-09T12:05:18.729Z",
+  "total": 13,
+  "newPrograms": 10,
+  "withDiffs": 3,
+  "withNovelFields": 3,
+  "benefitTypes": {
+    "service": 7,
+    "financial": 3,
+    "employment": 1,
+    "advocacy": 1,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 2,
+    "Individual need and support plan; specific hours/dollar amounts not detailed in search results": 1,
+    "region": 2,
+    "program_tier": 1,
+    "household_size": 1,
+    "household_size|priority_tier": 1,
+    "not_applicable": 2,
+    "household_size (asset limits vary for single vs. married couples; additional funds per eligible family member for developmental disabilities program)": 1,
+    "fixed": 2
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Long-Term Care Ombudsman"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Long-Term Care Ombudsman"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 3,
+      "programs": [
+        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Long-Term Care Ombudsman"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "South Dakota Medicaid for Seniors and Disabled",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income/asset limits strict for long-term care with spousal protections (CSRA, MMNA); requires medical NHLOC; statewide but local DSS processing; 2026 LTC income $2901 single[1][3][4]",
+      "gotchas": [
+        "Must have NHLOC for nursing home/waivers; functional ADL need for other services—people miss medical assessment requirement[1]",
+        "Income cap state: Excess income disqualifies unless planned around (e.g., spousal allowances, trusts); IRAs count as assets[1][3]",
+        "Home equity over $752,000 disqualifies long-term care unless exceptions; estate recovery applies (hardship waivers exist)[3]",
+        "Dual Medicare/Medicaid eligible possible but requires meeting Medicaid asset rules; apply via Medicare first if applicable[5]",
+        "Retroactive coverage up to 3 prior months if expenses and eligible then[6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://dss.sd.gov/economicassistance/medical_eligibility.aspx[7]"
+    },
+    {
+      "name": "Home and Community-Based Options and Person Centered Excellence (HOPE) Waiver",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's eligibility is primarily income and asset-tested with a functional (nursing facility level of care) requirement. Benefits are service-based rather than cash-based, with specific services determined by individual support plan. The program operates statewide with a fixed capacity cap. Income limits adjust annually. Home equity is treated as exempt asset under specific conditions. The program requires ongoing participation in assessments and monthly service receipt to maintain eligibility.",
+      "gotchas": [
+        "Program has a statewide capacity cap of 1,834 concurrent recipients[1] — availability may be limited and waitlists possible",
+        "Income and asset limits are strictly enforced; applying when over limits will result in denial[3]",
+        "Applicant must meet nursing facility level of care requirement — this is not automatic for elderly or disabled individuals; functional assessment required[3]",
+        "Must receive at least one waiver service monthly to maintain eligibility[1]",
+        "Home equity limit of $730,000 (2025) applies unless spouse, minor child, or disabled child lives in home[3]",
+        "Disabled individuals (ages 18-64) can continue receiving services under the aged category when they turn 65[3]",
+        "Waiver approval expires September 30, 2026[7] — renewal status should be verified",
+        "Income limits increase annually in January; 2025 limit of $2,901/month is not permanent[3]",
+        "For married couples, spousal income is not counted only if the spouse is not applying; if both apply, each is evaluated individually[1]",
+        "Non-applicant spouse can have significantly higher assets ($126,420) than applicant ($2,000), creating planning opportunities[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual need and support plan; specific hours/dollar amounts not detailed in search results",
+      "officialSource": "https://dss.sd.gov/ (South Dakota Department of Social Services); Medicaid.gov waiver listing: https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/83171"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No operational programs in South Dakota (feasibility study phase only); eligibility not financially restricted but geographically limited to zero service areas; benefits coordinated via interdisciplinary team without caps; Medicaid asset/income rules apply indirectly for full coverage",
+      "gotchas": [
+        "PACE not currently available anywhere in South Dakota—no providers operational despite feasibility study[5][6]",
+        "Must live in a PACE service area; moving out requires disenrollment",
+        "Nursing home level of care certification by state is strict—needs assessment proves inability to live safely without intensive support",
+        "Private pay option averages $4,000–$5,000/month if not Medicaid-eligible; no financial aid beyond that[2]",
+        "Cannot be in Medicare Advantage or hospice; disenrollment possible but regulated[1]",
+        "90% participants dual-eligible—check Medicaid first for free coverage[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://dhs.sd.gov (South Dakota Department of Human Services; see LTSS provider portal for PACE feasibility study)"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$967",
+          "found": "$1,275",
+          "source": "https://dss.sd.gov/medicaid/Eligibility/default.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB: Pays Medicare Part A/B premiums, deductibles, coinsurance, copays. SLMB/QI: Pays Part B premiums only. Automatic qualification for Extra Help (Part D low-income subsidy, e.g., ≤$12.65 copay/drug in 2026). No direct services—pure premium/cost coverage.[1][2][3][4]",
+          "source": "https://dss.sd.gov/medicaid/Eligibility/default.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dss.sd.gov/medicaid/Eligibility/default.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Applies to all programs: Individual $9,430-$9,950 (some older sources cite $4,000); Couple $14,130-$14,910 (older $6,000). Counts: checking/savings, CDs. Exempt: primary home, one car, burial plots, irrevocable burial trusts, personal belongings. Exact exemptions per SD rules—verify with application.[1][3][4][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly statewide by DSS; SHIINE volunteers available locally but no noted differences in eligibility/benefits/wait times by region[2][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI has first-come-first-served with priority to prior recipients; limited federal funding may create waitlist[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Social Security number (or immigrant document).",
+            "Proof of income (paystubs, benefit letters).",
+            "Proof of resources (bank statements).",
+            "Medicare card.",
+            "Proof of residency."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by program (QMB/SLMB/QI) with strict FPL bands (100%/120%/135%); asset test applies unlike some Medicaid; QI funding-capped with renewal/priority; SD uses single DSS app for all tiers.",
+      "gotchas": [
+        "Income/resource limits change yearly (e.g., 2025 vs 2026 figures differ)—always verify current with DSS.",
+        "QI requires annual reapplication; may have waitlist due to funding.",
+        "Conflicting resource limits in sources ($4k vs $9k)—use current federal/SD ($9k+ individual).",
+        "Must have Part A/B; QMB auto-triggers Extra Help but others may need separate LIS app.",
+        "Countable income uses Medicaid rules with disregards—gross income often disqualifies mistakenly.",
+        "Married couples use joint limits even if only one on Medicare."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://dss.sd.gov/medicaid/Eligibility/default.aspx"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "supplemental-nutrition-assistance-program-snap",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://dss.sd.gov/economicassistance/snap.aspx"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1981",
+          "found": "$1,696",
+          "source": "https://dss.sd.gov/economicassistance/snap.aspx"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits for groceries (no cash). Amount based on household size, net income, deductions (e.g., example: 2-person elderly household with $1,200 gross might get $415/month after deductions). Max allotment scales by size; subtract 30% of net income from max.[5][3]",
+          "source": "https://dss.sd.gov/economicassistance/snap.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dss.sd.gov/economicassistance/snap.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable resources ≤ **$4,500** for households with elderly (60+) or disabled member ($3,000 otherwise). **Exempt:** primary home, one vehicle, most retirement savings. Bank accounts and cash count if over limit.[3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with at least one member age 60 or older (elderly/disabled households) in South Dakota, there is **no gross income limit**; eligibility is based solely on the **net income test** (must be 100% or less of federal poverty guidelines). Standard household limits (Oct 1, 2025–Sept 30, 2026) for reference: |Household Size|Gross Monthly Income (130% FPL)|Net Monthly Income (100% FPL)| |1|$1,696|$1,305| |2|$2,292|$1,763| |3|$2,888|$2,221| |4|$3,483|$2,680| |5|$4,079|$3,138| |6|$4,675|$3,596| |7|$5,271|$4,055| |8|$5,867|$4,513| |Each additional|+ $596|+ $459|. Net income = gross income minus deductions (e.g., standard $209, medical expenses over $35 for elderly/disabled, shelter costs up to $744 cap for non-elderly/disabled households, utilities, child support). Social Security, pensions, VA benefits count as income.[3][2][1]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local DSS offices; no benefit differences noted, possible processing variations by office/county.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (pay stubs, Social Security award letters, pensions).",
+            "ID/SSN, proof of residency.",
+            "Medical expenses (for elderly/disabled deductions).",
+            "Rent/mortgage, utility bills, bank statements (for assets/deductions)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled households exempt from gross income test and higher asset limit ($4,500); net income calculated with elderly-specific deductions (uncapped shelter/medical); benefits scale by household size and net income.",
+      "gotchas": [
+        "Elderly households skip gross income test but must calculate net income accurately (deductions key: medical >$35, shelter).",
+        "Assets include bank accounts but exempt home/car; many miss retirement savings exemption.",
+        "Include all who share food in household, even non-elderly family.",
+        "South Dakota lacks Broad-Based Categorical Eligibility (BBCE), so stricter asset/income rules than some states.",
+        "Benefits recertify periodically (12 months in SD); report income changes only if rising above limits."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dss.sd.gov/economicassistance/snap.aspx"
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income at exactly 200% FPL with 3-month lookback; no asset test; benefits as one-time payment varying by income/size/fuel; Weatherization county-based with priority tiers and waitlists; categorical eligibility via SNAP.",
+      "gotchas": [
+        "Heating assistance only available fall/winter; cooling not standard (separate $1025 program for prior LIEAP recipients).",
+        "Funding limited—apply early, applications may close if funds exhausted.",
+        "Crisis/ECIP requires income eligibility plus immediate crisis (e.g., shutoff notice).",
+        "Roommates sharing utility bill count as one household.[1]",
+        "Weatherization prioritizes elderly/disabled/families with children; renters need landlord permission."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx"
+    },
+    {
+      "name": "Senior Health Information and Insurance Education (SHIINE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No income/asset tests; eligibility tied solely to Medicare status; regionally coordinated with volunteer network; counseling-focused SHIP program, not benefits-paying.",
+      "gotchas": [
+        "Not a healthcare or financial aid program itself—provides education and assistance only, not direct payments or medical services.",
+        "Not affiliated with insurance companies; unbiased and free.",
+        "Contact region-specific numbers for fastest local service rather than statewide line.",
+        "Includes SMP for fraud prevention, which people may overlook.",
+        "Open enrollment periods (e.g., Oct 15-Dec 7 for next year changes) highlighted for timely action."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.shiine.net"
+    },
+    {
+      "name": "South Dakota Respite Care Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "South Dakota operates two distinct respite care programs: (1) Developmental Disabilities Respite Care Program (no income limit, predetermined annual budget, serves children and adults with developmental disabilities/delays/conditions) and (2) Adult Services and Aging Respite Care (asset-limited, hour-capped, serves elderly and dependent adults). The search results do not provide specific annual budget amounts for the developmental disabilities program or detailed processing timelines for either program. Provider availability appears to be statewide but is provider-managed, suggesting practical access may vary by region based on provider network density.",
+      "gotchas": [
+        "Two separate respite care programs exist in South Dakota with different eligibility criteria: one for children/adults with developmental disabilities (no income limit) and one for elderly/dependent adults through Adult Services and Aging (has asset limits of $30,000/$35,000)[1][3]",
+        "For elderly/dependent adults, respite care may not be appropriate if the individual requires skilled nursing or total care[1]",
+        "For elderly/dependent adults, respite care cannot exceed 210 hours per quarter and 13 hours daily — these are hard caps[1]",
+        "Respite Care program for developmental disabilities cannot be accessed by Family Support 360 participants[3]",
+        "Services do not include skilled nursing or medication administration[1]",
+        "For developmental disabilities program, budget is predetermined annually (June 1–May 31), not based on individual need assessment[3]",
+        "Eligibility for elderly/dependent adults is prioritized based on threat of institutionalization and inability to live independently[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "household_size (asset limits vary for single vs. married couples; additional funds per eligible family member for developmental disabilities program)",
+      "officialSource": "https://dhs.sd.gov/developmentaldisabilities/respitecare.aspx (referenced in search results; full content not accessible)"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SCSEP is a federally funded program under Title V of the Older Americans Act with state administration. Benefits are fixed (not scaled by household size). The program emphasizes work-based training rather than direct financial assistance. Income eligibility is the primary barrier; specific dollar thresholds require annual verification with local offices.",
+      "gotchas": [
+        "Income limits are based on 125% of Federal Poverty Level, which varies annually and by household size—families must verify current limits with their local office[1][4]",
+        "There is a 4-year lifetime participation cap; individuals cannot re-enroll after exceeding 48 months of cumulative participation[4]",
+        "Place of residence is required at enrollment but not at recertification[4]",
+        "Host agency assignment does not need to be in the participant's county of residence[1]",
+        "Priority is given to certain populations (age 65+, veterans, rural residents, disabled, homeless/at-risk, limited English/low literacy, low employment prospects, failed One-Stop System)[5]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://dlr.sd.gov/scsep/"
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple regional providers with 60+ often income-exempt but case-priority restricted; not a single unified statewide program; FPG-based with 125-200% tiers and senior exceptions; county-restricted coverage.",
+      "gotchas": [
+        "Seniors over 60 often bypass income limits but still face case priority restrictions—not all legal issues accepted (e.g., must fit priorities like elder abuse).[1][2]",
+        "Regional residency required; referral to other offices if outside area.[1][4]",
+        "Even if eligible, services limited by resources/staff; may get advice only, not full representation.[1][4]",
+        "Income calculated by gross household earnings; assets may factor in some programs.[4]",
+        "Apply to find out—encouraged even if unsure.[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.sdlawhelp.org/apply (unified intake); https://www.dpls.org/eligibility; https://dhs.sd.gov/en/ltss/legal-services-for-vulnerable-older-adults"
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Advocacy for residents' rights; complaint resolution; information and referral assistance; education on residents' rights; review of medical records; assistance with guardianship, medical/treatment issues, and facility concerns (e.g., staffing shortages); collaboration with facilities to resolve issues.",
+          "source": "https://dhs.sd.gov/ltss/ombudsman-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://dhs.sd.gov/ltss/ombudsman-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial eligibility requirements.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Local Long Term Care Ombudsmen (LLTCOs) operate regionally as full-time state employees, with potential differences in response based on local office location; extensive travel by state ombudsman covers all areas.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "None required"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; open to any long-term care facility resident or advocate without financial barriers; advocacy-only, not service provision; statewide with local ombudsmen; complaint-driven rather than application-based",
+      "gotchas": [
+        "Not a Medicaid or financial assistance program—purely advocacy for complaints in long-term care facilities; does not provide direct care (e.g., no helping with walking or wheelchairs); inappropriate for issues outside facility residents' rights (e.g., non-facility complaints, direct medical care, or eligibility determinations); families must first attempt internal resolution where possible; not for licensing/certification disputes directly."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://dhs.sd.gov/ltss/ombudsman-program"
+    },
+    {
+      "name": "Senior Companions of South Dakota",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Dual structure: volunteer program for 55+ low-income (income-tested, stipend) serving non-income-tested clients 21+ (disability-focused); regional offices with separate contacts; no client age minimum but targets frail elderly/disabled.",
+      "gotchas": [
+        "Program matches low-income volunteers (55+) with clients (21+); families seek services for elderly loved ones, but eligibility prioritizes disabilities/lack of other help over income/age. Volunteer stipend not taxable/doesn't affect benefits, but clients get no direct payment—only visits.[1][2][5]",
+        "Not a paid caregiving service; companions are volunteers with stipends. Rural focus may limit urban access. No fees, but availability depends on volunteer matching.[2][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.good-sam.com/senior-companions"
+    },
+    {
+      "name": "Senior Box Program (CSFP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide by SD Dept of Education via local non-profits/food banks with county-specific providers and distribution sites; income at 150% FPL (SD-specific, above federal min); no asset test; monthly boxes fixed content/value regardless of household size.",
+      "gotchas": [
+        "Not available everywhere—must check local agency service area (e.g., not all counties covered uniformly); cannot participate simultaneously with WIC; some areas have waitlists due to funding; delivery only for homebound; income limit is 150% FPL in SD (higher than federal 130% minimum); can receive with SNAP.",
+        "Local residency often required by agency.",
+        "All participants must be 60+ (no children/women/infants post-2014)."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://doe.sd.gov/cans/csfp.aspx"
+    }
+  ]
+}

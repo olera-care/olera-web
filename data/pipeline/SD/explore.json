@@ -1,0 +1,115 @@
+{
+  "state": "SD",
+  "stateName": "South Dakota",
+  "exploredAt": "2026-04-09T12:02:10.851Z",
+  "programCount": 15,
+  "programs": [
+    {
+      "name": "South Dakota Medicaid for Seniors and Disabled",
+      "what_it_does": "Provides medical coverage including checkups, dental, and vision care for eligible seniors and disabled individuals. Covers those requiring nursing home level of care or in adult foster care.",
+      "who_its_for": "Seniors 65+, blind or disabled under 65, US citizens or qualified residents of South Dakota meeting income/resource limits (e.g., $2,000 individual resources).",
+      "official_url": "https://dss.sd.gov/economicassistance/medical_programs.aspx",
+      "benefit_value": "Free or low-cost coverage; income limit 300% SSI ($2,982/month in 2026) for nursing home level care."
+    },
+    {
+      "name": "Home and Community-Based Options and Person Centered Excellence (HOPE) Waiver",
+      "what_it_does": "Delivers home and community-based services to help seniors avoid nursing homes. Includes homemaker services, private duty nursing, adult day care, emergency response, meals, assisted living, and companion services.",
+      "who_its_for": "Seniors 65+ or disabled 18+ needing nursing home level care, US citizens/residents, resource limit $40,000 single/$45,000 couple, possible share-of-cost.",
+      "official_url": "https://dss.sd.gov/economicassistance/medical_programs.aspx",
+      "benefit_value": "Comprehensive HCBS to support community living; home equity limit $752,000."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Not specifically named or detailed in SD sources; generally provides comprehensive medical and social services for frail seniors to stay in community.",
+      "who_its_for": "Frail seniors 55+ eligible for nursing home care; no SD-specific program confirmed in results.",
+      "official_url": "",
+      "benefit_value": "Not available in search results."
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "Helps pay Medicare Part A/B premiums, deductibles, and coinsurance. QMB covers full costs, SLMB/QI cover premiums.",
+      "who_its_for": "Seniors eligible for Medicare Part A, meeting federal income/asset limits ($9,660 single/$14,470 married).",
+      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/OTLBaVhfCVkriwARl8SjA/10c8bedf95234cc1f4278b8eab519bac/MC-3398251-state-resource-pages--south-dakota.pdf",
+      "benefit_value": "Covers out-of-pocket Medicare costs based on program."
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides food assistance benefits via EBT card for groceries. Administered through SD DSS as federal program.",
+      "who_its_for": "Low-income seniors, US citizens/residents; specific SD details not in results.",
+      "official_url": "https://dss.sd.gov/economicassistance/",
+      "benefit_value": "Monthly benefits scaled to income/household size (federal standard)."
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Helps low-income households pay home heating costs. Provided through Community Action Programs.",
+      "who_its_for": "Low-income South Dakotans including seniors.",
+      "official_url": "https://dss.sd.gov/economicassistance/energyassistance/lowincome.aspx",
+      "benefit_value": "Heating cost payments based on income."
+    },
+    {
+      "name": "Community Assistance Program Weatherization",
+      "what_it_does": "Offers weatherization services to improve energy efficiency for low-income homes. Part of SD Community Action Programs.",
+      "who_its_for": "Low-income South Dakotans including seniors.",
+      "official_url": "https://dss.sd.gov/economicassistance/communityassistance/",
+      "benefit_value": "Home weatherization services."
+    },
+    {
+      "name": "Senior Health Information and Insurance Education (SHIINE)",
+      "what_it_does": "Provides free, unbiased, confidential counseling on Medicare, insurance, and health benefits. Funded federally.",
+      "who_its_for": "South Dakota seniors needing Medicare guidance.",
+      "official_url": "https://dhs.sd.gov/en/ltss/shiine",
+      "benefit_value": "Free counseling services."
+    },
+    {
+      "name": "Meals on Wheels",
+      "what_it_does": "Not SD-specific name in results; delivers meals to homebound seniors (typically via Area Agencies on Aging).",
+      "who_its_for": "Homebound seniors; details not detailed.",
+      "official_url": "",
+      "benefit_value": "Not available in search results."
+    },
+    {
+      "name": "Respite Care",
+      "what_it_does": "Offers temporary relief for caregivers through in-home services like personal care and homemaking. Part of HOPE Waiver options.",
+      "who_its_for": "Caregivers of seniors 65+ or disabled adults via HOPE Waiver.",
+      "official_url": "https://dhs.sd.gov/LTSS/docs/Respite%20Care.pdf",
+      "benefit_value": "Temporary caregiver support services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Not detailed in SD-specific results; federal program for paid community service training for seniors.",
+      "who_its_for": "Low-income seniors 55+ unemployed.",
+      "official_url": "",
+      "benefit_value": "Not available in search results."
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Not specifically named in results; general legal services via senior resources.",
+      "who_its_for": "Low-income seniors.",
+      "official_url": "",
+      "benefit_value": "Not available in search results."
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "what_it_does": "Not detailed in results; advocates for residents in long-term care facilities.",
+      "who_its_for": "Seniors in nursing homes/assisted living.",
+      "official_url": "",
+      "benefit_value": "Not available in search results."
+    },
+    {
+      "name": "Senior Companions of South Dakota",
+      "what_it_does": "This program matches healthy volunteer seniors aged 55+ with older adults and individuals 21+ needing assistance to live independently. Volunteers provide free companionship, light housekeeping, meal preparation, transportation, and social activities like playing games or reminiscing.[1][2][6]",
+      "who_its_for": "Older adults and adults 21+ needing help to remain independent, especially in rural areas; no charge to clients.[1]",
+      "whats_unique": "State-specific implementation sponsored by the Good Samaritan Society, emphasizing rural South Dakota communities with volunteer-driven, free in-home support not universally available across all states in this form.[1][2]",
+      "official_url": "https://www.good-sam.com/senior-companions",
+      "benefit_value": "Free services including 10-40 hours/week of assistance per client, preventing long-term care placement and reducing isolation; volunteers receive stipend and mileage.[1]"
+    },
+    {
+      "name": "Senior Box Program (CSFP)",
+      "what_it_does": "Administered statewide by Feeding South Dakota in partnership with the Department of Education, it provides monthly pre-packaged boxes of nutritious, non-perishable food. This supplements diets lacking key nutrients, allowing seniors to allocate funds to medicine and utilities.[3]",
+      "who_its_for": "Seniors aged 60+ living on limited income in all 66 South Dakota counties.[3]",
+      "whats_unique": "Statewide partnership delivers USDA CSFP exclusively across all counties via a local nonprofit, addressing senior hunger in rural areas more comprehensively than in states without such full-coverage administration.[3]",
+      "official_url": "https://www.feedingsouthdakota.org/programs/senior-box-program",
+      "benefit_value": "One box of nutrient-supplementing food per month at no cost, valued for freeing up budget for essentials like housing and medications.[3]"
+    }
+  ]
+}

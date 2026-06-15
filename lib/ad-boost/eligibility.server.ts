@@ -127,7 +127,7 @@ export async function loadAdBoostEligibility(): Promise<AdBoostEligibilityResult
     profileRow.source_provider_id
       ? db
           .from("olera-providers")
-          .select("google_reviews_data, google_rating")
+          .select("google_reviews_data, google_rating, provider_images, provider_logo")
           .eq("provider_id", profileRow.source_provider_id)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
@@ -153,6 +153,8 @@ export async function loadAdBoostEligibility(): Promise<AdBoostEligibilityResult
       data: {
         google_reviews_data: { rating?: number | null; review_count?: number | null } | null;
         google_rating: number | null;
+        provider_images: string | null;
+        provider_logo: string | null;
       } | null;
     }
   ).data;
@@ -182,9 +184,28 @@ export async function loadAdBoostEligibility(): Promise<AdBoostEligibilityResult
     answeredCount: questions.filter((q) => !!q.answer?.trim()).length,
   };
 
+  // Score the gallery against the EFFECTIVE images families see, not just the
+  // raw metadata.images — the provider's page (and the dashboard score) backfill
+  // from iOS provider_images/logo when the provider hasn't uploaded their own.
+  // Without this, the boost gate said "add gallery photos" while the dashboard +
+  // the live page already showed a full gallery (same logic as
+  // useProviderDashboardData). Keeps the gate scoring what's actually displayed.
+  const baseImages = Array.isArray(metadata.images) ? metadata.images : [];
+  let effectiveImages = baseImages;
+  if (baseImages.length === 0 && googleData) {
+    const iosImages =
+      typeof googleData.provider_images === "string"
+        ? googleData.provider_images.split(" | ").map((s) => s.trim()).filter(Boolean)
+        : [];
+    effectiveImages = googleData.provider_logo
+      ? [googleData.provider_logo, ...iosImages]
+      : iosImages;
+  }
+  const enrichedMetadata = { ...metadata, images: effectiveImages };
+
   const eligibility = evaluateAdBoostEligibility(
     profile,
-    metadata,
+    enrichedMetadata,
     reviews,
     responseRate,
   );

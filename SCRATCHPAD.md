@@ -7,7 +7,34 @@
 
 ## Current Focus
 
-### 2026-04-23 — Provider Analytics — Phase 2 (Dashboard Redesign) — ALL PILLARS BUILT, ready for PR polish + merge
+### 2026-04-25 — Wispr-style dashboard polish (PR #631) — 6 commits added on top, ready to merge
+
+**Branch:** `feature/dashboard-compact-activity` — PR [#631](https://github.com/olera-care/olera-web/pull/631), targets staging, mergeable, Vercel preview green.
+
+**What this PR is:** A Wispr Flow-aesthetic reshape of the `/provider` analytics cluster sitting on top of the merged Phase 2 pillars. The Phase 2 cards (PR #625) read as "UI-kit stamp stamp stamp" once they landed — three bordered white cards competing visually. This PR commits to one dark moment (DashboardHero), one borderless typographic sidebar (SidebarSummary), and a content-first activity feed (RecentActivityCard).
+
+**Today's session (2026-04-25 polish loop on top of the prior work):**
+- ✅ Hero photo framing — `cover` was scaling the image off card width, so wide viewports stretched the photo huge and chopped the face vertically. Switched to `backgroundSize: auto 150%` (sized off card height) + `md:min-h-[260px]` so face frames consistently regardless of viewport. (`e77d4272`, `c00ffc6d`)
+- ✅ Hero photo left-edge — gradient overlay had an opacity-rate inflection that read as a hard line. Added `mask-image` on the image div so the photo's left ~260px fades transparently into the warm-950 background. No more rectangle edge. (`0b684491`)
+- ✅ Sidebar review CTA — collapsed count-conditional copy ("Invite another review" / "Invite a past client") into single "Get more reviews →". (`9735995b`)
+- ✅ Sidebar traffic report link removed — was duplicative with the views number directly above. (`8ef69e3e`)
+- ✅ Traffic report link relocated — added to the bottom Email preferences card with a divider, so the data dashboard isn't lost entirely. (`edaeffce`)
+
+**Pre-test pass on the hero changes:** clean. Caught one near-miss while writing (image would have tiled horizontally without `backgroundRepeat: "no-repeat"` after dropping `cover`) — fixed in the same commit.
+
+**Branch commits since last session (6 new on top of the Phase 2 base):**
+1. `e77d4272` — Frame hero face consistently across viewport widths
+2. `c00ffc6d` — Size hero image off card height, not width
+3. `0b684491` — Soft-fade hero image's left edge with mask-image
+4. `9735995b` — Simplify sidebar review CTA to 'Get more reviews'
+5. `8ef69e3e` — Remove sidebar traffic report link
+6. `edaeffce` — Move data dashboard link into bottom preferences card
+
+**Resume next session:** PR #631 is ready to merge (`/pr-merge 631`). After merge, return to the Next Up backlog or pick up from the deferred Phase 2 polish items below.
+
+---
+
+### 2026-04-23 — Provider Analytics — Phase 2 (Dashboard Redesign) — MERGED via PR #625
 
 **Phase 2 Brief (live doc):** https://www.notion.so/34b5903a0ffe81098302ce55d5df2a4d — source of truth for this workstream. Decisions + open questions live there.
 
@@ -266,6 +293,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+0. **Merge PR #631** (`/pr-merge 631`) once preview eyeball confirms the lady's image frames cleanly across wide+narrow viewports. Branch: `feature/dashboard-compact-activity`. 13 commits total (7 foundation + 6 polish). Targets staging. CI green.
 1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
 2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
 3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)
@@ -288,6 +316,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-25 | Hero `backgroundSize` should track card height, not width | `cover` ties image scale to card *width*; wide viewports made the card shorter (content fit on fewer lines) and over-scaled the photo, chopping the face. `auto 150%` ties it to card height (locked at min 260px), so the face frames consistently at any width. |
+| 2026-04-25 | Use `mask-image` over gradient overlays to fade image edges | Stacking more dark-gradient stops to "soften" the hero's left edge just shifts the inflection point — eye still reads it as a line. `mask-image` fades the photo's pixels themselves into the bg, so there's no rectangle edge to hide. |
+| 2026-04-25 | Single "Get more reviews →" CTA over count-conditional copy | "Invite another review" vs "Invite a past client" was conditional logic doing more work than it earned. Both routes lead to the same destination; one label is cleaner. |
+| 2026-04-25 | Traffic report link belongs at the bottom of the dashboard, not in the sidebar | Sidebar already shows the views number — a "See full traffic report" link directly under it was redundant. Relocating to the Email preferences card (with a divider) keeps the link discoverable without crowding the stat block. |
 | 2026-03-28 | MedJobs candidates page is a search tool, not a gallery | Hiring is purposeful evaluation, not emotional discovery. Giant image blocks waste space when most students don't have photos. List rows let providers scan 8-10 candidates per screen vs 3. |
 | 2026-03-28 | Any authenticated user sees contact info (not just providers) | Provider profile creation is progressive profiling, not a prerequisite. Gating on "is provider" after auth creates a second wall that breaks the onboarding flow. |
 | 2026-03-28 | Infinite scroll over pagination buttons | Pagination feels dated and adds cognitive load. IntersectionObserver with 200px rootMargin pre-fetches the next batch before the user reaches bottom. Feels like Telegram. |
@@ -403,4 +435,23 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-04-25 — Wispr-style polish loop on PR #631
+
+Six commits added on top of `feature/dashboard-compact-activity`:
+
+**Hero photo framing (3 commits)** — Started with a `min-h-[260px]` + vertical-anchor tweak (`e77d4272`) that didn't fully fix the issue. After deeper analysis, swapped `backgroundSize: cover` → `auto 150%` so image size tracks card *height* not width (`c00ffc6d`). Final touch: `mask-image` to fade the photo's left edge into warm-950, eliminating the visible rectangle edge (`0b684491`).
+
+**Sidebar simplification (2 commits)** — Collapsed count-conditional review CTA into single "Get more reviews →" (`9735995b`), removed redundant "See full traffic report →" link sitting directly under the views number (`8ef69e3e`).
+
+**Bottom-section relocation (1 commit)** — Added the traffic report link to the Email preferences card with a hairline divider (`edaeffce`).
+
+Pre-test pass came back clean. PR #631 ready for merge.
+
+Files touched:
+- `components/provider-dashboard/v2/DashboardHero.tsx` — image sizing/positioning, mask
+- `components/provider-dashboard/v2/SidebarSummary.tsx` — review CTA, removed link
+- `components/provider-dashboard/DashboardPage.tsx` — added link to NotificationPreferencesCard
+
+**End-of-session question — already addressed:** TJ asked "how do we make the lady's image always show like the compressed view?" comparing wide-viewport vs narrow-viewport renders. The fix was already in commit `c00ffc6d` (`backgroundSize: auto 150%`) which ties image scale to the card's height (locked at `min-h-[260px]`) instead of its width — so the face frames consistently regardless of viewport. Worth eyeballing on the latest preview to confirm the fix landed as intended; if the framing still drifts at extreme widths, next move is to nudge `backgroundPosition` percentage (currently `right 35%`).
 

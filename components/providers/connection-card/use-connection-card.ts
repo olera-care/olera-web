@@ -690,8 +690,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.connectionId) setConnectionId(data.connectionId);
         if (data.created_at) setPendingRequestDate(data.created_at);
 
-        // Update redirect with real connectionId
-        postEnrichmentRedirect.current = `/portal/inbox?id=${data.connectionId}`;
+        // Update redirect with real connectionId — but ONLY for users who now
+        // hold a session. An existing account gets no session (anti-takeover:
+        // we can't trust a typed email); a sign-in link was emailed instead, so
+        // don't bounce them into the gated inbox. They land on the in-card
+        // "connected" success state and sign in from their email.
+        if (!data.existingUser) {
+          postEnrichmentRedirect.current = `/portal/inbox?id=${data.connectionId}`;
+        }
 
         // Establish session in background
         if (data.accessToken && data.refreshToken) {

@@ -141,6 +141,10 @@ export async function POST(request: Request) {
         provider_id: canonicalProviderId,
         claim_session: claimSession,
         code: "TOKEN",
+        // Persist the verified email so /api/auth/auto-sign-in mints a session
+        // for THIS email only (not a caller-supplied one). The token email was
+        // already matched against the provider's on-file email above.
+        email: email.toLowerCase(),
         expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         verified_at: new Date().toISOString(),
       });

@@ -149,10 +149,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "eligibility_required" }, { status: 402 });
       }
 
-      // Check verification state - if not verified, hold the interview
-      const verificationState = providerFull?.verification_state as string | null;
-      const isVerified = verificationState === "verified" || verificationState === "not_required";
-      isPendingVerification = !isVerified;
+      // Eligible providers notify the student immediately (no verification hold).
+      isPendingVerification = false;
 
       const { data: target } = await admin
         .from("business_profiles")

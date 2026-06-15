@@ -53,6 +53,11 @@ function CandidateBrowseInner() {
   const isEligible = isMedjobsEligible(
     (providerProfile?.metadata ?? null) as Record<string, unknown> | null
   );
+  const matchBuckets = (
+    (providerProfile?.metadata as Record<string, unknown> | undefined)?.[
+      "medjobs_demand_profile"
+    ] as { coverage_buckets?: string[] } | undefined
+  )?.coverage_buckets;
 
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -314,6 +319,7 @@ function CandidateBrowseInner() {
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/medjobs/candidates"
+                  matchBuckets={matchBuckets}
                 />
               ))}
             </div>

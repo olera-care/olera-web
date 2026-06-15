@@ -188,3 +188,14 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 - Verified: `tsc --noEmit` clean; new/changed files lint clean.
 - **Remaining:** welcome email on first auth (comms pass); cold-send pipeline `{welcome_url}` wiring (follow-up). The screener works for any magic-link arrival now.
 - **Audit note:** runtime behavior (screener auto-opens on magic-link arrival → persists eligibility → board reloads into the eligible/"you're a fit" state, with matches or the recruiting fallback) — verify in the scenario audit.
+
+### Phase C — Loop 2 interview flow (shipped 2026-06-15, branch `claude/keen-mendel-6i8iW`)
+- `ContactSection.tsx`: CTA relabeled to **"Invite to a video interview"** / "Invite another"; the old `PilotTermsModal` gate replaced with the **`EligibilityScreenerModal`** (a non-eligible provider completes the screener inline, then the scheduler opens); success copy → "Invite sent. Check your email."
+- `ScheduleInterviewModal.tsx`: removed the provider **T&C checkbox** + `termsAcceptedAt` (terms move to Loop 3). Type already defaults to video.
+- `POST /api/medjobs/interviews`: eligible providers **notify the student immediately** (`is_pending_verification = false`; verification hold removed).
+- `CandidateCard.tsx`: added a **match line** ("Covers your evenings & weekends") computed from the provider's coverage buckets vs. the student's availability; `matchBuckets` wired from the board.
+- Verified: `tsc --noEmit` clean; changed files lint clean.
+- **Note:** the 402 fallback in `ScheduleInterviewModal` still routes to the legacy `UpgradeModal`, but eligible providers are gated upstream so it won't fire in normal flow (cleanup deferred).
+- **Audit note:** verify the invite → student-notified → confirm → `.ics` path end-to-end in the scenario audit.
+
+**Loops 1–2 are now built end-to-end** (cold email → eligibility → browse w/ match lines → invite → interview). Remaining: **Phase D** (Loop 3 offer/accept/confirm + dual-pay), **Phase E** (Loop 2b re-activation), and deferred comms (welcome email, cold-send `{welcome_url}` wiring).

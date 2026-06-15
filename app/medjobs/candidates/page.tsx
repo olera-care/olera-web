@@ -11,6 +11,7 @@ import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import DrDuBoseWelcome, { type NoteVariant } from "@/components/medjobs/DrDuBoseWelcome";
 import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
+import { US_STATES } from "@/lib/power-pages";
 
 const PAGE_SIZE = 20;
 // Session key so the university filter persists across navigation (the
@@ -21,6 +22,7 @@ const UNIVERSITY_FILTER_KEY = "medjobs_university_filter";
 interface University {
   id: string;
   name: string;
+  state: string | null;
 }
 
 export default function CandidateBrowsePage() {
@@ -67,6 +69,7 @@ function CandidateBrowseInner() {
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [universityId, setUniversityId] = useState<string>("");
+  const [geoState, setGeoState] = useState<string | null>(null);
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
   const [showScreener, setShowScreener] = useState(false);
 
@@ -81,7 +84,7 @@ function CandidateBrowseInner() {
     const supabase = createClient();
     supabase
       .from("medjobs_universities")
-      .select("id, name")
+      .select("id, name, state")
       .eq("is_active", true)
       .order("name")
       .then(({ data }: { data: University[] | null }) => {
@@ -129,20 +132,33 @@ function CandidateBrowseInner() {
   }, [campusSlugParam, universityId, universityFromUrl]);
 
   // Geo auto-filter: when nothing pinned the campus (no session, no url param,
-  // no resolvable campus slug), infer the nearest active campus from the
-  // request's IP geo. Soft default — NOT persisted to session, so the user can
-  // still pick "All universities".
+  // no resolvable campus slug), detect the visitor's state from the SAME proven
+  // endpoint the directory's city pages use (/api/geo → Vercel edge geo, state
+  // only — no sparse lat/lng). Resolved to a university below.
   useEffect(() => {
     if (!initedRef.current || geoTriedRef.current) return;
     if (universityId || universityFromUrl || campusSlugParam) return;
     geoTriedRef.current = true;
-    fetch("/api/medjobs/geo-campus")
+    fetch("/api/geo")
       .then((r) => r.json())
-      .then((d: { universityId?: string | null }) => {
-        if (d?.universityId) setUniversityId((cur) => cur || d.universityId!);
-      })
+      .then((d: { state?: string | null }) => setGeoState(d?.state ?? null))
       .catch(() => {});
   }, [universityId, universityFromUrl, campusSlugParam]);
+
+  // Resolve the geo'd state → the active university in that state. Soft default,
+  // NOT persisted (user can still pick "All universities"). If no campus exists
+  // in that state we leave the board on "All" rather than forcing a wrong campus.
+  useEffect(() => {
+    if (!geoState || universities.length === 0) return;
+    if (universityId || universityFromUrl || campusSlugParam) return;
+    const abbr = geoState.trim().toUpperCase(); // /api/geo returns 2-letter
+    const fullName = US_STATES[abbr]?.toLowerCase(); // tolerate "Texas" rows too
+    const match = universities.find((u) => {
+      const s = (u.state ?? "").trim();
+      return s.toUpperCase() === abbr || (!!fullName && s.toLowerCase() === fullName);
+    });
+    if (match) setUniversityId((cur) => cur || match.id);
+  }, [geoState, universities, universityId, universityFromUrl, campusSlugParam]);
 
   // Auto-open the screener for a ?welcome=1 / ?activate=1 arrival who isn't
   // eligible yet — works for anon (the screener's claim step signs them in) and

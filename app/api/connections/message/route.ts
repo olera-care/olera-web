@@ -696,7 +696,10 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ thread: updatedThread });
+    return NextResponse.json({
+      thread: updatedThread,
+      quick_reply_request: metadataToUpdate.quick_reply_request || null,
+    });
   } catch (err) {
     console.error("Message error:", err);
     return NextResponse.json(

@@ -15,7 +15,7 @@ import type { QuickReplyRequest } from "@/lib/quick-reply-config";
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
   activeProfile: Profile | null;
-  onMessageSent: (connectionId: string, thread: ThreadMessage[]) => void;
+  onMessageSent: (connectionId: string, thread: ThreadMessage[], quickReplyRequest?: QuickReplyRequest | null) => void;
   onSendMessage?: (connectionId: string, text: string) => Promise<ThreadMessage[]>;
   onBack?: () => void;
   detailOpen?: boolean;
@@ -645,7 +645,9 @@ export default function ConversationPanel({
       });
       if (!res.ok) throw new Error("Failed to send");
       const data = await res.json();
-      onMessageSent(connection.id, data.thread);
+      onMessageSent(connection.id, data.thread, data.quick_reply_request);
+      // Hide the quick reply card immediately after sending
+      setQuickReplyDismissed(true);
       requestAnimationFrame(() => {
         conversationRef.current?.scrollTo({
           top: conversationRef.current.scrollHeight,

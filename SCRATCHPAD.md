@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-06-15 — Real email complaint/bounce rate in admin (branch `complaint-rate-instrumentation`, off staging, PR'd→staging)
+
+Closed the Notion card "Fix complaint-rate instrumentation (reads 0.00% = blind, not healthy)". **/explore reframed the premise:** the complaint path is NOT blind. The Resend webhook (`supabase/functions/resend-webhook/index.ts`) handles `email.complained` correctly and writes `email_events` + `email_log.complained_at` in real time (`received_at` ~2s after `occurred_at`; 53,623 events captured). The real gap was **display**: no percentage was computed anywhere — admin showed only raw counts, which read as a healthy "0.00%" by absence. **The actual number is uncomfortable:** complaint rate **0.041%** (over the 0.04% warn line, ~half Resend's 0.08% suspension line), riding there for weeks unseen on the crown-jewel account.
+
+**Built (PR, `/admin/automations` = email cockpit):** account-wide Complaint rate (30d) + Bounce rate (30d) as colored % StatCards, replacing the combined raw-count card. Numerator = **`email_events`** distinct webhook events (Resend's own count, =4 complaints) — NOT `email_log.complained_at` (=12, inflated). Denominators match Resend's defs: complaint = /delivered, bounce = /sent. Colors: yellow at half-threshold (0.04% / 2%), red at AUP line (0.08% / 4%); both currently yellow. Thresholds extracted to dependency-free `lib/email-thresholds.ts` (client can import w/o pulling in Resend); `lib/email.ts` re-exports. Plan at `plans/complaint-rate-instrumentation-plan.md`.
+
+**The 4-vs-12 discrepancy — investigated, BENIGN.** `email_events` complained=4, `email_log.complained_at`=12; the gap is 8 rows for one provider (`rdoyle@rlcommunities.com`), identical sub-second timestamp, zero `email_events` complained (but 60 other events — webhook healthy for them). No code writes `complained_at` except the webhook → these are **manual/out-of-band suppressions** (flagged by direct DB edit). So `email_events` = Resend-counted (canonical), `email_log.complained_at` = superset incl. manual flags. No lost webhook events. **Filed Notion follow-up card** (P3, Backend, Owner TJ): "Reconcile email_events vs email_log complaint counts" — decision = accept divergence as by-design vs add provenance flag. **TJ wants both cards closed together.**
+
+**Pre-test (/pre-test) caught 2 real bugs, both fixed:** (1) 🟡 bounce rate divided by `delivered` — but bounced mail is by definition not delivered → overstated ~17% (3.14% vs correct 2.68%); switched to /sent to match Resend's 4% math. (2) 🟢 skeleton showed 5 cards/5-col vs the real 6/6-col → load reflow; matched it. tsc clean (0 errors; ran `npm ci` in the worktree — had no node_modules). Numbers verified by replaying the route's exact queries against live DB.
+
+**NOT browser-tested** (admin-auth-gated) — verified data + computation, not render. Staging QA: load `/admin/automations`, eyeball the two rate cards.
+
 ### 2026-06-14 — Provider funnel instrumentation + Managed Ads in the banner/digest system (branch `provider-funnel-instrumentation`, off staging, NOT yet PR'd→ now PR'd)
 
 Built on top of the merged IA rework (PR #1050). Three layers this session:

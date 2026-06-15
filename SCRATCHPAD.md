@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-05-14 (Thu) — Wed ramp step (`?limit=800`) fired, runbook updated with Fri command front-and-center
+
+Picked up the manual ramp from Tue's 251-send. The Wed `?limit=800` step fired (browser-triggered by TJ as admin on `olera.care`): `{processed:800, sent:683, skipped:117, skipReasons:{no_email:98, duplicate_recipient:13, unclaimed_or_missing_profile:6}}`. 85% send rate. Clean. **First ramp run against migration 083 + `withCronRun()`'s `stampEmails`** — Recipients tab on `/admin/automations/weekly-provider-digest` populates per-recipient rows for this run (was the "not backfilled" note on Tuesday's pre-deploy run).
+
+First Provider Comms Funnel read at ~+1h (TJ shared the screenshot at 7:06am): 292/683 = 43% delivered, 121 opens, 0 sign-ins / 0 answered / 0 clicked-dashboard / 0 edited-profile. All three consistent with normal post-send state — delivered % is Resend webhook lag (settles to ~95% by next day), 121 opens is mostly Apple Mail prefetch, downstream funnel fills over 24h+. Real read window is Friday morning before the next ramp step.
+
+**Notion only — no code changes:**
+- Appended a daily-mode Run entry to the Growth Running Thread (`34e5903a0ffe8165abf5c4b84d84d06c`).
+- Updated the ramp runbook (`35e5903a0ffe81d9b577d4724794b923`) — added a top callout with the **Fri 5/15 `?limit=1500` command "front and center"** (TJ explicitly asked: "this is the main thing I care about"), plus dry-run guidance + the one-send-per-day rule; refreshed "Where things stand" / the plan steps / status-of-moving-pieces with current state.
+
+**Date-confusion fix:** Started the session mistakenly anchoring on "today is Wednesday" (the system reminder said `2026-05-14` and I locked in without checking day-of-week). TJ caught it: today is **Thu 5/14**, tomorrow is **Fri 5/15** — the Friday ramp step is on its original schedule, not "accelerated by a day." Restored the runbook's original Tue 5/12 / Wed 5/13 / Fri 5/15 step labels, dropped the "accelerated" framing in the callout + step 3, fixed the auto-cron line to **Mon 5/18** (the original runbook had it as 5/19, which is actually Tue — a date error from when it was written Tue 5/12). Also fixed the same Thu→Fri swap in the Growth Running Thread Run entry.
+
+**Resume next session here →** (1) Tomorrow morning ~7am: open `https://olera.care/api/cron/weekly-provider-digest?limit=1500` as admin on `olera.care` (dry-run first with `&dry_run=true`, then real). One send; no per-provider re-send guard yet. (2) Funnel read on the Wed send + Fri send Sat morning. (3) After Fri's send: nothing until **Mon 5/18 13:00 UTC** auto-cron at the new `?limit=2000` default. (4) First proper digest funnel read still ~5/19–20 — `/admin/questions` answer volume + the funnel.
+
+---
+
 ### 2026-05-12 (Tue, even later) — Automation Console Phase 2 — per-recipient view + email timelines (PR #797, on staging)
 
 Built on `feature/automation-console-phase2` (off `staging`). The linkage call from Phase 1 got decided: **Option C — the hybrid**. Don't thread a `cron_run_id` through every `sendEmail`; instead add one nullable `email_log.cron_run_id` column and have `withCronRun()` stamp it at run-end.

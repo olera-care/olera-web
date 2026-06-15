@@ -96,6 +96,22 @@ function getCareType(connection: ConnectionWithProfile): string | null {
   return null;
 }
 
+/**
+ * Transform system message text for the viewer's perspective.
+ * E.g., "This provider has declined..." → "You declined..." for provider view
+ */
+function transformPreviewText(text: string, variant: "family" | "provider"): string {
+  // Check if this is a provider declined/passed message
+  const isProviderDeclined = text.includes("declined this inquiry") || text.includes("passed on this inquiry");
+
+  if (isProviderDeclined && variant === "provider") {
+    // Provider viewing their own declined message → use first person
+    return "You declined this inquiry";
+  }
+
+  return text;
+}
+
 function getLastMessage(connection: ConnectionWithProfile): { text: string; timestamp: string } | null {
   const meta = connection.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as ThreadMessage[]) || [];
@@ -592,7 +608,7 @@ export default function ConversationList({
               )}
               {lastMsg && (
                 <p className="text-[15px] text-gray-500 truncate mt-0.5">
-                  {lastMsg.text}
+                  {transformPreviewText(lastMsg.text, variant)}
                 </p>
               )}
             </div>

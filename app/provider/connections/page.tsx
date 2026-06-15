@@ -118,6 +118,7 @@ function LeadDetailInlineView({
   onEmailClick,
   onContinueInInbox,
   onQuickReplyRequest,
+  isQuickReplySending,
   onArchiveClick,
   onVerifyClick,
   onRestore,
@@ -129,6 +130,7 @@ function LeadDetailInlineView({
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
   onQuickReplyRequest?: (leadId: string) => void;
+  isQuickReplySending?: boolean;
   onArchiveClick?: () => void;
   onVerifyClick?: () => void;
   onRestore?: (leadId: string) => void;
@@ -570,12 +572,20 @@ function LeadDetailInlineView({
                 <button
                   type="button"
                   onClick={() => onQuickReplyRequest?.(lead.id)}
-                  className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                  disabled={isQuickReplySending}
+                  className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:bg-primary-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
-                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                  </svg>
-                  Check if they&apos;re a fit
+                  {isQuickReplySending ? (
+                    <svg className="w-[18px] h-[18px] animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                    </svg>
+                  )}
+                  {isQuickReplySending ? "Sending..." : "Check if they're a fit"}
                 </button>
                 <p className="text-center text-[13px] text-gray-500">
                   Free — you won&apos;t be charged
@@ -639,6 +649,7 @@ function LeadDetailDrawer({
   onEmailClick,
   onContinueInInbox,
   onQuickReplyRequest,
+  isQuickReplySending,
   onArchiveClick,
   isVerified = true,
   onVerifyClick,
@@ -651,6 +662,7 @@ function LeadDetailDrawer({
   onEmailClick?: (leadId: string) => void;
   onContinueInInbox?: (leadId: string) => void;
   onQuickReplyRequest?: (leadId: string) => void;
+  isQuickReplySending?: boolean;
   onArchiveClick?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
@@ -1246,12 +1258,20 @@ function LeadDetailDrawer({
           <button
             type="button"
             onClick={handleQuickReplyRequest}
-            className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all flex items-center justify-center gap-2"
+            disabled={isQuickReplySending}
+            className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-            </svg>
-            Check if they&apos;re a fit
+            {isQuickReplySending ? (
+              <svg className="w-[18px] h-[18px] animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            ) : (
+              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+              </svg>
+            )}
+            {isQuickReplySending ? "Sending..." : "Check if they're a fit"}
           </button>
           <p className="text-center text-[13px] text-gray-500">
             Free — you won&apos;t be charged
@@ -1750,6 +1770,8 @@ export default function ProviderLeadsPage() {
   const [whatsappBannerDismissed, setWhatsappBannerDismissed] = useState(false);
   const [whatsappOptingIn, setWhatsappOptingIn] = useState(false);
   const [freeLeadBannerDismissed, setFreeLeadBannerDismissed] = useState(false);
+  // Track which lead is currently sending quick reply (for loading state)
+  const [quickReplySendingId, setQuickReplySendingId] = useState<string | null>(null);
 
   // Verification state
   const { isVerified } = useProviderVerification();
@@ -2123,6 +2145,7 @@ export default function ProviderLeadsPage() {
     const lead = leads.find((l) => l.id === leadId);
     const connectionId = lead?.connectionId || leadId;
 
+    setQuickReplySendingId(leadId);
     try {
       const response = await fetch("/api/connections/message", {
         method: "POST",
@@ -2137,6 +2160,7 @@ export default function ProviderLeadsPage() {
 
       if (!response.ok) {
         console.error("[quick-reply] API failed:", await response.text());
+        setQuickReplySendingId(null);
         alert("Couldn't send message. Please try again.");
         return;
       }
@@ -2166,6 +2190,7 @@ export default function ProviderLeadsPage() {
       router.push(`/provider/inbox?id=${connectionId}`);
     } catch (err) {
       console.error("[quick-reply] Failed:", err);
+      setQuickReplySendingId(null);
       alert("Couldn't send message. Please try again.");
     }
   }, [leads, providerProfile, router]);
@@ -2681,6 +2706,7 @@ export default function ProviderLeadsPage() {
                   closeDrawer();
                 }}
                 onQuickReplyRequest={handleQuickReplyRequest}
+                isQuickReplySending={quickReplySendingId === selectedLead.id}
                 onArchiveClick={() => setLeadIdToArchive(selectedLead.id)}
                 onVerifyClick={handleVerifyFromDrawer}
                 onRestore={handleRestoreLead}
@@ -2740,6 +2766,7 @@ export default function ProviderLeadsPage() {
           }).catch(() => {});
         }}
         onQuickReplyRequest={handleQuickReplyRequest}
+        isQuickReplySending={selectedLead ? quickReplySendingId === selectedLead.id : false}
         isVerified={isVerified}
         onVerifyClick={handleVerifyFromDrawer}
       />

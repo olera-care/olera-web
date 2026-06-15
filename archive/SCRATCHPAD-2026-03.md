@@ -1,7 +1,7 @@
 # Scratchpad Archive - March 2026
 
-> Archived sessions from SCRATCHPAD.md (Sessions 23-51)
-> Covers 2026-02-28 through 2026-03-14
+> Archived sessions from SCRATCHPAD.md (Sessions 23-51, 64-65)
+> Covers 2026-02-28 through 2026-03-31
 
 ---
 
@@ -2456,3 +2456,17 @@ Root cause traced from console logs:
 ---
 
 _Older sessions archived to `archive/SCRATCHPAD-2026-02.md`_
+
+### 2026-03-31 (Session 65) — Worktree Cleanup + URL/Breadcrumb System Docs
+
+**Branch:** `speedy-jemison`
+
+- Removed 174 local worktree folders, deleted ~185 stale remote branches
+- Added URL & Breadcrumb Strategy to `docs/SYSTEMS.md`
+
+### 2026-03-30 (Session 64) — Fix Orphaned Question/Lead Notifications
+
+**Branch:** `fancy-lamarr` | **1 commit** | `cd60db73`
+
+- "Provider already has an email" error on admin Questions. Root cause: deferred notification system tightly coupled save-email + send-notifications.
+- Fix: removed hard block, added bidirectional cross-clearing, pre-fill email input, duplicate-send guard.

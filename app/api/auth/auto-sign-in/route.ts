@@ -23,13 +23,17 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  */
 export async function POST(request: Request) {
   try {
-    const { email, claimSession } = await request.json();
+    const { email: bodyEmail, claimSession } = await request.json();
 
-    if (!email || !claimSession) {
+    if (!claimSession) {
       return NextResponse.json(
-        { error: "Email and claim session are required" },
+        { error: "Claim session is required" },
         { status: 400 }
       );
+    }
+
+    if (!UUID_RE.test(claimSession)) {
+      return NextResponse.json({ error: "Invalid claim session" }, { status: 400 });
     }
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,8 +46,44 @@ export async function POST(request: Request) {
     }
 
     const supabaseAdmin = createClient(url, serviceKey);
-    const normalizedEmail = email.trim().toLowerCase();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+    // ── SECURITY: derive the email from the VERIFIED claim session, never the
+    // request body. The stored email is the one that actually received and
+    // passed verification (written by validate-token / send-code). Minting a
+    // session for a caller-supplied email is account takeover — see migration
+    // 107_claim_codes_email.sql.
+    const { data: verifiedRow } = await supabaseAdmin
+      .from("claim_verification_codes")
+      .select("email, verified_at")
+      .eq("claim_session", claimSession)
+      .not("verified_at", "is", null)
+      .not("email", "is", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("verified_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!verifiedRow?.email) {
+      console.warn(
+        "[auto-sign-in] no verified email for claim session — refusing to mint session"
+      );
+      return NextResponse.json({ error: "Verification required" }, { status: 403 });
+    }
+
+    const normalizedEmail = (verifiedRow.email as string).trim().toLowerCase();
+
+    // A mismatch between the caller-supplied email and the verified one is a
+    // tampering signal. Log it, but only ever act on the verified email.
+    if (
+      bodyEmail &&
+      typeof bodyEmail === "string" &&
+      bodyEmail.trim().toLowerCase() !== normalizedEmail
+    ) {
+      console.warn(
+        "[auto-sign-in] request email does not match verified email — using verified email"
+      );
+    }
 
     // Try to create the user first (no-op if already exists)
     let userId: string | undefined;

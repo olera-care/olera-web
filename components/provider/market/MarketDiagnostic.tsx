@@ -79,8 +79,8 @@ function HeroStat({ value, label }: { value: number | string; label: string }) {
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
  */
 export default function MarketDiagnostic({
-  data, showHeader = true, interactive = false, providerName, self,
-}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string; self?: SelfRank | null }) {
+  data, showHeader = true, interactive = false, providerName, providerSlug, self,
+}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string; providerSlug?: string; self?: SelfRank | null }) {
   const a = data;
   const dem = a.demand.demographics;
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
@@ -270,7 +270,7 @@ export default function MarketDiagnostic({
               c.key === "reviews" ? { href: "/provider/reviews" }
               : c.key === "callsheet" ? { href: "#referral" }
               : c.key === "community" ? { requestType: "community_playbook" }
-              : c.key === "ads" ? { requestType: "ads_guidance" }
+              : c.key === "ads" ? { href: "/provider/boost" }
               : {};
             return (
               <div
@@ -281,7 +281,7 @@ export default function MarketDiagnostic({
                 <div className="min-w-0">
                   <div className={`font-semibold text-stone-900 ${lead ? "text-[17px]" : "text-[15px]"}`}>{c.channel}</div>
                   <p className="text-[13.5px] text-stone-600 leading-relaxed mt-1">{c.rationale}</p>
-                  <PlaybookAction label={c.oleraTool} city={a.meta.city} state={a.meta.state} {...action} />
+                  <PlaybookAction label={c.oleraTool} city={a.meta.city} state={a.meta.state} item={c.key} providerSlug={providerSlug} providerName={providerName} {...action} />
                 </div>
               </div>
             );

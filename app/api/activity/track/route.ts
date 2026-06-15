@@ -31,8 +31,14 @@ const PROVIDER_EVENT_TYPES = [
   "matches_card_clicked",     // Provider clicks a family card
   "matches_message_generated", // Provider clicks AI generate button
   "matches_outreach_sent",    // Provider sends outreach message
-  "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw "Your Market"
+  "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw the managed-ads pitch
   "market_outreach_status_updated", // Provider updated a referral target in "Your Market"
+  // Managed Ads funnel + Your Market (migration 105)
+  "managed_ads_cta_clicked",   // Provider tapped a CTA toward /provider/boost
+  "managed_ads_boost_viewed",  // Provider viewed the managed-ads page
+  "managed_ads_requested",     // Provider submitted a managed-ads campaign request
+  "your_market_viewed",        // Provider viewed the Your Market diagnostic
+  "your_market_playbook_clicked", // Provider tapped a Your Market playbook step
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -480,6 +486,116 @@ export async function POST(request: NextRequest) {
           city: (meta.city as string) || null,
           state: (meta.state as string) || null,
           email: (meta.email as string) || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // ── Managed Ads funnel + Your Market (migration 105) ──
+    // Provider display fields ride in metadata from the client (same pattern as
+    // market_diagnostic_viewed_no_leads). managed_ads_requested is NOT pinged
+    // here — the request route already fires slackAdBoostRequested; this event
+    // is only for the Activity Center.
+    if (event_type === "managed_ads_cta_clicked") {
+      try {
+        const meta = (metadata as Record<string, unknown>) || {};
+        // Hero-origin clicks already ping via slackHeroCtaClicked (provider_picker_clicked
+        // {source:hero}); skip the duplicate here. The event still records for the
+        // unified managed-ads funnel.
+        if (meta.source !== "hero") {
+          const { sendSlackAlert, slackManagedAdsCtaClicked } = await import("@/lib/slack");
+          const alert = slackManagedAdsCtaClicked({
+            providerName: (meta.provider_name as string) || provider_id,
+            providerSlug: provider_id,
+            source: (meta.source as string) || "unknown",
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        }
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    if (event_type === "managed_ads_boost_viewed") {
+      try {
+        const { sendSlackAlert, slackBoostViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackBoostViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          state: (meta.state as string) || "unknown",
+          completeness: typeof meta.completeness === "number" ? meta.completeness : null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    if (event_type === "your_market_viewed") {
+      try {
+        const { sendSlackAlert, slackYourMarketViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackYourMarketViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          covered: meta.covered === false ? false : true,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    if (event_type === "your_market_playbook_clicked") {
+      try {
+        const { sendSlackAlert, slackYourMarketPlaybookClicked } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackYourMarketPlaybookClicked({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          item: (meta.item as string) || "unknown",
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 👀 Provider opened Find Families. Pinged on every visit (TJ's call —
+    // impressions matter at our scale; "showed up and bounced" is signal).
+    if (event_type === "matches_page_viewed") {
+      try {
+        const { sendSlackAlert, slackMatchesPageViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMatchesPageViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          tab: (meta.tab as string) || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 📨 Provider sent outreach to a family — the Find Families conversion.
+    if (event_type === "matches_outreach_sent") {
+      try {
+        const { sendSlackAlert, slackMatchesOutreachSent } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMatchesOutreachSent({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          usedAi: meta.used_ai === true,
         });
         await sendSlackAlert(alert.text, alert.blocks);
       } catch {

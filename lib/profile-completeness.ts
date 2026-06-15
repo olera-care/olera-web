@@ -73,8 +73,20 @@ export interface SectionScore {
 }
 
 export interface ProfileCompleteness {
+  /** 0–100 over the sections the provider CONTROLS (the 7 self-completable
+   *  sections). Achievable to 100 by effort alone — this is what gates features
+   *  and what the completion meter shows. */
   overall: number;
   sections: SectionScore[];
+  /** Earned quality signals that depend on families (reviews) or traffic
+   *  (response rate) — NOT part of `overall` and never gating. Surfaced
+   *  separately as "boost your results" carrots. `null` = none yet (N/A).
+   *  Gating a family-acquisition feature on these would be circular: you need
+   *  families to earn them, and the feature is how you get families. */
+  boosters: {
+    reviews: number | null;
+    responseRate: number | null;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -92,10 +104,10 @@ const WEIGHT_CARE_SERVICES = 10;
 const WEIGHT_GALLERY = 15;
 const WEIGHT_ABOUT = 10;
 const WEIGHT_PAYMENT = 6;
-const WEIGHT_REVIEWS = 15;
-const WEIGHT_RESPONSE_RATE = 12;
-// Sum: 100 when all 9 sections apply. Response Rate is N/A (excluded) when
-// no questions received yet — denominator drops to 88.
+// The completion % covers only these 7 self-completable sections (the weighted
+// average normalizes by their total, so 100% is reachable by effort alone).
+// Reviews + response rate used to be weighted sections; they're now non-gating
+// boosters (see `boosters` in the return) — earned signals, not "completion."
 
 function clamp(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value)));
@@ -265,30 +277,17 @@ export function calculateProfileCompleteness(
     },
   ];
 
-  if (reviews) {
-    sections.push({
-      id: "reviews",
-      label: "Reviews",
-      percent: scoreReviews(reviews),
-      weight: WEIGHT_REVIEWS,
-    });
-  }
-
-  if (responseRate) {
-    const rrScore = scoreResponseRate(responseRate);
-    if (rrScore !== null) {
-      sections.push({
-        id: "response_rate",
-        label: "Response rate",
-        percent: rrScore,
-        weight: WEIGHT_RESPONSE_RATE,
-      });
-    }
-  }
+  // Boosters are NOT pushed into `sections` — they don't gate and aren't part
+  // of the completion %. Reviews are N/A (null) until a family leaves one;
+  // response rate is N/A until a question is received. Surfaced separately.
+  const boosters = {
+    reviews: reviews && reviews.count > 0 ? scoreReviews(reviews) : null,
+    responseRate: responseRate ? scoreResponseRate(responseRate) : null,
+  };
 
   const totalWeight = sections.reduce((sum, s) => sum + s.weight, 0);
   const weightedSum = sections.reduce((sum, s) => sum + s.percent * s.weight, 0);
   const overall = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
 
-  return { overall, sections };
+  return { overall, sections, boosters };
 }

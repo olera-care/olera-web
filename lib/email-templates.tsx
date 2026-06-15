@@ -138,6 +138,138 @@ export function providerProfileCompletionEmail(opts: {
 }
 
 /**
+ * Managed Ads digest email — the weekly nudge for the no-leads cohort (~99%).
+ *
+ * Diagnosis-led, not offer-led: it opens with a TRUE local-demand fact about the
+ * reader's own market (`localDemand` = unique provider-page viewers in their
+ * city+category this week, the same number the weekly digest already uses) and
+ * lets that visible gap motivate the paid ads, rather than pitching the product
+ * cold. Three deliberate moves separate it from the lead-gen vendors providers
+ * distrust: (1) reader-first hook, not "we run ads"; (2) an explicit anti-broker
+ * line — they fund their own campaign, the families are theirs, no per-lead
+ * charge, no resale (honest that it's PAID; we do NOT claim it's free or that
+ * there's "nothing to set up"); (3) Dr. Logan's trust signature, same as the
+ * cold-rank email. One-click magic link (action="ads") auth-lands them on
+ * /provider/boost; the CTA stays honest about that page's 70% completeness gate
+ * ("See how it works") instead of promising zero setup.
+ */
+export function providerManagedAdsEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  ctaUrl: string;
+  city?: string | null;
+  category?: string | null;
+  /** Unique provider-page viewers in the city+category cohort this week. Real
+   *  number from provider_page_view_stats; below the floor (<5) → qualitative
+   *  fallback, so a thin "1 family" number never undersells the pitch. */
+  localDemand?: number | null;
+}): string {
+  const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const where = opts.city ? ` near ${escapeHtml(opts.city)}` : " in your area";
+  const cat = humanCategoryLabel(opts.category ?? null);
+  const demand = opts.localDemand && opts.localDemand >= 5 ? opts.localDemand : null;
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+
+  // Lead with the real number when we have it; degrade gracefully when we don't.
+  const headline = demand
+    ? `${demand.toLocaleString()} ${demand === 1 ? "family" : "families"} searched for ${cat}${where} this week.`
+    : `Families${where} are searching for care right now.`;
+  // The "where most demand goes" line — non-accusatory (no "your page isn't one
+  // of them"); just describes how families actually search and stall.
+  const elsewhere = demand
+    ? `That&rsquo;s only the demand we saw on Olera. Many more search Google, ask in Facebook groups, check Nextdoor, call an agency or two, and stop.`
+    : `They search Google, ask in Facebook groups, check Nextdoor, call an agency or two, and stop &mdash; most never reach a directory at all.`;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your local market</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${headline}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${elsewhere}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re testing a simple way to help local agencies show up earlier. You fund a small local campaign, Olera runs it, sends interested families straight to your Olera page, and shows you exactly what happened.</p>
+    <div style="margin:0 0 22px;">
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No per-lead fee.</p>
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No resold inquiries.</p>
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0;line-height:1.5;">No bidding against other agencies for the same family.</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 28px;line-height:1.65;">Just your own campaign, pointed at your own page.</p>
+    <div style="margin:0 0 30px;">${button("See how it works →", opts.ctaUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
+      <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
+      <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care less opaque for families and providers.</td>
+    </tr></table>
+    <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
+    </div>`,
+    demand
+      ? `${demand.toLocaleString()} families searched for ${cat}${where} this week`
+      : `Families${opts.city ? ` near ${escapeHtml(opts.city)}` : ""} are searching for care right now.`,
+  );
+}
+
+/**
+ * Find Families digest variant — a provider with a real published care-seeker
+ * within ~50mi (the scarce, high-intent signal). Distinct from the managed-ads
+ * pitch (no-leads cohort): this fires only when there's an actual nearby family,
+ * so the copy is concrete and warm, not a sales pitch. The CTA is a one-click
+ * "matches" magic link straight to /provider/matches. Goal action: reaching out
+ * (provider_activity matches_outreach_sent). No PHI — town + care need only,
+ * never the family's name (subject + body), matching the page's framing.
+ */
+export function providerFindFamiliesDigestEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  ctaUrl: string;          // one-click magic link → /provider/matches
+  nearbyCount: number;
+  nearestTown?: string | null;
+  careNeed?: string | null;
+  timeline?: string | null;
+}): string {
+  const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const many = opts.nearbyCount > 1;
+
+  const TIMELINE_PHRASE: Record<string, string> = {
+    immediate: "and needs care right away",
+    within_1_month: "within the next month",
+    within_3_months: "within the next few months",
+    exploring: "and is exploring options",
+  };
+  const prettyCare = opts.careNeed
+    ? escapeHtml(opts.careNeed.replace(/[_-]+/g, " ").trim().toLowerCase())
+    : null;
+  const town = opts.nearestTown ? escapeHtml(opts.nearestTown) : null;
+  const timelinePhrase = opts.timeline ? TIMELINE_PHRASE[opts.timeline] ?? "" : "";
+
+  const heading = many
+    ? `${opts.nearbyCount} families near you are looking for care`
+    : "A family near you is looking for care";
+
+  // One concrete line about the nearest family — town + care need + timing when we
+  // have them, gracefully degrading to a plain line when we don't.
+  const lead = town
+    ? `A family in ${town} is looking for ${prettyCare ?? "care"} ${timelinePhrase}`.trim() + "."
+    : `A family within driving distance is looking for ${prettyCare ?? "care"} ${timelinePhrase}`.trim() + ".";
+  const detail = many
+    ? `${lead} ${opts.nearbyCount - 1} more ${opts.nearbyCount - 1 === 1 ? "family is" : "families are"} searching nearby too.`
+    : lead;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${heading}.</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${detail}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;"><strong>The first provider to reach out is 3&times; more likely to connect.</strong> They&rsquo;re comparing their options now &mdash; a short, warm note from you goes a long way.</p>
+    <div>${button(many ? "See the families →" : "See the family →", opts.ctaUrl)}</div>
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
+    </div>`,
+    many
+      ? `${opts.nearbyCount} families near ${opts.providerName} are looking for care right now.`
+      : `A family near ${opts.providerName} is looking for care right now.`,
+  );
+}
+
+/**
  * Escape HTML special characters to prevent XSS and layout issues.
  * Use this for any user-generated content inserted into email HTML.
  */
@@ -261,7 +393,7 @@ export function coldProviderRankEmail(opts: {
   outOf: number;
   cityLabel: string;
   careLabel: string;      // "home care" | "assisted living"
-  ctaUrl: string;         // one-click market magic link (auth → /provider/matches)
+  ctaUrl: string;         // one-click market magic link (auth → /provider/market)
   manageUrl: string;
   removeUrl: string;
   unsubscribeUrl: string;
@@ -2951,7 +3083,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
     : lead;
   const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your market" : "See your full analytics";
   const ctaUrl = m
-    ? (opts.marketUrl || `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
+    ? (opts.marketUrl || `${BASE_URL}/provider/market?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
     : dashboardUrl;
   const referralRows = r?.targets.slice(0, 3).map((target) => {
     const distance = target.distanceMiles == null ? "" : ` · ${Number(target.distanceMiles).toFixed(1)} mi`;

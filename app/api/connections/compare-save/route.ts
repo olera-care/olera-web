@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 
 /**
  * POST /api/connections/compare-save
@@ -127,6 +128,7 @@ export async function POST(request: Request) {
     let accessToken: string | null = null;
     let refreshToken: string | null = null;
     let isNewUser = false;
+    let existingUser = false;
     const displayName = "Care Seeker";
 
     // Try to create user
@@ -163,54 +165,23 @@ export async function POST(request: Request) {
 
           userId = accountData?.user_id || "";
 
-          // Generate session for existing user
-          const { data: linkData } = await authClient.auth.admin.generateLink({
-            type: "magiclink",
+          // SECURITY: existing account — email a sign-in link instead of minting
+          // a session for a caller-supplied email (prevents account takeover).
+          await emailReturningUserSignInLink(authClient, {
             email: normalizedEmail,
-            options: { redirectTo: `${siteUrl}/portal/inbox` },
+            nextPath: "/portal/inbox",
           });
-
-          if (linkData?.properties?.hashed_token) {
-            try {
-              const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
-                token_hash: linkData.properties.hashed_token,
-                type: "magiclink",
-              });
-
-              if (!verifyError && verifyData?.session) {
-                accessToken = verifyData.session.access_token;
-                refreshToken = verifyData.session.refresh_token;
-              }
-            } catch {
-              // Non-fatal
-            }
-          }
+          existingUser = true;
         } else {
-          // Auth user exists but no profile — create one
-          const { data: linkData } = await authClient.auth.admin.generateLink({
-            type: "magiclink",
+          // Auth user exists but no profile — resolve their id and email a
+          // sign-in link. SECURITY: never mint a session for a caller-supplied
+          // email (prevents account takeover).
+          const { userId: resolvedUserId } = await emailReturningUserSignInLink(authClient, {
             email: normalizedEmail,
-            options: { redirectTo: `${siteUrl}/portal/inbox` },
+            nextPath: "/portal/inbox",
           });
-
-          if (linkData?.properties?.hashed_token) {
-            try {
-              const { data: verifyData } = await authClient.auth.verifyOtp({
-                token_hash: linkData.properties.hashed_token,
-                type: "magiclink",
-              });
-
-              if (verifyData?.session) {
-                accessToken = verifyData.session.access_token;
-                refreshToken = verifyData.session.refresh_token;
-                userId = verifyData.session.user?.id || "";
-              }
-            } catch {
-              // Non-fatal
-            }
-          }
-
-          userId = userId! || "";
+          userId = resolvedUserId || "";
+          existingUser = true;
 
           // Check if this auth user has a provider profile on their account
           // If so, block them instead of creating a family profile
@@ -663,6 +634,9 @@ export async function POST(request: Request) {
       accessToken: accessToken || null,
       refreshToken: refreshToken || null,
       isNewUser,
+      // When true, an existing account was found — no session minted, a sign-in
+      // link was emailed. Client should show "check your email" (anti-takeover).
+      existingUser,
     });
   } catch (err) {
     console.error("Compare save error:", err);

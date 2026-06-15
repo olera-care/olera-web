@@ -56,6 +56,22 @@ function providerSendBucket(id: string): number {
   return Math.abs(h) % SEND_WEEKDAYS; // 0 = Mon … 4 = Fri
 }
 
+// Managed-ads rotation: 1 in ADS_ROTATION_PERIOD weeks a provider yields the ads
+// pitch to their market/insight read, so we don't send the identical pitch every
+// week (olera.care deliverability + ads-pitch fatigue). The phase is PER-PROVIDER
+// (hashed from id), not a global week flip — so at any moment ~1/3 of the
+// ads-eligible cohort is in an off week, staggered across the population, instead
+// of the whole audience going dark the same week (which killed continuous
+// measurement). Salted ("ads:") so a provider's rotation phase doesn't correlate
+// with their weekday send bucket — otherwise a whole weekday would flip together.
+const ADS_ROTATION_PERIOD = 3;
+function providerAdsRotationPhase(id: string): number {
+  let h = 0;
+  const salted = `ads:${id}`;
+  for (let i = 0; i < salted.length; i++) h = (h * 31 + salted.charCodeAt(i)) | 0;
+  return Math.abs(h) % ADS_ROTATION_PERIOD; // 0..2
+}
+
 /**
  * Should this run lead with the provider's open question?
  * True when the question is fresh (≤ QUESTION_FRESH_DAYS), or when its age crosses a
@@ -773,6 +789,9 @@ export async function GET(request: NextRequest) {
     // will resolve to the same email; we should only send once per address.
     const sentEmails = new Set<string>();
 
+    // Week ordinal for the per-provider ads rotation phase (see providerAdsRotationPhase).
+    const adsRotationWeekIndex = Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000));
+
     for (const providerId of providerIds) {
       const bucket = buckets.get(providerId)!;
       const bp = bpBySlug.get(providerId);
@@ -1021,10 +1040,14 @@ export async function GET(request: NextRequest) {
       // the one lever that GENERATES demand vs. waiting on an empty local funnel).
       // Below real inbound (question/lead) and below the trust-forward cold
       // first-contact (pitching ads to a stranger who's never heard of us is a
-      // bad first hello). Rotated weekly: ~1 in 3 weeks it yields to their market
-      // read / completion nudge so we don't send the identical pitch every week
-      // (olera.care deliverability — ads-pitch fatigue). Week-based, synchronized.
-      const adsRotationWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % 3 === 0;
+      // bad first hello). Rotation yields the pitch ~1 in 3 weeks to their market/
+      // insight read so we don't repeat the identical pitch weekly (olera.care
+      // deliverability — ads-pitch fatigue). The phase is PER-PROVIDER and
+      // staggered (providerAdsRotationPhase), so ~1/3 of the cohort is off in any
+      // given week instead of the whole audience going dark together — the variant
+      // stays continuously measurable.
+      const adsRotationWeek =
+        (providerAdsRotationPhase(providerId) + adsRotationWeekIndex) % ADS_ROTATION_PERIOD === 0;
       const useManagedAds =
         !unansweredQuestion && !leadsUrl && !isColdFirstContact && !findFamiliesUrl && !adsRotationWeek;
       const html = isColdFirstContact

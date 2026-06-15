@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-02 — Gating-thread backlog captured in Notion (close-out, no code)
+
+**Context:** `/resume` session. Both connections PRs (#899 tracker, #902 family follow-up) were already merged to staging from the prior session. TJ wanted the remaining work captured in Notion before signing off rather than starting a new build.
+
+**Done:** Updated the gating-thread card ([`Connect the two sides`](https://www.notion.so/3725903a0ffe81f18a54d32371a60243), Web App board) — checked sub-tasks **2** + **4** with SHIPPED notes (PR refs + staging hashes), and appended a "Remaining work (as of 2026-06-02)" checklist grouping all open items with file pointers + why: **email/enrichment lane** (sub-task 1 quality badge + run the 239-email quality check first, the `hasEmail` ~10-overstate bug, targeted enrichment batch spec), **tracker Phase-4 leftovers** (lead-outcome cron, consolidate admin views, durable `connection_succeeded` event needing an allowlist migration), **demoted/ops** (sub-task 3 auto-fire `sendDeferredNotificationsForProvider` on every email-write path, sub-task 5 email-infra overhaul / Smartlead — blocks Graze), and **QA owed** (live staging pass on the MVP).
+
+**Resume next session here →** Pick any item off the Notion "Remaining work" checklist. Lowest-friction first moves: the `hasEmail` bug (small, spec'd) or sub-task 3 auto-fire (small, code-only). The strategic ones: email-quality check (decides sub-task 1 priority) and the targeted enrichment batch spec. Branches `bold-hopper` + `connections-family-nudge` retained. Plan: `plans/connections-tracker-plan.md`.
+
+---
+
 ### 2026-06-01→02 — Connections tracker SHIPPED to staging + email-coverage deep dive
 
 **Context:** `/explore` → restructured the P1 "Connect the two sides" gating-thread card into 5 sub-tasks (Notion `3725903a-0ffe-81f1-8a54-d32371a60243`); folded + retired the P2 "Connection ledger" card. Corrected two card errors: auto-send already works when a provider has an email (hard stop is only the emailless tail); the "30-day post-connection email" doesn't exist (`accepted_at` set but never read; true re-engage trigger = provider's first non-auto thread reply). Then planned + built the tracker (`plans/connections-tracker-plan.md`).

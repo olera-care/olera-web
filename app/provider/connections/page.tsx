@@ -119,6 +119,9 @@ function LeadDetailInlineView({
   onContinueInInbox,
   onQuickReplyRequest,
   isQuickReplySending,
+  quickReplySuccess,
+  quickReplyProgress,
+  onOpenConversation,
   onArchiveClick,
   onVerifyClick,
   onRestore,
@@ -131,6 +134,9 @@ function LeadDetailInlineView({
   onContinueInInbox?: (leadId: string) => void;
   onQuickReplyRequest?: (leadId: string) => Promise<boolean>;
   isQuickReplySending?: boolean;
+  quickReplySuccess?: boolean;
+  quickReplyProgress?: number;
+  onOpenConversation?: (leadId: string) => void;
   onArchiveClick?: () => void;
   onVerifyClick?: () => void;
   onRestore?: (leadId: string) => void;
@@ -139,11 +145,13 @@ function LeadDetailInlineView({
   const [restored, setRestored] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
+  const [quickReplyError, setQuickReplyError] = useState(false);
 
   // Reset collapsed state and close menu when lead changes
   useEffect(() => {
     setShowFullDetails(false);
     setShowOverflowMenu(false);
+    setQuickReplyError(false);
   }, [lead.id]);
 
   const displayName = isVerified ? lead.name : formatRedactedName(lead.name);
@@ -563,6 +571,59 @@ function LeadDetailInlineView({
               Restore
             </button>
           )
+        ) : quickReplySuccess ? (
+          // Quick reply success confirmation
+          <div className="rounded-xl bg-gray-900 overflow-hidden">
+            <div className="px-4 py-4 space-y-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                </div>
+                <span className="text-[15px] font-semibold text-white">
+                  {(() => {
+                    if (!lead.name) return 'Asked Care Seeker';
+                    const firstName = lead.name.split(' ')[0];
+                    if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+                      return `Asked ${firstName}`;
+                    }
+                    return 'Asked Care Seeker';
+                  })()}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[14px] text-gray-200">&ldquo;How much help are you looking for?&rdquo;</p>
+                <p className="text-[13px] text-gray-500">
+                  {(() => {
+                    if (!lead.name) return "We'll bring their reply to your inbox the moment they answer.";
+                    const firstName = lead.name.split(' ')[0];
+                    if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+                      return `We'll bring ${firstName}'s reply to your inbox the moment they answer.`;
+                    }
+                    return "We'll bring their reply to your inbox the moment they answer.";
+                  })()}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onOpenConversation?.(lead.id)}
+                className="w-full px-4 py-2.5 bg-transparent border border-gray-700 text-white text-sm font-medium rounded-lg hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                </svg>
+                Open conversation
+              </button>
+            </div>
+            {/* Progress bar */}
+            <div className="h-1 bg-gray-800">
+              <div
+                className="h-full bg-gray-600 transition-none"
+                style={{ width: `${quickReplyProgress ?? 100}%` }}
+              />
+            </div>
+          </div>
         ) : isVerified ? (
           // Active footer - show "Check if they're a fit" for new leads, "Message" for replied
           <div className="space-y-3">
@@ -571,7 +632,13 @@ function LeadDetailInlineView({
               <>
                 <button
                   type="button"
-                  onClick={() => onQuickReplyRequest?.(lead.id)}
+                  onClick={async () => {
+                    setQuickReplyError(false);
+                    const success = await onQuickReplyRequest?.(lead.id);
+                    if (!success) {
+                      setQuickReplyError(true);
+                    }
+                  }}
                   disabled={isQuickReplySending}
                   className="w-full px-4 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:bg-primary-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
@@ -587,9 +654,18 @@ function LeadDetailInlineView({
                   )}
                   {isQuickReplySending ? "Sending..." : "Check if they're a fit"}
                 </button>
-                <p className="text-center text-[13px] text-gray-500">
-                  Free — you won&apos;t be charged
-                </p>
+                {quickReplyError ? (
+                  <p className="text-center text-[13px] text-red-600 flex items-center justify-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    Something went wrong. Please try again.
+                  </p>
+                ) : (
+                  <p className="text-center text-[13px] text-gray-500">
+                    Free — you won&apos;t be charged
+                  </p>
+                )}
               </>
             ) : (
               // Regular message button for leads that have been replied to
@@ -650,6 +726,9 @@ function LeadDetailDrawer({
   onContinueInInbox,
   onQuickReplyRequest,
   isQuickReplySending,
+  quickReplySuccess,
+  quickReplyProgress,
+  onOpenConversation,
   onArchiveClick,
   isVerified = true,
   onVerifyClick,
@@ -663,6 +742,9 @@ function LeadDetailDrawer({
   onContinueInInbox?: (leadId: string) => void;
   onQuickReplyRequest?: (leadId: string) => Promise<boolean>;
   isQuickReplySending?: boolean;
+  quickReplySuccess?: boolean;
+  quickReplyProgress?: number;
+  onOpenConversation?: (leadId: string) => void;
   onArchiveClick?: (leadId: string) => void;
   isVerified?: boolean;
   onVerifyClick?: () => void;
@@ -1245,20 +1327,72 @@ function LeadDetailDrawer({
     </div>
   );
 
-  // Handler for quick reply request - await result, only close on success
+  // Handler for quick reply request - await result, show inline success or error
   const handleQuickReplyRequest = async () => {
     if (!lead) return;
     setQuickReplyError(false);
     const success = await onQuickReplyRequest?.(lead.id);
-    if (success) {
-      onClose();
-    } else {
+    if (!success) {
       setQuickReplyError(true);
     }
+    // On success, the parent will set quickReplySuccess which shows inline confirmation
   };
 
   // ── Active Footer (full width message button with helper text) ──
-  const ActiveFooter = isVerified ? (
+  const ActiveFooter = quickReplySuccess ? (
+    // Quick reply success confirmation
+    <div className="rounded-xl bg-gray-900 overflow-hidden">
+      <div className="px-4 py-4 space-y-3.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </div>
+          <span className="text-[15px] font-semibold text-white">
+            {(() => {
+              if (!lead.name) return 'Asked Care Seeker';
+              const firstName = lead.name.split(' ')[0];
+              if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+                return `Asked ${firstName}`;
+              }
+              return 'Asked Care Seeker';
+            })()}
+          </span>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[14px] text-gray-200">&ldquo;How much help are you looking for?&rdquo;</p>
+          <p className="text-[13px] text-gray-500">
+            {(() => {
+              if (!lead.name) return "We'll bring their reply to your inbox the moment they answer.";
+              const firstName = lead.name.split(' ')[0];
+              if (firstName.length > 1 && firstName.toLowerCase() !== 'care') {
+                return `We'll bring ${firstName}'s reply to your inbox the moment they answer.`;
+              }
+              return "We'll bring their reply to your inbox the moment they answer.";
+            })()}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onOpenConversation?.(lead.id)}
+          className="w-full px-4 py-2.5 bg-transparent border border-gray-700 text-white text-sm font-medium rounded-lg hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+          </svg>
+          Open conversation
+        </button>
+      </div>
+      {/* Progress bar */}
+      <div className="h-1 bg-gray-800">
+        <div
+          className="h-full bg-gray-600 transition-none"
+          style={{ width: `${quickReplyProgress ?? 100}%` }}
+        />
+      </div>
+    </div>
+  ) : isVerified ? (
     <div className="space-y-3">
       {lead.status === "new" ? (
         // Quick reply button for leads provider hasn't messaged yet
@@ -1789,6 +1923,10 @@ export default function ProviderLeadsPage() {
   const [freeLeadBannerDismissed, setFreeLeadBannerDismissed] = useState(false);
   // Track which lead is currently sending quick reply (for loading state)
   const [quickReplySendingId, setQuickReplySendingId] = useState<string | null>(null);
+  // Track which lead just had a successful quick reply (for inline confirmation)
+  const [quickReplySuccessId, setQuickReplySuccessId] = useState<string | null>(null);
+  // Track progress for auto-dismiss countdown (100 to 0)
+  const [quickReplyProgress, setQuickReplyProgress] = useState(100);
 
   // Verification state
   const { isVerified } = useProviderVerification();
@@ -2203,15 +2341,57 @@ export default function ProviderLeadsPage() {
         }).catch(() => {});
       }
 
-      // Navigate to inbox
-      router.push(`/provider/inbox?id=${connectionId}`);
+      // Show inline success confirmation instead of navigating
+      setQuickReplySendingId(null);
+      setQuickReplySuccessId(leadId);
       return true;
     } catch (err) {
       console.error("[quick-reply] Failed:", err);
       setQuickReplySendingId(null);
       return false;
     }
-  }, [leads, providerProfile, router]);
+  }, [leads, providerProfile]);
+
+  // Handle opening conversation after quick reply success
+  const handleOpenConversation = useCallback((leadId: string) => {
+    const lead = leads.find((l) => l.id === leadId);
+    const connectionId = lead?.connectionId || leadId;
+    setQuickReplySuccessId(null);
+    router.push(`/provider/inbox?id=${connectionId}`);
+  }, [leads, router]);
+
+  // Clear quick reply success state when selecting a different lead
+  useEffect(() => {
+    if (selectedLeadId && quickReplySuccessId && selectedLeadId !== quickReplySuccessId) {
+      setQuickReplySuccessId(null);
+    }
+  }, [selectedLeadId, quickReplySuccessId]);
+
+  // Auto-dismiss quick reply success after 15 seconds with progress bar
+  useEffect(() => {
+    if (!quickReplySuccessId) {
+      setQuickReplyProgress(100);
+      return;
+    }
+
+    const AUTO_DISMISS_MS = 15000;
+    const INTERVAL_MS = 50; // Update every 50ms for smooth animation
+    const decrement = (INTERVAL_MS / AUTO_DISMISS_MS) * 100;
+
+    const timer = setInterval(() => {
+      setQuickReplyProgress((prev) => {
+        const next = prev - decrement;
+        if (next <= 0) {
+          clearInterval(timer);
+          setQuickReplySuccessId(null);
+          return 100; // Reset for next use
+        }
+        return next;
+      });
+    }, INTERVAL_MS);
+
+    return () => clearInterval(timer);
+  }, [quickReplySuccessId]);
 
   // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
   const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
@@ -2725,6 +2905,9 @@ export default function ProviderLeadsPage() {
                 }}
                 onQuickReplyRequest={handleQuickReplyRequest}
                 isQuickReplySending={quickReplySendingId === selectedLead.id}
+                quickReplySuccess={quickReplySuccessId === selectedLead.id}
+                quickReplyProgress={quickReplySuccessId === selectedLead.id ? quickReplyProgress : 100}
+                onOpenConversation={handleOpenConversation}
                 onArchiveClick={() => setLeadIdToArchive(selectedLead.id)}
                 onVerifyClick={handleVerifyFromDrawer}
                 onRestore={handleRestoreLead}
@@ -2785,6 +2968,9 @@ export default function ProviderLeadsPage() {
         }}
         onQuickReplyRequest={handleQuickReplyRequest}
         isQuickReplySending={selectedLead ? quickReplySendingId === selectedLead.id : false}
+        quickReplySuccess={selectedLead ? quickReplySuccessId === selectedLead.id : false}
+        quickReplyProgress={selectedLead && quickReplySuccessId === selectedLead.id ? quickReplyProgress : 100}
+        onOpenConversation={handleOpenConversation}
         isVerified={isVerified}
         onVerifyClick={handleVerifyFromDrawer}
       />

@@ -83,7 +83,7 @@ type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "archived";
+type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "admin_not_interested" | "archived";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 

@@ -350,14 +350,14 @@ export async function POST(request: NextRequest) {
 
     if (UNARCHIVE_TRIGGER_EVENTS.includes(event_type) && connectionId) {
       try {
-        const { autoUnarchiveConnection } = await import("@/lib/connection-archive");
-        const result = await autoUnarchiveConnection(db, connectionId, event_type);
-        if (result.unarchived) {
-          console.log(`[activity/track] Auto-unarchived connection ${connectionId} on ${event_type}`);
+        const { autoRestoreConnection } = await import("@/lib/connection-archive");
+        const result = await autoRestoreConnection(db, connectionId, event_type);
+        if (result.restored) {
+          console.log(`[activity/track] Auto-restored connection ${connectionId} on ${event_type} (${result.action})`);
         }
       } catch (err) {
         // Non-critical - activity already logged
-        console.error("[activity/track] Auto-unarchive failed:", err);
+        console.error("[activity/track] Auto-restore failed:", err);
       }
     }
 

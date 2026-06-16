@@ -119,7 +119,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "declined" | "archived";
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "declined" | "admin_not_interested" | "archived";
 
 // Email issue types for the "Needs Email" tab
 type EmailIssueType = "no_email" | "failed" | "invalid" | null;

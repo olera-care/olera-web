@@ -535,8 +535,8 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Action dialog state - supports Mark Connected, Mark Not Interested, Archive Provider, Unarchive, Hide
-  type ActionType = "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead" | "hide_connection";
+  // Action dialog state - supports Mark Viewed, Mark Connected, Mark Not Interested, Archive Provider, Unarchive, Hide
+  type ActionType = "mark_viewed" | "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead" | "hide_connection";
   const [pendingAction, setPendingAction] = useState<{
     connectionId: string;
     providerId: string | null;
@@ -555,6 +555,13 @@ export default function ConnectionsTrackerPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
+
+  // Mark Viewed reason options
+  const MARK_VIEWED_REASONS = [
+    "Provider confirmed they saw it (phone call)",
+    "Provider confirmed they saw it (email)",
+    "Other",
+  ] as const;
 
   // Mark Connected reason options
   const MARK_CONNECTED_REASONS = [
@@ -746,7 +753,31 @@ export default function ConnectionsTrackerPage() {
       let res: Response;
       let successMessage = "";
 
-      if (selectedAction === "mark_connected") {
+      if (selectedAction === "mark_viewed") {
+        // Mark as Viewed API - moves to Viewed tab, emails continue
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "viewed",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as viewed";
+
+      } else if (selectedAction === "mark_connected") {
         // Mark as Connected API
         if (!actionReason.trim()) {
           setActionError("Please select a reason");
@@ -1270,6 +1301,25 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
+                {/* Mark as Viewed - move to Viewed tab, emails continue */}
+                <button
+                  onClick={() => setSelectedAction("mark_viewed")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Mark as Viewed</p>
+                      <p className="text-xs text-gray-500">Provider confirmed they saw it, emails continue</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Mark as Connected - always show, but add note if provider is archived */}
                 <button
                   onClick={() => setSelectedAction("mark_connected")}
@@ -1378,6 +1428,42 @@ export default function ConnectionsTrackerPage() {
             {/* Action confirmation - Step 2 */}
             {selectedAction && (
               <div className="space-y-4">
+                {/* Mark Viewed form */}
+                {selectedAction === "mark_viewed" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will move the connection to the <span className="font-medium">Viewed</span> tab. Email sequences will continue to encourage them to connect.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-xs text-amber-800">
+                        Use this when you have called the provider and they confirmed they saw the lead but have not connected yet.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">How was this confirmed?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_VIEWED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe how this was confirmed..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
+                )}
+
                 {/* Mark Connected form */}
                 {selectedAction === "mark_connected" && (
                   <>
@@ -1575,6 +1661,8 @@ export default function ConnectionsTrackerPage() {
                       onClick={confirmAction}
                       disabled={
                         actionLoading ||
+                        (selectedAction === "mark_viewed" && !actionReason) ||
+                        (selectedAction === "mark_viewed" && actionReason === "Other" && !actionNotes.trim()) ||
                         (selectedAction === "mark_connected" && !actionReason) ||
                         (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
                         (selectedAction === "mark_not_interested" && !actionReason) ||
@@ -1582,7 +1670,9 @@ export default function ConnectionsTrackerPage() {
                         (selectedAction === "archive_provider" && !pendingAction.isProviderArchived && !actionReason)
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
-                        selectedAction === "mark_connected"
+                        selectedAction === "mark_viewed"
+                          ? "bg-amber-600 hover:bg-amber-700"
+                          : selectedAction === "mark_connected"
                           ? "bg-green-600 hover:bg-green-700"
                           : selectedAction === "mark_not_interested"
                           ? "bg-orange-600 hover:bg-orange-700"
@@ -1595,6 +1685,8 @@ export default function ConnectionsTrackerPage() {
                     >
                       {actionLoading
                         ? "Processing..."
+                        : selectedAction === "mark_viewed"
+                        ? "Mark Viewed"
                         : selectedAction === "mark_connected"
                         ? "Mark Connected"
                         : selectedAction === "mark_not_interested"

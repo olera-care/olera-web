@@ -12,7 +12,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  */
 
 interface MarkStatusRequest {
-  status: "connected" | "not_interested";
+  status: "viewed" | "connected" | "not_interested";
   reason: string;
   notes?: string;
 }
@@ -37,9 +37,9 @@ export async function POST(
     const { status, reason, notes } = body;
 
     // Validate inputs
-    if (status !== "connected" && status !== "not_interested") {
+    if (status !== "viewed" && status !== "connected" && status !== "not_interested") {
       return NextResponse.json(
-        { error: "Invalid status. Must be 'connected' or 'not_interested'." },
+        { error: "Invalid status. Must be 'viewed', 'connected', or 'not_interested'." },
         { status: 400 }
       );
     }
@@ -93,7 +93,16 @@ export async function POST(
       admin_override: adminOverride,
     };
 
-    // If marking as connected, also stop the email sequence
+    // If marking as viewed, keep email sequence running
+    // This moves the connection to Viewed tab while continuing to send nudge emails
+    // to encourage them to actually connect
+    if (status === "viewed") {
+      // Clear any stopped sequence so emails resume
+      delete updatedMetadata.followup_stopped_at;
+      delete updatedMetadata.followup_stopped_reason;
+    }
+
+    // If marking as connected, stop the email sequence (success state)
     if (status === "connected") {
       updatedMetadata.followup_stopped_at = new Date().toISOString();
       updatedMetadata.followup_stopped_reason = "admin_marked_connected";

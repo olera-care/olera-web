@@ -24,6 +24,29 @@ interface CampaignRequest {
 const STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
 const CHANNELS = ["", "google", "meta", "both"];
 
+/** Format a YYYY-MM-DD date-only string as "Jun 22, 2026" WITHOUT a timezone
+ *  shift. `new Date("2026-06-22")` parses as UTC midnight, so in US timezones it
+ *  would render a day early — parse the parts as local instead. */
+function fmtDateOnly(d: string | null): string {
+  if (!d) return "—";
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y || !m || !day) return d;
+  return new Date(y, m - 1, day).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/** Format a full timestamp as "Jun 16, 2026". */
+function fmtTimestamp(ts: string): string {
+  return new Date(ts).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /** Build the canonical managed-ads landing URL with UTM attribution params. */
 function utmUrl(slug: string | null, tag: string | null, id: string): string {
   const origin =
@@ -259,7 +282,7 @@ function RequestRow({
           </a>
           <p className="text-xs text-gray-400 mt-0.5 truncate">
             {request.completeness_at_submit ?? "—"}% complete · requested{" "}
-            {new Date(request.created_at).toLocaleDateString()}
+            {fmtTimestamp(request.created_at)}
           </p>
         </div>
 
@@ -274,7 +297,7 @@ function RequestRow({
         </div>
 
         {/* Setup week */}
-        <div className="text-sm text-gray-600">{request.requested_setup_week}</div>
+        <div className="text-sm text-gray-600">{fmtDateOnly(request.requested_setup_week)}</div>
 
         {/* Delivered */}
         <div className="text-sm">
@@ -422,10 +445,17 @@ function StatusBadge({ status }: { status: string }) {
     ended: "bg-gray-100 text-gray-500",
     cancelled: "bg-gray-100 text-gray-400",
   };
-  const label = status === "pending_profile" ? "queued" : status;
+  const labels: Record<string, string> = {
+    pending_profile: "Queued",
+    requested: "Requested",
+    scheduled: "Scheduled",
+    live: "Live",
+    ended: "Ended",
+    cancelled: "Cancelled",
+  };
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone[status] ?? "bg-gray-100 text-gray-600"}`}>
-      {label}
+      {labels[status] ?? status}
     </span>
   );
 }

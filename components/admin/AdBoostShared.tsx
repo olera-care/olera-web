@@ -18,8 +18,20 @@ export interface CampaignRequest {
   updated_at: string;
   /** Set when the request has been soft-deleted (archived); null when live. */
   deleted_at: string | null;
+  /** Manual ad-platform metrics, entered by the operator on the detail page. */
+  ad_spend_cents: number | null;
+  ad_clicks: number | null;
   /** Families delivered so far (benefits_completed events tagged to this campaign). */
   delivered?: number;
+}
+
+/** One delivered family behind a campaign — no PHI, just context. Mirrors
+ *  CampaignLead in lib/ad-boost/delivered.server (kept client-safe here). */
+export interface CampaignLead {
+  created_at: string;
+  careNeed: string | null;
+  state: string | null;
+  entrySource: string | null;
 }
 
 export const STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];

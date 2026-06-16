@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   type CampaignRequest,
+  type CampaignLead,
   STATUSES,
   CHANNELS,
   StatusBadge,
   utmUrl,
   fmtTimestamp,
+  fmtDateOnly,
 } from "@/components/admin/AdBoostShared";
 
 export default function AdBoostDetailPage() {
@@ -18,6 +20,7 @@ export default function AdBoostDetailPage() {
   const router = useRouter();
 
   const [request, setRequest] = useState<CampaignRequest | null>(null);
+  const [leads, setLeads] = useState<CampaignLead[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -30,6 +33,7 @@ export default function AdBoostDetailPage() {
       }
       const json = await res.json();
       setRequest(json.request as CampaignRequest);
+      setLeads((json.leads as CampaignLead[]) ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -54,17 +58,26 @@ export default function AdBoostDetailPage() {
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {!request && !error && <p className="text-gray-400 text-sm">Loading…</p>}
 
-      {request && <Detail request={request} onChanged={load} onDeleted={() => router.push("/admin/ad-boost")} />}
+      {request && (
+        <Detail
+          request={request}
+          leads={leads}
+          onChanged={load}
+          onDeleted={() => router.push("/admin/ad-boost")}
+        />
+      )}
     </div>
   );
 }
 
 function Detail({
   request,
+  leads,
   onChanged,
   onDeleted,
 }: {
   request: CampaignRequest;
+  leads: CampaignLead[];
   onChanged: () => void;
   onDeleted: () => void;
 }) {
@@ -78,9 +91,27 @@ function Detail({
   const [msg, setMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Manual performance entry — dollars / clicks as strings for the inputs.
+  const [spend, setSpend] = useState(
+    request.ad_spend_cents != null ? (request.ad_spend_cents / 100).toString() : "",
+  );
+  const [clicks, setClicks] = useState(
+    request.ad_clicks != null ? request.ad_clicks.toString() : "",
+  );
+  const [savingPerf, setSavingPerf] = useState(false);
+
   const isArchived = !!request.deleted_at;
   const name = request.display_name || request.provider_slug || request.provider_id;
   const url = utmUrl(request.provider_slug, tag, request.id);
+
+  const delivered = request.delivered ?? 0;
+  const spendNum = spend.trim() === "" ? null : Number(spend);
+  const clicksNum = clicks.trim() === "" ? null : Number(clicks);
+  const costPerFamily =
+    spendNum != null && spendNum > 0 && delivered > 0 ? spendNum / delivered : null;
+  const perfDirty =
+    (request.ad_spend_cents != null ? request.ad_spend_cents / 100 : null) !== spendNum ||
+    (request.ad_clicks ?? null) !== clicksNum;
 
   const dirty =
     status !== request.status ||
@@ -114,6 +145,39 @@ function Detail({
       setMsg(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const savePerf = async () => {
+    if (spendNum != null && (Number.isNaN(spendNum) || spendNum < 0)) {
+      setMsg("Spend must be a non-negative number");
+      return;
+    }
+    if (clicksNum != null && (!Number.isInteger(clicksNum) || clicksNum < 0)) {
+      setMsg("Clicks must be a non-negative whole number");
+      return;
+    }
+    setSavingPerf(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/ad-boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: request.id,
+          ad_spend_cents: spendNum != null ? Math.round(spendNum * 100) : null,
+          ad_clicks: clicksNum,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Save failed");
+      }
+      onChanged();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSavingPerf(false);
     }
   };
 
@@ -293,24 +357,87 @@ function Detail({
 
       {/* Performance */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">Performance</h2>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-primary-700">{request.delivered ?? 0}</span>
-          <span className="text-sm text-gray-500">families delivered</span>
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Performance</h2>
+
+        {/* Three at-a-glance stats */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <Stat value={String(delivered)} label="Families delivered" accent />
+          <Stat value={clicksNum != null ? clicksNum.toLocaleString() : "—"} label="Clicks" />
+          <Stat
+            value={costPerFamily != null ? `$${costPerFamily.toFixed(0)}` : "—"}
+            label="Cost / family"
+          />
         </div>
-        <p className="text-xs text-gray-400 mt-3">
-          Ad-platform metrics (spend, clicks, cost per family — split by Google vs Meta)
-          aren&apos;t in our database; they live in the ad dashboards. Coming next: manual
-          entry or an ad-platform pull.
-        </p>
+
+        {/* Manual entry — spend + clicks from the ad dashboards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Ad spend ($)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={spend}
+              onChange={(e) => setSpend(e.target.value)}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Clicks</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={clicks}
+              onChange={(e) => setClicks(e.target.value)}
+              placeholder="0"
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            disabled={!perfDirty || savingPerf}
+            onClick={savePerf}
+            className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
+          >
+            {savingPerf ? "Saving…" : "Save metrics"}
+          </button>
+          <span className="text-xs text-gray-400">
+            Enter spend &amp; clicks from the Google/Meta dashboards. Cost per family is
+            computed against delivered families.
+          </span>
+        </div>
       </section>
 
-      {/* Leads */}
+      {/* Leads — the families behind the delivered count (no PHI) */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-1">Leads</h2>
-        <p className="text-xs text-gray-400">
-          The families this campaign drove, attributed by utm_campaign. Coming next.
-        </p>
+        <h2 className="text-sm font-semibold text-gray-900 mb-3">
+          Leads{leads.length > 0 ? ` (${leads.length})` : ""}
+        </h2>
+        {leads.length === 0 ? (
+          <p className="text-xs text-gray-400">
+            No families delivered yet. Once the campaign is live and a family completes an
+            intake from one of its ads, they&apos;ll show here.
+          </p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {leads.map((l, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <span className="text-gray-700">
+                  {l.careNeed ?? "Care inquiry"}
+                  {l.state ? ` · ${l.state}` : ""}
+                </span>
+                <span className="text-gray-400 text-xs shrink-0">
+                  {fmtDateOnly(l.created_at.slice(0, 10))}
+                  {l.entrySource ? ` · ${l.entrySource}` : ""}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Danger zone */}
@@ -351,5 +478,16 @@ function Detail({
         </p>
       </section>
     </>
+  );
+}
+
+function Stat({ value, label, accent }: { value: string; label: string; accent?: boolean }) {
+  return (
+    <div className="rounded-lg bg-gray-50 px-3 py-2.5">
+      <div className={`text-xl font-semibold ${accent ? "text-primary-700" : "text-gray-900"}`}>
+        {value}
+      </div>
+      <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+    </div>
   );
 }

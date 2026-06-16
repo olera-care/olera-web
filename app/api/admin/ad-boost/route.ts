@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, listLeadsByCampaign } from "@/lib/ad-boost/delivered.server";
 
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
@@ -21,7 +21,7 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, campaign_tag, admin_note, created_at, updated_at, deleted_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -49,8 +49,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const tag = row.campaign_tag || row.id;
-    const delivered = await countDeliveredByCampaign(db, [tag]);
-    return NextResponse.json({ request: { ...row, delivered: delivered[tag] ?? 0 } });
+    const [delivered, leads] = await Promise.all([
+      countDeliveredByCampaign(db, [tag]),
+      listLeadsByCampaign(db, tag),
+    ]);
+    return NextResponse.json({
+      request: { ...row, delivered: delivered[tag] ?? 0 },
+      leads,
+    });
   }
 
   // Default view = the live queue (not archived). `?archived=1` returns only the
@@ -116,6 +122,8 @@ export async function POST(request: NextRequest) {
     admin_note?: unknown;
     requested_setup_week?: unknown;
     archived?: unknown;
+    ad_spend_cents?: unknown;
+    ad_clicks?: unknown;
   };
   try {
     body = await request.json();
@@ -173,6 +181,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "requested_setup_week is not a valid date" }, { status: 400 });
     }
     update.requested_setup_week = body.requested_setup_week.slice(0, 10);
+  }
+
+  // Manual performance entry (spend in cents, click count). Either may be null
+  // to clear it; otherwise must be a non-negative integer.
+  for (const field of ["ad_spend_cents", "ad_clicks"] as const) {
+    if (body[field] !== undefined) {
+      const v = body[field];
+      if (v === null) {
+        update[field] = null;
+      } else if (typeof v !== "number" || !Number.isInteger(v) || v < 0) {
+        return NextResponse.json(
+          { error: `${field} must be a non-negative integer or null` },
+          { status: 400 },
+        );
+      } else {
+        update[field] = v;
+      }
+    }
   }
 
   // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so

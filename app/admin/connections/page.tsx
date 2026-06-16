@@ -612,7 +612,8 @@ export default function ConnectionsTrackerPage() {
 
   // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
-    setActiveFilter("awaiting");
+    // Family perspective starts with "new", provider with "awaiting"
+    setActiveFilter(perspective === "family" ? "new" : "awaiting");
     setPage(0);
   }, [perspective]);
 

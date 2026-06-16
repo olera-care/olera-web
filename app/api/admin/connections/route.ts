@@ -231,7 +231,7 @@ export async function GET(request: NextRequest) {
           to_profile_id,
           from_profile:business_profiles!connections_from_profile_id_fkey(
             id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
-            website, address, city, state, description, care_types, metadata, account_id
+            website, address, city, state, description, care_types, metadata, account_id, verification_state
           ),
           to_profile:business_profiles!connections_to_profile_id_fkey(
             id, display_name, type, email, phone, image_url, city, description, care_types, metadata
@@ -312,6 +312,7 @@ export async function GET(request: NextRequest) {
             city: provider?.city ?? null,
             state: provider?.state ?? null,
             isAccountClaimed: !!(provider as Record<string, unknown>)?.account_id,
+            verificationState: (provider as Record<string, unknown>)?.verification_state as string | null ?? null,
           },
           messagePreview,
           replyMessage,

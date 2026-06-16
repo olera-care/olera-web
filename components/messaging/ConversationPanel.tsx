@@ -743,11 +743,18 @@ export default function ConversationPanel({
     thread.slice(lastQuickReplyResponseIndex + 1).some(msg => msg.from_profile_id === providerProfileId);
 
   // Family name for nudge banner (shown above input when family responds to quick reply)
-  const familyFirstName = (() => {
+  const familyDisplayName = (() => {
     const name = connection.type === "inquiry"
       ? connection.fromProfile?.display_name
       : connection.toProfile?.display_name;
-    return name?.split(" ")[0] || "Care seeker";
+    if (!name) return "Care seeker";
+    // If it's a placeholder name like "Care Seeker", use the full placeholder
+    const lowerName = name.toLowerCase();
+    if (lowerName === "care seeker" || lowerName.startsWith("care ")) {
+      return "Care seeker";
+    }
+    // Otherwise use first name
+    return name.split(" ")[0];
   })();
   const showQuickReplyNudge = isProviderView && lastQuickReplyResponseIndex >= 0 && !hasProviderFollowedUp;
 
@@ -1429,14 +1436,9 @@ export default function ConversationPanel({
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
                   {/* Quick reply response nudge - shown above input when family responds */}
                   {showQuickReplyNudge && (
-                    <div className="px-4 py-2.5 sm:py-3 bg-primary-50 border-b border-primary-100">
-                      <p className="text-[14px] text-primary-900">
-                        {/* Mobile: action-focused. Desktop: context + action */}
-                        <span className="sm:hidden font-medium">Say hi to continue</span>
-                        <span className="hidden sm:inline">
-                          <span className="font-medium">{familyFirstName} replied</span>
-                          <span className="text-primary-600"> — say hi to continue</span>
-                        </span>
+                    <div className="px-4 py-2.5 bg-gray-800">
+                      <p className="text-[14px] text-gray-300">
+                        {familyDisplayName} replied — say hi to continue
                       </p>
                     </div>
                   )}

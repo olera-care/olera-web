@@ -535,6 +535,11 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
+  // Export CSV state
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Action dialog state - supports Mark Viewed, Mark Connected, Mark Not Interested, Archive Provider, Unarchive, Hide
   type ActionType = "mark_viewed" | "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead" | "hide_connection";
   const [pendingAction, setPendingAction] = useState<{
@@ -639,6 +644,51 @@ export default function ConnectionsTrackerPage() {
     if (to) params.set("date_to", to);
     return params;
   }, [range]);
+
+  // Toast helper
+  function showToast(message: string, type: "success" | "error" = "success") {
+    if (toastRef.current) clearTimeout(toastRef.current);
+    setToast({ message, type });
+    toastRef.current = setTimeout(() => setToast(null), 3000);
+  }
+
+  // Export CSV handler
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const params = buildDateParams();
+      params.set("direction", direction);
+      if (direction === "inbound") {
+        params.set("perspective", perspective);
+      }
+      params.set("filter", activeFilter);
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+
+      const res = await fetch(`/api/admin/connections/export?${params}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || "Export failed", "error");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || "olera-connections.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      const total = direction === "outbound" ? outboundList?.total ?? 0 : list?.total ?? 0;
+      showToast(`Exported ${total.toLocaleString()} connections`);
+    } catch {
+      showToast("Export failed. Please try again.", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const fetchConnections = useCallback(() => {
     setLoading(true);
@@ -959,7 +1009,7 @@ export default function ConnectionsTrackerPage() {
         range={range}
         onRangeChange={setRange}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
               <button
                 type="button"
@@ -984,6 +1034,14 @@ export default function ConnectionsTrackerPage() {
                 Outbound
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting || loading}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exporting ? "Exporting..." : "Export CSV"}
+            </button>
           </div>
         }
       />
@@ -1785,6 +1843,19 @@ export default function ConnectionsTrackerPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
+            toast.type === "success"
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white"
+          }`}
+        >
+          {toast.message}
         </div>
       )}
     </div>

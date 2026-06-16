@@ -256,13 +256,16 @@ function Detail({
             {fmtTimestamp(request.created_at)}
           </p>
         </div>
+        {/* Into the admin provider record (public-page preview + comms history +
+            their Olera history), not the bare public page. The directory route
+            accepts the business_profiles UUID we store as provider_id. */}
         <Link
-          href={`/provider/${request.provider_slug ?? ""}`}
+          href={`/admin/directory/${request.provider_id}`}
           target="_blank"
           rel="noreferrer"
           className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
-          View public page ↗
+          View provider record ↗
         </Link>
       </div>
 

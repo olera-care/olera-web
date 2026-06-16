@@ -734,12 +734,29 @@ export default function ConversationPanel({
   const isQuickReplyDismissedPersisted = !!quickReplyRequest?.dismissed_at;
   const hasQuickReplyOptions = (quickReplyRequest?.options?.length ?? 0) > 0;
 
-  // For provider view: check if provider has followed up after family's quick reply response
+  // For provider view: check if provider has followed up after family's MOST RECENT quick reply response
   const familyProfileId = connection.type === "inquiry" ? connection.from_profile_id : connection.to_profile_id;
   const providerProfileId = connection.type === "inquiry" ? connection.to_profile_id : connection.from_profile_id;
-  const lastQuickReplyResponseIndex = thread.findIndex(msg => msg.type === "quick_reply_response");
+  // Find the LAST quick reply response (not the first) to handle multiple exchanges correctly
+  const lastQuickReplyResponseIndex = thread.findLastIndex(msg => msg.type === "quick_reply_response");
   const hasProviderFollowedUp = lastQuickReplyResponseIndex >= 0 &&
     thread.slice(lastQuickReplyResponseIndex + 1).some(msg => msg.from_profile_id === providerProfileId);
+
+  // Family name for nudge banner (shown above input when family responds to quick reply)
+  const familyDisplayName = (() => {
+    const name = connection.type === "inquiry"
+      ? connection.fromProfile?.display_name
+      : connection.toProfile?.display_name;
+    if (!name) return "Care seeker";
+    // If it's a placeholder name like "Care Seeker", use the full placeholder
+    const lowerName = name.toLowerCase();
+    if (lowerName === "care seeker" || lowerName.startsWith("care ")) {
+      return "Care seeker";
+    }
+    // Otherwise use first name
+    return name.split(" ")[0];
+  })();
+  const showQuickReplyNudge = isProviderView && lastQuickReplyResponseIndex >= 0 && !hasProviderFollowedUp;
 
   // Names in conversation header are not clickable - use "View full profile" in details panel instead
 
@@ -1210,15 +1227,8 @@ export default function ConversationPanel({
               );
             }
 
-            // Quick reply response messages (show nudge banner for providers)
+            // Quick reply response messages
             if (msg.type === "quick_reply_response") {
-              const familyFirstName = (() => {
-                const name = connection.type === "inquiry"
-                  ? connection.fromProfile?.display_name
-                  : connection.toProfile?.display_name;
-                return name?.split(" ")[0] || "Care seeker";
-              })();
-
               return (
                 <div key={i} className={isGrouped ? "mt-0.5" : ""} style={isGrouped ? { marginTop: '2px' } : undefined}>
                   {showSeparator && (
@@ -1268,17 +1278,6 @@ export default function ConversationPanel({
                         </div>
                         {isLastInGroup && (
                           <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
-                        )}
-                        {/* Nudge banner for provider after family responds */}
-                        {isProviderView && !hasProviderFollowedUp && (
-                          <div className="mt-3 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100">
-                            <p className="text-[15px] font-medium text-blue-900">
-                              {familyFirstName} answered — just say hi to get started.
-                            </p>
-                            <p className="text-sm text-blue-600 mt-0.5">
-                              Always free · families reply fastest within the first hour.
-                            </p>
-                          </div>
                         )}
                       </div>
                     </div>
@@ -1428,6 +1427,14 @@ export default function ConversationPanel({
               {/* Input area */}
               <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
+                  {/* Quick reply response nudge - shown above input when family responds */}
+                  {showQuickReplyNudge && (
+                    <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                      <p className="text-[14px] text-gray-600">
+                        {familyDisplayName} replied — say hi to continue
+                      </p>
+                    </div>
+                  )}
                   <textarea
                     ref={messageInputRef}
                     value={messageText}

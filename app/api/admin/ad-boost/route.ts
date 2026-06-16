@@ -21,20 +21,28 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, campaign_tag, admin_note, created_at, updated_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, campaign_tag, admin_note, created_at, updated_at, deleted_at";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   const adminUser = await getAdminUser(user.id);
   if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
+  // Default view = the live queue (not archived). `?archived=1` returns only the
+  // soft-deleted rows so the admin can review / restore / permanently delete them.
+  const archived = new URL(request.url).searchParams.get("archived") === "1";
+
   const db = getServiceClient();
-  const { data, error } = await db
+  let query = db
     .from("ad_campaign_requests")
     .select(ROW_SELECT)
     .order("created_at", { ascending: false })
     .limit(500);
+  query = archived
+    ? query.not("deleted_at", "is", null)
+    : query.is("deleted_at", null);
+  const { data, error } = await query;
 
   if (error) {
     console.error("[admin/ad-boost] list failed:", error);
@@ -73,6 +81,7 @@ export async function POST(request: NextRequest) {
     channel?: unknown;
     admin_note?: unknown;
     requested_setup_week?: unknown;
+    archived?: unknown;
   };
   try {
     body = await request.json();
@@ -130,6 +139,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "requested_setup_week is not a valid date" }, { status: 400 });
     }
     update.requested_setup_week = body.requested_setup_week.slice(0, 10);
+  }
+
+  // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so
+  // the request drops out of the default queue but the record is kept; `false`
+  // clears it (restore). Hard delete is the separate DELETE handler.
+  if (body.archived !== undefined) {
+    if (typeof body.archived !== "boolean") {
+      return NextResponse.json({ error: "archived must be a boolean" }, { status: 400 });
+    }
+    update.deleted_at = body.archived ? new Date().toISOString() : null;
   }
 
   const db = getServiceClient();

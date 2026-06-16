@@ -15,6 +15,8 @@ interface CampaignRequest {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
+  /** Set when the request has been soft-deleted (archived); null when live. */
+  deleted_at: string | null;
   /** Families delivered so far (benefits_completed events tagged to this campaign). */
   delivered?: number;
 }
@@ -33,11 +35,14 @@ function utmUrl(slug: string | null, tag: string | null, id: string): string {
 export default function AdminAdBoostPage() {
   const [requests, setRequests] = useState<CampaignRequest[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"active" | "archived">("active");
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetch("/api/admin/ad-boost");
+      const res = await fetch(
+        view === "archived" ? "/api/admin/ad-boost?archived=1" : "/api/admin/ad-boost",
+      );
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error || "Failed to load");
@@ -47,9 +52,10 @@ export default function AdminAdBoostPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
-  }, []);
+  }, [view]);
 
   useEffect(() => {
+    setRequests(null);
     load();
   }, [load]);
 
@@ -63,10 +69,27 @@ export default function AdminAdBoostPage() {
         </p>
       </header>
 
+      <div className="mb-5 inline-flex rounded-lg border border-gray-200 p-0.5 text-sm">
+        {(["active", "archived"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            className={`rounded-md px-3 py-1.5 font-medium capitalize transition-colors ${
+              view === v ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {!requests && !error && <p className="text-gray-400 text-sm">Loading…</p>}
       {requests && requests.length === 0 && (
-        <p className="text-gray-400 text-sm">No campaign requests yet.</p>
+        <p className="text-gray-400 text-sm">
+          {view === "archived" ? "No archived requests." : "No campaign requests yet."}
+        </p>
       )}
 
       <div className="space-y-3">
@@ -130,9 +153,37 @@ function RequestRow({
     }
   };
 
+  const isArchived = !!request.deleted_at;
+  const name = request.display_name || request.provider_slug || request.provider_id;
+
+  // Soft delete / restore — flips deleted_at via POST. Reversible.
+  const setArchived = async (archived: boolean) => {
+    setDeleting(true);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/admin/ad-boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: request.id, archived }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || (archived ? "Archive failed" : "Restore failed"));
+      }
+      onSaved();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Action failed");
+      setDeleting(false);
+    }
+  };
+
+  // Hard delete — truly removes the row. For scrubbing test runs.
   const remove = async () => {
-    const name = request.display_name || request.provider_slug || request.provider_id;
-    if (!window.confirm(`Delete the Ad Boost request for ${name}? This can't be undone.`)) {
+    if (
+      !window.confirm(
+        `Permanently delete the Ad Boost request for ${name}? This removes the record for good and can't be undone.`,
+      )
+    ) {
       return;
     }
     setDeleting(true);
@@ -164,7 +215,7 @@ function RequestRow({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 p-4">
+    <div className={`rounded-xl border border-gray-200 p-4 ${isArchived ? "bg-gray-50 opacity-80" : ""}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <a
@@ -173,7 +224,7 @@ function RequestRow({
             target="_blank"
             rel="noreferrer"
           >
-            {request.display_name || request.provider_slug || request.provider_id}
+            {name}
           </a>
           <p className="text-xs text-gray-400 mt-0.5">
             {request.completeness_at_submit ?? "—"}% complete at submit · setup week{" "}
@@ -182,6 +233,11 @@ function RequestRow({
           </p>
         </div>
         <div className="flex items-center gap-2.5">
+          {isArchived && (
+            <span className="rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600">
+              archived
+            </span>
+          )}
           {(request.status === "live" ||
             request.status === "ended" ||
             (request.delivered ?? 0) > 0) && (
@@ -253,22 +309,45 @@ function RequestRow({
       </div>
 
       <div className="mt-3 flex items-center gap-3">
-        <button
-          type="button"
-          disabled={!dirty || saving || deleting}
-          onClick={save}
-          className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
+        {!isArchived && (
+          <button
+            type="button"
+            disabled={!dirty || saving || deleting}
+            onClick={save}
+            className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        )}
         {saveError && <span className="text-sm text-red-600">{saveError}</span>}
+
+        {isArchived ? (
+          <button
+            type="button"
+            disabled={saving || deleting}
+            onClick={() => setArchived(false)}
+            className="ml-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+          >
+            {deleting ? "Working…" : "Restore"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={saving || deleting}
+            onClick={() => setArchived(true)}
+            className="ml-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+          >
+            {deleting ? "Working…" : "Archive"}
+          </button>
+        )}
         <button
           type="button"
           disabled={saving || deleting}
           onClick={remove}
-          className="ml-auto rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
+          className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
+          title="Permanently delete this record"
         >
-          {deleting ? "Deleting…" : "Delete"}
+          {deleting ? "…" : "Delete"}
         </button>
       </div>
     </div>

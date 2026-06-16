@@ -595,6 +595,7 @@ export async function GET(request: NextRequest) {
       // Determine workflow state
       // Logic: Check if stuck first, then determine waiting state
       const providerIsActive = provider?.is_active !== false;
+      const isProviderInactive = !providerIsActive;
       const providerNudgedRecently = providerNudgedAt
         ? now - new Date(providerNudgedAt).getTime() < SEVEN_DAYS_MS
         : false;
@@ -606,8 +607,10 @@ export async function GET(request: NextRequest) {
       let workflowState: WorkflowState | null = null;
       let waitingOn: "provider" | "family" | null = null;
 
-      if (!providerIsActive) {
-        workflowState = null; // Inactive providers excluded
+      if (isProviderInactive) {
+        // Inactive providers get a default state so they're not filtered out
+        // They'll be shown in the Archived tab with "Provider Inactive" indicator
+        workflowState = "awaiting_provider";
       } else if (familyRepliedAfterProvider) {
         // Both parties engaged - truly connected
         workflowState = "connected";
@@ -701,6 +704,8 @@ export async function GET(request: NextRequest) {
         followupStoppedReason: (meta.followup_stopped_reason as string) ?? null,
         // Admin-archived provider (different from individual lead declined)
         isProviderArchived,
+        // Provider is inactive (deleted account, removed, etc.) - shows in Archived tab
+        isProviderInactive,
         // Archive info for display in UI
         providerArchiveInfo: isProviderArchived ? {
           reason: providerMeta.admin_archived_reason as string | null,
@@ -1085,6 +1090,7 @@ export async function GET(request: NextRequest) {
 
         // Archive classification:
         // - "Archived" tab: admin-archived provider OR connection archived without provider decline reason
+        //   OR provider inactive (deleted account, removed, etc.)
         // - "Declined" tab: provider explicitly declined (has decline reason like "not_a_fit")
         const isAdminArchived = c.isProviderArchived;
 
@@ -1093,8 +1099,8 @@ export async function GET(request: NextRequest) {
         const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
         const isProviderDeclined = c.archived && !!c.archiveReason;
 
-        // Archived tab: provider-level OR connection-level admin archive
-        const belongsToArchivedTab = isAdminArchived || isConnectionArchivedByAdmin;
+        // Archived tab: provider-level OR connection-level admin archive OR provider inactive
+        const belongsToArchivedTab = isAdminArchived || isConnectionArchivedByAdmin || c.isProviderInactive;
 
         // Count archived connections (both provider-level and connection-level admin archives)
         if (belongsToArchivedTab) {
@@ -1111,35 +1117,41 @@ export async function GET(request: NextRequest) {
         const isAdminNotInterested = c.adminOverride?.status === "not_interested";
         const hasProviderEngagement = engResult.level === "viewed" || engResult.level === "connected";
         const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
+        const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-        // Count in engagement tab if: no email issue OR engaged despite email issue
-        if (!isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged)) {
+        // Count in engagement tab if: not archived/inactive AND one of:
+        // - No email issue, OR
+        // - Engaged despite email issue, OR
+        // - Provider is claimed (can't go to needs_email since we can't change their email)
+        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged || isProviderClaimed)) {
           engagementCounts[engResult.level]++;
         }
 
-        // Only count in needs_email if: has email issue AND NOT engaged (still awaiting/needs_follow_up)
+        // Only count in needs_email if: has email issue AND NOT engaged AND NOT claimed
+        // Claimed providers manage their own email - we can't change it
         // Archived, declined, and admin_not_interested leads shouldn't appear in "Needs Email"
-        if (emailIssueType && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+        if (emailIssueType && !hasProviderEngagement && !isProviderClaimed && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
           engagementCounts.needs_email++;
         }
 
         // Count declined (provider explicitly declined with reason)
-        // Exclude admin-archived - they go to "Archived" tab exclusively
-        if (isProviderDeclined && !isAdminArchived) {
+        // Exclude admin-archived and inactive - they go to "Archived" tab exclusively
+        if (isProviderDeclined && !isAdminArchived && !c.isProviderInactive) {
           engagementCounts.declined++;
         }
 
         // Count admin "not interested" (soft rejection by admin)
         // These are NOT archived, just have admin_override with status "not_interested"
-        // Exclude provider-level archived - those stay in "Archived" tab
-        if (c.adminOverride?.status === "not_interested" && !c.isProviderArchived) {
+        // Exclude provider-level archived and inactive - those stay in "Archived" tab
+        if (c.adminOverride?.status === "not_interested" && !c.isProviderArchived && !c.isProviderInactive) {
           engagementCounts.admin_not_interested++;
         }
 
-        // Count family engagement levels
-        // "All" includes everything (all tabs combined)
-        familyEngagementCounts.all++;
-        familyEngagementCounts[familyEngResult.level]++;
+        // Count family engagement levels (exclude archived/inactive - they don't appear in family tabs)
+        if (!belongsToArchivedTab && !isProviderDeclined) {
+          familyEngagementCounts.all++;
+          familyEngagementCounts[familyEngResult.level]++;
+        }
 
         // Funnel stats (based on provider engagement)
         // Viewed = opened lead drawer
@@ -1193,18 +1205,19 @@ export async function GET(request: NextRequest) {
     if (responseFilter !== "all") {
       // Special filter: archived
       // Shows: provider-level admin-archived OR connection-level admin-archived (from leads page)
+      // OR provider inactive (deleted account, removed, etc.)
       // Connection archived WITHOUT reason = admin archived on leads page
       // Connection archived WITH reason = provider declined (goes to Declined tab instead)
       if (responseFilter === "archived" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
-          return c.isProviderArchived || isConnectionArchivedByAdmin;
+          return c.isProviderArchived || isConnectionArchivedByAdmin || c.isProviderInactive;
         });
       }
       // Special filter: needs_email (provider perspective only)
       // Combines: no email, delivery failed, or invalid email
-      // BUT: If provider has ENGAGED (viewed/connected), they go to engagement tab instead
-      // "Needs Email" only shows connections where provider hasn't engaged yet
+      // BUT: Exclude if provider has ENGAGED (viewed/connected) - they go to engagement tab
+      // AND: Exclude CLAIMED providers - we can't change their email anyway (it's locked)
       else if (responseFilter === "needs_email" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
@@ -1212,26 +1225,35 @@ export async function GET(request: NextRequest) {
           const isAdminNotInterested = c.adminOverride?.status === "not_interested";
           const engLevel = connectionEngagementLevels.get(c.id);
           const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
+          const isProviderClaimed = c.provider.isAccountClaimed === true;
           return (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null &&
             !hasProviderEngagement &&  // Only if NOT engaged
-            !c.isProviderArchived && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
+            !isProviderClaimed &&  // Claimed providers manage their own email
+            !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }
       // Special filter: declined (provider explicitly declined with reason)
-      // Exclude admin-archived providers (they go to "Archived" tab)
+      // Exclude admin-archived providers and inactive providers (they go to "Archived" tab)
       else if (responseFilter === "declined" && perspective === "provider") {
-        list = list.filter((c) => c.archived && c.archiveReason && !c.isProviderArchived);
+        list = list.filter((c) => c.archived && c.archiveReason && !c.isProviderArchived && !c.isProviderInactive);
       }
       // Special filter: admin_not_interested (admin marked as not interested - soft rejection)
       // These are NOT archived, provider can still see/engage with the lead
-      // Exclude provider-level archived - those stay in "Archived" tab
+      // Exclude provider-level archived and inactive providers - those stay in "Archived" tab
       else if (responseFilter === "admin_not_interested" && perspective === "provider") {
-        list = list.filter((c) => c.adminOverride?.status === "not_interested" && !c.isProviderArchived);
+        list = list.filter((c) => c.adminOverride?.status === "not_interested" && !c.isProviderArchived && !c.isProviderInactive);
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
+        // Exclude inactive/archived providers - these are dead connections
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
         if (isFamilyEngagementFilter) {
-          list = list.filter((c) => connectionFamilyEngagementLevels.get(c.id) === responseFilter);
+          list = list.filter((c) => {
+            const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+            return connectionFamilyEngagementLevels.get(c.id) === responseFilter &&
+              !c.isProviderArchived &&
+              !c.isProviderInactive &&
+              !isConnectionArchivedByAdmin;
+          });
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);
@@ -1253,14 +1275,19 @@ export async function GET(request: NextRequest) {
             const engLevel = connectionEngagementLevels.get(c.id);
             const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
             const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+            const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-            // Allow if: matches filter AND not archived/declined AND (no email issue OR engaged)
+            // Allow if: matches filter AND not archived/declined/inactive AND one of:
+            // - No email issue, OR
+            // - Engaged (viewed/connected), OR
+            // - Provider is claimed (can't go to needs_email since we can't change their email)
             return engLevel === responseFilter &&
               !c.isProviderArchived &&
+              !c.isProviderInactive &&
               !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
               !isAdminNotInterested &&
-              (!emailIssue || hasProviderEngagement);
+              (!emailIssue || hasProviderEngagement || isProviderClaimed);
           });
         } else {
           // Filter by workflow state (legacy)

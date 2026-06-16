@@ -82,6 +82,8 @@ export interface ConnectionRowData {
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
   /** Admin archived this provider - no emails sent to them */
   isProviderArchived?: boolean;
+  /** Provider is inactive (deleted account, removed, etc.) */
+  isProviderInactive?: boolean;
   /** Archive info when provider is admin-archived */
   providerArchiveInfo?: {
     reason: string | null;
@@ -286,12 +288,9 @@ function EngagementBadges({
   const activeBadges = badges.filter(b => b.active);
   if (activeBadges.length === 0) return null;
 
+  // Hide engagement badges entirely in compact mode
   if (compact) {
-    return (
-      <span className="flex items-center gap-0.5 text-sm" title={activeBadges.map(b => b.label).join(", ")}>
-        {activeBadges.map(b => <span key={b.label}>{b.icon}</span>)}
-      </span>
-    );
+    return null;
   }
 
   return (
@@ -306,7 +305,7 @@ function EngagementBadges({
           }`}
           title={b.highlight && adminOverride ? adminOverride.reason : undefined}
         >
-          {b.icon} {b.label}
+          {b.label}
         </span>
       ))}
     </div>
@@ -1017,16 +1016,20 @@ export default function ConnectionRow({
   const isDeclined = c.archived && c.archiveReason;
   // Admin archived (either provider-level OR connection-level without reason)
   const isAdminArchived = c.isProviderArchived || (c.archived && !c.archiveReason);
+  // Provider is inactive (deleted account, removed, etc.)
+  const isProviderInactive = c.isProviderInactive === true;
 
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
       <div className={`flex w-full items-center gap-3 px-4 py-4 transition-colors ${
-        isAdminArchived
-          ? "bg-amber-50/40 hover:bg-amber-50/60 opacity-70"
-          : isDeclined
-            ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
-            : "hover:bg-stone-50/60"
+        isProviderInactive
+          ? "bg-red-50/40 hover:bg-red-50/60 opacity-70"
+          : isAdminArchived
+            ? "bg-amber-50/40 hover:bg-amber-50/60 opacity-70"
+            : isDeclined
+              ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
+              : "hover:bg-stone-50/60"
       }`}>
         <button
           onClick={toggle}
@@ -1037,8 +1040,13 @@ export default function ConnectionRow({
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
-            <span className={`font-medium truncate ${isAdminArchived ? "text-gray-500" : "text-gray-900"}`}>{provider}</span>
-            {isAdminArchived && (
+            <span className={`font-medium truncate ${isAdminArchived || isProviderInactive ? "text-gray-500" : "text-gray-900"}`}>{provider}</span>
+            {isProviderInactive && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                Provider Inactive
+              </span>
+            )}
+            {isAdminArchived && !isProviderInactive && (
               <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
                 Archived
               </span>

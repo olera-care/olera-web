@@ -37,3 +37,57 @@ export async function countDeliveredByCampaign(
   }
   return result;
 }
+
+// UI care-need bucket → human label (mirror of CARE_NEED_LABELS in
+// app/api/benefits/save-results). Kept tiny + local to avoid coupling.
+const CARE_NEED_LABELS: Record<string, string> = {
+  stayingAtHome: "in-home care",
+  payingForCare: "paying for care",
+  memoryHealth: "memory & medical care",
+  companionship: "caregiver & social support",
+};
+
+/** One delivered family behind an Ad Boost campaign — the rows behind the count.
+ *  Deliberately NO name / PHI: just date + care need + state + where it came in. */
+export interface CampaignLead {
+  created_at: string;
+  careNeed: string | null;
+  state: string | null;
+  entrySource: string | null;
+}
+
+/**
+ * List the families a campaign delivered (the `benefits_completed` conversions
+ * tagged with its utm_campaign), newest first. These are the receipts behind
+ * `countDeliveredByCampaign`. No PHI — care need + state + entry source only.
+ */
+export async function listLeadsByCampaign(
+  db: ReturnType<typeof getServiceClient>,
+  tag: string,
+): Promise<CampaignLead[]> {
+  if (!tag) return [];
+  const { data, error } = await db
+    .from("seeker_activity")
+    .select("created_at, metadata")
+    .eq("event_type", "benefits_completed")
+    .filter("metadata->>utm_source", "eq", "olera_managed")
+    .filter("metadata->>utm_campaign", "eq", tag)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (error || !data) return [];
+
+  return (
+    data as Array<{
+      created_at: string;
+      metadata: { care_need?: string; state?: string; entry_source?: string } | null;
+    }>
+  ).map((r) => ({
+    created_at: r.created_at,
+    careNeed: r.metadata?.care_need
+      ? CARE_NEED_LABELS[r.metadata.care_need] ?? r.metadata.care_need
+      : null,
+    state: r.metadata?.state ?? null,
+    entrySource: r.metadata?.entry_source ?? null,
+  }));
+}

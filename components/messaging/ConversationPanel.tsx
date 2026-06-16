@@ -734,10 +734,11 @@ export default function ConversationPanel({
   const isQuickReplyDismissedPersisted = !!quickReplyRequest?.dismissed_at;
   const hasQuickReplyOptions = (quickReplyRequest?.options?.length ?? 0) > 0;
 
-  // For provider view: check if provider has followed up after family's quick reply response
+  // For provider view: check if provider has followed up after family's MOST RECENT quick reply response
   const familyProfileId = connection.type === "inquiry" ? connection.from_profile_id : connection.to_profile_id;
   const providerProfileId = connection.type === "inquiry" ? connection.to_profile_id : connection.from_profile_id;
-  const lastQuickReplyResponseIndex = thread.findIndex(msg => msg.type === "quick_reply_response");
+  // Find the LAST quick reply response (not the first) to handle multiple exchanges correctly
+  const lastQuickReplyResponseIndex = thread.findLastIndex(msg => msg.type === "quick_reply_response");
   const hasProviderFollowedUp = lastQuickReplyResponseIndex >= 0 &&
     thread.slice(lastQuickReplyResponseIndex + 1).some(msg => msg.from_profile_id === providerProfileId);
 

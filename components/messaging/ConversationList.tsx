@@ -100,17 +100,20 @@ function getCareType(connection: ConnectionWithProfile): string | null {
  * Transform system message text for the viewer's perspective.
  * - Provider view: "You declined this inquiry"
  * - Family view: "Unable to help at this time" (gentler tone)
+ *
+ * Uses specific system message patterns to avoid transforming user messages.
  */
 function transformPreviewText(text: string, variant: "family" | "provider"): string {
-  // Check if this is a provider declined/passed message
-  const isProviderDeclined = text.includes("declined this inquiry") || text.includes("passed on this inquiry");
+  // Check for system message patterns (these exact phrases only appear in system messages)
+  // Format: "This provider has declined this inquiry. Reason: ..." or "This provider has passed on this inquiry..."
+  const isSystemDeclineMessage =
+    text.startsWith("This provider has declined") ||
+    text.startsWith("This provider has passed on");
 
-  if (isProviderDeclined) {
+  if (isSystemDeclineMessage) {
     if (variant === "provider") {
-      // Provider viewing their own declined message → use first person
       return "You declined this inquiry";
     } else {
-      // Family viewing → gentler tone, consistent with message thread
       return "Unable to help at this time";
     }
   }

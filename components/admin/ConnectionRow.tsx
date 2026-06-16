@@ -17,7 +17,7 @@ interface ProfileCompleteness {
 }
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-export type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+export type EngagementLevel = "awaiting" | "viewed" | "connected" | "needs_follow_up";
 export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 export type Perspective = "provider" | "family";
 
@@ -84,6 +84,10 @@ export interface ConnectionRowData {
     archivedBy: string | null;
     archivedAt: string | null;
   } | null;
+  /** Email sequence progress (0-3, where 3 = sequence complete) */
+  followupStage?: number | null;
+  /** Why the sequence stopped */
+  followupStoppedReason?: string | null;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -607,10 +611,19 @@ export default function ConnectionRow({
   const careType = c.family.careType;
   const timeline = c.family.timeline;
 
+  // Helper: Get sequence progress label
+  const getSequenceProgress = (): string | null => {
+    const stage = c.followupStage;
+    if (stage == null) return null;
+    // Stage 0-3 maps to Email 1/4 through 4/4
+    return `Email ${stage + 1}/4`;
+  };
+
   // Get engagement status for collapsed row display
   const getEngagementStatus = (): { status: string; color: string; nudgeInfo: string | null } => {
     const providerNudges = c.providerNudgeCount || 0;
     const familyNudges = c.familyNudgeCount || 0;
+    const sequenceProgress = getSequenceProgress();
 
     if (perspective === "family") {
       // Family perspective - show family engagement level
@@ -628,8 +641,8 @@ export default function ConnectionRow({
           return { status: "New", color: "text-blue-600", nudgeInfo: null };
       }
     } else {
-      // Provider perspective - show provider engagement level (existing logic)
-      const engLevel = c.engagementLevel || "new";
+      // Provider perspective - show provider engagement level
+      const engLevel = c.engagementLevel || "awaiting";
 
       // For non-connected states, show who we're waiting on
       const waitingOnText = c.waitingOn === "family" ? " (awaiting family)" : "";
@@ -641,10 +654,12 @@ export default function ConnectionRow({
         case "viewed":
           return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
         case "needs_follow_up":
-          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: c.waitingOn === "family" ? `Family nudged ${familyNudges}x` : `Provider nudged ${providerNudges}x` };
-        case "new":
+          // Sequence complete, show that info
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: "Sequence complete" };
+        case "awaiting":
         default:
-          return { status: "New", color: "text-blue-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
+          // Show sequence progress for awaiting (automation working)
+          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : null) };
       }
     }
   };

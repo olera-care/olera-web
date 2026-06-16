@@ -139,7 +139,7 @@ interface WorkflowCounts {
 // Engagement-based tab counts (new system)
 interface EngagementCounts {
   all: number;
-  new: number;
+  awaiting: number; // Renamed from "new" - provider hasn't engaged, automation still working
   viewed: number;
   connected: number;
   needs_follow_up: number;
@@ -690,6 +690,10 @@ export async function GET(request: NextRequest) {
         // When Day 0 email was sent (for staleness calculation)
         // Providers who got email added later start fresh from that date
         sequenceStartAt: (meta.email_sent_at as string) || null,
+        // Email sequence progress (0-3, where 3 = sequence complete)
+        followupStage: (meta.followup_stage as number) ?? null,
+        // Why sequence stopped (connected, responded, needs_call, etc.)
+        followupStoppedReason: (meta.followup_stopped_reason as string) ?? null,
         // Admin-archived provider (different from individual lead declined)
         isProviderArchived,
         // Archive info for display in UI
@@ -927,7 +931,7 @@ export async function GET(request: NextRequest) {
     // Engagement-based counts (new system)
     const engagementCounts: EngagementCounts = {
       all: 0,
-      new: 0,
+      awaiting: 0,
       viewed: 0,
       connected: 0,
       needs_follow_up: 0,
@@ -995,6 +999,9 @@ export async function GET(request: NextRequest) {
         needsCall: c.needsCall,
         // When Day 0 email was sent - providers who got email added later start fresh
         sequenceStartAt: c.sequenceStartAt,
+        // Email sequence progress for sequence-based escalation
+        followupStage: c.followupStage,
+        followupStoppedReason: c.followupStoppedReason,
       };
 
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
@@ -1137,7 +1144,7 @@ export async function GET(request: NextRequest) {
     // "All" tab: no additional filtering - shows everything (all tabs combined)
 
     // Check if filter is an engagement level (provider or family)
-    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "needs_follow_up"];
+    const providerEngagementLevels: EngagementLevel[] = ["awaiting", "viewed", "connected", "needs_follow_up"];
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {

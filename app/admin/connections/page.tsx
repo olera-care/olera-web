@@ -23,7 +23,7 @@ interface WorkflowCounts {
 
 interface EngagementCounts {
   all: number;
-  new: number;
+  awaiting: number;
   viewed: number;
   connected: number;
   needs_follow_up: number;
@@ -76,7 +76,7 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+type EngagementLevel = "awaiting" | "viewed" | "connected" | "needs_follow_up";
 type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 
 // Perspective type
@@ -99,12 +99,12 @@ interface TabConfig {
 // Rest: Admin workflow (what admin handles)
 const PROVIDER_TABS: TabConfig[] = [
   // Provider actions
-  { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
+  { key: "awaiting", label: "Awaiting", description: "Provider hasn't engaged yet, automation still working", emptyMessage: "No leads awaiting provider engagement." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
   { key: "declined", label: "Declined", description: "Provider declined lead in portal (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
   // Admin workflow
-  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "Email sequence complete, no response - requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
   { key: "admin_not_interested", label: "Not Interested", description: "Admin confirmed provider not interested (soft rejection)", emptyMessage: "No leads marked as not interested." },
   { key: "archived", label: "Archived", description: "Admin-archived providers - no emails sent to them", emptyMessage: "No archived providers." },
@@ -525,9 +525,9 @@ export default function ConnectionsTrackerPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [direction, setDirection] = useState<Direction>(initialDirection);
   const [perspective, setPerspective] = useState<Perspective>("provider");
-  // Default filter: "new" for inbound, "all" for outbound
+  // Default filter: "awaiting" for inbound, "all" for outbound
   const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>(
-    initialDirection === "outbound" ? "all" : "new"
+    initialDirection === "outbound" ? "all" : "awaiting"
   );
   const [page, setPage] = useState(0);
 
@@ -612,7 +612,7 @@ export default function ConnectionsTrackerPage() {
 
   // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
-    setActiveFilter("new");
+    setActiveFilter("awaiting");
     setPage(0);
   }, [perspective]);
 
@@ -621,7 +621,7 @@ export default function ConnectionsTrackerPage() {
     if (direction === "outbound") {
       setActiveFilter("all"); // Outbound default tab
     } else {
-      setActiveFilter("new"); // Inbound default tab
+      setActiveFilter("awaiting"); // Inbound default tab
     }
     setPage(0);
   }, [direction]);

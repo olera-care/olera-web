@@ -377,9 +377,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     // Extract archive information
     // archived = true for both provider-declined AND admin-archived leads
+    // Check BOTH flags: `archived` (inbox/admin) and `lead_archived` (provider decline)
     // archiveReason = only set for provider-declined (valid decline reasons)
     // Admin archives have free-text reasons that don't match valid decline reasons
-    const archived = meta.archived === true;
+    const archived = meta.archived === true || meta.lead_archived === true;
     const rawArchiveReason = meta.archive_reason as string | null;
     // Only recognize valid provider decline reasons - admin archives should not show "Provider Declined" banner
     const VALID_DECLINE_REASONS = ["not_a_fit", "not_accepting_clients", "unable_to_reach", "other"];

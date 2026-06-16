@@ -107,8 +107,12 @@ export async function POST(
       updatedMetadata.followup_stopped_reason = "admin_declined";
       // Clear any existing archive flags - admin override takes precedence
       // This prevents the lead from appearing in both "Declined" and "Not Interested" tabs
+      // Clear BOTH archive flags: `archived` (inbox) and `lead_archived` (provider decline)
       updatedMetadata.archived = false;
+      updatedMetadata.lead_archived = false;
       updatedMetadata.archive_reason = null;
+      updatedMetadata.archive_message = null;
+      updatedMetadata.archived_by = null;
       updatedMetadata.archived_at = null;
     }
 

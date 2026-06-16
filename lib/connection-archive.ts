@@ -81,7 +81,8 @@ export async function autoRestoreConnection(
     }
 
     // Check what needs to be restored
-    const isArchived = connectionMeta.archived === true;
+    // Check BOTH archive flags: `archived` (inbox archive) and `lead_archived` (provider decline)
+    const isArchived = connectionMeta.archived === true || connectionMeta.lead_archived === true;
     const adminOverride = connectionMeta.admin_override as { status?: string } | undefined;
     const isAdminNotInterested = adminOverride?.status === "not_interested";
 
@@ -101,10 +102,13 @@ export async function autoRestoreConnection(
       followup_stopped_reason: null,
     };
 
-    // Clear archive flags if archived
+    // Clear archive flags if archived (both inbox and lead archive flags)
     if (isArchived) {
       updatedMetadata.archived = false;
+      updatedMetadata.lead_archived = false;
       updatedMetadata.archive_reason = null;
+      updatedMetadata.archive_message = null;
+      updatedMetadata.archived_by = null;
       updatedMetadata.archived_at = null;
     }
 

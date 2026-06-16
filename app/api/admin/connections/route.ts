@@ -1117,16 +1117,20 @@ export async function GET(request: NextRequest) {
         const isAdminNotInterested = c.adminOverride?.status === "not_interested";
         const hasProviderEngagement = engResult.level === "viewed" || engResult.level === "connected";
         const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
+        const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-        // Count in engagement tab if: not archived/inactive AND (no email issue OR engaged despite issue)
-        // Archived/inactive connections should ONLY be counted in archived tab, not engagement tabs
-        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged)) {
+        // Count in engagement tab if: not archived/inactive AND one of:
+        // - No email issue, OR
+        // - Engaged despite email issue, OR
+        // - Provider is claimed (can't go to needs_email since we can't change their email)
+        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged || isProviderClaimed)) {
           engagementCounts[engResult.level]++;
         }
 
-        // Only count in needs_email if: has email issue AND NOT engaged (still awaiting/needs_follow_up)
+        // Only count in needs_email if: has email issue AND NOT engaged AND NOT claimed
+        // Claimed providers manage their own email - we can't change it
         // Archived, declined, and admin_not_interested leads shouldn't appear in "Needs Email"
-        if (emailIssueType && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+        if (emailIssueType && !hasProviderEngagement && !isProviderClaimed && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
           engagementCounts.needs_email++;
         }
 
@@ -1212,8 +1216,8 @@ export async function GET(request: NextRequest) {
       }
       // Special filter: needs_email (provider perspective only)
       // Combines: no email, delivery failed, or invalid email
-      // BUT: If provider has ENGAGED (viewed/connected), they go to engagement tab instead
-      // "Needs Email" only shows connections where provider hasn't engaged yet
+      // BUT: Exclude if provider has ENGAGED (viewed/connected) - they go to engagement tab
+      // AND: Exclude CLAIMED providers - we can't change their email anyway (it's locked)
       else if (responseFilter === "needs_email" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
@@ -1221,8 +1225,10 @@ export async function GET(request: NextRequest) {
           const isAdminNotInterested = c.adminOverride?.status === "not_interested";
           const engLevel = connectionEngagementLevels.get(c.id);
           const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
+          const isProviderClaimed = c.provider.isAccountClaimed === true;
           return (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null &&
             !hasProviderEngagement &&  // Only if NOT engaged
+            !isProviderClaimed &&  // Claimed providers manage their own email
             !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }
@@ -1269,15 +1275,19 @@ export async function GET(request: NextRequest) {
             const engLevel = connectionEngagementLevels.get(c.id);
             const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
             const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+            const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-            // Allow if: matches filter AND not archived/declined/inactive AND (no email issue OR engaged)
+            // Allow if: matches filter AND not archived/declined/inactive AND one of:
+            // - No email issue, OR
+            // - Engaged (viewed/connected), OR
+            // - Provider is claimed (can't go to needs_email since we can't change their email)
             return engLevel === responseFilter &&
               !c.isProviderArchived &&
               !c.isProviderInactive &&
               !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
               !isAdminNotInterested &&
-              (!emailIssue || hasProviderEngagement);
+              (!emailIssue || hasProviderEngagement || isProviderClaimed);
           });
         } else {
           // Filter by workflow state (legacy)

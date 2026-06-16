@@ -29,15 +29,39 @@ export async function GET(request: NextRequest) {
   const adminUser = await getAdminUser(user.id);
   if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
+  const params = new URL(request.url).searchParams;
+  const db = getServiceClient();
+
+  // Single-record fetch (?id=) for the detail page. Returns the one request with
+  // its delivered count, regardless of archived state.
+  const id = params.get("id");
+  if (id) {
+    const { data: row, error: rowErr } = await db
+      .from("ad_campaign_requests")
+      .select(ROW_SELECT)
+      .eq("id", id)
+      .maybeSingle();
+    if (rowErr) {
+      console.error("[admin/ad-boost] fetch one failed:", rowErr);
+      return NextResponse.json({ error: rowErr.message }, { status: 500 });
+    }
+    if (!row) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const tag = row.campaign_tag || row.id;
+    const delivered = await countDeliveredByCampaign(db, [tag]);
+    return NextResponse.json({ request: { ...row, delivered: delivered[tag] ?? 0 } });
+  }
+
   // Default view = the live queue (not archived). `?archived=1` returns only the
   // soft-deleted rows so the admin can review / restore / permanently delete them.
-  const archived = new URL(request.url).searchParams.get("archived") === "1";
+  // Sorted by setup week ascending so the soonest-due work surfaces first.
+  const archived = params.get("archived") === "1";
 
-  const db = getServiceClient();
   let query = db
     .from("ad_campaign_requests")
     .select(ROW_SELECT)
-    .order("created_at", { ascending: false })
+    .order("requested_setup_week", { ascending: true })
     .limit(500);
   query = archived
     ? query.not("deleted_at", "is", null)

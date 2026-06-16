@@ -33,7 +33,7 @@ import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import { studentApplyUrl } from "@/lib/medjobs/apply-link";
-import type { Status } from "@/lib/student-outreach/types";
+import type { Status, StakeholderType } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
 
@@ -387,6 +387,10 @@ export interface SequenceOptions {
   campusSlug?: string | null;
   /** Activation audience — partner (advisor) copy vs provider. */
   isPartner?: boolean;
+  /** Row's real stakeholder type — drives per-type partner activation /
+   *  welcome copy. Falls back to "student_org" when absent. Inert for cold
+   *  stakeholder cadences (they pass the type as the cadenceKey itself). */
+  stakeholderType?: StakeholderType | null;
 }
 
 /**
@@ -409,10 +413,12 @@ export function buildEmailSequence(
   // actual cadence-derived type so each stakeholder cadence gets the right
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
-  const ctxStakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
-      ? "student_org"
-      : cadenceKey;
+  const ctxStakeholderType: StakeholderType =
+    cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? opts.stakeholderType ?? "student_org"
+      : cadenceKey === "provider"
+        ? "student_org"
+        : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
@@ -1127,6 +1133,9 @@ export interface ActivationEnrollInput {
   /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
    *  their welcome_url; providers get the provider magic link (DF-3b). */
   is_partner?: boolean;
+  /** Row's real stakeholder type — drives per-type partner activation/welcome
+   *  copy (advisor vs dept_head vs student_org). */
+  stakeholder_type?: StakeholderType | null;
   /** Which single-lead email cadence to enroll into. Defaults to the
    *  "activation" sequence; the partner-welcome nurture passes
    *  "partner_welcome". Both are single-lead, separate-per-campus campaigns. */
@@ -1229,6 +1238,7 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
     isPartner: input.is_partner ?? false,
+    stakeholderType: input.stakeholder_type ?? null,
   });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   result.errors.push(...prov.errors);

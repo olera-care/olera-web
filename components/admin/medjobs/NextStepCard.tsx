@@ -829,6 +829,7 @@ function ActivationActions({
         <CadenceLaunchModal
           cadenceKey="activation"
           isPartner={ctx.outreach.kind != null && ctx.outreach.kind !== "provider"}
+          partnerStakeholderType={ctx.outreach.stakeholder_type}
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           recipientName={recipientName}

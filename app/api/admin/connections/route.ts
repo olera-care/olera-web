@@ -1135,15 +1135,15 @@ export async function GET(request: NextRequest) {
         }
 
         // Count declined (provider explicitly declined with reason)
-        // Exclude admin-archived - they go to "Archived" tab exclusively
-        if (isProviderDeclined && !isAdminArchived) {
+        // Exclude admin-archived and inactive - they go to "Archived" tab exclusively
+        if (isProviderDeclined && !isAdminArchived && !c.isProviderInactive) {
           engagementCounts.declined++;
         }
 
         // Count admin "not interested" (soft rejection by admin)
         // These are NOT archived, just have admin_override with status "not_interested"
-        // Exclude provider-level archived - those stay in "Archived" tab
-        if (c.adminOverride?.status === "not_interested" && !c.isProviderArchived) {
+        // Exclude provider-level archived and inactive - those stay in "Archived" tab
+        if (c.adminOverride?.status === "not_interested" && !c.isProviderArchived && !c.isProviderInactive) {
           engagementCounts.admin_not_interested++;
         }
 

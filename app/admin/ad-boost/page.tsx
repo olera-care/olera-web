@@ -94,6 +94,7 @@ function RequestRow({
   const [note, setNote] = useState(request.admin_note ?? "");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const dirty =
@@ -126,6 +127,28 @@ function RequestRow({
       setSaveError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const remove = async () => {
+    const name = request.display_name || request.provider_slug || request.provider_id;
+    if (!window.confirm(`Delete the Ad Boost request for ${name}? This can't be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    setSaveError(null);
+    try {
+      const res = await fetch(`/api/admin/ad-boost?id=${encodeURIComponent(request.id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Delete failed");
+      }
+      onSaved();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Delete failed");
+      setDeleting(false);
     }
   };
 
@@ -232,13 +255,21 @@ function RequestRow({
       <div className="mt-3 flex items-center gap-3">
         <button
           type="button"
-          disabled={!dirty || saving}
+          disabled={!dirty || saving || deleting}
           onClick={save}
           className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save"}
         </button>
         {saveError && <span className="text-sm text-red-600">{saveError}</span>}
+        <button
+          type="button"
+          disabled={saving || deleting}
+          onClick={remove}
+          className="ml-auto rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
+        >
+          {deleting ? "Deleting…" : "Delete"}
+        </button>
       </div>
     </div>
   );

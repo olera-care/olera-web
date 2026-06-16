@@ -5,11 +5,14 @@ import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
  *
- * GET  — list all campaign requests, newest first, for the /admin/ad-boost queue.
- * POST — update one request: status lifecycle + campaign_tag / channel / note /
- *        setup week. Moving a request to `live` without a campaign_tag auto-sets
- *        it to the request id, so there's always a stable UTM tag to attribute
- *        delivered families against (Phase 3 ROI).
+ * GET    — list all campaign requests, newest first, for the /admin/ad-boost queue.
+ * POST   — update one request: status lifecycle + campaign_tag / channel / note /
+ *          setup week. Moving a request to `live` without a campaign_tag auto-sets
+ *          it to the request id, so there's always a stable UTM tag to attribute
+ *          delivered families against (Phase 3 ROI).
+ * DELETE — hard-delete one request by id (?id= or JSON body). Used to clear out
+ *          test runs from the queue; real campaigns should be `cancelled`/`ended`
+ *          via POST instead, but this is a deliberate scrub.
  *
  * Auth: admin only.
  */
@@ -164,4 +167,36 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ request: data });
+}
+
+export async function DELETE(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+  // Accept the id from the query string (?id=) or a JSON body, so this works
+  // from the admin UI fetch as well as a manual browser/cURL scrub.
+  let id = new URL(request.url).searchParams.get("id");
+  if (!id) {
+    try {
+      const body = await request.json();
+      if (typeof body?.id === "string") id = body.id;
+    } catch {
+      /* no body — fall through to the missing-id error */
+    }
+  }
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  const db = getServiceClient();
+  const { error } = await db.from("ad_campaign_requests").delete().eq("id", id);
+
+  if (error) {
+    console.error("[admin/ad-boost] delete failed:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

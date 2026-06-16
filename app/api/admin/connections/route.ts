@@ -231,7 +231,7 @@ export async function GET(request: NextRequest) {
           to_profile_id,
           from_profile:business_profiles!connections_from_profile_id_fkey(
             id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
-            website, address, city, state, description, care_types, metadata
+            website, address, city, state, description, care_types, metadata, account_id
           ),
           to_profile:business_profiles!connections_to_profile_id_fkey(
             id, display_name, type, email, phone, image_url, city, description, care_types, metadata
@@ -311,6 +311,7 @@ export async function GET(request: NextRequest) {
             is_active: provider?.is_active !== false,
             city: provider?.city ?? null,
             state: provider?.state ?? null,
+            isAccountClaimed: !!(provider as Record<string, unknown>)?.account_id,
           },
           messagePreview,
           replyMessage,
@@ -386,7 +387,7 @@ export async function GET(request: NextRequest) {
         ),
         to_profile:business_profiles!connections_to_profile_id_fkey(
           id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
-          website, address, city, state, description, care_types, metadata
+          website, address, city, state, description, care_types, metadata, account_id
         )
       `)
       .eq("type", "inquiry")
@@ -664,6 +665,7 @@ export async function GET(request: NextRequest) {
           is_active: providerIsActive,
           completeness: providerCompleteness,
           activityKey: provider?.slug || provider?.source_provider_id || provider?.id || null,
+          isAccountClaimed: !!(provider as Record<string, unknown>)?.account_id,
         },
         messagePreview,
         responded,
@@ -851,6 +853,7 @@ export async function GET(request: NextRequest) {
     // retry after a bounce should clear the failed status
     const connectionIdsInView = new Set(searched.map(c => c.id));
     const connectionsWithDeliveryFailure = new Set<string>();
+    const connectionsWithSuccessfulDelivery = new Set<string>();
 
     if (connectionIdsInView.size > 0) {
       // Scope query to the date range we're viewing (or last 90 days if no filter)
@@ -902,10 +905,14 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Only mark connections where the MOST RECENT email failed
+      // Track connections based on most recent email status
+      // - connectionsWithDeliveryFailure: most recent email FAILED
+      // - connectionsWithSuccessfulDelivery: most recent email SUCCEEDED (delivered/opened/clicked)
       for (const [connId, { isFailed }] of mostRecentEmailPerConnection) {
         if (isFailed) {
           connectionsWithDeliveryFailure.add(connId);
+        } else {
+          connectionsWithSuccessfulDelivery.add(connId);
         }
       }
     }
@@ -1058,7 +1065,10 @@ export async function GET(request: NextRequest) {
           emailIssueType = "no_email";
         } else if (connectionsWithDeliveryFailure.has(c.id)) {
           emailIssueType = "failed";
-        } else if (invalidEmailSet.has(providerEmail)) {
+        } else if (invalidEmailSet.has(providerEmail) && !connectionsWithSuccessfulDelivery.has(c.id)) {
+          // Only mark as "invalid" if ZeroBounce says invalid AND recent emails aren't working
+          // If recent emails were delivered/opened/clicked, the email is clearly working
+          // (ZeroBounce verification may be stale or was a false positive)
           emailIssueType = "invalid";
         }
 

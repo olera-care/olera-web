@@ -44,6 +44,8 @@ export interface ConnectionRowData {
     image_url?: string | null;
     is_active?: boolean;
     completeness?: ProfileCompleteness;
+    /** Provider has claimed their account (linked to an auth user) */
+    isAccountClaimed?: boolean;
   };
   messagePreview?: string;
   responded?: boolean;
@@ -1358,32 +1360,38 @@ export default function ConnectionRow({
                           <>
                             <div className="flex items-center justify-between gap-2">
                               <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
-                              <button
-                                onClick={() => {
-                                  if (editEmailTimeoutRef.current) {
-                                    clearTimeout(editEmailTimeoutRef.current);
-                                    editEmailTimeoutRef.current = null;
-                                  }
-                                  setEditingEmail(true);
-                                  setEditEmailInput(detail.provider.email || "");
-                                  setEditEmailError(null);
-                                  setEditEmailSuccess(false);
-                                  // Clear previous find email state
-                                  setFindEmailError(null);
-                                  setEmailSource(null);
-                                  setFoundUrl(null);
-                                  setIsCachedResult(false);
-                                  setFoundEmails([]);
-                                  setEmailToUrlMap(new Map());
-                                  // Clear verification state
-                                  setVerificationStatus("idle");
-                                  setCandidateStatuses(new Map());
-                                  setForceSubmit(false);
-                                }}
-                                className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
-                              >
-                                Edit
-                              </button>
+                              {c.provider.isAccountClaimed ? (
+                                <span className="text-xs text-gray-400 shrink-0" title="Provider has claimed this account and manages their own email">
+                                  Claimed
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    if (editEmailTimeoutRef.current) {
+                                      clearTimeout(editEmailTimeoutRef.current);
+                                      editEmailTimeoutRef.current = null;
+                                    }
+                                    setEditingEmail(true);
+                                    setEditEmailInput(detail.provider.email || "");
+                                    setEditEmailError(null);
+                                    setEditEmailSuccess(false);
+                                    // Clear previous find email state
+                                    setFindEmailError(null);
+                                    setEmailSource(null);
+                                    setFoundUrl(null);
+                                    setIsCachedResult(false);
+                                    setFoundEmails([]);
+                                    setEmailToUrlMap(new Map());
+                                    // Clear verification state
+                                    setVerificationStatus("idle");
+                                    setCandidateStatuses(new Map());
+                                    setForceSubmit(false);
+                                  }}
+                                  className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
+                                >
+                                  Edit
+                                </button>
+                              )}
                             </div>
                             {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && (
                               <p className="text-xs text-amber-600 mt-1">

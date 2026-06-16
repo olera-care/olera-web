@@ -2292,20 +2292,38 @@ async function enrollRowIntoActivationCampaign(
   // Hard PDF gate (best-effort caller catches this → email simply won't enroll,
   // so no broken flyer link goes out even though the row stays activated).
   requireProgramPdf(campus?.slug ?? null, thisIsPartner ? "student" : "provider", campusName);
-  // Reuse the campus's existing ACTIVATION campaign id of the SAME audience
-  // (this row's own linkage, then a matching sibling's); the first activation
-  // of each audience in a campus provisions a new one.
+  // Activation campaigns are scoped by AUDIENCE: providers run their own, and
+  // each partner stakeholder type (advisor / dept_head / student_org) runs its
+  // own, because the activation copy differs per type and a Smartlead campaign
+  // can only hold one baked sequence. So reuse must match the exact audience.
+  const audienceKey: string = thisIsPartner
+    ? row.stakeholder_type ?? "student_org"
+    : "provider";
+  const AUDIENCE_LABEL: Record<string, string> = {
+    advisor: "Advisor",
+    dept_head: "Dept Head",
+    student_org: "Student Org",
+    professor: "Professor",
+    provider: "",
+  };
+  const audienceLabel = AUDIENCE_LABEL[audienceKey] ?? "Partner";
   const ownCid = row.research_data?.smartlead_activation?.campaign_id;
   let existingCampaignId: number | undefined =
     typeof ownCid === "number" ? ownCid : undefined;
   if (!existingCampaignId) {
     const { data: siblings } = await db
       .from("student_outreach")
-      .select("kind, research_data")
+      .select("kind, stakeholder_type, research_data")
       .eq("campus_id", row.campus_id)
       .neq("id", row.id);
-    for (const s of (siblings ?? []) as Array<{ kind: string | null; research_data: ResearchData | null }>) {
-      if ((s.kind !== "provider") !== thisIsPartner) continue; // keep audiences separate
+    for (const s of (siblings ?? []) as Array<{
+      kind: string | null;
+      stakeholder_type: string | null;
+      research_data: ResearchData | null;
+    }>) {
+      const sAudience =
+        s.kind !== "provider" ? s.stakeholder_type ?? "student_org" : "provider";
+      if (sAudience !== audienceKey) continue; // one activation campaign per audience
       const cid = s.research_data?.smartlead_activation?.campaign_id;
       if (typeof cid === "number") {
         existingCampaignId = cid;
@@ -2319,7 +2337,7 @@ async function enrollRowIntoActivationCampaign(
     outreach_id: row.id,
     organizationName: row.organization_name,
     campus: { name: campusName, city: campus?.city ?? null, slug: campus?.slug ?? null },
-    campaignName: `MedJobs ${thisIsPartner ? "Partner " : ""}Activation — ${campusName} — ${yyyymm}`,
+    campaignName: `MedJobs ${audienceLabel ? audienceLabel + " " : ""}Activation — ${campusName} — ${yyyymm}`,
     existingCampaignId,
     recipient,
     is_partner: thisIsPartner,

@@ -2563,15 +2563,34 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
   // the student flyer. Block launch when the audience PDF isn't configured.
   requireProgramPdf(campusSlug, row.kind === "provider" ? "provider" : "student", campusName);
 
-  // Approach (b): reuse the campus's existing campaign id from a sibling row's
-  // stored linkage (one indexed read; no new engine surface).
+  // Cold campaigns are scoped by AUDIENCE — providers and each partner type
+  // (advisor / dept_head / student_org) get different cold copy, so a row must
+  // only reuse a sibling's campaign of the SAME audience. Without this, e.g. a
+  // student org would land in the campus's provider cold campaign.
+  const audienceKey: string =
+    row.kind === "provider" ? "provider" : row.stakeholder_type ?? "student_org";
+  const AUDIENCE_LABEL: Record<string, string> = {
+    advisor: "Advisor",
+    dept_head: "Dept Head",
+    student_org: "Student Org",
+    professor: "Professor",
+    provider: "",
+  };
+  const audienceLabel = AUDIENCE_LABEL[audienceKey] ?? "Partner";
   const { data: siblings } = await db
     .from("student_outreach")
-    .select("research_data")
+    .select("kind, stakeholder_type, research_data")
     .eq("campus_id", row.campus_id)
     .neq("id", row.id);
   let existingCampaignId: number | undefined;
-  for (const s of (siblings ?? []) as Array<{ research_data: ResearchData | null }>) {
+  for (const s of (siblings ?? []) as Array<{
+    kind: string | null;
+    stakeholder_type: string | null;
+    research_data: ResearchData | null;
+  }>) {
+    const sAudience =
+      s.kind !== "provider" ? s.stakeholder_type ?? "student_org" : "provider";
+    if (sAudience !== audienceKey) continue; // one cold campaign per audience
     const cid = s.research_data?.smartlead?.campaign_id;
     if (typeof cid === "number") {
       existingCampaignId = cid;
@@ -2624,7 +2643,7 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
   const enroll = await enrollRowIntoCampusCampaign({
     row: bridgeRow,
     campus: { name: campusName, city: campusCity, slug: campusSlug },
-    campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
+    campaignName: `MedJobs ${audienceLabel ? audienceLabel + " " : ""}— ${campusName} — ${yyyymm}`,
     existingCampaignId,
     cadenceKey,
   });

@@ -648,22 +648,32 @@ export default function ConnectionRow({
 
       // For non-connected states, show who we're waiting on
       const waitingOnText = c.waitingOn === "family" ? " (awaiting family)" : "";
-      const nudgeCount = c.waitingOn === "family" ? familyNudges : providerNudges;
+
+      // Helper to combine sequence progress with manual nudge count
+      const buildProgressInfo = (base: string | null, nudges: number): string | null => {
+        if (base && nudges > 0) return `${base} · Nudged ${nudges}x`;
+        if (base) return base;
+        if (nudges > 0) return `Nudged ${nudges}x`;
+        return null;
+      };
 
       switch (engLevel) {
         case "connected":
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
         case "viewed":
-          return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
+          // If waiting on family: provider already engaged, show family nudges (sequence irrelevant)
+          // If waiting on provider: show sequence progress + provider nudges
+          if (c.waitingOn === "family") {
+            return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
+          }
+          return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: buildProgressInfo(sequenceProgress, providerNudges) };
         case "needs_follow_up":
-          // Sequence complete, show that info
-          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: "Sequence complete" };
+          // Use actual sequence progress if available, fallback to "Email 4/4"
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: buildProgressInfo(sequenceProgress || "Email 4/4", providerNudges) };
         case "awaiting":
         default:
-          // Show sequence progress for awaiting (automation working)
-          // If no sequence progress and no nudges, show "Pending" to indicate automation hasn't started
-          const awaitingInfo = sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : "Pending");
-          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: awaitingInfo };
+          // Show sequence progress (or "Pending") + manual nudges if any
+          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: buildProgressInfo(sequenceProgress || "Pending", providerNudges) };
       }
     }
   };

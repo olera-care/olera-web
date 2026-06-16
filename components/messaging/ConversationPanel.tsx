@@ -1428,10 +1428,14 @@ export default function ConversationPanel({
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
                   {/* Quick reply response nudge - shown above input when family responds */}
                   {showQuickReplyNudge && (
-                    <div className="px-4 py-3 bg-primary-50 border-b border-primary-100 flex items-center justify-between gap-3">
+                    <div className="px-4 py-2.5 sm:py-3 bg-primary-50 border-b border-primary-100">
                       <p className="text-[14px] text-primary-900">
-                        <span className="font-medium">{familyFirstName} answered</span>
-                        <span className="text-primary-600"> — say hi to continue the conversation</span>
+                        {/* Mobile: action-focused. Desktop: context + action */}
+                        <span className="sm:hidden font-medium">Say hi to continue</span>
+                        <span className="hidden sm:inline">
+                          <span className="font-medium">{familyFirstName} replied</span>
+                          <span className="text-primary-600"> — say hi to continue</span>
+                        </span>
                       </p>
                     </div>
                   )}

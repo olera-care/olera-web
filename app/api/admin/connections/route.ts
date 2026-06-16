@@ -854,6 +854,9 @@ export async function GET(request: NextRequest) {
     const connectionIdsInView = new Set(searched.map(c => c.id));
     const connectionsWithDeliveryFailure = new Set<string>();
     const connectionsWithSuccessfulDelivery = new Set<string>();
+    // Also track by recipient email (catches emails without connection_id like cron reminders)
+    const recipientsWithDeliveryFailure = new Set<string>();
+    const recipientsWithSuccessfulDelivery = new Set<string>();
 
     if (connectionIdsInView.size > 0) {
       // Scope query to the date range we're viewing (or last 90 days if no filter)
@@ -864,7 +867,7 @@ export async function GET(request: NextRequest) {
       // We need to check if the MOST RECENT email for each connection failed
       const { data: emailLogEntries } = await db
         .from("email_log")
-        .select("metadata, status, bounced_at, created_at")
+        .select("metadata, status, bounced_at, created_at, recipient")
         .eq("recipient_type", "provider")
         .gte("created_at", queryDateFrom)
         .order("created_at", { ascending: false })
@@ -874,11 +877,25 @@ export async function GET(request: NextRequest) {
       // Key: connection_id, Value: { isFailed: boolean, timestamp: string }
       const mostRecentEmailPerConnection = new Map<string, { isFailed: boolean; timestamp: string }>();
 
+      // Also track by recipient email address (catches emails without connection_id)
+      // Key: recipient email (lowercase), Value: { isFailed: boolean, timestamp: string }
+      const mostRecentEmailPerRecipient = new Map<string, { isFailed: boolean; timestamp: string }>();
+
       for (const email of emailLogEntries ?? []) {
         const meta = email.metadata as Record<string, unknown> | null;
         const emailTime = email.created_at as string;
         const isFailed = email.status === "failed" || email.bounced_at != null;
+        const recipient = (email.recipient as string | null)?.toLowerCase().trim();
 
+        // Track by recipient email address (catches ALL emails including those without connection_id)
+        if (recipient) {
+          const existing = mostRecentEmailPerRecipient.get(recipient);
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerRecipient.set(recipient, { isFailed, timestamp: emailTime });
+          }
+        }
+
+        // Also track by connection_id for more precise per-connection tracking
         // Support both formats:
         // - connection_id: "abc" (single lead emails)
         // - connection_ids: ["abc", "def"] (multi-lead cron emails)
@@ -888,9 +905,6 @@ export async function GET(request: NextRequest) {
         const connIds: string[] = [];
         if (singleConnId) connIds.push(singleConnId);
         if (Array.isArray(multiConnIds)) connIds.push(...multiConnIds);
-
-        // Skip if no connection IDs found
-        if (connIds.length === 0) continue;
 
         // Update status for each connection in this email
         for (const connId of connIds) {
@@ -913,6 +927,16 @@ export async function GET(request: NextRequest) {
           connectionsWithDeliveryFailure.add(connId);
         } else {
           connectionsWithSuccessfulDelivery.add(connId);
+        }
+      }
+
+      // Also track failures by recipient email (for emails without connection_id)
+      // Key: recipient email, Value: true if most recent email failed
+      for (const [recipient, { isFailed }] of mostRecentEmailPerRecipient) {
+        if (isFailed) {
+          recipientsWithDeliveryFailure.add(recipient);
+        } else {
+          recipientsWithSuccessfulDelivery.add(recipient);
         }
       }
     }
@@ -1064,12 +1088,24 @@ export async function GET(request: NextRequest) {
         if (!providerEmail) {
           emailIssueType = "no_email";
         } else if (connectionsWithDeliveryFailure.has(c.id)) {
+          // Connection-specific email failed
           emailIssueType = "failed";
-        } else if (invalidEmailSet.has(providerEmail) && !connectionsWithSuccessfulDelivery.has(c.id)) {
-          // Only mark as "invalid" if ZeroBounce says invalid AND recent emails aren't working
-          // If recent emails were delivered/opened/clicked, the email is clearly working
-          // (ZeroBounce verification may be stale or was a false positive)
-          emailIssueType = "invalid";
+        } else {
+          // Check recipient-level failures (catches emails without connection_id like cron reminders)
+          const recipientKey = providerEmail.toLowerCase();
+          const recipientHasFailure = recipientsWithDeliveryFailure.has(recipientKey);
+          const recipientHasSuccess = recipientsWithSuccessfulDelivery.has(recipientKey);
+          const connectionHasSuccess = connectionsWithSuccessfulDelivery.has(c.id);
+
+          if (recipientHasFailure && !recipientHasSuccess && !connectionHasSuccess) {
+            // Recipient's most recent email failed, and no recent success at any level
+            emailIssueType = "failed";
+          } else if (invalidEmailSet.has(providerEmail) && !connectionHasSuccess && !recipientHasSuccess) {
+            // Only mark as "invalid" if ZeroBounce says invalid AND recent emails aren't working
+            // If recent emails were delivered/opened/clicked, the email is clearly working
+            // (ZeroBounce verification may be stale or was a false positive)
+            emailIssueType = "invalid";
+          }
         }
 
         // Store the issue type on the connection for filtering/display

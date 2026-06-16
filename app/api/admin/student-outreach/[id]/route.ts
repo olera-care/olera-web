@@ -2323,6 +2323,7 @@ async function enrollRowIntoActivationCampaign(
     existingCampaignId,
     recipient,
     is_partner: thisIsPartner,
+    stakeholder_type: row.stakeholder_type,
   });
 
   if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };
@@ -2431,6 +2432,7 @@ async function enrollRowIntoWelcomeCampaign(
     },
     is_partner: true,
     cadenceKey: "partner_welcome",
+    stakeholder_type: row.stakeholder_type,
   });
 
   if (enroll.skipped_reason) return { status: "skipped", detail: enroll.skipped_reason };

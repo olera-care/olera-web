@@ -859,7 +859,7 @@ export async function GET(request: NextRequest) {
 
       // Query email_log for ALL provider emails (not just failed) to find most recent status
       // We need to check if the MOST RECENT email for each connection failed
-      const { data: providerEmails } = await db
+      const { data: emailLogEntries } = await db
         .from("email_log")
         .select("metadata, status, bounced_at, created_at")
         .eq("recipient_type", "provider")
@@ -871,7 +871,7 @@ export async function GET(request: NextRequest) {
       // Key: connection_id, Value: { isFailed: boolean, timestamp: string }
       const mostRecentEmailPerConnection = new Map<string, { isFailed: boolean; timestamp: string }>();
 
-      for (const email of providerEmails ?? []) {
+      for (const email of emailLogEntries ?? []) {
         const meta = email.metadata as Record<string, unknown> | null;
         const emailTime = email.created_at as string;
         const isFailed = email.status === "failed" || email.bounced_at != null;
@@ -911,16 +911,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Query for invalid/undeliverable emails (verified by ZeroBounce)
-    // Collect all provider emails and check against email_verifications table
-    const providerEmails = new Set<string>();
+    // Collect all provider email addresses and check against email_verifications table
+    const providerEmailAddresses = new Set<string>();
     for (const c of searched) {
       const email = c.provider.email?.trim();
-      if (email) providerEmails.add(email);
+      if (email) providerEmailAddresses.add(email);
     }
 
     const invalidEmailSet = new Set<string>();
-    if (providerEmails.size > 0) {
-      const emailArray = Array.from(providerEmails);
+    if (providerEmailAddresses.size > 0) {
+      const emailArray = Array.from(providerEmailAddresses);
       // Batch query in chunks of 500 (Supabase IN clause limit)
       for (let i = 0; i < emailArray.length; i += 500) {
         const { data: verifs } = await db

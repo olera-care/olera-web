@@ -254,6 +254,9 @@ function Detail({
           <p className="text-sm text-gray-400 mt-1">
             {request.completeness_at_submit ?? "—"}% complete at submit · requested{" "}
             {fmtTimestamp(request.created_at)}
+            {request.intended_monthly_budget != null && (
+              <> · intended budget ${request.intended_monthly_budget}/mo (confirm before spend)</>
+            )}
           </p>
         </div>
         {/* Into the admin provider record (public-page preview + comms history +

@@ -21,7 +21,7 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();

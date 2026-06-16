@@ -12,6 +12,9 @@ export interface CampaignRequest {
   completeness_at_submit: number | null;
   status: string;
   channel: string | null;
+  /** Provider-chosen intended monthly ad budget in whole USD (non-binding —
+   *  concierge confirms before spend). NULL = not chosen / legacy request. */
+  intended_monthly_budget: number | null;
   campaign_tag: string | null;
   admin_note: string | null;
   created_at: string;

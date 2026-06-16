@@ -540,6 +540,11 @@ export default function ConnectionsTrackerPage() {
     providerName: string | null;
     isArchived: boolean; // true if lead is already archived (for unarchive)
     isProviderArchived: boolean; // true if provider is admin-archived
+    providerArchiveInfo?: {
+      reason: string | null;
+      archivedBy: string | null;
+      archivedAt: string | null;
+    } | null;
   } | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -562,6 +567,14 @@ export default function ConnectionsTrackerPage() {
     "Unable to reach family",
     "Provider requested no more leads",
     "Other",
+  ] as const;
+
+  // Archive Provider reason options (maps to API values)
+  const ARCHIVE_PROVIDER_REASONS = [
+    { value: "provider_requested_no_emails", label: "Provider requested no emails" },
+    { value: "inactive", label: "Inactive / Not responding" },
+    { value: "duplicate", label: "Duplicate profile" },
+    { value: "other", label: "Other" },
   ] as const;
 
   // Debounce search input by 300ms
@@ -699,9 +712,10 @@ export default function ConnectionsTrackerPage() {
     familyName: string | null,
     providerName: string | null,
     isArchived: boolean,
-    isProviderArchived: boolean
+    isProviderArchived: boolean,
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
   ) => {
-    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived });
+    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo });
     setSelectedAction(null);
     setActionError(null);
     setActionReason("");
@@ -802,7 +816,7 @@ export default function ConnectionsTrackerPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action,
-            reason: action === "archive" ? "provider_requested_no_emails" : undefined,
+            reason: action === "archive" ? actionReason : undefined,
           }),
         });
         successMessage = pendingAction.isProviderArchived ? "Provider unarchived" : "Provider archived";
@@ -1413,9 +1427,36 @@ export default function ConnectionsTrackerPage() {
                 {selectedAction === "archive_provider" && (
                   <div className="space-y-3">
                     {pendingAction.isProviderArchived ? (
-                      <p className="text-sm text-gray-600">
-                        This will unarchive the provider. Email sequences will resume for their connections.
-                      </p>
+                      <>
+                        <p className="text-sm text-gray-600">
+                          This will unarchive <span className="font-medium">{pendingAction.providerName}</span>. Email sequences will resume for their connections.
+                        </p>
+                        {/* Show why they were archived */}
+                        {pendingAction.providerArchiveInfo && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                            <p className="text-xs font-medium text-amber-800">Previously archived:</p>
+                            <p className="text-xs text-amber-700">
+                              <span className="font-medium">Reason:</span>{" "}
+                              {ARCHIVE_PROVIDER_REASONS.find(r => r.value === pendingAction.providerArchiveInfo?.reason)?.label || pendingAction.providerArchiveInfo.reason || "Not specified"}
+                            </p>
+                            {pendingAction.providerArchiveInfo.archivedBy && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">By:</span> {pendingAction.providerArchiveInfo.archivedBy}
+                              </p>
+                            )}
+                            {pendingAction.providerArchiveInfo.archivedAt && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">On:</span>{" "}
+                                {new Date(pendingAction.providerArchiveInfo.archivedAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <>
                         <p className="text-sm text-gray-600">
@@ -1427,6 +1468,22 @@ export default function ConnectionsTrackerPage() {
                           <li>New leads will automatically be archived</li>
                           <li>Family emails are not affected</li>
                         </ul>
+                        {/* Reason selector */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Why are you archiving this provider?
+                          </label>
+                          <select
+                            value={actionReason}
+                            onChange={(e) => setActionReason(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                          >
+                            <option value="">Select a reason...</option>
+                            {ARCHIVE_PROVIDER_REASONS.map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
+                        </div>
                       </>
                     )}
                   </div>
@@ -1469,7 +1526,8 @@ export default function ConnectionsTrackerPage() {
                         (selectedAction === "mark_connected" && !actionReason) ||
                         (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
                         (selectedAction === "mark_not_interested" && !actionReason) ||
-                        (selectedAction === "mark_not_interested" && actionReason === "Other" && !actionNotes.trim())
+                        (selectedAction === "mark_not_interested" && actionReason === "Other" && !actionNotes.trim()) ||
+                        (selectedAction === "archive_provider" && !pendingAction.isProviderArchived && !actionReason)
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
                         selectedAction === "mark_connected"

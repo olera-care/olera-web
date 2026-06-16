@@ -78,6 +78,12 @@ export interface ConnectionRowData {
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
   /** Admin archived this provider - no emails sent to them */
   isProviderArchived?: boolean;
+  /** Archive info when provider is admin-archived */
+  providerArchiveInfo?: {
+    reason: string | null;
+    archivedBy: string | null;
+    archivedAt: string | null;
+  } | null;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -316,7 +322,8 @@ export default function ConnectionRow({
     familyName: string | null,
     providerName: string | null,
     isArchived: boolean,
-    isProviderArchived: boolean
+    isProviderArchived: boolean,
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
   ) => void;
   onNudgeSuccess?: () => void;
 }) {
@@ -1135,7 +1142,8 @@ export default function ConnectionRow({
                 c.family.display_name,
                 c.provider.display_name,
                 isConnectionArchived,
-                isProviderArchived
+                isProviderArchived,
+                c.providerArchiveInfo
               );
             }}
             className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"

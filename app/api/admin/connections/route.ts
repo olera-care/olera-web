@@ -692,6 +692,12 @@ export async function GET(request: NextRequest) {
         sequenceStartAt: (meta.email_sent_at as string) || null,
         // Admin-archived provider (different from individual lead declined)
         isProviderArchived,
+        // Archive info for display in UI
+        providerArchiveInfo: isProviderArchived ? {
+          reason: providerMeta.admin_archived_reason as string | null,
+          archivedBy: providerMeta.admin_archived_by as string | null,
+          archivedAt: providerMeta.admin_archived_at as string | null,
+        } : null,
       };
     });
 

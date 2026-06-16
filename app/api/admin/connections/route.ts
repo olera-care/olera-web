@@ -1082,17 +1082,26 @@ export async function GET(request: NextRequest) {
         if (belongsToArchivedTab) {
           engagementCounts.archived++;
         }
-        // Engagement level counts (new, viewed, connected, needs_follow_up):
+        // Engagement level counts (awaiting, viewed, connected, needs_follow_up):
         // Exclude all archived types, declined, and admin_not_interested - they go to their own tabs
-        // CRITICAL: Exclude connections with email issues - they go to "Needs Email" tab exclusively
+        //
+        // ENGAGEMENT PRIORITY: If provider has VIEWED or CONNECTED, they go to engagement tab
+        // even if they have email issues. Providers can come in through different channels
+        // (magic links, direct login, etc.) - once engaged, email status is secondary.
+        //
+        // Only "Needs Email" for connections with email issues AND no engagement (awaiting/needs_follow_up)
         const isAdminNotInterested = c.adminOverride?.status === "not_interested";
-        if (!isProviderDeclined && !emailIssueType && !isAdminNotInterested) {
+        const hasProviderEngagement = engResult.level === "viewed" || engResult.level === "connected";
+        const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
+
+        // Count in engagement tab if: no email issue OR engaged despite email issue
+        if (!isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged)) {
           engagementCounts[engResult.level]++;
         }
 
-        // Only count non-archived connections in needs_email (consistent with other tabs)
+        // Only count in needs_email if: has email issue AND NOT engaged (still awaiting/needs_follow_up)
         // Archived, declined, and admin_not_interested leads shouldn't appear in "Needs Email"
-        if (emailIssueType && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+        if (emailIssueType && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
           engagementCounts.needs_email++;
         }
 
@@ -1176,13 +1185,17 @@ export async function GET(request: NextRequest) {
       }
       // Special filter: needs_email (provider perspective only)
       // Combines: no email, delivery failed, or invalid email
-      // Exclude all archived types (they go to Archived or Declined tab)
+      // BUT: If provider has ENGAGED (viewed/connected), they go to engagement tab instead
+      // "Needs Email" only shows connections where provider hasn't engaged yet
       else if (responseFilter === "needs_email" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
           const isProviderDeclined = c.archived && !!c.archiveReason;
           const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+          const engLevel = connectionEngagementLevels.get(c.id);
+          const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
           return (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null &&
+            !hasProviderEngagement &&  // Only if NOT engaged
             !c.isProviderArchived && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }
@@ -1209,20 +1222,27 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          // All engagement-level tabs (new, viewed, connected, needs_follow_up):
+          // All engagement-level tabs (awaiting, viewed, connected, needs_follow_up):
           // - Exclude all archived types (provider-level, connection-level admin, provider declined)
-          // - Exclude connections with email issues (those go to "Needs Email" tab exclusively)
           // - Exclude admin "not interested" (they have their own tab)
+          //
+          // ENGAGEMENT PRIORITY: If provider has engaged (viewed/connected), show in engagement tab
+          // even if they have email issues. Only exclude email issues for awaiting/needs_follow_up.
           list = list.filter((c) => {
             const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
             const isProviderDeclined = c.archived && !!c.archiveReason;
             const isAdminNotInterested = c.adminOverride?.status === "not_interested";
-            return connectionEngagementLevels.get(c.id) === responseFilter &&
+            const engLevel = connectionEngagementLevels.get(c.id);
+            const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
+            const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+
+            // Allow if: matches filter AND not archived/declined AND (no email issue OR engaged)
+            return engLevel === responseFilter &&
               !c.isProviderArchived &&
               !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
               !isAdminNotInterested &&
-              !(c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+              (!emailIssue || hasProviderEngagement);
           });
         } else {
           // Filter by workflow state (legacy)

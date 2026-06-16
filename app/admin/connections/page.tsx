@@ -744,9 +744,32 @@ export default function ConnectionsTrackerPage() {
   };
 
   // Calculate destination tab for a connection (used in confirmation modals)
-  const getDestinationTab = (connectionId: string): { tab: string; label: string } | null => {
+  // Note: This predicts where the connection will go AFTER the action completes
+  const getDestinationTab = (connectionId: string, action?: ActionType): { tab: string; label: string; warning?: string } | null => {
     const conn = list?.connections.find(c => c.id === connectionId);
     if (!conn) return null;
+
+    // If provider is inactive (deleted account), connection stays in Archived
+    // regardless of unarchive actions - is_active is a separate flag we can't change
+    if (conn.isProviderInactive) {
+      return {
+        tab: "archived",
+        label: "Archived",
+        warning: "Provider account is inactive"
+      };
+    }
+
+    // For "Unarchive Lead" action: if provider is still admin-archived at provider level,
+    // the connection stays in Archived (we're only clearing connection-level archive)
+    // Note: This shouldn't happen since the action is hidden when provider is archived,
+    // but check anyway for safety
+    if (action === "unarchive_lead" && conn.isProviderArchived) {
+      return {
+        tab: "archived",
+        label: "Archived",
+        warning: "Provider is archived at provider level"
+      };
+    }
 
     // Check email issue and claimed status
     const hasEmailIssue = conn.emailIssueType !== null && conn.emailIssueType !== undefined;
@@ -1565,28 +1588,45 @@ export default function ConnectionsTrackerPage() {
                 )}
 
                 {/* Unarchive Lead confirmation */}
-                {selectedAction === "unarchive_lead" && (
-                  <p className="text-sm text-gray-600">
-                    This will unarchive the lead and move it to the{" "}
-                    <span className="font-semibold text-gray-900">
-                      {getDestinationTab(pendingAction.connectionId)?.label || "appropriate"}
-                    </span>{" "}
-                    tab.
-                  </p>
-                )}
+                {selectedAction === "unarchive_lead" && (() => {
+                  const dest = getDestinationTab(pendingAction.connectionId, "unarchive_lead");
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">
+                        This will unarchive the lead and move it to the{" "}
+                        <span className="font-semibold text-gray-900">
+                          {dest?.label || "appropriate"}
+                        </span>{" "}
+                        tab.
+                      </p>
+                      {dest?.warning && (
+                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                          Note: {dest.warning}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Archive Provider confirmation */}
-                {selectedAction === "archive_provider" && (
+                {selectedAction === "archive_provider" && (() => {
+                  const dest = getDestinationTab(pendingAction.connectionId, "archive_provider");
+                  return (
                   <div className="space-y-3">
                     {pendingAction.isProviderArchived ? (
                       <>
                         <p className="text-sm text-gray-600">
                           This will unarchive <span className="font-medium">{pendingAction.providerName}</span>. This connection will move to the{" "}
                           <span className="font-semibold text-gray-900">
-                            {getDestinationTab(pendingAction.connectionId)?.label || "appropriate"}
+                            {dest?.label || "appropriate"}
                           </span>{" "}
                           tab for this provider, and email sequences will resume.
                         </p>
+                        {dest?.warning && (
+                          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                            Note: {dest.warning}
+                          </p>
+                        )}
                         {/* Show why they were archived */}
                         {pendingAction.providerArchiveInfo && (
                           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
@@ -1643,7 +1683,8 @@ export default function ConnectionsTrackerPage() {
                       </>
                     )}
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Hide Connection confirmation */}
                 {selectedAction === "hide_connection" && (

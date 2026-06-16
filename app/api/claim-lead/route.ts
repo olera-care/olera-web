@@ -395,19 +395,22 @@ export async function GET(request: NextRequest) {
     console.error("[claim-lead] one_click_access tracking failed:", accessError.message);
   }
 
-  // ALWAYS track lead_opened - this marks the provider as "Viewed" in admin panel
-  // Include connection_id when available (enables per-lead sequence stopping)
-  const { error: openedError } = await admin.from("provider_activity").insert({
-    provider_id: providerKey,
-    event_type: "lead_opened",
-    metadata: {
-      lead_id: validConnectionId || null,
-      connection_id: validConnectionId || null,
-      source: "claim-lead",
-    },
-  });
-  if (openedError) {
-    console.error("[claim-lead] lead_opened tracking failed:", openedError.message);
+  // Only track lead_opened when we have a valid connection_id
+  // Without connection_id, the event becomes an "orphan" that can't be matched
+  // to a specific lead, causing providers to appear stuck in wrong tabs
+  if (validConnectionId) {
+    const { error: openedError } = await admin.from("provider_activity").insert({
+      provider_id: providerKey,
+      event_type: "lead_opened",
+      metadata: {
+        lead_id: validConnectionId,
+        connection_id: validConnectionId,
+        source: "claim-lead",
+      },
+    });
+    if (openedError) {
+      console.error("[claim-lead] lead_opened tracking failed:", openedError.message);
+    }
   }
 
   // Track claim_completed event and send Slack notifications ONLY on new claims

@@ -655,33 +655,34 @@ function ApplyExperience({
               starting point; you can change it anytime.
             </p>
 
-            <fieldset className="mt-8 pt-2">
+            <fieldset className="mt-8 pt-3">
               <legend className="sr-only">Monthly budget</legend>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {BUDGET_STOPS.map((b) => {
                   const active = selectedBudget === b.value;
                   return (
                     <button
                       key={b.value}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => setSelectedBudget(b.value)}
-                      className={`relative rounded-2xl border px-4 py-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
+                      className={`relative flex min-h-[5.25rem] flex-col items-center justify-center rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
-                          ? "border-primary-500 bg-primary-50/60 shadow-[0_8px_24px_-12px_rgba(42,24,16,0.18)]"
-                          : "border-gray-200 hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-[0_6px_18px_-12px_rgba(42,24,16,0.18)]"
+                          ? "border-primary-500 bg-primary-50/70"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
                       {b.recommended && (
-                        <span className="absolute -top-2.5 left-3 inline-flex rounded-full bg-primary-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary-600 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white shadow-sm">
                           Recommended
                         </span>
                       )}
-                      <span className={`block text-lg font-semibold tracking-tight ${active ? "text-primary-700" : "text-gray-900"}`}>
-                        {b.label}
+                      <span className={`text-2xl font-bold tracking-tight tabular-nums leading-none ${active ? "text-primary-700" : "text-gray-900"}`}>
+                        {b.amount}
                       </span>
-                      {b.note && (
-                        <span className="block text-xs mt-0.5 text-gray-400">{b.note}</span>
-                      )}
+                      <span className={`mt-1.5 text-xs ${active ? "text-primary-600/80" : "text-gray-400"}`}>
+                        {b.sublabel}
+                      </span>
                     </button>
                   );
                 })}
@@ -732,10 +733,7 @@ function ApplyExperience({
             <dl className="mt-7 divide-y divide-gray-100 border-y border-gray-100">
               <ReviewRow label="Launch" value={weekLabel ?? "—"} />
               <ReviewRow label="Advertising on" value={channelLabel} />
-              <ReviewRow
-                label="Monthly budget"
-                value={stop ? `${stop.label}${stop.note === "on us" ? " · on us" : ""}` : "—"}
-              />
+              <ReviewRow label="Monthly budget" value={stop?.label ?? "—"} />
             </dl>
 
             <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">

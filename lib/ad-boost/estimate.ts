@@ -27,11 +27,12 @@
 export type BudgetStop = {
   /** Whole dollars per month. The $50 stop is the intro Olera covers. */
   value: number;
-  /** Pill label, e.g. "$150/mo". */
+  /** Full label for the summary / review rows, e.g. "$150/mo". */
   label: string;
-  /** Small qualifier under the amount (e.g. "on us"). Omitted for the recommended
-   *  stop, which gets a "Recommended" pill instead. */
-  note?: string;
+  /** Big amount on the card, line 1 (e.g. "$150") — kept short so it never clips. */
+  amount: string;
+  /** Small descriptor centered under the amount (e.g. "/mo", "on us"). */
+  sublabel: string;
   /** The single quiet marker — the steady-leads anchor (renders a pill). */
   recommended?: boolean;
   /** "reach" promises visibility (no lead count); "leads" gives a range. */
@@ -53,8 +54,9 @@ export const DEFAULT_BUDGET = 150;
 export const BUDGET_STOPS: BudgetStop[] = [
   {
     value: 50,
-    label: "$50",
-    note: "on us",
+    label: "$50 (on us)",
+    amount: "$50",
+    sublabel: "on us",
     kind: "reach",
     headline: "You're live",
     estimate: "Local families start seeing your page.",
@@ -62,6 +64,8 @@ export const BUDGET_STOPS: BudgetStop[] = [
   {
     value: 150,
     label: "$150/mo",
+    amount: "$150",
+    sublabel: "/mo",
     kind: "leads",
     headline: "1–2",
     unit: "inquiries / mo",
@@ -70,6 +74,8 @@ export const BUDGET_STOPS: BudgetStop[] = [
   {
     value: 300,
     label: "$300/mo",
+    amount: "$300",
+    sublabel: "/mo",
     kind: "leads",
     headline: "2–4",
     unit: "inquiries / mo",
@@ -78,6 +84,8 @@ export const BUDGET_STOPS: BudgetStop[] = [
   {
     value: STEADY_LEADS_THRESHOLD,
     label: "$600+/mo",
+    amount: "$600+",
+    sublabel: "/mo",
     recommended: true,
     kind: "leads",
     headline: "4–8",

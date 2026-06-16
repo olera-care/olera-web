@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq("type", "inquiry")
       .not("metadata", "cs", JSON.stringify({ archived: true }))
+      .not("metadata", "cs", JSON.stringify({ admin_hidden: true }))
       .limit(5000);
 
     if (dateFrom) connectionsQuery = connectionsQuery.gte("created_at", dateFrom);

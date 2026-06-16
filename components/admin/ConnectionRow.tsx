@@ -286,12 +286,9 @@ function EngagementBadges({
   const activeBadges = badges.filter(b => b.active);
   if (activeBadges.length === 0) return null;
 
+  // Hide engagement badges entirely in compact mode
   if (compact) {
-    return (
-      <span className="flex items-center gap-0.5 text-sm" title={activeBadges.map(b => b.label).join(", ")}>
-        {activeBadges.map(b => <span key={b.label}>{b.icon}</span>)}
-      </span>
-    );
+    return null;
   }
 
   return (
@@ -306,7 +303,7 @@ function EngagementBadges({
           }`}
           title={b.highlight && adminOverride ? adminOverride.reason : undefined}
         >
-          {b.icon} {b.label}
+          {b.label}
         </span>
       ))}
     </div>

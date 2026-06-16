@@ -792,22 +792,7 @@ export async function GET(request: NextRequest) {
           const eng = connectionEngagement.get(connectionId);
           if (!eng) {
             // Connection not in our current view (likely filtered out by date range or limit)
-            // If this is a lead_opened event, treat it as a provider-wide signal
-            // (fallback to multi-lead behavior for old connections)
-            if (ev.event_type === "lead_opened" && ev.provider_id) {
-              const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
-              for (const connId of connectionIds) {
-                const e = connectionEngagement.get(connId);
-                if (e) {
-                  e.lead_opened = true;
-                  if (!e.lastActivityAt || (ev.created_at && ev.created_at > e.lastActivityAt)) {
-                    e.lastActivityAt = ev.created_at;
-                  }
-                }
-              }
-            } else {
-              // Non-lead_opened event for connection not in view - skip it
-            }
+            // Skip this event - we only trust connection-specific events for connections in view
             continue;
           }
 
@@ -831,21 +816,10 @@ export async function GET(request: NextRequest) {
             eng.lastActivityAt = ev.created_at;
           }
         }
-        // Handle provider-wide events (multi-lead emails with no specific connection_id)
-        // When provider clicks a multi-lead email and lands on inbox, mark ALL their connections as viewed
-        else if (ev.event_type === "lead_opened" && ev.provider_id) {
-          const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
-          for (const connId of connectionIds) {
-            const eng = connectionEngagement.get(connId);
-            if (eng) {
-              eng.lead_opened = true;
-              // Track activity time for all connections
-              if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
-                eng.lastActivityAt = ev.created_at;
-              }
-            }
-          }
-        }
+        // Events without connection_id are ignored for lead_opened
+        // A provider landing on /provider/connections without opening a specific lead
+        // should NOT mark any leads as "viewed" - that's inflated data.
+        // Only connection-specific lead_opened events (with connection_id) count.
       }
     }
 

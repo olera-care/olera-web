@@ -1118,8 +1118,9 @@ export async function GET(request: NextRequest) {
         const hasProviderEngagement = engResult.level === "viewed" || engResult.level === "connected";
         const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
 
-        // Count in engagement tab if: no email issue OR engaged despite email issue
-        if (!isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged)) {
+        // Count in engagement tab if: not archived/inactive AND (no email issue OR engaged despite issue)
+        // Archived/inactive connections should ONLY be counted in archived tab, not engagement tabs
+        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged)) {
           engagementCounts[engResult.level]++;
         }
 
@@ -1142,10 +1143,11 @@ export async function GET(request: NextRequest) {
           engagementCounts.admin_not_interested++;
         }
 
-        // Count family engagement levels
-        // "All" includes everything (all tabs combined)
-        familyEngagementCounts.all++;
-        familyEngagementCounts[familyEngResult.level]++;
+        // Count family engagement levels (exclude archived/inactive - they don't appear in family tabs)
+        if (!belongsToArchivedTab && !isProviderDeclined) {
+          familyEngagementCounts.all++;
+          familyEngagementCounts[familyEngResult.level]++;
+        }
 
         // Funnel stats (based on provider engagement)
         // Viewed = opened lead drawer
@@ -1236,9 +1238,16 @@ export async function GET(request: NextRequest) {
         list = list.filter((c) => c.adminOverride?.status === "not_interested" && !c.isProviderArchived && !c.isProviderInactive);
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
+        // Exclude inactive/archived providers - these are dead connections
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
         if (isFamilyEngagementFilter) {
-          list = list.filter((c) => connectionFamilyEngagementLevels.get(c.id) === responseFilter);
+          list = list.filter((c) => {
+            const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+            return connectionFamilyEngagementLevels.get(c.id) === responseFilter &&
+              !c.isProviderArchived &&
+              !c.isProviderInactive &&
+              !isConnectionArchivedByAdmin;
+          });
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);

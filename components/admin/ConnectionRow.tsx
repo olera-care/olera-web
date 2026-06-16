@@ -1053,12 +1053,13 @@ export default function ConnectionRow({
             )}
             <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>
-          {/* Secondary line: care type + timeline | waiting status | nudge info | archive badge | no email badge */}
+          {/* Secondary line: care type (+ timeline for family perspective) | waiting status | nudge info | badges */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-            {(careType || timeline) && (
+            {/* Show category always, timeline only for family perspective */}
+            {(careType || (perspective === "family" && timeline)) && (
               <>
                 <span className="truncate">
-                  {careType}{careType && timeline ? " · " : ""}{timeline}
+                  {careType}{careType && perspective === "family" && timeline ? " · " : ""}{perspective === "family" ? timeline : ""}
                 </span>
                 <span className="text-gray-300">|</span>
               </>
@@ -1101,41 +1102,47 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
-            {/* Verification badges for claimed providers needing action */}
-            {c.provider.isAccountClaimed && c.provider.verificationState && (
-              c.provider.verificationState === "pending" ? (
-                <>
-                  <span className="text-gray-300">|</span>
-                  <a
-                    href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-                    title="Click to review verification"
-                  >
-                    Pending Verification
-                  </a>
-                </>
-              ) : c.provider.verificationState === "unverified" ? (
-                <>
-                  <span className="text-gray-300">|</span>
-                  <a
-                    href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
-                    title="Click to verify this provider"
-                  >
-                    Needs Verification
-                  </a>
-                </>
-              ) : c.provider.verificationState === "rejected" ? (
-                <>
-                  <span className="text-gray-300">|</span>
-                  <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                    Rejected
-                  </span>
-                </>
-              ) : null
-            )}
+            {/* Claim/Verification status badges */}
+            {!c.provider.isAccountClaimed ? (
+              // Unclaimed provider - show gray badge
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded">
+                  Unclaimed
+                </span>
+              </>
+            ) : c.provider.verificationState === "pending" ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <a
+                  href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+                  title="Click to review verification"
+                >
+                  Pending Verification
+                </a>
+              </>
+            ) : c.provider.verificationState === "unverified" ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <a
+                  href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+                  title="Click to verify this provider"
+                >
+                  Needs Verification
+                </a>
+              </>
+            ) : c.provider.verificationState === "rejected" ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                  Rejected
+                </span>
+              </>
+            ) : null}
           </div>
         </button>
 

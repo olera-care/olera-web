@@ -2860,7 +2860,7 @@ export default function ProviderLeadsPage() {
                 isVerified={isVerified}
                 onClose={closeDrawer}
                 onPhoneClick={(leadId) => {
-                  if (!providerProfile) return;
+                  if (!providerProfile || !leadId) return;
                   const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
                   fetch("/api/activity/track", {
                     method: "POST",
@@ -2873,7 +2873,7 @@ export default function ProviderLeadsPage() {
                   }).catch(() => {});
                 }}
                 onEmailClick={(leadId) => {
-                  if (!providerProfile) return;
+                  if (!providerProfile || !leadId) return;
                   const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
                   fetch("/api/activity/track", {
                     method: "POST",
@@ -2886,7 +2886,7 @@ export default function ProviderLeadsPage() {
                   }).catch(() => {});
                 }}
                 onContinueInInbox={(leadId) => {
-                  if (!providerProfile) return;
+                  if (!providerProfile || !leadId) return;
                   const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
                   fetch("/api/activity/track", {
                     method: "POST",
@@ -2925,7 +2925,7 @@ export default function ProviderLeadsPage() {
         onRestore={handleRestoreLead}
         onArchiveClick={setLeadIdToArchive}
         onPhoneClick={(leadId) => {
-          if (!providerProfile) return;
+          if (!providerProfile || !leadId) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",
@@ -2938,7 +2938,7 @@ export default function ProviderLeadsPage() {
           }).catch(() => {});
         }}
         onEmailClick={(leadId) => {
-          if (!providerProfile) return;
+          if (!providerProfile || !leadId) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",
@@ -2951,7 +2951,7 @@ export default function ProviderLeadsPage() {
           }).catch(() => {});
         }}
         onContinueInInbox={(leadId) => {
-          if (!providerProfile) return;
+          if (!providerProfile || !leadId) return;
           const providerKey = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
           fetch("/api/activity/track", {
             method: "POST",

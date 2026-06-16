@@ -1227,15 +1227,8 @@ export default function ConversationPanel({
               );
             }
 
-            // Quick reply response messages (show nudge banner for providers)
+            // Quick reply response messages
             if (msg.type === "quick_reply_response") {
-              const familyFirstName = (() => {
-                const name = connection.type === "inquiry"
-                  ? connection.fromProfile?.display_name
-                  : connection.toProfile?.display_name;
-                return name?.split(" ")[0] || "Care seeker";
-              })();
-
               return (
                 <div key={i} className={isGrouped ? "mt-0.5" : ""} style={isGrouped ? { marginTop: '2px' } : undefined}>
                   {showSeparator && (

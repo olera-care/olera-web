@@ -310,8 +310,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       familyFallbackEmails.forEach(e => foundIds.add(e.id));
     }
 
-    // 3. Query provider emails by provider_id (for older emails without connection_id)
-    // Use direction-aware providerProfileId
+    // 3. Query ALL provider emails by provider_id (full history, not just this connection)
+    // This shows every email we've ever sent to this provider - claim emails, marketing,
+    // emails about other leads, etc. - to understand what brought them in.
     const emailProviderKeys = [
       providerProfileId,
       provider?.slug,
@@ -326,18 +327,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
         )
         .in("provider_id", emailProviderKeys)
-        .in("email_type", PROVIDER_FALLBACK_EMAIL_TYPES)
-        .gte("created_at", c.created_at)
+        // No email_type filter - show ALL emails to this provider
+        // No date filter - show emails from before this connection too
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
 
-      // Filter out emails that have connection_id for a DIFFERENT connection
+      // Only filter out duplicates (already found by connection_id query)
+      // Include emails for other connections to show full provider history
       providerFallbackEmails = (providerIdLogs ?? []).filter(e => {
-        if (foundIds.has(e.id)) return false; // Already found
-        const emailMeta = e.metadata as Record<string, unknown> | null;
-        const emailConnId = emailMeta?.connection_id as string | undefined;
-        // Include if: no connection_id, or connection_id matches this connection
-        return !emailConnId || emailConnId === c.id;
+        return !foundIds.has(e.id); // Only exclude duplicates
       }) as EmailLogRow[];
     }
 
@@ -352,7 +350,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
         return bTime - aTime;
       })
-      .slice(0, 30) as EmailLogRow[];
+      .slice(0, 100) as EmailLogRow[]; // Increased limit for full provider history
 
     // Family nudge info
     const familyNudgeCount = (meta.family_nudge_count as number) || 0;

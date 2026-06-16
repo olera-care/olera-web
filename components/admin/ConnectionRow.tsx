@@ -1803,7 +1803,15 @@ export default function ConnectionRow({
               </div>
 
               {/* Section 4: Email trail (collapsed by default) */}
-              {detail.emails.length > 0 && (
+              {/* Filter emails by perspective: provider view = provider emails, family view = family emails */}
+              {(() => {
+                const filteredEmails = detail.emails.filter(e =>
+                  perspective === "family"
+                    ? e.recipient_type === "family"
+                    : e.recipient_type !== "family"
+                );
+                if (filteredEmails.length === 0) return null;
+                return (
                 <div>
                   <button
                     type="button"
@@ -1817,12 +1825,12 @@ export default function ConnectionRow({
                     >
                       <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
                     </svg>
-                    Show {detail.emails.length} email{detail.emails.length !== 1 ? "s" : ""} sent
+                    Show {filteredEmails.length} email{filteredEmails.length !== 1 ? "s" : ""} sent
                   </button>
 
                   {showEmails && (
                     <div className="mt-2 bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                      {detail.emails.map((e) => (
+                      {filteredEmails.map((e) => (
                         <div key={e.id}>
                           <button
                             type="button"
@@ -1890,7 +1898,8 @@ export default function ConnectionRow({
                     </div>
                   )}
                 </div>
-              )}
+                );
+              })()}
             </div>
           ) : null}
         </div>

@@ -1193,9 +1193,7 @@ export default function ConnectionsTrackerPage() {
                   key={c.id}
                   c={c}
                   perspective={perspective}
-                  engagement={
-                    c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
-                  }
+                  engagement={list.engagement[c.id]}
                   onConnectionAction={handleConnectionAction}
                   onNudgeSuccess={fetchConnections}
                 />

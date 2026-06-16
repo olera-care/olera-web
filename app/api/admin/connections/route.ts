@@ -1038,6 +1038,12 @@ export async function GET(request: NextRequest) {
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
 
+      // DIAGNOSTIC: Log mismatch cases to trace the bug
+      // If lead_opened is true but result is needs_follow_up, something is wrong
+      if (engagementData.leadOpened && engResult.level === "needs_follow_up") {
+        console.error(`[BUG] lead_opened=true but level=needs_follow_up: connection=${c.id}, provider=${c.provider.display_name}, providerIsClaimed=${providerIsClaimed}, raw_lead_opened=${eng?.lead_opened}, effectiveLeadOpened=${effectiveLeadOpened}, sequenceComplete=${engagementData.followupStage != null && engagementData.followupStage >= 3}`);
+      }
+
       // Store badge data using the SAME computed values as engagement level
       // This ensures badge displays match tab placement
       // CRITICAL: lead_opened uses effectiveLeadOpened (respects providerIsClaimed check)
@@ -1334,6 +1340,12 @@ export async function GET(request: NextRequest) {
       const badge = connectionBadgeData.get(c.id);
       if (badge) {
         engagement[c.id] = badge;
+
+        // DIAGNOSTIC: Final check - badge vs engagement level mismatch
+        const engLevel = connectionEngagementLevels.get(c.id);
+        if (badge.lead_opened && engLevel !== "viewed" && engLevel !== "connected") {
+          console.error(`[BUG] Badge shows viewed but tab=${engLevel}: connection=${c.id}, provider=${c.provider.display_name}`);
+        }
       }
     }
 

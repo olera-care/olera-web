@@ -5,26 +5,23 @@
  * The numbers below are conservative INDUSTRY benchmarks for non-medical home
  * care lead-gen (June 2026 research) — NOT Olera first-party data, which is too
  * thin this early to anchor on. The moment the pilot produces a real
- * spend -> `delivered` ratio, replace the band + per-stop copy here and the UI
- * needs no changes.
+ * spend -> `delivered` ratio, replace the ranges + copy here and the UI needs no
+ * changes.
  *
  * Why these numbers (sources in plans/managed-ads-budget-step-plan.md §9):
  *  - Non-medical home care is *local personal-services* economics, NOT assisted
  *    living facilities (whose $250-$700 CPL does NOT apply here).
  *  - Home-care search CPC ~$6-$18; realistic effective CPL ~$80-$150 (optimized
- *    best case ~$40-$55). Click->lead ~8-15%, and the conversion happens on the
- *    Olera provider page, so page completeness *is* the conversion rate.
- *  - $50-$300 are micro-budgets — an order of magnitude below the ~$1,500/mo the
- *    specialists call "minimum viable" — so they run at the WORSE end of CPL with
- *    lumpy volume. The copy reflects that honestly: low budgets promise
- *    visibility, not a lead count.
+ *    best case ~$40-$55). The per-stop ranges below are budget / $80-$150 CPL,
+ *    floored conservatively because micro-budgets run at the worse end with lumpy
+ *    volume. Click->lead happens on the Olera page, so completeness = conversion.
  *
- * The honesty model: as the budget rises, the estimate shifts from REACH language
- * (no lead count) to LEAD language (a range). The provider feels "more spend ->
- * real leads" without being lectured. The whole "you must spend for real leads"
- * message is BUDGET_HONEST_LINE + BUDGET_ESTIMATE_CAVEAT — two lines, no warning
- * paragraph. The caveat hands off to the live `delivered` counter (the truthful
- * payoff that justifies not promising leads upfront).
+ * The honesty model: as the budget rises, the estimate shifts from REACH framing
+ * ($50 = "You're live", NO number) to a LEAD range. The provider feels "more
+ * spend -> real leads" without a lecture. The whole "you must spend for real
+ * leads" message is the recommended-tier marker + BUDGET_HONEST_LINE +
+ * BUDGET_ESTIMATE_CAVEAT — which bridges to the live `delivered` counter (the
+ * truthful payoff that justifies not promising leads upfront).
  */
 
 export type BudgetStop = {
@@ -32,18 +29,26 @@ export type BudgetStop = {
   value: number;
   /** Pill label, e.g. "$150/mo". */
   label: string;
-  /** Small qualifier under the label (e.g. "on us", "Recommended for steady leads"). */
+  /** Small qualifier under the amount (e.g. "on us"). Omitted for the recommended
+   *  stop, which gets a "Recommended" pill instead. */
   note?: string;
-  /** The single quiet marker — the steady-leads anchor. */
+  /** The single quiet marker — the steady-leads anchor (renders a pill). */
   recommended?: boolean;
-  /** "reach" stops promise visibility (no lead count); "leads" stops give a range. */
+  /** "reach" promises visibility (no lead count); "leads" gives a range. */
   kind: "reach" | "leads";
-  /** The estimate line shown in the summary when this stop is selected. */
+  /** The BIG focal line. Leads -> a range ("2–4"); reach -> a short phrase. */
+  headline: string;
+  /** Unit shown beside a leads range (omitted for reach). */
+  unit?: string;
+  /** Supporting one-liner under the headline. */
   estimate: string;
 };
 
 /** Where steady, consistent lead flow honestly begins (the anchor in the copy). */
 export const STEADY_LEADS_THRESHOLD = 600;
+
+/** Sensible default so the budget step opens with its payoff already visible. */
+export const DEFAULT_BUDGET = 150;
 
 export const BUDGET_STOPS: BudgetStop[] = [
   {
@@ -51,27 +56,33 @@ export const BUDGET_STOPS: BudgetStop[] = [
     label: "$50",
     note: "on us",
     kind: "reach",
-    estimate: "You're live — local families start seeing your page.",
+    headline: "You're live",
+    estimate: "Local families start seeing your page.",
   },
   {
     value: 150,
     label: "$150/mo",
     kind: "leads",
-    estimate: "A few inquiries a month — enough to learn what families respond to.",
+    headline: "1–2",
+    unit: "inquiries / mo",
+    estimate: "Enough to learn what families respond to.",
   },
   {
     value: 300,
     label: "$300/mo",
     kind: "leads",
-    estimate: "Roughly 2–5 inquiries a month.",
+    headline: "2–4",
+    unit: "inquiries / mo",
+    estimate: "A steady read on what your market sends.",
   },
   {
     value: STEADY_LEADS_THRESHOLD,
     label: "$600+/mo",
-    note: "Recommended for steady leads",
     recommended: true,
     kind: "leads",
-    estimate: "Steady, consistent inquiries — the level most agencies run for real flow.",
+    headline: "4–8",
+    unit: "inquiries / mo",
+    estimate: "Consistent flow — the level most agencies run for.",
   },
 ];
 
@@ -95,4 +106,9 @@ export function budgetStop(value: number | null | undefined): BudgetStop | null 
 /** Human label for a stored budget value (e.g. for the summary / in-motion echo). */
 export function budgetLabel(value: number | null | undefined): string | null {
   return budgetStop(value)?.label ?? null;
+}
+
+/** Compact estimate for the summary card, e.g. "≈ 2–4 inquiries / mo" or "You're live". */
+export function estimateSummary(stop: BudgetStop): string {
+  return stop.kind === "leads" ? `≈ ${stop.headline} ${stop.unit}` : stop.headline;
 }

@@ -21,7 +21,9 @@ import {
   BUDGET_STOPS,
   BUDGET_HONEST_LINE,
   BUDGET_ESTIMATE_CAVEAT,
+  DEFAULT_BUDGET,
   budgetStop,
+  estimateSummary,
   type BudgetStop,
 } from "@/lib/ad-boost/estimate";
 
@@ -64,7 +66,9 @@ export default function ProviderBoostPage() {
 
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
   const [channel, setChannel] = useState<string>("both");
-  const [selectedBudget, setSelectedBudget] = useState<number | null>(null);
+  // Pre-selected so the budget step opens with its estimate already visible
+  // (anticipate the need, surface the payoff) — freely changeable.
+  const [selectedBudget, setSelectedBudget] = useState<number | null>(DEFAULT_BUDGET);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -651,7 +655,7 @@ function ApplyExperience({
               starting point; you can change it anytime.
             </p>
 
-            <fieldset className="mt-8">
+            <fieldset className="mt-8 pt-2">
               <legend className="sr-only">Monthly budget</legend>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {BUDGET_STOPS.map((b) => {
@@ -661,19 +665,22 @@ function ApplyExperience({
                       key={b.value}
                       type="button"
                       onClick={() => setSelectedBudget(b.value)}
-                      className={`rounded-xl border px-3 py-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
+                      className={`relative rounded-2xl border px-4 py-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
                         active
-                          ? "border-primary-500 bg-primary-50/60"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? "border-primary-500 bg-primary-50/60 shadow-[0_8px_24px_-12px_rgba(42,24,16,0.18)]"
+                          : "border-gray-200 hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-[0_6px_18px_-12px_rgba(42,24,16,0.18)]"
                       }`}
                     >
-                      <span className={`block text-sm font-semibold ${active ? "text-primary-700" : "text-gray-900"}`}>
+                      {b.recommended && (
+                        <span className="absolute -top-2.5 left-3 inline-flex rounded-full bg-primary-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                          Recommended
+                        </span>
+                      )}
+                      <span className={`block text-lg font-semibold tracking-tight ${active ? "text-primary-700" : "text-gray-900"}`}>
                         {b.label}
                       </span>
                       {b.note && (
-                        <span className={`block text-xs mt-0.5 leading-tight ${b.recommended ? "text-primary-600" : "text-gray-400"}`}>
-                          {b.note}
-                        </span>
+                        <span className="block text-xs mt-0.5 text-gray-400">{b.note}</span>
                       )}
                     </button>
                   );
@@ -681,9 +688,26 @@ function ApplyExperience({
               </div>
             </fieldset>
 
-            {/* Mobile-only estimate echo (summary card stacks below the fold). */}
+            {/* Estimate HERO — the payoff of this step, big and central. The
+                range answers "what do I get?" right where the eye is; reach tier
+                ($50) shows a phrase, no fake number. The caveat lives in the
+                summary card (not duplicated here) to keep this bold. */}
             {stop && (
-              <p className="lg:hidden mt-6 text-sm text-gray-600 leading-relaxed">{stop.estimate}</p>
+              <div key={stop.value} className="mt-9 animate-[fadeIn_180ms_ease-out]">
+                {stop.kind === "leads" ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-display font-bold text-5xl text-gray-900 tabular-nums tracking-tight">
+                      {stop.headline}
+                    </span>
+                    <span className="text-lg text-gray-500">{stop.unit}</span>
+                  </div>
+                ) : (
+                  <p className="font-display font-bold text-3xl text-gray-900 tracking-tight">
+                    {stop.headline}
+                  </p>
+                )}
+                <p className="mt-2.5 text-gray-500 leading-relaxed max-w-md">{stop.estimate}</p>
+              </div>
             )}
 
             {/* The one honest line — factual + social-proofed, not a warning. */}
@@ -789,18 +813,22 @@ function ApplyExperience({
           stop={stop}
         />
 
-        {/* Value props — quiet, scannable proof. Not a competing grid. */}
-        <ul className="space-y-3.5 px-1">
-          {VALUE_PROPS.map((p) => (
-            <li key={p.title} className="flex gap-2.5">
-              <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
-              <span className="text-sm leading-snug">
-                <span className="font-medium text-gray-900">{p.title}</span>
-                <span className="text-gray-500"> — {p.tail}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* Value props — quiet, scannable proof, only on the entry step. On the
+            budget step the estimate hero is the focus; on confirm the review is
+            self-contained — repeating the props there is dead column. */}
+        {step === 0 && (
+          <ul className="space-y-3.5 px-1">
+            {VALUE_PROPS.map((p) => (
+              <li key={p.title} className="flex gap-2.5">
+                <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
+                <span className="text-sm leading-snug">
+                  <span className="font-medium text-gray-900">{p.title}</span>
+                  <span className="text-gray-500"> — {p.tail}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </aside>
     </div>
   );
@@ -857,9 +885,10 @@ function CampaignSummary({
       <div className="mt-5 pt-5 border-t border-gray-100">
         {stop ? (
           <>
-            {/* The estimate text cross-fades on selection (keyed) — calm, no jump. */}
-            <p key={stop.value} className="text-sm text-gray-700 leading-relaxed animate-[fadeIn_150ms_ease-out]">
-              {stop.estimate}
+            {/* Compact estimate (the big version lives in the left hero on the
+                budget step). Cross-fades on selection (keyed) — calm, no jump. */}
+            <p key={stop.value} className="text-sm font-medium text-gray-900 animate-[fadeIn_150ms_ease-out]">
+              {estimateSummary(stop)}
             </p>
             <p className="mt-2 text-xs text-gray-400 leading-relaxed">{BUDGET_ESTIMATE_CAVEAT}</p>
             {!eligible && (

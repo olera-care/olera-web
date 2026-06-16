@@ -11,6 +11,7 @@ interface CampaignRequest {
   completeness_at_submit: number | null;
   status: string;
   channel: string | null;
+  intended_monthly_budget: number | null;
   campaign_tag: string | null;
   admin_note: string | null;
   created_at: string;
@@ -154,8 +155,11 @@ function RequestRow({
           </a>
           <p className="text-xs text-gray-400 mt-0.5">
             {request.completeness_at_submit ?? "—"}% complete at submit · setup week{" "}
-            {request.requested_setup_week} · requested{" "}
-            {new Date(request.created_at).toLocaleDateString()}
+            {request.requested_setup_week}
+            {request.intended_monthly_budget != null && (
+              <> · budget ${request.intended_monthly_budget}/mo (confirm)</>
+            )}{" "}
+            · requested {new Date(request.created_at).toLocaleDateString()}
           </p>
         </div>
         <div className="flex items-center gap-2.5">

@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
 import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
+import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
 
 /**
  * Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — campaign request.
@@ -35,7 +36,7 @@ export async function GET() {
   const db = getServiceClient();
   let { data: latest } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -56,7 +57,7 @@ export async function GET() {
       })
       .eq("id", latest.id)
       .eq("status", "pending_profile") // guard against a double-promote race
-      .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
       .maybeSingle();
 
     if (promoted) {
@@ -71,6 +72,7 @@ export async function GET() {
         completeness: elig.eligibility.overall,
         setupWeek: promoted.requested_setup_week,
         channel: promoted.channel,
+        budget: promoted.intended_monthly_budget,
         launchReady: true,
       });
       await sendSlackAlert(alert.text, alert.blocks);
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
   // not entry. No 403; commitment-first is the whole point.
   const queued = !elig.eligibility.eligible;
 
-  let body: { setupWeek?: unknown; channel?: unknown };
+  let body: { setupWeek?: unknown; channel?: unknown; intendedMonthlyBudget?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -143,12 +145,29 @@ export async function POST(request: NextRequest) {
     channel = body.channel;
   }
 
+  // ── Validate optional intended budget ── (non-binding; seeds the concierge
+  // conversation, NOT a charge). Allowlisted to the budget stops so the value is
+  // always concrete — an arbitrary number can't sneak in.
+  let intendedMonthlyBudget: number | null = null;
+  if (body.intendedMonthlyBudget != null) {
+    if (
+      typeof body.intendedMonthlyBudget !== "number" ||
+      !BUDGET_VALUES.includes(body.intendedMonthlyBudget)
+    ) {
+      return NextResponse.json(
+        { error: `intendedMonthlyBudget must be one of: ${BUDGET_VALUES.join(", ")}` },
+        { status: 400 },
+      );
+    }
+    intendedMonthlyBudget = body.intendedMonthlyBudget;
+  }
+
   const db = getServiceClient();
 
   // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
     .eq("provider_id", elig.profileId)
     .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
@@ -172,9 +191,10 @@ export async function POST(request: NextRequest) {
       requested_setup_week: setupWeek,
       completeness_at_submit: elig.eligibility.overall,
       channel,
+      intended_monthly_budget: intendedMonthlyBudget,
       status: queued ? "pending_profile" : "requested",
     })
-    .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
     .single();
 
   if (insertError || !inserted) {
@@ -198,6 +218,7 @@ export async function POST(request: NextRequest) {
       completeness: elig.eligibility.overall,
       setupWeek,
       channel,
+      budget: intendedMonthlyBudget,
     });
     await sendSlackAlert(alert.text, alert.blocks);
   }

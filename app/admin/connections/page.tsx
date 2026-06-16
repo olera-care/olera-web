@@ -530,8 +530,8 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Action dialog state - supports Mark Connected, Archive Provider, Unarchive
-  type ActionType = "mark_connected" | "archive_provider" | "unarchive_lead";
+  // Action dialog state - supports Mark Connected, Mark Not Interested, Archive Provider, Unarchive
+  type ActionType = "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead";
   const [pendingAction, setPendingAction] = useState<{
     connectionId: string;
     providerId: string | null;
@@ -551,6 +551,15 @@ export default function ConnectionsTrackerPage() {
     "Confirmed via phone call",
     "Confirmed via email",
     "Provider confirmed in portal",
+    "Other",
+  ] as const;
+
+  // Mark Not Interested reason options
+  const MARK_NOT_INTERESTED_REASONS = [
+    "Not a fit for family's needs",
+    "Not accepting new clients",
+    "Unable to reach family",
+    "Provider requested no more leads",
     "Other",
   ] as const;
 
@@ -741,6 +750,30 @@ export default function ConnectionsTrackerPage() {
           }),
         });
         successMessage = "Marked as connected";
+
+      } else if (selectedAction === "mark_not_interested") {
+        // Mark as Not Interested API
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "not_interested",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as not interested";
 
       } else if (selectedAction === "unarchive_lead") {
         // Unarchive Lead API (via leads page)
@@ -1238,6 +1271,24 @@ export default function ConnectionsTrackerPage() {
                   </div>
                 </button>
 
+                {/* Mark Not Interested - admin confirms provider declined during phone call */}
+                <button
+                  onClick={() => setSelectedAction("mark_not_interested")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Mark Not Interested</p>
+                      <p className="text-xs text-gray-500">Provider declined during admin phone call</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Archive Provider */}
                 {pendingAction.providerId && (
                   <button
@@ -1319,6 +1370,37 @@ export default function ConnectionsTrackerPage() {
                   </>
                 )}
 
+                {/* Mark Not Interested form */}
+                {selectedAction === "mark_not_interested" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will archive the lead as declined and stop follow-up emails. The lead will appear in the Declined tab with a &ldquo;Not interested (admin)&rdquo; badge.
+                    </p>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">Why is provider not interested?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_NOT_INTERESTED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe the reason..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
+                )}
+
                 {/* Unarchive Lead confirmation */}
                 {selectedAction === "unarchive_lead" && (
                   <p className="text-sm text-gray-600">
@@ -1384,11 +1466,15 @@ export default function ConnectionsTrackerPage() {
                       disabled={
                         actionLoading ||
                         (selectedAction === "mark_connected" && !actionReason) ||
-                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim())
+                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
+                        (selectedAction === "mark_not_interested" && !actionReason) ||
+                        (selectedAction === "mark_not_interested" && actionReason === "Other" && !actionNotes.trim())
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
                         selectedAction === "mark_connected"
                           ? "bg-green-600 hover:bg-green-700"
+                          : selectedAction === "mark_not_interested"
+                          ? "bg-orange-600 hover:bg-orange-700"
                           : selectedAction === "archive_provider"
                           ? pendingAction.isProviderArchived ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
                           : "bg-blue-600 hover:bg-blue-700"
@@ -1398,6 +1484,8 @@ export default function ConnectionsTrackerPage() {
                         ? "Processing..."
                         : selectedAction === "mark_connected"
                         ? "Mark Connected"
+                        : selectedAction === "mark_not_interested"
+                        ? "Mark Not Interested"
                         : selectedAction === "unarchive_lead"
                         ? "Unarchive"
                         : pendingAction.isProviderArchived

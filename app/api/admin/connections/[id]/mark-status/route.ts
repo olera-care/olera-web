@@ -12,7 +12,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  */
 
 interface MarkStatusRequest {
-  status: "connected";
+  status: "connected" | "not_interested";
   reason: string;
   notes?: string;
 }
@@ -37,9 +37,9 @@ export async function POST(
     const { status, reason, notes } = body;
 
     // Validate inputs
-    if (status !== "connected") {
+    if (status !== "connected" && status !== "not_interested") {
       return NextResponse.json(
-        { error: "Invalid status. Only 'connected' is supported." },
+        { error: "Invalid status. Must be 'connected' or 'not_interested'." },
         { status: 400 }
       );
     }
@@ -97,6 +97,15 @@ export async function POST(
     if (status === "connected") {
       updatedMetadata.followup_stopped_at = new Date().toISOString();
       updatedMetadata.followup_stopped_reason = "admin_marked_connected";
+    }
+
+    // If marking as not_interested, archive the lead and stop email sequence
+    if (status === "not_interested") {
+      updatedMetadata.archived = true;
+      updatedMetadata.archive_reason = reason.trim();
+      updatedMetadata.archived_at = new Date().toISOString();
+      updatedMetadata.followup_stopped_at = new Date().toISOString();
+      updatedMetadata.followup_stopped_reason = "admin_declined";
     }
 
     // Update connection

@@ -64,7 +64,7 @@ export interface ConnectionRowData {
   alreadyConnected?: boolean;
   /** Admin manually marked this connection (verified off-platform activity) */
   adminOverride?: {
-    status: "viewed" | "connected";
+    status: "viewed" | "connected" | "not_interested";
     marked_at: string;
     marked_by_email?: string;
     reason: string;
@@ -239,7 +239,7 @@ function EngagementBadges({
   markedReplied?: boolean;
   alreadyConnected?: boolean;
   adminOverride?: {
-    status: "viewed" | "connected";
+    status: "viewed" | "connected" | "not_interested";
     reason: string;
   } | null;
   compact?: boolean;
@@ -251,7 +251,9 @@ function EngagementBadges({
 
   // Build badges with specific labels for what the provider did
   const adminVerifiedLabel = adminOverride
-    ? `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
+    ? adminOverride.status === "not_interested"
+      ? "Not interested (admin)"
+      : `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
     : "";
 
   const badges: { icon: string; label: string; active: boolean; highlight?: boolean }[] = [
@@ -1079,7 +1081,8 @@ export default function ConnectionRow({
               </>
             )}
             {/* Archive badge - show when provider archived/declined the lead */}
-            {c.archived && c.archiveReason && (
+            {/* Skip if admin marked "not_interested" - that badge is shown via EngagementBadges */}
+            {c.archived && c.archiveReason && c.adminOverride?.status !== "not_interested" && (
               <>
                 <span className="text-gray-300">|</span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600" title={c.archivedAt ? `Archived ${daysAgo(c.archivedAt)}` : "Archived"}>

@@ -40,7 +40,7 @@ export type FamilyEngagementLevel =
  * Used when admins verify off-platform activity (phone calls, in-person, etc.)
  */
 export interface AdminOverride {
-  status: "viewed" | "connected";
+  status: "viewed" | "connected" | "not_interested";
   marked_at: string;
   marked_by: string;
   marked_by_email?: string;
@@ -58,7 +58,7 @@ export function parseAdminOverride(value: unknown): AdminOverride | null {
   const obj = value as Record<string, unknown>;
 
   // Validate required fields
-  if (typeof obj.status !== "string" || (obj.status !== "viewed" && obj.status !== "connected")) {
+  if (typeof obj.status !== "string" || (obj.status !== "viewed" && obj.status !== "connected" && obj.status !== "not_interested")) {
     return null;
   }
   if (typeof obj.marked_at !== "string") return null;
@@ -74,7 +74,7 @@ export function parseAdminOverride(value: unknown): AdminOverride | null {
   }
 
   return {
-    status: obj.status as "viewed" | "connected",
+    status: obj.status as "viewed" | "connected" | "not_interested",
     marked_at: obj.marked_at,
     marked_by: obj.marked_by,
     marked_by_email: obj.marked_by_email as string | undefined,

@@ -65,7 +65,17 @@ export async function GET(request: NextRequest) {
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
   }));
 
-  return NextResponse.json({ requests: withRoi });
+  // Tab counts (active vs archived) so both tabs show a number regardless of
+  // which view is loaded. Cheap head-only count queries.
+  const [{ count: activeCount }, { count: archivedCount }] = await Promise.all([
+    db.from("ad_campaign_requests").select("*", { count: "exact", head: true }).is("deleted_at", null),
+    db.from("ad_campaign_requests").select("*", { count: "exact", head: true }).not("deleted_at", "is", null),
+  ]);
+
+  return NextResponse.json({
+    requests: withRoi,
+    counts: { active: activeCount ?? 0, archived: archivedCount ?? 0 },
+  });
 }
 
 export async function POST(request: NextRequest) {

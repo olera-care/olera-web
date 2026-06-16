@@ -535,8 +535,8 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Action dialog state - supports Mark Connected, Mark Not Interested, Archive Provider, Unarchive
-  type ActionType = "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead";
+  // Action dialog state - supports Mark Connected, Mark Not Interested, Archive Provider, Unarchive, Hide
+  type ActionType = "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead" | "hide_connection";
   const [pendingAction, setPendingAction] = useState<{
     connectionId: string;
     providerId: string | null;
@@ -824,6 +824,15 @@ export default function ConnectionsTrackerPage() {
           }),
         });
         successMessage = pendingAction.isProviderArchived ? "Provider unarchived" : "Provider archived";
+
+      } else if (selectedAction === "hide_connection") {
+        // Hide Connection API
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/hide`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hide" }),
+        });
+        successMessage = "Connection hidden";
 
       } else {
         setActionError("Unknown action");
@@ -1335,6 +1344,24 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
+                {/* Hide Connection - for cleaning up test data */}
+                <button
+                  onClick={() => setSelectedAction("hide_connection")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Hide Connection</p>
+                      <p className="text-xs text-gray-500">Remove from admin view (test data cleanup)</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Cancel button */}
                 <div className="pt-2 flex justify-end">
                   <button
@@ -1493,6 +1520,27 @@ export default function ConnectionsTrackerPage() {
                   </div>
                 )}
 
+                {/* Hide Connection confirmation */}
+                {selectedAction === "hide_connection" && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      This will hide the connection from the admin connections page.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-xs text-blue-800 font-medium mb-1">This is safe:</p>
+                      <ul className="text-xs text-blue-700 space-y-0.5 ml-3 list-disc">
+                        <li>Data stays in database (not deleted)</li>
+                        <li>Provider still sees the lead in their portal</li>
+                        <li>Family experience unchanged</li>
+                        <li>Email sequences continue normally</li>
+                      </ul>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Use this to clean up test data from the admin view.
+                    </p>
+                  </div>
+                )}
+
                 {/* Error display */}
                 {actionError && (
                   <p className="text-xs text-red-600">{actionError}</p>
@@ -1540,6 +1588,8 @@ export default function ConnectionsTrackerPage() {
                           ? "bg-orange-600 hover:bg-orange-700"
                           : selectedAction === "archive_provider"
                           ? pendingAction.isProviderArchived ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
+                          : selectedAction === "hide_connection"
+                          ? "bg-gray-600 hover:bg-gray-700"
                           : "bg-blue-600 hover:bg-blue-700"
                       }`}
                     >
@@ -1551,6 +1601,8 @@ export default function ConnectionsTrackerPage() {
                         ? "Mark Not Interested"
                         : selectedAction === "unarchive_lead"
                         ? "Unarchive"
+                        : selectedAction === "hide_connection"
+                        ? "Hide Connection"
                         : pendingAction.isProviderArchived
                         ? "Unarchive Provider"
                         : "Archive Provider"

@@ -698,17 +698,22 @@ export async function GET(request: NextRequest) {
           archivedBy: providerMeta.admin_archived_by as string | null,
           archivedAt: providerMeta.admin_archived_at as string | null,
         } : null,
+        // Admin hidden flag - hides from admin UI without affecting anything else
+        adminHidden: meta.admin_hidden === true,
       };
     });
 
-    // Search filter (family or provider name) — applied to the full set.
+    // Filter out admin-hidden connections FIRST - they don't appear anywhere in admin UI
+    const visible = all.filter(c => !c.adminHidden);
+
+    // Search filter (family or provider name) — applied to the visible set.
     const searched = search
-      ? all.filter(
+      ? visible.filter(
           (c) =>
             (c.family.display_name || "").toLowerCase().includes(search) ||
             (c.provider.display_name || "").toLowerCase().includes(search)
         )
-      : all;
+      : visible;
 
     // Build provider keys for engagement lookup
     const allProviderKeys = [...new Set(

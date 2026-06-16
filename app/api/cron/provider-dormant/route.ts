@@ -178,6 +178,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Skip if provider is admin-archived (no emails sent to them)
+      if (meta.admin_archived === true) {
+        counts.skipped++;
+        continue;
+      }
+
       const providerName = provider.display_name || "your organization";
 
       // Calculate days since last activity

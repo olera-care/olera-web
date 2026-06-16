@@ -14,7 +14,7 @@
  */
 
 export type EngagementLevel =
-  | "new"
+  | "awaiting"  // Renamed from "new" - provider hasn't engaged, automation still working
   | "viewed"
   | "connected"
   | "needs_follow_up";
@@ -40,7 +40,7 @@ export type FamilyEngagementLevel =
  * Used when admins verify off-platform activity (phone calls, in-person, etc.)
  */
 export interface AdminOverride {
-  status: "viewed" | "connected";
+  status: "viewed" | "connected" | "not_interested";
   marked_at: string;
   marked_by: string;
   marked_by_email?: string;
@@ -58,7 +58,7 @@ export function parseAdminOverride(value: unknown): AdminOverride | null {
   const obj = value as Record<string, unknown>;
 
   // Validate required fields
-  if (typeof obj.status !== "string" || (obj.status !== "viewed" && obj.status !== "connected")) {
+  if (typeof obj.status !== "string" || (obj.status !== "viewed" && obj.status !== "connected" && obj.status !== "not_interested")) {
     return null;
   }
   if (typeof obj.marked_at !== "string") return null;
@@ -74,7 +74,7 @@ export function parseAdminOverride(value: unknown): AdminOverride | null {
   }
 
   return {
-    status: obj.status as "viewed" | "connected",
+    status: obj.status as "viewed" | "connected" | "not_interested",
     marked_at: obj.marked_at,
     marked_by: obj.marked_by,
     marked_by_email: obj.marked_by_email as string | undefined,
@@ -105,9 +105,21 @@ export interface EngagementData {
    * When the follow-up sequence started (Day 0 email sent).
    * For providers who had email from the start, this equals connection creation.
    * For providers who got email added later, this is when email was added.
-   * Used to calculate staleness - provider can't be "stale" before receiving the lead.
    */
   sequenceStartAt?: string | null;
+  /**
+   * Current stage in the follow-up email sequence (0-3).
+   * Stage 0 = Day 0 email sent
+   * Stage 1 = Nudge 1 (Day 3)
+   * Stage 2 = Nudge 2 (Day 7)
+   * Stage 3 = Final nudge (sequence complete)
+   */
+  followupStage?: number | null;
+  /**
+   * Why the follow-up sequence stopped.
+   * "connected" | "responded" | "admin_marked_connected" | "admin_declined" | "needs_call" | etc.
+   */
+  followupStoppedReason?: string | null;
 }
 
 /**
@@ -171,7 +183,7 @@ export const NEEDS_CALL_THRESHOLD_DAYS = PROVIDER_NEEDS_CALL_THRESHOLD_DAYS;
 // ── Labels ──
 
 export const ENGAGEMENT_LABELS: Record<EngagementLevel, string> = {
-  new: "New",
+  awaiting: "Awaiting",
   viewed: "Viewed",
   connected: "Connected",
   needs_follow_up: "Needs Follow-up",
@@ -189,11 +201,11 @@ export const ENGAGEMENT_CONFIG: Record<
   EngagementLevel,
   { label: string; dot: string; text: string; description: string }
 > = {
-  new: {
-    label: "New",
+  awaiting: {
+    label: "Awaiting",
     dot: "bg-blue-400",
     text: "text-blue-700",
-    description: "Lead sent, provider hasn't viewed yet",
+    description: "Provider hasn't engaged yet, automation still working",
   },
   viewed: {
     label: "Viewed",
@@ -211,7 +223,7 @@ export const ENGAGEMENT_CONFIG: Record<
     label: "Needs Follow-up",
     dot: "bg-red-400",
     text: "text-red-600",
-    description: "No activity for 10+ days, requires manual intervention",
+    description: "Email sequence complete, no response - requires manual intervention",
   },
 };
 
@@ -254,90 +266,73 @@ export const FAMILY_ENGAGEMENT_CONFIG: Record<
 /**
  * Calculate the engagement level for a connection based on provider activity.
  *
+ * KEY PRINCIPLE: "Needs Follow-up" is based on SEQUENCE COMPLETION, not time.
+ * Automation should try everything before escalating to humans.
+ *
  * Hierarchy (highest wins):
  *   1. Connected - provider messaged, called, or emailed
  *   2. Viewed - provider opened the lead or showed interest
- *   3. New - no engagement yet
- *   4. Needs Follow-up - no activity for 10+ days (requires manual intervention)
+ *   3. Awaiting - no engagement yet, automation still working
+ *   4. Needs Follow-up - sequence COMPLETE with no response (requires manual intervention)
  */
 export function getEngagementLevel(
   engagement: EngagementData,
   connectionCreatedAt: string,
   now: number = Date.now()
 ): EngagementResult {
-  // Calculate staleness
-  // Use sequenceStartAt (when Day 0 email was sent) if available, otherwise connection creation
-  // This handles providers who got email added later - they can't be "stale" before receiving the lead
+  // Calculate days since activity (for display purposes, not for escalation)
   const connectionCreatedTime = new Date(connectionCreatedAt).getTime();
   const sequenceStartTime = engagement.sequenceStartAt
     ? new Date(engagement.sequenceStartAt).getTime()
     : connectionCreatedTime;
-  // Use the later of: connection creation OR sequence start (handles edge cases)
   const baselineTime = Math.max(connectionCreatedTime, sequenceStartTime);
 
   const providerLastActivity = engagement.lastActivityAt
     ? new Date(engagement.lastActivityAt).getTime()
     : baselineTime;
-  // Use the more recent of: provider's last activity OR baseline
   const lastActivity = Math.max(providerLastActivity, baselineTime);
   const daysSinceActivity = Math.floor((now - lastActivity) / DAY_MS);
-  const isStale = daysSinceActivity >= PROVIDER_STUCK_THRESHOLD_DAYS;
 
-  // Determine base level first (before applying time-based rules)
-  // PRIORITY: Admin override > Automatic tracking
-  let baseLevel: EngagementLevel;
+  // Sequence completion check
+  // Stage 3 = final email sent (sequence complete)
+  // needsCall flag is set explicitly when sequence exhausted
+  // followupStoppedReason === "needs_call" is another explicit signal
+  const sequenceComplete =
+    (engagement.followupStage != null && engagement.followupStage >= 3) ||
+    engagement.needsCall === true ||
+    engagement.followupStoppedReason === "needs_call";
+
+  // isStale is now informational only - we use sequenceComplete for escalation
+  const isStale = sequenceComplete;
+
+  // Determine engagement level
+  // PRIORITY: Admin override > Automatic tracking > Sequence-based escalation
+  let level: EngagementLevel;
 
   if (engagement.adminMarkedConnected) {
     // Admin manually verified this connection (off-platform activity)
     // Takes highest priority - admin has confirmed provider connected
-    baseLevel = "connected";
+    level = "connected";
   } else if (engagement.adminMarkedViewed) {
-    // Admin manually verified provider viewed the lead (off-platform confirmation)
-    // Takes priority over automatic tracking
-    baseLevel = "viewed";
+    // Admin manually verified provider viewed the lead
+    // Keep in viewed tab - admin action always respected
+    level = "viewed";
   } else if (
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked
   ) {
     // Provider reached out - this is success
-    // Connected when: sent message, copied phone, or copied email
-    baseLevel = "connected";
-  } else if (
-    engagement.leadOpened
-  ) {
-    // Provider opened the lead drawer
-    baseLevel = "viewed";
-  } else {
-    // No engagement yet
-    baseLevel = "new";
-  }
-
-  // Determine final engagement level (purely time-based for UI tabs)
-  // - Connected: provider reached out (success) - never becomes needs_follow_up
-  // - Viewed: provider showed interest, keep in their tab and continue sequence
-  // - Admin-marked viewed: can still escalate if very stale (prevents zombie records)
-  // - Needs Follow-up: 10+ days with NO engagement (requires manual intervention)
-  let level: EngagementLevel;
-  if (baseLevel === "connected") {
     level = "connected";
-  } else if (baseLevel === "viewed") {
-    // Check if this is admin-marked viewed vs automatic tracking
-    const isAdminMarkedViewed = engagement.adminMarkedViewed && !engagement.leadOpened && !engagement.contactRevealed;
-
-    if (isAdminMarkedViewed && isStale) {
-      // Admin verified they viewed, but it's been 10+ days with no actual activity
-      // Escalate to needs_follow_up to prevent zombie records stuck in viewed forever
-      level = "needs_follow_up";
-    } else {
-      // Automatic viewed OR admin-marked but not yet stale - keep in viewed tab
-      level = baseLevel;
-    }
-  } else if (isStale) {
-    // 10+ days with NO engagement → needs_follow_up (requires manual intervention)
+  } else if (engagement.leadOpened) {
+    // Provider opened the lead drawer
+    level = "viewed";
+  } else if (sequenceComplete) {
+    // Sequence exhausted with NO engagement → needs manual intervention
     level = "needs_follow_up";
   } else {
-    level = baseLevel;
+    // No engagement yet, automation still working
+    level = "awaiting";
   }
 
   return {
@@ -370,15 +365,15 @@ export function isConnected(engagement: EngagementData): boolean {
  * Lower = more urgent / needs attention.
  *
  * Priority:
- *   1. Needs Follow-up (requires manual intervention)
+ *   1. Needs Follow-up (requires manual intervention - sequence exhausted)
  *   2. Viewed (warm - they looked or showed interest)
- *   3. New (cold - need to nudge)
+ *   3. Awaiting (automation is working on it)
  *   4. Connected (success - just monitoring)
  */
 export const ENGAGEMENT_PRIORITY: Record<EngagementLevel, number> = {
   needs_follow_up: 0, // Urgent - requires manual intervention
   viewed: 1,          // Warm - they looked or showed interest
-  new: 2,             // Cold
+  awaiting: 2,        // Automation working on it
   connected: 3,       // Success - lowest priority (good problem to have)
 };
 

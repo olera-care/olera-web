@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
-      .not("metadata", "cs", JSON.stringify({ archived: true }));
+      .not("metadata", "cs", JSON.stringify({ archived: true }))
+      .not("metadata", "cs", JSON.stringify({ admin_hidden: true }));
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
     if (dateTo) q = q.lte("created_at", dateTo);
 

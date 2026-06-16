@@ -17,7 +17,7 @@ interface ProfileCompleteness {
 }
 
 export type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-export type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+export type EngagementLevel = "awaiting" | "viewed" | "connected" | "needs_follow_up";
 export type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 export type Perspective = "provider" | "family";
 
@@ -44,6 +44,8 @@ export interface ConnectionRowData {
     image_url?: string | null;
     is_active?: boolean;
     completeness?: ProfileCompleteness;
+    /** Provider has claimed their account (linked to an auth user) */
+    isAccountClaimed?: boolean;
   };
   messagePreview?: string;
   responded?: boolean;
@@ -64,7 +66,7 @@ export interface ConnectionRowData {
   alreadyConnected?: boolean;
   /** Admin manually marked this connection (verified off-platform activity) */
   adminOverride?: {
-    status: "viewed" | "connected";
+    status: "viewed" | "connected" | "not_interested";
     marked_at: string;
     marked_by_email?: string;
     reason: string;
@@ -78,6 +80,16 @@ export interface ConnectionRowData {
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
   /** Admin archived this provider - no emails sent to them */
   isProviderArchived?: boolean;
+  /** Archive info when provider is admin-archived */
+  providerArchiveInfo?: {
+    reason: string | null;
+    archivedBy: string | null;
+    archivedAt: string | null;
+  } | null;
+  /** Email sequence progress (0-3, where 3 = sequence complete) */
+  followupStage?: number | null;
+  /** Why the sequence stopped */
+  followupStoppedReason?: string | null;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -239,7 +251,7 @@ function EngagementBadges({
   markedReplied?: boolean;
   alreadyConnected?: boolean;
   adminOverride?: {
-    status: "viewed" | "connected";
+    status: "viewed" | "connected" | "not_interested";
     reason: string;
   } | null;
   compact?: boolean;
@@ -251,7 +263,9 @@ function EngagementBadges({
 
   // Build badges with specific labels for what the provider did
   const adminVerifiedLabel = adminOverride
-    ? `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
+    ? adminOverride.status === "not_interested"
+      ? "Not interested (admin)"
+      : `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
     : "";
 
   const badges: { icon: string; label: string; active: boolean; highlight?: boolean }[] = [
@@ -314,7 +328,8 @@ export default function ConnectionRow({
     familyName: string | null,
     providerName: string | null,
     isArchived: boolean,
-    isProviderArchived: boolean
+    isProviderArchived: boolean,
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
   ) => void;
   onNudgeSuccess?: () => void;
 }) {
@@ -354,14 +369,6 @@ export default function ConnectionRow({
   const [editingEmailLoading, setEditingEmailLoading] = useState(false);
   const [pendingEmailEdit, setPendingEmailEdit] = useState<{ oldEmail: string; newEmail: string } | null>(null);
   const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Mark as Connected modal state
-  const [showMarkStatusModal, setShowMarkStatusModal] = useState(false);
-  const [markStatusReason, setMarkStatusReason] = useState("");
-  const [markStatusNotes, setMarkStatusNotes] = useState("");
-  const [markingStatus, setMarkingStatus] = useState(false);
-  const [markStatusError, setMarkStatusError] = useState<string | null>(null);
-  const [markStatusSuccess, setMarkStatusSuccess] = useState(false);
 
   // Find email state
   const [findingEmail, setFindingEmail] = useState(false);
@@ -606,10 +613,19 @@ export default function ConnectionRow({
   const careType = c.family.careType;
   const timeline = c.family.timeline;
 
+  // Helper: Get sequence progress label
+  const getSequenceProgress = (): string | null => {
+    const stage = c.followupStage;
+    if (stage == null) return null;
+    // Stage 0-3 maps to Email 1/4 through 4/4
+    return `Email ${stage + 1}/4`;
+  };
+
   // Get engagement status for collapsed row display
   const getEngagementStatus = (): { status: string; color: string; nudgeInfo: string | null } => {
     const providerNudges = c.providerNudgeCount || 0;
     const familyNudges = c.familyNudgeCount || 0;
+    const sequenceProgress = getSequenceProgress();
 
     if (perspective === "family") {
       // Family perspective - show family engagement level
@@ -627,8 +643,8 @@ export default function ConnectionRow({
           return { status: "New", color: "text-blue-600", nudgeInfo: null };
       }
     } else {
-      // Provider perspective - show provider engagement level (existing logic)
-      const engLevel = c.engagementLevel || "new";
+      // Provider perspective - show provider engagement level
+      const engLevel = c.engagementLevel || "awaiting";
 
       // For non-connected states, show who we're waiting on
       const waitingOnText = c.waitingOn === "family" ? " (awaiting family)" : "";
@@ -640,10 +656,14 @@ export default function ConnectionRow({
         case "viewed":
           return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
         case "needs_follow_up":
-          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: c.waitingOn === "family" ? `Family nudged ${familyNudges}x` : `Provider nudged ${providerNudges}x` };
-        case "new":
+          // Sequence complete, show that info
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: "Sequence complete" };
+        case "awaiting":
         default:
-          return { status: "New", color: "text-blue-600", nudgeInfo: providerNudges > 0 ? `Nudged ${providerNudges}x` : null };
+          // Show sequence progress for awaiting (automation working)
+          // If no sequence progress and no nudges, show "Pending" to indicate automation hasn't started
+          const awaitingInfo = sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : "Pending");
+          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: awaitingInfo };
       }
     }
   };
@@ -750,53 +770,6 @@ export default function ConnectionRow({
       setShowPreviewModal(false);
     } finally {
       setNudging(false);
-    }
-  }
-
-  // Mark connection as connected (admin verification of off-platform activity)
-  async function handleMarkStatus() {
-    if (!markStatusReason.trim()) {
-      setMarkStatusError("Please select a reason");
-      return;
-    }
-
-    setMarkingStatus(true);
-    setMarkStatusError(null);
-
-    try {
-      const res = await fetch(`/api/admin/connections/${c.id}/mark-status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "connected",
-          reason: markStatusReason,
-          notes: markStatusNotes.trim() || undefined,
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok) {
-        setMarkStatusSuccess(true);
-        setMarkStatusError(null);
-
-        // Close modal and reset after brief success feedback
-        setTimeout(() => {
-          setShowMarkStatusModal(false);
-          setMarkStatusReason("");
-          setMarkStatusNotes("");
-          setMarkStatusSuccess(false);
-        }, 2000);
-
-        // Notify parent to refresh list - connection should move tabs
-        onNudgeSuccess?.();
-      } else {
-        setMarkStatusError(data.error || "Failed to mark status");
-      }
-    } catch {
-      setMarkStatusError("Network error");
-    } finally {
-      setMarkingStatus(false);
     }
   }
 
@@ -1079,7 +1052,8 @@ export default function ConnectionRow({
               </>
             )}
             {/* Archive badge - show when provider archived/declined the lead */}
-            {c.archived && c.archiveReason && (
+            {/* Skip if admin marked "not_interested" - that badge is shown via EngagementBadges */}
+            {c.archived && c.archiveReason && c.adminOverride?.status !== "not_interested" && (
               <>
                 <span className="text-gray-300">|</span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600" title={c.archivedAt ? `Archived ${daysAgo(c.archivedAt)}` : "Archived"}>
@@ -1132,7 +1106,8 @@ export default function ConnectionRow({
                 c.family.display_name,
                 c.provider.display_name,
                 isConnectionArchived,
-                isProviderArchived
+                isProviderArchived,
+                c.providerArchiveInfo
               );
             }}
             className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
@@ -1216,12 +1191,6 @@ export default function ConnectionRow({
                           className="px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-100"
                         >
                           Fact Sheet
-                        </button>
-                        <button
-                          onClick={() => setShowMarkStatusModal(true)}
-                          className="px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 text-sm font-medium hover:bg-emerald-50"
-                        >
-                          ✓ Mark Connected
                         </button>
                       </>
                     )}
@@ -1391,32 +1360,38 @@ export default function ConnectionRow({
                           <>
                             <div className="flex items-center justify-between gap-2">
                               <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
-                              <button
-                                onClick={() => {
-                                  if (editEmailTimeoutRef.current) {
-                                    clearTimeout(editEmailTimeoutRef.current);
-                                    editEmailTimeoutRef.current = null;
-                                  }
-                                  setEditingEmail(true);
-                                  setEditEmailInput(detail.provider.email || "");
-                                  setEditEmailError(null);
-                                  setEditEmailSuccess(false);
-                                  // Clear previous find email state
-                                  setFindEmailError(null);
-                                  setEmailSource(null);
-                                  setFoundUrl(null);
-                                  setIsCachedResult(false);
-                                  setFoundEmails([]);
-                                  setEmailToUrlMap(new Map());
-                                  // Clear verification state
-                                  setVerificationStatus("idle");
-                                  setCandidateStatuses(new Map());
-                                  setForceSubmit(false);
-                                }}
-                                className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
-                              >
-                                Edit
-                              </button>
+                              {c.provider.isAccountClaimed ? (
+                                <span className="text-xs text-gray-400 shrink-0" title="Provider has claimed this account and manages their own email">
+                                  Claimed
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    if (editEmailTimeoutRef.current) {
+                                      clearTimeout(editEmailTimeoutRef.current);
+                                      editEmailTimeoutRef.current = null;
+                                    }
+                                    setEditingEmail(true);
+                                    setEditEmailInput(detail.provider.email || "");
+                                    setEditEmailError(null);
+                                    setEditEmailSuccess(false);
+                                    // Clear previous find email state
+                                    setFindEmailError(null);
+                                    setEmailSource(null);
+                                    setFoundUrl(null);
+                                    setIsCachedResult(false);
+                                    setFoundEmails([]);
+                                    setEmailToUrlMap(new Map());
+                                    // Clear verification state
+                                    setVerificationStatus("idle");
+                                    setCandidateStatuses(new Map());
+                                    setForceSubmit(false);
+                                  }}
+                                  className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
+                                >
+                                  Edit
+                                </button>
+                              )}
                             </div>
                             {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && (
                               <p className="text-xs text-amber-600 mt-1">
@@ -1828,7 +1803,15 @@ export default function ConnectionRow({
               </div>
 
               {/* Section 4: Email trail (collapsed by default) */}
-              {detail.emails.length > 0 && (
+              {/* Filter emails by perspective: provider view = provider emails, family view = family emails */}
+              {(() => {
+                const filteredEmails = detail.emails.filter(e =>
+                  perspective === "family"
+                    ? e.recipient_type === "family"
+                    : e.recipient_type !== "family"
+                );
+                if (filteredEmails.length === 0) return null;
+                return (
                 <div>
                   <button
                     type="button"
@@ -1842,12 +1825,12 @@ export default function ConnectionRow({
                     >
                       <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
                     </svg>
-                    Show {detail.emails.length} email{detail.emails.length !== 1 ? "s" : ""} sent
+                    Show {filteredEmails.length} email{filteredEmails.length !== 1 ? "s" : ""} sent
                   </button>
 
                   {showEmails && (
                     <div className="mt-2 bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                      {detail.emails.map((e) => (
+                      {filteredEmails.map((e) => (
                         <div key={e.id}>
                           <button
                             type="button"
@@ -1915,7 +1898,8 @@ export default function ConnectionRow({
                     </div>
                   )}
                 </div>
-              )}
+                );
+              })()}
             </div>
           ) : null}
         </div>
@@ -1947,149 +1931,6 @@ export default function ConnectionRow({
           providerId={c.provider.slug || c.provider.source_provider_id || c.provider.id || ""}
           providerName={c.provider.display_name || "Provider"}
         />
-      )}
-
-      {/* Mark as Connected Modal */}
-      {showMarkStatusModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowMarkStatusModal(false);
-              setMarkStatusReason("");
-              setMarkStatusNotes("");
-              setMarkStatusError(null);
-              setMarkStatusSuccess(false);
-            }
-          }}
-        >
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Mark as Connected</h3>
-                <p className="text-sm text-gray-500">Verify this provider contacted the family</p>
-              </div>
-            </div>
-
-            {/* Reason Selection - Polished radio buttons */}
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                How did you verify?
-              </label>
-              <div className="space-y-2">
-                {[
-                  { value: "Called provider — confirmed they contacted family", icon: "📞" },
-                  { value: "Provider replied to admin outreach", icon: "📧" },
-                  { value: "Verified in platform messages", icon: "💬" },
-                  { value: "Other", icon: "📝" },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setMarkStatusReason(option.value)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-all ${
-                      markStatusReason === option.value
-                        ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="text-lg">{option.icon}</span>
-                    <span className={`text-sm ${markStatusReason === option.value ? "text-emerald-900 font-medium" : "text-gray-700"}`}>
-                      {option.value}
-                    </span>
-                    {markStatusReason === option.value && (
-                      <svg className="w-5 h-5 text-emerald-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Notes - only show when "Other" is selected or always available */}
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                Notes {markStatusReason === "Other" ? "(required)" : "(optional)"}
-              </label>
-              <textarea
-                value={markStatusNotes}
-                onChange={(e) => setMarkStatusNotes(e.target.value)}
-                placeholder={markStatusReason === "Other" ? "Describe how you verified..." : "Additional context..."}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-gray-400"
-              />
-            </div>
-
-            {/* Impact Message */}
-            <div className="mb-5 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-xs text-gray-600">
-                <span className="font-medium text-gray-900">What happens:</span> Connection moves to Connected tab, email sequence stops, and this verification is logged.
-              </p>
-            </div>
-
-            {/* Success */}
-            {markStatusSuccess && (
-              <div className="mb-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                <p className="text-sm text-emerald-800 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Marked as connected! Moving to Connected tab.
-                </p>
-              </div>
-            )}
-
-            {/* Error */}
-            {markStatusError && (
-              <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-sm text-red-800">{markStatusError}</p>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowMarkStatusModal(false);
-                  setMarkStatusReason("");
-                  setMarkStatusNotes("");
-                  setMarkStatusError(null);
-                  setMarkStatusSuccess(false);
-                }}
-                disabled={markingStatus || markStatusSuccess}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMarkStatus}
-                disabled={markingStatus || markStatusSuccess || !markStatusReason || (markStatusReason === "Other" && !markStatusNotes.trim())}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {markingStatus ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Marking...
-                  </span>
-                ) : (
-                  "Mark as Connected"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Email edit confirmation modal */}

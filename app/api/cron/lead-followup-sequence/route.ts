@@ -385,7 +385,8 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if provider archived this lead in their portal
-      const isArchived = meta.archived === true;
+      // Check BOTH flags: `archived` (inbox/admin) and `lead_archived` (provider decline)
+      const isArchived = meta.archived === true || meta.lead_archived === true;
       if (isArchived) {
         // Provider explicitly archived - respect their decision and stop sequence
         // Archive state alone is sufficient (don't require valid reason for robustness)

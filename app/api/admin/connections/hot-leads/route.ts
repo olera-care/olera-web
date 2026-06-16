@@ -96,6 +96,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq("type", "inquiry")
       .not("metadata", "cs", JSON.stringify({ archived: true }))
+      .not("metadata", "cs", JSON.stringify({ admin_hidden: true }))
       .order("created_at", { ascending: false })
       .limit(3000);
 

@@ -12,7 +12,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  */
 
 interface MarkStatusRequest {
-  status: "connected";
+  status: "viewed" | "connected" | "not_interested";
   reason: string;
   notes?: string;
 }
@@ -37,9 +37,9 @@ export async function POST(
     const { status, reason, notes } = body;
 
     // Validate inputs
-    if (status !== "connected") {
+    if (status !== "viewed" && status !== "connected" && status !== "not_interested") {
       return NextResponse.json(
-        { error: "Invalid status. Only 'connected' is supported." },
+        { error: "Invalid status. Must be 'viewed', 'connected', or 'not_interested'." },
         { status: 400 }
       );
     }
@@ -93,10 +93,43 @@ export async function POST(
       admin_override: adminOverride,
     };
 
-    // If marking as connected, also stop the email sequence
+    // If marking as viewed, keep email sequence running
+    // This moves the connection to Viewed tab while continuing to send nudge emails
+    // to encourage them to actually connect
+    if (status === "viewed") {
+      // Clear any stopped sequence so emails can resume
+      delete updatedMetadata.followup_stopped_at;
+      delete updatedMetadata.followup_stopped_reason;
+      // Clear archive flags so connection moves to Viewed tab (not stuck in Archived)
+      updatedMetadata.archived = false;
+      updatedMetadata.lead_archived = false;
+      updatedMetadata.archive_reason = null;
+      updatedMetadata.archive_message = null;
+      updatedMetadata.archived_by = null;
+      updatedMetadata.archived_at = null;
+    }
+
+    // If marking as connected, stop the email sequence (success state)
     if (status === "connected") {
       updatedMetadata.followup_stopped_at = new Date().toISOString();
       updatedMetadata.followup_stopped_reason = "admin_marked_connected";
+    }
+
+    // If marking as not_interested, stop email sequence but DON'T archive
+    // This is a "soft rejection" - provider can still see/engage with the lead
+    // If they come back and view it, we'll clear the override and restart the sequence
+    if (status === "not_interested") {
+      updatedMetadata.followup_stopped_at = new Date().toISOString();
+      updatedMetadata.followup_stopped_reason = "admin_declined";
+      // Clear any existing archive flags - admin override takes precedence
+      // This prevents the lead from appearing in both "Declined" and "Not Interested" tabs
+      // Clear BOTH archive flags: `archived` (inbox) and `lead_archived` (provider decline)
+      updatedMetadata.archived = false;
+      updatedMetadata.lead_archived = false;
+      updatedMetadata.archive_reason = null;
+      updatedMetadata.archive_message = null;
+      updatedMetadata.archived_by = null;
+      updatedMetadata.archived_at = null;
     }
 
     // Update connection

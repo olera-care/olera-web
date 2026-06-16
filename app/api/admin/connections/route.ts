@@ -976,6 +976,18 @@ export async function GET(request: NextRequest) {
     // Calculate engagement level for each connection and store it
     const connectionEngagementLevels = new Map<string, EngagementLevel>();
     const connectionFamilyEngagementLevels = new Map<string, FamilyEngagementLevel>();
+    // Store computed badge data during engagement level calculation
+    // This ensures badge data uses the SAME computed values as tab placement
+    const connectionBadgeData = new Map<string, {
+      email_clicked: boolean;
+      lead_opened: boolean;
+      contact_revealed: boolean;
+      phone_copied: boolean;
+      email_copied: boolean;
+      phone_clicked: boolean;
+      email_link_clicked: boolean;
+      continue_in_inbox: boolean;
+    }>();
 
     for (const c of searched) {
       // Get engagement data for THIS SPECIFIC CONNECTION (not provider-wide)
@@ -1004,11 +1016,6 @@ export async function GET(request: NextRequest) {
       const providerIsClaimed = c.provider.isAccountClaimed === true;
       const effectiveLeadOpened = providerIsClaimed && (eng?.lead_opened ?? false);
 
-      // DEBUG: Log when there's a mismatch between lead_opened and tab placement
-      if (eng?.lead_opened && !effectiveLeadOpened) {
-        console.log(`[DEBUG] lead_opened mismatch: connection=${c.id}, provider=${c.provider.display_name}, lead_opened=${eng?.lead_opened}, providerIsClaimed=${providerIsClaimed}, effectiveLeadOpened=${effectiveLeadOpened}`);
-      }
-
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
         leadOpened: effectiveLeadOpened,
@@ -1031,10 +1038,19 @@ export async function GET(request: NextRequest) {
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
 
-      // DEBUG: Log when lead_opened is true but engagement level is not "viewed"
-      if (eng?.lead_opened && engResult.level !== "viewed" && engResult.level !== "connected") {
-        console.log(`[DEBUG] Tab mismatch: connection=${c.id}, provider=${c.provider.display_name}, eng.lead_opened=${eng?.lead_opened}, effectiveLeadOpened=${effectiveLeadOpened}, engResult.level=${engResult.level}, providerIsClaimed=${providerIsClaimed}, isAccountClaimed=${c.provider.isAccountClaimed}`);
-      }
+      // Store badge data using the SAME computed values as engagement level
+      // This ensures badge displays match tab placement
+      // CRITICAL: lead_opened uses effectiveLeadOpened (respects providerIsClaimed check)
+      connectionBadgeData.set(c.id, {
+        email_clicked: eng?.email_clicked ?? false,
+        lead_opened: engagementData.leadOpened,  // Use effectiveLeadOpened, not raw eng.lead_opened
+        contact_revealed: eng?.contact_revealed ?? false,
+        phone_copied: eng?.phone_copied ?? false,
+        email_copied: eng?.email_copied ?? false,
+        phone_clicked: eng?.phone_clicked ?? false,
+        email_link_clicked: eng?.email_link_clicked ?? false,
+        continue_in_inbox: eng?.continue_in_inbox ?? false,
+      });
 
       // Calculate family engagement level for this connection
       const familyEngagementData: FamilyEngagementData = {
@@ -1311,32 +1327,13 @@ export async function GET(request: NextRequest) {
     });
 
     // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
-    // This shows engagement specific to each connection, not aggregated across all provider's connections.
+    // Use pre-computed values from connectionBadgeData (computed during engagement level calculation)
+    // This ensures badge data matches tab placement - both use the same computed values
     const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
     for (const c of pageRaw) {
-      const eng = connectionEngagement.get(c.id);
-      if (eng) {
-        // Only show lead_opened badge if provider is claimed
-        // Matches the tab logic - unclaimed providers shouldn't show as "Viewed"
-        const providerIsClaimed = c.provider.isAccountClaimed === true;
-        const badgeLeadOpened = providerIsClaimed && eng.lead_opened;
-
-        // DEBUG: Compare badge value with engagement level
-        const engLevel = connectionEngagementLevels.get(c.id);
-        if (badgeLeadOpened && engLevel !== "viewed" && engLevel !== "connected") {
-          console.log(`[DEBUG] Badge/Tab mismatch: connection=${c.id}, provider=${c.provider.display_name}, badgeLeadOpened=${badgeLeadOpened}, engLevel=${engLevel}, providerIsClaimed=${providerIsClaimed}, eng.lead_opened=${eng.lead_opened}`);
-        }
-
-        engagement[c.id] = {
-          email_clicked: eng.email_clicked,
-          lead_opened: badgeLeadOpened,
-          contact_revealed: eng.contact_revealed,
-          phone_copied: eng.phone_copied,
-          email_copied: eng.email_copied,
-          phone_clicked: eng.phone_clicked,
-          email_link_clicked: eng.email_link_clicked,
-          continue_in_inbox: eng.continue_in_inbox,
-        };
+      const badge = connectionBadgeData.get(c.id);
+      if (badge) {
+        engagement[c.id] = badge;
       }
     }
 

@@ -998,9 +998,15 @@ export async function GET(request: NextRequest) {
       const adminMarkedViewed = c.adminOverride?.status === "viewed";
       const adminMarkedConnected = c.adminOverride?.status === "connected";
 
+      // Only count lead_opened if provider has claimed their account
+      // Unclaimed providers can view leads via magic link but shouldn't be in "Viewed" tab
+      // because they haven't committed to the platform yet
+      const providerIsClaimed = c.provider.isAccountClaimed === true;
+      const effectiveLeadOpened = providerIsClaimed && (eng?.lead_opened ?? false);
+
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
-        leadOpened: eng?.lead_opened ?? false,
+        leadOpened: effectiveLeadOpened,
         contactRevealed: eng?.contact_revealed ?? false,
         phoneClicked: eng?.phone_clicked ?? false,
         emailLinkClicked: eng?.email_link_clicked ?? false,
@@ -1300,9 +1306,12 @@ export async function GET(request: NextRequest) {
     for (const c of pageRaw) {
       const eng = connectionEngagement.get(c.id);
       if (eng) {
+        // Only show lead_opened badge if provider is claimed
+        // Matches the tab logic - unclaimed providers shouldn't show as "Viewed"
+        const providerIsClaimed = c.provider.isAccountClaimed === true;
         engagement[c.id] = {
           email_clicked: eng.email_clicked,
-          lead_opened: eng.lead_opened,
+          lead_opened: providerIsClaimed && eng.lead_opened,
           contact_revealed: eng.contact_revealed,
           phone_copied: eng.phone_copied,
           email_copied: eng.email_copied,

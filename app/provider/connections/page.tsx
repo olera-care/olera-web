@@ -2116,15 +2116,16 @@ export default function ProviderLeadsPage() {
     // Track lead_opened event for engagement funnel
     // Use consistent provider key: slug || source_provider_id || id
     // This must match how the funnel query looks up providers
+    // Require both providerKey AND connectionId to prevent orphan events
     const providerKey = providerProfile?.slug || providerProfile?.source_provider_id || providerProfile?.id;
-    if (providerKey) {
+    if (providerKey && lead.connectionId) {
       fetch("/api/activity/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: providerKey,
           event_type: "lead_opened",
-          metadata: { lead_id: lead.id, connection_id: lead.connectionId },
+          metadata: { lead_id: lead.connectionId, connection_id: lead.connectionId },
         }),
       }).catch(() => {});
     }

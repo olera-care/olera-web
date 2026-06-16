@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
           admin_override,
           followup_stage,
           followup_stopped_reason,
-          from_profile:from_profile_id (
+          from_profile:business_profiles!connections_from_profile_id_fkey (
             id,
             display_name,
             email,
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
             city,
             state
           ),
-          to_profile:to_profile_id (
+          to_profile:business_profiles!connections_to_profile_id_fkey (
             id,
             display_name,
             email,

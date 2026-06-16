@@ -23,6 +23,7 @@ import {
   BUDGET_ESTIMATE_CAVEAT,
   DEFAULT_BUDGET,
   budgetStop,
+  budgetLabel,
   estimateSummary,
   type BudgetStop,
 } from "@/lib/ad-boost/estimate";
@@ -278,7 +279,8 @@ function CampaignInMotion({
     scheduled: "Setup scheduled",
     live: "Your campaign is live",
   };
-  const showDelivered = request.status === "live" && delivered > 0;
+  const isLive = request.status === "live";
+  const showDelivered = isLive && delivered > 0;
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -288,26 +290,29 @@ function CampaignInMotion({
         </span>
       </div>
       <h2 className="text-2xl font-display font-semibold text-gray-900">
-        We&apos;re on it.
+        {isLive ? "Your campaign is live." : "We’re on it."}
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
-        Your campaign is set to go live the week of{" "}
-        <span className="font-medium text-gray-900">{formatWeek(request.requested_setup_week)}</span>.
-        We&apos;ll reach out before launch to confirm the details, and you&apos;ll
-        see families arrive on your dashboard as they come in.
+        {isLive
+          ? "Families we send arrive on your dashboard as they come in."
+          : "We’ll reach out before launch to confirm the details, then families arrive on your dashboard as they come in."}
       </p>
 
+      {/* The campaign they committed to — week, channel, budget. */}
+      <CampaignFacts request={request} />
+
+      {/* When live, real delivered families are THE focal point. */}
       {showDelivered && (
-        <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-6 py-5">
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-4xl font-display font-bold text-gray-900 tabular-nums">
+        <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-6 py-6">
+          <div className="flex items-baseline gap-3">
+            <span className="text-5xl font-display font-bold text-gray-900 tabular-nums leading-none">
               {delivered}
             </span>
             <span className="text-gray-600">
               {delivered === 1 ? "family" : "families"} reached out so far
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-1.5">
+          <p className="text-sm text-gray-500 mt-3">
             From your managed ad campaign. Find them on your{" "}
             <Link href="/provider/connections" className="text-primary-600 font-medium hover:underline">
               leads
@@ -327,6 +332,30 @@ function CampaignInMotion({
         </svg>
       </Link>
     </div>
+  );
+}
+
+/** The campaign the provider committed to — week · channel · budget — as a clean
+ *  hairline 3-up (Robinhood/Wise stat-row feel). Shared by the queued + in-motion
+ *  states so the choices they just made are always visible. */
+function CampaignFacts({ request }: { request: BoostRequest }) {
+  const channelLabel = CHANNELS.find((c) => c.value === request.channel)?.label ?? null;
+  const budget = budgetLabel(request.intended_monthly_budget);
+  const facts: { label: string; value: string }[] = [
+    { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
+  ];
+  if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
+  if (budget) facts.push({ label: "Budget", value: budget });
+
+  return (
+    <dl className="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-2xl border border-gray-200/80 bg-gray-100/70">
+      {facts.map((f) => (
+        <div key={f.label} className="bg-white px-4 py-3.5">
+          <dt className="text-xs text-gray-400">{f.label}</dt>
+          <dd className="mt-0.5 text-sm font-medium text-gray-900">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -367,22 +396,19 @@ function PendingProfile({
         Your campaign is queued.
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
-        We&apos;ll launch it the week of{" "}
-        <span className="font-medium text-gray-900">
-          {formatWeek(request.requested_setup_week)}
-        </span>{" "}
-        — the moment your profile&apos;s ready to win the families we send.
-        You&apos;re <span className="font-medium text-gray-900">{remaining}%</span> away.
+        We’ll launch it the moment your profile’s ready to win the families we send.
       </p>
 
-      {/* Progress toward launch */}
+      {/* The campaign they committed to — week · channel · budget. */}
+      <CampaignFacts request={request} />
+
+      {/* Progress toward launch — the actionable "to go" leads, big number
+          matches the bar, target surfaced beneath (not buried in prose). */}
       <div className="mt-8 flex items-baseline gap-3">
-        <span className="text-4xl font-display font-bold text-gray-900 tabular-nums">
+        <span className="text-4xl font-display font-bold text-gray-900 tabular-nums leading-none">
           {eligibility.overall}%
         </span>
-        <span className="text-gray-500">
-          complete · {eligibility.threshold}% to launch
-        </span>
+        <span className="text-gray-500">complete</span>
       </div>
       <div className="mt-3 h-1.5 w-full rounded-full bg-warm-100 overflow-hidden">
         <div
@@ -390,6 +416,9 @@ function PendingProfile({
           style={{ width: `${Math.min(100, eligibility.overall)}%` }}
         />
       </div>
+      <p className="mt-2.5 text-sm text-gray-500">
+        <span className="font-medium text-gray-900">{remaining}% to go</span> to launch
+      </p>
 
       {/* THE single next action — the highest-impact gap. Opens the editor
           INLINE (no navigation), so they never leave the campaign-setup flow. */}
@@ -473,20 +502,51 @@ function MissingRow({
       <button
         type="button"
         onClick={() => onEdit(section.id as SectionId)}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left group"
+        aria-label={`${section.label}, ${section.percent}% done`}
+        className="flex w-full items-center gap-3.5 py-3.5 text-left group"
       >
-        <div className="min-w-0">
-          <p className="font-medium text-gray-900">{section.label}</p>
-          <p className="text-sm text-gray-400">{section.percent}% done</p>
-        </div>
-        <span className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 group-hover:gap-2.5 transition-all">
-          Improve
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
+        {/* A quiet completion ring replaces the repeated "X% done" text. */}
+        <ProgressRing percent={section.percent} />
+        <span className="min-w-0 flex-1 truncate font-medium text-gray-900">
+          {section.label}
         </span>
+        {/* The chevron is the only affordance — no repeated "Improve" label. */}
+        <svg
+          className="w-4 h-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-primary-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
       </button>
     </li>
+  );
+}
+
+/** A tiny completion ring — calm visual status that replaces a repeated
+ *  "X% done" text column. Empty track at 0%, a teal arc as the section fills. */
+function ProgressRing({ percent }: { percent: number }) {
+  const r = 8;
+  const circ = 2 * Math.PI * r;
+  const filled = Math.max(0, Math.min(100, percent));
+  return (
+    <svg className="w-[18px] h-[18px] shrink-0 -rotate-90" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r={r} fill="none" strokeWidth="2.5" stroke="currentColor" className="text-gray-200" />
+      <circle
+        cx="10"
+        cy="10"
+        r={r}
+        fill="none"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        stroke="currentColor"
+        className="text-primary-500"
+        strokeDasharray={circ}
+        strokeDashoffset={circ * (1 - filled / 100)}
+      />
+    </svg>
   );
 }
 
@@ -605,11 +665,12 @@ function ApplyExperience({
                     <button
                       key={w.value}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => setSelectedWeek(w.value)}
-                      className={`rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
+                      className={`rounded-2xl border px-3 py-4 text-center text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
-                          ? "border-primary-500 bg-primary-50/60 text-primary-700"
-                          : "border-gray-200 text-gray-700 hover:border-gray-300"
+                          ? "border-primary-500 bg-primary-50/70 text-primary-700"
+                          : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
                       {w.label}
@@ -628,11 +689,12 @@ function ApplyExperience({
                     <button
                       key={c.value}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => setChannel(c.value)}
-                      className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
+                      className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
-                          ? "border-primary-500 bg-primary-50/60 text-primary-700"
-                          : "border-gray-200 text-gray-700 hover:border-gray-300"
+                          ? "border-primary-500 bg-primary-50/70 text-primary-700"
+                          : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
                       {c.label}
@@ -730,7 +792,7 @@ function ApplyExperience({
                 : "Here's your campaign. We'll queue it now and launch the moment your profile's ready."}
             </p>
 
-            <dl className="mt-7 divide-y divide-gray-100 border-y border-gray-100">
+            <dl className="mt-7 overflow-hidden rounded-2xl border border-gray-200/80 divide-y divide-gray-100">
               <ReviewRow label="Launch" value={weekLabel ?? "—"} />
               <ReviewRow label="Advertising on" value={channelLabel} />
               <ReviewRow label="Monthly budget" value={stop?.label ?? "—"} />
@@ -834,7 +896,7 @@ function ApplyExperience({
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-3.5">
+    <div className="flex items-baseline justify-between gap-4 px-4 py-3.5">
       <dt className="text-sm text-gray-500">{label}</dt>
       <dd className="text-sm font-medium text-gray-900 text-right">{value}</dd>
     </div>

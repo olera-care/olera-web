@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-16 — First managed-ads conversion (Franchil) + Ad Boost admin overhaul (branch `adboost-admin-delete`, PR #1073)
+
+**Trigger:** Franchil LLC (Killeen TX home-care, self-serve signup 6/11, 95% complete, 0 organic leads) became the **first real managed-ads concierge conversion** — submitted a Google+Meta request, setup week 6/22. Sparked two threads.
+
+**Thread 1 — Franchil outreach + terms (PR #1072, MERGED to staging; TJ promoted staging→main separately).**
+- Drafted the outreach email to Hilda Boiwo → **Notion page** under "Olera Pro 2.0 / monetization exploration" (`3815903a…`). Iterations: dropped "you're our first" framing (reads as untested), reframed $50 as no-risk "to get you started," **killed the meeting ask** → one-reply "go" close ($50 starter run needs no budget decision; budget convo deferred to after results).
+- **New hosted T&C page `/managed-ads-terms`** (`app/managed-ads-terms/page.tsx`, noindex, reuses `LegalPageLayout`) — email links to it instead of pasting terms inline. Covers: claimed+consenting only, campaigns on Olera's own accounts→own page, **no guaranteed results**, leads stay provider's/no commission, cancel anytime, TX law. Pressure-tested the legal model (own-page + consent = clean; counsel sign-off + fee-vs-at-cost decision flagged before scaling).
+
+**Thread 2 — Ad Boost admin queue rebuilt (PR #1073, branch `adboost-admin-delete`, NOT yet merged).** Files: `app/admin/ad-boost/page.tsx` (list), `app/admin/ad-boost/[id]/page.tsx` (NEW detail), `app/api/admin/ad-boost/route.ts`, `components/admin/AdBoostShared.tsx` (NEW shared), `lib/ad-boost/delivered.server.ts`, migrations 108+109.
+- **Delete + soft-delete/archive.** Hard delete (test scrub) + reversible archive (`deleted_at`) for real providers. Active/Archived tabs w/ counts. Migration **108** (`deleted_at`) — APPLIED.
+- **List redesigned** from sloppy stacked form-cards → dense 3-column triage table (Provider · Status · Setup week + Archive/Delete), fixed-width cols (fixed an `auto`-last-column misalignment bug), sorted by setup week asc, channel as subline tag, inline edit removed. Date formatting unified + local-parse fix (UTC off-by-one).
+- **Per-campaign detail page** (provider name → `/admin/ad-boost/[id]`): Campaign setup (status/channel/setup-week/tag/note + UTM URL), **Leads** (real benefits_completed families attributed by utm_campaign, no PHI — care need/state/date), **Performance** (delivered + manual spend/clicks entry → cost-per-family computed; migration **109** `ad_spend_cents`/`ad_clicks` — APPLIED), Manage (archive/delete). Header "View provider record" → `/admin/directory/[providerId]` (admin record w/ comms timeline), not bare public page.
+- **`/code-review` (high effort, 8 angles): clean** — no reachable correctness bugs. Survivors all low: optional race-guard on detail fetch (practically unreachable), `Number.isFinite` spend hardening (devtools-only), duplicated archive/delete handlers (could be a hook). tsc clean throughout.
+
+**NEXT:** optionally apply the 2 trivial hardenings (race guard + isFinite), then `/pr-merge 1073`. Open: per-channel (Google-vs-Meta) Performance split if wanted; connection-request leads (need utm-on-event check); send Hilda's email once `/managed-ads-terms` is live in prod; counsel sign-off + fee-vs-at-cost decision before scaling managed ads.
+
 ### 2026-06-14 — Provider outreach reframed to host-site / eligibility-screener funnel (branch `claude/keen-mendel-6i8iW`)
 
 **Context:** Long design session (with Logan) reworking the MedJobs **provider funnel** around a lightweight **eligibility screener** as the single converging CTA, an **internship/host-site** framing, a **two-tier terms** model (free non-circumvention "interview terms" = existing `interview_terms_accepted_at` / `PilotTermsModal`, before any interview; paid internship agreement at good-fit), **coarse coverage buckets + PRN** for matching, **term-scoped** availability with finals re-plans, and a **pay-once, guaranteed-until-threshold-hours** fee. Funnel is being designed step-by-step ("inch by inch") before any build.

@@ -659,7 +659,9 @@ export default function ConnectionRow({
         case "awaiting":
         default:
           // Show sequence progress for awaiting (automation working)
-          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : null) };
+          // If no sequence progress and no nudges, show "Pending" to indicate automation hasn't started
+          const awaitingInfo = sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : "Pending");
+          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: awaitingInfo };
       }
     }
   };

@@ -873,16 +873,32 @@ export async function GET(request: NextRequest) {
 
       for (const email of providerEmails ?? []) {
         const meta = email.metadata as Record<string, unknown> | null;
-        const connId = meta?.connection_id as string | undefined;
-        if (!connId || !connectionIdsInView.has(connId)) continue;
-
-        const existing = mostRecentEmailPerConnection.get(connId);
         const emailTime = email.created_at as string;
+        const isFailed = email.status === "failed" || email.bounced_at != null;
 
-        // Only process if this is more recent than what we've seen (or first occurrence)
-        if (!existing || emailTime > existing.timestamp) {
-          const isFailed = email.status === "failed" || email.bounced_at != null;
-          mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+        // Support both formats:
+        // - connection_id: "abc" (single lead emails)
+        // - connection_ids: ["abc", "def"] (multi-lead cron emails)
+        const singleConnId = meta?.connection_id as string | undefined;
+        const multiConnIds = meta?.connection_ids as string[] | undefined;
+
+        const connIds: string[] = [];
+        if (singleConnId) connIds.push(singleConnId);
+        if (Array.isArray(multiConnIds)) connIds.push(...multiConnIds);
+
+        // Skip if no connection IDs found
+        if (connIds.length === 0) continue;
+
+        // Update status for each connection in this email
+        for (const connId of connIds) {
+          if (!connectionIdsInView.has(connId)) continue;
+
+          const existing = mostRecentEmailPerConnection.get(connId);
+
+          // Only process if this is more recent than what we've seen (or first occurrence)
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+          }
         }
       }
 

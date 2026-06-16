@@ -654,16 +654,16 @@ export default function ConnectionRow({
         case "connected":
           return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
         case "viewed":
-          return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
+          // Show sequence progress consistently (same as Awaiting tab)
+          return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: sequenceProgress || null };
         case "needs_follow_up":
-          // Sequence complete, show that info
-          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: "Sequence complete" };
+          // Sequence complete - show "Email 4/4" for consistency with other tabs
+          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: "Email 4/4" };
         case "awaiting":
         default:
           // Show sequence progress for awaiting (automation working)
-          // If no sequence progress and no nudges, show "Pending" to indicate automation hasn't started
-          const awaitingInfo = sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : "Pending");
-          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: awaitingInfo };
+          // If no sequence progress, show "Pending" to indicate automation hasn't started
+          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: sequenceProgress || "Pending" };
       }
     }
   };

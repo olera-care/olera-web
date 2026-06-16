@@ -105,8 +105,11 @@ export async function POST(
     if (status === "not_interested") {
       updatedMetadata.followup_stopped_at = new Date().toISOString();
       updatedMetadata.followup_stopped_reason = "admin_declined";
-      // Note: We intentionally don't set archived=true here
-      // Provider's portal view is not affected
+      // Clear any existing archive flags - admin override takes precedence
+      // This prevents the lead from appearing in both "Declined" and "Not Interested" tabs
+      updatedMetadata.archived = false;
+      updatedMetadata.archive_reason = null;
+      updatedMetadata.archived_at = null;
     }
 
     // Update connection

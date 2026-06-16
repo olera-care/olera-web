@@ -1070,7 +1070,8 @@ export async function GET(request: NextRequest) {
 
         // Count admin "not interested" (soft rejection by admin)
         // These are NOT archived, just have admin_override with status "not_interested"
-        if (c.adminOverride?.status === "not_interested") {
+        // Exclude provider-level archived - those stay in "Archived" tab
+        if (c.adminOverride?.status === "not_interested" && !c.isProviderArchived) {
           engagementCounts.admin_not_interested++;
         }
 
@@ -1158,8 +1159,9 @@ export async function GET(request: NextRequest) {
       }
       // Special filter: admin_not_interested (admin marked as not interested - soft rejection)
       // These are NOT archived, provider can still see/engage with the lead
+      // Exclude provider-level archived - those stay in "Archived" tab
       else if (responseFilter === "admin_not_interested" && perspective === "provider") {
-        list = list.filter((c) => c.adminOverride?.status === "not_interested");
+        list = list.filter((c) => c.adminOverride?.status === "not_interested" && !c.isProviderArchived);
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);

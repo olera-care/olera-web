@@ -347,10 +347,12 @@ function CampaignFacts({ request }: { request: BoostRequest }) {
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
   if (budget) facts.push({ label: "Budget", value: budget });
 
+  // Flex + flex-1 (not a fixed grid) so 1, 2, or 3 facts always fill the width
+  // evenly — older requests with no channel/budget never leave empty cells.
   return (
-    <dl className="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden rounded-2xl border border-gray-200/80 bg-gray-100/70">
+    <dl className="mt-7 flex flex-col divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200/80 sm:flex-row sm:divide-x sm:divide-y-0">
       {facts.map((f) => (
-        <div key={f.label} className="bg-white px-4 py-3.5">
+        <div key={f.label} className="flex-1 px-4 py-3.5">
           <dt className="text-xs text-gray-400">{f.label}</dt>
           <dd className="mt-0.5 text-sm font-medium text-gray-900">{f.value}</dd>
         </div>

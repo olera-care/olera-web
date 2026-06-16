@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
     // If a provider has multiple leads, engagement from any lead contributes to their score.
     const { data: activities } = await db
       .from("provider_activity")
-      .select("provider_id, event_type, created_at")
+      .select("provider_id, event_type, created_at, metadata")
       .in("provider_id", [...new Set(providerKeys)])
       .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "one_click_access", "claim_completed"])
       .order("created_at", { ascending: false })
@@ -174,7 +174,15 @@ export async function GET(request: NextRequest) {
       };
 
       if (a.event_type === "email_click") updateIfEarlier("email_clicked_at", a.created_at);
-      if (a.event_type === "lead_opened") updateIfEarlier("lead_opened_at", a.created_at);
+      // Only count lead_opened if it has a specific connection_id
+      // Events without connection_id are from landing on the page, not actually viewing a lead
+      if (a.event_type === "lead_opened") {
+        const meta = a.metadata as Record<string, unknown> | null;
+        const connectionId = meta?.connection_id || meta?.lead_id;
+        if (connectionId) {
+          updateIfEarlier("lead_opened_at", a.created_at);
+        }
+      }
       if (a.event_type === "contact_revealed") updateIfEarlier("contact_revealed_at", a.created_at);
       if (a.event_type === "phone_clicked") updateIfEarlier("phone_clicked_at", a.created_at);
       if (a.event_type === "email_link_clicked") updateIfEarlier("email_link_clicked_at", a.created_at);

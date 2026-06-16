@@ -17,6 +17,16 @@ import {
   type BoostRequest,
   type BoostStateResponse,
 } from "@/lib/ad-boost/boost-state";
+import {
+  BUDGET_STOPS,
+  BUDGET_HONEST_LINE,
+  BUDGET_ESTIMATE_CAVEAT,
+  DEFAULT_BUDGET,
+  budgetStop,
+  budgetLabel,
+  estimateSummary,
+  type BudgetStop,
+} from "@/lib/ad-boost/estimate";
 
 /**
  * Provider Ad Boost — Managed Lead-Gen (concierge v1).
@@ -57,6 +67,9 @@ export default function ProviderBoostPage() {
 
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
   const [channel, setChannel] = useState<string>("both");
+  // Pre-selected so the budget step opens with its estimate already visible
+  // (anticipate the need, surface the payoff) — freely changeable.
+  const [selectedBudget, setSelectedBudget] = useState<number | null>(DEFAULT_BUDGET);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -124,7 +137,11 @@ export default function ProviderBoostPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setupWeek: selectedWeek, channel }),
+        body: JSON.stringify({
+          setupWeek: selectedWeek,
+          channel,
+          intendedMonthlyBudget: selectedBudget,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -142,6 +159,8 @@ export default function ProviderBoostPage() {
           provider_name: state.provider.displayName,
           setup_week: selectedWeek,
           channel,
+          // Intended monthly budget (non-binding); null if not chosen.
+          intended_monthly_budget: selectedBudget,
           // Queued under 70% (standing order) vs. an eligible, actionable request.
           queued: !!json.queued,
         });
@@ -236,6 +255,8 @@ export default function ProviderBoostPage() {
         setSelectedWeek={setSelectedWeek}
         channel={channel}
         setChannel={setChannel}
+        selectedBudget={selectedBudget}
+        setSelectedBudget={setSelectedBudget}
         submitting={submitting}
         submitError={submitError}
         onSubmit={submit}
@@ -258,7 +279,8 @@ function CampaignInMotion({
     scheduled: "Setup scheduled",
     live: "Your campaign is live",
   };
-  const showDelivered = request.status === "live" && delivered > 0;
+  const isLive = request.status === "live";
+  const showDelivered = isLive && delivered > 0;
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -268,26 +290,29 @@ function CampaignInMotion({
         </span>
       </div>
       <h2 className="text-2xl font-display font-semibold text-gray-900">
-        We&apos;re on it.
+        {isLive ? "Your campaign is live." : "We’re on it."}
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
-        Your campaign is set to go live the week of{" "}
-        <span className="font-medium text-gray-900">{formatWeek(request.requested_setup_week)}</span>.
-        We&apos;ll reach out before launch to confirm the details, and you&apos;ll
-        see families arrive on your dashboard as they come in.
+        {isLive
+          ? "Families we send arrive on your dashboard as they come in."
+          : "We’ll reach out before launch to confirm the details, then families arrive on your dashboard as they come in."}
       </p>
 
+      {/* The campaign they committed to — week, channel, budget. */}
+      <CampaignFacts request={request} />
+
+      {/* When live, real delivered families are THE focal point. */}
       {showDelivered && (
-        <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-6 py-5">
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-4xl font-display font-bold text-gray-900 tabular-nums">
+        <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-6 py-6">
+          <div className="flex items-baseline gap-3">
+            <span className="text-5xl font-display font-bold text-gray-900 tabular-nums leading-none">
               {delivered}
             </span>
             <span className="text-gray-600">
               {delivered === 1 ? "family" : "families"} reached out so far
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-1.5">
+          <p className="text-sm text-gray-500 mt-3">
             From your managed ad campaign. Find them on your{" "}
             <Link href="/provider/connections" className="text-primary-600 font-medium hover:underline">
               leads
@@ -307,6 +332,32 @@ function CampaignInMotion({
         </svg>
       </Link>
     </div>
+  );
+}
+
+/** The campaign the provider committed to — week · channel · budget — as a clean
+ *  hairline 3-up (Robinhood/Wise stat-row feel). Shared by the queued + in-motion
+ *  states so the choices they just made are always visible. */
+function CampaignFacts({ request }: { request: BoostRequest }) {
+  const channelLabel = CHANNELS.find((c) => c.value === request.channel)?.label ?? null;
+  const budget = budgetLabel(request.intended_monthly_budget);
+  const facts: { label: string; value: string }[] = [
+    { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
+  ];
+  if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
+  if (budget) facts.push({ label: "Budget", value: budget });
+
+  // Flex + flex-1 (not a fixed grid) so 1, 2, or 3 facts always fill the width
+  // evenly — older requests with no channel/budget never leave empty cells.
+  return (
+    <dl className="mt-7 flex flex-col divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200/80 sm:flex-row sm:divide-x sm:divide-y-0">
+      {facts.map((f) => (
+        <div key={f.label} className="flex-1 px-4 py-3.5">
+          <dt className="text-xs text-gray-400">{f.label}</dt>
+          <dd className="mt-0.5 text-sm font-medium text-gray-900">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -347,22 +398,19 @@ function PendingProfile({
         Your campaign is queued.
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
-        We&apos;ll launch it the week of{" "}
-        <span className="font-medium text-gray-900">
-          {formatWeek(request.requested_setup_week)}
-        </span>{" "}
-        — the moment your profile&apos;s ready to win the families we send.
-        You&apos;re <span className="font-medium text-gray-900">{remaining}%</span> away.
+        We’ll launch it the moment your profile’s ready to win the families we send.
       </p>
 
-      {/* Progress toward launch */}
+      {/* The campaign they committed to — week · channel · budget. */}
+      <CampaignFacts request={request} />
+
+      {/* Progress toward launch — the actionable "to go" leads, big number
+          matches the bar, target surfaced beneath (not buried in prose). */}
       <div className="mt-8 flex items-baseline gap-3">
-        <span className="text-4xl font-display font-bold text-gray-900 tabular-nums">
+        <span className="text-4xl font-display font-bold text-gray-900 tabular-nums leading-none">
           {eligibility.overall}%
         </span>
-        <span className="text-gray-500">
-          complete · {eligibility.threshold}% to launch
-        </span>
+        <span className="text-gray-500">complete</span>
       </div>
       <div className="mt-3 h-1.5 w-full rounded-full bg-warm-100 overflow-hidden">
         <div
@@ -370,6 +418,9 @@ function PendingProfile({
           style={{ width: `${Math.min(100, eligibility.overall)}%` }}
         />
       </div>
+      <p className="mt-2.5 text-sm text-gray-500">
+        <span className="font-medium text-gray-900">{remaining}% to go</span> to launch
+      </p>
 
       {/* THE single next action — the highest-impact gap. Opens the editor
           INLINE (no navigation), so they never leave the campaign-setup flow. */}
@@ -453,20 +504,51 @@ function MissingRow({
       <button
         type="button"
         onClick={() => onEdit(section.id as SectionId)}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left group"
+        aria-label={`${section.label}, ${section.percent}% done`}
+        className="flex w-full items-center gap-3.5 py-3.5 text-left group"
       >
-        <div className="min-w-0">
-          <p className="font-medium text-gray-900">{section.label}</p>
-          <p className="text-sm text-gray-400">{section.percent}% done</p>
-        </div>
-        <span className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 group-hover:gap-2.5 transition-all">
-          Improve
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
+        {/* A quiet completion ring replaces the repeated "X% done" text. */}
+        <ProgressRing percent={section.percent} />
+        <span className="min-w-0 flex-1 truncate font-medium text-gray-900">
+          {section.label}
         </span>
+        {/* The chevron is the only affordance — no repeated "Improve" label. */}
+        <svg
+          className="w-4 h-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-0.5 group-hover:text-primary-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
       </button>
     </li>
+  );
+}
+
+/** A tiny completion ring — calm visual status that replaces a repeated
+ *  "X% done" text column. Empty track at 0%, a teal arc as the section fills. */
+function ProgressRing({ percent }: { percent: number }) {
+  const r = 8;
+  const circ = 2 * Math.PI * r;
+  const filled = Math.max(0, Math.min(100, percent));
+  return (
+    <svg className="w-[18px] h-[18px] shrink-0 -rotate-90" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r={r} fill="none" strokeWidth="2.5" stroke="currentColor" className="text-gray-200" />
+      <circle
+        cx="10"
+        cy="10"
+        r={r}
+        fill="none"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        stroke="currentColor"
+        className="text-primary-500"
+        strokeDasharray={circ}
+        strokeDashoffset={circ * (1 - filled / 100)}
+      />
+    </svg>
   );
 }
 
@@ -479,19 +561,25 @@ const VALUE_PROPS = [
   { title: "You do nothing", tail: "No ad account, no keywords, no agency." },
 ];
 
+const STEP_LABELS = ["Timing", "Budget", "Confirm"] as const;
+
 /**
- * The apply experience — two-column transactional split (Airbnb-leaning):
+ * The apply experience — a light three-beat flow (Airbnb-leaning), one decision
+ * per screen, on a two-column transactional split:
  *
- *   LEFT  (action spine):   one headline → pick a week → pick a channel → black
- *                           CTA. The eye runs straight down to the one button.
- *   RIGHT (support, sticky): a live "Your campaign" summary that fills in as they
- *                           choose (anticipates the next step, confirms choices),
- *                           with the value props as quiet proof beneath it.
+ *   LEFT  (action spine):   breadcrumb → the current step's single decision →
+ *                           Back / Continue (or the submit CTA on Confirm).
+ *   RIGHT (support, sticky): a live "Your campaign" summary that accumulates as
+ *                           they go (week → channel → budget + estimate), with
+ *                           the value props as quiet proof beneath it.
  *
- * Clean white ground + one elevated summary card + teal as the single accent —
- * deliberately not a warm/cream treatment; this is a focused transaction, not an
- * editorial pitch. On mobile the columns stack and a one-line confirmation sits
- * right above the CTA so the summary still pays off without a sticky card.
+ * The honesty model lives in the Budget step: as the budget rises the estimate
+ * shifts from reach language to lead language (see lib/ad-boost/estimate.ts), so
+ * "real leads need real spend" lands structurally — one honest line + one caveat,
+ * no warning paragraph. Clean white ground + one elevated summary card + teal as
+ * the single accent — a focused transaction, not an editorial pitch. On mobile
+ * the columns stack; the summary card stacks below and a one-line echo on each
+ * step keeps the payoff visible.
  */
 function ApplyExperience({
   eligible,
@@ -500,6 +588,8 @@ function ApplyExperience({
   setSelectedWeek,
   channel,
   setChannel,
+  selectedBudget,
+  setSelectedBudget,
   submitting,
   submitError,
   onSubmit,
@@ -512,12 +602,18 @@ function ApplyExperience({
   setSelectedWeek: (v: string) => void;
   channel: string;
   setChannel: (v: string) => void;
+  selectedBudget: number | null;
+  setSelectedBudget: (v: number) => void;
   submitting: boolean;
   submitError: string | null;
   onSubmit: () => void;
 }) {
+  const [step, setStep] = useState(0); // 0 Timing · 1 Budget · 2 Confirm
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
+  const stop = budgetStop(selectedBudget);
+
+  const canAdvance = step === 0 ? !!selectedWeek : step === 1 ? !!stop : true;
 
   return (
     <div className="grid lg:grid-cols-[1fr_360px] gap-10 lg:gap-16 items-start">
@@ -526,94 +622,248 @@ function ApplyExperience({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
           Managed Ads
         </p>
-        <h1 className="mt-3 font-display font-bold text-[clamp(2.2rem,5vw,3.1rem)] text-gray-900 leading-[1.05] tracking-tight">
-          Reach families<br />
-          <span className="text-primary-600 italic">already searching for care</span>.
-        </h1>
-        <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
-          We run the ads where families are already looking — and send every one of
-          them straight to your Olera page.
-        </p>
 
-        {/* Week picker */}
-        <fieldset className="mt-10">
-          <legend className="text-sm font-medium text-gray-900 mb-3">Pick your week</legend>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {weekOptions.map((w) => {
-              const active = selectedWeek === w.value;
-              return (
-                <button
-                  key={w.value}
-                  type="button"
-                  onClick={() => setSelectedWeek(w.value)}
-                  className={`rounded-xl border px-3 py-3 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
-                    active
-                      ? "border-primary-500 bg-primary-50/60 text-primary-700"
-                      : "border-gray-200 text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  {w.label}
-                </button>
-              );
-            })}
+        {/* Breadcrumb — text, not a stepper widget. Past steps are tappable. */}
+        <nav className="mt-3 flex items-center gap-2 text-sm" aria-label="Progress">
+          {STEP_LABELS.map((label, i) => (
+            <span key={label} className="flex items-center gap-2">
+              {i > 0 && <span className="text-gray-300">·</span>}
+              <button
+                type="button"
+                disabled={i >= step}
+                onClick={() => i < step && setStep(i)}
+                className={`${
+                  i === step
+                    ? "font-semibold text-gray-900"
+                    : i < step
+                      ? "text-gray-400 hover:text-gray-600"
+                      : "text-gray-300 cursor-default"
+                } transition-colors`}
+              >
+                <span className="tabular-nums">{i + 1}</span> {label}
+              </button>
+            </span>
+          ))}
+        </nav>
+
+        {/* ── Step 0: Timing & channel ── */}
+        {step === 0 && (
+          <div>
+            <h1 className="mt-5 font-display font-bold text-[clamp(2rem,5vw,2.9rem)] text-gray-900 leading-[1.06] tracking-tight">
+              Reach families<br />
+              <span className="text-primary-600 italic">already searching for care</span>.
+            </h1>
+            <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
+              We run the ads where families are already looking — and send every one of
+              them straight to your Olera page.
+            </p>
+
+            <fieldset className="mt-9">
+              <legend className="text-sm font-medium text-gray-900 mb-3">Pick your week</legend>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {weekOptions.map((w) => {
+                  const active = selectedWeek === w.value;
+                  return (
+                    <button
+                      key={w.value}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setSelectedWeek(w.value)}
+                      className={`rounded-2xl border px-3 py-4 text-center text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                        active
+                          ? "border-primary-500 bg-primary-50/70 text-primary-700"
+                          : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
+                      }`}
+                    >
+                      {w.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset className="mt-7">
+              <legend className="text-sm font-medium text-gray-900 mb-3">Where we advertise</legend>
+              <div className="flex flex-wrap gap-2.5">
+                {CHANNELS.map((c) => {
+                  const active = channel === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setChannel(c.value)}
+                      className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                        active
+                          ? "border-primary-500 bg-primary-50/70 text-primary-700"
+                          : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
           </div>
-        </fieldset>
-
-        {/* Channel preference */}
-        <fieldset className="mt-7">
-          <legend className="text-sm font-medium text-gray-900 mb-3">
-            Where we advertise
-          </legend>
-          <div className="flex flex-wrap gap-2.5">
-            {CHANNELS.map((c) => {
-              const active = channel === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setChannel(c.value)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/15 focus-visible:ring-offset-2 ${
-                    active
-                      ? "border-primary-500 bg-primary-50/60 text-primary-700"
-                      : "border-gray-200 text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        {/* Mobile-only live confirmation — the summary card is desktop-only, so
-            this single dynamic line gives the same payoff above the CTA. */}
-        {selectedWeek && (
-          <p className="lg:hidden mt-8 text-sm text-gray-500">
-            {eligible ? "Launching" : "Queuing"} the week of{" "}
-            <span className="font-medium text-gray-900">{weekLabel}</span> · {channelLabel}
-          </p>
         )}
 
-        {submitError && <p className="mt-6 text-sm text-red-600">{submitError}</p>}
+        {/* ── Step 1: Budget ── */}
+        {step === 1 && (
+          <div>
+            <h2 className="mt-5 text-2xl font-display font-semibold text-gray-900">
+              Set your monthly budget
+            </h2>
+            <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
+              You only fund what you approve — and your first $50 is on us. Pick a
+              starting point; you can change it anytime.
+            </p>
 
-        <button
-          type="button"
-          disabled={!selectedWeek || submitting}
-          onClick={onSubmit}
-          className="mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
-        >
-          {submitting ? "Sending…" : eligible ? "Request my campaign" : "Queue my campaign"}
-          {!submitting && (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-            </svg>
+            <fieldset className="mt-8 pt-3">
+              <legend className="sr-only">Monthly budget</legend>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {BUDGET_STOPS.map((b) => {
+                  const active = selectedBudget === b.value;
+                  return (
+                    <button
+                      key={b.value}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setSelectedBudget(b.value)}
+                      className={`relative flex min-h-[5.25rem] flex-col items-center justify-center rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                        active
+                          ? "border-primary-500 bg-primary-50/70"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
+                      }`}
+                    >
+                      {b.recommended && (
+                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary-600 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white shadow-sm">
+                          Recommended
+                        </span>
+                      )}
+                      <span className={`text-2xl font-bold tracking-tight tabular-nums leading-none ${active ? "text-primary-700" : "text-gray-900"}`}>
+                        {b.amount}
+                      </span>
+                      <span className={`mt-1.5 text-xs ${active ? "text-primary-600/80" : "text-gray-400"}`}>
+                        {b.sublabel}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            {/* Estimate HERO — the payoff of this step, big and central. The
+                range answers "what do I get?" right where the eye is; reach tier
+                ($50) shows a phrase, no fake number. The caveat lives in the
+                summary card (not duplicated here) to keep this bold. */}
+            {stop && (
+              <div key={stop.value} className="mt-9 animate-[fadeIn_180ms_ease-out]">
+                {stop.kind === "leads" ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-display font-bold text-5xl text-gray-900 tabular-nums tracking-tight">
+                      {stop.headline}
+                    </span>
+                    <span className="text-lg text-gray-500">{stop.unit}</span>
+                  </div>
+                ) : (
+                  <p className="font-display font-bold text-3xl text-gray-900 tracking-tight">
+                    {stop.headline}
+                  </p>
+                )}
+                <p className="mt-2.5 text-gray-500 leading-relaxed max-w-md">{stop.estimate}</p>
+              </div>
+            )}
+
+            {/* The one honest line — factual + social-proofed, not a warning. */}
+            <p className="mt-7 text-sm text-gray-400 leading-relaxed max-w-md">
+              {BUDGET_HONEST_LINE}
+            </p>
+          </div>
+        )}
+
+        {/* ── Step 2: Review & confirm ── */}
+        {step === 2 && (
+          <div>
+            <h2 className="mt-5 text-2xl font-display font-semibold text-gray-900">
+              Review &amp; confirm
+            </h2>
+            <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
+              {eligible
+                ? "Here's your campaign. We'll confirm the details and your budget before anything goes live."
+                : "Here's your campaign. We'll queue it now and launch the moment your profile's ready."}
+            </p>
+
+            <dl className="mt-7 overflow-hidden rounded-2xl border border-gray-200/80 divide-y divide-gray-100">
+              <ReviewRow label="Launch" value={weekLabel ?? "—"} />
+              <ReviewRow label="Advertising on" value={channelLabel} />
+              <ReviewRow label="Monthly budget" value={stop?.label ?? "—"} />
+            </dl>
+
+            <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
+              Advertising drives more local families to your page; it doesn&apos;t
+              guarantee a set number of leads.{" "}
+              <Link
+                href="/managed-ads-terms"
+                target="_blank"
+                className="text-primary-600 font-medium hover:underline"
+              >
+                How it works &amp; what we measure
+              </Link>
+              .
+            </p>
+          </div>
+        )}
+
+        {/* ── Footer nav — shared across steps ── */}
+        {step === 2 && submitError && (
+          <p className="mt-6 text-sm text-red-600">{submitError}</p>
+        )}
+        <div className="mt-9 flex items-center gap-5">
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={() => setStep(step - 1)}
+              className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              Back
+            </button>
           )}
-        </button>
-        <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
-          {eligible
-            ? "No charge yet — we'll confirm pricing and your ad budget with you before anything goes live."
-            : "No charge to queue, and none until we confirm pricing and your ad budget with you before launch."}
-        </p>
+          {step < 2 ? (
+            <button
+              type="button"
+              disabled={!canAdvance}
+              onClick={() => setStep(step + 1)}
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+            >
+              Continue
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={onSubmit}
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+            >
+              {submitting ? "Sending…" : eligible ? "Request my campaign" : "Queue my campaign"}
+              {!submitting && (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              )}
+            </button>
+          )}
+        </div>
+        {step === 2 && (
+          <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
+            {eligible
+              ? "No charge yet — we'll confirm your budget with you before anything goes live. Your first $50 is on us."
+              : "No charge to queue, and none until we confirm your budget with you before launch. Your first $50 is on us."}
+          </p>
+        )}
       </div>
 
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
@@ -622,35 +872,52 @@ function ApplyExperience({
           eligible={eligible}
           weekLabel={weekLabel}
           channelLabel={channelLabel}
+          stop={stop}
         />
 
-        {/* Value props — quiet, scannable proof. Not a competing grid. */}
-        <ul className="space-y-3.5 px-1">
-          {VALUE_PROPS.map((p) => (
-            <li key={p.title} className="flex gap-2.5">
-              <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
-              <span className="text-sm leading-snug">
-                <span className="font-medium text-gray-900">{p.title}</span>
-                <span className="text-gray-500"> — {p.tail}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* Value props — quiet, scannable proof, only on the entry step. On the
+            budget step the estimate hero is the focus; on confirm the review is
+            self-contained — repeating the props there is dead column. */}
+        {step === 0 && (
+          <ul className="space-y-3.5 px-1">
+            {VALUE_PROPS.map((p) => (
+              <li key={p.title} className="flex gap-2.5">
+                <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
+                <span className="text-sm leading-snug">
+                  <span className="font-medium text-gray-900">{p.title}</span>
+                  <span className="text-gray-500"> — {p.tail}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </aside>
     </div>
   );
 }
 
-/** The live "Your campaign" card — fills in as the provider picks. The single
- *  resting point of the page; updates make the choices feel real before commit. */
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 px-4 py-3.5">
+      <dt className="text-sm text-gray-500">{label}</dt>
+      <dd className="text-sm font-medium text-gray-900 text-right">{value}</dd>
+    </div>
+  );
+}
+
+/** The live "Your campaign" card — accumulates as the provider picks (week →
+ *  channel → budget + estimate). The single resting point of the flow; the
+ *  estimate's reach→lead shift carries the honesty, capped by one caveat. */
 function CampaignSummary({
   eligible,
   weekLabel,
   channelLabel,
+  stop,
 }: {
   eligible: boolean;
   weekLabel: string | null;
   channelLabel: string;
+  stop: BudgetStop | null;
 }) {
   return (
     <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
@@ -669,10 +936,30 @@ function CampaignSummary({
           <dt className="text-sm text-gray-500">Advertising on</dt>
           <dd className="text-sm font-medium text-gray-900 text-right">{channelLabel}</dd>
         </div>
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-sm text-gray-500">Budget</dt>
+          <dd className={`text-sm font-medium text-right ${stop ? "text-gray-900" : "text-gray-300"}`}>
+            {stop?.label ?? "Pick a budget"}
+          </dd>
+        </div>
       </dl>
 
       <div className="mt-5 pt-5 border-t border-gray-100">
-        {eligible ? (
+        {stop ? (
+          <>
+            {/* Compact estimate (the big version lives in the left hero on the
+                budget step). Cross-fades on selection (keyed) — calm, no jump. */}
+            <p key={stop.value} className="text-sm font-medium text-gray-900 animate-[fadeIn_150ms_ease-out]">
+              {estimateSummary(stop)}
+            </p>
+            <p className="mt-2 text-xs text-gray-400 leading-relaxed">{BUDGET_ESTIMATE_CAVEAT}</p>
+            {!eligible && (
+              <p className="mt-3 text-xs text-gray-400 leading-relaxed">
+                Queued now — launches once your profile&apos;s ready for the families we send.
+              </p>
+            )}
+          </>
+        ) : eligible ? (
           <p className="flex items-center gap-2 text-sm text-primary-700">
             <CheckIcon className="w-4 h-4 shrink-0" />
             Ready to launch when you confirm.

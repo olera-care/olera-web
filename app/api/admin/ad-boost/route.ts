@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, listLeadsByCampaign } from "@/lib/ad-boost/delivered.server";
 
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
  *
- * GET  — list all campaign requests, newest first, for the /admin/ad-boost queue.
- * POST — update one request: status lifecycle + campaign_tag / channel / note /
- *        setup week. Moving a request to `live` without a campaign_tag auto-sets
- *        it to the request id, so there's always a stable UTM tag to attribute
- *        delivered families against (Phase 3 ROI).
+ * GET    — list all campaign requests, newest first, for the /admin/ad-boost queue.
+ * POST   — update one request: status lifecycle + campaign_tag / channel / note /
+ *          setup week. Moving a request to `live` without a campaign_tag auto-sets
+ *          it to the request id, so there's always a stable UTM tag to attribute
+ *          delivered families against (Phase 3 ROI).
+ * DELETE — hard-delete one request by id (?id= or JSON body). Used to clear out
+ *          test runs from the queue; real campaigns should be `cancelled`/`ended`
+ *          via POST instead, but this is a deliberate scrub.
  *
  * Auth: admin only.
  */
@@ -18,20 +21,58 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, campaign_tag, admin_note, created_at, updated_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   const adminUser = await getAdminUser(user.id);
   if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
+  const params = new URL(request.url).searchParams;
   const db = getServiceClient();
-  const { data, error } = await db
+
+  // Single-record fetch (?id=) for the detail page. Returns the one request with
+  // its delivered count, regardless of archived state.
+  const id = params.get("id");
+  if (id) {
+    const { data: row, error: rowErr } = await db
+      .from("ad_campaign_requests")
+      .select(ROW_SELECT)
+      .eq("id", id)
+      .maybeSingle();
+    if (rowErr) {
+      console.error("[admin/ad-boost] fetch one failed:", rowErr);
+      return NextResponse.json({ error: rowErr.message }, { status: 500 });
+    }
+    if (!row) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const tag = row.campaign_tag || row.id;
+    const [delivered, leads] = await Promise.all([
+      countDeliveredByCampaign(db, [tag]),
+      listLeadsByCampaign(db, tag),
+    ]);
+    return NextResponse.json({
+      request: { ...row, delivered: delivered[tag] ?? 0 },
+      leads,
+    });
+  }
+
+  // Default view = the live queue (not archived). `?archived=1` returns only the
+  // soft-deleted rows so the admin can review / restore / permanently delete them.
+  // Sorted by setup week ascending so the soonest-due work surfaces first.
+  const archived = params.get("archived") === "1";
+
+  let query = db
     .from("ad_campaign_requests")
     .select(ROW_SELECT)
-    .order("created_at", { ascending: false })
+    .order("requested_setup_week", { ascending: true })
     .limit(500);
+  query = archived
+    ? query.not("deleted_at", "is", null)
+    : query.is("deleted_at", null);
+  const { data, error } = await query;
 
   if (error) {
     console.error("[admin/ad-boost] list failed:", error);
@@ -54,7 +95,17 @@ export async function GET() {
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
   }));
 
-  return NextResponse.json({ requests: withRoi });
+  // Tab counts (active vs archived) so both tabs show a number regardless of
+  // which view is loaded. Cheap head-only count queries.
+  const [{ count: activeCount }, { count: archivedCount }] = await Promise.all([
+    db.from("ad_campaign_requests").select("*", { count: "exact", head: true }).is("deleted_at", null),
+    db.from("ad_campaign_requests").select("*", { count: "exact", head: true }).not("deleted_at", "is", null),
+  ]);
+
+  return NextResponse.json({
+    requests: withRoi,
+    counts: { active: activeCount ?? 0, archived: archivedCount ?? 0 },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -70,6 +121,9 @@ export async function POST(request: NextRequest) {
     channel?: unknown;
     admin_note?: unknown;
     requested_setup_week?: unknown;
+    archived?: unknown;
+    ad_spend_cents?: unknown;
+    ad_clicks?: unknown;
   };
   try {
     body = await request.json();
@@ -129,6 +183,34 @@ export async function POST(request: NextRequest) {
     update.requested_setup_week = body.requested_setup_week.slice(0, 10);
   }
 
+  // Manual performance entry (spend in cents, click count). Either may be null
+  // to clear it; otherwise must be a non-negative integer.
+  for (const field of ["ad_spend_cents", "ad_clicks"] as const) {
+    if (body[field] !== undefined) {
+      const v = body[field];
+      if (v === null) {
+        update[field] = null;
+      } else if (typeof v !== "number" || !Number.isInteger(v) || v < 0) {
+        return NextResponse.json(
+          { error: `${field} must be a non-negative integer or null` },
+          { status: 400 },
+        );
+      } else {
+        update[field] = v;
+      }
+    }
+  }
+
+  // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so
+  // the request drops out of the default queue but the record is kept; `false`
+  // clears it (restore). Hard delete is the separate DELETE handler.
+  if (body.archived !== undefined) {
+    if (typeof body.archived !== "boolean") {
+      return NextResponse.json({ error: "archived must be a boolean" }, { status: 400 });
+    }
+    update.deleted_at = body.archived ? new Date().toISOString() : null;
+  }
+
   const db = getServiceClient();
 
   // When launching (status -> live) with no tag yet, default the campaign_tag to
@@ -164,4 +246,36 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ request: data });
+}
+
+export async function DELETE(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+  // Accept the id from the query string (?id=) or a JSON body, so this works
+  // from the admin UI fetch as well as a manual browser/cURL scrub.
+  let id = new URL(request.url).searchParams.get("id");
+  if (!id) {
+    try {
+      const body = await request.json();
+      if (typeof body?.id === "string") id = body.id;
+    } catch {
+      /* no body — fall through to the missing-id error */
+    }
+  }
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  const db = getServiceClient();
+  const { error } = await db.from("ad_campaign_requests").delete().eq("id", id);
+
+  if (error) {
+    console.error("[admin/ad-boost] delete failed:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

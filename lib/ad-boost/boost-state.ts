@@ -22,6 +22,8 @@ export interface BoostRequest {
   status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled";
   requested_setup_week: string;
   channel: string | null;
+  /** Provider's intended monthly ad budget in whole USD (non-binding). NULL = not chosen. */
+  intended_monthly_budget: number | null;
   campaign_tag: string | null;
   created_at: string;
 }

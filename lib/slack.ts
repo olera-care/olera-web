@@ -1362,6 +1362,9 @@ export function slackAdBoostRequested(opts: {
   completeness: number;
   setupWeek: string; // ISO date (Monday of the chosen week)
   channel?: string | null;
+  /** Provider's intended monthly ad budget in whole USD (non-binding — concierge
+   *  confirms before spend). Null when not chosen. */
+  budget?: number | null;
   /** True when this request was queued under 70% and JUST auto-promoted after
    *  the provider crossed the completeness threshold (the standing-order
    *  release). Changes the header so the concierge knows it's a fresh,
@@ -1379,6 +1382,10 @@ export function slackAdBoostRequested(opts: {
     { type: "mrkdwn", text: `*Setup week:*\n${opts.setupWeek}` },
   ];
   if (opts.channel) fields.push({ type: "mrkdwn", text: `*Channel:*\n${opts.channel}` });
+  fields.push({
+    type: "mrkdwn",
+    text: `*Intended budget:*\n${opts.budget != null ? `$${opts.budget}/mo (confirm before spend)` : "—"}`,
+  });
 
   const header = opts.launchReady
     ? "🚀 Ad Boost now LAUNCH-READY — provider just cleared 70%"

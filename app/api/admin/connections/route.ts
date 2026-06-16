@@ -1038,10 +1038,9 @@ export async function GET(request: NextRequest) {
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
 
-      // DIAGNOSTIC: Log mismatch cases to trace the bug
-      // If lead_opened is true but result is needs_follow_up, something is wrong
-      if (engagementData.leadOpened && engResult.level === "needs_follow_up") {
-        console.error(`[BUG] lead_opened=true but level=needs_follow_up: connection=${c.id}, provider=${c.provider.display_name}, providerIsClaimed=${providerIsClaimed}, raw_lead_opened=${eng?.lead_opened}, effectiveLeadOpened=${effectiveLeadOpened}, sequenceComplete=${engagementData.followupStage != null && engagementData.followupStage >= 3}`);
+      // DIAGNOSTIC: Log ALL needs_follow_up connections to trace the badge/tab mismatch
+      if (engResult.level === "needs_follow_up") {
+        console.log(`[TRACE] needs_follow_up: id=${c.id}, provider=${c.provider.display_name}, raw_lead_opened=${eng?.lead_opened ?? "NONE"}, providerIsClaimed=${providerIsClaimed}, effectiveLeadOpened=${effectiveLeadOpened}, isAccountClaimed=${c.provider.isAccountClaimed}, followupStage=${c.followupStage}`);
       }
 
       // Store badge data using the SAME computed values as engagement level
@@ -1344,7 +1343,11 @@ export async function GET(request: NextRequest) {
         // DIAGNOSTIC: Final check - badge vs engagement level mismatch
         const engLevel = connectionEngagementLevels.get(c.id);
         if (badge.lead_opened && engLevel !== "viewed" && engLevel !== "connected") {
-          console.error(`[BUG] Badge shows viewed but tab=${engLevel}: connection=${c.id}, provider=${c.provider.display_name}`);
+          console.error(`[BUG] Badge shows viewed but tab=${engLevel}: connection=${c.id}, provider=${c.provider.display_name}, badge.lead_opened=${badge.lead_opened}`);
+        }
+        // Also log all needs_follow_up with their badge state
+        if (engLevel === "needs_follow_up") {
+          console.log(`[BADGE] needs_follow_up: id=${c.id}, badge.lead_opened=${badge.lead_opened}`);
         }
       }
     }

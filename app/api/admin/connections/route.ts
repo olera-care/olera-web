@@ -771,17 +771,6 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(10000);
 
-      // Build a map of provider_id -> connection_ids for multi-lead email handling
-      const providerToConnections = new Map<string, string[]>();
-      for (const c of searched) {
-        const providerKey = c.provider.activityKey;
-        if (!providerKey) continue;
-        if (!providerToConnections.has(providerKey)) {
-          providerToConnections.set(providerKey, []);
-        }
-        providerToConnections.get(providerKey)!.push(c.id);
-      }
-
       for (const ev of actEvents ?? []) {
         const meta = ev.metadata as Record<string, unknown> | null;
         // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)

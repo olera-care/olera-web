@@ -1132,7 +1132,7 @@ export default function ConnectionRow({
                   className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
                   title="Click to verify this provider"
                 >
-                  Needs Verification
+                  Unverified
                 </a>
               </>
             ) : c.provider.verificationState === "rejected" ? (

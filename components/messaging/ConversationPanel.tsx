@@ -741,6 +741,15 @@ export default function ConversationPanel({
   const hasProviderFollowedUp = lastQuickReplyResponseIndex >= 0 &&
     thread.slice(lastQuickReplyResponseIndex + 1).some(msg => msg.from_profile_id === providerProfileId);
 
+  // Family name for nudge banner (shown above input when family responds to quick reply)
+  const familyFirstName = (() => {
+    const name = connection.type === "inquiry"
+      ? connection.fromProfile?.display_name
+      : connection.toProfile?.display_name;
+    return name?.split(" ")[0] || "Care seeker";
+  })();
+  const showQuickReplyNudge = isProviderView && lastQuickReplyResponseIndex >= 0 && !hasProviderFollowedUp;
+
   // Names in conversation header are not clickable - use "View full profile" in details panel instead
 
   const showMessageInput =
@@ -1269,17 +1278,6 @@ export default function ConversationPanel({
                         {isLastInGroup && (
                           <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
                         )}
-                        {/* Nudge banner for provider after family responds */}
-                        {isProviderView && !hasProviderFollowedUp && (
-                          <div className="mt-3 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100">
-                            <p className="text-[15px] font-medium text-blue-900">
-                              {familyFirstName} answered — just say hi to get started.
-                            </p>
-                            <p className="text-sm text-blue-600 mt-0.5">
-                              Always free · families reply fastest within the first hour.
-                            </p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
@@ -1428,6 +1426,15 @@ export default function ConversationPanel({
               {/* Input area */}
               <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
+                  {/* Quick reply response nudge - shown above input when family responds */}
+                  {showQuickReplyNudge && (
+                    <div className="px-4 py-3 bg-primary-50 border-b border-primary-100 flex items-center justify-between gap-3">
+                      <p className="text-[14px] text-primary-900">
+                        <span className="font-medium">{familyFirstName} answered</span>
+                        <span className="text-primary-600"> — say hi to continue the conversation</span>
+                      </p>
+                    </div>
+                  )}
                   <textarea
                     ref={messageInputRef}
                     value={messageText}

@@ -188,21 +188,32 @@ export async function GET(request: NextRequest) {
     >();
 
     if (providerKeys.length > 0 && connectionIds.length > 0) {
-      const { data: actEvents } = await db
-        .from("provider_activity")
-        .select("provider_id, event_type, metadata")
-        .in("provider_id", providerKeys.slice(0, 1000))
-        .in("event_type", [
-          "email_click",
-          "lead_opened",
-          "contact_revealed",
-          "phone_clicked",
-          "email_link_clicked",
-          "continue_in_inbox",
-        ])
-        .limit(10000);
+      // Fetch engagement events in batches to handle large exports
+      const PROVIDER_BATCH_SIZE = 500;
+      const allActivityEvents: { provider_id: string; event_type: string; metadata: Record<string, unknown> | null }[] = [];
 
-      for (const ev of actEvents ?? []) {
+      for (let i = 0; i < providerKeys.length; i += PROVIDER_BATCH_SIZE) {
+        const batch = providerKeys.slice(i, i + PROVIDER_BATCH_SIZE);
+        const { data: batchEvents } = await db
+          .from("provider_activity")
+          .select("provider_id, event_type, metadata")
+          .in("provider_id", batch)
+          .in("event_type", [
+            "email_click",
+            "lead_opened",
+            "contact_revealed",
+            "phone_clicked",
+            "email_link_clicked",
+            "continue_in_inbox",
+          ])
+          .limit(10000);
+
+        if (batchEvents) {
+          allActivityEvents.push(...batchEvents);
+        }
+      }
+
+      for (const ev of allActivityEvents) {
         const meta = ev.metadata as Record<string, unknown> | null;
         const connId = (meta?.connection_id || meta?.lead_id) as string | undefined;
         if (!connId || !connectionIds.includes(connId)) continue;
@@ -252,6 +263,15 @@ export async function GET(request: NextRequest) {
       filteredConnections = allConnections.filter((c) => {
         const eng = engagementMap.get(c.id);
         const level = getEngagementLevel(c, eng);
+        const provider = c.to_profile;
+        const adminOverride = c.admin_override as { status?: string } | null;
+
+        // Check for email issues (no email, or email looks invalid)
+        const providerEmail = provider?.email?.trim();
+        const hasEmailIssue = !providerEmail || !providerEmail.includes("@");
+
+        // Check if provider is claimed (has account linked)
+        const isProviderClaimed = !!provider?.account_id;
 
         if (filter === "archived") return c.archived;
         if (filter === "declined") return c.archived && c.archive_reason;
@@ -259,6 +279,17 @@ export async function GET(request: NextRequest) {
         if (filter === "viewed") return level === "viewed" && !c.archived;
         if (filter === "connected") return level === "connected" && !c.archived;
         if (filter === "needs_follow_up") return level === "needs_follow_up" && !c.archived;
+
+        // Needs Email: has email issue, not engaged, not claimed, not archived
+        if (filter === "needs_email") {
+          const hasEngaged = level === "viewed" || level === "connected";
+          return hasEmailIssue && !hasEngaged && !isProviderClaimed && !c.archived;
+        }
+
+        // Admin marked as "not interested" (but not archived)
+        if (filter === "admin_not_interested") {
+          return adminOverride?.status === "not_interested" && !c.archived;
+        }
 
         // Outbound filters
         if (filter === "accepted") return c.responded === true;
@@ -376,6 +407,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        "X-Export-Count": String(filteredConnections.length),
       },
     });
   } catch (err) {

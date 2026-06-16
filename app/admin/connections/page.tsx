@@ -671,6 +671,7 @@ export default function ConnectionsTrackerPage() {
         return;
       }
 
+      const exportCount = res.headers.get("X-Export-Count");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -681,8 +682,8 @@ export default function ConnectionsTrackerPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      const total = direction === "outbound" ? outboundList?.total ?? 0 : list?.total ?? 0;
-      showToast(`Exported ${total.toLocaleString()} connections`);
+      const count = exportCount ? parseInt(exportCount, 10) : 0;
+      showToast(`Exported ${count.toLocaleString()} connections`);
     } catch {
       showToast("Export failed. Please try again.", "error");
     } finally {

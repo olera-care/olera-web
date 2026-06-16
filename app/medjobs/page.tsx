@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import CaregiverRedirect from "@/components/medjobs/CaregiverRedirect";
+import PartnerHelpCard from "@/components/medjobs/PartnerHelpCard";
 
 export const metadata: Metadata = {
-  title: "Pre-Health Caregiving Internship | Olera",
+  title: "Olera's Student Caregiver Internship | Olera",
   description:
-    "A paid caregiving internship for pre-health students — earn healthcare experience, a credential, and references for medical, PA, and nursing school. Providers: match with vetted interns for recurring coverage.",
+    "A paid caregiver internship for pre-health students. Earn healthcare experience, a credential, and references for medical, PA, and nursing school. Providers: match with vetted student caregivers for recurring coverage.",
   openGraph: {
-    title: "Pre-Health Caregiving Internship | Olera",
+    title: "Olera's Student Caregiver Internship | Olera",
     description:
-      "A paid caregiving internship for pre-health students — earn healthcare experience, a credential, and references toward your health career.",
+      "A paid caregiver internship for pre-health students. Earn healthcare experience, a credential, and references toward your health career.",
   },
 };
 
@@ -298,40 +299,59 @@ export default function MedJobsPage() {
       </section>
 
 
-      {/* Meet the students */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <p className="text-sm tracking-widest uppercase text-gray-400 font-medium mb-3">
-              Meet the students
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-              Future doctors. Future nurses.
-              <br className="hidden sm:block" />
-              Current caregivers.
-            </h2>
+      {/* Full details — sample internship agreement (visible to students + partners) */}
+      <section className="py-12 sm:py-14 border-y border-gray-100 bg-gray-50/50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            Want the specifics?
+          </h2>
+          <p className="mt-2 text-gray-500">
+            Read exactly how the internship works, start to finish.
+          </p>
+          <div className="mt-5">
+            <a
+              href="/docs/internship-agreement-sample.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-6 py-3 bg-white border border-gray-200 text-gray-800 text-sm font-semibold rounded-full hover:border-gray-300 transition-colors"
+            >
+              Read the sample internship agreement ↗
+            </a>
           </div>
-          <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {[
-              { name: "Joshua S.", school: "Texas A&M", track: "Pre-Med", hours: "180 hrs verified", image: "/images/medjobs/student-joshua.jpg" },
-              { name: "Natasha J.", school: "University of Michigan", track: "Pre-PA", hours: "312 hrs verified", image: "/images/medjobs/student-natasha.jpg" },
-              { name: "Emma N.", school: "Texas A&M", track: "Pre-Nursing", hours: "456 hrs verified", image: "/images/medjobs/student-emma.jpg" },
-            ].map((student) => (
-              <div key={student.name} className="group">
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 mb-4">
-                  <Image
-                    src={student.image}
-                    alt={student.name}
-                    width={400}
-                    height={500}
-                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                  />
+        </div>
+      </section>
+
+      {/* For advisors, faculty & student orgs */}
+      <section id="help" className="py-16 sm:py-20 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12 lg:items-start">
+            <div className="mb-8 lg:mb-0">
+              <div className="flex items-center gap-3 mb-4">
+                <Image
+                  src="/images/for-providers/team/logan.jpg"
+                  alt="Dr. Logan DuBose"
+                  width={56}
+                  height={56}
+                  className="w-14 h-14 rounded-full object-cover shadow-sm"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Dr. Logan DuBose, MD</p>
+                  <p className="text-xs text-gray-500">Geriatric physician &middot; NIA researcher</p>
                 </div>
-                <p className="text-base font-semibold text-gray-900">{student.name}</p>
-                <p className="text-sm text-gray-500">{student.school} &middot; {student.track}</p>
-                <p className="text-sm text-primary-600 font-medium mt-0.5">{student.hours}</p>
               </div>
-            ))}
+              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
+                For advisors, faculty &amp; student orgs
+              </p>
+              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+                Help your pre-health students find this
+              </h2>
+              <p className="mt-4 text-gray-500 leading-relaxed">
+                A paid way to earn the patient-care hours, credential, and
+                references their med, PA, and nursing applications need.
+                Physician-led, NIA-backed, and safe for students.
+              </p>
+            </div>
+            <PartnerHelpCard />
           </div>
         </div>
       </section>

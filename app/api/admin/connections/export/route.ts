@@ -20,27 +20,17 @@ interface ConnectionRow {
   id: string;
   created_at: string;
   type: string;
+  status: string | null;
   from_profile_id: string | null;
   to_profile_id: string | null;
   message: string | null;
   metadata: Record<string, unknown> | null;
-  responded: boolean;
-  family_replied_after_provider: boolean;
-  provider_nudge_count: number;
-  family_nudge_count: number;
-  archived: boolean;
-  archive_reason: string | null;
-  archived_at: string | null;
-  admin_override: Record<string, unknown> | null;
-  followup_stage: number | null;
-  followup_stopped_reason: string | null;
   from_profile: {
     id: string;
     display_name: string | null;
     email: string | null;
     phone: string | null;
     city: string | null;
-    state: string | null;
   } | null;
   to_profile: {
     id: string;
@@ -54,6 +44,33 @@ interface ConnectionRow {
     account_id: string | null;
     verification_state: string | null;
   } | null;
+}
+
+// Helper to extract fields from connection metadata
+function getConnectionMeta(c: ConnectionRow) {
+  const meta = c.metadata ?? {};
+  const thread = (meta.thread as Array<{ from_profile_id: string; text?: string; is_auto_reply?: boolean }>) ?? [];
+
+  // Check if provider responded (sent a non-auto-reply message)
+  const providerResponded = thread.some(
+    (m) => m.from_profile_id === c.to_profile_id && m.text && !m.is_auto_reply
+  );
+
+  // Check if family replied after provider
+  const familyReplied = providerResponded && thread.some(
+    (m) => m.from_profile_id === c.from_profile_id && m.text && !m.is_auto_reply
+  );
+
+  return {
+    responded: providerResponded,
+    familyReplied,
+    archived: meta.archived === true,
+    archiveReason: (meta.archive_reason as string) ?? null,
+    adminOverride: meta.admin_override as { status?: string } | null,
+    providerNudgeCount: (meta.provider_nudge_count as number) ?? 0,
+    followupStage: (meta.followup_stage as number) ?? null,
+    followupStoppedReason: (meta.followup_stopped_reason as string) ?? null,
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -91,39 +108,16 @@ export async function GET(request: NextRequest) {
           id,
           created_at,
           type,
+          status,
           from_profile_id,
           to_profile_id,
           message,
           metadata,
-          responded,
-          family_replied_after_provider,
-          provider_nudge_count,
-          family_nudge_count,
-          archived,
-          archive_reason,
-          archived_at,
-          admin_override,
-          followup_stage,
-          followup_stopped_reason,
-          from_profile:business_profiles!connections_from_profile_id_fkey (
-            id,
-            display_name,
-            email,
-            phone,
-            city,
-            state
+          from_profile:business_profiles!connections_from_profile_id_fkey(
+            id, display_name, email, phone, city
           ),
-          to_profile:business_profiles!connections_to_profile_id_fkey (
-            id,
-            display_name,
-            email,
-            phone,
-            slug,
-            source_provider_id,
-            city,
-            state,
-            account_id,
-            verification_state
+          to_profile:business_profiles!connections_to_profile_id_fkey(
+            id, display_name, slug, source_provider_id, email, phone, city, state, account_id, verification_state
           )
         `)
         .order("created_at", { ascending: false });
@@ -245,14 +239,14 @@ export async function GET(request: NextRequest) {
       c: ConnectionRow,
       eng: { lead_opened: boolean; phone_clicked: boolean; email_link_clicked: boolean } | undefined
     ): string {
-      const adminOverride = c.admin_override as { status?: string } | null;
-      if (adminOverride?.status === "connected") return "connected";
-      if (adminOverride?.status === "viewed") return "viewed";
-      if (c.responded || eng?.phone_clicked || eng?.email_link_clicked) return "connected";
+      const meta = getConnectionMeta(c);
+      if (meta.adminOverride?.status === "connected") return "connected";
+      if (meta.adminOverride?.status === "viewed") return "viewed";
+      if (meta.responded || eng?.phone_clicked || eng?.email_link_clicked) return "connected";
       if (eng?.lead_opened) return "viewed";
       const sequenceComplete =
-        (c.followup_stage != null && c.followup_stage >= 3) ||
-        c.followup_stopped_reason === "needs_call";
+        (meta.followupStage != null && meta.followupStage >= 3) ||
+        meta.followupStoppedReason === "needs_call";
       if (sequenceComplete) return "needs_follow_up";
       return "awaiting";
     }
@@ -264,7 +258,7 @@ export async function GET(request: NextRequest) {
         const eng = engagementMap.get(c.id);
         const level = getEngagementLevel(c, eng);
         const provider = c.to_profile;
-        const adminOverride = c.admin_override as { status?: string } | null;
+        const meta = getConnectionMeta(c);
 
         // Check for email issues (no email, or email looks invalid)
         const providerEmail = provider?.email?.trim();
@@ -273,28 +267,28 @@ export async function GET(request: NextRequest) {
         // Check if provider is claimed (has account linked)
         const isProviderClaimed = !!provider?.account_id;
 
-        if (filter === "archived") return c.archived;
-        if (filter === "declined") return c.archived && c.archive_reason;
-        if (filter === "awaiting") return level === "awaiting" && !c.archived;
-        if (filter === "viewed") return level === "viewed" && !c.archived;
-        if (filter === "connected") return level === "connected" && !c.archived;
-        if (filter === "needs_follow_up") return level === "needs_follow_up" && !c.archived;
+        if (filter === "archived") return meta.archived;
+        if (filter === "declined") return meta.archived && meta.archiveReason;
+        if (filter === "awaiting") return level === "awaiting" && !meta.archived;
+        if (filter === "viewed") return level === "viewed" && !meta.archived;
+        if (filter === "connected") return level === "connected" && !meta.archived;
+        if (filter === "needs_follow_up") return level === "needs_follow_up" && !meta.archived;
 
         // Needs Email: has email issue, not engaged, not claimed, not archived
         if (filter === "needs_email") {
           const hasEngaged = level === "viewed" || level === "connected";
-          return hasEmailIssue && !hasEngaged && !isProviderClaimed && !c.archived;
+          return hasEmailIssue && !hasEngaged && !isProviderClaimed && !meta.archived;
         }
 
         // Admin marked as "not interested" (but not archived)
         if (filter === "admin_not_interested") {
-          return adminOverride?.status === "not_interested" && !c.archived;
+          return meta.adminOverride?.status === "not_interested" && !meta.archived;
         }
 
         // Outbound filters
-        if (filter === "accepted") return c.responded === true;
-        if (filter === "pending") return c.responded !== true && !c.archived;
-        // filter === "declined" handled above
+        if (filter === "accepted") return c.status === "accepted";
+        if (filter === "pending") return c.status !== "accepted" && c.status !== "declined";
+        if (filter === "declined") return c.status === "declined";
 
         return true;
       });
@@ -343,10 +337,11 @@ export async function GET(request: NextRequest) {
       const family = c.from_profile;
       const provider = c.to_profile;
       const eng = engagementMap.get(c.id);
+      const meta = getConnectionMeta(c);
       const engagementLevel = getEngagementLevel(c, eng);
 
       if (direction === "outbound") {
-        const status = c.responded ? "Accepted" : c.archived ? "Declined" : "Pending";
+        const status = c.status === "accepted" ? "Accepted" : c.status === "declined" ? "Declined" : "Pending";
         lines.push(
           [
             csvEscape(c.id),
@@ -376,11 +371,11 @@ export async function GET(request: NextRequest) {
             csvEscape(provider?.city || ""),
             csvEscape(provider?.state || ""),
             csvEscape(engagementLevel),
-            c.responded ? "Yes" : "No",
-            c.family_replied_after_provider ? "Yes" : "No",
-            String(c.provider_nudge_count || 0),
-            c.archived ? "Yes" : "No",
-            csvEscape(c.archive_reason || ""),
+            meta.responded ? "Yes" : "No",
+            meta.familyReplied ? "Yes" : "No",
+            String(meta.providerNudgeCount),
+            meta.archived ? "Yes" : "No",
+            csvEscape(meta.archiveReason || ""),
             provider?.account_id ? "Yes" : "No",
             csvEscape(provider?.verification_state || ""),
           ].join(",")

@@ -387,7 +387,7 @@ export async function GET(request: NextRequest) {
         ),
         to_profile:business_profiles!connections_to_profile_id_fkey(
           id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
-          website, address, city, state, description, care_types, metadata, account_id
+          website, address, city, state, description, care_types, metadata, account_id, verification_state
         )
       `)
       .eq("type", "inquiry")
@@ -666,6 +666,8 @@ export async function GET(request: NextRequest) {
           completeness: providerCompleteness,
           activityKey: provider?.slug || provider?.source_provider_id || provider?.id || null,
           isAccountClaimed: !!(provider as Record<string, unknown>)?.account_id,
+          // Verification state for claimed providers (null if not claimed)
+          verificationState: (provider as Record<string, unknown>)?.verification_state as string | null ?? null,
         },
         messagePreview,
         responded,

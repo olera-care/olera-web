@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import type { OrganizationMetadata } from "@/lib/types";
@@ -499,6 +500,9 @@ function Pagination({ page, setPage, total, pageSize }: {
 }
 
 export default function AdminVerificationPage() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+
   const [filter, setFilter] = useState<StatusFilter>("unverified_claims");
   const [providers, setProviders] = useState<Provider[]>([]);
   const [total, setTotal] = useState(0);
@@ -508,7 +512,7 @@ export default function AdminVerificationPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [stateFilter, setStateFilter] = useState("");
   const [trustFilter, setTrustFilter] = useState("");
   const [engagementFilter, setEngagementFilter] = useState("");

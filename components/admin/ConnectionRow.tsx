@@ -46,6 +46,8 @@ export interface ConnectionRowData {
     completeness?: ProfileCompleteness;
     /** Provider has claimed their account (linked to an auth user) */
     isAccountClaimed?: boolean;
+    /** Verification state: verified, pending, unverified, not_required, rejected */
+    verificationState?: string | null;
   };
   messagePreview?: string;
   responded?: boolean;
@@ -1037,6 +1039,36 @@ export default function ConnectionRow({
               <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
                 Archived
               </span>
+            )}
+            {/* Verification status for claimed providers */}
+            {c.provider.isAccountClaimed && c.provider.verificationState && (
+              c.provider.verificationState === "verified" || c.provider.verificationState === "not_required" ? (
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
+                  Verified
+                </span>
+              ) : c.provider.verificationState === "pending" ? (
+                <a
+                  href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+                  title="Click to review verification"
+                >
+                  Pending Verification
+                </a>
+              ) : c.provider.verificationState === "unverified" ? (
+                <a
+                  href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+                  title="Click to verify this provider"
+                >
+                  Needs Verification
+                </a>
+              ) : c.provider.verificationState === "rejected" ? (
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                  Rejected
+                </span>
+              ) : null
             )}
             <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>

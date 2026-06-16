@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const [{ data: provider }, { data: family }] = await Promise.all([
       db
         .from("business_profiles")
-        .select("display_name, city, state")
+        .select("display_name, city, state, metadata")
         .eq("id", account.active_profile_id)
         .single(),
       db
@@ -165,9 +165,13 @@ export async function POST(request: Request) {
     }
 
     // Send confirmation email to the provider
+    // Skip if provider is admin-archived (no emails sent to them)
+    const providerMeta = (provider?.metadata as Record<string, unknown>) ?? {};
+    const isProviderArchived = providerMeta.admin_archived === true;
+
     try {
       const providerEmail = user.email;
-      if (providerEmail) {
+      if (providerEmail && !isProviderArchived) {
         // Count other providers who have reached out to this family (competitive urgency)
         const { count: competitorCount } = await db
           .from("connections")

@@ -158,9 +158,10 @@ export async function GET(request: NextRequest) {
     for (const prov of providers || []) {
       const meta = (prov.metadata || {}) as Record<string, unknown>;
 
-      // Skip if already nudged or no email
+      // Skip if already nudged, no email, or provider is admin-archived
       if (meta.profile_incomplete_email_sent) continue;
       if (!prov.email) continue;
+      if (meta.admin_archived === true) continue;
 
       // Check if profile is incomplete (missing 2+ of: description, care_types, image)
       let missingFields = 0;

@@ -96,6 +96,31 @@ function getCareType(connection: ConnectionWithProfile): string | null {
   return null;
 }
 
+/**
+ * Transform system message text for the viewer's perspective.
+ * - Provider view: "You declined this inquiry"
+ * - Family view: "Unable to help at this time" (gentler tone)
+ *
+ * Uses specific system message patterns to avoid transforming user messages.
+ */
+function transformPreviewText(text: string, variant: "family" | "provider"): string {
+  // Check for system message patterns (these exact phrases only appear in system messages)
+  // Format: "This provider has declined this inquiry. Reason: ..." or "This provider has passed on this inquiry..."
+  const isSystemDeclineMessage =
+    text.startsWith("This provider has declined") ||
+    text.startsWith("This provider has passed on");
+
+  if (isSystemDeclineMessage) {
+    if (variant === "provider") {
+      return "You declined this inquiry";
+    } else {
+      return "Unable to help at this time";
+    }
+  }
+
+  return text;
+}
+
 function getLastMessage(connection: ConnectionWithProfile): { text: string; timestamp: string } | null {
   const meta = connection.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as ThreadMessage[]) || [];
@@ -592,7 +617,7 @@ export default function ConversationList({
               )}
               {lastMsg && (
                 <p className="text-[15px] text-gray-500 truncate mt-0.5">
-                  {lastMsg.text}
+                  {transformPreviewText(lastMsg.text, variant)}
                 </p>
               )}
             </div>

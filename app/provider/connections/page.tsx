@@ -90,16 +90,17 @@ const FILTER_TABS: { id: StatusFilter; label: string }[] = [
 const PAGE_SIZE = 15;
 
 // ── Avatar gradients (deterministic by name) ──
+// Matches the inbox avatar gradients for consistency
 
 const AVATAR_GRADIENTS = [
-  "from-rose-100 to-pink-50",
-  "from-sky-100 to-blue-50",
-  "from-amber-100 to-yellow-50",
-  "from-emerald-100 to-green-50",
-  "from-violet-100 to-purple-50",
-  "from-orange-100 to-amber-50",
-  "from-teal-100 to-cyan-50",
-  "from-fuchsia-100 to-pink-50",
+  "linear-gradient(135deg, #0ea5e9, #6366f1)",
+  "linear-gradient(135deg, #14b8a6, #0ea5e9)",
+  "linear-gradient(135deg, #8b5cf6, #ec4899)",
+  "linear-gradient(135deg, #f59e0b, #ef4444)",
+  "linear-gradient(135deg, #10b981, #14b8a6)",
+  "linear-gradient(135deg, #6366f1, #a855f7)",
+  "linear-gradient(135deg, #ec4899, #f43f5e)",
+  "linear-gradient(135deg, #0891b2, #2dd4bf)",
 ];
 
 function avatarGradient(name: string): string {
@@ -202,7 +203,10 @@ function LeadDetailInlineView({
               className="w-12 h-12 rounded-xl object-cover shrink-0"
             />
           ) : (
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center text-base font-semibold text-white shrink-0`}>
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold text-white shrink-0"
+              style={{ background: avatarGradient(lead.name) }}
+            >
               {lead.initials}
             </div>
           )}
@@ -675,10 +679,7 @@ function LeadDetailInlineView({
                     return 'Message Care Seeker';
                   })()}
                 </button>
-                <p className="text-center text-[13px] text-gray-500 flex items-center justify-center gap-1.5">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
+                <p className="text-center text-[13px] text-gray-500">
                   Free to message — you won&apos;t be charged
                 </p>
               </>
@@ -874,7 +875,10 @@ function LeadDetailDrawer({
           className="w-12 h-12 rounded-xl object-cover shrink-0"
         />
       ) : (
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center text-base font-semibold text-white shrink-0`}>
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold text-white shrink-0"
+          style={{ background: avatarGradient(lead.name) }}
+        >
           {lead.initials}
         </div>
       )}
@@ -1425,10 +1429,7 @@ function LeadDetailDrawer({
               return 'Message Care Seeker';
             })()}
           </button>
-          <p className="text-center text-[13px] text-gray-500 flex items-center justify-center gap-1.5">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
+          <p className="text-center text-[13px] text-gray-500">
             Free to message — you won&apos;t be charged
           </p>
         </>
@@ -2644,7 +2645,10 @@ export default function ProviderLeadsPage() {
                       className="w-10 h-10 rounded-xl object-cover shrink-0"
                     />
                   ) : (
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: avatarGradient(lead.name) }}
+                    >
                       <span className="text-sm font-semibold text-white">{lead.initials}</span>
                     </div>
                   )}
@@ -2669,7 +2673,10 @@ export default function ProviderLeadsPage() {
                       className="w-11 h-11 rounded-xl object-cover shrink-0"
                     />
                   ) : (
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: avatarGradient(lead.name) }}
+                    >
                       <span className="text-sm font-semibold text-white">{lead.initials}</span>
                     </div>
                   )}
@@ -2736,7 +2743,10 @@ export default function ProviderLeadsPage() {
                       className="w-10 h-10 rounded-xl object-cover shrink-0"
                     />
                   ) : (
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: avatarGradient(lead.name) }}
+                    >
                       <span className="text-sm font-semibold text-white">{lead.initials}</span>
                     </div>
                   )}

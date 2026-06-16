@@ -2857,7 +2857,7 @@ export default function ProviderLeadsPage() {
                     body: JSON.stringify({
                       provider_id: providerKey,
                       event_type: "phone_clicked",
-                      metadata: { lead_id: leadId },
+                      metadata: { lead_id: leadId, connection_id: leadId },
                     }),
                   }).catch(() => {});
                 }}
@@ -2870,7 +2870,7 @@ export default function ProviderLeadsPage() {
                     body: JSON.stringify({
                       provider_id: providerKey,
                       event_type: "email_link_clicked",
-                      metadata: { lead_id: leadId },
+                      metadata: { lead_id: leadId, connection_id: leadId },
                     }),
                   }).catch(() => {});
                 }}
@@ -2883,7 +2883,7 @@ export default function ProviderLeadsPage() {
                     body: JSON.stringify({
                       provider_id: providerKey,
                       event_type: "continue_in_inbox",
-                      metadata: { lead_id: leadId },
+                      metadata: { lead_id: leadId, connection_id: leadId },
                     }),
                   }).catch(() => {});
                   router.push(`/provider/inbox?id=${selectedLead.connectionId || selectedLead.id}`);
@@ -2922,7 +2922,7 @@ export default function ProviderLeadsPage() {
             body: JSON.stringify({
               provider_id: providerKey,
               event_type: "phone_clicked",
-              metadata: { lead_id: leadId },
+              metadata: { lead_id: leadId, connection_id: leadId },
             }),
           }).catch(() => {});
         }}
@@ -2935,7 +2935,7 @@ export default function ProviderLeadsPage() {
             body: JSON.stringify({
               provider_id: providerKey,
               event_type: "email_link_clicked",
-              metadata: { lead_id: leadId },
+              metadata: { lead_id: leadId, connection_id: leadId },
             }),
           }).catch(() => {});
         }}
@@ -2948,7 +2948,7 @@ export default function ProviderLeadsPage() {
             body: JSON.stringify({
               provider_id: providerKey,
               event_type: "continue_in_inbox",
-              metadata: { lead_id: leadId },
+              metadata: { lead_id: leadId, connection_id: leadId },
             }),
           }).catch(() => {});
         }}

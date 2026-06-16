@@ -23,7 +23,7 @@ interface WorkflowCounts {
 
 interface EngagementCounts {
   all: number;
-  new: number;
+  awaiting: number;
   viewed: number;
   connected: number;
   needs_follow_up: number;
@@ -76,14 +76,14 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+type EngagementLevel = "awaiting" | "viewed" | "connected" | "needs_follow_up";
 type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 
 // Perspective type
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "archived";
+type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "admin_not_interested" | "archived";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -95,13 +95,18 @@ interface TabConfig {
 }
 
 // Provider perspective tabs
+// First 4: Provider lifecycle (what providers do)
+// Rest: Admin workflow (what admin handles)
 const PROVIDER_TABS: TabConfig[] = [
-  { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
+  // Provider actions
+  { key: "awaiting", label: "Awaiting", description: "Provider hasn't engaged yet, automation still working", emptyMessage: "No leads awaiting provider engagement." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
-  { key: "declined", label: "Declined", description: "Provider declined lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
-  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
+  { key: "declined", label: "Declined", description: "Provider declined lead in portal (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
+  // Admin workflow
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "Email sequence complete, no response - requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
+  { key: "admin_not_interested", label: "Not Interested", description: "Admin confirmed provider not interested (soft rejection)", emptyMessage: "No leads marked as not interested." },
   { key: "archived", label: "Archived", description: "Admin-archived providers - no emails sent to them", emptyMessage: "No archived providers." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
@@ -520,9 +525,9 @@ export default function ConnectionsTrackerPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [direction, setDirection] = useState<Direction>(initialDirection);
   const [perspective, setPerspective] = useState<Perspective>("provider");
-  // Default filter: "new" for inbound, "all" for outbound
+  // Default filter: "awaiting" for inbound, "all" for outbound
   const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>(
-    initialDirection === "outbound" ? "all" : "new"
+    initialDirection === "outbound" ? "all" : "awaiting"
   );
   const [page, setPage] = useState(0);
 
@@ -530,8 +535,8 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Action dialog state - supports Mark Connected, Archive Provider, Unarchive
-  type ActionType = "mark_connected" | "archive_provider" | "unarchive_lead";
+  // Action dialog state - supports Mark Viewed, Mark Connected, Mark Not Interested, Archive Provider, Unarchive, Hide
+  type ActionType = "mark_viewed" | "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead" | "hide_connection";
   const [pendingAction, setPendingAction] = useState<{
     connectionId: string;
     providerId: string | null;
@@ -539,6 +544,11 @@ export default function ConnectionsTrackerPage() {
     providerName: string | null;
     isArchived: boolean; // true if lead is already archived (for unarchive)
     isProviderArchived: boolean; // true if provider is admin-archived
+    providerArchiveInfo?: {
+      reason: string | null;
+      archivedBy: string | null;
+      archivedAt: string | null;
+    } | null;
   } | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -546,12 +556,36 @@ export default function ConnectionsTrackerPage() {
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
 
+  // Mark Viewed reason options
+  const MARK_VIEWED_REASONS = [
+    "Provider confirmed they saw it (phone call)",
+    "Provider confirmed they saw it (email)",
+    "Other",
+  ] as const;
+
   // Mark Connected reason options
   const MARK_CONNECTED_REASONS = [
     "Confirmed via phone call",
     "Confirmed via email",
     "Provider confirmed in portal",
     "Other",
+  ] as const;
+
+  // Mark Not Interested reason options
+  const MARK_NOT_INTERESTED_REASONS = [
+    "Not a fit for family's needs",
+    "Not accepting new clients",
+    "Unable to reach family",
+    "Provider requested no more leads",
+    "Other",
+  ] as const;
+
+  // Archive Provider reason options (maps to API values)
+  const ARCHIVE_PROVIDER_REASONS = [
+    { value: "provider_requested_no_emails", label: "Provider requested no emails" },
+    { value: "inactive", label: "Inactive / Not responding" },
+    { value: "duplicate", label: "Duplicate profile" },
+    { value: "other", label: "Other" },
   ] as const;
 
   // Debounce search input by 300ms
@@ -578,7 +612,8 @@ export default function ConnectionsTrackerPage() {
 
   // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
-    setActiveFilter("new");
+    // Family perspective starts with "new", provider with "awaiting"
+    setActiveFilter(perspective === "family" ? "new" : "awaiting");
     setPage(0);
   }, [perspective]);
 
@@ -587,7 +622,7 @@ export default function ConnectionsTrackerPage() {
     if (direction === "outbound") {
       setActiveFilter("all"); // Outbound default tab
     } else {
-      setActiveFilter("new"); // Inbound default tab
+      setActiveFilter("awaiting"); // Inbound default tab
     }
     setPage(0);
   }, [direction]);
@@ -689,9 +724,10 @@ export default function ConnectionsTrackerPage() {
     familyName: string | null,
     providerName: string | null,
     isArchived: boolean,
-    isProviderArchived: boolean
+    isProviderArchived: boolean,
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
   ) => {
-    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived });
+    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo });
     setSelectedAction(null);
     setActionError(null);
     setActionReason("");
@@ -718,7 +754,31 @@ export default function ConnectionsTrackerPage() {
       let res: Response;
       let successMessage = "";
 
-      if (selectedAction === "mark_connected") {
+      if (selectedAction === "mark_viewed") {
+        // Mark as Viewed API - moves to Viewed tab, emails continue
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "viewed",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as viewed";
+
+      } else if (selectedAction === "mark_connected") {
         // Mark as Connected API
         if (!actionReason.trim()) {
           setActionError("Please select a reason");
@@ -741,6 +801,30 @@ export default function ConnectionsTrackerPage() {
           }),
         });
         successMessage = "Marked as connected";
+
+      } else if (selectedAction === "mark_not_interested") {
+        // Mark as Not Interested API
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "not_interested",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as not interested";
 
       } else if (selectedAction === "unarchive_lead") {
         // Unarchive Lead API (via leads page)
@@ -768,10 +852,19 @@ export default function ConnectionsTrackerPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action,
-            reason: action === "archive" ? "provider_requested_no_emails" : undefined,
+            reason: action === "archive" ? actionReason : undefined,
           }),
         });
         successMessage = pendingAction.isProviderArchived ? "Provider unarchived" : "Provider archived";
+
+      } else if (selectedAction === "hide_connection") {
+        // Hide Connection API
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/hide`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hide" }),
+        });
+        successMessage = "Connection hidden";
 
       } else {
         setActionError("Unknown action");
@@ -1209,6 +1302,25 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
+                {/* Mark as Viewed - move to Viewed tab, emails continue */}
+                <button
+                  onClick={() => setSelectedAction("mark_viewed")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Mark as Viewed</p>
+                      <p className="text-xs text-gray-500">Provider confirmed they saw it, emails continue</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Mark as Connected - always show, but add note if provider is archived */}
                 <button
                   onClick={() => setSelectedAction("mark_connected")}
@@ -1234,6 +1346,24 @@ export default function ConnectionsTrackerPage() {
                           : "Confirm this lead successfully connected"
                         }
                       </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Mark Not Interested - admin confirms provider declined during phone call */}
+                <button
+                  onClick={() => setSelectedAction("mark_not_interested")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Mark Not Interested</p>
+                      <p className="text-xs text-gray-500">Provider declined during admin phone call</p>
                     </div>
                   </div>
                 </button>
@@ -1265,6 +1395,24 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
+                {/* Hide Connection - for cleaning up test data */}
+                <button
+                  onClick={() => setSelectedAction("hide_connection")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Hide Connection</p>
+                      <p className="text-xs text-gray-500">Remove from admin view (test data cleanup)</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Cancel button */}
                 <div className="pt-2 flex justify-end">
                   <button
@@ -1281,6 +1429,42 @@ export default function ConnectionsTrackerPage() {
             {/* Action confirmation - Step 2 */}
             {selectedAction && (
               <div className="space-y-4">
+                {/* Mark Viewed form */}
+                {selectedAction === "mark_viewed" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will move the connection to the <span className="font-medium">Viewed</span> tab. Email sequences will continue to encourage them to connect.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-xs text-amber-800">
+                        Use this when you have called the provider and they confirmed they saw the lead but have not connected yet.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">How was this confirmed?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_VIEWED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe how this was confirmed..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
+                )}
+
                 {/* Mark Connected form */}
                 {selectedAction === "mark_connected" && (
                   <>
@@ -1319,6 +1503,37 @@ export default function ConnectionsTrackerPage() {
                   </>
                 )}
 
+                {/* Mark Not Interested form */}
+                {selectedAction === "mark_not_interested" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will stop follow-up emails for this lead. If the provider later views or engages with the lead, they&apos;ll move back to active tracking and emails will resume.
+                    </p>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">Why is provider not interested?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_NOT_INTERESTED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe the reason..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
+                )}
+
                 {/* Unarchive Lead confirmation */}
                 {selectedAction === "unarchive_lead" && (
                   <p className="text-sm text-gray-600">
@@ -1330,9 +1545,36 @@ export default function ConnectionsTrackerPage() {
                 {selectedAction === "archive_provider" && (
                   <div className="space-y-3">
                     {pendingAction.isProviderArchived ? (
-                      <p className="text-sm text-gray-600">
-                        This will unarchive the provider. Email sequences will resume for their connections.
-                      </p>
+                      <>
+                        <p className="text-sm text-gray-600">
+                          This will unarchive <span className="font-medium">{pendingAction.providerName}</span>. Email sequences will resume for their connections.
+                        </p>
+                        {/* Show why they were archived */}
+                        {pendingAction.providerArchiveInfo && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                            <p className="text-xs font-medium text-amber-800">Previously archived:</p>
+                            <p className="text-xs text-amber-700">
+                              <span className="font-medium">Reason:</span>{" "}
+                              {ARCHIVE_PROVIDER_REASONS.find(r => r.value === pendingAction.providerArchiveInfo?.reason)?.label || pendingAction.providerArchiveInfo.reason || "Not specified"}
+                            </p>
+                            {pendingAction.providerArchiveInfo.archivedBy && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">By:</span> {pendingAction.providerArchiveInfo.archivedBy}
+                              </p>
+                            )}
+                            {pendingAction.providerArchiveInfo.archivedAt && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">On:</span>{" "}
+                                {new Date(pendingAction.providerArchiveInfo.archivedAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <>
                         <p className="text-sm text-gray-600">
@@ -1344,8 +1586,45 @@ export default function ConnectionsTrackerPage() {
                           <li>New leads will automatically be archived</li>
                           <li>Family emails are not affected</li>
                         </ul>
+                        {/* Reason selector */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Why are you archiving this provider?
+                          </label>
+                          <select
+                            value={actionReason}
+                            onChange={(e) => setActionReason(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                          >
+                            <option value="">Select a reason...</option>
+                            {ARCHIVE_PROVIDER_REASONS.map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
+                        </div>
                       </>
                     )}
+                  </div>
+                )}
+
+                {/* Hide Connection confirmation */}
+                {selectedAction === "hide_connection" && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      This will hide the connection from the admin connections page.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-xs text-blue-800 font-medium mb-1">This is safe:</p>
+                      <ul className="text-xs text-blue-700 space-y-0.5 ml-3 list-disc">
+                        <li>Data stays in database (not deleted)</li>
+                        <li>Provider still sees the lead in their portal</li>
+                        <li>Family experience unchanged</li>
+                        <li>Email sequences continue normally</li>
+                      </ul>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Use this to clean up test data from the admin view.
+                    </p>
                   </div>
                 )}
 
@@ -1383,23 +1662,40 @@ export default function ConnectionsTrackerPage() {
                       onClick={confirmAction}
                       disabled={
                         actionLoading ||
+                        (selectedAction === "mark_viewed" && !actionReason) ||
+                        (selectedAction === "mark_viewed" && actionReason === "Other" && !actionNotes.trim()) ||
                         (selectedAction === "mark_connected" && !actionReason) ||
-                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim())
+                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
+                        (selectedAction === "mark_not_interested" && !actionReason) ||
+                        (selectedAction === "mark_not_interested" && actionReason === "Other" && !actionNotes.trim()) ||
+                        (selectedAction === "archive_provider" && !pendingAction.isProviderArchived && !actionReason)
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
-                        selectedAction === "mark_connected"
+                        selectedAction === "mark_viewed"
+                          ? "bg-amber-600 hover:bg-amber-700"
+                          : selectedAction === "mark_connected"
                           ? "bg-green-600 hover:bg-green-700"
+                          : selectedAction === "mark_not_interested"
+                          ? "bg-orange-600 hover:bg-orange-700"
                           : selectedAction === "archive_provider"
                           ? pendingAction.isProviderArchived ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
+                          : selectedAction === "hide_connection"
+                          ? "bg-gray-600 hover:bg-gray-700"
                           : "bg-blue-600 hover:bg-blue-700"
                       }`}
                     >
                       {actionLoading
                         ? "Processing..."
+                        : selectedAction === "mark_viewed"
+                        ? "Mark Viewed"
                         : selectedAction === "mark_connected"
                         ? "Mark Connected"
+                        : selectedAction === "mark_not_interested"
+                        ? "Mark Not Interested"
                         : selectedAction === "unarchive_lead"
                         ? "Unarchive"
+                        : selectedAction === "hide_connection"
+                        ? "Hide Connection"
                         : pendingAction.isProviderArchived
                         ? "Unarchive Provider"
                         : "Archive Provider"

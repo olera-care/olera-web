@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, metadata)
       `)
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
@@ -200,6 +200,13 @@ export async function POST(request: NextRequest) {
 
       const providerEmail = (toProfile?.email as string)?.trim();
       if (!providerEmail) {
+        counts.skipped++;
+        continue;
+      }
+
+      // Skip if provider is admin-archived (no emails sent to them)
+      const providerMeta = (toProfile?.metadata as Record<string, unknown>) ?? {};
+      if (providerMeta.admin_archived === true) {
         counts.skipped++;
         continue;
       }

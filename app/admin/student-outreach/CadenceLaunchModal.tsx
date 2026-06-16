@@ -48,6 +48,10 @@ interface Props {
   cadenceKey: CadenceKey;
   /** Partner (advisor/stakeholder) activation copy vs provider. */
   isPartner?: boolean;
+  /** The row's real stakeholder type — drives the per-type partner activation
+   *  copy (advisor vs dept_head vs student_org). Without it, partner activation
+   *  defaults to the student-org variant. Inert for provider cadences. */
+  partnerStakeholderType?: StakeholderType | null;
   organizationName: string;
   campusName: string;
   /** The single contact this cadence targets (for preview + first-name). */
@@ -67,6 +71,7 @@ interface Props {
 export function CadenceLaunchModal({
   cadenceKey,
   isPartner = false,
+  partnerStakeholderType,
   organizationName,
   campusName,
   recipientName,
@@ -80,9 +85,11 @@ export function CadenceLaunchModal({
 }: Props) {
   const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const templateStakeholderType: StakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
-      ? "student_org"
-      : cadenceKey;
+    cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? partnerStakeholderType ?? "student_org"
+      : cadenceKey === "provider"
+        ? "student_org"
+        : cadenceKey;
 
   // Email steps — read-only previews of the canonical copy Smartlead will send.
   const emailCards = useMemo<EmailCard[]>(() => {

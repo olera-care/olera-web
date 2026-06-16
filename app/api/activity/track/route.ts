@@ -342,6 +342,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-unarchive connection on provider engagement events
+    // Non-blocking: activity already logged, don't fail if unarchive fails
+    const UNARCHIVE_TRIGGER_EVENTS = ["lead_opened", "phone_clicked", "email_link_clicked", "continue_in_inbox"];
+    const meta = (metadata as Record<string, unknown>) || {};
+    const connectionId = meta.connection_id as string | undefined;
+
+    if (UNARCHIVE_TRIGGER_EVENTS.includes(event_type) && connectionId) {
+      try {
+        const { autoRestoreConnection } = await import("@/lib/connection-archive");
+        const result = await autoRestoreConnection(db, connectionId, event_type);
+        if (result.restored) {
+          console.log(`[activity/track] Auto-restored connection ${connectionId} on ${event_type} (${result.action})`);
+        }
+      } catch (err) {
+        // Non-critical - activity already logged
+        console.error("[activity/track] Auto-restore failed:", err);
+      }
+    }
+
     // Send Slack alert for one-click token access (observability for PII exposure)
     if (event_type === "one_click_access") {
       try {

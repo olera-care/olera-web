@@ -4,9 +4,11 @@
  * When a provider engages with an archived lead (opens it, clicks contact info, etc.),
  * we automatically unarchive the connection to restore it to active tracking.
  *
+ * This includes admin-marked "not interested" leads - if the provider later engages,
+ * they clearly changed their mind, so we restore them to active tracking.
+ *
  * Exclusions:
- * - Admin-declined leads (status = "not_interested") - these should stay declined
- * - Provider-level archives - these affect all leads for that provider
+ * - Provider-level archives only - these are a hard block on ALL emails to that provider
  */
 
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -33,8 +35,8 @@ export interface AutoUnarchiveResult {
  *
  * This function:
  * - Fetches the connection and its metadata
- * - Checks if the connection should be unarchived (excludes admin-declined and provider-level archives)
- * - Clears archive flags while preserving followup_stopped_at (no email restart)
+ * - Checks if the connection should be unarchived (only excludes provider-level archives)
+ * - Clears archive flags and admin_override while preserving followup_stopped_at (no email restart)
  * - Tracks the auto-unarchive event in metadata
  *
  * @param db - Supabase client with service role access
@@ -75,23 +77,21 @@ export async function autoUnarchiveConnection(
       return { unarchived: false, skipReason: "not_archived" };
     }
 
-    // Skip if admin marked as "not_interested" - these should stay declined
-    const adminOverride = connectionMeta.admin_override as { status?: string } | undefined;
-    if (adminOverride?.status === "not_interested") {
-      return { unarchived: false, skipReason: "admin_declined" };
-    }
-
-    // Skip if provider is archived at the provider level
+    // Skip if provider is archived at the provider level (hard block)
+    // Note: We DO auto-unarchive admin "not interested" leads - that's a soft rejection
+    // and if the provider engages, they clearly changed their mind
     if (providerMeta.admin_archived === true) {
       return { unarchived: false, skipReason: "provider_level_archived" };
     }
 
     // Clear archive flags but keep followup_stopped_at (no email restart)
+    // Also clear admin_override since provider has now shown genuine interest
     const updatedMetadata: Record<string, unknown> = {
       ...connectionMeta,
       archived: false,
       archive_reason: null,
       archived_at: null,
+      admin_override: null, // Clear - provider engagement overrides admin's soft rejection
       // Track when and why this was auto-unarchived
       auto_unarchived_at: new Date().toISOString(),
       auto_unarchived_reason: reason,

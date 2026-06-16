@@ -144,7 +144,8 @@ interface EngagementCounts {
   connected: number;
   needs_follow_up: number;
   needs_email: number; // Combined: no email, delivery failed, or invalid email
-  declined: number; // Provider archived with decline reasons
+  declined: number; // Provider archived with decline reasons (via portal)
+  admin_not_interested: number; // Admin marked provider as not interested (soft rejection)
   archived: number; // Admin-archived providers - no emails sent
 }
 
@@ -921,6 +922,7 @@ export async function GET(request: NextRequest) {
       needs_follow_up: 0,
       needs_email: 0,
       declined: 0,
+      admin_not_interested: 0,
       archived: 0,
     };
 
@@ -1047,15 +1049,16 @@ export async function GET(request: NextRequest) {
           engagementCounts.archived++;
         }
         // Engagement level counts (new, viewed, connected, needs_follow_up):
-        // Exclude all archived types and declined - they go to their own tabs
+        // Exclude all archived types, declined, and admin_not_interested - they go to their own tabs
         // CRITICAL: Exclude connections with email issues - they go to "Needs Email" tab exclusively
-        else if (!isProviderDeclined && !emailIssueType) {
+        const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+        if (!isProviderDeclined && !emailIssueType && !isAdminNotInterested) {
           engagementCounts[engResult.level]++;
         }
 
         // Only count non-archived connections in needs_email (consistent with other tabs)
-        // Archived and declined leads shouldn't appear in "Needs Email"
-        if (emailIssueType && !belongsToArchivedTab && !isProviderDeclined) {
+        // Archived, declined, and admin_not_interested leads shouldn't appear in "Needs Email"
+        if (emailIssueType && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
           engagementCounts.needs_email++;
         }
 
@@ -1063,6 +1066,12 @@ export async function GET(request: NextRequest) {
         // Exclude admin-archived - they go to "Archived" tab exclusively
         if (isProviderDeclined && !isAdminArchived) {
           engagementCounts.declined++;
+        }
+
+        // Count admin "not interested" (soft rejection by admin)
+        // These are NOT archived, just have admin_override with status "not_interested"
+        if (c.adminOverride?.status === "not_interested") {
+          engagementCounts.admin_not_interested++;
         }
 
         // Count family engagement levels
@@ -1137,14 +1146,20 @@ export async function GET(request: NextRequest) {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
           const isProviderDeclined = c.archived && !!c.archiveReason;
+          const isAdminNotInterested = c.adminOverride?.status === "not_interested";
           return (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null &&
-            !c.isProviderArchived && !isConnectionArchivedByAdmin && !isProviderDeclined;
+            !c.isProviderArchived && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }
       // Special filter: declined (provider explicitly declined with reason)
       // Exclude admin-archived providers (they go to "Archived" tab)
       else if (responseFilter === "declined" && perspective === "provider") {
         list = list.filter((c) => c.archived && c.archiveReason && !c.isProviderArchived);
+      }
+      // Special filter: admin_not_interested (admin marked as not interested - soft rejection)
+      // These are NOT archived, provider can still see/engage with the lead
+      else if (responseFilter === "admin_not_interested" && perspective === "provider") {
+        list = list.filter((c) => c.adminOverride?.status === "not_interested");
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
@@ -1161,13 +1176,16 @@ export async function GET(request: NextRequest) {
           // All engagement-level tabs (new, viewed, connected, needs_follow_up):
           // - Exclude all archived types (provider-level, connection-level admin, provider declined)
           // - Exclude connections with email issues (those go to "Needs Email" tab exclusively)
+          // - Exclude admin "not interested" (they have their own tab)
           list = list.filter((c) => {
             const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
             const isProviderDeclined = c.archived && !!c.archiveReason;
+            const isAdminNotInterested = c.adminOverride?.status === "not_interested";
             return connectionEngagementLevels.get(c.id) === responseFilter &&
               !c.isProviderArchived &&
               !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
+              !isAdminNotInterested &&
               !(c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
           });
         } else {

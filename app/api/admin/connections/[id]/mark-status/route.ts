@@ -99,13 +99,14 @@ export async function POST(
       updatedMetadata.followup_stopped_reason = "admin_marked_connected";
     }
 
-    // If marking as not_interested, archive the lead and stop email sequence
+    // If marking as not_interested, stop email sequence but DON'T archive
+    // This is a "soft rejection" - provider can still see/engage with the lead
+    // If they come back and view it, we'll clear the override and restart the sequence
     if (status === "not_interested") {
-      updatedMetadata.archived = true;
-      updatedMetadata.archive_reason = reason.trim();
-      updatedMetadata.archived_at = new Date().toISOString();
       updatedMetadata.followup_stopped_at = new Date().toISOString();
       updatedMetadata.followup_stopped_reason = "admin_declined";
+      // Note: We intentionally don't set archived=true here
+      // Provider's portal view is not affected
     }
 
     // Update connection

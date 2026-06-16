@@ -99,7 +99,8 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
-  { key: "declined", label: "Declined", description: "Provider declined lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
+  { key: "declined", label: "Declined", description: "Provider declined lead in portal (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
+  { key: "admin_not_interested", label: "Not Interested", description: "Admin confirmed provider not interested (soft rejection)", emptyMessage: "No leads marked as not interested." },
   { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
   { key: "archived", label: "Archived", description: "Admin-archived providers - no emails sent to them", emptyMessage: "No archived providers." },
@@ -1374,7 +1375,7 @@ export default function ConnectionsTrackerPage() {
                 {selectedAction === "mark_not_interested" && (
                   <>
                     <p className="text-sm text-gray-600">
-                      This will archive the lead as declined and stop follow-up emails. The lead will appear in the Declined tab with a &ldquo;Not interested (admin)&rdquo; badge.
+                      This will stop follow-up emails for this lead. If the provider later views or engages with the lead, they&apos;ll move back to active tracking and emails will resume.
                     </p>
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1.5">Why is provider not interested?</label>

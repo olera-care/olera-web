@@ -1436,8 +1436,8 @@ export default function ConversationPanel({
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
                   {/* Quick reply response nudge - shown above input when family responds */}
                   {showQuickReplyNudge && (
-                    <div className="px-4 py-2.5 bg-gray-800">
-                      <p className="text-[14px] text-gray-300">
+                    <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                      <p className="text-[14px] text-gray-600">
                         {familyDisplayName} replied — say hi to continue
                       </p>
                     </div>

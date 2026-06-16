@@ -97,9 +97,16 @@ export async function POST(
     // This moves the connection to Viewed tab while continuing to send nudge emails
     // to encourage them to actually connect
     if (status === "viewed") {
-      // Clear any stopped sequence so emails resume
+      // Clear any stopped sequence so emails can resume
       delete updatedMetadata.followup_stopped_at;
       delete updatedMetadata.followup_stopped_reason;
+      // Clear archive flags so connection moves to Viewed tab (not stuck in Archived)
+      updatedMetadata.archived = false;
+      updatedMetadata.lead_archived = false;
+      updatedMetadata.archive_reason = null;
+      updatedMetadata.archive_message = null;
+      updatedMetadata.archived_by = null;
+      updatedMetadata.archived_at = null;
     }
 
     // If marking as connected, stop the email sequence (success state)

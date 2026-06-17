@@ -553,6 +553,7 @@ export default function ConnectionsTrackerPage() {
       reason: string | null;
       archivedBy: string | null;
       archivedAt: string | null;
+      notes: string | null;
     } | null;
   } | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
@@ -792,7 +793,7 @@ export default function ConnectionsTrackerPage() {
     providerName: string | null,
     isArchived: boolean,
     isProviderArchived: boolean,
-    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null
   ) => {
     setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo });
     setSelectedAction(null);
@@ -1724,6 +1725,11 @@ export default function ConnectionsTrackerPage() {
                                   month: "short",
                                   day: "numeric",
                                 })}
+                              </p>
+                            )}
+                            {pendingAction.providerArchiveInfo.notes && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">Notes:</span> {pendingAction.providerArchiveInfo.notes}
                               </p>
                             )}
                           </div>

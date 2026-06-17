@@ -353,22 +353,38 @@ export async function sendEmail(
       : null
     : to;
   if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
+    // Cold lane = mail to scraped / unclaimed directory addresses (the high-bounce
+    // pool). Two signals: a cold provider-notification type, OR a send whose From
+    // resolved to the isolated PROVIDER_NOTIFY_FROM domain — the weekly digest's
+    // unclaimed slice passes that From explicitly, while its CLAIMED slice keeps
+    // olera.care, so this correctly excludes the warm half of the digest. Used
+    // below to suppress catch-all only where the reach loss is acceptable.
+    const isColdLane =
+      PROVIDER_NOTIFY_FROM_TYPES.has(emailType) ||
+      (!!process.env.PROVIDER_NOTIFY_FROM && from === process.env.PROVIDER_NOTIFY_FROM);
     let suppressReason: string | null = null;
     if (await isSuppressedRecipient(soleRecipient)) {
       suppressReason = "prior bounce/complaint on record";
-    } else if (
+    } else if (VERIFY_ON_SEND_TYPES.has(emailType)) {
       // Cold provider-directed mail (the high-bounce lane sent to scraped /
       // team-fetched directory addresses) verifies ON THE SPOT: verifyAndCache
       // returns a fresh cached verdict, or on a miss/stale calls ZeroBounce,
       // caches it, and returns it. This closes the gap where a freshly-added
       // address would send blind on its first auto-notification and bounce.
-      // Every other email_type stays cache-only (isUndeliverable) so the
-      // transactional path never makes a network call. Both fail OPEN: a
-      // verification error → 'unknown' → not suppressed → still sent.
-      VERIFY_ON_SEND_TYPES.has(emailType)
-        ? (await verifyAndCache(soleRecipient)).status === "invalid"
-        : await isUndeliverable(soleRecipient)
-    ) {
+      // Fails OPEN: a verification error → 'unknown' → not suppressed → still sent.
+      const status = (await verifyAndCache(soleRecipient)).status;
+      if (status === "invalid") {
+        suppressReason = "verified undeliverable";
+      } else if (status === "risky" && isColdLane) {
+        // Catch-all domains accept everything at the door, so the specific inbox
+        // can't be confirmed and they bounce ~15% — too hot for the cold lane.
+        // Suppress here, but keep sending on the warm lane (digest's claimed
+        // slice), where a catch-all is more likely a real small-provider inbox.
+        suppressReason = "catch-all (risky) on cold lane";
+      }
+    } else if (await isUndeliverable(soleRecipient)) {
+      // Every other (transactional) type stays cache-only (isUndeliverable) so the
+      // transactional path never makes a network call. Also fails OPEN.
       suppressReason = "verified undeliverable";
     }
     if (suppressReason) {

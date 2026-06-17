@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function MedjobsFamiliesPage() {
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
+    <main className="min-h-screen bg-white">
       {/* Interactive board (hero, filters, Top Jobs, Explore, screener) — client island */}
       <FamiliesBoard />
       {/* Static "understand" half — server-rendered for SEO; anchor #how-it-works */}

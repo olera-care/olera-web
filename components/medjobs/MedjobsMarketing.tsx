@@ -4,9 +4,11 @@ import PartnerHelpCard from "@/components/medjobs/PartnerHelpCard";
 import ApplyButton from "@/components/medjobs/ApplyButton";
 
 /**
- * The static "understand" half of the converged /medjobs/families page —
- * lifted from the retired /medjobs landing. Server-rendered (SEO), with the
- * "How it works" anchor and Apply CTAs that open the screener via ApplyButton.
+ * The static "understand" half of the converged /medjobs/families page.
+ * Standardized to the olera.care home page design spec: max-w-7xl container,
+ * pt-8 md:pt-12 pb-8 md:pb-12 rhythm, sans-bold section headings, alternating
+ * white / gray-50 backgrounds. Sections: How it works for students, For
+ * advisors, and the closer.
  */
 
 const HOW_IT_WORKS = [
@@ -39,29 +41,22 @@ const HOW_IT_WORKS = [
   },
 ];
 
-const STUDENT_FEATURES = [
-  { label: "Verified healthcare hours", detail: "Every hour logged and confirmed by your supervising provider — ready for your AMCAS or CASPA application." },
-  { label: "Real bedside experience", detail: "Home care, assisted living, memory care, and hospice — the settings professional schools want to see on your application." },
-  { label: "Flexible schedules", detail: "Part-time, weekends, summers — work around your classes, not the other way around." },
-  { label: "Paid + purposeful", detail: "Earn competitive hourly rates while gaining experience that actually matters for your career." },
-];
-
 export default function MedjobsMarketing() {
   return (
     <>
-      {/* How it works */}
-      <section id="how-it-works" className="py-16 sm:py-20 bg-gray-50/70 scroll-mt-20">
+      {/* How it works for students */}
+      <section id="how-it-works" className="pt-8 md:pt-12 pb-8 md:pb-12 bg-gray-50/70 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
               <Image src="/images/medjobs/student-portrait.jpg" alt="Pre-health intern" width={600} height={800} className="w-full h-full object-cover" />
             </div>
-            <div className="lg:py-8">
-              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">How it works</p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                From student to caregiver<br />in 3 simple steps
+            <div className="lg:py-4">
+              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">How it works for students</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                From student to caregiver in 3 simple steps
               </h2>
-              <div className="mt-12 space-y-0">
+              <div className="mt-10 space-y-0">
                 {HOW_IT_WORKS.map((item, i) => (
                   <div key={item.title} className="py-7 border-t border-gray-200/80 first:border-t-0">
                     <div className="flex items-start gap-4">
@@ -77,48 +72,9 @@ export default function MedjobsMarketing() {
                   </div>
                 ))}
               </div>
-              <div className="mt-10">
-                <ApplyButton className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors">
-                  Apply Now
-                </ApplyButton>
-                <p className="mt-3 text-sm text-gray-400">No cost, no commitment.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* For Students */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">For students</p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                The healthcare experience your future career needs
-              </h2>
-              <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-                PA programs require 1,000-2,000 patient care hours. Med schools want hundreds.
-                This internship is how you get them — while getting paid and making a real difference.
-              </p>
-              <div className="mt-10 space-y-6">
-                {STUDENT_FEATURES.map((item) => (
-                  <div key={item.label} className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center mt-0.5">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">{item.label}</p>
-                      <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <ApplyButton className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors">
-                  Create your profile
+                  Apply Now
                 </ApplyButton>
                 <a
                   href="/docs/internship-agreement-sample.pdf"
@@ -129,27 +85,14 @@ export default function MedjobsMarketing() {
                   Want the exact details? Read the internship agreement ↗
                 </a>
               </div>
-            </div>
-
-            <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-7 aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
-                <Image src="/images/medjobs/students-group.jpg" alt="Healthcare student group" width={500} height={667} className="w-full h-full object-cover" />
-              </div>
-              <div className="col-span-5 space-y-3">
-                <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100">
-                  <Image src="/images/medjobs/caregiving-support.jpg" alt="Students supporting seniors" width={400} height={400} className="w-full h-full object-cover" />
-                </div>
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100">
-                  <Image src="/images/medjobs/college-caregivers.png" alt="Pre-health student interns" width={400} height={500} className="w-full h-full object-cover" />
-                </div>
-              </div>
+              <p className="mt-3 text-sm text-gray-400">No cost, no commitment.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* For advisors, faculty & student orgs */}
-      <section id="help" className="py-16 sm:py-20 scroll-mt-20">
+      <section id="help" className="pt-8 md:pt-12 pb-8 md:pb-12 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12 lg:items-start">
             <div className="mb-8 lg:mb-0">
@@ -163,7 +106,7 @@ export default function MedjobsMarketing() {
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
                 For advisors, faculty &amp; student orgs
               </p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Help your pre-health students find this
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
@@ -176,56 +119,12 @@ export default function MedjobsMarketing() {
         </div>
       </section>
 
-      {/* For Providers */}
-      <section className="py-16 sm:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/5">
-                <Image src="/images/medjobs/provider-caregiving.jpg" alt="Pre-health intern with senior patient" width={800} height={600} className="w-full h-full object-cover" />
-              </div>
-            </div>
-            <div className="order-1 lg:order-2">
-              <p className="text-sm tracking-widest uppercase text-gray-400 font-medium mb-3">For providers</p>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                Reliable coverage<br />for your clients
-              </h2>
-              <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-                Pre-health interns aren&apos;t just filling a shift — they commit to a semester of
-                recurring availability and we match them to your clients. No commitment up front.
-              </p>
-              <div className="mt-8 grid sm:grid-cols-2 gap-6">
-                {[
-                  { stat: "Semester", label: "Recurring availability per intern" },
-                  { stat: "No upfront cost", label: "Matched only when you have a need" },
-                  { stat: "Pre-nursing & pre-med", label: "Vetted local university students" },
-                  { stat: "NIH-backed", label: "Early work toward an NIA grant" },
-                ].map((item) => (
-                  <div key={item.label} className="bg-white rounded-xl p-4 border border-gray-100">
-                    <p className="text-xl font-bold text-gray-900">{item.stat}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{item.label}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-8">
-                <Link href="/medjobs/providers" className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors">
-                  See how it works for providers
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Bottom CTA */}
-      <section className="relative py-16 sm:py-20 overflow-hidden">
+      {/* Closer */}
+      <section className="relative py-16 md:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
-            Your healthcare experience<br /><span className="text-primary-600">starts here</span>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+            Your healthcare experience starts here
           </h2>
           <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">Apply now. No cost, no commitment.</p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">

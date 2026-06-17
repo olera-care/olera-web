@@ -207,17 +207,17 @@ function Board() {
     <>
       {/* Hero */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 md:pt-14 md:pb-12">
+          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
             Get real healthcare experience near {campusName || "you"}
           </h1>
-          <p className="mt-2 text-base sm:text-lg text-gray-500">
+          <p className="mt-3 text-lg text-gray-500">
             Paid caregiving jobs for college students pursuing careers in medicine and nursing.
           </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <StudentWelcomeNote
           variant={noteVariant}
           campusName={campusName}
@@ -259,7 +259,7 @@ function Board() {
             {/* ── Top Jobs ── */}
             <div ref={topJobsRef} className="scroll-mt-20">
               <div className="flex items-center justify-between gap-3 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 font-display">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                   Top jobs near {campusName || "you"}
                   {careFilter ? <span className="text-gray-400 font-normal"> · filtered</span> : null}
                 </h2>
@@ -346,7 +346,7 @@ function Board() {
             {/* ── Explore Job Options ── */}
             {availableOptions.length > 0 && (
               <div className="mt-12">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Explore job options</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">Explore job options</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
                   {availableOptions.map((o) => (
                     <button

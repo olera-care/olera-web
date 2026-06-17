@@ -161,6 +161,10 @@ export default function MedJobsApplyPage() {
   const [universitySearch, setUniversitySearch] = useState("");
   const [universityOptions, setUniversityOptions] = useState<{ id: string; name: string; city: string; state: string }[]>([]);
   const [universityOther, setUniversityOther] = useState(false);
+  // When the university is pre-filled from the apply link, show it as a confirmed
+  // chip (done, not a field to act on) with a "Not your school?" escape hatch.
+  const [uniFromLink, setUniFromLink] = useState(false);
+  const [editingUni, setEditingUni] = useState(false);
   const [major, setMajor] = useState("");
   const [majorOther, setMajorOther] = useState("");
   const [intendedSchool, setIntendedSchool] = useState<IntendedProfessionalSchool | "">("");
@@ -222,6 +226,7 @@ export default function MedJobsApplyPage() {
       setCity(match.city);
       setState(match.state);
       setCityQuery(match.city);
+      setUniFromLink(true);
     }
   }, [universityOptions, university]);
 
@@ -418,6 +423,7 @@ export default function MedJobsApplyPage() {
   /* ─── Success ────────────────────────────────────────────── */
 
   if (step === 2) {
+    const nearLabel = city ? `near ${city}` : "near you";
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
         <div className="max-w-md w-full">
@@ -436,56 +442,35 @@ export default function MedJobsApplyPage() {
             {isExisting ? (
               <>
                 <h1 className="text-3xl font-semibold text-gray-900 mb-3">Welcome back!</h1>
-                <p className="text-gray-500 text-lg mb-8">Pick up where you left off to complete verification and start interviewing.</p>
+                <p className="text-gray-500 text-lg mb-8">Pick up where you left off to finish your profile and start interviewing.</p>
               </>
             ) : (
               <>
                 <h1 className="text-3xl font-semibold text-gray-900 mb-3">You&apos;re in, {displayName.split(" ")[0]}!</h1>
-                <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Next step: verify your identity so families can start reaching out.</p>
+                <p className="text-gray-500 text-lg mb-4">
+                  Families hiring {nearLabel} are looking for student caregivers right now.
+                </p>
+                <p className="text-sm text-gray-400 mb-8">
+                  You&apos;ll add a short video and a couple of documents to go live. We&apos;ll walk you through it.
+                </p>
               </>
             )}
           </div>
 
-          <div className="text-left mb-10">
-            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">To complete verification</p>
-            <p className="text-sm text-gray-500 mb-4">We verify every student to protect the families you&apos;ll care for. Once verified, your profile goes live and families can find you.</p>
-
-            <div className="space-y-3">
-              {/* Application — already done */}
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50/50">
-                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 shrink-0">
-                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-emerald-800">Application submitted</p>
-                </div>
-              </div>
-
-              {/* Remaining verification steps */}
-              {[
-                { label: "Record a short intro video", desc: "2\u20133 min \u2014 families want to see who they\u2019re hiring" },
-                { label: "Upload driver\u2019s license", desc: "Verifies your identity \u2014 required for all caregiving roles" },
-                { label: "Upload car insurance", desc: "Confirms you can get to assignments safely" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
-                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white border-2 border-gray-200 shrink-0">
-                    <div className="w-2 h-2 rounded-full bg-gray-300" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                    <p className="text-xs text-gray-500">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Link href="/portal/medjobs"
-            className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            Start Verification
+          <Link
+            href={isExisting ? "/portal/medjobs" : "/portal/medjobs/jobs"}
+            className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors"
+          >
+            {isExisting ? "Go to your profile" : "See families hiring near you"}
           </Link>
+          {!isExisting && (
+            <Link
+              href="/portal/medjobs"
+              className="mt-3 inline-flex items-center justify-center w-full px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Finish your profile first
+            </Link>
+          )}
           <style>{`@keyframes scale-in { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }`}</style>
         </div>
       </main>
@@ -643,7 +628,23 @@ export default function MedJobsApplyPage() {
 
               <div>
                 <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">University *</label>
-                <UniDropdown />
+                {uniFromLink && university && !editingUni ? (
+                  <div className="flex items-center justify-between gap-3 border-b-2 border-gray-200 py-2">
+                    <span className="inline-flex items-center gap-2 text-lg text-gray-900">
+                      <span aria-hidden>🎓</span>
+                      {university}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUni(true)}
+                      className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                    >
+                      Not your school?
+                    </button>
+                  </div>
+                ) : (
+                  <UniDropdown />
+                )}
               </div>
 
               <div>

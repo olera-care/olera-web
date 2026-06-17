@@ -145,7 +145,7 @@ function FamiliesInner() {
             Get real patient-care hours near {campusName || "you"}
           </h1>
           <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Paid caregiving jobs for college students.
+            Paid caregiving jobs for college students seeking healthcare experience.
           </p>
         </div>
       </div>

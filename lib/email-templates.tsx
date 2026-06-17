@@ -130,6 +130,7 @@ export function providerProfileCompletionEmail(opts: {
     ${ghostCard}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">Add your photo and a few sentences about why you do this work. It takes two minutes, and it&rsquo;s the difference between a listing and a person a family wants to call.</p>
     <div>${button("Add your story →", opts.ctaUrl)}</div>
+    ${authorBylineBlock({ topBorder: true })}
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
     </div>`,
@@ -168,8 +169,6 @@ export function providerManagedAdsEmail(opts: {
   const where = opts.city ? ` near ${escapeHtml(opts.city)}` : " in your area";
   const cat = humanCategoryLabel(opts.category ?? null);
   const demand = opts.localDemand && opts.localDemand >= 5 ? opts.localDemand : null;
-  const photoUrl =
-    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 
   // Lead with the real number when we have it; degrade gracefully when we don't.
   const headline = demand
@@ -193,11 +192,8 @@ export function providerManagedAdsEmail(opts: {
       <p style="font-size:15px;font-weight:600;color:#111827;margin:0;line-height:1.5;">No bidding against other agencies for the same family.</p>
     </div>
     <p style="font-size:15px;color:#374151;margin:0 0 28px;line-height:1.65;">Just your own campaign, pointed at your own page.</p>
-    <div style="margin:0 0 30px;">${button("See how it works →", opts.ctaUrl)}</div>
-    <table cellpadding="0" cellspacing="0" style="margin:0;"><tr>
-      <td style="vertical-align:top;padding-right:12px;"><img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" /></td>
-      <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care less opaque for families and providers.</td>
-    </tr></table>
+    <div>${button("See how it works →", opts.ctaUrl)}</div>
+    ${authorBylineBlock()}
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
     </div>`,
@@ -357,24 +353,52 @@ function loganLeadSignature(): string {
     </div>`;
 }
 
-function referralTeaserTrustBlock(): string {
+/**
+ * "About the authors" trust byline — the canonical photo + "Olera is built by
+ * Dr. Logan DuBose … and TJ Falohun …" partnership block that grounds every
+ * provider digest in real, NIH-backed people (not a lead broker). Shared across
+ * all weekly-digest variants so the trust signal reads identically everywhere.
+ *
+ * The photo MUST be Supabase-hosted — olera.care/images/* is WAF-challenged for
+ * email image proxies and renders blank.
+ *
+ * @param topBorder - hairline divider above the block (use when it directly
+ *   follows body content; omit when it already sits below a divider/button).
+ * @param heading  - optional bold lead-in (e.g. "Why Olera maps this").
+ * @param tail     - optional muted context line below the byline.
+ */
+function authorBylineBlock(opts: { topBorder?: boolean; heading?: string; tail?: string } = {}): string {
   const photoUrl =
     "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  const wrapStyle = opts.topBorder
+    ? "margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"
+    : "margin:24px 0 0;";
+  const heading = opts.heading
+    ? `<p style="margin:0 0 4px;font-weight:600;color:#111827;">${opts.heading}</p>`
+    : "";
+  const byline = `<p style="margin:${opts.tail ? "0 0 6px" : "0"};">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care less opaque for families and providers.</p>`;
+  const tail = opts.tail
+    ? `<p style="margin:0;color:#9ca3af;">${opts.tail}</p>`
+    : "";
   return `
-    <div style="margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+    <div style="${wrapStyle}">
       <table cellpadding="0" cellspacing="0" style="margin:0;">
         <tr>
           <td style="vertical-align:top;padding-right:12px;">
             <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
           </td>
-          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
-            <p style="margin:0 0 4px;font-weight:600;color:#111827;">Why Olera maps this</p>
-            <p style="margin:0 0 6px;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We're working to make senior care less opaque for families and providers.</p>
-            <p style="margin:0;color:#9ca3af;">This map is one way to show the local relationships that can shape where families call first.</p>
-          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">${heading}${byline}${tail}</td>
         </tr>
       </table>
     </div>`;
+}
+
+function referralTeaserTrustBlock(): string {
+  return authorBylineBlock({
+    topBorder: true,
+    heading: "Why Olera maps this",
+    tail: "This map is one way to show the local relationships that can shape where families call first.",
+  });
 }
 
 /**
@@ -445,6 +469,7 @@ export function providerLeadDigestEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">This past week, ${many ? who : "a family"} asked to connect with ${name} on Olera. They shared what kind of care they&rsquo;re looking for and when they need it.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Families usually reach out to a few providers at once, so the first thoughtful reply tends to win the conversation. It takes a minute, and there&rsquo;s no fee to respond.</p>
     <div style="margin:0 0 30px;">${button(many ? "See who reached out →" : "See their request →", ctaUrl)}</div>
+    ${authorBylineBlock({ topBorder: true })}
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"><p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", manageUrl)} &middot; ${secondaryLink("Unsubscribe", unsubscribeUrl)}</p></div>`;
   return layout(body, `${who} asked to connect with ${name} on Olera.`);
 }
@@ -3003,6 +3028,7 @@ function providerDemandDigestEmail(
     ${moreCountLine}
     <div>${button("View and respond", answerUrl)}</div>
     <p style="font-size:13px;color:#6b7280;margin:24px 0 0;line-height:1.5;">Answering helps families see your expertise and builds trust with people actively looking for care.</p>
+    ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -3117,7 +3143,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
     : m
       ? `See where ${opts.providerName} stands in ${m.cityLabel}.`
       : headline;
-  const trustBlock = r ? referralTeaserTrustBlock() : "";
+  const trustBlock = r ? referralTeaserTrustBlock() : authorBylineBlock({ topBorder: true });
 
   return layout(`
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${eyebrowText}</p>

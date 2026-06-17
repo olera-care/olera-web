@@ -46,6 +46,8 @@ export interface ConnectionRowData {
     completeness?: ProfileCompleteness;
     /** Provider has claimed their account (linked to an auth user) */
     isAccountClaimed?: boolean;
+    /** Verification state: verified, pending, unverified, not_required, rejected */
+    verificationState?: string | null;
   };
   messagePreview?: string;
   responded?: boolean;
@@ -80,6 +82,8 @@ export interface ConnectionRowData {
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
   /** Admin archived this provider - no emails sent to them */
   isProviderArchived?: boolean;
+  /** Provider is inactive (deleted account, removed, etc.) */
+  isProviderInactive?: boolean;
   /** Archive info when provider is admin-archived */
   providerArchiveInfo?: {
     reason: string | null;
@@ -284,12 +288,9 @@ function EngagementBadges({
   const activeBadges = badges.filter(b => b.active);
   if (activeBadges.length === 0) return null;
 
+  // Hide engagement badges entirely in compact mode
   if (compact) {
-    return (
-      <span className="flex items-center gap-0.5 text-sm" title={activeBadges.map(b => b.label).join(", ")}>
-        {activeBadges.map(b => <span key={b.label}>{b.icon}</span>)}
-      </span>
-    );
+    return null;
   }
 
   return (
@@ -304,7 +305,7 @@ function EngagementBadges({
           }`}
           title={b.highlight && adminOverride ? adminOverride.reason : undefined}
         >
-          {b.icon} {b.label}
+          {b.label}
         </span>
       ))}
     </div>
@@ -629,18 +630,19 @@ export default function ConnectionRow({
 
     if (perspective === "family") {
       // Family perspective - show family engagement level
+      // Use gray for all - tabs already indicate state
       const famLevel = c.familyEngagementLevel || "new";
 
       switch (famLevel) {
         case "connected":
-          return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
+          return { status: "Connected", color: "text-gray-500", nudgeInfo: null };
         case "awaiting":
-          return { status: "Awaiting Reply", color: "text-amber-600", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
+          return { status: "Awaiting Reply", color: "text-gray-500", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
         case "needs_follow_up":
-          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: familyNudges > 0 ? `Family nudged ${familyNudges}x` : null };
+          return { status: "Needs Follow-up", color: "text-gray-500", nudgeInfo: familyNudges > 0 ? `Family nudged ${familyNudges}x` : null };
         case "new":
         default:
-          return { status: "New", color: "text-blue-600", nudgeInfo: null };
+          return { status: "New", color: "text-gray-500", nudgeInfo: null };
       }
     } else {
       // Provider perspective - show provider engagement level
@@ -648,22 +650,34 @@ export default function ConnectionRow({
 
       // For non-connected states, show who we're waiting on
       const waitingOnText = c.waitingOn === "family" ? " (awaiting family)" : "";
-      const nudgeCount = c.waitingOn === "family" ? familyNudges : providerNudges;
 
+      // Helper to combine sequence progress with manual nudge count
+      const buildProgressInfo = (base: string | null, nudges: number): string | null => {
+        if (base && nudges > 0) return `${base} · Nudged ${nudges}x`;
+        if (base) return base;
+        if (nudges > 0) return `Nudged ${nudges}x`;
+        return null;
+      };
+
+      // Use gray for all engagement statuses - tabs already indicate state
+      // This reduces visual noise and lets verification badges stand out
       switch (engLevel) {
         case "connected":
-          return { status: "Connected", color: "text-emerald-600", nudgeInfo: null };
+          return { status: "Connected", color: "text-gray-500", nudgeInfo: null };
         case "viewed":
-          return { status: `Viewed${waitingOnText}`, color: "text-amber-600", nudgeInfo: nudgeCount > 0 ? `Nudged ${nudgeCount}x` : null };
+          // If waiting on family: provider already engaged, show family nudges (sequence irrelevant)
+          // If waiting on provider: show sequence progress + provider nudges
+          if (c.waitingOn === "family") {
+            return { status: `Viewed${waitingOnText}`, color: "text-gray-500", nudgeInfo: familyNudges > 0 ? `Nudged ${familyNudges}x` : null };
+          }
+          return { status: `Viewed${waitingOnText}`, color: "text-gray-500", nudgeInfo: buildProgressInfo(sequenceProgress, providerNudges) };
         case "needs_follow_up":
-          // Sequence complete, show that info
-          return { status: "Needs Follow-up", color: "text-red-600", nudgeInfo: "Sequence complete" };
+          // Use actual sequence progress if available, fallback to "Email 4/4"
+          return { status: "Needs Follow-up", color: "text-gray-500", nudgeInfo: buildProgressInfo(sequenceProgress || "Email 4/4", providerNudges) };
         case "awaiting":
         default:
-          // Show sequence progress for awaiting (automation working)
-          // If no sequence progress and no nudges, show "Pending" to indicate automation hasn't started
-          const awaitingInfo = sequenceProgress || (providerNudges > 0 ? `Provider nudged ${providerNudges}x` : "Pending");
-          return { status: "Awaiting", color: "text-blue-600", nudgeInfo: awaitingInfo };
+          // Show sequence progress (or "Pending") + manual nudges if any
+          return { status: "Awaiting", color: "text-gray-500", nudgeInfo: buildProgressInfo(sequenceProgress || "Pending", providerNudges) };
       }
     }
   };
@@ -1002,16 +1016,20 @@ export default function ConnectionRow({
   const isDeclined = c.archived && c.archiveReason;
   // Admin archived (either provider-level OR connection-level without reason)
   const isAdminArchived = c.isProviderArchived || (c.archived && !c.archiveReason);
+  // Provider is inactive (deleted account, removed, etc.)
+  const isProviderInactive = c.isProviderInactive === true;
 
   return (
     <div className="group">
       {/* Collapsed row - enhanced with more context */}
       <div className={`flex w-full items-center gap-3 px-4 py-4 transition-colors ${
-        isAdminArchived
-          ? "bg-amber-50/40 hover:bg-amber-50/60 opacity-70"
-          : isDeclined
-            ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
-            : "hover:bg-stone-50/60"
+        isProviderInactive
+          ? "bg-red-50/40 hover:bg-red-50/60 opacity-70"
+          : isAdminArchived
+            ? "bg-amber-50/40 hover:bg-amber-50/60 opacity-70"
+            : isDeclined
+              ? "bg-gray-50/80 hover:bg-gray-100/80 opacity-75"
+              : "hover:bg-stone-50/60"
       }`}>
         <button
           onClick={toggle}
@@ -1022,20 +1040,34 @@ export default function ConnectionRow({
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-900 truncate">{family}</span>
             <span className="text-gray-400">→</span>
-            <span className={`font-medium truncate ${isAdminArchived ? "text-gray-500" : "text-gray-900"}`}>{provider}</span>
-            {isAdminArchived && (
+            <span className={`font-medium truncate ${isAdminArchived || isProviderInactive ? "text-gray-500" : "text-gray-900"}`}>{provider}</span>
+            {isProviderInactive && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                Provider Inactive
+              </span>
+            )}
+            {isAdminArchived && !isProviderInactive && (
               <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
                 Archived
               </span>
             )}
+            {/* Verified checkmark - only shown for verified providers (clean, minimal) */}
+            {c.provider.isAccountClaimed && (c.provider.verificationState === "verified" || c.provider.verificationState === "not_required") && (
+              <span className="text-primary-600 shrink-0" title="Verified">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+              </span>
+            )}
             <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>
-          {/* Secondary line: care type + timeline | waiting status | nudge info | archive badge | no email badge */}
+          {/* Secondary line: care type (+ timeline for family perspective) | waiting status | nudge info | badges */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-            {(careType || timeline) && (
+            {/* Show category always, timeline only for family perspective */}
+            {(careType || (perspective === "family" && timeline)) && (
               <>
                 <span className="truncate">
-                  {careType}{careType && timeline ? " · " : ""}{timeline}
+                  {careType}{careType && perspective === "family" && timeline ? " · " : ""}{perspective === "family" ? timeline : ""}
                 </span>
                 <span className="text-gray-300">|</span>
               </>
@@ -1078,6 +1110,47 @@ export default function ConnectionRow({
                 </span>
               </>
             )}
+            {/* Claim/Verification status badges */}
+            {!c.provider.isAccountClaimed ? (
+              // Unclaimed provider - show gray badge
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded">
+                  Unclaimed
+                </span>
+              </>
+            ) : c.provider.verificationState === "pending" ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <a
+                  href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+                  title="Click to review verification"
+                >
+                  Pending Verification
+                </a>
+              </>
+            ) : c.provider.verificationState === "unverified" ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <a
+                  href={`/admin/verification?search=${encodeURIComponent(c.provider.display_name || "")}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+                  title="Click to verify this provider"
+                >
+                  Unverified
+                </a>
+              </>
+            ) : c.provider.verificationState === "rejected" ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                  Rejected
+                </span>
+              </>
+            ) : null}
           </div>
         </button>
 

@@ -59,25 +59,43 @@ export async function POST(req: NextRequest) {
     // Fetch provider details needed for trust scoring
     const { data: provider, error: providerError } = await db
       .from("business_profiles")
-      .select("name, city, state, category, website")
+      .select("display_name, city, state, category, website, source_provider_id")
       .eq("id", providerId)
       .single();
 
     if (providerError || !provider) {
+      console.error("[preview-trust-score] Provider fetch failed:", providerError);
       return NextResponse.json(
         { error: "Provider not found" },
         { status: 404 }
       );
     }
 
+    // Fall back to olera-providers for missing fields
+    let city = provider.city;
+    let state = provider.state;
+    let website = provider.website;
+    if (provider.source_provider_id && (!city || !state || !website)) {
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("city, state, website")
+        .eq("provider_id", provider.source_provider_id)
+        .maybeSingle();
+      if (iosProvider) {
+        city = city || iosProvider.city;
+        state = state || iosProvider.state;
+        website = website || iosProvider.website;
+      }
+    }
+
     // Score the trust level
     const result = await scoreClaimTrust({
       email: email.trim().toLowerCase(),
-      providerName: provider.name || "Unknown Provider",
-      providerCity: provider.city,
-      providerState: provider.state,
+      providerName: provider.display_name || "Unknown Provider",
+      providerCity: city,
+      providerState: state,
       providerCategory: provider.category,
-      providerDomain: extractDomainFromWebsite(provider.website),
+      providerDomain: extractDomainFromWebsite(website),
     });
 
     return NextResponse.json({

@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-06-17 — June 16 mega-meeting → per-team brief in Notion (no code)
+
+Read the **full transcript** (not just the auto-summary) of the June 16 "Careshifts (Chantel Workflow Integration) & Olera Product Development Meeting" and split it into 3 copy-paste team chunks (metrics + summary + action items): **(1) CareShifts** (Chantel onboarding to staging/main cadence; ~50–60% reusable from MedJobs; Approach A student/internship pipeline vs B recruit-10-vetted-caregivers fork), **(2) Eng & Ops** (provider email bouncing on leads/Daily Digest; claimed-provider email-change-overrides-verification security hole, editing temp-disabled; first-ever paying customer re-engaged), **(3) Marketing/SEO** (4-wk WoW organic uptrend, provider pages 90%/benefits #2/blogs punch above weight; Instagram CTA → move to FB ads; editorial = Cess audits→Logan rewrites; provider-page UGC/category levers **deferred 2–4wk** until MVPs stabilize). Notion brief: `3825903a-0ffe-8182-9f92-c39617e1f01b` (child of meeting note `3815903a-0ffe-8019-…`). Name fix: transcript "Seth"→**Cess**, "Gracie/Greasy"→**Graize**. TJ distributed chunks to #marketing-team + #ai-product-development. No repo changes.
+
 ### 2026-06-16 — First managed-ads conversion (Franchil) + Ad Boost admin overhaul (branch `adboost-admin-delete`, PR #1073)
 
 **Trigger:** Franchil LLC (Killeen TX home-care, self-serve signup 6/11, 95% complete, 0 organic leads) became the **first real managed-ads concierge conversion** — submitted a Google+Meta request, setup week 6/22. Sparked two threads.

@@ -90,6 +90,7 @@ export interface ConnectionRowData {
     reason: string | null;
     archivedBy: string | null;
     archivedAt: string | null;
+    notes: string | null;
   } | null;
   /** Email sequence progress (0-3, where 3 = sequence complete) */
   followupStage?: number | null;
@@ -337,7 +338,7 @@ export default function ConnectionRow({
     providerName: string | null,
     isArchived: boolean,
     isProviderArchived: boolean,
-    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null
   ) => void;
   onNudgeSuccess?: () => void;
 }) {

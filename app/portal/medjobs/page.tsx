@@ -1254,7 +1254,7 @@ function StudentPortalContent({
           <div className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <p className="text-[15px] font-semibold text-gray-900">
-                Complete your profile to get matched faster
+                Complete your application to get matched faster
               </p>
               <p className="text-sm text-gray-500 mt-0.5">
                 We&apos;ll guide you through each section step by step.
@@ -1578,7 +1578,7 @@ function StudentPortalContent({
                  "JUST GETTING STARTED"}
               </p>
               <p className="text-center text-xs text-gray-400 mb-5">
-                Complete your profile to get matched
+                Complete your application to get matched
               </p>
 
               {/* Section checklist - 8 logical sections */}

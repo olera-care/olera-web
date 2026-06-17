@@ -67,7 +67,7 @@ export default function StudentProviderCTA({
     setError(null);
     // Not signed in / not a student → go check eligibility.
     if (!studentProfile?.id) {
-      window.location.href = "/medjobs/families?screener=1";
+      window.location.href = `/medjobs/families?screener=1${campus ? `&campus=${encodeURIComponent(campus)}` : ""}`;
       return;
     }
     // Resolve the provider's business_profile id (materialize directory rows).
@@ -136,17 +136,19 @@ export default function StudentProviderCTA({
             </p>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={handleRequest}
-            disabled={isLoading || resolving}
-            className={
-              (surface === "mobile" ? "" : "mt-3 ") +
-              "w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
-            }
-          >
-            {resolving ? "Opening…" : "Request interview"}
-          </button>
+          <div className={surface === "mobile" ? "" : "mt-3"}>
+            <button
+              type="button"
+              onClick={handleRequest}
+              disabled={isLoading || resolving}
+              className="w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+            >
+              {resolving ? "Opening…" : "Request interview"}
+            </button>
+            {!studentProfile?.id && (
+              <p className="mt-1.5 text-center text-xs text-gray-500">Check your eligibility first.</p>
+            )}
+          </div>
         )}
         {error ? <p className="mt-2 text-center text-xs text-red-600">{error}</p> : null}
       </div>

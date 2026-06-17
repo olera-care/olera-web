@@ -80,6 +80,8 @@ interface BrowseCardProps {
   href?: string;
   /** candidate variant — "Covers your evenings" match line. */
   matchLabel?: string;
+  /** student variant — campus slug, carried into the provider detail link. */
+  campus?: string;
 }
 
 export default function BrowseCard({
@@ -91,6 +93,7 @@ export default function BrowseCard({
   onRequestInterview,
   href,
   matchLabel,
+  campus,
 }: BrowseCardProps) {
   const isStudent = variant === "student";
   const isCandidate = variant === "candidate";
@@ -396,14 +399,23 @@ export default function BrowseCard({
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
                 Requested
               </span>
-            ) : (
+            ) : canRequest ? (
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequestInterview?.(); }}
-                disabled={!canRequest}
-                className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
               >
                 Request interview
+              </button>
+            ) : (
+              // Anon: not a dead button — the card nudges to check eligibility on hover.
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequestInterview?.(); }}
+                className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+              >
+                <span className="group-hover:hidden">Request interview</span>
+                <span className="hidden group-hover:inline">Check your eligibility →</span>
               </button>
             )}
           </div>
@@ -430,7 +442,7 @@ export default function BrowseCard({
   const linkHref = isCandidate
     ? href ?? `/medjobs/candidates/${provider.slug}`
     : isStudent
-      ? `/provider/${provider.slug}?ctx=medjobs-student`
+      ? `/provider/${provider.slug}?ctx=medjobs-student${campus ? `&campus=${encodeURIComponent(campus)}` : ""}`
       : `/provider/${provider.slug}`;
 
   return (

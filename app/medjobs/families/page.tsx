@@ -29,7 +29,7 @@ function FamiliesInner() {
   const autoScreener = searchParams?.get("screener") === "1";
 
   const [campus, setCampus] = useState<string>(campusParam);
-  const [sort, setSort] = useState<"newest" | "oldest">("newest");
+  const sort = "newest";
   const [cards, setCards] = useState<FamilyCard[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,28 +142,11 @@ function FamiliesInner() {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
-            Get real patient-care hours near you
+            Get real patient-care hours near {campusName || "you"}
           </h1>
           <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Paid caregiving roles with local families &amp; agencies, around your classes.
+            Paid caregiving jobs for college students.
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            {!studentProfileId && (
-              <button
-                type="button"
-                onClick={() => setShowScreener(true)}
-                className="rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"
-              >
-                Check your eligibility →
-              </button>
-            )}
-            {total > 0 && !loading && (
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
-                <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
-                {total} caregiving role{total !== 1 ? "s" : ""} open nearby
-              </span>
-            )}
-          </div>
         </div>
       </div>
 
@@ -176,8 +159,8 @@ function FamiliesInner() {
           onCheckEligibility={() => setShowScreener(true)}
         />
 
-        {/* Filters: campus + sort */}
-        <div className="mb-6 flex flex-wrap gap-3">
+        {/* Filter: campus (right-aligned) */}
+        <div className="mb-6 flex justify-end">
           <select
             value={campus}
             onChange={(e) => setCampus(e.target.value)}
@@ -189,14 +172,6 @@ function FamiliesInner() {
                 {u.name}
               </option>
             ))}
-          </select>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as "newest" | "oldest")}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-          >
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
           </select>
         </div>
 
@@ -220,6 +195,7 @@ function FamiliesInner() {
                   key={f.id}
                   provider={f}
                   variant="student"
+                  campus={campus || undefined}
                   isRequested={requested.has(f.id)}
                   canRequest={!!studentProfileId}
                   onRequestInterview={() =>

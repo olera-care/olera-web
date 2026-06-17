@@ -60,9 +60,8 @@ export default function StudentWelcomeNote({
       </>
     ) : (
       <>
-        These are the families hiring student caregivers near {campus} right now.
-        Check your eligibility &mdash; it takes a few seconds &mdash; and we&apos;ll
-        match you to the ones who fit.
+        These are the local healthcare agencies and families hiring student caregivers
+        near {campus} right now. Read more and check if you are eligible.
       </>
     );
 
@@ -80,17 +79,28 @@ export default function StudentWelcomeNote({
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {/* CTA order: agreement link LEFT, primary action button RIGHT. */}
-            {variant === "live" ? (
-              <a
-                href={AGREEMENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl border border-primary-200 bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
-              >
-                Read the internship agreement ↗
-              </a>
-            ) : (
+            {variant === "anon" ? (
+              <>
+                <Link href="/medjobs" className="text-sm font-medium text-primary-700 hover:underline">
+                  How it works ↗
+                </Link>
+                <a
+                  href={AGREEMENT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-primary-700 hover:underline"
+                >
+                  Student Agreement ↗
+                </a>
+                <button
+                  type="button"
+                  onClick={onCheckEligibility}
+                  className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+                >
+                  Check Eligibility →
+                </button>
+              </>
+            ) : variant === "not_live" ? (
               <>
                 <a
                   href={AGREEMENT_URL}
@@ -98,26 +108,25 @@ export default function StudentWelcomeNote({
                   rel="noopener noreferrer"
                   className="text-sm font-medium text-primary-700 hover:underline"
                 >
-                  Read the internship agreement ↗
+                  Student Agreement ↗
                 </a>
-                {variant === "anon" ? (
-                  <button
-                    type="button"
-                    onClick={onCheckEligibility}
-                    className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
-                  >
-                    Check your eligibility →
-                  </button>
-                ) : (
-                  <Link
-                    href="/portal/medjobs"
-                    className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
-                  >
-                    Complete your application
-                    {typeof completeness === "number" ? ` · ${completeness}%` : ""} →
-                  </Link>
-                )}
+                <Link
+                  href="/portal/medjobs"
+                  className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+                >
+                  Complete your application
+                  {typeof completeness === "number" ? ` · ${completeness}%` : ""} →
+                </Link>
               </>
+            ) : (
+              <a
+                href={AGREEMENT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-primary-200 bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
+              >
+                Student Agreement ↗
+              </a>
             )}
           </div>
         </div>

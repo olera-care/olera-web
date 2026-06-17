@@ -392,7 +392,9 @@ export default function ConnectionRow({
   // Email verification state
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
   const [candidateStatuses, setCandidateStatuses] = useState<Map<string, VerificationStatus>>(new Map());
-  const [forceSubmit, setForceSubmit] = useState(false);
+  // Which verdict (if any) is offering a force-through escape: 'undeliverable' (hard bounce)
+  // or 'risky' (catch-all). null = no override affordance needed.
+  const [forceKind, setForceKind] = useState<"undeliverable" | "risky" | null>(null);
   const verifyDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Trust score state
@@ -657,7 +659,7 @@ export default function ConnectionRow({
       setEmailToUrlMap(new Map());
       setVerificationStatus("idle");
       setCandidateStatuses(new Map());
-      setForceSubmit(false);
+      setForceKind(null);
       setTrustScoreStatus("idle");
       setTrustScoreReason("");
       setCandidateTrustScores(new Map());
@@ -893,6 +895,7 @@ export default function ConnectionRow({
         body: JSON.stringify({
           profileId,
           email: emailInput.trim(),
+          force: forceKind !== null, // Pass force flag to bypass verification check
         }),
       });
 
@@ -901,6 +904,7 @@ export default function ConnectionRow({
       if (res.ok) {
         setEmailSuccess(true);
         setEmailInput("");
+        setForceKind(null);
 
         // Clear find email state
         setEmailSource(null);
@@ -924,10 +928,19 @@ export default function ConnectionRow({
         // Notify parent to refresh list
         onNudgeSuccess?.();
       } else {
-        setEmailError(data.error || "Failed to add email");
+        // Use descriptive message if available (e.g., for 422 undeliverable/risky errors)
+        setEmailError(data.message || data.error || "Failed to add email");
+        // 422 + undeliverable/risky: address was rejected — let the operator grab
+        // a better one, or override if they're sure.
+        setForceKind(
+          res.status === 422 && (data.error === "undeliverable" || data.error === "risky")
+            ? data.error
+            : null
+        );
       }
     } catch {
       setEmailError("Network error");
+      setForceKind(null);
     } finally {
       setAddingEmail(false);
     }
@@ -964,7 +977,7 @@ export default function ConnectionRow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           newEmail: pendingEmailEdit.newEmail,
-          force: forceSubmit, // Pass force flag to bypass verification check
+          force: forceKind !== null, // Pass force flag to bypass verification check
         }),
       });
 
@@ -973,6 +986,7 @@ export default function ConnectionRow({
       if (res.ok && data.success) {
         setEditEmailSuccess(true);
         setEditEmailInput("");
+        setForceKind(null);
 
         // Show warning if metadata update failed or account is claimed
         let warning = data.warning || null;
@@ -1002,11 +1016,19 @@ export default function ConnectionRow({
           editEmailTimeoutRef.current = null;
         }, warning ? 5000 : 3000);
       } else {
-        // Use descriptive message if available (e.g., for 422 undeliverable errors)
+        // Use descriptive message if available (e.g., for 422 undeliverable/risky errors)
         setEditEmailError(data.message || data.error || "Failed to update email");
+        // 422 + undeliverable/risky: address was rejected — let the operator grab
+        // a better one, or override if they're sure.
+        setForceKind(
+          res.status === 422 && (data.error === "undeliverable" || data.error === "risky")
+            ? data.error
+            : null
+        );
       }
     } catch {
       setEditEmailError("Network error");
+      setForceKind(null);
     } finally {
       setEditingEmailLoading(false);
     }
@@ -1564,7 +1586,7 @@ export default function ConnectionRow({
                                     // Clear verification state
                                     setVerificationStatus("idle");
                                     setCandidateStatuses(new Map());
-                                    setForceSubmit(false);
+                                    setForceKind(null);
                                     // Clear trust score state
                                     setTrustScoreStatus("idle");
                                     setTrustScoreReason("");
@@ -1595,7 +1617,7 @@ export default function ConnectionRow({
                                     setVerificationStatus("idle");
                                     setTrustScoreStatus("idle");
                                     setTrustScoreReason("");
-                                    setForceSubmit(false);
+                                    setForceKind(null);
                                     // Clear source indicator if user manually edits away from found emails
                                     if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                       setEmailSource(null);
@@ -1633,15 +1655,15 @@ export default function ConnectionRow({
                               </div>
                               <button
                                 type="submit"
-                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email || (verificationStatus === "invalid" && !forceSubmit)}
+                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email || ((verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null)}
                                 className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {editingEmailLoading ? "Saving..." : "Save"}
                               </button>
-                              {verificationStatus === "invalid" && !forceSubmit && (
+                              {(verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null && (
                                 <button
                                   type="button"
-                                  onClick={() => setForceSubmit(true)}
+                                  onClick={() => setForceKind(verificationStatus === "invalid" ? "undeliverable" : "risky")}
                                   className="text-xs text-gray-500 hover:text-gray-700 underline"
                                 >
                                   Save anyway
@@ -1666,7 +1688,7 @@ export default function ConnectionRow({
                                   setIsCachedResult(false);
                                   setVerificationStatus("idle");
                                   setCandidateStatuses(new Map());
-                                  setForceSubmit(false);
+                                  setForceKind(null);
                                   // Reset trust score state
                                   setTrustScoreStatus("idle");
                                   setTrustScoreReason("");
@@ -1790,7 +1812,7 @@ export default function ConnectionRow({
                                 setVerificationStatus("idle");
                                 setTrustScoreStatus("idle");
                                 setTrustScoreReason("");
-                                setForceSubmit(false);
+                                setForceKind(null);
                                 // Clear source indicator if user manually edits away from found emails
                                 if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
                                   setEmailSource(null);
@@ -1827,15 +1849,15 @@ export default function ConnectionRow({
                           </div>
                           <button
                             type="submit"
-                            disabled={addingEmail || findingEmail || !emailInput.trim() || (verificationStatus === "invalid" && !forceSubmit)}
+                            disabled={addingEmail || findingEmail || !emailInput.trim() || ((verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null)}
                             className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {addingEmail ? "Adding..." : "Add"}
                           </button>
-                          {verificationStatus === "invalid" && !forceSubmit && (
+                          {(verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null && (
                             <button
                               type="button"
-                              onClick={() => setForceSubmit(true)}
+                              onClick={() => setForceKind(verificationStatus === "invalid" ? "undeliverable" : "risky")}
                               className="text-xs text-gray-500 hover:text-gray-700 underline"
                             >
                               Add anyway

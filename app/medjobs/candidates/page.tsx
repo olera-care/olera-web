@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
-import CandidateCard from "@/components/medjobs/CandidateCard";
+import BrowseCard from "@/components/browse/BrowseCard";
+import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
@@ -394,12 +395,11 @@ function CandidateBrowseInner() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {SAMPLE_CANDIDATES.map((c) => (
-                <CandidateCard
+                <BrowseCard
                   key={c.id}
-                  candidate={c}
-                  basePath="/medjobs/candidates"
+                  provider={candidateToCardFormat(c, { isDemo: true })}
+                  variant="candidate"
                   isDemo
-                  matchBuckets={matchBuckets}
                 />
               ))}
             </div>
@@ -408,11 +408,12 @@ function CandidateBrowseInner() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {candidates.map((candidate) => (
-                <CandidateCard
+                <BrowseCard
                   key={candidate.id}
-                  candidate={candidate}
-                  basePath="/medjobs/candidates"
-                  matchBuckets={matchBuckets}
+                  provider={candidateToCardFormat(candidate)}
+                  variant="candidate"
+                  href={`/medjobs/candidates/${candidate.slug}`}
+                  matchLabel={candidateMatchLabel(matchBuckets, candidate) ?? undefined}
                 />
               ))}
             </div>

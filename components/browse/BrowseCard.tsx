@@ -66,14 +66,20 @@ function careOpportunityLabel(provider: ProviderCardData): string {
 
 interface BrowseCardProps {
   provider: ProviderCardData;
-  /** "student" re-renders this directory card for the MedJobs families board:
-   *  opportunity-led title, no family pricing/save, a Request-interview action. */
-  variant?: "default" | "student";
+  /** "student" re-renders this directory card for the MedJobs families board
+   *  (opportunity-led, Request-interview). "candidate" re-renders it for the
+   *  provider candidate board (a person: name, track·university, availability).
+   *  Both descend from the one directory card — only the contextual bits change. */
+  variant?: "default" | "student" | "candidate";
   /** Sample listing (cold-start) — dashed border, "Demo" badge, non-clickable. */
   isDemo?: boolean;
   isRequested?: boolean;
   canRequest?: boolean;
   onRequestInterview?: () => void;
+  /** candidate variant — the detail link target (e.g. /medjobs/candidates/{slug}). */
+  href?: string;
+  /** candidate variant — "Covers your evenings" match line. */
+  matchLabel?: string;
 }
 
 export default function BrowseCard({
@@ -83,8 +89,11 @@ export default function BrowseCard({
   isRequested = false,
   canRequest = false,
   onRequestInterview,
+  href,
+  matchLabel,
 }: BrowseCardProps) {
   const isStudent = variant === "student";
+  const isCandidate = variant === "candidate";
   const opportunityLabel = careOpportunityLabel(provider);
   const { activeProfile, openAuth } = useAuth();
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
@@ -201,8 +210,8 @@ export default function BrowseCard({
           />
         )}
 
-        {/* Heart — top right (family-only; hidden in the student variant) */}
-        {!isStudent && (
+        {/* Heart — top right (family-only; hidden in student/candidate variants) */}
+        {variant === "default" && (
         <button
           ref={heartButtonRef}
           onClick={(e) => {
@@ -304,16 +313,22 @@ export default function BrowseCard({
           )}
         </div>
 
-        {/* Category + Location (student: location + the agency, named honestly) */}
+        {/* Subtitle — student: location + the agency; candidate: track · university;
+            default: care type + location. */}
         <p className="text-sm text-gray-500 mt-1 line-clamp-1">
           {isStudent
             ? `${provider.address ? `${provider.address} · ` : ""}through ${provider.name}`
-            : `${careTypeLabel}${provider.address ? ` · ${provider.address}` : ""}`}
+            : isCandidate
+              ? `${provider.primaryCategory}${provider.address ? ` · ${provider.address}` : ""}`
+              : `${careTypeLabel}${provider.address ? ` · ${provider.address}` : ""}`}
         </p>
         {isStudent && (
           <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hiring student caregivers
           </p>
+        )}
+        {isCandidate && matchLabel && (
+          <p className="mt-1.5 text-xs font-medium text-emerald-600">✓ {matchLabel}</p>
         )}
 
         {/* CMS Medicare Quality — only show 4/5 and 5/5 publicly (lower scores used for ranking only) */}
@@ -353,8 +368,8 @@ export default function BrowseCard({
         {/* Spacer */}
         <div className="flex-1 min-h-2" />
 
-        {/* Price (family-only — hidden in the student variant) */}
-        {!isStudent && (provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && (!provider.priceRange || provider.priceRange === "Contact for pricing" || provider.isRegionalEstimate) ? (
+        {/* Price (family-only — hidden in student/candidate variants) */}
+        {variant === "default" && (provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && (!provider.priceRange || provider.priceRange === "Contact for pricing" || provider.isRegionalEstimate) ? (
           <div className="mt-3"><PricingEducationBadge category={provider.providerCategory} compact /></div>
         ) : provider.priceRange && provider.priceRange !== "Contact for pricing" ? (
           <div className="mt-3">
@@ -392,8 +407,8 @@ export default function BrowseCard({
     </>
   );
 
-  // Demo (sample) listings are non-clickable — there's no real agency page.
-  if (isStudent && isDemo) {
+  // Demo (sample) listings are non-clickable — there's no real page yet.
+  if ((isStudent || isCandidate) && isDemo) {
     return (
       <div className={`relative ${rootClass}`}>
         <span className="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-amber-100 text-amber-700 rounded-full">
@@ -404,11 +419,17 @@ export default function BrowseCard({
     );
   }
 
+  const linkHref = isCandidate
+    ? href ?? `/medjobs/candidates/${provider.slug}`
+    : isStudent
+      ? `/provider/${provider.slug}?ctx=medjobs-student`
+      : `/provider/${provider.slug}`;
+
   return (
     <Link
-      href={isStudent ? `/provider/${provider.slug}?ctx=medjobs-student` : `/provider/${provider.slug}`}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={linkHref}
+      target={isCandidate ? undefined : "_blank"}
+      rel={isCandidate ? undefined : "noopener noreferrer"}
       onClick={handleCardClick}
       className={rootClass}
     >

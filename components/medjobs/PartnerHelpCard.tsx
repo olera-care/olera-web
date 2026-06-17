@@ -107,7 +107,7 @@ export default function PartnerHelpCard() {
             rel="noopener noreferrer"
             className={`${btn} border border-gray-200 text-gray-700 hover:border-gray-300`}
           >
-            Sample agreement ↗
+            Read the internship agreement ↗
           </a>
         </div>
       </div>

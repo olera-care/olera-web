@@ -1,0 +1,4 @@
+interface:
+  display_name: "Promote To Main"
+  short_description: "Analyze and safely promote staging to main for a production release."
+  default_prompt: "Analyze whether staging is safe to promote to main."

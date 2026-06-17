@@ -192,7 +192,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
               email: cachedData.email || null,
               source: cachedData.source || null,
+              foundUrl: cachedData.foundUrl || null,
               candidates: (cachedData.candidates as string[]) || [],
+              candidatesWithUrls: cachedData.candidatesWithUrls || [],
               cached: true,
               enriched_at: cachedData.enriched_at,
             });
@@ -232,7 +234,9 @@ export async function POST(request: NextRequest) {
       email_enrichment_data: {
         email: result.email,
         source: result.source,
+        foundUrl: result.foundUrl || null,
         candidates: result.candidates || [],
+        candidatesWithUrls: result.candidatesWithUrls || [],
         enriched_at: new Date().toISOString(),
         context_hash: contextHash,
       },
@@ -252,7 +256,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       email: result.email,
       source: result.source,
+      foundUrl: result.foundUrl || null,
       candidates: result.candidates || [],
+      candidatesWithUrls: result.candidatesWithUrls || [],
       cached: false,
     });
   } catch (e) {

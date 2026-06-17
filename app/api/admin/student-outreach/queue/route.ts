@@ -272,10 +272,11 @@ async function fetchResearchCampuses(
   // v9.0 Phase 2: catchment-derived state + client count.
   stage: "provider_prospecting" | "stakeholder_prospecting" | "active";
   client_count: number;
+  partner_audit?: { advisor: boolean; student_org: boolean; dept_head: boolean };
 }>> {
   let q = db
     .from("student_outreach_campuses")
-    .select("id, slug, name, state, city, partner_prospect_unlocked_at")
+    .select("id, slug, name, state, city, partner_prospect_unlocked_at, partner_research")
     .eq("is_active", true)
     .eq("research_complete", false);
   if (filterCampusId) q = q.eq("id", filterCampusId);
@@ -298,6 +299,7 @@ async function fetchResearchCampuses(
     state: string | null;
     city: string | null;
     partner_prospect_unlocked_at: string | null;
+    partner_research: { audit?: Record<string, { complete_at?: string }> } | null;
   }>;
   if (campusRows.length === 0) return [];
 
@@ -360,6 +362,16 @@ async function fetchResearchCampuses(
       const stage: "provider_prospecting" | "stakeholder_prospecting" =
         clientCount > 0 ? "stakeholder_prospecting" : "provider_prospecting";
 
+      // Per-category prospecting status — the research card persists until ALL
+      // three partner categories are audited-complete, so the card shows which
+      // are done (Advising ✓ · Orgs ◻ · Dept heads ◻).
+      const audit = (c.partner_research?.audit ?? {}) as Record<string, { complete_at?: string }>;
+      const partnerAudit = {
+        advisor: Boolean(audit.advisor?.complete_at),
+        student_org: Boolean(audit.student_org?.complete_at),
+        dept_head: Boolean(audit.dept_head?.complete_at),
+      };
+
       return {
         id: c.id,
         slug: c.slug,
@@ -370,6 +382,7 @@ async function fetchResearchCampuses(
         last_added_at: lastAddedAt.get(c.id) ?? null,
         stage,
         client_count: clientCount,
+        partner_audit: partnerAudit,
       };
     })
     .sort((a, b) => {

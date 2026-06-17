@@ -31,8 +31,9 @@ import {
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
 import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
-import { buildWelcomeUrl } from "@/lib/medjobs/welcome-token";
-import type { Status } from "@/lib/student-outreach/types";
+import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
+import { studentApplyUrl } from "@/lib/medjobs/apply-link";
+import type { Status, StakeholderType } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
 
@@ -233,10 +234,12 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
   const buildWelcomeFor = (email: string): string => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {
-      return buildWelcomeUrl(
-        { outreach_id: row.outreach_id, email },
-        magicLinkSecret,
-      );
+      // Partners (stakeholder rows) get the Recruitment Partner Portal link in
+      // their cold email so they can learn more, share the flyer, add
+      // colleagues, and self-activate. Providers get the provider magic link.
+      return row.kind === "provider"
+        ? buildWelcomeUrl({ outreach_id: row.outreach_id, email }, magicLinkSecret)
+        : buildPartnerPortalUrl({ outreach_id: row.outreach_id, email }, magicLinkSecret);
     } catch (e) {
       console.error(
         "[smartlead-bridge] buildWelcomeUrl failed:",
@@ -245,6 +248,16 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
       return PROGRAM_URL;
     }
   };
+
+  // Per-row student apply link: campus pre-filled + attributed to THIS row's
+  // outreach id, so applies that come through a partner's shared link count for
+  // that partner. Same for both leads on the row.
+  const applyUrl = studentApplyUrl({
+    campusSlug: campus.slug ?? null,
+    universityName: campus.name,
+    partnerOutreachId: row.outreach_id,
+    source: "partner_email",
+  });
 
   const generalEmail = row.email?.trim();
   if (generalEmail && !row.suppressed && row.email_verdict !== "invalid") {
@@ -267,6 +280,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           // formal cadences the greeting stays neutral.
           salutation: "Hello",
           welcome_url: buildWelcomeFor(generalEmail),
+          apply_url: applyUrl,
         },
       },
     });
@@ -305,6 +319,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           role: c.role ?? "",
           salutation,
           welcome_url: buildWelcomeFor(email),
+          apply_url: applyUrl,
         },
       },
     });
@@ -370,6 +385,12 @@ export interface SequenceOptions {
    *  link instead. Without a slug, the body's "attached information
    *  packet" phrasing is rewritten to a neutral fallback. */
   campusSlug?: string | null;
+  /** Activation audience — partner (advisor) copy vs provider. */
+  isPartner?: boolean;
+  /** Row's real stakeholder type — drives per-type partner activation /
+   *  welcome copy. Falls back to "student_org" when absent. Inert for cold
+   *  stakeholder cadences (they pass the type as the cadenceKey itself). */
+  stakeholderType?: StakeholderType | null;
 }
 
 /**
@@ -392,8 +413,12 @@ export function buildEmailSequence(
   // actual cadence-derived type so each stakeholder cadence gets the right
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
-  const ctxStakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" ? "student_org" : cadenceKey;
+  const ctxStakeholderType: StakeholderType =
+    cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? opts.stakeholderType ?? "student_org"
+      : cadenceKey === "provider"
+        ? "student_org"
+        : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
@@ -408,8 +433,19 @@ export function buildEmailSequence(
     // body copy itself), so one sequence covers both per-lead salutations
     // without duplicating the campaign.
     variant: "general" as const,
+    // Activation copy audience (partner vs provider). Inert for cold cadences.
+    is_partner: opts.isPartner ?? false,
     contacts: [],
   };
+
+  // Which program PDF this cadence links: provider cadences (cold provider +
+  // non-partner activation) link the agency brochure; everything partner-facing
+  // (stakeholder cold, partner activation, partner welcome) links the student
+  // flyer that partners share with students.
+  const pdfAudience: "provider" | "student" =
+    cadenceKey === "provider" || (cadenceKey === "activation" && !(opts.isPartner ?? false))
+      ? "provider"
+      : "student";
 
   const days = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const steps: SmartleadSequenceStep[] = [];
@@ -426,7 +462,7 @@ export function buildEmailSequence(
         seq_number: seq,
         seq_delay_details: { delay_in_days: seq === 1 ? 0 : day.day - prevEmailDay },
         subject: finalizeTokens(draft.subject, adminFirstName),
-        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null),
+        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience),
       });
       prevEmailDay = day.day;
     }
@@ -472,6 +508,10 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
     // the {{welcome_url}} merge tag at send time.
     .replace(/\{welcome_url\}/g, "{{welcome_url}}")
+    // Per-lead application link (campus + that row's outreach id) set in
+    // rowToLeads as custom_fields.apply_url. Lets a partner-shared link trace
+    // applies back to the org that shared it.
+    .replace(/\{apply_url\}/g, "{{apply_url}}")
     .replace(/\{first_name\}/g, "{{first_name}}")
     .replace(/(^|\n)(Hi|Dear) \{salutation\}/g, `$1{salutation}`)
     .replace(/\{salutation\}/g, MERGE_SALUTATION)
@@ -527,7 +567,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Texas A&amp;M Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Pre-Health Caregiving Internship</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}?utm_content={{outreach_id}}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -577,19 +617,27 @@ function toSmartleadHtml(
   body: string,
   adminFirstName: string,
   campusSlug: string | null,
+  pdfAudience: "provider" | "student" = "provider",
 ): string {
+  // Partner/student-org/welcome emails link the STUDENT flyer (what partners
+  // share with students); provider emails link the agency brochure.
   const pdfUrl = campusSlug
-    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}`
+    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}&audience=${pdfAudience}`
     : PROGRAM_URL;
   // Templates that place the program PDF inline use the {program_pdf} token;
   // we fill it here (per-campaign slug). Stakeholder templates still say
   // "attached information packet" — rewrite that + append the link instead.
   const hasInlinePdf = /\{program_pdf\}/.test(body);
+  // Only auto-append the PDF link for templates that actually reference the
+  // packet (the "information packet" phrasing). Newer templates either inline
+  // {program_pdf} where they want the flyer, or intentionally carry no flyer
+  // (e.g. the one-line bump) — those must NOT get a packet link appended.
+  const mentionsPacket = /information packet/i.test(body);
   let rewritten = body
     .replace(/\{program_pdf\}/g, pdfUrl)
     .replace(/The attached information packet/g, "The program packet (linked below)")
     .replace(/the attached information packet/g, "the program packet (linked below)");
-  if (campusSlug && !hasInlinePdf) {
+  if (campusSlug && !hasInlinePdf && mentionsPacket) {
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));
@@ -718,6 +766,8 @@ export function buildSmartleadPreview(input: {
   const seq = buildEmailSequence(input.cadenceKey ?? "provider", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
+    // Partner rows (kind != provider) preview the student flyer link.
+    isPartner: input.row.kind !== "provider",
   });
   const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
   const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));
@@ -1080,6 +1130,16 @@ export interface ActivationEnrollInput {
    *  research_data.smartlead_activation.campaign_id). Append to it when set;
    *  provision a new PAUSED activation campaign when absent. */
   existingCampaignId?: number;
+  /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
+   *  their welcome_url; providers get the provider magic link (DF-3b). */
+  is_partner?: boolean;
+  /** Row's real stakeholder type — drives per-type partner activation/welcome
+   *  copy (advisor vs dept_head vs student_org). */
+  stakeholder_type?: StakeholderType | null;
+  /** Which single-lead email cadence to enroll into. Defaults to the
+   *  "activation" sequence; the partner-welcome nurture passes
+   *  "partner_welcome". Both are single-lead, separate-per-campus campaigns. */
+  cadenceKey?: CadenceKey;
   /** The ONE engaged contact the activation cadence targets (not a fan-out). */
   recipient: {
     email: string;
@@ -1124,10 +1184,14 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
   const welcomeUrl = (() => {
     if (!magicLinkSecret) return PROGRAM_URL;
     try {
-      return buildWelcomeUrl(
-        { outreach_id: input.outreach_id, email, activate: true },
-        magicLinkSecret,
-      );
+      // Partners → Recruitment Partner Portal (token self-activates there).
+      // Providers → provider magic link with the activate flag (opens Terms).
+      return input.is_partner
+        ? buildPartnerPortalUrl({ outreach_id: input.outreach_id, email }, magicLinkSecret)
+        : buildWelcomeUrl(
+            { outreach_id: input.outreach_id, email, activate: true },
+            magicLinkSecret,
+          );
     } catch {
       return PROGRAM_URL;
     }
@@ -1170,9 +1234,11 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
     return result;
   }
-  const steps = buildEmailSequence("activation", {
+  const steps = buildEmailSequence(input.cadenceKey ?? "activation", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
+    isPartner: input.is_partner ?? false,
+    stakeholderType: input.stakeholder_type ?? null,
   });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   result.errors.push(...prov.errors);

@@ -19,12 +19,16 @@
  * "Committed" are gone, replaced by a single canonical verb.
  */
 
-import type { DistributionEvidence } from "@/lib/student-outreach/types";
+import type { DistributionEvidence, DeptHeadPartnership } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
 
 export interface PartnerEvidence {
   evidence: DistributionEvidence;
   evidence_notes: string;
+  /** Department-head conversions also carry the professor-outreach
+   *  documentation (the dept-head terminal step). Forwarded to mark_partner
+   *  as `dept_head`; absent for other partner types. */
+  dept_head?: DeptHeadPartnership;
 }
 
 const EVIDENCE_OPTIONS: Array<{

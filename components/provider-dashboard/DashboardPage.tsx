@@ -23,6 +23,7 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import VerificationStatusCard from "./VerificationStatusCard";
+import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -236,6 +237,13 @@ function DashboardContent({
   // a gap opens that section's editor right over the preview.
   const [previewMode, setPreviewMode] = useState(false);
 
+  // Post-edit Managed Ads nudge: shown once per session after a profile save.
+  // Suppressed when the hero already resolved to the managed-ads banner this
+  // visit, so the two managed-ads prompts never stack on one screen.
+  const [showEditNudge, setShowEditNudge] = useState(false);
+  const editNudgeShownRef = useRef(false);
+  const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
+
   // Track which section was being edited when verification was triggered
   const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
 
@@ -289,18 +297,30 @@ function DashboardContent({
 
   const handleSaved = useCallback(async () => {
     await refreshAccountData();
+    let finishedEditing = false;
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);
       if (next) {
         setEditingSection(next);
       } else {
+        // Guided run fully complete — that's a finish too.
         setEditingSection(null);
         guided.stopGuided();
+        finishedEditing = true;
       }
     } else {
       setEditingSection(null);
+      finishedEditing = true;
     }
-  }, [refreshAccountData, guided, editingSection, setEditingSection]);
+    // Just-polished-my-page moment: surface the Managed Ads nudge once per
+    // session. Editing is the one in-app action the engaged minority takes, so
+    // it's the earned, high-intent time to pitch getting the page seen — vs an
+    // always-on sidebar fixture.
+    if (finishedEditing && !editNudgeShownRef.current && !previewMode) {
+      editNudgeShownRef.current = true;
+      setShowEditNudge(true);
+    }
+  }, [refreshAccountData, guided, editingSection, setEditingSection, previewMode]);
 
   const handleGuidedBack = useCallback(() => {
     if (editingSection) {
@@ -423,11 +443,24 @@ function DashboardContent({
                 onOpenSection={setEditingSection}
                 providerSlug={profile.slug}
                 onHeroAction={setHeroAction}
+                onBannerResolved={setHeroBannerId}
               />
             </div>
           ) : (
             <DashboardHeroSkeleton
               firstName={deriveFirstName(profile.display_name)}
+            />
+          )}
+
+          {/* Post-edit Managed Ads nudge — fires once per session after a save,
+              not as an always-on card. The earned, high-intent moment. Hidden
+              when the hero already resolved to the managed-ads banner, so the
+              pitch never doubles on one screen. */}
+          {showEditNudge && heroBannerId !== "managed_ads" && (
+            <PostEditAdsNudge
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              onDismiss={() => setShowEditNudge(false)}
             />
           )}
 

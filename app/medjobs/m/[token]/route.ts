@@ -79,7 +79,14 @@ export async function GET(
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // ── 3. JTI ledger check (one-shot redemption) ────────────────────────
+  // ── 3. JTI ledger check (audit-once, NOT one-shot) ───────────────────
+  // The provider welcome link is MULTI-USE on purpose: Smartlead bakes ONE
+  // welcome_url per lead and reuses it across the whole cold/activation
+  // cadence (3 emails), and a provider may click without finishing the
+  // eligibility screener and need to return from a later email. So we no
+  // longer block a re-visit — we just avoid writing duplicate audit
+  // touchpoints. (Mirrors the partner-portal token's multi-use rationale;
+  // the token is still email-bound + 30-day TTL.)
   const { data: existingRedemption } = await supabase
     .from("student_outreach_touchpoints")
     .select("id")
@@ -88,11 +95,7 @@ export async function GET(
     .filter("payload->>jti", "eq", jti)
     .limit(1)
     .maybeSingle();
-  if (existingRedemption) {
-    const usedUrl = new URL("/medjobs/m/used", request.url);
-    usedUrl.searchParams.set("email", email);
-    return NextResponse.redirect(usedUrl);
-  }
+  const alreadyVisited = !!existingRedemption;
 
   // ── 4. Outreach row + campus context ─────────────────────────────────
   const { data: outreachRowRaw } = await supabase
@@ -282,42 +285,44 @@ export async function GET(
     }
   }
 
-  // ── 8. Audit touchpoint(s) ───────────────────────────────────────────
-  await supabase.from("student_outreach_touchpoints").insert({
-    outreach_id,
-    contact_id: null,
-    touchpoint_type: "note_added",
-    channel: null,
-    outcome: null,
-    notes: "Magic-link click — provider visited the candidate board.",
-    payload: {
-      reason: "platform_visited",
-      jti,
-      user_id: userId,
-      business_profile_id: businessProfileId,
-      account_id: accountId ?? null,
-      via: "magic_link",
-    },
-    created_by: null,
-  });
-  if (claimConflict) {
+  // ── 8. Audit touchpoint(s) — once per link (first visit only) ────────
+  if (!alreadyVisited) {
     await supabase.from("student_outreach_touchpoints").insert({
       outreach_id,
       contact_id: null,
       touchpoint_type: "note_added",
       channel: null,
       outcome: null,
-      notes:
-        "Magic-link click on org already linked to another account. Read-only co-tenancy until reconciled.",
+      notes: "Magic-link click — provider visited the candidate board.",
       payload: {
-        reason: "claim_conflict",
+        reason: "platform_visited",
         jti,
         user_id: userId,
         business_profile_id: businessProfileId,
-        attempted_account_id: accountId ?? null,
+        account_id: accountId ?? null,
+        via: "magic_link",
       },
       created_by: null,
     });
+    if (claimConflict) {
+      await supabase.from("student_outreach_touchpoints").insert({
+        outreach_id,
+        contact_id: null,
+        touchpoint_type: "note_added",
+        channel: null,
+        outcome: null,
+        notes:
+          "Magic-link click on org already linked to another account. Read-only co-tenancy until reconciled.",
+        payload: {
+          reason: "claim_conflict",
+          jti,
+          user_id: userId,
+          business_profile_id: businessProfileId,
+          attempted_account_id: accountId ?? null,
+        },
+        created_by: null,
+      });
+    }
   }
 
   // ── 9. Generate Supabase magiclink for session establishment ─────────

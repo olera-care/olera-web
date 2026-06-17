@@ -26,7 +26,7 @@ import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/li
  *
  * FALLBACK BEHAVIOR:
  * If server-side auth fails at any step, we redirect to the onboard page
- * so the provider can still sign in manually. We never show an error page
+ * where they can claim their account manually. We never show an error page
  * that blocks the provider entirely.
  *
  * Query params:
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${siteUrl}/`, { status: 303 });
     }
 
-    // Redirect to onboard page with the lead action params
+    // Redirect to onboard page where they can claim their account
     const fallbackUrl = new URL(`${siteUrl}/provider/${slug}/onboard`);
     fallbackUrl.searchParams.set("action", "lead");
     if (connectionId) {
@@ -395,19 +395,22 @@ export async function GET(request: NextRequest) {
     console.error("[claim-lead] one_click_access tracking failed:", accessError.message);
   }
 
-  // ALWAYS track lead_opened - this marks the provider as "Viewed" in admin panel
-  // Include connection_id when available (enables per-lead sequence stopping)
-  const { error: openedError } = await admin.from("provider_activity").insert({
-    provider_id: providerKey,
-    event_type: "lead_opened",
-    metadata: {
-      lead_id: validConnectionId || null,
-      connection_id: validConnectionId || null,
-      source: "claim-lead",
-    },
-  });
-  if (openedError) {
-    console.error("[claim-lead] lead_opened tracking failed:", openedError.message);
+  // Only track lead_opened when we have a valid connection_id
+  // Without connection_id, the event becomes an "orphan" that can't be matched
+  // to a specific lead, causing providers to appear stuck in wrong tabs
+  if (validConnectionId) {
+    const { error: openedError } = await admin.from("provider_activity").insert({
+      provider_id: providerKey,
+      event_type: "lead_opened",
+      metadata: {
+        lead_id: validConnectionId,
+        connection_id: validConnectionId,
+        source: "claim-lead",
+      },
+    });
+    if (openedError) {
+      console.error("[claim-lead] lead_opened tracking failed:", openedError.message);
+    }
   }
 
   // Track claim_completed event and send Slack notifications ONLY on new claims
@@ -433,6 +436,7 @@ export async function GET(request: NextRequest) {
         providerName: providerProfile.display_name || actualSlug,
         claimedByEmail: normalizedEmail,
         providerSlug: actualSlug,
+        claimSource: "lead_email",
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (slackErr) {

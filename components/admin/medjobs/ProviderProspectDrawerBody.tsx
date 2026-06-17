@@ -28,7 +28,6 @@ import { getVerificationState } from "@/lib/student-outreach/verification-state"
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
-import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 
 interface Props {
   ctx: DrawerContext;
@@ -89,10 +88,16 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     preFlightOverridden,
   );
 
-  const launchEnabled = hasEmail && verificationState.can_launch;
+  // R5: partners (stakeholder rows) often have no phone, so they can't do a
+  // confirm call — email alone is enough to launch. Providers keep the full
+  // gate (email + verified-on-call / override).
+  const isPartner = outreach.kind != null && outreach.kind !== "provider";
+  const launchEnabled = isPartner
+    ? hasEmail
+    : hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
     ? "Add an email — General Contact or Decision Maker."
-    : !verificationState.can_launch
+    : !isPartner && !verificationState.can_launch
       ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
       : undefined;
 
@@ -104,11 +109,11 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           live in the General Contact section below, and the campus is
           already in the panel header. */}
 
-      {/* Zone 2 · Next Step. v9.x Phase 2e: for prospect/researched
-          rows this is now a thin stage indicator — the operational
-          surface (checklist + Visit Website + Call to Confirm +
-          Launch Outreach) lives in the Research Card below. */}
-      <NextStepCard ctx={ctx} action={action} setError={setError} />
+      {/* Zone 2 · Next Step. Pre-launch (prospect/researched) the drawer now
+          starts directly with the Research Card — the old thin "Pre-Flight"
+          indicator box was redundant (the Research Card's own orienting line
+          says what to do). NextStepCard stays for post-launch stage CTAs. */}
+      {!isPreLaunch && <NextStepCard ctx={ctx} action={action} setError={setError} />}
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
           General Contact + Specific Contacts + research notes the
@@ -153,7 +158,6 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
                 setError={setError}
               />
             )}
-            <DangerZone ctx={ctx} action={action} setError={setError} />
           </div>
         )}
       </div>

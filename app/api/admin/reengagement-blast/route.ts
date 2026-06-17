@@ -2,22 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { resolveCanonicalProviderId } from "@/lib/provider-identity";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { providerFollowupDay17Email } from "@/lib/email-templates";
+import { providerFollowupDay6Email } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
-import { PROVIDER_STUCK_THRESHOLD_DAYS, PROVIDER_NEEDS_CALL_THRESHOLD_DAYS } from "@/lib/connection-engagement";
+import { PROVIDER_STUCK_THRESHOLD_DAYS } from "@/lib/connection-engagement";
 
 /**
  * POST /api/admin/reengagement-blast
  *
- * Admin-only endpoint to trigger re-engagement email blast for stuck providers.
+ * Admin-only endpoint to manually send re-engagement emails to providers needing follow-up.
  * Requires admin authentication.
  *
- * Eligibility criteria:
- *   - Connection is 10+ days old (PROVIDER_STUCK_THRESHOLD_DAYS)
- *   - Provider has NOT connected (no phone_clicked, email_link_clicked, or message sent)
- *   - NOT already sent re-engagement email (stage 6)
- *   - Provider has a valid email address
+ * Sends the Day 6 final follow-up email to providers who:
+ *   - Are 10+ days old (PROVIDER_STUCK_THRESHOLD_DAYS)
+ *   - Have NOT connected (no phone_clicked, email_link_clicked, or message sent)
+ *   - Haven't already received this manual blast (stage 3 or haven't completed sequence)
+ *   - Have a valid email address
  *
  * NOTE: Viewing or engaging (revealing contact info) does NOT exclude a provider.
  * Only actual connection (clicking phone/email or sending message) excludes them.
@@ -39,8 +39,6 @@ export async function POST(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const dryRun = searchParams.get("dry_run") === "true";
-  // Target filter: "stuck" or "needs_call" - only email providers in that specific tab
-  const targetFilter = searchParams.get("target") as "stuck" | "needs_call" | null;
 
   const db = getServiceClient();
   const siteUrl = getSiteUrl();
@@ -79,7 +77,7 @@ export async function POST(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, metadata)
       `)
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
@@ -127,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     // Filter to eligible connections:
     // - 10+ days old (PROVIDER_STUCK_THRESHOLD_DAYS)
-    // - NOT already sent re-engagement email (stage 6)
+    // - Haven't reached final stage (stage 3) yet, or had sequence stop
     // - NOT already connected (clicked phone/email)
     counts.total_inquiries_checked = (connections || []).length;
 
@@ -140,15 +138,9 @@ export async function POST(request: NextRequest) {
       const sequenceStartDate = (meta.email_sent_at as string) || conn.created_at;
       const daysSince = Math.floor((now - new Date(sequenceStartDate).getTime()) / (1000 * 60 * 60 * 24));
 
-      // Must be old enough (10+ days = stuck threshold)
+      // Must be old enough (10+ days = needs follow-up threshold)
       if (daysSince < PROVIDER_STUCK_THRESHOLD_DAYS) {
         counts.filtered_too_recent++;
-        return false;
-      }
-
-      // Exclude if already sent re-engagement email (stage 6)
-      if (stage === 6) {
-        counts.filtered_already_emailed++;
         return false;
       }
 
@@ -161,30 +153,15 @@ export async function POST(request: NextRequest) {
 
       // Exclude if sequence was stopped due to actual connection (responded or connected)
       const stopReason = meta.followup_stopped_reason as string | undefined;
-      if (stopReason === "connected" || stopReason === "responded") {
+      if (stopReason === "connected" || stopReason === "responded" || stopReason === "admin_marked_connected") {
         counts.filtered_engaged++;
         return false;
       }
 
-      // Apply target filter if specified (respects which tab user is on)
-      if (targetFilter) {
-        const needsCall = meta.needs_call === true;
-        const isStuck = stage === 5 || (stage === undefined && daysSince >= PROVIDER_STUCK_THRESHOLD_DAYS && daysSince < PROVIDER_NEEDS_CALL_THRESHOLD_DAYS);
-        const isNeedsCall = stage === 7 || needsCall || (stage === undefined && daysSince >= PROVIDER_NEEDS_CALL_THRESHOLD_DAYS);
-
-        if (targetFilter === "stuck" && !isStuck) {
-          return false;
-        }
-        if (targetFilter === "needs_call" && !isNeedsCall) {
-          return false;
-        }
-      }
-
-      // Include if:
-      // - Explicitly marked as stuck (5) or needs_call (7)
-      // - OR no stage at all (old connections that predate the cron)
-      // - OR any stage 0-5 that's old enough (cron might have missed them)
-      // Basically: include everything old that hasn't been engaged or already emailed
+      // Include connections that need manual re-engagement:
+      // - Haven't completed the automated sequence (stage < 3)
+      // - OR old connections without a stage (predate the cron)
+      // This targets the "needs_follow_up" tab in the admin panel
       return true;
     });
 
@@ -223,6 +200,13 @@ export async function POST(request: NextRequest) {
 
       const providerEmail = (toProfile?.email as string)?.trim();
       if (!providerEmail) {
+        counts.skipped++;
+        continue;
+      }
+
+      // Skip if provider is admin-archived (no emails sent to them)
+      const providerMeta = (toProfile?.metadata as Record<string, unknown>) ?? {};
+      if (providerMeta.admin_archived === true) {
         counts.skipped++;
         continue;
       }
@@ -284,13 +268,12 @@ export async function POST(request: NextRequest) {
     for (const group of providerGroups.values()) {
       const leadCount = group.leads.length;
 
-      // Build subject
+      // Build subject (matches Day 6 final email)
       const primaryFamilyName = group.leads[0].familyName;
+      const hasName = primaryFamilyName && primaryFamilyName !== "A family";
       const subject = leadCount === 1
-        ? (primaryFamilyName !== "A family"
-            ? `${primaryFamilyName}'s request is still open`
-            : "A family's request is still open")
-        : `${leadCount} families are still waiting to hear from you`;
+        ? (hasName ? `One last note about ${primaryFamilyName}` : "One last note about the family")
+        : "One last note about these requests";
 
       if (dryRun) {
         counts.providers_emailed++;
@@ -314,7 +297,7 @@ export async function POST(request: NextRequest) {
             careRecipient: l.careRecipient,
           }));
 
-          sampleEmailHtml = providerFollowupDay17Email({
+          sampleEmailHtml = providerFollowupDay6Email({
             providerName: group.providerName,
             leads: leadsForTemplate,
             viewUrl: "[Preview - URL will be generated on send]",
@@ -331,7 +314,7 @@ export async function POST(request: NextRequest) {
       const emailLogId = await reserveEmailLogId({
         to: group.providerEmail,
         subject,
-        emailType: "provider_followup_day17",
+        emailType: "provider_followup_day6",
         recipientType: "provider",
         providerId: group.providerKey,
       });
@@ -369,7 +352,7 @@ export async function POST(request: NextRequest) {
         careRecipient: l.careRecipient,
       }));
 
-      const html = providerFollowupDay17Email({
+      const html = providerFollowupDay6Email({
         providerName: group.providerName,
         leads: leadsForTemplate,
         viewUrl,
@@ -383,12 +366,12 @@ export async function POST(request: NextRequest) {
         to: group.providerEmail,
         subject,
         html,
-        emailType: "provider_followup_day17",
+        emailType: "provider_followup_day6",
         recipientType: "provider",
         providerId: group.providerKey,
         metadata: {
           connection_ids: group.leads.map((l) => l.connectionId),
-          followup_stage: 6,
+          followup_stage: 3, // Day 6 is stage 3 in the compressed sequence
           sent_by: `admin:${adminUser.email}`,
           lead_count: leadCount,
         },
@@ -402,17 +385,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Update metadata for all connections
-      // Clear needs_call flag so connections move out of "Needs Call" tab after re-engagement
       const sentAt = new Date().toISOString();
       for (const lead of group.leads) {
         const updatedMeta = {
           ...lead.metadata,
-          followup_stage: 6,
+          followup_stage: 3, // Stage 3 is the final stage in the compressed sequence
           followup_sent_at: sentAt,
           followup_sent_by: `admin:${adminUser.email}`,
-          followup_stopped_at: null,
-          followup_stopped_reason: null,
-          needs_call: null, // Clear needs_call flag from stage 7
           // Increment nudge_count for consistency with cron and admin panel display
           nudge_count: ((lead.metadata.nudge_count as number) || 0) + 1,
           nudged_at: sentAt,

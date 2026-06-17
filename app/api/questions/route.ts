@@ -142,20 +142,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
 
-    // Log family engagement event (fire-and-forget, authenticated users only)
-    if (askerProfileId) {
-      db.from("seeker_activity").insert({
-        profile_id: askerProfileId,
-        event_type: "question_asked",
-        related_provider_id: provider_id,
-        metadata: {
-          question_id: newQuestion.id,
-          question_preview: question.trim().substring(0, 100),
-        },
-      }).then(({ error: actErr }: { error: { message: string } | null }) => {
-        if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
-      });
-    }
+    // Log family engagement event (fire-and-forget, ALL questions including
+    // guests). Guests have no profile yet, so profile_id is null — same pattern
+    // as other guest seeker_activity events (save_nudge_*, qa_email_capture_*).
+    // Gating this on askerProfileId previously dropped ~96% of asks (the vast
+    // majority are guests), making the admin "Asking questions" metric read ~0.
+    db.from("seeker_activity").insert({
+      profile_id: askerProfileId,
+      event_type: "question_asked",
+      related_provider_id: provider_id,
+      metadata: {
+        question_id: newQuestion.id,
+        question_preview: question.trim().substring(0, 100),
+        is_guest: !user,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
+    });
 
     // Log provider-side activity (fire-and-forget, ALL questions including guests)
     db.from("provider_activity").insert({
@@ -176,14 +179,14 @@ export async function POST(request: NextRequest) {
     // Provider detail pages generate ephemeral slugs via generateProviderSlug()
     // for iOS providers with slug=null, so the stored provider_id may not match
     // any persisted slug in either table.
-    let resolvedProvider: { id: string; display_name: string; email: string | null; slug: string | null; source_provider_id: string | null } | null = null;
+    let resolvedProvider: { id: string; display_name: string; email: string | null; slug: string | null; source_provider_id: string | null; metadata: Record<string, unknown> | null } | null = null;
     let resolvedIos: { provider_id: string; email: string | null; provider_name: string | null } | null = null;
 
     try {
       // Strategy 1: business_profiles by slug
       resolvedProvider = await db
         .from("business_profiles")
-        .select("id, display_name, email, slug, source_provider_id")
+        .select("id, display_name, email, slug, source_provider_id, metadata")
         .eq("slug", provider_id)
         .maybeSingle()
         .then(r => r.data);
@@ -234,7 +237,7 @@ export async function POST(request: NextRequest) {
         if (resolvedIos) {
           resolvedProvider = await db
             .from("business_profiles")
-            .select("id, display_name, email, slug, source_provider_id")
+            .select("id, display_name, email, slug, source_provider_id, metadata")
             .eq("source_provider_id", resolvedIos.provider_id)
             .maybeSingle()
             .then(r => r.data);
@@ -295,7 +298,9 @@ export async function POST(request: NextRequest) {
       const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
 
       // 1. Email the provider about the new question (if they have an email)
-      if (pEmail) {
+      // Skip if provider is admin-archived (no emails sent to them)
+      const isProviderArchived = resolvedProvider?.metadata?.admin_archived === true;
+      if (pEmail && !isProviderArchived) {
         const providerSlug = resolvedProvider?.slug || provider_id;
         let providerUrl: string;
         try {

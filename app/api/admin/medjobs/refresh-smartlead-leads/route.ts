@@ -265,6 +265,8 @@ async function processLead(
   // recipient_kind, role, salutation) survive the patch.
   const existing = (lead.custom_fields ?? {}) as Record<string, unknown>;
   const patch = {
+    // Smartlead's update-lead endpoint requires the email in the body.
+    email,
     custom_fields: {
       ...existing,
       welcome_url: welcomeUrl,

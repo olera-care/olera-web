@@ -110,6 +110,29 @@ export async function GET() {
     /* email_log unreadable */
   }
 
+  // ── account-wide complaint/bounce EVENTS (30d) ──
+  // Numerator for the deliverability rate. Sourced from email_events (one row per
+  // real Resend webhook delivery) — NOT email_log.complained_at, which can fan a
+  // single complaint across every send to that recipient and overstate the rate.
+  // Account-wide on purpose: Resend's AUP thresholds apply to the whole account,
+  // not just cron-sent mail. Indexed by (event_type, occurred_at). Fail soft.
+  let complaintEvents30d = 0;
+  let bounceEvents30d = 0;
+  try {
+    const { data } = await db
+      .from("email_events")
+      .select("event_type")
+      .in("event_type", ["complained", "bounced"])
+      .gte("occurred_at", since)
+      .limit(200000);
+    for (const e of (data ?? []) as Array<{ event_type: string }>) {
+      if (e.event_type === "complained") complaintEvents30d += 1;
+      else if (e.event_type === "bounced") bounceEvents30d += 1;
+    }
+  } catch {
+    /* email_events unreadable */
+  }
+
   const jobs = CRON_REGISTRY.map((job) => {
     const runs = runsByJob.get(job.id);
     const cfg = configByJob.get(job.id);
@@ -171,9 +194,41 @@ export async function GET() {
   const pausedCount = jobs.filter((j) => j.paused).length;
   const erroredCount = jobs.filter((j) => j.lastRun?.status === "error" && now - new Date(j.lastRun.startedAt).getTime() < ERROR_RECENCY_MS).length;
 
+  // Account-wide deliverability rates (30d), computed over ALL email types —
+  // Resend judges the whole account, so the cron-only sends30d above would
+  // understate it. Numerators are real webhook events (above). Denominators
+  // match Resend's own definitions: complaint rate is complaints / delivered
+  // (you can only complain about mail you received), bounce rate is bounces /
+  // sent (bounced mail is by definition NOT in delivered). The event cohort
+  // (email_events.occurred_at) and email_log cohort (created_at) differ slightly
+  // at the window edge — fine for a directional health KPI, not billing.
+  let deliveredAll30d = 0;
+  let sentAll30d = 0;
+  for (const b of byType.values()) {
+    sentAll30d += b.sent;
+    deliveredAll30d += b.delivered;
+  }
+  const complaintRate30d = deliveredAll30d ? complaintEvents30d / deliveredAll30d : 0;
+  const bounceRate30d = sentAll30d ? bounceEvents30d / sentAll30d : 0;
+
   return NextResponse.json({
     windowDays: 30,
-    summary: { total: jobs.length, paused: pausedCount, errored: erroredCount, active: jobs.length - pausedCount - erroredCount, sends30d, bounces30d, complaints30d },
+    summary: {
+      total: jobs.length,
+      paused: pausedCount,
+      errored: erroredCount,
+      active: jobs.length - pausedCount - erroredCount,
+      sends30d,
+      bounces30d,
+      complaints30d,
+      // account-wide deliverability health
+      deliveredAll30d,
+      sentAll30d,
+      complaintEvents30d,
+      bounceEvents30d,
+      complaintRate30d,
+      bounceRate30d,
+    },
     jobs,
     note: "Open and click rates come from Resend's tracking pixel and link wrapper, which Apple Mail Privacy Protection inflates (it prefetches the pixel and rewrites links). The absolute numbers are soft; the trend over time is the signal.",
   });

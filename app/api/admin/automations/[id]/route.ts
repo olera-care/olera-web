@@ -29,22 +29,30 @@ function isoWeek(d: Date): string {
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
   leads: "Leads recap",
+  find_families: "Find Families",
+  managed_ads: "Managed ads",
+  referral_teaser: "Referral teaser",
+  market_rank: "Market rank",
   weekly_digest: "Weekly digest",
   completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "leads", "weekly_digest", "completion", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "leads", "find_families", "managed_ads", "referral_teaser", "market_rank", "weekly_digest", "completion", "cold_rank"];
 
 // ── Per-variant downstream CONVERSION ──
 // Each variant maps to the one provider_activity event that means "this email worked".
-// Because the cron router sends exactly ONE variant per provider per run, and each
-// variant's conversion event is distinct, attribution is unambiguous: a question_responded
-// can only belong to a family_question send, a claim_completed only to a cold_rank send, etc.
+// Because the cron router sends exactly ONE variant per provider per run, most conversion
+// events are naturally unambiguous. The market-rank and referral-teaser variants deliberately
+// share the same "worked market" event, so attribution is last-touch across both variants.
 // weekly_digest is the soft one — a portal re-visit (one_click_access), re-engagement not a
 // hard conversion, by design (it's the recurring engine, not a one-time ask).
 const CONVERSION_EVENT: Record<string, string> = {
   family_question: "question_responded",
   leads: "lead_opened",
+  find_families: "matches_outreach_sent",
+  managed_ads: "managed_ads_boost_viewed",
+  referral_teaser: "market_outreach_status_updated",
+  market_rank: "market_outreach_status_updated",
   completion: "profile_published",
   cold_rank: "claim_completed",
   weekly_digest: "one_click_access",
@@ -52,10 +60,15 @@ const CONVERSION_EVENT: Record<string, string> = {
 const CONVERSION_LABEL: Record<string, string> = {
   family_question: "Answered",
   leads: "Lead opened",
+  find_families: "Reached out",
+  managed_ads: "Viewed managed ads",
+  referral_teaser: "Worked market",
+  market_rank: "Worked market",
   completion: "Profile published",
   cold_rank: "Listing claimed",
   weekly_digest: "Re-visited portal",
 };
+const MARKET_OUTREACH_CONVERSION_STATUSES = new Set(["contacted", "responded", "referring"]);
 // Last-touch attribution window: an action counts as driven by a send if it happens within
 // 14 days AFTER that send. Last-touch (most recent preceding send wins) so the weekly cadence
 // can't double-count a single action across two consecutive sends.
@@ -69,30 +82,55 @@ type VRow = {
 };
 type Send = { providerId: string | null; sentAt: number; delivered: boolean };
 /**
- * Count delivered sends that converted, under last-touch N-day attribution.
- * For each conversion event, credit the most recent preceding send within the window; a send
- * credited by any event counts once. `eventTimes`: providerId -> sorted-asc event timestamps.
+ * Count delivered sends that converted, under last-touch N-day attribution across variants.
+ * When two variants share the same downstream event (market rank and referral teaser both convert
+ * on market work), one provider action should credit only the most recent preceding send.
  */
-function countConverted(sends: Send[], eventTimes: Map<string, number[]>, windowMs: number): number {
-  const byProvider = new Map<string, number[]>();
-  for (const s of sends) {
-    if (!s.delivered || !s.providerId) continue;
-    const arr = byProvider.get(s.providerId);
-    if (arr) arr.push(s.sentAt);
-    else byProvider.set(s.providerId, [s.sentAt]);
+function countConvertedByVariant(
+  sendsByVariant: Record<string, Send[]>,
+  eventTimesByType: Map<string, Map<string, number[]>>,
+  windowMs: number,
+): Map<string, number> {
+  const converted = new Map<string, number>();
+  const credited = new Set<string>();
+  const variantsByEvent = new Map<string, string[]>();
+  for (const variant of VARIANT_ORDER) {
+    const eventType = CONVERSION_EVENT[variant];
+    if (!eventType) continue;
+    const arr = variantsByEvent.get(eventType) ?? [];
+    arr.push(variant);
+    variantsByEvent.set(eventType, arr);
   }
-  let converted = 0;
-  for (const [pid, sentTimes] of byProvider) {
-    const evs = eventTimes.get(pid);
-    if (!evs || evs.length === 0) continue;
-    sentTimes.sort((a, b) => a - b);
-    const credited = new Set<number>();
-    for (const evAt of evs) {
-      let best = -1; // index of most recent send strictly before this event
-      for (let i = 0; i < sentTimes.length && sentTimes[i] < evAt; i++) best = i;
-      if (best >= 0 && evAt - sentTimes[best] <= windowMs) credited.add(best);
+
+  for (const [eventType, variants] of variantsByEvent) {
+    const eventTimesByProvider = eventTimesByType.get(eventType);
+    if (!eventTimesByProvider) continue;
+    const sendsByProvider = new Map<string, Array<{ variant: string; index: number; sentAt: number }>>();
+    for (const variant of variants) {
+      for (const [index, send] of (sendsByVariant[variant] ?? []).entries()) {
+        if (!send.delivered || !send.providerId) continue;
+        const arr = sendsByProvider.get(send.providerId) ?? [];
+        arr.push({ variant, index, sentAt: send.sentAt });
+        sendsByProvider.set(send.providerId, arr);
+      }
     }
-    converted += credited.size;
+    for (const [providerId, sends] of sendsByProvider) {
+      const eventTimes = eventTimesByProvider.get(providerId);
+      if (!eventTimes || eventTimes.length === 0) continue;
+      sends.sort((a, b) => a.sentAt - b.sentAt);
+      for (const eventAt of eventTimes) {
+        let best: { variant: string; index: number; sentAt: number } | null = null;
+        for (const send of sends) {
+          if (send.sentAt >= eventAt) break;
+          best = send;
+        }
+        if (!best || eventAt - best.sentAt > windowMs) continue;
+        const key = `${best.variant}:${best.index}`;
+        if (credited.has(key)) continue;
+        credited.add(key);
+        converted.set(best.variant, (converted.get(best.variant) ?? 0) + 1);
+      }
+    }
   }
   return converted;
 }
@@ -112,16 +150,22 @@ function accVStat(s: VStat, e: VRow) {
  */
 function classifyVariant(subject: string | null, metadata: Record<string, unknown> | null): { variant: string; ledWithRank: boolean } {
   const mv = metadata?.variant;
-  if (mv === "family_question" || mv === "leads" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
+  if (mv === "weekly_digest" && metadata?.ledWithRank === true) {
+    return { variant: "market_rank", ledWithRank: true };
+  }
+  if (mv === "family_question" || mv === "leads" || mv === "find_families" || mv === "managed_ads" || mv === "referral_teaser" || mv === "market_rank" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
     return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
   }
   const s = subject ?? "";
   if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
   if (/reached out about .+ this week$/i.test(s)) return { variant: "leads", ledWithRank: false };
+  if (/near you (is|are) looking for care$/i.test(s)) return { variant: "find_families", ledWithRank: false };
+  if (/searched for care .+ this week$/i.test(s) || /you're not reaching yet$/i.test(s)) return { variant: "managed_ads", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
   if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
-  const led = /^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s);
-  return { variant: "weekly_digest", ledWithRank: led };
+  if (/^\d+ (.+-area places families may ask (about care|who to call)|.+ teams families may ask about care|local teams families may ask about care|referral sources near )/i.test(s) || /^See (who families may ask|the referral map) /i.test(s)) return { variant: "referral_teaser", ledWithRank: true };
+  if (/^You're #\d+ of /i.test(s) || /^See where you rank/i.test(s)) return { variant: "market_rank", ledWithRank: true };
+  return { variant: "weekly_digest", ledWithRank: false };
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -247,12 +291,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         try {
           const { data: acts } = await db
             .from("provider_activity")
-            .select("provider_id, event_type, created_at")
+            .select("provider_id, event_type, created_at, metadata")
             .in("event_type", Object.values(CONVERSION_EVENT))
             .gte("created_at", since)
             .limit(100000);
-          for (const a of (acts ?? []) as Array<{ provider_id: string | null; event_type: string; created_at: string }>) {
+          for (const a of (acts ?? []) as Array<{ provider_id: string | null; event_type: string; created_at: string; metadata: Record<string, unknown> | null }>) {
             if (!a.provider_id) continue;
+            if (a.event_type === "market_outreach_status_updated") {
+              const status = typeof a.metadata?.status === "string" ? a.metadata.status : null;
+              if (!status || !MARKET_OUTREACH_CONVERSION_STATUSES.has(status)) continue;
+            }
             const byProv = eventTimesByType.get(a.event_type) ?? new Map<string, number[]>();
             const arr = byProv.get(a.provider_id);
             if (arr) arr.push(Date.parse(a.created_at));
@@ -263,11 +311,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           /* provider_activity unavailable — skip conversion */
         }
         const windowMs = ATTRIBUTION_DAYS * 24 * 60 * 60 * 1000;
+        const convertedByVariant = countConvertedByVariant(vSends, eventTimesByType, windowMs);
         variants = VARIANT_ORDER.map((k) => {
           const stat = vAgg[k] ?? emptyVStat();
           const evType = CONVERSION_EVENT[k];
-          const eventTimes = eventTimesByType.get(evType);
-          const converted = eventTimes ? countConverted(vSends[k] ?? [], eventTimes, windowMs) : 0;
+          const converted = convertedByVariant.get(k) ?? 0;
           return {
             key: k,
             label: VARIANT_LABELS[k],

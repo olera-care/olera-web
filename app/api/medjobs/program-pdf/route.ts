@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { renderProgramPdf, programPdfFilename } from "@/lib/program-pdf/generate";
-import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
+import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
 
 /**
  * GET /api/medjobs/program-pdf?university=<slug>
@@ -21,21 +21,23 @@ import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const slug = url.searchParams.get("university") ?? "texas-a-and-m";
+  const audience: PdfAudience =
+    url.searchParams.get("audience") === "student" ? "student" : "provider";
 
-  if (!getProgramPdfConfig(slug)) {
+  if (!getProgramPdfConfig(slug, audience)) {
     return NextResponse.json(
-      { error: `No program PDF for university: ${slug}` },
+      { error: `No ${audience} program PDF for university: ${slug}` },
       { status: 404 },
     );
   }
 
   try {
-    const buf = await renderProgramPdf(slug);
+    const buf = await renderProgramPdf(slug, audience);
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${programPdfFilename(slug)}"`,
+        "Content-Disposition": `inline; filename="${programPdfFilename(slug, audience)}"`,
         "Cache-Control": "public, max-age=300, s-maxage=300",
       },
     });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail } from "@/lib/email-templates";
 import { resolveFromAddress } from "@/lib/email";
 
 /** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
@@ -45,6 +45,27 @@ function digestVariantSample(variant: string): { subject: string; html: string }
           marketRank: { rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care", flattering: true },
         }),
       };
+    case "referral_teaser":
+      return {
+        subject: "3 Austin-area places families may ask about care",
+        html: providerWeeklyDigestEmail({
+          ...SAMPLE_BASE, viewsThisWeek: 4, ctaClicks: 1, leadsReceived: 0, questionsReceived: 0,
+          marketRank: { rank: 3, outOf: 21, cityLabel: "Austin", careLabel: "home care", flattering: true },
+          referralTeaser: {
+            totalSources: 18,
+            starterTotal: 5,
+            workedCount: 0,
+            respondedCount: 0,
+            referringCount: 0,
+            targets: [
+              { name: "St. David's South Austin Medical Center", category: "hospital", distanceMiles: 2.4 },
+              { name: "Austin Wellness & Rehabilitation", category: "skilled_nursing", distanceMiles: 3.1 },
+              { name: "AGE of Central Texas", category: "senior_resource", distanceMiles: 4.8 },
+            ],
+          },
+          marketUrl: `${SAMPLE_LINK}?action=market`,
+        }),
+      };
     case "weekly_digest_plain":
       return {
         subject: "9 families viewed your page this week",
@@ -73,6 +94,15 @@ function digestVariantSample(variant: string): { subject: string; html: string }
         html: providerLeadDigestEmail({
           providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care", leadCount: 2,
           ctaUrl: SAMPLE_LINK, manageUrl: SAMPLE_LINK, unsubscribeUrl: `${SAMPLE_LINK}/unsubscribe`,
+        }),
+      };
+    case "managed_ads":
+      return {
+        subject: "140 families searched for care near Austin this week",
+        html: providerManagedAdsEmail({
+          providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care",
+          ctaUrl: `${SAMPLE_LINK}?action=ads`, city: "Austin",
+          category: "home_care_agency", localDemand: 140,
         }),
       };
     default:

@@ -24,6 +24,8 @@ const EMAIL_TYPE_OPTIONS = [
   { value: "claim_decision", label: "Claim Decision" },
   { value: "matches_live", label: "Matches Live" },
   { value: "matches_nudge", label: "Matches Nudge" },
+  { value: "matches_encouragement", label: "Matches Encouragement" },
+  { value: "weekly_analytics_digest", label: "Weekly Provider Digest" },
   { value: "provider_reach_out", label: "Provider Reach Out" },
   { value: "reach_out_accepted", label: "Reach Out Accepted" },
   { value: "checklist", label: "Benefits Checklist" },

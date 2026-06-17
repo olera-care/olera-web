@@ -71,7 +71,9 @@ export function PreFlightReviewModal({
   // the kind-specific copy lives in the template body, not the
   // salutation rule.
   const templateStakeholderType: StakeholderType =
-    stakeholderType === "provider" || stakeholderType === "activation"
+    stakeholderType === "provider" ||
+    stakeholderType === "activation" ||
+    stakeholderType === "partner_welcome"
       ? "student_org"
       : stakeholderType;
 

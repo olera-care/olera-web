@@ -7,8 +7,13 @@ import type { ProfileCompleteness } from "@/lib/profile-completeness";
 import type { ProfileCategory } from "@/lib/types";
 import {
   pickNextAction,
+  previewCopy,
+  NUDGE_SECTION_IDS,
   type NudgeSectionId,
+  type NextAction,
 } from "@/lib/next-best-action";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -73,6 +78,7 @@ const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
 const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
 const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
 const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
+const TIER_MANAGED_ADS_IMAGE = "/images/for-providers/dashboard-hero-managed-ads.jpg";
 
 // Every hero image we might render. Preloaded on mount so tier swaps during
 // the session (provider saves a section → completeness changes → picker
@@ -84,18 +90,20 @@ const ALL_HERO_IMAGES: readonly string[] = [
   TIER_QUESTIONS_IMAGE,
   TIER_SPIKE_IMAGE,
   TIER_FALLBACK_IMAGE,
+  TIER_MANAGED_ADS_IMAGE,
   ...Object.values(SECTION_IMAGES),
 ];
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
-// Find Families lives at /provider/matches (the market diagnostic + any pinned
-// real seekers). Two banners point here: the hot "family near you" tier (a real
-// nearby published seeker) and the cold "market intel" tier (no seeker yet, so
-// the value is the demand read, not a roster). Reuse existing hero imagery —
-// the leads photo (someone reaching out) for the live-family case, the spike
-// photo (upward momentum) for the market read — so no new assets ship.
+// Find Families (/provider/matches) is now leads-only: the hot "family near you"
+// tier links here to the lead cards. The cold "market intel" tier instead links
+// to Your Market (/provider/market) — the demand/competition diagnostic, which
+// split out into its own tab. Reuse existing hero imagery — the leads photo
+// (someone reaching out) for the live-family case, the spike photo (upward
+// momentum) for the market read — so no new assets ship.
 const FIND_FAMILIES_HREF = "/provider/matches";
+const MARKET_HREF = "/provider/market";
 const FIND_FAMILIES_LIVE_IMAGE = TIER_LEADS_IMAGE;
 const MARKET_INTEL_IMAGE = TIER_SPIKE_IMAGE;
 
@@ -136,6 +144,10 @@ interface Props {
    *  bar can mirror exactly what the hero shows (same rotation, same tier).
    *  Null when the current tier carries no CTA (e.g. the view-spike moment). */
   onHeroAction?: (action: HeroAction | null) => void;
+  /** Reports the banner the hero resolved to this visit, so the dashboard can
+   *  suppress the redundant post-edit managed-ads nudge when the hero itself
+   *  is already showing the managed-ads banner. */
+  onBannerResolved?: (bannerId: string) => void;
 }
 
 /** The hero's chosen action, flattened for the mobile sticky bar to mirror. */
@@ -153,20 +165,20 @@ export interface HeroAction {
  *  only the completion-section subset. */
 type EngagementTier = "leads" | "questions";
 
-interface NavCta {
+export interface NavCta {
   label: string;
   href: string;
   /** Set on engagement-tier CTAs so click tracking knows which tier fired. */
   engagementTier?: EngagementTier;
 }
 
-interface SectionCta {
+export interface SectionCta {
   label: string;
   sectionId: NudgeSectionId;
   weight: number;
 }
 
-interface Hook {
+export interface Hook {
   /** Stable identity for the leaderboard + impression dedupe. Section banners
    *  use `completion:<section>`; the rest use a fixed slug. */
   bannerId: string;
@@ -189,6 +201,7 @@ export default function DashboardHero({
   onOpenSection,
   providerSlug,
   onHeroAction,
+  onBannerResolved,
 }: Props) {
   // Per-browser visit counter, read once per mount (lazy init runs a single
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
@@ -236,6 +249,15 @@ export default function DashboardHero({
     });
   }, [bannerId, sectionId, sectionWeight, providerSlug]);
 
+  // Tell the dashboard which banner won this visit, so it can suppress the
+  // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
+  // When the managed-ads banner wins, also warm the boost-state cache so the
+  // "Get started" → /provider/boost transition paints instantly (no snap).
+  useEffect(() => {
+    onBannerResolved?.(bannerId);
+    if (bannerId === "managed_ads") prefetchBoostState();
+  }, [bannerId, onBannerResolved]);
+
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
   // the bar mirrors EXACTLY the tier the hero landed on this visit — no
   // duplicated picker logic, no separate rotation roll. Null for no-CTA tiers.
@@ -280,84 +302,163 @@ export default function DashboardHero({
       ...(cta.engagementTier ? { tier: cta.engagementTier } : {}),
       destination: cta.href,
     });
+    // Also feed the managed-ads funnel so hero-origin shows up alongside the
+    // dashboard-card / Find Families sources (the boost page reads source).
+    if (bannerId === "managed_ads") {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: firstName,
+        source: "hero",
+      });
+    }
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-warm-950 mb-6 md:min-h-[260px]">
-      {/* Background image — warm photo behind the card. Hidden on mobile so
-          the headline doesn't have to fight a busy backdrop at narrow widths.
-          backgroundSize is `auto 150%` (not `cover`): the image is sized off
-          the card's HEIGHT, not its width. With cover, wide cards stretched
-          the image by width and over-cropped vertically — the face got bigger
-          than the card and chin/hair got chopped. Sizing by height makes the
-          face frame consistent at any card width: a contained portrait on the
-          right, with empty warm-950 on the left blended out by the gradient. */}
-      <div
-        aria-hidden
-        className="hidden md:block absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `url('${hook.imageUrl ?? HERO_IMAGE_DEFAULT}')`,
-          backgroundSize: "auto 150%",
-          backgroundPosition: "right 35%",
-          backgroundRepeat: "no-repeat",
-          // Soft-fade the image's left edge into the warm-950 background so
-          // there's no hard rectangle line where the photo starts. Pixel-based
-          // mask zone tracks the image's left edge (~693px wide at 260 height)
-          // regardless of card width — the face sits well past the fade zone.
-          maskImage:
-            "linear-gradient(to right, transparent 0%, transparent calc(100% - 720px), black calc(100% - 460px), black 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent 0%, transparent calc(100% - 720px), black calc(100% - 460px), black 100%)",
-        }}
-      />
-      {/* Dark gradient — keeps the headline readable while the image shows
-          through on the right side. Stops are pixel-based (calc) measured
-          from the right edge so the fade zone tracks the image position
-          regardless of card width. On mobile the card is solid warm-950
-          since there's no image. */}
-      <div
-        aria-hidden
-        className="hidden md:block absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(to right, rgba(42, 24, 16, 0.96) 0%, rgba(42, 24, 16, 0.96) calc(100% - 600px), rgba(42, 24, 16, 0.7) calc(100% - 440px), rgba(42, 24, 16, 0.25) calc(100% - 200px), rgba(42, 24, 16, 0.08) 100%)",
-        }}
-      />
-      <div className="relative px-6 py-5 md:px-9 md:py-7 max-w-[560px]">
+    <HeroCard
+      firstName={firstName}
+      hook={hook}
+      className="mb-6"
+      onSectionClick={handleSectionClick}
+      onNavClick={handleNavClick}
+    />
+  );
+}
+
+// Shared pill styling for the CTA — reused by the live button/link and the
+// inert preview span so all three render identically.
+const CTA_PILL =
+  "inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group";
+
+/**
+ * Pure presentational hero card. Production composes `resolveHook()` → this;
+ * the admin banner preview renders it directly with a synthetic hook so the
+ * preview is the *actual* component (no screenshot, no re-render, no drift).
+ *
+ * `surface` controls how the photo backdrop renders:
+ *   - "responsive" (default, production): photo `hidden md:block` — phones get
+ *     the solid warm-950 card, desktop gets the portrait.
+ *   - "desktop": photo always painted (preview forces the desktop look at any
+ *     admin viewport width).
+ *   - "mobile": no photo at all — solid warm-950, the exact phone treatment.
+ *
+ * Click handlers are optional: when omitted (preview), the CTA renders as an
+ * inert span styled identically to the live pill.
+ */
+export function HeroCard({
+  firstName,
+  hook,
+  surface = "responsive",
+  className = "",
+  onSectionClick,
+  onNavClick,
+}: {
+  firstName: string;
+  hook: Hook;
+  surface?: "responsive" | "desktop" | "mobile";
+  className?: string;
+  onSectionClick?: (cta: SectionCta) => void;
+  onNavClick?: (cta: NavCta) => void;
+}) {
+  // Photo + gradient paint for desktop/responsive; mobile is solid warm-950.
+  const showPhoto = surface !== "mobile";
+  const photoVis = surface === "desktop" ? "block" : "hidden md:block";
+  // Surface-driven responsive classes. "responsive" keeps the live `md:` breakpoint
+  // behavior (production, byte-identical). The preview surfaces FORCE one rendering
+  // regardless of the admin viewport width — so the Mobile toggle shows real phone
+  // type/padding (no photo, smaller headline, tighter pad) and Desktop shows the
+  // portrait treatment, not whatever the admin window happens to be wide enough for.
+  const minH =
+    surface === "responsive" ? "md:min-h-[260px]" : surface === "desktop" ? "min-h-[260px]" : "";
+  const pad =
+    surface === "responsive" ? "px-6 py-5 md:px-9 md:py-7" : surface === "desktop" ? "px-9 py-7" : "px-6 py-5";
+  const greetSize =
+    surface === "responsive" ? "text-[15px] md:text-[16px]" : surface === "desktop" ? "text-[16px]" : "text-[15px]";
+  const headSize =
+    surface === "responsive" ? "text-[20px] md:text-[24px]" : surface === "desktop" ? "text-[24px]" : "text-[20px]";
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl bg-warm-950 ${minH} ${className}`}>
+      {showPhoto && (
+        <>
+          {/* Background image — warm photo behind the card. backgroundSize is
+              `auto 150%` (not `cover`): sized off the card's HEIGHT, not width,
+              so the face frame stays consistent at any card width — a contained
+              portrait on the right, empty warm-950 on the left blended out by
+              the gradient. */}
+          <div
+            aria-hidden
+            className={`${photoVis} absolute inset-0 pointer-events-none`}
+            style={{
+              backgroundImage: `url('${hook.imageUrl ?? HERO_IMAGE_DEFAULT}')`,
+              backgroundSize: "auto 150%",
+              backgroundPosition: "right 35%",
+              backgroundRepeat: "no-repeat",
+              // Soft-fade the image's left edge into the warm-950 background so
+              // there's no hard rectangle line where the photo starts.
+              maskImage:
+                "linear-gradient(to right, transparent 0%, transparent calc(100% - 720px), black calc(100% - 460px), black 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 0%, transparent calc(100% - 720px), black calc(100% - 460px), black 100%)",
+            }}
+          />
+          {/* Dark gradient — keeps the headline readable while the image shows
+              through on the right side. */}
+          <div
+            aria-hidden
+            className={`${photoVis} absolute inset-0 pointer-events-none`}
+            style={{
+              background:
+                "linear-gradient(to right, rgba(42, 24, 16, 0.96) 0%, rgba(42, 24, 16, 0.96) calc(100% - 600px), rgba(42, 24, 16, 0.7) calc(100% - 440px), rgba(42, 24, 16, 0.25) calc(100% - 200px), rgba(42, 24, 16, 0.08) 100%)",
+            }}
+          />
+        </>
+      )}
+      <div className={`relative ${pad} max-w-[560px]`}>
         {/* font-serif (not font-display) because DM Serif Display only loads
             the regular weight — italic on it would be a fake browser-synthesized
             slant. font-serif falls back to New York / Georgia, both of which
             have a real designed italic baked into the OS, no extra download. */}
-        <p className="font-serif italic text-[15px] md:text-[16px] text-warm-200/85 leading-snug mb-2">
+        <p className={`font-serif italic ${greetSize} text-warm-200/85 leading-snug mb-2`}>
           Hey {firstName}
         </p>
-        <p className="font-display text-[20px] md:text-[24px] font-semibold text-white leading-[1.2] tracking-tight">
+        <p className={`font-display ${headSize} font-semibold text-white leading-[1.2] tracking-tight`}>
           {hook.headline}
         </p>
         {hook.subline && (
-          <p className="mt-2 text-sm text-warm-100/70 leading-relaxed">
+          <p className="mt-2 text-sm text-warm-100/90 leading-relaxed [text-shadow:0_1px_3px_rgba(42,24,16,0.55)]">
             {hook.subline}
           </p>
         )}
         {hook.cta && (
           isSectionCta(hook.cta) ? (
-            <button
-              type="button"
-              onClick={() => handleSectionClick(hook.cta as SectionCta)}
-              className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
-            >
-              {hook.cta.label}
-              <CtaArrow />
-            </button>
-          ) : (
+            onSectionClick ? (
+              <button
+                type="button"
+                onClick={() => onSectionClick(hook.cta as SectionCta)}
+                className={CTA_PILL}
+              >
+                {hook.cta.label}
+                <CtaArrow />
+              </button>
+            ) : (
+              <span className={`${CTA_PILL} cursor-default`}>
+                {hook.cta.label}
+                <CtaArrow />
+              </span>
+            )
+          ) : onNavClick ? (
             <Link
               href={hook.cta.href}
-              onClick={() => handleNavClick(hook.cta as NavCta)}
-              className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-vanilla-100 text-warm-950 text-sm font-medium hover:bg-white transition-colors group"
+              onClick={() => onNavClick(hook.cta as NavCta)}
+              className={CTA_PILL}
             >
               {hook.cta.label}
               <CtaArrow />
             </Link>
+          ) : (
+            <span className={`${CTA_PILL} cursor-default`}>
+              {hook.cta.label}
+              <CtaArrow />
+            </span>
           )
         )}
       </div>
@@ -380,6 +481,79 @@ function CtaArrow() {
   );
 }
 
+// ── Per-tier hook factories ──────────────────────────────────────────────
+// One factory per banner so resolveHook (live) and buildBannerPreviews (admin)
+// build identical hooks from one source — copy/image edits can't drift between
+// what providers see and what the preview shows.
+
+function leadsHook(n: number): Hook {
+  return {
+    bannerId: "leads",
+    headline: `${n} new ${n === 1 ? "inquiry" : "inquiries"} this month.`,
+    subline:
+      "Families expect a response within a day — quick replies read as professional.",
+    cta: { label: "View inquiries", href: "/provider/connections", engagementTier: "leads" },
+    imageUrl: TIER_LEADS_IMAGE,
+  };
+}
+
+function questionsHook(n: number): Hook {
+  return {
+    bannerId: "questions",
+    headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
+    subline:
+      "Under a minute each, and families feel like you're paying attention.",
+    cta: { label: "Review questions", href: "/provider/qna", engagementTier: "questions" },
+    imageUrl: TIER_QUESTIONS_IMAGE,
+  };
+}
+
+function nearbyFamiliesHook(nearby: number): Hook {
+  return {
+    bannerId: "find_families_live",
+    headline:
+      nearby === 1
+        ? "A family near you is looking for care."
+        : `${nearby} families near you are looking for care.`,
+    subline:
+      "The first provider to reach out usually wins the conversation. See who they are and say hello.",
+    cta: { label: "See families near you", href: FIND_FAMILIES_HREF },
+    imageUrl: FIND_FAMILIES_LIVE_IMAGE,
+  };
+}
+
+function viewSpikeHook(deltaPct: number, viewsThisPeriod: number, viewsPriorPeriod: number): Hook {
+  return {
+    bannerId: "view_spike",
+    headline: `Your page views are up ${deltaPct}% this month.`,
+    subline: `${viewsThisPeriod} families found you — ${Math.max(0, viewsThisPeriod - viewsPriorPeriod)} more than last month.`,
+    imageUrl: TIER_SPIKE_IMAGE,
+  };
+}
+
+/** Engagement-tier completion banner (≥10 views): the headline rewards the
+ *  traffic, the CTA points at the highest-impact incomplete section. */
+function engagementCompletionHook(viewCount: number, next: NextAction): Hook {
+  return {
+    bannerId: `completion:${next.sectionId}`,
+    headline: `${viewCount} families viewed your page this month.`,
+    subline: next.copy.subline,
+    cta: { label: next.copy.cta, sectionId: next.sectionId, weight: next.weight },
+    imageUrl: SECTION_IMAGES[next.sectionId],
+  };
+}
+
+/** Cold-tier completion banner (sparse traffic): the section's own headline. */
+function coldCompletionHook(next: NextAction): Hook {
+  return {
+    bannerId: `completion:${next.sectionId}`,
+    headline: next.copy.headline,
+    subline: next.copy.subline,
+    cta: { label: next.copy.cta, sectionId: next.sectionId, weight: next.weight },
+    imageUrl: SECTION_IMAGES[next.sectionId],
+  };
+}
+
 /** Find Families "market intel" banner — the cold-tier nudge when there's no
  *  nearby seeker yet. The value is the demand read, not a roster of families,
  *  so the copy points at the market, not at people to contact. */
@@ -389,8 +563,25 @@ function marketIntelHook(): Hook {
     headline: "See who's searching in your market",
     subline:
       "Olera tracks the families looking for care near you — explore your local demand and where you stand against nearby providers.",
-    cta: { label: "Explore your market", href: FIND_FAMILIES_HREF },
+    cta: { label: "Explore your market", href: MARKET_HREF },
     imageUrl: MARKET_INTEL_IMAGE,
+  };
+}
+
+/** Managed Ads banner — the primary cold-tier nudge. The ~99% have no local
+ *  families surfacing organically; managed ads is the one lever that GENERATES
+ *  demand (external paid acquisition), so it leads the empty-handed fallback.
+ *  Shown regardless of completeness — the 70% eligibility gate lives on
+ *  /provider/boost, which routes thin profiles to "finish these to unlock," so
+ *  the ads desire pulls providers into completing. */
+function managedAdsHook(): Hook {
+  return {
+    bannerId: "managed_ads",
+    headline: "Reach families already searching for care.",
+    subline:
+      "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up.",
+    cta: { label: "Get started", href: "/provider/boost" },
+    imageUrl: TIER_MANAGED_ADS_IMAGE,
   };
 }
 
@@ -404,30 +595,10 @@ function resolveHook(
 
   // Priority 1 — fresh leads this period. Highest intent: a family is
   // actively reaching out for placement. Beats info-gathering questions.
-  if (greeting.newLeadsThisPeriod > 0) {
-    const n = greeting.newLeadsThisPeriod;
-    return {
-      bannerId: "leads",
-      headline: `${n} new ${n === 1 ? "inquiry" : "inquiries"} this month.`,
-      subline:
-        "Families expect a response within a day — quick replies read as professional.",
-      cta: { label: "View inquiries", href: "/provider/connections", engagementTier: "leads" },
-      imageUrl: TIER_LEADS_IMAGE,
-    };
-  }
+  if (greeting.newLeadsThisPeriod > 0) return leadsHook(greeting.newLeadsThisPeriod);
 
   // Priority 2 — unanswered questions. Real family on the other end.
-  if (greeting.unansweredQuestions > 0) {
-    const n = greeting.unansweredQuestions;
-    return {
-      bannerId: "questions",
-      headline: `${n} question${n === 1 ? "" : "s"} waiting for your answer.`,
-      subline:
-        "Under a minute each, and families feel like you're paying attention.",
-      cta: { label: "Review questions", href: "/provider/qna", engagementTier: "questions" },
-      imageUrl: TIER_QUESTIONS_IMAGE,
-    };
-  }
+  if (greeting.unansweredQuestions > 0) return questionsHook(greeting.unansweredQuestions);
 
   // Priority 3 — a real published care-seeker within the catchment. This is the
   // rare concrete lead: someone Find Families would pin for them. It jumps the
@@ -435,29 +606,12 @@ function resolveHook(
   // family to reach out to RIGHT NOW. Honest by construction — only fires when
   // the count is real (the dashboard API counts active care_posts within 50mi).
   const nearby = data.nearbyFamilies?.count ?? 0;
-  if (nearby > 0) {
-    return {
-      bannerId: "find_families_live",
-      headline:
-        nearby === 1
-          ? "A family near you is looking for care."
-          : `${nearby} families near you are looking for care.`,
-      subline:
-        "The first provider to reach out usually wins the conversation. See who they are and say hello.",
-      cta: { label: "See families near you", href: FIND_FAMILIES_HREF },
-      imageUrl: FIND_FAMILIES_LIVE_IMAGE,
-    };
-  }
+  if (nearby > 0) return nearbyFamiliesHook(nearby);
 
   // Priority 4 — meaningful view spike. Positive reinforcement, no CTA —
   // the headline IS the value.
   if (greeting.deltaPct !== null && greeting.deltaPct >= 25 && greeting.viewsThisPeriod >= 5) {
-    return {
-      bannerId: "view_spike",
-      headline: `Your page views are up ${greeting.deltaPct}% this month.`,
-      subline: `${greeting.viewsThisPeriod} families found you — ${Math.max(0, greeting.viewsThisPeriod - greeting.viewsPriorPeriod)} more than last month.`,
-      imageUrl: TIER_SPIKE_IMAGE,
-    };
+    return viewSpikeHook(greeting.deltaPct, greeting.viewsThisPeriod, greeting.viewsPriorPeriod);
   }
 
   const next = pickNextAction(completeness, category);
@@ -468,51 +622,62 @@ function resolveHook(
   // closer to converting and the gap is the higher-leverage fix). With a
   // complete profile, there's nothing to fix, so pull them toward Find Families
   // market intel instead of the old no-CTA filler.
-  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
-    const n = greeting.viewsThisPeriod;
-    if (next) {
-      return {
-        bannerId: `completion:${next.sectionId}`,
-        headline: `${n} families viewed your page this month.`,
-        subline: next.copy.subline,
-        cta: {
-          label: next.copy.cta,
-          sectionId: next.sectionId,
-          weight: next.weight,
-        },
-        imageUrl: SECTION_IMAGES[next.sectionId],
-      };
-    }
+  // Priority 5 — meaningful traffic (≥10 views) with a completion gap. They
+  // already have eyeballs arriving organically, so plugging the profile leak
+  // converts traffic they ALREADY have — higher leverage than paying for more.
+  // No rotation here; this is the strongest activation moment. (Complete + this
+  // much traffic falls through to the managed-ads default below.)
+  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD && next) {
+    return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  }
+
+  // Priorities 6-7 — the cold, empty-handed majority (~99%): no leads, no
+  // questions, no nearby family, sparse traffic. Managed Ads leads here — it's
+  // the one lever that GENERATES demand (external paid acquisition) rather than
+  // waiting on an empty local funnel, so it's the KPI move for this cohort.
+  // Shown regardless of completeness: the 70% gate lives on /provider/boost,
+  // which turns the ads desire into a profile-completion pull.
+  //
+  // Every ROTATE_EVERY-th visit we rotate to a secondary so neither the
+  // activation nudge nor the market insight is lost — alternating completion
+  // (when there's a gap) and the market read across rotations.
+  if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
+    const altCompletion = Math.floor(rotationCount / ROTATE_EVERY) % 2 === 0;
+    if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();
   }
+  return managedAdsHook();
+}
 
-  // Priority 6 — sparse traffic AND a completion gap. Cold provider: completion
-  // is the default (a blank profile won't convert a family even if one shows
-  // up), but every ROTATE_EVERY-th visit we rotate in Find Families market
-  // intel so the capability surfaces early and repeatedly without letting
-  // profile completion collapse.
-  if (next) {
-    if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
-      return marketIntelHook();
-    }
-    return {
-      bannerId: `completion:${next.sectionId}`,
-      headline: next.copy.headline,
-      subline: next.copy.subline,
-      cta: {
-        label: next.copy.cta,
-        sectionId: next.sectionId,
-        weight: next.weight,
-      },
-      imageUrl: SECTION_IMAGES[next.sectionId],
-    };
+/** One previewable banner: the stable id (matches the leaderboard) + the hook
+ *  the live picker would build for it, with representative sample counts. */
+export interface BannerPreview {
+  bannerId: string;
+  hook: Hook;
+}
+
+/**
+ * Every distinct hero banner, rendered from the same factories the live picker
+ * uses — the admin banner preview flips through these. Completion banners use
+ * the cold-tier framing (the section's own headline), which is the creative the
+ * `completion:<section>` leaderboard row maps to. Sample counts are illustrative.
+ */
+export function buildBannerPreviews(): BannerPreview[] {
+  const previews: BannerPreview[] = [
+    { bannerId: "leads", hook: leadsHook(3) },
+    { bannerId: "questions", hook: questionsHook(2) },
+    { bannerId: "find_families_live", hook: nearbyFamiliesHook(1) },
+    { bannerId: "managed_ads", hook: managedAdsHook() },
+    { bannerId: "find_families_intel", hook: marketIntelHook() },
+    { bannerId: "view_spike", hook: viewSpikeHook(33, 12, 9) },
+  ];
+  for (const sectionId of NUDGE_SECTION_IDS) {
+    previews.push({
+      bannerId: `completion:${sectionId}`,
+      hook: coldCompletionHook({ sectionId, weight: 0, copy: previewCopy(sectionId) }),
+    });
   }
-
-  // Priority 7 — sparse traffic AND fully complete. Profile is dialed in and
-  // there's no nearby seeker yet, so the most useful evergreen nudge is the
-  // market read — surface the Find Families capability rather than a static
-  // "your page is live" reassurance.
-  return marketIntelHook();
+  return previews;
 }
 
 /**

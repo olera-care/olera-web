@@ -14,6 +14,7 @@ import ReportConnectionModal from "@/components/messaging/ReportConnectionModal"
 import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
+import type { QuickReplyRequest } from "@/lib/quick-reply-config";
 
 type RoleFilter = "all" | "family" | "provider";
 
@@ -665,20 +666,19 @@ function InboxContent() {
     }
   }, [activeProfile]);
 
-  // Handle message sent — update thread in local state
-  const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[]) => {
+  // Handle message sent — update thread and quick_reply_request in local state
+  const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[], quickReplyRequest?: QuickReplyRequest | null) => {
     setConnections((prev) =>
-      prev.map((conn) =>
-        conn.id === connectionId
-          ? {
-              ...conn,
-              metadata: {
-                ...((conn.metadata as Record<string, unknown>) || {}),
-                thread,
-              },
-            }
-          : conn
-      )
+      prev.map((conn) => {
+        if (conn.id !== connectionId) return conn;
+        const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+        const updatedMeta: Record<string, unknown> = { ...existingMeta, thread };
+        // Update quick_reply_request if provided
+        if (quickReplyRequest !== undefined) {
+          updatedMeta.quick_reply_request = quickReplyRequest;
+        }
+        return { ...conn, metadata: updatedMeta };
+      })
     );
   }, []);
 
@@ -715,7 +715,7 @@ function InboxContent() {
 
   // Helper: call the server-side manage API (bypasses RLS)
   const manageConnection = useCallback(
-    async (payload: { connectionId: string; action: string; reportReason?: string; reportDetails?: string }) => {
+    async (payload: { connectionId: string; action: string; reportReason?: string; reportDetails?: string; source?: string }) => {
       const res = await fetch("/api/connections/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -811,7 +811,7 @@ function InboxContent() {
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
     try {
-      await manageConnection({ connectionId, action: "archive" });
+      await manageConnection({ connectionId, action: "archive", source: "inbox" });
 
       // API confirmed — now update local state
       const existingMeta = (conn.metadata as Record<string, unknown>) || {};
@@ -837,7 +837,7 @@ function InboxContent() {
     if (!conn) return;
 
     try {
-      await manageConnection({ connectionId, action: "unarchive" });
+      await manageConnection({ connectionId, action: "unarchive", source: "inbox" });
 
       // API confirmed — now update local state
       const meta = (conn.metadata as Record<string, unknown>) || {};

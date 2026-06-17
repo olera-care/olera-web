@@ -18,13 +18,17 @@ const FROM_ADDRESS = "Olera <noreply@olera.care>";
  * reputation away from the crown jewel. Until the env var is set, behavior is
  * unchanged. An explicit `from` passed by the caller always wins.
  *
- * weekly_analytics_digest is intentionally NOT in this set. It's healthy (bounce
- * well under threshold), its open rate benefits from the recognizable olera.care
- * brand, and its large weekly burst is the worst volume to land on a freshly
- * warming domain. Keep it on the crown jewel; revisit moving it once the cousin
- * domain has a proven sending reputation.
+ * weekly_analytics_digest is NOT in this set, but the choice is now per-recipient,
+ * not per-type. The digest goes to a mix of claimed/engaged providers (0% bounce,
+ * brand-positive, keep on olera.care) and unclaimed directory addresses (the same
+ * high-bounce pool as question_received). The cron passes an explicit
+ * PROVIDER_NOTIFY_FROM `from` for the unclaimed slice only, so the cold half
+ * ring-fences to the cousin domain while the warm half keeps the crown jewel.
+ * Verification, separately, applies to the WHOLE digest (see VERIFY_ON_SEND_TYPES).
  */
 const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
+  "connection_request",
+  "first_lead_celebration",
   "question_received",
   "provider_nudge",
   "profile_incomplete_nudge",
@@ -34,6 +38,21 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   "provider_reach_out",
   "new_review",
   "new_candidate_alert",
+]);
+
+/**
+ * Types that verify-on-send: on a cache miss they call ZeroBounce, cache the
+ * verdict, and suppress confirmed-invalid before sending — the proactive lane
+ * for mail to scraped / team-fetched directory addresses. Decoupled from the
+ * domain override above because the two levers don't align 1:1: the weekly
+ * digest needs verification across ALL its recipients (its cold variants bounce
+ * 9-14% sending blind), but only ring-fences the unclaimed slice's domain.
+ * Every other (transactional) type stays cache-only and never makes a network
+ * call on the send path. All checks fail OPEN (verify error → not suppressed).
+ */
+const VERIFY_ON_SEND_TYPES = new Set<string>([
+  ...PROVIDER_NOTIFY_FROM_TYPES,
+  "weekly_analytics_digest",
 ]);
 
 /**
@@ -123,6 +142,16 @@ const SUPPRESSION_EXEMPT_TYPES = new Set<string>([
   "student_activation",
   "student_account_created",
 ]);
+
+// Resend AUP deliverability thresholds live in a dependency-free module so client
+// components (e.g. the admin cockpit) can import them too. Re-exported here for
+// callers already reaching into lib/email.
+export {
+  RESEND_COMPLAINT_LIMIT,
+  RESEND_COMPLAINT_WARN,
+  RESEND_BOUNCE_LIMIT,
+  RESEND_BOUNCE_WARN,
+} from "./email-thresholds";
 
 /**
  * Returns true if we've previously recorded a hard bounce or spam complaint
@@ -324,22 +353,38 @@ export async function sendEmail(
       : null
     : to;
   if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
+    // Cold lane = mail to scraped / unclaimed directory addresses (the high-bounce
+    // pool). Two signals: a cold provider-notification type, OR a send whose From
+    // resolved to the isolated PROVIDER_NOTIFY_FROM domain — the weekly digest's
+    // unclaimed slice passes that From explicitly, while its CLAIMED slice keeps
+    // olera.care, so this correctly excludes the warm half of the digest. Used
+    // below to suppress catch-all only where the reach loss is acceptable.
+    const isColdLane =
+      PROVIDER_NOTIFY_FROM_TYPES.has(emailType) ||
+      (!!process.env.PROVIDER_NOTIFY_FROM && from === process.env.PROVIDER_NOTIFY_FROM);
     let suppressReason: string | null = null;
     if (await isSuppressedRecipient(soleRecipient)) {
       suppressReason = "prior bounce/complaint on record";
-    } else if (
+    } else if (VERIFY_ON_SEND_TYPES.has(emailType)) {
       // Cold provider-directed mail (the high-bounce lane sent to scraped /
       // team-fetched directory addresses) verifies ON THE SPOT: verifyAndCache
       // returns a fresh cached verdict, or on a miss/stale calls ZeroBounce,
       // caches it, and returns it. This closes the gap where a freshly-added
       // address would send blind on its first auto-notification and bounce.
-      // Every other email_type stays cache-only (isUndeliverable) so the
-      // transactional path never makes a network call. Both fail OPEN: a
-      // verification error → 'unknown' → not suppressed → still sent.
-      PROVIDER_NOTIFY_FROM_TYPES.has(emailType)
-        ? (await verifyAndCache(soleRecipient)).status === "invalid"
-        : await isUndeliverable(soleRecipient)
-    ) {
+      // Fails OPEN: a verification error → 'unknown' → not suppressed → still sent.
+      const status = (await verifyAndCache(soleRecipient)).status;
+      if (status === "invalid") {
+        suppressReason = "verified undeliverable";
+      } else if (status === "risky" && isColdLane) {
+        // Catch-all domains accept everything at the door, so the specific inbox
+        // can't be confirmed and they bounce ~15% — too hot for the cold lane.
+        // Suppress here, but keep sending on the warm lane (digest's claimed
+        // slice), where a catch-all is more likely a real small-provider inbox.
+        suppressReason = "catch-all (risky) on cold lane";
+      }
+    } else if (await isUndeliverable(soleRecipient)) {
+      // Every other (transactional) type stays cache-only (isUndeliverable) so the
+      // transactional path never makes a network call. Also fails OPEN.
       suppressReason = "verified undeliverable";
     }
     if (suppressReason) {

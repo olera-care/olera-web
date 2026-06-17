@@ -140,6 +140,38 @@ export function buildWelcomeUrl(
   return params.activate ? `${base}?a=1` : base;
 }
 
+/** Partner portal token lifetime. Long on purpose: Smartlead bakes ONE
+ *  welcome_url per lead at enrollment and reuses it across the whole cadence,
+ *  and the partner WELCOME cadence runs to day ~300. A short TTL would expire
+ *  the link before the later emails even send. The portal token is multi-use
+ *  (no JTI burn on visit) and low-sensitivity (share flyer / add colleague), so
+ *  an 18-month durable credential is the right trade-off. */
+export const PARTNER_PORTAL_TTL_DAYS = 540;
+
+/** Build the Recruitment Partner Portal URL (Chunk 3.1). Same signed token as
+ *  the provider welcome link; the token is a durable, multi-use access
+ *  credential for the portal. The landing route also creates/authenticates a
+ *  Supabase account bound to the partner's email so they can return without the
+ *  link. TTL = PARTNER_PORTAL_TTL_DAYS (covers the full welcome cadence). */
+export function buildPartnerPortalUrl(
+  params: { outreach_id: string; email: string; site_url?: string },
+  secret: string,
+): string {
+  const siteUrl = (params.site_url ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://olera.care").replace(/\/+$/, "");
+  const payload: WelcomePayload = {
+    outreach_id: params.outreach_id,
+    email: params.email.trim().toLowerCase(),
+    expires_at: Date.now() + PARTNER_PORTAL_TTL_DAYS * 24 * 60 * 60 * 1000,
+    jti: freshJti(),
+  };
+  const token = signWelcomeToken(payload, secret);
+  // Point at the auth-start route: it creates/authenticates a Supabase account
+  // bound to the partner's email + establishes a session, then lands them on
+  // the token-gated portal page. Direct visits to /medjobs/partner/<token>
+  // still work (token-gated) for any legacy links.
+  return `${siteUrl}/medjobs/partner/start/${encodeURIComponent(token)}`;
+}
+
 // ── Base64url helpers ───────────────────────────────────────────────────
 
 function base64UrlEncode(buf: Buffer): string {

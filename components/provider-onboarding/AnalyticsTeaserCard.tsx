@@ -139,7 +139,7 @@ function TeaserBody({ data }: { data: AnalyticsResponse }) {
   // Gated dogfood: funnel the high-engagement post-Q&A moment straight into
   // "Your Market" (the diagnostic) instead of the generic dashboard.
   const toMarket = marketGateEnabled({ displayName: data.provider_name });
-  const ctaHref = toMarket ? "/provider/matches" : "/provider";
+  const ctaHref = toMarket ? "/provider/market" : "/provider";
   const ctaLabel = toMarket ? "See your market" : copy.cta;
 
   // Fire one impression event per mount, once we've rendered real content.

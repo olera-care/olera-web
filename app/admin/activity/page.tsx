@@ -3,6 +3,20 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import {
+  PROVIDER_CATEGORIES,
+  PROVIDER_CATEGORY_MAP,
+  providerEventLabel,
+  isProviderCategory,
+  type ProviderCategoryKey,
+} from "@/lib/activity/provider-categories";
+import {
+  SEEKER_CATEGORIES,
+  SEEKER_CATEGORY_MAP,
+  seekerEventLabel,
+  isSeekerCategory,
+  type SeekerCategoryKey,
+} from "@/lib/activity/seeker-categories";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -97,100 +111,6 @@ function relativeTime(iso: string): string {
   });
 }
 
-function providerEmailTypeLabel(type: string | null): string {
-  if (!type) return "Email";
-  const map: Record<string, string> = {
-    connection_request: "Lead",
-    question_received: "Question",
-    question_responded: "Answered",
-    new_review: "Review",
-    add_email_notification: "Lead",
-    email_click: "Email",
-    contact_revealed: "Contact Copied",
-    phone_clicked: "Called",
-    email_link_clicked: "Emailed",
-    one_click_access: "Auto Sign-in",
-    reviews_cta_clicked: "Reviews CTA",
-    analytics_teaser_cta_clicked: "Analytics CTA",
-    analytics_teaser_impression: "Analytics View",
-    suspicious_claim: "Suspicious Claim",
-    lead_opened: "Lead Opened",
-    page_view: "Page View",
-    market_diagnostic_viewed_no_leads: "Market View (No Leads)",
-  };
-  return map[type] || type;
-}
-
-function trustBadgeLabel(level: string | null | undefined): string {
-  if (level === "high") return "Trust: High";
-  if (level === "medium") return "Trust: Medium";
-  if (level === "low") return "🚩 Suspicious";
-  return "";
-}
-
-function trustBadgeColor(level: string | null | undefined): string {
-  if (level === "high") return "bg-emerald-50 text-emerald-700";
-  if (level === "medium") return "bg-amber-50 text-amber-700";
-  if (level === "low") return "bg-red-50 text-red-700";
-  return "bg-gray-100 text-gray-500";
-}
-
-function providerEmailTypeBadgeColor(type: string | null): string {
-  if (!type) return "bg-gray-100 text-gray-600";
-  const map: Record<string, string> = {
-    connection_request: "bg-blue-50 text-blue-700",
-    question_received: "bg-amber-50 text-amber-700",
-    question_responded: "bg-emerald-50 text-emerald-700",
-    new_review: "bg-violet-50 text-violet-700",
-    add_email_notification: "bg-blue-50 text-blue-700",
-    email_click: "bg-gray-100 text-gray-600",
-    contact_revealed: "bg-green-50 text-green-700",
-    phone_clicked: "bg-emerald-50 text-emerald-700",
-    email_link_clicked: "bg-teal-50 text-teal-700",
-    one_click_access: "bg-teal-50 text-teal-700",
-    reviews_cta_clicked: "bg-violet-50 text-violet-700",
-    analytics_teaser_cta_clicked: "bg-emerald-50 text-emerald-700",
-    analytics_teaser_impression: "bg-gray-50 text-gray-500",
-    suspicious_claim: "bg-red-50 text-red-700",
-    lead_opened: "bg-sky-50 text-sky-700",
-    page_view: "bg-gray-50 text-gray-500",
-    market_diagnostic_viewed_no_leads: "bg-indigo-50 text-indigo-700",
-  };
-  return map[type] || "bg-gray-100 text-gray-600";
-}
-
-function familyEventTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    connection_sent: "Connection",
-    profile_enriched: "Profile",
-    email_click: "Email",
-    question_asked: "Question",
-    matches_activated: "Matches",
-    benefits_completed: "Benefits",
-    save_nudge_shown: "Nudge Shown",
-    save_nudge_signup_clicked: "Nudge Clicked",
-    save_nudge_dismissed: "Nudge Dismissed",
-    save_nudge_converted: "Converted",
-  };
-  return map[type] || type;
-}
-
-function familyEventTypeBadgeColor(type: string): string {
-  const map: Record<string, string> = {
-    connection_sent: "bg-blue-50 text-blue-700",
-    profile_enriched: "bg-violet-50 text-violet-700",
-    email_click: "bg-amber-50 text-amber-700",
-    question_asked: "bg-teal-50 text-teal-700",
-    matches_activated: "bg-emerald-50 text-emerald-700",
-    benefits_completed: "bg-rose-50 text-rose-700",
-    save_nudge_shown: "bg-pink-50 text-pink-700",
-    save_nudge_signup_clicked: "bg-purple-50 text-purple-700",
-    save_nudge_dismissed: "bg-gray-50 text-gray-500",
-    save_nudge_converted: "bg-emerald-50 text-emerald-700",
-  };
-  return map[type] || "bg-gray-100 text-gray-600";
-}
-
 function engagementLabel(count7d: number): { text: string; className: string } {
   if (count7d >= 3) return { text: "Hot", className: "bg-teal-50 text-teal-700" };
   if (count7d >= 1) return { text: "Active this week", className: "bg-emerald-50 text-emerald-600" };
@@ -241,6 +161,32 @@ function SegmentedControl<T extends string>({
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
           ].join(" ")}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Light text toggle for secondary axes (view, time). Lower visual weight than
+// SegmentedControl so the Families/Providers switch stays the primary control.
+function TextToggle<T extends string>({ options, value, onChange }: {
+  options: { label: string; value: T }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="inline-flex items-center gap-3">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`text-xs transition-colors ${
+            value === opt.value
+              ? "text-gray-900 font-medium"
+              : "text-gray-400 hover:text-gray-600"
+          }`}
         >
           {opt.label}
         </button>
@@ -353,26 +299,112 @@ function Pagination({ page, setPage, total, pageSize }: {
 // Provider Feed View
 // ---------------------------------------------------------------------------
 
-function ProviderFeedView({ events, loading, total, page, setPage, pageSize, selected, onToggle, onDeleteOne }: {
+// ---------------------------------------------------------------------------
+// Orientation strip — borderless tappable stat tiles, shared by both tabs.
+// Leads with the numbers so you see the shape of activity before reading a row.
+// The first item is the "All" tile (key ""). Items carry their own counts so
+// the same component serves providers and families.
+// ---------------------------------------------------------------------------
+
+interface StatItem {
+  key: string;
+  label: string;
+  count: number;
+  blurb?: string;
+}
+
+function StatStrip({ items, selected, onSelect, loading }: {
+  items: StatItem[];
+  selected: string;
+  onSelect: (key: string) => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="flex gap-7 overflow-x-auto pb-1">
+      {items.map((t) => {
+        const active = selected === t.key;
+        const dim = !loading && !active && t.count === 0;
+        return (
+          <button
+            key={t.key || "all"}
+            onClick={() => onSelect(active && t.key ? "" : t.key)}
+            title={t.blurb}
+            className={`group flex shrink-0 flex-col items-start border-b-2 pb-1.5 transition-colors ${
+              active ? "border-teal-500" : "border-transparent"
+            } ${dim ? "opacity-40" : ""}`}
+          >
+            <span className="text-lg font-semibold leading-none tabular-nums text-gray-900">
+              {loading ? "·" : t.count.toLocaleString()}
+            </span>
+            <span
+              className={`mt-1.5 whitespace-nowrap text-[11px] transition-colors ${
+                active
+                  ? "font-medium text-teal-700"
+                  : "text-gray-400 group-hover:text-gray-600"
+              }`}
+            >
+              {t.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Drill-down chip row — appears under the tiles when a category is selected,
+// letting you isolate one exact action within it. Shared by both tabs.
+function SubFilterRow({ items, selected, onSelect, loading }: {
+  items: StatItem[];
+  selected: string;
+  onSelect: (key: string) => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px]">
+      {items.map((it) => {
+        const active = selected === it.key;
+        const dim = !loading && !active && it.count === 0;
+        return (
+          <button
+            key={it.key}
+            onClick={() => onSelect(active ? "" : it.key)}
+            className={`transition-colors ${
+              active ? "font-medium text-teal-700" : "text-gray-500 hover:text-gray-900"
+            } ${dim ? "opacity-40" : ""}`}
+          >
+            {it.label}
+            {!loading && it.count > 0 && (
+              <span className="ml-1 tabular-nums text-gray-300">{it.count.toLocaleString()}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProviderFeedView({ events, loading, total, page, setPage, pageSize, selected, onToggle, onDeleteOne, emptyHint }: {
   events: ActivityEvent[]; loading: boolean; total: number;
   page: number; setPage: (p: number) => void; pageSize: number;
   selected: Set<string>; onToggle: (id: string) => void; onDeleteOne: (id: string, label: string) => void;
+  emptyHint?: string;
 }) {
   if (loading) return <Skeleton rows={8} />;
   if (events.length === 0) {
     return (
       <div className="py-16 text-center">
         <p className="text-sm text-gray-400">
-          No provider activity yet. Activity will appear here as providers engage with email notifications.
+          {emptyHint || "No provider activity yet. Activity will appear here as providers engage with email notifications."}
         </p>
       </div>
     );
   }
   return (
     <div>
-      <div className="space-y-0">
+      <div className="space-y-0 animate-in fade-in duration-200">
         {events.map((event) => (
-          <div key={event.id} className="flex items-center gap-3 py-3.5 border-b border-gray-100/80 group">
+          <div key={event.id} className="flex items-center gap-3 py-4 border-b border-gray-100 group">
             <RowCheckbox checked={selected.has(event.id)} onChange={() => onToggle(event.id)} />
             <div className="min-w-0 flex-1">
               <a href={`/provider/${event.provider?.slug || event.provider_id}`} target="_blank" rel="noopener noreferrer"
@@ -418,14 +450,20 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
                 </p>
               )}
             </div>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${providerEmailTypeBadgeColor(event.email_type || event.event_type)}`}>
-              {providerEmailTypeLabel(event.email_type || event.event_type)}
+            {/* One quiet action label per row — red only when it's a trust flag
+                (suspicious claim or low-trust sign-in). Routine "Trust: High"
+                noise is gone. */}
+            <span
+              className={`text-xs shrink-0 ${
+                event.event_type === "suspicious_claim" ||
+                (event.event_type === "one_click_access" &&
+                  (event.metadata as Record<string, string>)?.trust_level === "low")
+                  ? "font-medium text-red-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {providerEventLabel(event.event_type)}
             </span>
-            {event.event_type === "one_click_access" && (event.metadata as Record<string, string>)?.trust_level && (
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${trustBadgeColor((event.metadata as Record<string, string>).trust_level)}`}>
-                {trustBadgeLabel((event.metadata as Record<string, string>).trust_level)}
-              </span>
-            )}
             <TrashButton onClick={() => onDeleteOne(event.id, event.provider?.name || event.provider_id)} />
             <span className="text-xs text-gray-400 shrink-0 w-20 text-right">{relativeTime(event.created_at)}</span>
           </div>
@@ -440,16 +478,17 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
 // Providers People View
 // ---------------------------------------------------------------------------
 
-function ProvidersPeopleView({ providers, loading, total, page, setPage, pageSize, selected, onToggle, onDeletePerson }: {
+function ProvidersPeopleView({ providers, loading, total, page, setPage, pageSize, selected, onToggle, onDeletePerson, emptyHint }: {
   providers: ProviderAgg[]; loading: boolean; total: number;
   page: number; setPage: (p: number) => void; pageSize: number;
   selected: Set<string>; onToggle: (id: string) => void; onDeletePerson: (personId: string, label: string, eventCount: number) => void;
+  emptyHint?: string;
 }) {
   if (loading) return <Skeleton rows={8} />;
   if (providers.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-sm text-gray-400">No provider activity yet. Providers who click email links will appear here.</p>
+        <p className="text-sm text-gray-400">{emptyHint || "No provider activity yet. Providers who click email links will appear here."}</p>
       </div>
     );
   }
@@ -488,10 +527,10 @@ function ProvidersPeopleView({ providers, loading, total, page, setPage, pageSiz
                   </span>
                 )}
                 {Object.keys(p.email_types).length > 0 && (
-                  <div className="flex gap-1.5 mt-1">
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-gray-400">
                     {Object.entries(p.email_types).map(([type, count]) => (
-                      <span key={type} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${providerEmailTypeBadgeColor(type)}`}>
-                        {providerEmailTypeLabel(type)} {count}
+                      <span key={type}>
+                        {providerEventLabel(type)} <span className="tabular-nums text-gray-300">{count}</span>
                       </span>
                     ))}
                   </div>
@@ -516,26 +555,27 @@ function ProvidersPeopleView({ providers, loading, total, page, setPage, pageSiz
 // Family Feed View
 // ---------------------------------------------------------------------------
 
-function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selected, onToggle, onDeleteOne }: {
+function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selected, onToggle, onDeleteOne, emptyHint }: {
   events: FamilyEvent[]; loading: boolean; total: number;
   page: number; setPage: (p: number) => void; pageSize: number;
   selected: Set<string>; onToggle: (id: string) => void; onDeleteOne: (id: string, label: string) => void;
+  emptyHint?: string;
 }) {
   if (loading) return <Skeleton rows={8} />;
   if (events.length === 0) {
     return (
       <div className="py-16 text-center">
         <p className="text-sm text-gray-400">
-          No family activity yet. Events will appear here as care seekers connect with providers, complete profiles, and click email links.
+          {emptyHint || "No family activity yet. Events will appear here as care seekers connect with providers, complete profiles, and click email links."}
         </p>
       </div>
     );
   }
   return (
     <div>
-      <div className="space-y-0">
+      <div className="space-y-0 animate-in fade-in duration-200">
         {events.map((event) => (
-          <div key={event.id} className="flex items-center gap-3 py-3.5 border-b border-gray-100/80 group">
+          <div key={event.id} className="flex items-center gap-3 py-4 border-b border-gray-100 group">
             <RowCheckbox checked={selected.has(event.id)} onChange={() => onToggle(event.id)} />
             <div className="min-w-0 flex-1">
               {event.profile_id ? (
@@ -583,16 +623,29 @@ function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selec
                 if (matchCount > 0) parts.push(`${matchCount} ${matchCount === 1 ? "match" : "matches"}`);
                 if (topProgram) parts.push(`top: ${topProgram}`);
                 if (careNeed && careNeedLabels[careNeed]) parts.push(careNeedLabels[careNeed].toLowerCase());
-                return parts.length > 0 ? (
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">
-                    {parts.join(" · ")}
-                  </p>
+                // Attribution — which page produced this lead.
+                const entrySource = meta?.entry_source ? String(meta.entry_source) : null;
+                const providerSlug = meta?.provider_slug ? String(meta.provider_slug) : null;
+                const sourceLabel = entrySource
+                  ? (entrySource.split("/").filter(Boolean).pop() || entrySource)
+                      .replace(/-/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())
+                  : providerSlug
+                    ? `Provider: ${providerSlug}`
+                    : null;
+                return parts.length > 0 || sourceLabel ? (
+                  <>
+                    {parts.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{parts.join(" · ")}</p>
+                    )}
+                    {sourceLabel && (
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">from {sourceLabel}</p>
+                    )}
+                  </>
                 ) : null;
               })()}
             </div>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${familyEventTypeBadgeColor(event.event_type)}`}>
-              {familyEventTypeLabel(event.event_type)}
-            </span>
+            <span className="text-xs text-gray-500 shrink-0">{seekerEventLabel(event.event_type)}</span>
             <TrashButton onClick={() => onDeleteOne(event.id, event.family?.name || "Unknown")} />
             <span className="text-xs text-gray-400 shrink-0 w-20 text-right">{relativeTime(event.created_at)}</span>
           </div>
@@ -607,17 +660,18 @@ function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selec
 // Families People View
 // ---------------------------------------------------------------------------
 
-function FamiliesPeopleView({ families, loading, total, page, setPage, pageSize, selected, onToggle, onDeletePerson }: {
+function FamiliesPeopleView({ families, loading, total, page, setPage, pageSize, selected, onToggle, onDeletePerson, emptyHint }: {
   families: FamilyAgg[]; loading: boolean; total: number;
   page: number; setPage: (p: number) => void; pageSize: number;
   selected: Set<string>; onToggle: (id: string) => void; onDeletePerson: (personId: string, label: string, eventCount: number) => void;
+  emptyHint?: string;
 }) {
   if (loading) return <Skeleton rows={8} />;
   if (families.length === 0) {
     return (
       <div className="py-16 text-center">
         <p className="text-sm text-gray-400">
-          No family activity yet. Families who connect with providers will appear here.
+          {emptyHint || "No family activity yet. Families who connect with providers will appear here."}
         </p>
       </div>
     );
@@ -667,10 +721,10 @@ function FamiliesPeopleView({ families, loading, total, page, setPage, pageSize,
                   </span>
                 )}
                 {Object.keys(f.event_types).length > 0 && (
-                  <div className="flex gap-1.5 mt-1">
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-gray-400">
                     {Object.entries(f.event_types).map(([type, count]) => (
-                      <span key={type} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${familyEventTypeBadgeColor(type)}`}>
-                        {familyEventTypeLabel(type)} {count}
+                      <span key={type}>
+                        {seekerEventLabel(type)} <span className="tabular-nums text-gray-300">{count}</span>
                       </span>
                     ))}
                   </div>
@@ -698,44 +752,53 @@ function FamiliesPeopleView({ families, loading, total, page, setPage, pageSize,
 
 const PAGE_SIZE = 40;
 
-const PROVIDER_EVENT_FILTER_OPTIONS = [
-  { value: "", label: "All types" },
-  { value: "suspicious_claim", label: "Suspicious claims" },
-  { value: "email_click", label: "Email clicks" },
-  { value: "connection_request", label: "Leads" },
-  { value: "question_responded", label: "Answered" },
-  { value: "new_review", label: "Reviews" },
-  { value: "contact_revealed", label: "Contact copied" },
-  { value: "phone_clicked", label: "Called family" },
-  { value: "email_link_clicked", label: "Emailed family" },
-  { value: "one_click_access", label: "Auto sign-ins" },
-  { value: "analytics_teaser_cta_clicked", label: "Analytics CTA clicks" },
-  { value: "market_diagnostic_viewed_no_leads", label: "Market views (no leads)" },
-];
+function isActor(value: string | null): value is Actor {
+  return value === "providers" || value === "families";
+}
 
-const FAMILY_EVENT_FILTER_OPTIONS = [
-  { value: "", label: "All types" },
-  { value: "benefits_completed", label: "Benefits" },
-  { value: "connection_sent", label: "Connections" },
-  { value: "profile_enriched", label: "Profile" },
-  { value: "email_click", label: "Email clicks" },
-  { value: "question_asked", label: "Questions" },
-  { value: "matches_activated", label: "Matches" },
-  { value: "save_nudge_shown", label: "Save nudge shown" },
-  { value: "save_nudge_signup_clicked", label: "Save nudge clicked" },
-  { value: "save_nudge_converted", label: "Save conversions" },
-];
+function isSubView(value: string | null): value is SubView {
+  return value === "feed" || value === "people";
+}
+
+function isTimeWindow(value: string | null): value is TimeWindow {
+  return value === "7" || value === "30" || value === "90";
+}
 
 export default function ActivityCenterPage() {
   const urlParams = useSearchParams();
-  const initialActor = (urlParams.get("actor") as Actor) || "families";
+  const urlActor = urlParams.get("actor");
+  const urlView = urlParams.get("view");
+  const urlDays = urlParams.get("days");
+  const initialActor = isActor(urlActor) ? urlActor : "families";
+  const initialSubView = isSubView(urlView) ? urlView : "feed";
+  const initialTimeWindow = isTimeWindow(urlDays) ? urlDays : "30";
+
+  const urlCategory = urlParams.get("category");
+  const initialProviderCategory: ProviderCategoryKey | "" =
+    initialActor === "providers" && isProviderCategory(urlCategory) ? urlCategory : "";
+  const initialFamilyCategory: SeekerCategoryKey | "" =
+    initialActor === "families" && isSeekerCategory(urlCategory) ? urlCategory : "";
 
   const [actor, setActor] = useState<Actor>(initialActor);
-  const [subView, setSubView] = useState<SubView>("feed");
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>("30");
-  const [eventFilter, setEventFilter] = useState("");
-  const [search, setSearch] = useState("");
+  const [subView, setSubView] = useState<SubView>(initialSubView);
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>(initialTimeWindow);
+  const [search, setSearch] = useState(urlParams.get("search") || "");
   const [page, setPage] = useState(0);
+
+  // Each tab filters by its own taxonomy — a category tile plus an optional
+  // drill-down event — with separate state so switching tabs doesn't cross
+  // contaminate.
+  const [providerCategory, setProviderCategory] = useState<ProviderCategoryKey | "">(initialProviderCategory);
+  const [providerEvent, setProviderEvent] = useState<string>("");
+  const [categorySummary, setCategorySummary] = useState<Record<string, number> | null>(null);
+  const [summaryTotal, setSummaryTotal] = useState<number | null>(null);
+  const [subCounts, setSubCounts] = useState<Record<string, number> | null>(null);
+
+  const [familyCategory, setFamilyCategory] = useState<SeekerCategoryKey | "">(initialFamilyCategory);
+  const [familyEvent, setFamilyEvent] = useState<string>("");
+  const [familySummary, setFamilySummary] = useState<Record<string, number> | null>(null);
+  const [familySummaryTotal, setFamilySummaryTotal] = useState<number | null>(null);
+  const [familySubCounts, setFamilySubCounts] = useState<Record<string, number> | null>(null);
 
   // Provider data
   const [providerFeedEvents, setProviderFeedEvents] = useState<ActivityEvent[]>([]);
@@ -750,7 +813,6 @@ export default function ActivityCenterPage() {
   const [familiesTotal, setFamiliesTotal] = useState(0);
 
   const [loading, setLoading] = useState(true);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Delete state
@@ -761,19 +823,39 @@ export default function ActivityCenterPage() {
     open: boolean; message: string; onConfirm: () => void;
   }>({ open: false, message: "", onConfirm: () => {} });
 
-  // Reset page, event filter, and selection when actor or subView changes
+  // Reset page + selection on actor/view change.
   useEffect(() => {
     setPage(0);
-    setEventFilter("");
     setSelectedIds(new Set());
     setDeleteError(null);
   }, [actor, subView]);
 
-  // Reset page and selection when filters change
+  // Filters are per-tab: leaving a tab clears its filter so returning starts
+  // clean, while the active tab keeps its URL-provided/selected filter (this
+  // never clears the active tab on mount).
+  useEffect(() => {
+    if (actor === "providers") {
+      setFamilyCategory("");
+      setFamilyEvent("");
+    } else {
+      setProviderCategory("");
+      setProviderEvent("");
+    }
+  }, [actor]);
+
+  // Reset page and selection when any filter changes.
   useEffect(() => {
     setPage(0);
     setSelectedIds(new Set());
-  }, [timeWindow, eventFilter, search]);
+  }, [timeWindow, providerCategory, providerEvent, familyCategory, familyEvent, search]);
+
+  // Changing a category clears the drill-down selection from the prior category.
+  useEffect(() => {
+    setProviderEvent("");
+  }, [providerCategory]);
+  useEffect(() => {
+    setFamilyEvent("");
+  }, [familyCategory]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -791,7 +873,13 @@ export default function ActivityCenterPage() {
         params.set("view", "people");
       }
 
-      if (eventFilter) params.set("event_type", eventFilter);
+      if (actor === "providers") {
+        if (providerEvent) params.set("event", providerEvent);
+        else if (providerCategory) params.set("category", providerCategory);
+      } else {
+        if (familyEvent) params.set("event", familyEvent);
+        else if (familyCategory) params.set("category", familyCategory);
+      }
       if (search) params.set("search", search);
 
       const res = await fetch(`/api/admin/activity?${params}`);
@@ -820,17 +908,104 @@ export default function ActivityCenterPage() {
     } finally {
       setLoading(false);
     }
-  }, [actor, subView, timeWindow, eventFilter, search, page]);
+  }, [actor, subView, timeWindow, providerCategory, providerEvent, familyCategory, familyEvent, search, page]);
 
-  // Fetch total counts for header
+  // Per-event counts for the drill-down chip row — fetched when a (non-flags)
+  // category is selected. Cancelled on change to avoid out-of-order responses.
   useEffect(() => {
-    Promise.all([
-      fetch("/api/admin/activity?actor=providers&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-      fetch("/api/admin/activity?actor=families&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-    ]).then(([prov, fam]) => {
-      setTotalCount((prov.count || 0) + (fam.count || 0));
-    });
-  }, []);
+    if (actor !== "providers" || !providerCategory || providerCategory === "flags") {
+      setSubCounts(null);
+      return;
+    }
+    let cancelled = false;
+    setSubCounts(null);
+    fetch(`/api/admin/activity?actor=providers&view=summary&category=${providerCategory}&days=${timeWindow}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const m: Record<string, number> = {};
+        for (const e of d.events || []) m[e.event_type] = e.count;
+        setSubCounts(m);
+      })
+      .catch(() => {
+        if (!cancelled) setSubCounts(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, providerCategory, timeWindow]);
+
+  // Per-category counts for the providers orientation strip. Refetched on time-
+  // window change (and after deletes); independent of the feed pagination/filter
+  // so the tiles always show the full shape, not just the selected slice.
+  const fetchProviderSummary = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/activity?actor=providers&view=summary&days=${timeWindow}`);
+      if (!res.ok) throw new Error("summary fetch failed");
+      const data = await res.json();
+      const map: Record<string, number> = {};
+      for (const c of data.categories || []) map[c.key] = c.count;
+      setCategorySummary(map);
+      setSummaryTotal(typeof data.total === "number" ? data.total : null);
+    } catch {
+      setCategorySummary(null);
+      setSummaryTotal(null);
+    }
+  }, [timeWindow]);
+
+  useEffect(() => {
+    if (actor === "providers") {
+      setCategorySummary(null); // show loading state while the new window loads
+      fetchProviderSummary();
+    }
+  }, [actor, fetchProviderSummary]);
+
+  // Family drill-down per-event counts (no "flags" bucket for families).
+  useEffect(() => {
+    if (actor !== "families" || !familyCategory) {
+      setFamilySubCounts(null);
+      return;
+    }
+    let cancelled = false;
+    setFamilySubCounts(null);
+    fetch(`/api/admin/activity?actor=families&view=summary&category=${familyCategory}&days=${timeWindow}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const m: Record<string, number> = {};
+        for (const e of d.events || []) m[e.event_type] = e.count;
+        setFamilySubCounts(m);
+      })
+      .catch(() => {
+        if (!cancelled) setFamilySubCounts(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, familyCategory, timeWindow]);
+
+  // Per-category counts for the families orientation strip.
+  const fetchFamilySummary = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/activity?actor=families&view=summary&days=${timeWindow}`);
+      if (!res.ok) throw new Error("summary fetch failed");
+      const data = await res.json();
+      const map: Record<string, number> = {};
+      for (const c of data.categories || []) map[c.key] = c.count;
+      setFamilySummary(map);
+      setFamilySummaryTotal(typeof data.total === "number" ? data.total : null);
+    } catch {
+      setFamilySummary(null);
+      setFamilySummaryTotal(null);
+    }
+  }, [timeWindow]);
+
+  useEffect(() => {
+    if (actor === "families") {
+      setFamilySummary(null);
+      fetchFamilySummary();
+    }
+  }, [actor, fetchFamilySummary]);
 
   useEffect(() => {
     fetchData();
@@ -846,15 +1021,6 @@ export default function ActivityCenterPage() {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
-    });
-  }, []);
-
-  const refreshTotalCount = useCallback(() => {
-    Promise.all([
-      fetch("/api/admin/activity?actor=providers&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-      fetch("/api/admin/activity?actor=families&view=feed&days=9999&count_only=true").then(r => r.json()).catch(() => ({ count: 0 })),
-    ]).then(([prov, fam]) => {
-      setTotalCount((prov.count || 0) + (fam.count || 0));
     });
   }, []);
 
@@ -874,13 +1040,14 @@ export default function ActivityCenterPage() {
       setSelectedIds(new Set());
       setConfirmDialog({ open: false, message: "", onConfirm: () => {} });
       fetchData();
-      refreshTotalCount();
+      if (actorType === "providers") fetchProviderSummary();
+      else fetchFamilySummary();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setDeleting(false);
     }
-  }, [fetchData, refreshTotalCount]);
+  }, [fetchData, fetchProviderSummary, fetchFamilySummary]);
 
   const handleDeleteOneEvent = useCallback((id: string, label: string) => {
     setConfirmDialog({
@@ -929,7 +1096,8 @@ export default function ActivityCenterPage() {
             setSelectedIds(new Set());
             setConfirmDialog({ open: false, message: "", onConfirm: () => {} });
             fetchData();
-            refreshTotalCount();
+            if (actor === "providers") fetchProviderSummary();
+            else fetchFamilySummary();
           } catch (err) {
             setDeleteError(err instanceof Error ? err.message : "Delete failed");
           } finally {
@@ -938,9 +1106,40 @@ export default function ActivityCenterPage() {
         },
       });
     }
-  }, [selectedIds, subView, actor, executeDelete, fetchData, refreshTotalCount]);
+  }, [selectedIds, subView, actor, executeDelete, fetchData, fetchProviderSummary, fetchFamilySummary]);
 
-  const filterOptions = actor === "families" ? FAMILY_EVENT_FILTER_OPTIONS : PROVIDER_EVENT_FILTER_OPTIONS;
+  // Tiles + drill-down items for each tab (the active one is rendered).
+  const providerStatItems: StatItem[] = [
+    { key: "", label: "All activity", count: summaryTotal ?? 0 },
+    ...PROVIDER_CATEGORIES.map((c) => ({ key: c.key, label: c.label, count: categorySummary?.[c.key] ?? 0, blurb: c.blurb })),
+  ];
+  const providerSubItems: StatItem[] =
+    providerCategory && providerCategory !== "flags"
+      ? PROVIDER_CATEGORY_MAP[providerCategory].eventTypes.map((et) => ({
+          key: et, label: providerEventLabel(et), count: subCounts?.[et] ?? 0,
+        }))
+      : [];
+  const familyStatItems: StatItem[] = [
+    { key: "", label: "All activity", count: familySummaryTotal ?? 0 },
+    ...SEEKER_CATEGORIES.map((c) => ({ key: c.key, label: c.label, count: familySummary?.[c.key] ?? 0, blurb: c.blurb })),
+  ];
+  const familySubItems: StatItem[] = familyCategory
+    ? SEEKER_CATEGORY_MAP[familyCategory].eventTypes.map((et) => ({
+        key: et, label: seekerEventLabel(et), count: familySubCounts?.[et] ?? 0,
+      }))
+    : [];
+
+  // Category/event-aware empty copy that teaches instead of dead-ending.
+  const providerEmptyHint = providerEvent
+    ? `No "${providerEventLabel(providerEvent)}" activity in this window yet.`
+    : providerCategory
+    ? `No "${PROVIDER_CATEGORY_MAP[providerCategory].label}" activity in this window yet — ${PROVIDER_CATEGORY_MAP[providerCategory].blurb.toLowerCase()}.`
+    : undefined;
+  const familyEmptyHint = familyEvent
+    ? `No "${seekerEventLabel(familyEvent)}" activity in this window yet.`
+    : familyCategory
+    ? `No "${SEEKER_CATEGORY_MAP[familyCategory].label}" activity in this window yet — ${SEEKER_CATEGORY_MAP[familyCategory].blurb.toLowerCase()}.`
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -950,16 +1149,15 @@ export default function ActivityCenterPage() {
           Activity Center
         </h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          {totalCount !== null
-            ? totalCount === 0
-              ? "Waiting for first engagement"
-              : `${totalCount} total engagement${totalCount === 1 ? "" : "s"} tracked`
-            : "\u00a0"}
+          {actor === "providers"
+            ? "What providers are doing on the platform"
+            : "What families are doing on the platform"}
         </p>
       </div>
 
-      {/* Actor toggle */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Controls. Families/Providers is the primary axis (segmented); view and
+          time recede to light text toggles. */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <SegmentedControl
           options={[
             { label: "Families", value: "families" as Actor },
@@ -969,9 +1167,7 @@ export default function ActivityCenterPage() {
           onChange={setActor}
         />
 
-        <div className="w-px h-5 bg-gray-200" />
-
-        <SegmentedControl
+        <TextToggle
           options={[
             { label: "Feed", value: "feed" as SubView },
             { label: "People", value: "people" as SubView },
@@ -980,7 +1176,7 @@ export default function ActivityCenterPage() {
           onChange={setSubView}
         />
 
-        <SegmentedControl
+        <TextToggle
           options={[
             { label: "7d", value: "7" as TimeWindow },
             { label: "30d", value: "30" as TimeWindow },
@@ -990,25 +1186,46 @@ export default function ActivityCenterPage() {
           onChange={setTimeWindow}
         />
 
-        <select
-          value={eventFilter}
-          onChange={(e) => setEventFilter(e.target.value)}
-          className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-gray-300"
-        >
-          {filterOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-
+        {/* Both tabs filter via the orientation tiles below (category-based),
+            so there's no dropdown here. */}
         <div className="ml-auto">
           <input
             type="text"
-            placeholder={actor === "families" ? "Search families..." : "Search providers..."}
+            placeholder={actor === "families" ? "Search families…" : "Search providers…"}
             defaultValue={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="text-sm text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-1.5 w-48 placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300"
+            className="text-sm text-gray-900 bg-transparent border-b border-gray-200 py-1 w-44 placeholder:text-gray-300 focus:outline-none focus:border-teal-400 transition-colors"
           />
         </div>
+      </div>
+
+      {/* Orientation strip — see the shape of activity, tap to filter. Selecting
+          a category reveals a drill-down row to isolate one action. Same
+          component for both tabs; items come from the active tab's taxonomy. */}
+      <div className="space-y-2">
+        <StatStrip
+          items={actor === "providers" ? providerStatItems : familyStatItems}
+          selected={actor === "providers" ? providerCategory : familyCategory}
+          onSelect={(key) => {
+            // Clear the drill-down in the same batch as the category change so
+            // fetchData doesn't fire once with the stale exact-event (which
+            // takes precedence) before the effect resets it.
+            if (actor === "providers") {
+              setProviderCategory(key as ProviderCategoryKey | "");
+              setProviderEvent("");
+            } else {
+              setFamilyCategory(key as SeekerCategoryKey | "");
+              setFamilyEvent("");
+            }
+          }}
+          loading={actor === "providers" ? categorySummary === null : familySummary === null}
+        />
+        {actor === "providers" && providerCategory && providerCategory !== "flags" && (
+          <SubFilterRow items={providerSubItems} selected={providerEvent} onSelect={setProviderEvent} loading={subCounts === null} />
+        )}
+        {actor === "families" && familyCategory && (
+          <SubFilterRow items={familySubItems} selected={familyEvent} onSelect={setFamilyEvent} loading={familySubCounts === null} />
+        )}
       </div>
 
       {/* Error banner */}
@@ -1026,12 +1243,14 @@ export default function ActivityCenterPage() {
             events={familyFeedEvents} loading={loading} total={familyFeedTotal}
             page={page} setPage={setPage} pageSize={PAGE_SIZE}
             selected={selectedIds} onToggle={toggleSelection} onDeleteOne={handleDeleteOneEvent}
+            emptyHint={familyEmptyHint}
           />
         ) : (
           <FamiliesPeopleView
             families={familyRows} loading={loading} total={familiesTotal}
             page={page} setPage={setPage} pageSize={PAGE_SIZE}
             selected={selectedIds} onToggle={toggleSelection} onDeletePerson={handleDeletePerson}
+            emptyHint={familyEmptyHint}
           />
         )
       ) : (
@@ -1040,12 +1259,14 @@ export default function ActivityCenterPage() {
             events={providerFeedEvents} loading={loading} total={providerFeedTotal}
             page={page} setPage={setPage} pageSize={PAGE_SIZE}
             selected={selectedIds} onToggle={toggleSelection} onDeleteOne={handleDeleteOneEvent}
+            emptyHint={providerEmptyHint}
           />
         ) : (
           <ProvidersPeopleView
             providers={providerRows} loading={loading} total={providersTotal}
             page={page} setPage={setPage} pageSize={PAGE_SIZE}
             selected={selectedIds} onToggle={toggleSelection} onDeletePerson={handleDeletePerson}
+            emptyHint={providerEmptyHint}
           />
         )
       )}

@@ -44,10 +44,18 @@ export function normalizeKey(city: string, state: string, careType: string | nul
 
 export function isFresh(row: DiagRow): boolean {
   if (row.status !== "ready" || !row.generated_at) return false;
-  // Pre-#960 rows lack competitorLandscape.ranked (the self-rank source). Treat them as stale so
-  // warmCity + the serve route recompute them into the new shape instead of serving inert data
-  // that can never surface a provider's rank.
-  if (!(row.data as { competitorLandscape?: { ranked?: unknown[] } } | null)?.competitorLandscape?.ranked) {
+  // Pre-#960 rows lack competitorLandscape.ranked (the self-rank source), and pre-referral-map
+  // rows lack referralGraph.prioritizedTargets (the digest referral-teaser source). Treat them as
+  // stale so warmCity + the serve route recompute them into the current product shape instead of
+  // serving inert data that can never surface a provider's rank/referral map.
+  const data = row.data as {
+    competitorLandscape?: { ranked?: unknown[] };
+    referralGraph?: { prioritizedTargets?: unknown[] };
+  } | null;
+  if (!Array.isArray(data?.competitorLandscape?.ranked)) {
+    return false;
+  }
+  if (!Array.isArray(data?.referralGraph?.prioritizedTargets)) {
     return false;
   }
   const ageMs = Date.now() - new Date(row.generated_at).getTime();

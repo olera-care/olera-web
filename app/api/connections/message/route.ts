@@ -13,6 +13,15 @@ interface ThreadMessage {
   text: string;
   created_at: string;
   is_auto_reply?: boolean;
+  type?: "quick_reply_request" | "quick_reply_response";
+}
+
+interface QuickReplyRequest {
+  question: string;
+  options: readonly string[];
+  sent_at: string;
+  answered_at?: string;
+  dismissed_at?: string;
 }
 
 /**
@@ -28,15 +37,25 @@ interface ThreadMessage {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { connectionId, text, claimToken } = body as {
+    const { connectionId, text, claimToken, messageType, quickReplyOptions } = body as {
       connectionId?: string;
       text?: string;
       claimToken?: string;
+      messageType?: "quick_reply_request" | "quick_reply_response" | "quick_reply_dismiss";
+      quickReplyOptions?: readonly string[];
     };
 
-    if (!connectionId || !text?.trim()) {
+    // Quick reply dismiss doesn't require text
+    if (!connectionId) {
       return NextResponse.json(
-        { error: "connectionId and text are required" },
+        { error: "connectionId is required" },
+        { status: 400 }
+      );
+    }
+
+    if (messageType !== "quick_reply_dismiss" && !text?.trim()) {
+      return NextResponse.json(
+        { error: "text is required" },
         { status: 400 }
       );
     }
@@ -124,11 +143,59 @@ export async function POST(request: Request) {
       (connection.metadata as Record<string, unknown>) || {};
     const existingThread = (existingMeta.thread as ThreadMessage[]) || [];
 
+    const now = new Date().toISOString();
+
+    // Check if there's a pending quick reply request
+    const existingQuickReply = existingMeta.quick_reply_request as QuickReplyRequest | undefined;
+    const hasPendingQuickReply = existingQuickReply && !existingQuickReply.answered_at && !existingQuickReply.dismissed_at;
+
+    // Handle quick reply dismiss - no message created, just update metadata
+    if (messageType === "quick_reply_dismiss") {
+      if (!existingQuickReply) {
+        return NextResponse.json(
+          { error: "No quick reply request to dismiss" },
+          { status: 400 }
+        );
+      }
+
+      const dismissedQuickReply = {
+        ...existingQuickReply,
+        dismissed_at: now,
+      };
+
+      const { error: dismissError } = await admin
+        .from("connections")
+        .update({
+          metadata: { ...existingMeta, quick_reply_request: dismissedQuickReply },
+        })
+        .eq("id", connectionId);
+
+      if (dismissError) {
+        console.error("Dismiss error:", dismissError);
+        return NextResponse.json(
+          { error: "Failed to dismiss quick reply" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        thread: existingThread,
+        quick_reply_request: dismissedQuickReply,
+      });
+    }
+
+    // Build the new message
+    // text is guaranteed to exist here (validated above, dismiss returns early)
     const newMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: text.trim(),
-      created_at: new Date().toISOString(),
+      text: text!.trim(),
+      created_at: now,
     };
+
+    // Add message type if specified
+    if (messageType) {
+      newMessage.type = messageType;
+    }
 
     const updatedThread = [...existingThread, newMessage];
 
@@ -141,7 +208,34 @@ export async function POST(request: Request) {
 
     // Prepare metadata update - will be written once at the end after email sending
     // Store this for later to avoid duplicate database updates
-    let metadataToUpdate = { ...existingMeta, thread: updatedThread };
+    let metadataToUpdate: Record<string, unknown> = { ...existingMeta, thread: updatedThread };
+
+    // Handle quick reply request: store the question/options in metadata
+    if (messageType === "quick_reply_request") {
+      // Reject if there's already a pending quick reply request
+      if (hasPendingQuickReply) {
+        return NextResponse.json(
+          { error: "A quick reply request is already pending" },
+          { status: 400 }
+        );
+      }
+
+      const quickReplyRequest: QuickReplyRequest = {
+        question: text!.trim(),
+        options: quickReplyOptions || [],
+        sent_at: now,
+      };
+      metadataToUpdate.quick_reply_request = quickReplyRequest;
+    }
+
+    // Handle quick reply response OR any message from family when quick reply is pending
+    // Auto-mark as answered when family responds
+    if (hasPendingQuickReply && profileId === familyProfileId) {
+      metadataToUpdate.quick_reply_request = {
+        ...existingQuickReply,
+        answered_at: now,
+      };
+    }
 
     // Use admin client to bypass RLS (needed for guest flow)
     const { error: updateError } = await admin
@@ -235,9 +329,9 @@ export async function POST(request: Request) {
 
         if (recipientEmail) {
           const preview =
-            text.trim().length > 200
-              ? text.trim().slice(0, 200) + "..."
-              : text.trim();
+            text!.trim().length > 200
+              ? text!.trim().slice(0, 200) + "..."
+              : text!.trim();
 
           const isFamily = recipientProfile?.type === "family";
 
@@ -408,9 +502,9 @@ export async function POST(request: Request) {
           if (recipientProfile?.phone && recipientMeta.whatsapp_opted_in) {
             const waNormalized = normalizeUSPhone(recipientProfile.phone);
             if (waNormalized) {
-              const waPreview = text.trim().length > 100
-                ? text.trim().slice(0, 100) + "..."
-                : text.trim();
+              const waPreview = text!.trim().length > 100
+                ? text!.trim().slice(0, 100) + "..."
+                : text!.trim();
 
               const senderLabel = senderProfile?.display_name || "Someone";
               await sendWhatsApp({
@@ -450,7 +544,7 @@ export async function POST(request: Request) {
           eventName: "new_message",
           audience: "seeker",
           eventProperties: {
-            messagePreview: text.trim().slice(0, 100),
+            messagePreview: text!.trim().slice(0, 100),
           },
         });
       }
@@ -647,7 +741,10 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ thread: updatedThread });
+    return NextResponse.json({
+      thread: updatedThread,
+      quick_reply_request: metadataToUpdate.quick_reply_request || null,
+    });
   } catch (err) {
     console.error("Message error:", err);
     return NextResponse.json(

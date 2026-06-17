@@ -3,18 +3,19 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { Profile, BusinessProfile } from "@/lib/types";
+import type { Profile, BusinessProfile, Connection } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
 import { formatRedactedName } from "@/lib/utils/pii-redaction";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileCompletionNudge from "@/components/portal/profile/ProfileCompletionNudge";
 import GoLiveNudge from "@/components/portal/profile/GoLiveNudge";
 import QuickProfileWizard from "@/components/portal/profile/QuickProfileWizard";
+import type { QuickReplyRequest } from "@/lib/quick-reply-config";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
   activeProfile: Profile | null;
-  onMessageSent: (connectionId: string, thread: ThreadMessage[]) => void;
+  onMessageSent: (connectionId: string, thread: ThreadMessage[], quickReplyRequest?: QuickReplyRequest | null) => void;
   onSendMessage?: (connectionId: string, text: string) => Promise<ThreadMessage[]>;
   onBack?: () => void;
   detailOpen?: boolean;
@@ -166,6 +167,13 @@ function avatarGradient(name: string): string {
   return gradients[Math.abs(hash) % gradients.length];
 }
 
+/** Get quick reply request from connection metadata */
+function getQuickReplyRequest(metadata: Record<string, unknown> | undefined): QuickReplyRequest | null {
+  const qr = metadata?.quick_reply_request as QuickReplyRequest | undefined;
+  if (!qr || !qr.question || !qr.options) return null;
+  return qr;
+}
+
 // ── SVG Icons ──
 
 const PhoneIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -185,6 +193,138 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
   </svg>
 );
+
+// ── Provider Passed Card ──
+
+function ProviderPassedCard({
+  providerName,
+  familyName,
+  archiveReason,
+  archiveMessage,
+  time,
+  dateStr,
+  connection,
+  isProviderView = false,
+}: {
+  providerName: string;
+  familyName: string;
+  archiveReason: string;
+  archiveMessage?: string | null;
+  time: string;
+  dateStr: string;
+  connection: ConnectionWithProfile;
+  isProviderView?: boolean;
+}) {
+  // Map reason codes to user-friendly labels (keep already_connected for old messages)
+  const reasonLabels: Record<string, string> = {
+    already_connected: "Already connected off-platform",
+    not_a_fit: "Not a good fit",
+    not_accepting_clients: "Not accepting new clients",
+    unable_to_reach: "Unable to reach",
+    other: "Other",
+  };
+
+  const reasonLabel = reasonLabels[archiveReason] || archiveReason;
+
+  // Build contextual browse URL from connection
+  const familyProfile = connection.fromProfile;
+  const city = familyProfile?.city;
+  const state = familyProfile?.state;
+  const careTypes = familyProfile?.care_types as string[] | undefined;
+  const primaryCareType = careTypes?.[0] || "senior-care";
+
+  let browseUrl = "/browse";
+  if (city && state) {
+    const params = new URLSearchParams({
+      care_type: primaryCareType,
+      city,
+      state,
+    });
+    browseUrl = `/browse?${params.toString()}`;
+  }
+
+  // Provider name (providers always have names, no need for complex fallback)
+  const displayProviderName = providerName || "Provider";
+  const displayFamilyName = familyName || "Care Seeker";
+
+  // Perspective-aware header and body text
+  const headerText = isProviderView
+    ? `Update to ${displayFamilyName}`
+    : `Update from ${displayProviderName}`;
+
+  const bodyText = isProviderView
+    ? `You declined this inquiry and won't be able to help at this time.`
+    : `They've reviewed your inquiry and won't be able to help at this time.`;
+
+  return (
+    <div className={`flex ${isProviderView ? 'justify-end' : 'justify-start'}`}>
+      <div className="max-w-[420px] w-full">
+        <div className="rounded-2xl overflow-hidden border border-gray-200">
+          {/* Subtle gray header - minimal color */}
+          <div className="bg-gradient-to-r from-gray-600 to-gray-500 px-5 py-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-sm font-bold text-white">{headerText}</span>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="bg-white px-5 pt-4 pb-4">
+            <p className="text-[15px] text-gray-700 leading-relaxed">
+              {bodyText}
+            </p>
+
+            {/* Reason chip */}
+            <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
+              <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
+                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {reasonLabel}
+              </span>
+            </div>
+
+            {/* Provider's message (if provided) */}
+            {archiveMessage && (
+              <div className="mt-3">
+                <p className="text-[14px] text-gray-600 leading-relaxed italic border-l-2 border-gray-200 pl-3">
+                  &ldquo;{archiveMessage}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* CTA to browse other providers - only show for family view */}
+            {!isProviderView && (
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <a
+                  href={browseUrl}
+                  className="inline-flex items-center gap-2 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  Browse other providers
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="bg-gray-50 px-5 py-2.5 border-t border-gray-100">
+            <p className="text-xs text-gray-400">
+              {dateStr}
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-1.5 text-center">{time}</p>
+      </div>
+    </div>
+  );
+}
 
 // ── Care Request Card ──
 
@@ -221,7 +361,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
         )
       )}
       <div className="max-w-[420px]">
-        <div className={`rounded-2xl ${isInbound ? "rounded-bl-md" : "rounded-br-md"} overflow-hidden shadow-sm border border-gray-200`}>
+        <div className={`rounded-2xl ${isInbound ? "rounded-bl-md" : "rounded-br-md"} overflow-hidden border border-gray-200`}>
           {/* Teal gradient header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-5 py-3">
             <div className="flex items-center gap-2">
@@ -378,6 +518,9 @@ export default function ConversationPanel({
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [goLiveNudgeDismissed, setGoLiveNudgeDismissed] = useState(false);
 
+  // Quick reply card dismissal state (for families)
+  const [quickReplyDismissed, setQuickReplyDismissed] = useState(false);
+
   // Profile completeness check (family view only)
   const { percentage: completeness } = useProfileCompleteness(
     familyProfile as BusinessProfile | null,
@@ -408,22 +551,34 @@ export default function ConversationPanel({
     return () => clearTimeout(timer);
   }, [sendError]);
 
-  // Reset message text when switching conversations
+  // Reset message text and quick reply dismissal when switching conversations
   useEffect(() => {
     setMessageText("");
+    setQuickReplyDismissed(false);
   }, [connection?.id]);
 
-  // Auto-scroll to bottom when thread updates
+  // Track thread length to detect new messages
+  const prevThreadLengthRef = useRef<number>(0);
+  const currentThread = (connection?.metadata as Record<string, unknown>)?.thread as ThreadMessage[] | undefined;
+  const currentThreadLength = currentThread?.length ?? 0;
+
+  // Auto-scroll to bottom only when a new message is added or conversation changes
   useEffect(() => {
-    if (conversationRef.current) {
-      requestAnimationFrame(() => {
-        conversationRef.current?.scrollTo({
-          top: conversationRef.current.scrollHeight,
-          behavior: "smooth",
+    const prevLength = prevThreadLengthRef.current;
+    prevThreadLengthRef.current = currentThreadLength;
+
+    // Only scroll if thread grew (new message) or this is a new conversation
+    if (currentThreadLength > prevLength || prevLength === 0) {
+      if (conversationRef.current) {
+        requestAnimationFrame(() => {
+          conversationRef.current?.scrollTo({
+            top: conversationRef.current.scrollHeight,
+            behavior: "smooth",
+          });
         });
-      });
+      }
     }
-  }, [connection?.metadata]);
+  }, [connection?.id, currentThreadLength]);
 
   const handleSendMessage = useCallback(async () => {
     // Allow sending if user has activeProfile OR a valid claimToken (guest)
@@ -431,6 +586,7 @@ export default function ConversationPanel({
     setSending(true);
     try {
       let thread: ThreadMessage[];
+      let quickReplyRequestUpdate: QuickReplyRequest | null | undefined;
       if (onSendMessage) {
         // Mock-aware send — bypasses API
         thread = await onSendMessage(connection.id, messageText.trim());
@@ -452,10 +608,11 @@ export default function ConversationPanel({
         if (!res.ok) throw new Error("Failed to send");
         const data = await res.json();
         thread = data.thread;
+        quickReplyRequestUpdate = data.quick_reply_request;
       }
       setMessageText("");
       if (messageInputRef.current) messageInputRef.current.style.height = 'auto';
-      onMessageSent(connection.id, thread);
+      onMessageSent(connection.id, thread, quickReplyRequestUpdate);
       requestAnimationFrame(() => {
         conversationRef.current?.scrollTo({
           top: conversationRef.current.scrollHeight,
@@ -468,6 +625,72 @@ export default function ConversationPanel({
       setSending(false);
     }
   }, [connection, messageText, activeProfile, claimToken, onMessageSent, onSendMessage]);
+
+  // Handle quick reply option selection (for families)
+  const handleQuickReplySelect = useCallback(async (option: string) => {
+    if (!connection || (!activeProfile && !claimToken)) return;
+    setSending(true);
+    try {
+      const requestBody: Record<string, string> = {
+        connectionId: connection.id,
+        text: option,
+        messageType: "quick_reply_response",
+      };
+      if (claimToken) {
+        requestBody.claimToken = claimToken;
+      }
+
+      const res = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      const data = await res.json();
+      onMessageSent(connection.id, data.thread, data.quick_reply_request);
+      // Hide the quick reply card immediately after sending
+      setQuickReplyDismissed(true);
+      requestAnimationFrame(() => {
+        conversationRef.current?.scrollTo({
+          top: conversationRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      });
+    } catch {
+      setSendError("Couldn't send reply. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  }, [connection, activeProfile, claimToken, onMessageSent]);
+
+  // Handle quick reply dismiss (for families) - persists to database
+  const handleQuickReplyDismiss = useCallback(async () => {
+    if (!connection) return;
+    // Optimistic UI update
+    setQuickReplyDismissed(true);
+    try {
+      const requestBody: Record<string, string> = {
+        connectionId: connection.id,
+        messageType: "quick_reply_dismiss",
+      };
+      if (claimToken) {
+        requestBody.claimToken = claimToken;
+      }
+
+      const res = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!res.ok) throw new Error("Failed to dismiss");
+      const data = await res.json();
+      onMessageSent(connection.id, data.thread, data.quick_reply_request);
+    } catch {
+      // Revert optimistic update on failure
+      setQuickReplyDismissed(false);
+      setSendError("Couldn't dismiss. Please try again.");
+    }
+  }, [connection, claimToken, onMessageSent]);
 
   // ── Empty state ──
   if (!connection) {
@@ -504,6 +727,36 @@ export default function ConversationPanel({
   // Show initial notes from: auto_intro, additional_notes (from JSON), or plain text message
   const initialNotes = autoIntro || additionalNotes || plainTextMessage;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
+
+  // Quick reply request handling
+  const quickReplyRequest = getQuickReplyRequest(connMetadata);
+  const isQuickReplyAnswered = !!quickReplyRequest?.answered_at;
+  const isQuickReplyDismissedPersisted = !!quickReplyRequest?.dismissed_at;
+  const hasQuickReplyOptions = (quickReplyRequest?.options?.length ?? 0) > 0;
+
+  // For provider view: check if provider has followed up after family's MOST RECENT quick reply response
+  const familyProfileId = connection.type === "inquiry" ? connection.from_profile_id : connection.to_profile_id;
+  const providerProfileId = connection.type === "inquiry" ? connection.to_profile_id : connection.from_profile_id;
+  // Find the LAST quick reply response (not the first) to handle multiple exchanges correctly
+  const lastQuickReplyResponseIndex = thread.findLastIndex(msg => msg.type === "quick_reply_response");
+  const hasProviderFollowedUp = lastQuickReplyResponseIndex >= 0 &&
+    thread.slice(lastQuickReplyResponseIndex + 1).some(msg => msg.from_profile_id === providerProfileId);
+
+  // Family name for nudge banner (shown above input when family responds to quick reply)
+  const familyDisplayName = (() => {
+    const name = connection.type === "inquiry"
+      ? connection.fromProfile?.display_name
+      : connection.toProfile?.display_name;
+    if (!name) return "Care seeker";
+    // If it's a placeholder name like "Care Seeker", use the full placeholder
+    const lowerName = name.toLowerCase();
+    if (lowerName === "care seeker" || lowerName.startsWith("care ")) {
+      return "Care seeker";
+    }
+    // Otherwise use first name
+    return name.split(" ")[0];
+  })();
+  const showQuickReplyNudge = isProviderView && lastQuickReplyResponseIndex >= 0 && !hasProviderFollowedUp;
 
   // Names in conversation header are not clickable - use "View full profile" in details panel instead
 
@@ -716,6 +969,43 @@ export default function ConversationPanel({
 
             // System messages
             if (msg.type === "system") {
+              // Check if this is a "provider declined" message (also check "passed on" for backwards compat)
+              const isProviderDeclined = msg.text?.includes("declined this inquiry") || msg.text?.includes("passed on this inquiry");
+
+              if (isProviderDeclined) {
+                // Parse reason and message from text
+                // Format: "This provider has declined this inquiry. Reason: not_a_fit\n\"message\""
+                const reasonMatch = msg.text.match(/Reason:\s*(\w+)/);
+                const messageMatch = msg.text.match(/\n"([\s\S]+)"/);
+                const archiveReason = reasonMatch?.[1] || "other";
+                // Unescape quotes that were escaped in backend
+                const rawMessage = messageMatch?.[1] || null;
+                const archiveMessage = rawMessage ? rawMessage.replace(/\\"/g, '"') : null;
+
+                return (
+                  <div key={i}>
+                    {showSeparator && (
+                      <div className="flex justify-center py-3">
+                        <span className="text-sm font-medium text-gray-400">
+                          {formatDateSeparator(msg.created_at)}
+                        </span>
+                      </div>
+                    )}
+                    <ProviderPassedCard
+                      providerName={connection.toProfile?.display_name || "Provider"}
+                      familyName={connection.fromProfile?.display_name || "Care Seeker"}
+                      archiveReason={archiveReason}
+                      archiveMessage={archiveMessage}
+                      time={formatTime(msg.created_at)}
+                      dateStr={formatDateSeparator(msg.created_at)}
+                      connection={connection}
+                      isProviderView={isProviderView}
+                    />
+                  </div>
+                );
+              }
+
+              // Default system message (simple italic text)
               return (
                 <div key={i}>
                   {showSeparator && (
@@ -798,6 +1088,200 @@ export default function ConversationPanel({
                       </p>
                     </div>
                   </div>
+                </div>
+              );
+            }
+
+            // Quick reply request messages (show sent confirmation for providers)
+            if (msg.type === "quick_reply_request") {
+              // Get family name for the confirmation message
+              const familyFirstName = (() => {
+                const name = connection.type === "inquiry"
+                  ? connection.fromProfile?.display_name
+                  : connection.toProfile?.display_name;
+                return name?.split(" ")[0] || "Care seeker";
+              })();
+
+              return (
+                <div key={i} className={isGrouped ? "mt-0.5" : ""} style={isGrouped ? { marginTop: '2px' } : undefined}>
+                  {showSeparator && (
+                    <div className="flex justify-center py-3">
+                      <span className="text-sm font-medium text-gray-400">
+                        {formatDateSeparator(msg.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  {isOwn ? (
+                    <div className="flex justify-end">
+                      <div className="max-w-[70%]">
+                        <div className={`bg-primary-600 px-4 py-3 shadow-sm ${
+                          isLastInGroup ? "rounded-2xl rounded-br-md" : "rounded-2xl"
+                        }`}>
+                          <p className="text-base leading-relaxed text-white">{msg.text}</p>
+                        </div>
+                        {isLastInGroup && (
+                          <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{msgTime}</p>
+                        )}
+                        {/* Sent confirmation for provider - only show if not answered yet */}
+                        {isProviderView && !isQuickReplyAnswered && (
+                          <p className="text-sm text-gray-500 mt-2 flex items-center justify-end gap-1.5 mr-1">
+                            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                            Sent — we&apos;ll surface {familyFirstName}&apos;s reply right here the moment they answer.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    // Family viewing quick reply request - show elegant inline card if not answered/dismissed and has options
+                    !isQuickReplyAnswered && !isQuickReplyDismissedPersisted && !quickReplyDismissed && hasQuickReplyOptions ? (
+                      <div className="w-full max-w-md">
+                        <div className="bg-stone-50 rounded-2xl border border-stone-200 overflow-hidden">
+                          {/* Header with avatar and name */}
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200">
+                            <div className="flex items-center gap-3">
+                              {imageUrl ? (
+                                <Image src={imageUrl} alt={otherName} width={36} height={36} className="w-9 h-9 rounded-full object-cover" />
+                              ) : (
+                                <div
+                                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                  style={{ background: avatarGradient(otherName) }}
+                                >
+                                  {otherInitial}
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">{otherName}</p>
+                                <p className="text-xs text-gray-500">Reached out to you</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={handleQuickReplyDismiss}
+                              className="p-1.5 rounded-full hover:bg-stone-200 transition-colors"
+                              aria-label="Dismiss"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                          {/* Question */}
+                          <div className="px-4 pt-3 pb-2">
+                            <p className="text-[15px] font-medium text-gray-900">{msg.text}</p>
+                            <p className="text-xs text-gray-500 mt-1">Tap to reply</p>
+                          </div>
+                          {/* Options */}
+                          <div className="px-4 pb-4 space-y-2">
+                            {quickReplyRequest?.options.map((option) => (
+                              <button
+                                key={option}
+                                onClick={() => handleQuickReplySelect(option)}
+                                disabled={sending}
+                                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200
+                                           hover:border-gray-300 hover:bg-gray-50
+                                           disabled:opacity-50 disabled:cursor-not-allowed
+                                           text-left text-[15px] text-gray-800 transition-all"
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
+                      </div>
+                    ) : (
+                      // Already answered - show as regular message
+                      <div className="flex items-end gap-2.5 max-w-[70%]">
+                        {isLastInGroup ? (
+                          imageUrl ? (
+                            <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div
+                              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
+                              style={{ background: avatarGradient(otherName) }}
+                            >
+                              {otherInitial}
+                            </div>
+                          )
+                        ) : (
+                          <div className="w-7 shrink-0" />
+                        )}
+                        <div>
+                          {!isGrouped && (
+                            <p className="text-xs text-gray-400 mb-1.5 ml-1">{otherName}</p>
+                          )}
+                          <div className={`bg-gray-100 px-4 py-3 ${
+                            isLastInGroup ? "rounded-2xl rounded-bl-md" : "rounded-2xl"
+                          }`}>
+                            <p className="text-base leading-relaxed text-gray-800">{msg.text}</p>
+                          </div>
+                          {isLastInGroup && (
+                            <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              );
+            }
+
+            // Quick reply response messages
+            if (msg.type === "quick_reply_response") {
+              return (
+                <div key={i} className={isGrouped ? "mt-0.5" : ""} style={isGrouped ? { marginTop: '2px' } : undefined}>
+                  {showSeparator && (
+                    <div className="flex justify-center py-3">
+                      <span className="text-sm font-medium text-gray-400">
+                        {formatDateSeparator(msg.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  {isOwn ? (
+                    <div className="flex justify-end">
+                      <div className="max-w-[70%]">
+                        <div className={`bg-primary-600 px-4 py-3 shadow-sm ${
+                          isLastInGroup ? "rounded-2xl rounded-br-md" : "rounded-2xl"
+                        }`}>
+                          <p className="text-base leading-relaxed text-white">{msg.text}</p>
+                        </div>
+                        {isLastInGroup && (
+                          <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{msgTime}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-end gap-2.5 max-w-[70%]">
+                      {isLastInGroup ? (
+                        imageUrl ? (
+                          <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
+                            style={{ background: avatarGradient(otherName) }}
+                          >
+                            {otherInitial}
+                          </div>
+                        )
+                      ) : (
+                        <div className="w-7 shrink-0" />
+                      )}
+                      <div>
+                        {!isGrouped && (
+                          <p className="text-xs text-gray-400 mb-1.5 ml-1">{otherName}</p>
+                        )}
+                        <div className={`bg-gray-100 px-4 py-3 ${
+                          isLastInGroup ? "rounded-2xl rounded-bl-md" : "rounded-2xl"
+                        }`}>
+                          <p className="text-base leading-relaxed text-gray-800">{msg.text}</p>
+                        </div>
+                        {isLastInGroup && (
+                          <p className="text-xs text-gray-400 mt-1.5 ml-1">{msgTime}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             }
@@ -908,6 +1392,7 @@ export default function ConversationPanel({
                 </div>
               )}
 
+
               {/* Verification hint - minimal, Apple-like */}
               {isProviderView && !isVerified && (
                 <div className={`mx-4 sm:ml-6 ${detailOpen ? "sm:mr-6" : "sm:mr-[44px]"} mt-4`}>
@@ -942,6 +1427,14 @@ export default function ConversationPanel({
               {/* Input area */}
               <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
                 <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
+                  {/* Quick reply response nudge - shown above input when family responds */}
+                  {showQuickReplyNudge && (
+                    <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                      <p className="text-[14px] text-gray-600">
+                        {familyDisplayName} replied — say hi to continue
+                      </p>
+                    </div>
+                  )}
                   <textarea
                     ref={messageInputRef}
                     value={messageText}

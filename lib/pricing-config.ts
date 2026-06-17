@@ -303,22 +303,36 @@ export const PRICING_DATA_SOURCE = {
  * Methodology: MSA pop-weighted FMR / state pop-weighted-median FMR
  */
 let _metroCostFactors: Record<string, number> | null = null;
+let _loadAttempted = false;
 
 function getMetroCostFactors(): Record<string, number> {
+  // Return cached value if available
   if (_metroCostFactors) return _metroCostFactors;
-  try {
-    // Dynamic import for server-side use
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fs = require("fs");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const path = require("path");
-    const filePath = path.join(process.cwd(), "public/data/metro-cost-factors.json");
-    _metroCostFactors = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch {
-    // Client-side or file not found — fall back to empty (factor = 1.0 for all)
-    _metroCostFactors = {};
+
+  // Only attempt load once to avoid repeated failures
+  if (_loadAttempted) return {};
+  _loadAttempted = true;
+
+  // Server-side only: try to load from filesystem
+  // (webpack config excludes fs/path from client bundle)
+  if (typeof window === 'undefined' && typeof process !== 'undefined') {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const fs = require("fs");
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const path = require("path");
+      const filePath = path.join(process.cwd(), "public/data/metro-cost-factors.json");
+      const data = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, number>;
+      _metroCostFactors = data;
+      return data;
+    } catch {
+      // Fall through - file not found or read error
+    }
   }
-  return _metroCostFactors!;
+
+  // Client-side or file not found — fall back to empty (factor = 1.0 for all)
+  _metroCostFactors = {};
+  return _metroCostFactors;
 }
 
 /**

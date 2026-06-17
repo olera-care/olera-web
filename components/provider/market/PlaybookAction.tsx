@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 /**
  * Playbook action — either a link to a real product surface (reviews, call sheet)
@@ -8,16 +9,25 @@ import { useState } from "react";
  * warm confirmation inline (no mailto, no leaving the page).
  */
 export default function PlaybookAction({
-  label, href, requestType, city, state,
-}: { label: string; href?: string; requestType?: string; city?: string; state?: string }) {
+  label, href, requestType, city, state, item, providerSlug, providerName,
+}: { label: string; href?: string; requestType?: string; city?: string; state?: string; item?: string; providerSlug?: string; providerName?: string }) {
   const [state2, setState2] = useState<"idle" | "sending" | "done" | "error">("idle");
 
   const linkCls =
     "inline-flex items-center gap-1 text-[13px] font-medium text-[#199087] mt-2 py-1 hover:text-[#147a72] hover:gap-1.5 active:opacity-70 transition-all";
 
+  const trackPlaybookClick = () => {
+    if (providerSlug) {
+      trackProviderEvent(providerSlug, "your_market_playbook_clicked", {
+        provider_name: providerName,
+        item: item || requestType || "unknown",
+      });
+    }
+  };
+
   if (href) {
     return (
-      <a href={href} className={linkCls}>
+      <a href={href} className={linkCls} onClick={trackPlaybookClick}>
         {label} <span aria-hidden>→</span>
       </a>
     );
@@ -34,6 +44,7 @@ export default function PlaybookAction({
 
   const onClick = () => {
     if (state2 === "sending") return; // allow retry from idle or error
+    trackPlaybookClick();
     setState2("sending");
     fetch("/api/provider/market-request", {
       method: "POST",

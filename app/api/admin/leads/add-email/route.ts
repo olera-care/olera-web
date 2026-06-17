@@ -56,6 +56,22 @@ export async function POST(request: NextRequest) {
           { status: 422 },
         );
       }
+      // Catch-all ('risky'): the domain accepts all mail at the door, so we can't
+      // confirm a real inbox exists. These bounce ~15%, and the cold lane now
+      // suppresses catch-all at send (lib/email.ts) — so the deferred lead/
+      // question notification to this address would be skipped anyway. Warn the
+      // operator to find a named inbox; forcing through saves the address but the
+      // cold notification still won't fire.
+      if (verdict.status === "risky") {
+        return NextResponse.json(
+          {
+            error: "risky",
+            message:
+              "That looks like a catch-all domain — mail often won't reach a real inbox, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.",
+          },
+          { status: 422 },
+        );
+      }
     }
 
     const db = getServiceClient();
@@ -63,12 +79,25 @@ export async function POST(request: NextRequest) {
     // Get the business profile
     const { data: profile, error: profileErr } = await db
       .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug, metadata")
+      .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
       .eq("id", profileId)
       .single();
 
     if (profileErr || !profile) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    // Protection: If this account is claimed (has account_id) AND already has an email,
+    // block the change. The provider owns this email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    if (profile.account_id && profile.email) {
+      return NextResponse.json(
+        {
+          error: "claimed_account",
+          message: "This provider has claimed their account. Their email cannot be changed by admins.",
+        },
+        { status: 403 }
+      );
     }
 
     // Use submitted email, or fall back to existing email on file

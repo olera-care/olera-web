@@ -340,25 +340,38 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 // generic line at the bottom — admin can edit in PreFlight.
 function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "activation") {
-    // Activation cadence has a single check-in call. Reference the link we
-    // already sent and offer the meeting as the easy alternative.
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the link to view the {campus_name} students near you and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through getting set up?"`;
+    // Activation cadence has a single check-in call. Reference the eligibility
+    // check we already sent and offer the meeting as the easy alternative.
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the eligibility check to get set up as a host agency for Olera's {campus_name} Student Caregiver Internship and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through it?"`;
   }
   if (type === "provider") {
-    if (day === 0) {
-      // v9.1 Graize 05.13 audit (Item 6): Day 0 purpose locked in.
-      // Confirm the email arrived, confirm it reached the right
-      // person, ask for a better leadership/hiring contact if not,
-      // and (briefly) signal that the program info + next steps
-      // are already in the email.
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, calling about Olera's {campus_name} Student Caregiver Program. We just emailed {organization_name} with the program information and next steps — reply with interest or schedule a quick call with Dr. DuBose. I'm trying to make sure it reached the right person. Could you point me toward whoever handles caregiver hiring or your leadership team, or share a better email to forward it to?"`;
-    }
-    if (day === 1) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on yesterday's email and call about Olera's {campus_name} Student Caregiver Program. Just want to confirm the right contact for caregiver hiring at {organization_name} — would you have a moment, or is there a better email I can forward the program details to?"`;
+    if (day === 3) {
+      // Day 3 call, paired with the Day 3 follow-up email. Confirm the email
+      // reached the right person, gauge host-site interest, and ask for the
+      // caregiver-hiring contact. The eligibility check is the easy next step.
+      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed {organization_name} about Olera's {campus_name} Student Caregiver Internship, which places pre-nursing and pre-medical students in caregiver roles at host home care agencies near campus. I wanted to make sure it reached the right person and see if you'd consider hosting an intern. Could you point me to whoever handles caregiver hiring, or a better email for the eligibility details?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
+      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera, circling back on Olera's {campus_name} Student Caregiver Internship. Just making sure it reached the right person at {organization_name}. If you're open to hosting an intern this fall, the eligibility check to become a host home care agency takes about a minute and I'm happy to send the link, or set up a quick call with Dr. DuBose."`;
     }
+  }
+  if (type === "student_org") {
+    // Day 6 org call (phone permitting), paired with the follow-up email. Lead
+    // with the opportunity for their members + the easy share + the speaker.
+    return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. We sent your org a caregiving internship for pre-health students, paid healthcare experience that counts toward med, PA, and nursing applications. It is easy to share with your members, and Dr. DuBose would be glad to speak at a meeting. Wanted to see if your members might be interested."`;
+  }
+  if (type === "advisor") {
+    // Day 6 intro call, paired with the program-info email that goes out the
+    // same day. Introduce, signal the info is coming, and tee up the meeting.
+    // Not a pitch; references the email we're about to send (the one place a
+    // call may reference an email).
+    return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. Dr. DuBose is piloting a caregiving internship that gives your pre-health students paid healthcare experience and a credential for their applications. I wanted to introduce it and see if Dr. DuBose could connect with you. What's the best email, and is there a good time to talk?"`;
+  }
+  if (type === "dept_head") {
+    // Day 6 call, paired with the follow-up email. Introduce, the program for
+    // their pre-health students, and Dr. DuBose's offer to connect on a short
+    // Zoom. Formal, not a pitch.
+    return `"Hello, this is {admin_first_name}, a research assistant working with Dr. Logan DuBose at Olera. Dr. DuBose is piloting a caregiving internship that gives your pre-health students paid healthcare experience for med, PA, and nursing applications. He would value a short Zoom to introduce it and see if we could collaborate. I wanted to see if you might be interested, or if there is a good time to connect."`;
   }
   return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and ask whether there's a better person to forward the program details to.`;
 }
@@ -374,28 +387,20 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
  */
 export function defaultCallTipsForDay(type: CadenceKey, day: number): string[] {
   if (type === "provider") {
-    if (day === 0) {
+    if (day === 3) {
       return [
-        "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
+        "If a receptionist answers, ask for whoever handles caregiver hiring or staffing.",
         "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Reference today's email from Graize and Olera's {campus_name} Student Caregiver Program.",
-        "Offer to resend the information packet if useful.",
-      ];
-    }
-    if (day === 1) {
-      return [
-        "Ask for the hiring coordinator if the receptionist answers.",
-        "Confirm who handles caregiver staffing if you're not sure.",
-        "Offer to resend the information packet via email.",
-        "Leave a voicemail if unavailable. Reference prior outreach and Dr. DuBose's calendar.",
+        "The eligibility check is the easy next step; offer to send the link.",
+        "Leave a voicemail if unavailable. Reference today's email from Graize and the {campus_name} internship.",
       ];
     }
     if (day === 5) {
       return [
         "Keep the tone light and non-pushy.",
-        "If there's a better person on the leadership or hiring team, ask for a redirect.",
-        "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Offer Dr. DuBose's calendar as the easy next step.",
+        "If there's a better person for hiring, ask for a redirect.",
+        "Offer the eligibility link or Dr. DuBose's calendar as the easy next step.",
+        "Leave a voicemail if unavailable.",
       ];
     }
   }
@@ -426,7 +431,9 @@ export function defaultSnapshotsFor(
   // rows borrow student_org's first-name salutation pattern (informal,
   // no Dr./Prof. honorific). All other variables are kind-agnostic.
   const templateStakeholderType: StakeholderType =
-    type === "provider" || type === "activation" ? "student_org" : type;
+    type === "provider" || type === "activation" || type === "partner_welcome"
+      ? "student_org"
+      : type;
   for (const day of days) {
     for (const step of day.steps) {
       if (step.channel !== "email" || !step.template) continue;
@@ -472,7 +479,9 @@ export function defaultSnapshotsByVariant(
   const general: EmailSnapshot[] = [];
   const named: EmailSnapshot[] = [];
   const templateStakeholderType: StakeholderType =
-    type === "provider" || type === "activation" ? "student_org" : type;
+    type === "provider" || type === "activation" || type === "partner_welcome"
+      ? "student_org"
+      : type;
   for (const day of days) {
     for (const step of day.steps) {
       if (step.channel !== "email" || !step.template) continue;

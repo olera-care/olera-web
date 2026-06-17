@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
         no_email: 0,
         recently_nudged: 0,
         send_failed: 0,
+        admin_archived_provider: 0, // Admin archived the provider (no emails to them)
       },
       dry_run: dryRun,
     };
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, metadata)
       `
       )
       .eq("type", "inquiry")
@@ -202,9 +203,7 @@ export async function GET(request: NextRequest) {
           m.from_profile_id !== "system" &&
           !!m.text?.trim()
       );
-      const markedReplied = meta.marked_replied === true;
-      const alreadyConnected = meta.archive_reason === "already_connected";
-      const providerResponded = hasThreadResponse || markedReplied || alreadyConnected;
+      const providerResponded = hasThreadResponse;
       if (providerResponded) {
         counts.skipped++;
         counts.skipReasons.responded++;
@@ -216,6 +215,14 @@ export async function GET(request: NextRequest) {
       if (!providerEmail) {
         counts.skipped++;
         counts.skipReasons.no_email++;
+        continue;
+      }
+
+      // Check if provider is admin-archived (no emails sent to them)
+      const toProfileMeta = (toProfile?.metadata as Record<string, unknown>) ?? {};
+      if (toProfileMeta.admin_archived === true) {
+        counts.skipped++;
+        counts.skipReasons.admin_archived_provider = (counts.skipReasons.admin_archived_provider || 0) + 1;
         continue;
       }
 

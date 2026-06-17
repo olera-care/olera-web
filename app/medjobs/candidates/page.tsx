@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
-import WelcomeBanner from "@/components/medjobs/WelcomeBanner";
-import { LOGAN_DEMO_CANDIDATE } from "@/lib/medjobs/demo-candidate";
-import type { StudentMetadata } from "@/lib/types";
+import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
+import DrDuBoseWelcome, { type NoteVariant } from "@/components/medjobs/DrDuBoseWelcome";
+import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
+import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
+import { US_STATES } from "@/lib/power-pages";
 
 const PAGE_SIZE = 20;
 // Session key so the university filter persists across navigation (the
@@ -22,29 +22,8 @@ const UNIVERSITY_FILTER_KEY = "medjobs_university_filter";
 interface University {
   id: string;
   name: string;
+  state: string | null;
 }
-
-// The sample profile rendered (as a normal card, badged DEMO) when a campus
-// has no real students yet. Same Logan DuBose content as before, just in the
-// standard CandidateCard so the UI stays consistent.
-const DEMO_CARD: CandidateData = {
-  id: LOGAN_DEMO_CANDIDATE.id,
-  slug: LOGAN_DEMO_CANDIDATE.id,
-  display_name: "Logan DuBose",
-  city: LOGAN_DEMO_CANDIDATE.city,
-  state: LOGAN_DEMO_CANDIDATE.state,
-  description: null,
-  care_types: [],
-  image_url: LOGAN_DEMO_CANDIDATE.photo_url,
-  created_at: new Date(0).toISOString(),
-  metadata: {
-    university: "Texas A&M University",
-    intended_professional_school: "medicine",
-    certifications: LOGAN_DEMO_CANDIDATE.certifications,
-    languages: LOGAN_DEMO_CANDIDATE.languages,
-    hours_per_week_range: LOGAN_DEMO_CANDIDATE.hours_per_week,
-  } as unknown as StudentMetadata,
-};
 
 export default function CandidateBrowsePage() {
   return (
@@ -56,26 +35,30 @@ export default function CandidateBrowsePage() {
 
 function CandidateBrowseInner() {
   const searchParams = useSearchParams();
-  const { openAuth, activeProfile, profiles } = useAuth();
-  const isProvider =
-    activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  const { profiles, refreshAccountData, isLoading } = useAuth();
 
-  const claimConflict = searchParams?.get("claim_conflict") === "1";
-  const outreachIdFromUrl = searchParams?.get("outreach_id") ?? undefined;
-  // Activation-cadence links carry ?activate=1 → open Terms on arrival.
-  const autoOpenTerms = searchParams?.get("activate") === "1";
-  // The magic-link landing resolves the provider's campus → university id.
-  const universityFromUrl = searchParams?.get("university") ?? null;
-
-  // Pilot/subscription unlocks the full board; otherwise preview. Used both for
-  // data redaction (server-side) and to decide whether to show the welcome
-  // banner, which persists until the provider activates the pilot.
+  // A provider is any account that owns an organization/caregiver profile.
   const providerProfile = profiles?.find(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  const isPaid = medjobsAccessActive(
+  const hasProviderProfile = !!providerProfile;
+  const isEligible = isMedjobsEligible(
     (providerProfile?.metadata ?? null) as Record<string, unknown> | null
   );
+  const matchBuckets = (
+    (providerProfile?.metadata as Record<string, unknown> | undefined)?.[
+      "medjobs_demand_profile"
+    ] as { coverage_buckets?: string[] } | undefined
+  )?.coverage_buckets;
+
+  const claimConflict = searchParams?.get("claim_conflict") === "1";
+  // Magic-link arrivals (?welcome=1 / ?activate=1) auto-open the screener.
+  const autoOpenScreener =
+    searchParams?.get("welcome") === "1" || searchParams?.get("activate") === "1";
+  const universityFromUrl = searchParams?.get("university") ?? null;
+  // Campus slug threaded from /medjobs/providers?campus=… → resolved to a
+  // university id below so the board lands filtered to that campus.
+  const campusSlugParam = searchParams?.get("campus") ?? null;
 
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,8 +69,14 @@ function CandidateBrowseInner() {
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [universityId, setUniversityId] = useState<string>("");
+  const [geoState, setGeoState] = useState<string | null>(null);
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
+  const [showScreener, setShowScreener] = useState(false);
+
   const initedRef = useRef(false);
+  const geoTriedRef = useRef(false);
+  const campusResolvedRef = useRef(false);
+  const autoOpenedRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Universities for the dropdown.
@@ -95,7 +84,7 @@ function CandidateBrowseInner() {
     const supabase = createClient();
     supabase
       .from("medjobs_universities")
-      .select("id, name")
+      .select("id, name, state")
       .eq("is_active", true)
       .order("name")
       .then(({ data }: { data: University[] | null }) => {
@@ -124,6 +113,64 @@ function CandidateBrowseInner() {
       }
     }
   }, [universityFromUrl]);
+
+  // Resolve a threaded campus slug (?campus=…) to a university id.
+  useEffect(() => {
+    if (!initedRef.current || campusResolvedRef.current) return;
+    if (universityId || universityFromUrl || !campusSlugParam) return;
+    campusResolvedRef.current = true;
+    const supabase = createClient();
+    supabase
+      .from("medjobs_universities")
+      .select("id")
+      .eq("slug", campusSlugParam)
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }: { data: { id: string } | null }) => {
+        if (data?.id) setUniversityId((cur) => cur || data.id);
+      });
+  }, [campusSlugParam, universityId, universityFromUrl]);
+
+  // Geo auto-filter: when nothing pinned the campus (no session, no url param,
+  // no resolvable campus slug), detect the visitor's state from the SAME proven
+  // endpoint the directory's city pages use (/api/geo → Vercel edge geo, state
+  // only — no sparse lat/lng). Resolved to a university below.
+  useEffect(() => {
+    if (!initedRef.current || geoTriedRef.current) return;
+    if (universityId || universityFromUrl || campusSlugParam) return;
+    geoTriedRef.current = true;
+    fetch("/api/geo")
+      .then((r) => r.json())
+      .then((d: { state?: string | null }) => setGeoState(d?.state ?? null))
+      .catch(() => {});
+  }, [universityId, universityFromUrl, campusSlugParam]);
+
+  // Resolve the geo'd state → the active university in that state. Soft default,
+  // NOT persisted (user can still pick "All universities"). If no campus exists
+  // in that state we leave the board on "All" rather than forcing a wrong campus.
+  useEffect(() => {
+    if (!geoState || universities.length === 0) return;
+    if (universityId || universityFromUrl || campusSlugParam) return;
+    const abbr = geoState.trim().toUpperCase(); // /api/geo returns 2-letter
+    const fullName = US_STATES[abbr]?.toLowerCase(); // tolerate "Texas" rows too
+    const match = universities.find((u) => {
+      const s = (u.state ?? "").trim();
+      return s.toUpperCase() === abbr || (!!fullName && s.toLowerCase() === fullName);
+    });
+    if (match) setUniversityId((cur) => cur || match.id);
+  }, [geoState, universities, universityId, universityFromUrl, campusSlugParam]);
+
+  // Auto-open the screener for a ?welcome=1 / ?activate=1 arrival who isn't
+  // eligible yet — works for anon (the screener's claim step signs them in) and
+  // for not-eligible providers. Wait for auth to settle so an already-eligible
+  // provider doesn't briefly see it.
+  useEffect(() => {
+    if (autoOpenedRef.current || isLoading) return;
+    if (autoOpenScreener && !isEligible && !claimConflict) {
+      autoOpenedRef.current = true;
+      setShowScreener(true);
+    }
+  }, [autoOpenScreener, isEligible, claimConflict, isLoading]);
 
   const onUniversityChange = useCallback((id: string) => {
     setUniversityId(id);
@@ -167,7 +214,7 @@ function CandidateBrowseInner() {
   useEffect(() => {
     setPage(0);
     fetchCandidates(0, false);
-  }, [fetchCandidates, isPaid]);
+  }, [fetchCandidates]);
 
   // Infinite scroll
   useEffect(() => {
@@ -188,9 +235,41 @@ function CandidateBrowseInner() {
 
   const selectedUniversityName =
     universities.find((u) => u.id === universityId)?.name ?? null;
-  // Welcome banner persists for a signed-in provider until they activate the
-  // pilot (no manual dismiss). Suppressed once pilot-active and for non-providers.
-  const showWelcome = isProvider && !isPaid;
+
+  const realCount = candidates.length;
+  // Samples fill the board only when there are no real students for the
+  // current filter (and the real fetch has settled).
+  const showSamples = !loading && realCount === 0;
+
+  // The Note from Dr. DuBose — the universal anchor; variant by state.
+  const noteVariant: NoteVariant = !hasProviderProfile
+    ? "anon"
+    : !isEligible
+      ? "not_eligible"
+      : loading || realCount > 0
+        ? "happy"
+        : "fallback";
+
+  // Both anon and not-eligible providers open the screener; the screener's own
+  // claim step handles anon sign-in + org creation/claim in-modal.
+  const onCheckEligibility = useCallback(() => {
+    setShowScreener(true);
+  }, []);
+
+  // On screener completion, refresh auth in place (no reload), close, and strip
+  // the one-shot params so a manual refresh doesn't re-open the screener.
+  const onScreenerComplete = useCallback(async () => {
+    await refreshAccountData();
+    setShowScreener(false);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("welcome");
+      url.searchParams.delete("activate");
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      // ignore
+    }
+  }, [refreshAccountData]);
 
   const selectClass =
     "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";
@@ -204,31 +283,20 @@ function CandidateBrowseInner() {
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
-          {!isProvider && (
-            <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
-              <Link href="/medjobs/providers" className="hover:text-primary-600 transition-colors">
-                MedJobs
-              </Link>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              <span className="text-gray-600">Caregivers</span>
-            </nav>
-          )}
-
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
-            Hire Local Caregivers
+            Hire Vetted Caregivers Near You
           </h1>
           <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Pre-vetted students pursuing careers in healthcare — ready to
-            provide quality care in your area.
+            Vetted pre-nursing and pre-medical students who commit to a semester
+            of recurring availability, ready to match with your clients.
           </p>
 
           {total > 0 && (
             <div className="mt-4 flex items-center gap-4">
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
                 <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
-                {total} caregiver{total !== 1 ? "s" : ""} available
+                {total} caregiver{total !== 1 ? "s" : ""}
+                {selectedUniversityName ? ` near ${selectedUniversityName}` : " available"}
               </span>
             </div>
           )}
@@ -236,12 +304,29 @@ function CandidateBrowseInner() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {showWelcome && (
-          <WelcomeBanner
-            claimConflict={claimConflict}
-            isProvider={!!isProvider}
-            outreachId={outreachIdFromUrl}
-            autoOpen={autoOpenTerms}
+        {claimConflict && (
+          <div className="mb-6 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4">
+            <h2 className="font-serif text-lg text-gray-900">
+              This organization is already linked to another team member.
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-gray-700">
+              You can browse the board freely. To be added to the existing team
+              account, email{" "}
+              <a href="mailto:logan@olera.care" className="font-medium text-primary-700 hover:underline">
+                logan@olera.care
+              </a>{" "}
+              and we&apos;ll handle it.
+            </p>
+          </div>
+        )}
+
+        {/* The Note from Dr. DuBose — universal anchor, state-specific. */}
+        {!claimConflict && (
+          <DrDuBoseWelcome
+            variant={noteVariant}
+            campusName={selectedUniversityName}
+            orgName={providerProfile?.display_name ?? null}
+            onCheckEligibility={onCheckEligibility}
           />
         )}
 
@@ -299,36 +384,26 @@ function CandidateBrowseInner() {
               </div>
             ))}
           </div>
-        ) : candidates.length === 0 ? (
-          universityId ? (
-            // No real students at the selected campus yet → recruiting message
-            // + a single DEMO card (normal card design) so the UI stays
-            // consistent and the provider sees what a candidate looks like.
-            <div className="space-y-5">
-              <div className="rounded-2xl border border-gray-100 bg-white px-6 py-5">
-                <h2 className="font-display text-xl text-gray-900">
-                  We&apos;re actively recruiting at {selectedUniversityName || "your campus"}.
-                </h2>
-                <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                  You&apos;ll be notified when new candidates are posted. In the
-                  meantime, here&apos;s a sample of what a candidate profile looks like.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <CandidateCard candidate={DEMO_CARD} basePath="/medjobs/candidates" isDemo />
-              </div>
+        ) : showSamples ? (
+          // No real students for this filter yet → show curated samples so the
+          // board is never empty. Header frames them honestly as "joining near".
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-gray-500">
+              Sample profiles — the caliber of{" "}
+              {selectedUniversityName ? `${selectedUniversityName} ` : ""}caregivers joining Olera
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {SAMPLE_CANDIDATES.map((c) => (
+                <CandidateCard
+                  key={c.id}
+                  candidate={c}
+                  basePath="/medjobs/candidates"
+                  isDemo
+                  matchBuckets={matchBuckets}
+                />
+              ))}
             </div>
-          ) : (
-            <div className="text-center py-20">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
-              </div>
-              <p className="text-gray-500 text-sm font-medium">No caregivers found.</p>
-              <p className="text-gray-400 text-sm mt-1">Try a different university filter.</p>
-            </div>
-          )
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -337,6 +412,7 @@ function CandidateBrowseInner() {
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/medjobs/candidates"
+                  matchBuckets={matchBuckets}
                 />
               ))}
             </div>
@@ -348,29 +424,19 @@ function CandidateBrowseInner() {
             )}
 
             {hasMore && !loadingMore && <div ref={sentinelRef} className="h-1" />}
-
-            {!hasMore && candidates.length > 0 && !isProvider && (
-              <div className="mt-8 text-center">
-                <div className="inline-flex flex-col items-center gap-3 px-8 py-6 bg-white rounded-2xl border border-gray-100">
-                  <p className="text-base font-medium text-gray-900">
-                    Ready to connect with candidates?
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => openAuth({ intent: "provider", defaultMode: "sign-in" })}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-                  >
-                    Sign in as a Provider
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      {showScreener && (
+        <EligibilityScreenerModal
+          providerProfileId={providerProfile?.id}
+          campusName={selectedUniversityName}
+          orgName={providerProfile?.display_name ?? null}
+          onClose={() => setShowScreener(false)}
+          onComplete={onScreenerComplete}
+        />
+      )}
     </main>
   );
 }

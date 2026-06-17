@@ -130,10 +130,138 @@ export function providerProfileCompletionEmail(opts: {
     ${ghostCard}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">Add your photo and a few sentences about why you do this work. It takes two minutes, and it&rsquo;s the difference between a listing and a person a family wants to call.</p>
     <div>${button("Add your story →", opts.ctaUrl)}</div>
+    ${authorBylineBlock({ topBorder: true })}
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
     </div>`,
     `Families choose people, not listings - add your story to ${opts.providerName}.`,
+  );
+}
+
+/**
+ * Managed Ads digest email — the weekly nudge for the no-leads cohort (~99%).
+ *
+ * Diagnosis-led, not offer-led: it opens with a TRUE local-demand fact about the
+ * reader's own market (`localDemand` = unique provider-page viewers in their
+ * city+category this week, the same number the weekly digest already uses) and
+ * lets that visible gap motivate the paid ads, rather than pitching the product
+ * cold. Three deliberate moves separate it from the lead-gen vendors providers
+ * distrust: (1) reader-first hook, not "we run ads"; (2) an explicit anti-broker
+ * line — they fund their own campaign, the families are theirs, no per-lead
+ * charge, no resale (honest that it's PAID; we do NOT claim it's free or that
+ * there's "nothing to set up"); (3) Dr. Logan's trust signature, same as the
+ * cold-rank email. One-click magic link (action="ads") auth-lands them on
+ * /provider/boost; the CTA stays honest about that page's 70% completeness gate
+ * ("See how it works") instead of promising zero setup.
+ */
+export function providerManagedAdsEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  ctaUrl: string;
+  city?: string | null;
+  category?: string | null;
+  /** Unique provider-page viewers in the city+category cohort this week. Real
+   *  number from provider_page_view_stats; below the floor (<5) → qualitative
+   *  fallback, so a thin "1 family" number never undersells the pitch. */
+  localDemand?: number | null;
+}): string {
+  const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const where = opts.city ? ` near ${escapeHtml(opts.city)}` : " in your area";
+  const cat = humanCategoryLabel(opts.category ?? null);
+  const demand = opts.localDemand && opts.localDemand >= 5 ? opts.localDemand : null;
+
+  // Lead with the real number when we have it; degrade gracefully when we don't.
+  const headline = demand
+    ? `${demand.toLocaleString()} ${demand === 1 ? "family" : "families"} searched for ${cat}${where} this week.`
+    : `Families${where} are searching for care right now.`;
+  // The "where most demand goes" line — non-accusatory (no "your page isn't one
+  // of them"); just describes how families actually search and stall.
+  const elsewhere = demand
+    ? `That&rsquo;s only the demand we saw on Olera. Many more search Google, ask in Facebook groups, check Nextdoor, call an agency or two, and stop.`
+    : `They search Google, ask in Facebook groups, check Nextdoor, call an agency or two, and stop &mdash; most never reach a directory at all.`;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Your local market</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${headline}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${elsewhere}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re testing a simple way to help local agencies show up earlier. You fund a small local campaign, Olera runs it, sends interested families straight to your Olera page, and shows you exactly what happened.</p>
+    <div style="margin:0 0 22px;">
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No per-lead fee.</p>
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0 0 6px;line-height:1.5;">No resold inquiries.</p>
+      <p style="font-size:15px;font-weight:600;color:#111827;margin:0;line-height:1.5;">No bidding against other agencies for the same family.</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 28px;line-height:1.65;">Just your own campaign, pointed at your own page.</p>
+    <div>${button("See how it works →", opts.ctaUrl)}</div>
+    ${authorBylineBlock()}
+    <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
+    </div>`,
+    demand
+      ? `${demand.toLocaleString()} families searched for ${cat}${where} this week`
+      : `Families${opts.city ? ` near ${escapeHtml(opts.city)}` : ""} are searching for care right now.`,
+  );
+}
+
+/**
+ * Find Families digest variant — a provider with a real published care-seeker
+ * within ~50mi (the scarce, high-intent signal). Distinct from the managed-ads
+ * pitch (no-leads cohort): this fires only when there's an actual nearby family,
+ * so the copy is concrete and warm, not a sales pitch. The CTA is a one-click
+ * "matches" magic link straight to /provider/matches. Goal action: reaching out
+ * (provider_activity matches_outreach_sent). No PHI — town + care need only,
+ * never the family's name (subject + body), matching the page's framing.
+ */
+export function providerFindFamiliesDigestEmail(opts: {
+  providerName: string;
+  providerSlug: string;
+  ctaUrl: string;          // one-click magic link → /provider/matches
+  nearbyCount: number;
+  nearestTown?: string | null;
+  careNeed?: string | null;
+  timeline?: string | null;
+}): string {
+  const unsubUrl = `${BASE_URL}/unsubscribe/${opts.providerSlug}?type=analytics_digest`;
+  const many = opts.nearbyCount > 1;
+
+  const TIMELINE_PHRASE: Record<string, string> = {
+    immediate: "and needs care right away",
+    within_1_month: "within the next month",
+    within_3_months: "within the next few months",
+    exploring: "and is exploring options",
+  };
+  const prettyCare = opts.careNeed
+    ? escapeHtml(opts.careNeed.replace(/[_-]+/g, " ").trim().toLowerCase())
+    : null;
+  const town = opts.nearestTown ? escapeHtml(opts.nearestTown) : null;
+  const timelinePhrase = opts.timeline ? TIMELINE_PHRASE[opts.timeline] ?? "" : "";
+
+  const heading = many
+    ? `${opts.nearbyCount} families near you are looking for care`
+    : "A family near you is looking for care";
+
+  // One concrete line about the nearest family — town + care need + timing when we
+  // have them, gracefully degrading to a plain line when we don't.
+  const lead = town
+    ? `A family in ${town} is looking for ${prettyCare ?? "care"} ${timelinePhrase}`.trim() + "."
+    : `A family within driving distance is looking for ${prettyCare ?? "care"} ${timelinePhrase}`.trim() + ".";
+  const detail = many
+    ? `${lead} ${opts.nearbyCount - 1} more ${opts.nearbyCount - 1 === 1 ? "family is" : "families are"} searching nearby too.`
+    : lead;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${heading}.</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${detail}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;"><strong>The first provider to reach out is 3&times; more likely to connect.</strong> They&rsquo;re comparing their options now &mdash; a short, warm note from you goes a long way.</p>
+    <div>${button(many ? "See the families →" : "See the family →", opts.ctaUrl)}</div>
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>
+    </div>`,
+    many
+      ? `${opts.nearbyCount} families near ${opts.providerName} are looking for care right now.`
+      : `A family near ${opts.providerName} is looking for care right now.`,
   );
 }
 
@@ -226,6 +354,54 @@ function loganLeadSignature(): string {
 }
 
 /**
+ * "About the authors" trust byline — the canonical photo + "Olera is built by
+ * Dr. Logan DuBose … and TJ Falohun …" partnership block that grounds every
+ * provider digest in real, NIH-backed people (not a lead broker). Shared across
+ * all weekly-digest variants so the trust signal reads identically everywhere.
+ *
+ * The photo MUST be Supabase-hosted — olera.care/images/* is WAF-challenged for
+ * email image proxies and renders blank.
+ *
+ * @param topBorder - hairline divider above the block (use when it directly
+ *   follows body content; omit when it already sits below a divider/button).
+ * @param heading  - optional bold lead-in (e.g. "Why Olera maps this").
+ * @param tail     - optional muted context line below the byline.
+ */
+function authorBylineBlock(opts: { topBorder?: boolean; heading?: string; tail?: string } = {}): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
+  const wrapStyle = opts.topBorder
+    ? "margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"
+    : "margin:24px 0 0;";
+  const heading = opts.heading
+    ? `<p style="margin:0 0 4px;font-weight:600;color:#111827;">${opts.heading}</p>`
+    : "";
+  const byline = `<p style="margin:${opts.tail ? "0 0 6px" : "0"};">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care less opaque for families and providers.</p>`;
+  const tail = opts.tail
+    ? `<p style="margin:0;color:#9ca3af;">${opts.tail}</p>`
+    : "";
+  return `
+    <div style="${wrapStyle}">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">${heading}${byline}${tail}</td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+function referralTeaserTrustBlock(): string {
+  return authorBylineBlock({
+    topBorder: true,
+    heading: "Why Olera maps this",
+    tail: "This map is one way to show the local relationships that can shape where families call first.",
+  });
+}
+
+/**
  * Cold / quiet-week provider rank email — the §1c Market-Intelligence expansion audience.
  *
  * A trust-forward first-contact note from Dr. DuBose for providers who rank top-5 in their
@@ -241,7 +417,7 @@ export function coldProviderRankEmail(opts: {
   outOf: number;
   cityLabel: string;
   careLabel: string;      // "home care" | "assisted living"
-  ctaUrl: string;         // one-click market magic link (auth → /provider/matches)
+  ctaUrl: string;         // one-click market magic link (auth → /provider/market)
   manageUrl: string;
   removeUrl: string;
   unsubscribeUrl: string;
@@ -293,6 +469,7 @@ export function providerLeadDigestEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">This past week, ${many ? who : "a family"} asked to connect with ${name} on Olera. They shared what kind of care they&rsquo;re looking for and when they need it.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Families usually reach out to a few providers at once, so the first thoughtful reply tends to win the conversation. It takes a minute, and there&rsquo;s no fee to respond.</p>
     <div style="margin:0 0 30px;">${button(many ? "See who reached out →" : "See their request →", ctaUrl)}</div>
+    ${authorBylineBlock({ topBorder: true })}
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"><p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", manageUrl)} &middot; ${secondaryLink("Unsubscribe", unsubscribeUrl)}</p></div>`;
   return layout(body, `${who} asked to connect with ${name} on Olera.`);
 }
@@ -786,45 +963,80 @@ export function unreadReminderEmail(opts: {
   `, `There's no rush — they're still there whenever you're ready.`);
 }
 
-/** Email to family when provider is silent for ~4 days - offer alternative providers */
+/** Email to family when provider is silent for ~4 days OR actively declines - offer alternative providers */
 export function providerSilentEmail(opts: {
   familyName: string;
   providerName: string;
   providerPassed: boolean; // true if provider actively declined, false if just silent
+  declineMessage?: string | null; // Provider's custom message when declining (only shown if providerPassed is true)
   recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
   browseUrl: string;
   city: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
+  const hasDeclineMessage = opts.providerPassed && opts.declineMessage?.trim();
+  const hasRecommendedProviders = opts.recommendedProviders.length > 0;
 
-  // Different copy for explicit pass vs silence
-  const openingLine = opts.providerPassed
-    ? `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`
-    : `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one. Here are a few other providers near you who are ready to help:`;
+  // Different copy for explicit decline vs silence
+  // Adjust based on whether we have recommendations to show
+  let openingLine: string;
+  if (opts.providerPassed) {
+    if (hasDeclineMessage) {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now and left you a message:`;
+    } else if (hasRecommendedProviders) {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`;
+    } else {
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area who may be able to help.`;
+    }
+  } else {
+    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you who are ready to help:" : ""}`;
+  }
 
+  // Adjust closing line based on whether we showed recommendations
   const closingLine = opts.providerPassed
-    ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
-    : `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`;
+    ? (hasRecommendedProviders
+        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
+        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls. It's your call.`)
+    : (hasRecommendedProviders
+        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
+        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
+
+  // Show provider's decline message if present (similar to message preview style)
+  // Only say "plenty of other options" if we actually have recommendations
+  const declineMessageSection = hasDeclineMessage
+    ? `<div style="background:#f9fafb;border-left:3px solid #9ca3af;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.declineMessage!.trim())}"</p>
+      </div>
+      ${hasRecommendedProviders
+        ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">But you've got plenty of other great options nearby who'd be glad to help:</p>`
+        : `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">There are other providers in your area who may be able to help:</p>`
+      }`
+    : "";
 
   // Render recommended providers prominently (high up, visible on mobile)
   // Each provider gets a magic link for one-click viewing
-  const providersSection = opts.recommendedProviders.map((p) => `
-    <div style="margin:0 0 12px;">
-      <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
-      ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
-    </div>
-  `).join("");
+  const providersSection = hasRecommendedProviders
+    ? opts.recommendedProviders.map((p) => `
+        <div style="margin:0 0 12px;">
+          <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
+          ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
+        </div>
+      `).join("")
+    : "";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+    <p style="font-size:15px;color:#374151;margin:0 0 ${hasDeclineMessage ? "20px" : "24px"};line-height:1.5;">
       ${openingLine}
     </p>
+    ${declineMessageSection}
+    ${hasRecommendedProviders ? `
     <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
       ${providersSection}
     </div>
+    ` : ""}
     <div style="margin:0 0 24px;">${button("See more providers near you", opts.browseUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -2690,6 +2902,21 @@ interface DigestOpts {
     careLabel: string;
     flattering: boolean;
   } | null;
+  /**
+   * Referral Market teaser for the Market Intelligence branch. This keeps the
+   * first ask curiosity-led ("see who could send families") instead of
+   * homework-led ("work these targets"). Progress is shown only when the
+   * provider has already taken market actions.
+   */
+  referralTeaser?: {
+    totalSources: number;
+    starterTotal: number;
+    workedCount: number;
+    respondedCount: number;
+    referringCount: number;
+    targets: Array<{ name: string; category: string; distanceMiles: number | null }>;
+  } | null;
+  marketUrl?: string | null;
 }
 
 
@@ -2735,6 +2962,22 @@ function digestLead(opts: DigestOpts): string {
     parts.push(`${opts.localDemand.toLocaleString()} families searched for ${cat}${where}.`);
   }
   return parts.join(" ");
+}
+
+const REFERRAL_CATEGORY_LABELS: Record<string, string> = {
+  hospital: "Hospital / discharge",
+  skilled_nursing: "Skilled nursing / rehab",
+  hospice: "Hospice",
+  assisted_living: "Assisted living",
+  elder_law: "Elder law",
+  senior_resource: "Senior resource",
+  home_health: "Home health",
+  financial: "Financial",
+  faith: "Faith community",
+};
+
+function referralCategoryLabel(cat: string): string {
+  return REFERRAL_CATEGORY_LABELS[cat] ?? cat.replace(/_/g, " ");
 }
 
 /**
@@ -2785,6 +3028,7 @@ function providerDemandDigestEmail(
     ${moreCountLine}
     <div>${button("View and respond", answerUrl)}</div>
     <p style="font-size:13px;color:#6b7280;margin:24px 0 0;line-height:1.5;">Answering helps families see your expertise and builds trust with people actively looking for care.</p>
+    ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:13px;color:#9ca3af;margin:16px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -2838,35 +3082,77 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
   }
 
   const microStatsBlock =
-    microStats.length > 0
+    microStats.length > 0 && !opts.referralTeaser
       ? `<div style="display:flex;gap:12px;background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 24px;">${microStats.join("")}</div>`
       : "";
 
   // Market Intelligence hero (no-question providers with a resolved rank) replaces the bland
   // "Your week on Olera" recap. Lead with the rank when flattering, with curiosity otherwise.
   const m = opts.marketRank;
+  const r = opts.referralTeaser;
+  const marketArea = m?.cityLabel ? escapeHtml(m.cityLabel) : "your area";
+  const marketAreaAdjective = m?.cityLabel ? `${escapeHtml(m.cityLabel)}-area` : "nearby";
   const eyebrowText = m ? `Your market · ${escapeHtml(m.cityLabel)}` : "Your week on Olera";
   const headlineHtml = m
-    ? m.flattering
+    ? r
+      ? `Families in ${marketArea} ask these places who provides care.`
+      : m.flattering
       ? `You're <span style="color:${BRAND_COLOR};">#${m.rank}</span> of ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
       : `See where you rank among ${m.outOf} ${escapeHtml(m.careLabel)} agencies in ${escapeHtml(m.cityLabel)}.`
     : headline;
   const leadHtml = m
-    ? m.flattering
+    ? r
+      ? `When someone near ${marketArea} needs home care after a hospital stay, rehab, or a new senior-care need, they often ask a trusted local team which providers to call. We found ${r.totalSources.toLocaleString()} nearby organizations that may shape where those families go next.`
+      : m.flattering
       ? `Share of voice — who owns the reviews families read on Google — is the currency of local trust. Here's exactly where you stand, and the fastest ways to climb.`
       : `We mapped your local market: your competitors by share of voice, your best referral sources, and the ZIPs worth your marketing time.`
     : lead;
-  const ctaLabel = m ? "See your market" : "See your full analytics";
+  const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your market" : "See your full analytics";
   const ctaUrl = m
-    ? `${BASE_URL}/provider/matches?utm_source=weekly_digest&utm_medium=email&utm_campaign=market_rank`
+    ? (opts.marketUrl || `${BASE_URL}/provider/market?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
     : dashboardUrl;
+  const referralRows = r?.targets.slice(0, 3).map((target) => {
+    const distance = target.distanceMiles == null ? "" : ` · ${Number(target.distanceMiles).toFixed(1)} mi`;
+    return `
+      <tr>
+        <td style="padding:12px 0;border-top:1px solid #f3f4f6;">
+          <div style="font-size:14px;font-weight:600;color:#111827;line-height:1.35;">${escapeHtml(target.name)}</div>
+          <div style="font-size:12px;color:#9ca3af;margin-top:3px;line-height:1.35;">${escapeHtml(referralCategoryLabel(target.category))}${distance}</div>
+        </td>
+      </tr>`;
+  }).join("") ?? "";
+  const hasMarketProgress = !!r && (r.workedCount > 0 || r.respondedCount > 0 || r.referringCount > 0);
+  const progressLine = r && hasMarketProgress
+    ? r.referringCount > 0
+      ? `${r.referringCount} referral ${r.referringCount === 1 ? "source is" : "sources are"} already marked as referring.`
+      : r.respondedCount > 0
+        ? `${r.respondedCount} referral ${r.respondedCount === 1 ? "source has" : "sources have"} responded so far.`
+        : `${r.workedCount} referral ${r.workedCount === 1 ? "source is" : "sources are"} already in motion.`
+    : null;
+  const referralBlock = r && referralRows
+    ? `
+    <div style="background:#f9fafb;border-radius:12px;padding:16px;margin:0 0 24px;">
+      <div style="font-size:12px;font-weight:700;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.4px;margin:0 0 2px;">First 3 of ${r.totalSources.toLocaleString()} ${marketAreaAdjective} places</div>
+      <div style="font-size:13px;color:#9ca3af;margin:0 0 10px;line-height:1.5;">Open the full map when you want the rest.</div>
+      <table width="100%" cellpadding="0" cellspacing="0">${referralRows}</table>
+    </div>
+    ${progressLine ? `<p style="font-size:13px;color:#6b7280;margin:-8px 0 24px;line-height:1.5;">${escapeHtml(progressLine)}</p>` : ""}`
+      : "";
+  const preheader = r
+    ? `Hospitals, rehab centers, and senior resources near ${m?.cityLabel ?? "you"} can shape which care providers families call.`
+    : m
+      ? `See where ${opts.providerName} stands in ${m.cityLabel}.`
+      : headline;
+  const trustBlock = r ? referralTeaserTrustBlock() : authorBylineBlock({ topBorder: true });
 
   return layout(`
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${eyebrowText}</p>
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 8px;line-height:1.3;">${headlineHtml}</h1>
     ${leadHtml ? `<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">${leadHtml}</p>` : ""}
+    ${referralBlock}
     ${microStatsBlock}
     <div>${button(ctaLabel, ctaUrl)}</div>
+    ${trustBlock}
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
@@ -2874,7 +3160,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
       <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
       <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", `${BASE_URL}/for-providers/removal-request/${opts.providerSlug}`)} &middot; ${secondaryLink("Stop these weekly digests", analyticsUnsubUrl)}</p>
     </div>
-  `, headline);
+  `, preheader);
 }
 
 // ── Provider Verification Emails ──────────────────────────────────
@@ -3193,6 +3479,99 @@ export function providerNudgeEmail(opts: {
 }
 
 /**
+ * Manual nudge email for "Needs Follow-up" providers
+ *
+ * Hybrid approach: Platform claiming benefits + urgency from waiting families.
+ * Sent by admin for providers in "Needs Follow-up" status who have gone through
+ * the full automated sequence (Day 0, 1, 3, 5) with no response after 10+ days.
+ *
+ * Rationale: If 4+ family-specific nudges failed, problem isn't awareness of leads—
+ * it's lack of platform engagement. This nudge emphasizes claiming benefits while
+ * mentioning waiting families for urgency.
+ */
+export function providerManualNudgeEmail(opts: {
+  providerName: string;
+  familyName: string;
+  city: string | null;
+  leadCount: number; // Total pending leads for this provider
+  viewUrl: string; // HMAC-signed magic link with one-click access
+  providerSlug?: string;
+}): string {
+  // Extract first name with fallback for placeholder names (matches existing pattern)
+  const safeFamilyName = firstName(opts.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!opts.city;
+  const leadCount = opts.leadCount || 1; // Fallback to 1 if not provided
+
+  // Build family mention with proper fallbacks (singular vs plural)
+  let familyMention: string;
+  if (leadCount === 1) {
+    // Single lead
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)}</strong> reached out recently looking for care`
+      : "A family reached out recently looking for care";
+  } else if (leadCount === 2) {
+    // Two leads
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)} and 1 other family</strong> reached out recently`
+      : "2 families reached out recently";
+  } else {
+    // Multiple leads (3+)
+    familyMention = hasName
+      ? `<strong>${escapeHtml(safeFamilyName)} and ${leadCount - 1} other families</strong> reached out recently`
+      : `${leadCount} families reached out recently`;
+  }
+
+  // City mention in body ("in San Diego" or just "")
+  const cityText = hasCity ? ` in ${escapeHtml(opts.city!)}` : "";
+
+  // Reminder for CTA line (singular vs plural)
+  const ctaReminder = leadCount === 1
+    ? (hasName ? `where ${escapeHtml(safeFamilyName)} is waiting` : "where they're waiting")
+    : `where ${hasName ? escapeHtml(safeFamilyName) + " and the others are" : "they're"} waiting`;
+
+  // Button text
+  const buttonText = "Claim your free account & respond →";
+
+  // Preheader
+  const preheader = "One click to get in. No password, no sign-up.";
+
+  // Subject line (dynamic based on lead count)
+  const subject = leadCount === 1
+    ? (hasName ? `Quick check-in about ${safeFamilyName}` : "Quick check-in: a family is waiting")
+    : "Quick check-in: your Olera page + families waiting";
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(opts.providerName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      We know you're busy, so we'll get right to it. ${familyMention}${cityText} — and ${leadCount === 1 ? "they're" : "they're all"} still waiting to hear back. But here's the thing: your team already has a page on Olera, and it's ready for you to claim whenever you are.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Here's what's worth knowing: families come to Olera, search their area, and reach out to providers like you directly — no middleman, no agencies in between. And leads are only one piece of it. Once you claim it, you manage everything yourself, right from your account:
+    </p>
+    <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:15px;line-height:1.8;">
+      <li style="margin:0 0 8px;padding:0;"><strong>See families${cityText} looking for care right now</strong> (including the ${leadCount === 1 ? "one" : "ones"} waiting for you)</li>
+      <li style="margin:0 0 8px;padding:0;">Message them directly and answer their questions</li>
+      <li style="margin:0 0 8px;padding:0;">Keep your profile and details up to date so you show up the way you want</li>
+      <li style="margin:0 0 8px;padding:0;">Rank higher${cityText} so more families find you first</li>
+      <li style="margin:0 0 8px;padding:0;">Collect reviews from the families you've helped</li>
+      <li style="margin:0 0 8px;padding:0;">Hire staff for your team</li>
+    </ul>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      It takes one click to get in — no password, no sign-up, nothing to log into. The button below drops you right into your account ${ctaReminder}.
+    </p>
+    <div style="margin:0 0 32px;">${button(buttonText, opts.viewUrl)}</div>
+    ${loganHeavySignature()}
+    ${offRampBlock(opts.providerSlug)}
+  `,
+    preheader
+  );
+}
+
+/**
  * Consolidated nudge email for providers with multiple waiting leads.
  * Lists all families waiting for a response in a single email.
  */
@@ -3351,7 +3730,12 @@ function loganHeavySignature(): string {
  * Day 1 Follow-up: "In case it got buried"
  * Light signature. Sent 1 day after initial email.
  */
-export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+/**
+ * Day 1 Follow-up: Scenario A - Provider has NOT viewed the lead yet
+ * Subject: "[Name] picked your team"
+ * Gentle reminder that the request is waiting.
+ */
+export function providerFollowupDay1NotViewedEmail(opts: FollowupEmailOpts): string {
   const lead = opts.leads[0];
   const leadCount = opts.leads.length;
   const isMultiple = leadCount > 1;
@@ -3364,22 +3748,33 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build preheader
+  // Build pronoun contractions ("She's", "He's", "They're" - NOT "They's")
+  const pronounContraction = pronouns.pronoun === "They"
+    ? "They're"
+    : `${pronouns.pronoun}'s`;
+
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
+
+  // Build preheader - factual, informative (same pattern as existing)
   let preheader: string;
   if (isMultiple) {
     preheader = `${leadCount} families are looking for care.`;
+  } else if (hasCareType && lead.careRecipient && hasCity) {
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()} for ${lead.careRecipient} in ${lead.city}.`;
   } else if (hasCareType && hasCity) {
-    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()} in ${lead.city}.`;
   } else if (hasCareType) {
-    preheader = `${pronouns.pronoun}'s looking for ${lead.careType!.toLowerCase()}.`;
+    preheader = `${pronounContraction} looking for ${lead.careType!.toLowerCase()}.`;
   } else {
-    preheader = `${pronouns.pronoun}'s looking for care in your area.`;
+    preheader = `${pronounContraction} looking for care in your area.`;
   }
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
-  // Build body for single lead
+  // Build body
   let bodyHtml: string;
   if (isMultiple) {
     // Multiple leads
@@ -3392,16 +3787,13 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        Just making sure these didn't get buried — ${leadCount} families reached out yesterday looking for care, and chose your team.
+        ${leadCount} families reached out in the past day looking for care, and out of every option nearby, they chose your team. Their requests are waiting for you.
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Their requests are still open. You can see their details and message them directly:
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead
+    // Single lead - new copy
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
@@ -3409,10 +3801,7 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        Just making sure this didn't get buried — ${escapeHtml(familyRef)} reached out yesterday looking for ${careTypeRef}${recipientRef}${cityRef}, and chose your team.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is still open. You can see ${pronouns.possessive} details and message ${pronouns.object} directly:
+        ${escapeHtml(familyRef)} reached out yesterday — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}, and out of every option nearby, ${pronouns.pronounLower} chose you. ${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} request is waiting for you.
       </p>`;
   }
 
@@ -3431,6 +3820,116 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 }
 
 /**
+ * Day 1 Follow-up: Scenario B - Provider HAS viewed the lead
+ * Subject: "Still deciding on [Name]?"
+ * Pushes for binary decision: MESSAGE or DECLINE.
+ *
+ * Note: viewedCount can be passed via metadata to adjust copy for partial viewing.
+ * If not provided, assumes all leads were viewed.
+ */
+export function providerFollowupDay1ViewedEmail(
+  opts: FollowupEmailOpts & { viewedCount?: number }
+): string {
+  const lead = opts.leads[0];
+  const leadCount = opts.leads.length;
+  const isMultiple = leadCount > 1;
+  const viewedCount = opts.viewedCount ?? leadCount; // Default: assume all viewed
+
+  // Extract first name, fallback for placeholder names
+  const safeFamilyName = firstName(lead.familyName, "");
+  const hasName = safeFamilyName.length > 0;
+  const hasCity = !!lead.city;
+  const hasCareType = !!lead.careType;
+
+  const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction for body text ("she's", "he's", "they're" - NOT "they's")
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
+
+  // Build preheader - action-oriented, decision push
+  const preheader = isMultiple
+    ? "Message them, or decline — either one takes a second."
+    : `Message ${pronouns.object}, or decline — either one takes a second.`;
+
+  // Build greeting
+  const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
+
+  // Build body
+  let bodyHtml: string;
+  if (isMultiple) {
+    // Multiple leads - viewed scenario
+    const leadsListHtml = opts.leads.map((l) => {
+      const name = firstName(l.familyName, "A family");
+      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
+      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
+      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+    }).join("");
+
+    // Adjust copy based on how many were actually viewed
+    const openedText = viewedCount === leadCount
+      ? "You opened these requests earlier"
+      : viewedCount === 1
+        ? "You opened one of these requests earlier"
+        : `You opened ${viewedCount} of these requests earlier`;
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        ${openedText} — ${leadCount} families are looking for care. From here it's one of two clicks:
+      </p>
+      <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
+        ${leadsListHtml}
+      </ul>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Message them if they're a good fit. And if they're not, a quick decline lets them know to keep looking — so they're not left waiting and wondering.
+      </p>`;
+  } else {
+    // Single lead - viewed scenario with decision push
+    const familyRef = hasName ? safeFamilyName : "the family";
+    const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
+    const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
+    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
+
+    bodyHtml = `
+      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+        You opened ${escapeHtml(familyRef)}'s request earlier — ${pronounContractionLower} looking for ${careTypeRef}${recipientRef}${cityRef}. From here it's one of two clicks:
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Message ${pronouns.object} if ${pronounContractionLower} a good fit. And if ${pronounContractionLower} not, a quick decline lets ${pronouns.object} know to keep looking — so ${pronounContractionLower} not left waiting and wondering.
+      </p>`;
+  }
+
+  // Build buttons - both route to same URL, different labels
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
+
+  const declineButtonText = isMultiple
+    ? "Decline leads →"
+    : "Decline lead →";
+
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
+    ${bodyHtml}
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(declineButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
+    ${loganLightSignature()}
+    ${followupFooterBlock(opts)}
+  `, preheader);
+}
+
+/** @deprecated Use providerFollowupDay1NotViewedEmail or providerFollowupDay1ViewedEmail instead */
+export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
+  // Default to not-viewed variant for backward compatibility
+  return providerFollowupDay1NotViewedEmail(opts);
+}
+
+/**
  * Day 3 Follow-up: "Still waiting, replying is effortless"
  * Light signature. Sent 3 days after initial email.
  */
@@ -3445,6 +3944,11 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
   const hasCareType = !!lead.careType;
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
+
+  // Build pronoun contraction ("She's", "He's", "They're" - NOT "They's")
+  const pronounContraction = pronouns.pronoun === "They"
+    ? "They're"
+    : `${pronouns.pronoun}'s`;
 
   // Build preheader
   const preheader = "A quick reply is all it takes.";
@@ -3471,36 +3975,54 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
         Getting in touch is quick — open their requests and you can message them directly from your dashboard in under a minute. No forms, no fees. They're real families hoping someone gets back to them.
       </p>`;
   } else {
+    // Single lead - new copy
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
     const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
+    // Line 2: Simple, consistent copy for everyone (no complex detection needed)
+    const familyRefLower = hasName ? escapeHtml(familyRef) : escapeHtml(familyRef.toLowerCase());
+    const line2 = `That's really all this is — ${familyRefLower} trying to find the right care, hoping the people ${pronouns.pronounLower} contacted will get back to ${pronouns.object}. No middleman, no fee, just ${pronouns.object} and you.`;
+
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        A few days ago, ${escapeHtml(familyRef)} reached out looking for ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun} hasn't heard back yet.
+        A few days ago, ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}, and out of everyone nearby, ${pronouns.pronounLower} chose you.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        ${line2}
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Getting in touch is quick — open ${pronouns.possessive} request and you can message ${pronouns.object} directly from your dashboard in under a minute. No forms, no fees. ${pronouns.pronoun}'s a real family hoping someone gets back to ${pronouns.object}.
+        Whenever you have a moment: if it feels like a fit, send ${pronouns.object} a message. And if it's not, a quick decline lets ${pronouns.object} know, so ${pronouns.pronounLower} can keep looking without wondering. Either one is a real help to ${pronouns.object}.
       </p>`;
   }
 
-  const buttonText = isMultiple
-    ? "Reply to families →"
-    : (hasName ? `Reply to ${escapeHtml(safeFamilyName)} →` : "Reply to the family →");
+  // Build buttons - both route to same URL (auto-login magic link)
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
+
+  const declineButtonText = isMultiple
+    ? "Decline leads →"
+    : "Decline lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(declineButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
     ${loganLightSignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
 }
 
 /**
- * Day 6 Follow-up: "She's deciding, may go elsewhere"
- * HEAVY signature with photo + credentials. The make-or-break email.
+ * Day 5 Follow-up (formerly Day 6): "One last note" - Final outreach
+ * HEAVY signature with photo. Last chance before sequence ends.
  */
 export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
   const lead = opts.leads[0];
@@ -3514,16 +4036,23 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build preheader
-  const preheader = isMultiple
-    ? "These families reached out almost a week ago."
-    : `${pronouns.pronoun} reached out to you almost a week ago.`;
+  // Build pronoun contraction ("she's", "he's", "they're" - NOT "they's")
+  const pronounContractionLower = pronouns.pronounLower === "they"
+    ? "they're"
+    : `${pronouns.pronounLower}'s`;
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build preheader - dynamic pronoun
+  const preheader = `Message ${pronouns.object} if it's a fit, or decline if it's not.`;
+
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
+
+  // Reference for family name (used multiple times)
+  const familyRef = hasName ? safeFamilyName : "the family";
 
   let bodyHtml: string;
   if (isMultiple) {
+    // Multiple leads - keep simpler copy
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
       const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
@@ -3533,47 +4062,60 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        It's been about a week since these families reached out looking for care:
+        We'll keep this short — it's the last time we'll reach out about these requests.
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
       </ul>
       <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        Families usually settle on a provider within a week or two, and they're likely speaking with a few others by now.
+        They reached out about a week ago and haven't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what they're hoping for.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        And if it's not a fit, no problem at all. Just decline the leads and let us know why — we'll share that with them so they can keep looking.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        If these are families you'd like to help, a short reply could be the reason they choose you. And if it's not the right fit, that's completely okay — there's nothing you need to do.
+        Either way, thanks for taking a look.
       </p>`;
   } else {
-    const familyRef = hasName ? safeFamilyName : "A family";
+    // Single lead - new copy
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
     const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        It's been about a week since ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}. Families usually settle on a provider within a week or two, and ${pronouns.pronounLower}'s likely speaking with a few others by now.
+        We'll keep this short — it's the last time we'll reach out about ${escapeHtml(familyRef)}.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        ${pronouns.pronoun} reached out about a week ago, looking for ${careTypeRef}${recipientRef}${cityRef}, and hasn't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what ${pronounContractionLower} hoping for.
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        And if it's not a fit, no problem at all. Just decline the lead and let us know why — we'll share that with ${escapeHtml(familyRef)} so ${pronouns.pronounLower} can keep looking.
       </p>
       <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        If this is still something you're taking, a short reply could be the reason ${pronouns.pronounLower} chooses you. And if it's not the right fit, that's completely okay — there's nothing you need to do.
+        Either way, thanks for taking a look.
       </p>`;
   }
 
-  const buttonText = isMultiple
-    ? "See all requests →"
-    : (hasName ? `See ${escapeHtml(safeFamilyName)}'s request →` : "See the request →");
+  // Build buttons - both route to same URL (auto-login magic link)
+  const messageButtonText = isMultiple
+    ? "Message families →"
+    : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
 
-  // Add note about real introductions after the signature
-  const realIntroNote = isMultiple
-    ? `<p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">These are real introductions, and they're still open.</p>`
-    : `<p style="font-size:14px;color:#374151;margin:16px 0 0;line-height:1.5;">${hasName ? escapeHtml(safeFamilyName) + "'s is" : "This is"} a real introduction, and it's still open.</p>`;
+  const declineButtonText = isMultiple
+    ? "Decline leads →"
+    : "Decline lead →";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <div style="margin:0 0 24px;">${button(buttonText, opts.viewUrl)}</div>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
+        <td>${button(declineButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
     ${loganHeavySignature()}
-    ${realIntroNote}
     ${followupFooterBlock(opts)}
   `, preheader);
 }

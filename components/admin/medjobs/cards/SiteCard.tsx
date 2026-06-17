@@ -19,14 +19,19 @@
 
 import type { CampusRow } from "@/lib/student-outreach/tab-config";
 import { MedjobsCard } from "./MedjobsCard";
+import { Pill } from "./StakeholderCard";
+import { PartnerCategoryStatus } from "./PartnerCategoryStatus";
 
 export function SiteCard({
   row,
   onView,
+  onFindPartners,
 }: {
   row: CampusRow;
   /** Navigate to the site's stakeholder page. */
   onView: () => void;
+  /** Open the AI partner-sourcing widget scoped to this site. */
+  onFindPartners?: () => void;
 }) {
   const loc = [row.city, row.state].filter(Boolean).join(", ") || null;
   const subtitle = loc;
@@ -42,24 +47,80 @@ export function SiteCard({
       : null;
   const footnote = [addedLabel, stakeholderLabel].filter(Boolean).join(" · ");
 
-  return (
+  // Consistent partner-prospecting status (matches the In-Basket research card).
+  // Show the per-category audit line until research is complete, so the admin
+  // can see which partner categories remain.
+  const researchPill = row.research_complete ? null : (
+    <>
+      <Pill>{stakeholderCount > 0 ? "Research in progress" : "Research needed"}</Pill>
+      <PartnerCategoryStatus audit={row.partner_audit} className="ml-1" />
+    </>
+  );
+
+  const card = (
     <MedjobsCard
       title={row.name}
       subtitle={subtitle}
       footnote={footnote}
+      pill={researchPill ?? undefined}
       cta={
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onView();
-          }}
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-        >
-          See stakeholders →
-        </button>
+        <div className="flex items-center gap-2">
+          {onFindPartners && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onFindPartners();
+              }}
+              className="rounded-md border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100"
+              title="Find partners with AI for this university."
+            >
+              Find partners ✦
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView();
+            }}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            See stakeholders →
+          </button>
+        </div>
       }
       onClick={onView}
       hoverTitle="Open the site's stakeholder list."
     />
+  );
+
+  const sources = row.partner_sources ?? [];
+  if (sources.length === 0) return card;
+
+  // Persisted AI research source links — kept on the Site so they're reusable
+  // for manual research without re-running (and re-paying for) the AI.
+  return (
+    <div>
+      {card}
+      <details className="mt-1 px-1">
+        <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-700">
+          Research sources ({sources.length})
+        </summary>
+        <ul className="mt-1 space-y-0.5 pl-2">
+          {sources.map((s) => (
+            <li key={s.url}>
+              <a
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[11px] text-primary-600 hover:underline"
+              >
+                {s.title} ↗
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </div>
   );
 }

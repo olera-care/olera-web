@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { getServiceClient, getAuthUser, getAdminUser } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail, providerFindFamiliesDigestEmail } from "@/lib/email-templates";
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
-import { getRow, normalizeKey } from "@/lib/market-diagnostic/cache";
+import { getRow, isFresh, normalizeKey, type DiagRow } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
 import { normCareType } from "@/lib/market-diagnostic/resolve";
 import { warmCity } from "@/lib/market-diagnostic/warm";
+
+export const maxDuration = 300;
 
 // ── Question recency decay (2026-06-09) ──
 // The family_question rung used to fire for ANY open question, top priority, every week. Because
@@ -23,15 +25,51 @@ const QUESTION_RESURFACE_DAYS = 90; // demoted questions resurface ~once per qua
 const RUN_INTERVAL_DAYS = 7; // weekly cadence — the look-back for the resurface-boundary crossing
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Great-circle distance in miles — same formula the Find Families page uses, so
+ *  the digest's ~50mi "nearby family" gate matches what the provider sees there. */
+function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3959; // miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // Through-the-week cadence: each provider is assigned a fixed weekday (Mon–Fri) by hashing their id,
 // so the digest distributes across the work-week instead of a single Monday blast. Deterministic +
 // stateless — the same provider always lands on the same day, which keeps the per-provider cadence
 // weekly (preserving the decay/resurface math) while spreading send volume to protect deliverability.
 const SEND_WEEKDAYS = 5; // Mon–Fri
+// Proactive market warming: the referral teaser should be gated by product/audience fit, not by
+// whether a provider happened to discover Find Families first. Each run scans a bounded slice of
+// email-reachable directory providers and warms a small number of missing city×care markets. The
+// monthly cache budget still lives in warmCity/cache; this cap just keeps one digest run from
+// monopolizing the 300s background window.
+const MARKET_PREWARM_SCAN_LIMIT = 5000;
+const MARKET_PREWARM_SCAN_PAGES = 15; // 15 × 5k ≈ the current 75k-provider directory.
+const MARKET_PREWARM_TARGET_LIMIT = 6;
 function providerSendBucket(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
   return Math.abs(h) % SEND_WEEKDAYS; // 0 = Mon … 4 = Fri
+}
+
+// Managed-ads rotation: 1 in ADS_ROTATION_PERIOD weeks a provider yields the ads
+// pitch to their market/insight read, so we don't send the identical pitch every
+// week (olera.care deliverability + ads-pitch fatigue). The phase is PER-PROVIDER
+// (hashed from id), not a global week flip — so at any moment ~1/3 of the
+// ads-eligible cohort is in an off week, staggered across the population, instead
+// of the whole audience going dark the same week (which killed continuous
+// measurement). Salted ("ads:") so a provider's rotation phase doesn't correlate
+// with their weekday send bucket — otherwise a whole weekday would flip together.
+const ADS_ROTATION_PERIOD = 3;
+function providerAdsRotationPhase(id: string): number {
+  let h = 0;
+  const salted = `ads:${id}`;
+  for (let i = 0; i < salted.length; i++) h = (h * 31 + salted.charCodeAt(i)) | 0;
+  return Math.abs(h) % ADS_ROTATION_PERIOD; // 0..2
 }
 
 /**
@@ -147,6 +185,8 @@ export async function GET(request: NextRequest) {
         "lead_received",
         "question_received",
         "review_received",
+        "market_diagnostic_viewed_no_leads",
+        "market_outreach_status_updated",
       ])
       .limit(100000);
 
@@ -232,6 +272,8 @@ export async function GET(request: NextRequest) {
       ctaClicks: number;
       leads: number;
       questions: number;
+      marketViews: number;
+      marketActions: number;
       sources: Record<string, number>;
     };
     const buckets = new Map<string, ProviderBucket>();
@@ -244,6 +286,8 @@ export async function GET(request: NextRequest) {
         ctaClicks: 0,
         leads: 0,
         questions: 0,
+        marketViews: 0,
+        marketActions: 0,
         sources: { direct: 0, search: 0, internal: 0, other: 0 },
       };
       buckets.set(id, fresh);
@@ -271,6 +315,8 @@ export async function GET(request: NextRequest) {
         if (e.event_type === "cta_click_public") bucket.ctaClicks += 1;
         else if (e.event_type === "lead_received") bucket.leads += 1;
         else if (e.event_type === "question_received") bucket.questions += 1;
+        else if (e.event_type === "market_diagnostic_viewed_no_leads") bucket.marketViews += 1;
+        else if (e.event_type === "market_outreach_status_updated") bucket.marketActions += 1;
       }
     }
 
@@ -289,21 +335,62 @@ export async function GET(request: NextRequest) {
     // already computed. Enrollment caps at rank<=5 so the "you're #N" hook is always
     // flattering (product call 2026-06-08); widen to top-half later if it converts.
     const rankEligible = new Set<string>();
-    const preRank = new Map<string, DigestMarketRank>();
+    const preRank = new Map<string, DigestMarketSnapshot>();
+    const proactiveWarmTargets: { city: string; state: string; careType: string | null }[] = [];
     {
       const RANK_CHUNK = 200;
       const TOP_RANK_FOR_ENROLLMENT = 5;
       const { data: readyDiags, error: diagErr } = await db
         .from("market_diagnostics")
-        .select("city, state, care_type, data")
+        .select("id, city, state, care_type, status, data, error, attempts, cost_estimate, generated_at, claimed_at")
         .eq("status", "ready")
         .limit(20000);
       if (diagErr) {
         console.error("[weekly-provider-digest] ready-diagnostics query failed:", diagErr);
       }
+      const freshMarketKeys = new Set<string>();
+      for (const d of (readyDiags ?? []) as DiagRow[]) {
+        if (isFresh(d)) freshMarketKeys.add(`${d.city}|${d.state}|${d.care_type}`);
+      }
+
+      // Proactively warm markets for email-reachable providers instead of waiting for someone to
+      // open Find Families first. This does NOT enroll the scanned provider directly. It just makes
+      // their city×care market available so a later digest can truthfully send the rank/referral
+      // hook to whichever local providers resolve as send-worthy.
+      const prewarmScanPage = Math.floor(now.getTime() / DAY_MS) % MARKET_PREWARM_SCAN_PAGES;
+      const prewarmScanFrom = prewarmScanPage * MARKET_PREWARM_SCAN_LIMIT;
+      const { data: warmCandidates, error: warmCandidateErr } = await db
+        .from("olera-providers")
+        .select("provider_id, city, state, provider_category")
+        .not("email", "is", null)
+        .not("place_id", "is", null)
+        .not("city", "is", null)
+        .not("state", "is", null)
+        .or("deleted.is.null,deleted.eq.false")
+        .order("provider_id", { ascending: true })
+        .range(prewarmScanFrom, prewarmScanFrom + MARKET_PREWARM_SCAN_LIMIT - 1);
+      if (warmCandidateErr) {
+        console.error("[weekly-provider-digest] market prewarm candidate query failed:", warmCandidateErr);
+      }
+      const seenPrewarmKeys = new Set<string>();
+      for (const p of (warmCandidates ?? []) as Array<{
+        provider_id: string;
+        city: string | null;
+        state: string | null;
+        provider_category: string | null;
+      }>) {
+        if (!p.city || !p.state) continue;
+        const key = normalizeKey(p.city, p.state, p.provider_category);
+        const keyString = `${key.city}|${key.state}|${key.careType}`;
+        if (freshMarketKeys.has(keyString) || seenPrewarmKeys.has(keyString)) continue;
+        seenPrewarmKeys.add(keyString);
+        proactiveWarmTargets.push({ city: p.city, state: p.state, careType: p.provider_category });
+        if (proactiveWarmTargets.length >= MARKET_PREWARM_TARGET_LIMIT) break;
+      }
+
       // place_id → its rank in the cached diagnostic (first/best diagnostic wins on collision).
-      const placeRank = new Map<string, DigestMarketRank>();
-      for (const d of (readyDiags ?? []) as Array<{ city: string; state: string; care_type: string; data: unknown }>) {
+      const placeRank = new Map<string, DigestMarketSnapshot>();
+      for (const d of (readyDiags ?? []) as DiagRow[]) {
         const data = d.data as { meta?: { city?: string }; competitorLandscape?: { ranked?: RankedEntry[] } } | null;
         const ranked = data?.competitorLandscape?.ranked ?? [];
         const careLabel = d.care_type === "assisted_living" ? "assisted living" : "home care";
@@ -311,7 +398,11 @@ export async function GET(request: NextRequest) {
         for (let i = 0; i < Math.min(ranked.length, TOP_RANK_FOR_ENROLLMENT); i++) {
           const pid = ranked[i]?.id;
           if (!pid || placeRank.has(pid)) continue;
-          placeRank.set(pid, { rank: i + 1, outOf: ranked.length, cityLabel, careLabel, flattering: true });
+          placeRank.set(pid, {
+            rank: { rank: i + 1, outOf: ranked.length, cityLabel, careLabel, flattering: true },
+            referralTargets: extractReferralTargets(data),
+            totalReferralSources: totalReferralSources(data),
+          });
         }
       }
       // Map those top-5 place_ids → Olera providers with an email. Keyed by provider_id so the
@@ -331,8 +422,8 @@ export async function GET(request: NextRequest) {
         }
         for (const p of (provs ?? []) as Array<{ provider_id: string; slug: string | null; place_id: string | null; email: string | null }>) {
           if (!p.email || !p.place_id) continue;
-          const rank = placeRank.get(p.place_id);
-          if (!rank) continue;
+          const snapshot = placeRank.get(p.place_id);
+          if (!snapshot) continue;
           // Merge onto the provider's SLUG key when they're ALREADY in the audience via activity or a
           // question (this block runs after §1/§1b). Otherwise a rank-eligible provider who also has
           // activity would sit in `buckets` under TWO keys (slug + legacy provider_id) → two different
@@ -345,7 +436,7 @@ export async function GET(request: NextRequest) {
           const id = slugKey && buckets.has(slugKey) ? slugKey : String(p.provider_id);
           ensureBucket(id);
           rankEligible.add(id);
-          preRank.set(id, rank);
+          preRank.set(id, snapshot);
         }
       }
     }
@@ -360,6 +451,65 @@ export async function GET(request: NextRequest) {
     // providers first (we'll lead with their fresh/resurfaced question, OR they have activity
     // signal, OR they're rank-enrolled), likely-skippers last. Within each group keep the existing
     // freshest-question-DESC then views-DESC order, so `?limit=N` stays deterministic.
+    // ── Find Families enrollment: published care-seekers + the claimed providers near them ──
+    // Load the (tiny) set of active published family care-posts once — reused both
+    // to enroll nearby providers into the pool here AND for the per-provider nearby
+    // compute + email content in the send loop. Same ≤50mi catchment + active-only
+    // rule as /provider/matches, so the email matches what they see on the page.
+    type NearbySeeker = { lat: number; lng: number; town: string | null; careNeed: string | null; timeline: string | null };
+    const seekers: NearbySeeker[] = [];
+    {
+      const { data: seekerRows, error: seekerErr } = await db
+        .from("business_profiles")
+        .select("city, lat, lng, care_types, metadata")
+        .eq("type", "family")
+        .eq("is_active", true)
+        .not("metadata->care_post", "is", null);
+      if (seekerErr) console.error("[weekly-provider-digest] seeker query failed:", seekerErr);
+      for (const r of (seekerRows ?? []) as Array<{
+        city: string | null; lat: number | null; lng: number | null;
+        care_types: string[] | null; metadata: Record<string, unknown> | null;
+      }>) {
+        if (r.lat == null || r.lng == null) continue;
+        const m = (r.metadata ?? {}) as { care_post?: { status?: string }; care_needs?: string[]; timeline?: string };
+        if (m.care_post?.status !== "active") continue;
+        seekers.push({ lat: r.lat, lng: r.lng, town: r.city, careNeed: m.care_needs?.[0] ?? r.care_types?.[0] ?? null, timeline: m.timeline ?? null });
+      }
+    }
+
+    // Pull CLAIMED providers within ~50mi of any published seeker into the digest
+    // pool, even with zero other signal — a real nearby family is worth a nudge on
+    // its own. Only owned rows (account_id): they can act on a lead; unclaimed
+    // near-seeker listings are a separate cold-claim play. Box-query per seeker
+    // (lng box widened by latitude), then haversine-refine to ≤50mi. Seeded with a
+    // zero bucket so they flow through the same gate/compose path as everyone else.
+    const nearSeekerSlugs = new Set<string>();
+    if (seekers.length > 0) {
+      const LAT_DELTA = 0.8; // ~55mi, a superset of the 50mi circle; haversine refines below
+      await Promise.all(
+        seekers.map(async (s) => {
+          const lngDelta = LAT_DELTA / Math.max(Math.cos((s.lat * Math.PI) / 180), 0.2);
+          const { data: near } = await db
+            .from("business_profiles")
+            .select("slug, lat, lng")
+            .in("type", ["organization", "caregiver"])
+            .eq("is_active", true)
+            .not("account_id", "is", null)
+            .gte("lat", s.lat - LAT_DELTA)
+            .lte("lat", s.lat + LAT_DELTA)
+            .gte("lng", s.lng - lngDelta)
+            .lte("lng", s.lng + lngDelta);
+          for (const p of (near ?? []) as Array<{ slug: string | null; lat: number | null; lng: number | null }>) {
+            if (!p.slug || p.lat == null || p.lng == null) continue;
+            if (haversineMiles(s.lat, s.lng, p.lat, p.lng) > 50) continue;
+            nearSeekerSlugs.add(p.slug);
+            ensureBucket(p.slug); // zero bucket → flows through the standard compose path
+          }
+        }),
+      );
+    }
+    const seekerEnrolledCount = nearSeekerSlugs.size;
+
     const willLeadQuestion = (id: string): boolean => {
       const oq = openQuestionsByProvider.get(id);
       if (!oq) return false;
@@ -368,7 +518,15 @@ export async function GET(request: NextRequest) {
     const sendWorthy = (id: string): boolean => {
       if (willLeadQuestion(id)) return true;
       const b = buckets.get(id);
-      if (b && (b.viewsThisWeek > 0 || b.ctaClicks > 0 || b.leads > 0 || b.questions > 0)) return true;
+      if (b && (
+        b.viewsThisWeek > 0 ||
+        b.ctaClicks > 0 ||
+        b.leads > 0 ||
+        b.questions > 0 ||
+        b.marketViews > 0 ||
+        b.marketActions > 0
+      )) return true;
+      if (nearSeekerSlugs.has(id)) return true; // a real nearby family is a fundable nudge on its own
       return rankEligible.has(id);
     };
     // Through-the-week cadence: each provider has a deterministic weekday (Mon–Fri) from a hash of
@@ -410,6 +568,8 @@ export async function GET(request: NextRequest) {
       email: string | null;
       city: string | null;
       state: string | null;
+      lat: number | null; // for the Find Families ~50mi nearby-seeker gate (null on synthesized unclaimed rows)
+      lng: number | null;
       category: string | null;
       metadata: Record<string, unknown> | null;
       account_id: string | null; // non-null = a claimed/owned listing → keep the punchy digest, not the cold note
@@ -427,7 +587,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySlug } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id, claim_state")
+        .select("id, slug, source_provider_id, display_name, email, city, state, lat, lng, category, metadata, account_id, claim_state")
         .in("slug", chunk)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySlug ?? []) as BP[]) {
@@ -440,7 +600,7 @@ export async function GET(request: NextRequest) {
 
       const { data: bySourceId } = await db
         .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, category, metadata, account_id, claim_state")
+        .select("id, slug, source_provider_id, display_name, email, city, state, lat, lng, category, metadata, account_id, claim_state")
         .in("source_provider_id", stillMissing)
         .in("type", ["organization", "caregiver"]);
       for (const b of (bySourceId ?? []) as BP[]) {
@@ -494,6 +654,8 @@ export async function GET(request: NextRequest) {
             email: ip.email,
             city: ip.city,
             state: ip.state,
+            lat: null, // olera-providers synthesized rows have no coords here → never qualify for Find Families (they can't reach out unclaimed anyway)
+            lng: null,
             category: null,
             metadata: null,
             account_id: null,
@@ -524,6 +686,8 @@ export async function GET(request: NextRequest) {
             email: ip.email,
             city: ip.city,
             state: ip.state,
+            lat: null, // olera-providers synthesized rows have no coords here → never qualify for Find Families (they can't reach out unclaimed anyway)
+            lng: null,
             category: null,
             metadata: null,
             account_id: null,
@@ -534,6 +698,49 @@ export async function GET(request: NextRequest) {
     }
 
     const bpBySlug = bpByKey;
+
+    // ── 2c. Existing referral-market work state ──
+    // Keep the first ask curiosity-led, but if a provider has already touched
+    // the call sheet, acknowledge that momentum quietly in the teaser.
+    type OutreachRow = { provider_id: string; target_id: string; status: string; updated_at: string };
+    type OutreachSummary = {
+      statusByTarget: Map<string, string>;
+      workedCount: number;
+      respondedCount: number;
+      referringCount: number;
+    };
+    const outreachByProfile = new Map<string, OutreachSummary>();
+    const profileIdsForOutreach = Array.from(
+      new Set(providerIds.map((id) => bpBySlug.get(id)?.id).filter(Boolean) as string[]),
+    );
+    if (profileIdsForOutreach.length > 0) {
+      for (let i = 0; i < profileIdsForOutreach.length; i += chunkSize) {
+        const chunk = profileIdsForOutreach.slice(i, i + chunkSize);
+        const { data: rows, error } = await db
+          .from("market_referral_outreach")
+          .select("provider_id, target_id, status, updated_at")
+          .in("provider_id", chunk)
+          .order("updated_at", { ascending: false })
+          .limit(10000);
+        if (error) {
+          console.error("[weekly-provider-digest] market outreach query failed:", error);
+          continue;
+        }
+        for (const row of (rows ?? []) as OutreachRow[]) {
+          const summary = outreachByProfile.get(row.provider_id) ?? {
+            statusByTarget: new Map<string, string>(),
+            workedCount: 0,
+            respondedCount: 0,
+            referringCount: 0,
+          };
+          summary.statusByTarget.set(row.target_id, row.status);
+          if (row.status === "contacted" || row.status === "responded" || row.status === "referring") summary.workedCount += 1;
+          if (row.status === "responded") summary.respondedCount += 1;
+          if (row.status === "referring") summary.referringCount += 1;
+          outreachByProfile.set(row.provider_id, summary);
+        }
+      }
+    }
 
     // ── 3. Cohort benchmarks for "local demand" signal ──
     // Pull this week's provider_page_view_stats to sum unique demand per cohort.
@@ -562,8 +769,12 @@ export async function GET(request: NextRequest) {
     // ── 4. For each provider: gate + compose + send ──
     let sent = 0;
     let marketHeroCount = 0;
+    let referralTeaserCount = 0;
+    let marketRankMissingReferralTargets = 0;
     let coldRankSent = 0; // sends to the §1c cold/quiet rank-eligible audience (no weekly activity)
     let completionCount = 0; // sends of the completion ("sell the output") variant
+    let managedAdsCount = 0; // sends of the managed-ads variant (no-leads cohort lead)
+    let findFamiliesCount = 0; // sends of the find-families variant (real nearby published seeker)
     let skipped = 0;
     const skipReasons: Record<string, number> = {};
     // Cities whose diagnostic wasn't cached when a no-question provider needed it — warmed in
@@ -577,6 +788,9 @@ export async function GET(request: NextRequest) {
     // their slug AND a question bucket under their legacy alphanumeric ID
     // will resolve to the same email; we should only send once per address.
     const sentEmails = new Set<string>();
+
+    // Week ordinal for the per-provider ads rotation phase (see providerAdsRotationPhase).
+    const adsRotationWeekIndex = Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000));
 
     for (const providerId of providerIds) {
       const bucket = buckets.get(providerId)!;
@@ -607,6 +821,13 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Skip if provider is admin-archived (no emails sent to them)
+      if (meta.admin_archived === true) {
+        sentEmails.add(emailKey);
+        bumpSkip("admin_archived");
+        continue;
+      }
+
       const openQ = openQuestionsByProvider.get(providerId);
 
       // Signal gate: views, CTA clicks, leads, this-week questions, OR a live
@@ -617,8 +838,11 @@ export async function GET(request: NextRequest) {
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
         bucket.questions > 0 ||
+        bucket.marketViews > 0 ||
+        bucket.marketActions > 0 ||
         !!openQ ||
-        rankEligible.has(providerId);
+        rankEligible.has(providerId) ||
+        nearSeekerSlugs.has(providerId);
       if (!hasSignal) {
         bumpSkip("no_signal");
         continue;
@@ -687,6 +911,29 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Find Families: a real published care-seeker within ~50mi — the scarce,
+      // high-intent signal. Below real inbound (question/lead) but ABOVE completion,
+      // managed-ads, and rank: an actual nearby family beats "finish your profile,"
+      // "let us run ads," and a rank read. Computed here (before completion + the
+      // market-rank resolve) so those are short-circuited for a find_families send —
+      // crucially skipping the rank resolve's Places/warm cost. Only coordinate-
+      // bearing rows qualify; synthesized unclaimed rows are lat/lng-null and fall
+      // through (they can't reach out without claiming anyway). It's also a valid
+      // reason to send to an otherwise-quiet claimed provider (see the skip guard +
+      // the seeker-enrollment pool above). isColdFirstContact requires !account_id,
+      // so it can never co-occur with a coordinate-bearing claimed row.
+      const nearbySeekers =
+        bp.lat != null && bp.lng != null
+          ? seekers
+              .map((s) => ({ s, d: haversineMiles(bp.lat as number, bp.lng as number, s.lat, s.lng) }))
+              .filter((x) => x.d <= 50)
+              .sort((a, b) => a.d - b.d)
+          : [];
+      const findFamiliesUrl =
+        nearbySeekers.length > 0 && !unansweredQuestion && !hasLead
+          ? generateProviderPortalUrl(providerSlug, bp.email, "matches")
+          : null;
+
       // Completion ("sell the output") variant — CLAIMED providers who haven't
       // added their owner story yet. Ranks ABOVE the market-rank hero in the
       // next-rung router (question > leads > completion > cold-rank > rank > analytics):
@@ -698,7 +945,7 @@ export async function GET(request: NextRequest) {
       // owner-story gap only; other gaps + a dedicated dormant-claimer source
       // are tracked follow-ups (see plans/completion-carrot-plan.md).
       let completionUrl: string | null = null;
-      if (!unansweredQuestion && !hasLead && bp.claim_state === "claimed") {
+      if (!unansweredQuestion && !hasLead && !findFamiliesUrl && bp.claim_state === "claimed") {
         const hasOwnerStory = !!(meta.staff as { name?: string } | undefined)?.name;
         if (!hasOwnerStory) {
           try {
@@ -719,14 +966,20 @@ export async function GET(request: NextRequest) {
       // so they cost zero Places/warming calls and can never queue a warm.
       // Skipped when a completion nudge is showing (it takes priority).
       let marketRank: DigestMarketRank | null = null;
-      if (!unansweredQuestion && !hasLead && !completionUrl) {
+      let referralTargets: DigestReferralTarget[] = [];
+      let totalReferralSources = 0;
+      if (!unansweredQuestion && !hasLead && !completionUrl && !findFamiliesUrl) {
         const pre = preRank.get(providerId);
         if (pre) {
-          marketRank = pre;
+          marketRank = pre.rank;
+          referralTargets = pre.referralTargets;
+          totalReferralSources = pre.totalReferralSources;
         } else {
           try {
             const mr = await resolveProviderMarketRank(bp, db);
             marketRank = mr.rank;
+            referralTargets = mr.referralTargets;
+            totalReferralSources = mr.totalReferralSources;
             // Demoting stale questions newly routes ~2,200 question-providers into this block. A
             // cache READ (resolveProviderMarketRank) is cheap, but queuing a warm spends Places +
             // Anthropic. For a demoted-question provider, use only an already-cached rank — never
@@ -744,8 +997,10 @@ export async function GET(request: NextRequest) {
         bucket.viewsThisWeek > 0 ||
         bucket.ctaClicks > 0 ||
         bucket.leads > 0 ||
-        bucket.questions > 0;
-      if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank && !completionUrl) {
+        bucket.questions > 0 ||
+        bucket.marketViews > 0 ||
+        bucket.marketActions > 0;
+      if (!unansweredQuestion && !hasNonQuestionSignal && !marketRank && !completionUrl && !findFamiliesUrl) {
         // Distinguish the new common case: a provider whose only signal was a stale question we
         // demoted this week, with no other rung to fall to → intentionally goes quiet (the whole
         // point of decay) rather than getting the dead nudge. Kept separate from the genuine
@@ -772,13 +1027,36 @@ export async function GET(request: NextRequest) {
         !bp.account_id;
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const referralTeaser = marketRank
+        ? buildReferralTeaser(
+            referralTargets,
+            totalReferralSources,
+            outreachByProfile.get(bp.id) ?? null,
+          )
+        : null;
+      const marketUrl = generateProviderPortalUrl(providerSlug, bp.email, "market");
+      const adsUrl = generateProviderPortalUrl(providerSlug, bp.email, "ads");
+      // Managed Ads leads the no-leads cohort (mirrors the dashboard hero — it's
+      // the one lever that GENERATES demand vs. waiting on an empty local funnel).
+      // Below real inbound (question/lead) and below the trust-forward cold
+      // first-contact (pitching ads to a stranger who's never heard of us is a
+      // bad first hello). Rotation yields the pitch ~1 in 3 weeks to their market/
+      // insight read so we don't repeat the identical pitch weekly (olera.care
+      // deliverability — ads-pitch fatigue). The phase is PER-PROVIDER and
+      // staggered (providerAdsRotationPhase), so ~1/3 of the cohort is off in any
+      // given week instead of the whole audience going dark together — the variant
+      // stays continuously measurable.
+      const adsRotationWeek =
+        (providerAdsRotationPhase(providerId) + adsRotationWeekIndex) % ADS_ROTATION_PERIOD === 0;
+      const useManagedAds =
+        !unansweredQuestion && !leadsUrl && !isColdFirstContact && !findFamiliesUrl && !adsRotationWeek;
       const html = isColdFirstContact
         ? coldProviderRankEmail({
             rank: marketRank!.rank,
             outOf: marketRank!.outOf,
             cityLabel: marketRank!.cityLabel,
             careLabel: marketRank!.careLabel,
-            // One-click "market" magic link → invisibly authenticates onto /provider/matches.
+            // One-click "market" magic link → invisibly authenticates onto /provider/market.
             ctaUrl: generateProviderPortalUrl(providerSlug, bp.email, "market"),
             manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
             removeUrl: `${siteUrl}/for-providers/removal-request/${providerSlug}`,
@@ -792,6 +1070,25 @@ export async function GET(request: NextRequest) {
             ctaUrl: leadsUrl,
             manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
             unsubscribeUrl: `${siteUrl}/unsubscribe/${providerSlug}`,
+          })
+        : findFamiliesUrl
+        ? providerFindFamiliesDigestEmail({
+            providerName: displayName,
+            providerSlug,
+            ctaUrl: findFamiliesUrl,
+            nearbyCount: nearbySeekers.length,
+            nearestTown: nearbySeekers[0]?.s.town ?? null,
+            careNeed: nearbySeekers[0]?.s.careNeed ?? null,
+            timeline: nearbySeekers[0]?.s.timeline ?? null,
+          })
+        : useManagedAds
+        ? providerManagedAdsEmail({
+            providerName: displayName,
+            providerSlug,
+            ctaUrl: adsUrl,
+            city: bp.city,
+            category: bp.category,
+            localDemand: localDemand ?? areaDemandCount,
           })
         : completionUrl
         ? providerProfileCompletionEmail({
@@ -817,7 +1114,21 @@ export async function GET(request: NextRequest) {
             unansweredQuestion,
             answerUrl,
             marketRank,
+            referralTeaser,
+            marketUrl,
           });
+
+      // Diagnosis-led managed-ads subject: lead with the real local-demand
+      // number when we have it, else a qualitative "families you're not reaching"
+      // line. Deliberately distinct from the find_families subject ("looking for
+      // care") so the two cascade variants never read alike or cross the
+      // classifier's subject fallback.
+      const adsDemand = localDemand ?? areaDemandCount;
+      const adsWhere = bp.city ? ` near ${bp.city}` : " in your area";
+      const managedAdsSubject =
+        adsDemand && adsDemand >= 5
+          ? `${adsDemand.toLocaleString()} families searched for care${adsWhere} this week`
+          : `The families${bp.city ? ` near ${bp.city}` : ""} you're not reaching yet`;
 
       const subject = unansweredQuestion
         ? `A family has a question about ${displayName}`
@@ -825,12 +1136,22 @@ export async function GET(request: NextRequest) {
         ? bucket.leads > 1
           ? `${bucket.leads} families reached out about ${displayName} this week`
           : `A family reached out about ${displayName} this week`
+        : findFamiliesUrl
+        ? nearbySeekers.length > 1
+          ? `${nearbySeekers.length} families near you are looking for care`
+          : `A family near you is looking for care`
+        : useManagedAds
+        ? managedAdsSubject
         : completionUrl
         ? `See what families see on ${displayName}`
         : isColdFirstContact
           // Cold first-contact: attribute the rank to families up front (these strangers have
           // never heard from us), matching the note's family-led opening.
           ? `Families in ${marketRank!.cityLabel} rank you #${marketRank!.rank} of ${marketRank!.outOf}`
+          : referralTeaser
+            ? referralTeaser.targets.length > 0
+              ? `${referralTeaser.targets.length} ${marketRank!.cityLabel}-area places families may ask about care`
+              : `See who families may ask in ${marketRank!.cityLabel}`
           : marketRank
             ? marketRank.flattering
               ? `You're #${marketRank.rank} of ${marketRank.outOf} ${marketRank.careLabel} agencies in ${marketRank.cityLabel}`
@@ -839,36 +1160,65 @@ export async function GET(request: NextRequest) {
               ? `${bucket.viewsThisWeek} ${bucket.viewsThisWeek === 1 ? "family" : "families"} viewed your page this week`
               : `Your week on Olera`;
 
-      // Tag the email_log row with which digest variant this send is, plus whether it opened with
-      // the market-rank hero. Lets the admin automations view break down opens / clicks per variant
-      // instead of lumping them under one emailType. Order mirrors the html render priority above
-      // (question > cold-first-contact > completion > analytics), so the tag matches the email sent.
-      // `ledWithRank` only applies to the analytics weekly_digest (false everywhere else).
+      // Tag the email_log row with which digest variant this send is. Market-rank
+      // digest is separated from the plain weekly digest so the automation view
+      // can attribute its conversion to call-sheet work, not just portal revisits.
+      // Order mirrors the html render priority above (question > cold-first-contact
+      // > completion > analytics), so the tag matches the email sent.
       const variant = unansweredQuestion
         ? "family_question"
         : leadsUrl
           ? "leads"
           : isColdFirstContact
             ? "cold_rank"
-            : completionUrl
-              ? "completion"
-              : "weekly_digest";
+            : findFamiliesUrl
+              ? "find_families"
+            : useManagedAds
+              ? "managed_ads"
+              : completionUrl
+                ? "completion"
+                : referralTeaser
+                  ? "referral_teaser"
+                : marketRank
+                  ? "market_rank"
+                  : "weekly_digest";
       const variantMeta = { variant, ledWithRank: !!marketRank };
 
       if (dryRun) {
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (variant === "referral_teaser") referralTeaserCount += 1;
+        if (variant === "market_rank" && marketRank && referralTargets.length === 0) {
+          marketRankMissingReferralTargets += 1;
+        }
         if (preRank.has(providerId)) coldRankSent += 1;
-        if (completionUrl) completionCount += 1;
+        if (variant === "completion") completionCount += 1;
+        if (variant === "managed_ads") managedAdsCount += 1;
+        if (variant === "find_families") findFamiliesCount += 1;
         sentEmails.add(emailKey);
         continue;
       }
+
+      // Domain ring-fence (per-recipient, not per-type). Unclaimed/directory
+      // recipients are the high-bounce pool (cold_rank, managed_ads, plain
+      // digest bounce 9-14% sending to never-verified addresses). Route their
+      // From to PROVIDER_NOTIFY_FROM (the cousin domain) when configured so
+      // their bounces don't degrade olera.care; claimed/engaged providers (0%
+      // bounce, brand-positive) stay on the crown jewel. Verification applies to
+      // the whole digest regardless via VERIFY_ON_SEND_TYPES in lib/email.ts.
+      // Undefined → sendEmail falls back to the default olera.care From.
+      const isUnclaimed = !bp.account_id && bp.claim_state !== "claimed";
+      const digestFrom =
+        isUnclaimed && process.env.PROVIDER_NOTIFY_FROM
+          ? process.env.PROVIDER_NOTIFY_FROM
+          : undefined;
 
       try {
         await sendEmail({
           to: bp.email,
           subject,
           html,
+          from: digestFrom,
           emailType: "weekly_analytics_digest",
           recipientType: "provider",
           // Stamp the email_log row with the same id the answer endpoint
@@ -881,8 +1231,14 @@ export async function GET(request: NextRequest) {
         });
         sent += 1;
         if (marketRank) marketHeroCount += 1;
+        if (variant === "referral_teaser") referralTeaserCount += 1;
+        if (variant === "market_rank" && marketRank && referralTargets.length === 0) {
+          marketRankMissingReferralTargets += 1;
+        }
         if (preRank.has(providerId)) coldRankSent += 1;
-        if (completionUrl) completionCount += 1;
+        if (variant === "completion") completionCount += 1;
+        if (variant === "managed_ads") managedAdsCount += 1;
+        if (variant === "find_families") findFamiliesCount += 1;
         sentEmails.add(emailKey);
       } catch (err) {
         console.error(`[weekly-provider-digest] send failed for ${providerSlug}:`, err);
@@ -894,9 +1250,15 @@ export async function GET(request: NextRequest) {
       // sent, within maxDuration) so next week's digest can show those providers' rank. Skipped
       // on dry runs. warmCity self-guards (monthly budget circuit-breaker + claim dedup), so a
       // big miss list can't run away on cost.
-      const uniqueWarm = Array.from(
-        new Map(warmTargets.map((t) => [`${t.city}|${t.state}|${t.careType ?? ""}`, t])).values(),
+      const proactiveWarmKeys = new Set(
+        proactiveWarmTargets.map((t) => `${t.city}|${t.state}|${t.careType ?? ""}`),
       );
+      const uniqueWarm = Array.from(
+        new Map([...warmTargets, ...proactiveWarmTargets].map((t) => [`${t.city}|${t.state}|${t.careType ?? ""}`, t])).values(),
+      );
+      const proactiveWarmQueued = uniqueWarm.filter((t) =>
+        proactiveWarmKeys.has(`${t.city}|${t.state}|${t.careType ?? ""}`),
+      ).length;
       if (!dryRun && uniqueWarm.length > 0) {
         after(async () => {
           for (const t of uniqueWarm) {
@@ -910,7 +1272,7 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(
-        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} coldRank=${coldRankSent} completion=${completionCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} reasons=${JSON.stringify(skipReasons)}`,
+        `[weekly-provider-digest] dayBucket=${allDays ? "all" : todayBucket} processed=${providerIds.length} sent=${sent} marketHero=${marketHeroCount} referralTeaser=${referralTeaserCount} marketRankMissingReferralTargets=${marketRankMissingReferralTargets} coldRank=${coldRankSent} completion=${completionCount} managedAds=${managedAdsCount} findFamilies=${findFamiliesCount} seekerEnrolled=${seekerEnrolledCount} rankEnrolled=${rankEligible.size} skipped=${skipped} warmQueued=${uniqueWarm.length} proactiveWarmQueued=${proactiveWarmQueued} reasons=${JSON.stringify(skipReasons)}`,
       );
 
       return {
@@ -920,13 +1282,20 @@ export async function GET(request: NextRequest) {
         processed: providerIds.length,
         sent,
         marketHeroSent: marketHeroCount,
+        referralTeaserSent: referralTeaserCount,
+        marketRankMissingReferralTargets,
         // §1c cold/quiet expansion: providers enrolled by a top-5 cached rank, and how many got sent.
         rankEligibleEnrolled: rankEligible.size,
         coldRankSent,
         completionSent: completionCount,
+        managedAdsSent: managedAdsCount,
+        findFamiliesSent: findFamiliesCount,
+        // Providers pulled into the pool purely by a nearby published seeker (no other signal).
+        seekerEnrolled: seekerEnrolledCount,
         skipped,
         skipReasons,
         warmQueued: uniqueWarm.length,
+        proactiveWarmQueued,
         // The exact city×care-type list to pre-warm (so a dry_run shows what to warm before the
         // real send to expand THIS week's hero reach, not just next week's).
         warmCities: uniqueWarm.map((t) => `${t.city}, ${t.state} (${normCareType(t.careType)})`),
@@ -938,6 +1307,20 @@ export async function GET(request: NextRequest) {
 }
 
 type DigestMarketRank = { rank: number; outOf: number; cityLabel: string; careLabel: string; flattering: boolean };
+type DigestReferralTarget = { id: string; name: string; category: string; distanceMiles: number | null };
+type DigestReferralTeaser = {
+  totalSources: number;
+  starterTotal: number;
+  workedCount: number;
+  respondedCount: number;
+  referringCount: number;
+  targets: Array<{ name: string; category: string; distanceMiles: number | null }>;
+};
+type DigestMarketSnapshot = {
+  rank: DigestMarketRank;
+  referralTargets: DigestReferralTarget[];
+  totalReferralSources: number;
+};
 
 /**
  * Resolve a no-question provider's rank in their local market for the digest Market-Intel hero.
@@ -952,8 +1335,13 @@ type DigestMarketRank = { rank: number; outOf: number; cityLabel: string; careLa
 async function resolveProviderMarketRank(
   bp: { metadata: Record<string, unknown> | null; source_provider_id: string | null; city: string | null; state: string | null; category: string | null },
   db: ReturnType<typeof getServiceClient>,
-): Promise<{ rank: DigestMarketRank | null; warmTarget: { city: string; state: string; careType: string | null } | null }> {
-  if (!bp.city) return { rank: null, warmTarget: null };
+): Promise<{
+  rank: DigestMarketRank | null;
+  referralTargets: DigestReferralTarget[];
+  totalReferralSources: number;
+  warmTarget: { city: string; state: string; careType: string | null } | null;
+}> {
+  if (!bp.city) return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: null };
   let placeId =
     (bp.metadata as { google_metadata?: { place_id?: string } } | null)?.google_metadata?.place_id ?? null;
   if (!placeId && bp.source_provider_id) {
@@ -964,23 +1352,31 @@ async function resolveProviderMarketRank(
       .maybeSingle();
     placeId = (data as { place_id?: string | null } | null)?.place_id ?? null;
   }
-  if (!placeId) return { rank: null, warmTarget: null }; // no key to match — skip, don't warm
+  if (!placeId) return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: null }; // no key to match — skip, don't warm
 
   const key = normalizeKey(bp.city, bp.state ?? "", bp.category);
   const row = await getRow(key, db);
   if (!(row && row.status === "ready" && row.data)) {
     // Diagnostic not cached → warm it in the background for next week.
-    return { rank: null, warmTarget: { city: bp.city, state: bp.state ?? "", careType: bp.category } };
+    return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: { city: bp.city, state: bp.state ?? "", careType: bp.category } };
   }
+  const refreshTarget = isFresh(row)
+    ? null
+    : { city: bp.city, state: bp.state ?? "", careType: bp.category };
 
-  const cl = (row.data as { competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number } })
-    .competitorLandscape;
+  const data = row.data as {
+    competitorLandscape?: { ranked?: RankedEntry[]; totalReviewsInMarket?: number };
+    referralGraph?: { totalViableSources?: number; prioritizedTargets?: unknown[] };
+  };
+  const cl = data.competitorLandscape;
+  const referralTargets = extractReferralTargets(data);
+  const totalSources = totalReferralSources(data);
   const self = await resolveSelfRank({
     ranked: cl?.ranked,
     totalReviewsInMarket: cl?.totalReviewsInMarket ?? 0,
     placeId,
   });
-  if (!self) return { rank: null, warmTarget: null };
+  if (!self) return { rank: null, referralTargets, totalReferralSources: totalSources, warmTarget: refreshTarget };
 
   const careLabel = normCareType(bp.category) === "assisted_living" ? "assisted living" : "home care";
   return {
@@ -991,7 +1387,70 @@ async function resolveProviderMarketRank(
       careLabel,
       flattering: self.rank <= 5 || self.rank <= Math.ceil(self.outOf / 4),
     },
-    warmTarget: null,
+    referralTargets,
+    totalReferralSources: totalSources,
+    warmTarget: refreshTarget,
+  };
+}
+
+function extractReferralTargets(data: unknown): DigestReferralTarget[] {
+  const targets = (data as { referralGraph?: { prioritizedTargets?: unknown[] } } | null)
+    ?.referralGraph?.prioritizedTargets;
+  if (!Array.isArray(targets)) return [];
+  return targets
+    .map((target) => {
+      const t = target as {
+        id?: unknown;
+        name?: unknown;
+        cat?: unknown;
+        distanceMiles?: unknown;
+      };
+      if (typeof t.name !== "string" || !t.name.trim()) return null;
+      return {
+        id: typeof t.id === "string" && t.id.trim() ? t.id : t.name,
+        name: t.name.trim(),
+        category: typeof t.cat === "string" ? t.cat : "referral_source",
+        distanceMiles: typeof t.distanceMiles === "number" ? t.distanceMiles : null,
+      };
+    })
+    .filter((target): target is DigestReferralTarget => !!target)
+    .slice(0, 8);
+}
+
+function totalReferralSources(data: unknown): number {
+  const graph = (data as { referralGraph?: { totalViableSources?: unknown; prioritizedTargets?: unknown[] } } | null)
+    ?.referralGraph;
+  return typeof graph?.totalViableSources === "number"
+    ? graph.totalViableSources
+    : Array.isArray(graph?.prioritizedTargets)
+      ? graph.prioritizedTargets.length
+      : 0;
+}
+
+function buildReferralTeaser(
+  targets: DigestReferralTarget[],
+  totalSources: number,
+  outreach: { statusByTarget: Map<string, string>; workedCount: number; respondedCount: number; referringCount: number } | null,
+): DigestReferralTeaser | null {
+  if (targets.length === 0) return null;
+  const statusByTarget = outreach?.statusByTarget ?? new Map<string, string>();
+  const freshTargets = targets.filter((target) => {
+    const status = statusByTarget.get(target.id);
+    return status !== "dismissed" && status !== "referring";
+  });
+  const selected = (freshTargets.length > 0 ? freshTargets : targets).slice(0, 3);
+  if (selected.length === 0) return null;
+  return {
+    totalSources: Math.max(totalSources, targets.length),
+    starterTotal: Math.min(5, targets.length),
+    workedCount: outreach?.workedCount ?? 0,
+    respondedCount: outreach?.respondedCount ?? 0,
+    referringCount: outreach?.referringCount ?? 0,
+    targets: selected.map((target) => ({
+      name: target.name,
+      category: target.category,
+      distanceMiles: target.distanceMiles,
+    })),
   };
 }
 

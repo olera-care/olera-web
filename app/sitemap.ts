@@ -116,12 +116,6 @@ export default async function sitemap({
             changeFrequency: "monthly",
             priority: 0.5,
           });
-          entries.push({
-            url: `${SITE_URL}/senior-benefits/forms/${state.id}`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.4,
-          });
           // Program URLs come from pipeline-drafts, which is the source of truth
           // for /benefits/[slug]/[program] rendering. Iterating waiver-library
           // would emit 404s for any state whose legacy IDs don't match pipeline IDs.

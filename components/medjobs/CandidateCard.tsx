@@ -42,6 +42,32 @@ function formatAvailabilityTruncated(
   return { display: `${shown.join(", ")}, +${remaining} more`, count: mapped.length };
 }
 
+// Provider coverage buckets (day/evening/overnight/weekend) → student
+// availability_types, for the "Covers your …" match line.
+const BUCKET_TO_AVAIL: Record<string, string> = {
+  day: "in_between_classes",
+  evening: "evenings",
+  overnight: "overnights",
+  weekend: "weekends",
+};
+const BUCKET_LABEL: Record<string, string> = {
+  day: "days",
+  evening: "evenings",
+  overnight: "overnights",
+  weekend: "weekends",
+};
+function matchLine(matchBuckets: string[] | undefined, types: string[]): string | null {
+  if (!matchBuckets || matchBuckets.length === 0) return null;
+  const covered = matchBuckets.filter((b) => types.includes(BUCKET_TO_AVAIL[b]));
+  if (covered.length === 0) return null;
+  const labels = covered.map((b) => BUCKET_LABEL[b] ?? b);
+  const list =
+    labels.length === 1
+      ? labels[0]
+      : `${labels.slice(0, -1).join(", ")} & ${labels[labels.length - 1]}`;
+  return `Covers your ${list}`;
+}
+
 // Softer, more muted colors for avatar fallbacks
 const AVATAR_COLORS = [
   "bg-slate-100 text-slate-600",
@@ -70,9 +96,13 @@ interface CandidateCardProps {
   basePath: string;
   /** Whether the provider has already contacted this candidate */
   isContacted?: boolean;
-  /** Renders a DEMO badge — used for the sample profile shown when a
-   *  campus has no real students yet. */
+  /** Renders the "Sample profile" treatment — used for the curated sample
+   *  candidates shown when a campus has no real students yet. Suppresses the
+   *  location + university lines (campus-honesty) and muted styling. */
   isDemo?: boolean;
+  /** Provider's coverage buckets (day/evening/overnight/weekend) — drives
+   *  the "Covers your …" match line. */
+  matchBuckets?: string[];
 }
 
 export default function CandidateCard({
@@ -80,6 +110,7 @@ export default function CandidateCard({
   basePath,
   isContacted = false,
   isDemo = false,
+  matchBuckets,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
@@ -89,6 +120,7 @@ export default function CandidateCard({
   const videoAvailable = hasVideo(meta);
   const location = [candidate.city, candidate.state].filter(Boolean).join(", ");
   const verifiedHours = meta.total_verified_hours ?? 0;
+  const match = matchLine(matchBuckets, meta.availability_types ?? []);
 
   const profileUrl = `${basePath}/${candidate.slug}`;
   const firstName = getFirstName(candidate.display_name);
@@ -133,7 +165,7 @@ export default function CandidateCard({
             {candidate.display_name}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5 truncate">
-            {location || "Location not specified"}
+            {isDemo ? "Pre-health student" : location || "Location not specified"}
           </p>
         </div>
       </div>
@@ -145,10 +177,10 @@ export default function CandidateCard({
           {trackLabel && (
             <span className="font-medium text-gray-900 shrink-0">{trackLabel}</span>
           )}
-          {trackLabel && meta.university && (
+          {trackLabel && meta.university && !isDemo && (
             <span className="text-gray-300 shrink-0">·</span>
           )}
-          {meta.university && (
+          {meta.university && !isDemo && (
             <span className="text-gray-500 truncate">{meta.university}</span>
           )}
         </div>
@@ -162,6 +194,10 @@ export default function CandidateCard({
           {hoursLabel && <span className="shrink-0">{hoursLabel}</span>}
         </div>
       </div>
+
+      {match && (
+        <p className="mb-2 text-xs font-medium text-emerald-600">✓ {match}</p>
+      )}
 
       {/* Spacer */}
       <div className="flex-1" />
@@ -208,7 +244,11 @@ export default function CandidateCard({
   return (
     <Link
       href={profileUrl}
-      className="group relative flex flex-col bg-white rounded-2xl border border-gray-200/80 hover:border-gray-300 transition-colors duration-200 overflow-hidden"
+      className={`group relative flex flex-col bg-white rounded-2xl border transition-colors duration-200 overflow-hidden ${
+        isDemo
+          ? "border-dashed border-slate-200 hover:border-slate-300"
+          : "border-gray-200/80 hover:border-gray-300"
+      }`}
     >
       {/* Contacted badge */}
       {isContacted && (

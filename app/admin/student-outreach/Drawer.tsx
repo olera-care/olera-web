@@ -20,15 +20,18 @@ import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { DeptHeadIntroCallModal } from "@/components/admin/medjobs/DeptHeadIntroCallModal";
+import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
+import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
+import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
-import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import StyledSelect from "@/components/ui/Select";
 import {
   KIND_LABELS,
   STATUS_LABELS,
-  type Approval,
-  type ApprovalStatus,
   type Contact,
   type DrawerContext,
   type ResearchData,
@@ -36,13 +39,13 @@ import {
   type Status,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import { cleanOrgName } from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
   OTHER,
   PROGRAMS,
   ROLES_BY_TYPE,
   singleProgram,
-  supportsApprovals,
   supportsMultipleContacts,
 } from "@/lib/student-outreach/presets";
 
@@ -73,6 +76,25 @@ const TERMINAL_STATUSES: Status[] = [
   "wrong_contact",
   "redirected",
   "no_response_closed",
+];
+
+// Office-shaped prospects: a parent organization with named child contacts,
+// researched + launched through the same card. Advising offices have
+// "Advisors"; student organizations have "Leaders". Both reuse the
+// general-contact + SpecificContactsSection + confirm-call + launch flow.
+function isOfficeType(type: StakeholderType): boolean {
+  return type === "advisor" || type === "student_org";
+}
+
+// Student-organization Leader role presets (Faculty Advisor first — it's the
+// highest-value, turnover-proof contact). "Other" is appended by the picker.
+const LEADER_ROLES = [
+  "Faculty Advisor",
+  "President",
+  "Vice President",
+  "Treasurer",
+  "Secretary",
+  "Recruitment Chair",
 ];
 
 // v8.10.11: TabContext + TabContextBanner removed. The drawer's section
@@ -109,7 +131,15 @@ export function Drawer(props: DrawerProps) {
  * actions that aren't tied to any specific row card slot. Currently
  * just Mark as unread; future drawer-level actions land here.
  */
-function DrawerHeaderOverflow({ onMarkUnread }: { onMarkUnread: () => Promise<void> }) {
+function DrawerHeaderOverflow({
+  onMarkUnread,
+  onStopOutreach,
+}: {
+  onMarkUnread: () => Promise<void>;
+  /** When provided, a "Stop all outreach" item appears under Mark as unread —
+   *  a hard stop that cancels every queued email and call for the row. */
+  onStopOutreach?: () => Promise<void>;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -146,6 +176,17 @@ function DrawerHeaderOverflow({ onMarkUnread }: { onMarkUnread: () => Promise<vo
           >
             Mark as unread
           </button>
+          {onStopOutreach && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                void onStopOutreach();
+              }}
+              className="block w-full px-3 py-1.5 text-left text-xs font-medium text-red-700 hover:bg-red-50"
+            >
+              Stop all outreach
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -241,9 +282,10 @@ function StakeholderDrawer({
                 .join(" ")
                 .trim() || primary.name || null
             : null;
-          const headline = contactDisplay || ctx.outreach.organization_name;
+          const orgDisplay = cleanOrgName(ctx.outreach.organization_name);
+          const headline = contactDisplay || orgDisplay;
           const showOrgInSubline =
-            !!contactDisplay && contactDisplay !== ctx.outreach.organization_name;
+            !!contactDisplay && contactDisplay !== orgDisplay;
           // v8.10.37: surface a small "★ Partner since {date}" indicator
           // for active partners. NextStepPanel is suppressed for partners,
           // so without this header cue the drawer wouldn't show their
@@ -254,13 +296,26 @@ function StakeholderDrawer({
             ? ctx.touchpoints.find((t) => t.touchpoint_type === "distribution_confirmed")
                 ?.created_at ?? null
             : null;
+          // Dept-head partners: surface the professor-outreach decision (the
+          // terminal documented step) right in the header.
+          const deptHeadPartnership =
+            isPartner && ctx.outreach.stakeholder_type === "dept_head"
+              ? ((ctx.outreach.research_data as { dept_head_partnership?: { professor_permission?: string } } | null)
+                  ?.dept_head_partnership ?? null)
+              : null;
+          const PERMISSION_LABEL: Record<string, string> = {
+            yes: "✅ professors: approved",
+            no: "🚫 professors: not allowed",
+            not_yet: "⏳ professors: not yet",
+            unclear: "❓ professors: unclear",
+          };
           return (
             <>
               <h2 className="truncate text-lg font-semibold text-gray-900">{headline}</h2>
               <p className="truncate text-sm text-gray-500">
                 {showOrgInSubline && (
                   <>
-                    {ctx.outreach.organization_name}
+                    {orgDisplay}
                     {ctx.outreach.department &&
                       ctx.outreach.department !== ctx.outreach.organization_name &&
                       ` · ${ctx.outreach.department}`}
@@ -276,6 +331,8 @@ function StakeholderDrawer({
                   {partnerSince
                     ? ` since ${new Date(partnerSince).toLocaleDateString()}`
                     : ""}
+                  {deptHeadPartnership?.professor_permission &&
+                    ` · ${PERMISSION_LABEL[deptHeadPartnership.professor_permission] ?? "professors: documented"}`}
                 </p>
               )}
             </>
@@ -296,6 +353,30 @@ function StakeholderDrawer({
               setError(e instanceof Error ? e.message : "Failed to mark unread");
             }
           }}
+          // Hard stop — only offered while outreach is actually live. Cancels
+          // every queued email and call (cold + activation) for the row.
+          onStopOutreach={
+            ctx &&
+            ["outreach_sent", "engaged", "meeting_scheduled"].includes(
+              ctx.outreach.status,
+            )
+              ? async () => {
+                  if (
+                    !window.confirm(
+                      "Stop all outreach for this row? This cancels every queued email and call.",
+                    )
+                  )
+                    return;
+                  try {
+                    await action("stop_all_outreach");
+                  } catch (e) {
+                    setError(
+                      e instanceof Error ? e.message : "Failed to stop outreach",
+                    );
+                  }
+                }
+              : undefined
+          }
         />
       }
     >
@@ -814,6 +895,9 @@ function DrawerBody({
           convey state for active-partner / closed states. The banner
           was repeating those signals one row above them. */}
       {isResearch ? (
+        // The Research Card is the source of truth — website, notes, and the
+        // sources collapsible live inside it. (The separate Partner Pre-Flight
+        // card was redundant and was removed.)
         <ResearchModePanel ctx={ctx} action={action} setError={setError} />
       ) : (
         // v9: unified NextStepCard replaces the Partner-specific
@@ -865,16 +949,17 @@ function DrawerBody({
             {!isResearch && (
               <ResearchSection ctx={ctx} action={action} setError={setError} />
             )}
-            {/* Contacts section only for student orgs (multi-officer).
-                Single-contact types render the primary contact inline in
-                ResearchSection to avoid a redundant section. */}
-            {supportsMultipleContacts(ctx.outreach.stakeholder_type) && (
-              <ContactsSection ctx={ctx} action={action} setError={setError} />
-            )}
-            {supportsApprovals(ctx.outreach.stakeholder_type) && (
-              <ApprovalsSection ctx={ctx} action={action} setError={setError} />
-            )}
-            <DangerZone ctx={ctx} action={action} setError={setError} />
+            {/* Multi-officer ContactsSection only for non-office multi-contact
+                types. Office-shaped types (advisor / student_org) manage named
+                contacts via SpecificContactsSection (Advisors / Leaders) in the
+                research card, so they skip this redundant section. */}
+            {supportsMultipleContacts(ctx.outreach.stakeholder_type) &&
+              !isOfficeType(ctx.outreach.stakeholder_type) && (
+                <ContactsSection ctx={ctx} action={action} setError={setError} />
+              )}
+            {/* MVP: Permissions cards + the Close out / Danger Zone section
+                were removed from the drawer — not used for partners or
+                providers in this MVP (less is more). */}
           </div>
         )}
       </div>
@@ -924,74 +1009,200 @@ function ResearchModePanel({
 }) {
   const status = ctx.outreach.status;
   const type = ctx.outreach.stakeholder_type;
+  const isOffice = isOfficeType(type);
   const [showPreFlight, setShowPreFlight] = useState(false);
+  const [showCallConfirm, setShowCallConfirm] = useState(false);
+  // Dept heads get an optional, NON-blocking pre-launch intro call (when a
+  // phone exists). It never gates launch — purely a courtesy + a logged touch.
+  const [showIntroCall, setShowIntroCall] = useState(false);
 
   // Readiness gating per stage.
   const haveContact = ctx.contacts.some((c) => c.status === "active");
+  const primaryContact = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
+  const deptHeadPhone = type === "dept_head" ? (primaryContact?.phone ?? null) : null;
+  const deptHeadContactName =
+    [primaryContact?.title, primaryContact?.first_name, primaryContact?.last_name]
+      .filter(Boolean)
+      .join(" ") || null;
   const havePrograms = ctx.outreach.programs.length > 0;
   const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
   const eligibleEmail = ctx.contacts.filter(
     (c) => c.status === "active" && c.email,
   ).length;
 
+  // Office readiness (R: ready = at least one email — office OR a member;
+  // phone/name optional). Offices have no "programs" requirement.
+  const rd = (ctx.outreach.research_data ?? {}) as Record<string, unknown>;
+  const officeEmail = ((rd.general_contact ?? {}) as { email?: string }).email;
+  const members = (Array.isArray(rd.office_members) ? rd.office_members : []) as { email?: string }[];
+  const hasOfficeEmail = Boolean(officeEmail) || members.some((m) => m?.email) || eligibleEmail > 0;
+
   const isProspect = status === "prospect";
-  const ready = isProspect ? haveContact && havePrograms && haveDept : eligibleEmail > 0;
+  const ready = isOffice
+    ? hasOfficeEmail
+    : isProspect
+      ? haveContact && havePrograms && haveDept
+      : eligibleEmail > 0;
 
   // v8.10.11: orientation copy trimmed — the section h3 ("RESEARCH")
   // already says what the section is for, so the prefix sentence
   // ("Research this stakeholder." / "Ready to email.") was redundant.
   // What's left is the actionable bit only.
-  const orientation = isProspect ? (
+  // Office prospects mirror provider Pre-Flight EXACTLY: outreach is gated on a
+  // logged confirmation call. The launcher stays disabled until a "Confirmed"
+  // call outcome is logged (or Pre-Flight is overridden) — same verification
+  // state, same modal (CallForEmailModal) as providers.
+  const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
+  const verificationState = getVerificationState(ctx.touchpoints, overridden);
+  const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
+
+  // Office launch: materialize advisors-with-email as named contacts (so they
+  // become recipients alongside the general office), then open the per-recipient
+  // review modal — the same one providers use.
+  const officeMembersFull = (Array.isArray(rd.office_members) ? rd.office_members : []) as Array<{
+    name?: string;
+    title?: string;
+    email?: string;
+    phone?: string;
+  }>;
+  const launchOffice = async () => {
+    try {
+      // Offices skip the explicit "Research complete" click — transition here,
+      // transparently, on the way to launch (prospect → researched is required
+      // before outreach_sent).
+      if (ctx.outreach.status === "prospect") await action("mark_research_complete");
+      const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      const gcLc = officeEmail?.toLowerCase();
+      for (const m of officeMembersFull) {
+        const em = m.email?.trim().toLowerCase();
+        if (!em || em === gcLc || existing.has(em)) continue;
+        existing.add(em);
+        await action("add_contact", { name: m.name, title: m.title ?? null, email: m.email, phone: m.phone });
+      }
+      setShowPreFlight(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't prepare recipients");
+    }
+  };
+
+  // Offices skip the redundant "Research complete" pre-state — they're
+  // generated WITH contact info, so they land straight on Pre-Flight (confirm
+  // by call, then launch). Only non-office stakeholders keep the prospect step.
+  // Phone-conditional pre-flight: a confirm-call is only required (and only
+  // possible) when a phone number exists. Phoneless orgs (common for student
+  // organizations) launch on a verified email alone.
+  const requiresCall = isOffice && Boolean(officePhone);
+  const officeCanLaunch = hasOfficeEmail && (requiresCall ? verificationState.can_launch : true);
+
+  const orientation = isOffice ? (
+    requiresCall ? (
+      <>Check the info, call to confirm, then launch outreach.</>
+    ) : (
+      <>Check the info, then launch outreach.</>
+    )
+  ) : isProspect ? (
     <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
-    <>
-      Confirm the plan below, then start outreach. The first email goes out right away. Follow-ups send automatically; calls show up in the Calls tab on their day; replies show up in Replies.
-    </>
+    <>Check the info, call to confirm, then launch outreach.</>
   );
 
-  const checklist = isProspect
-    ? [
-        { done: haveContact, label: "At least one active contact added" },
-        { done: havePrograms, label: "Programs selected" },
-        ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
-      ]
-    : [{ done: eligibleEmail > 0, label: `Active contact with email (${eligibleEmail} found)` }];
+  const checklist = isOffice
+    ? [] // offices: the buttons (Call to Confirm → Launch) carry the workflow; no checklist line
+    : isProspect
+      ? [
+          { done: haveContact, label: "At least one active contact added" },
+          { done: havePrograms, label: "Programs selected" },
+          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
+        ]
+      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
-  const ctaLabel = isProspect
-    ? ready
+  // CTA: offices show Pre-Flight (Verification + Call to Confirm + Launch) at
+  // any research status; non-office prospects keep the Research-complete step.
+  let cta: React.ReactNode;
+  if (!isOffice && isProspect) {
+    const label = ready
       ? "✓ Research complete — review email sequence"
-      : "Add a contact + programs to continue"
-    : ready
-      ? "Start email sequence →"
-      : "Add a contact with email to continue";
-
-  // v8.10.5: prospect's CTA chains mark_research_complete with opening
-  // PreFlight. Removes the previous "two clicks to schedule" friction
-  // — admin transitions to researched AND lands on the email-review
-  // modal in one action. ctx re-renders to the researched-stage label
-  // behind the modal, but admin doesn't have to click again.
-  const onCtaClick = isProspect
-    ? async () => {
-        try {
-          await action("mark_research_complete");
-          setShowPreFlight(true);
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "Action failed");
-        }
-      }
-    : () => setShowPreFlight(true);
-
-  const cta = (
-    <button
-      onClick={onCtaClick}
-      disabled={!ready}
-      className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-        ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-      }`}
-    >
-      {ctaLabel}
-    </button>
-  );
+      : "Add a contact + programs to continue";
+    cta = (
+      <div className="space-y-2">
+        {/* Dept heads: recommended (non-blocking) intro call when a phone
+            exists. Sits above Launch — placing the courtesy call before the
+            email — but never gates it. */}
+        {type === "dept_head" && deptHeadPhone && (
+          <button
+            onClick={() => setShowIntroCall(true)}
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            📞 Intro call (recommended) — {deptHeadPhone}
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            try {
+              await action("mark_research_complete");
+              setShowPreFlight(true);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Action failed");
+            }
+          }}
+          disabled={!ready}
+          className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+            ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          {label}
+        </button>
+      </div>
+    );
+  } else if (isOffice) {
+    // Call to Confirm (only when a phone exists), then Launch. With a phone,
+    // launch unlocks once the call is confirmed; without a phone, a verified
+    // email is enough (student orgs usually have no phone).
+    cta = (
+      <div className="flex flex-wrap items-center gap-2">
+        {officePhone && (
+          <button
+            onClick={() => setShowCallConfirm(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            📞 Call to Confirm
+          </button>
+        )}
+        <button
+          onClick={() => {
+            if (officeCanLaunch) void launchOffice();
+            else if (!hasOfficeEmail) setError("Add an email to reach this organization before launching.");
+            else setError("Confirm the office on a Pre-Flight call, or override Pre-Flight.");
+          }}
+          disabled={!officeCanLaunch}
+          title={
+            officeCanLaunch
+              ? "Review recipients and launch outreach."
+              : !hasOfficeEmail
+                ? "Add an email first."
+                : "Confirm the office on a call first."
+          }
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {requiresCall && verificationState.status === "overridden"
+            ? "Launch outreach (override) →"
+            : "Launch outreach →"}
+        </button>
+      </div>
+    );
+  } else {
+    cta = (
+      <button
+        onClick={() => setShowPreFlight(true)}
+        disabled={!ready}
+        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
+          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        {ready ? "Start email sequence →" : "Add a contact with email to continue"}
+      </button>
+    );
+  }
 
   return (
     <>
@@ -1001,7 +1212,54 @@ function ResearchModePanel({
         setError={setError}
         research={{ orientation, checklist, cta }}
       />
-      {showPreFlight && (
+      {showCallConfirm && (
+        <CallForEmailModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          phone={officePhone}
+          action={action}
+          onCancel={() => setShowCallConfirm(false)}
+          onDone={() => setShowCallConfirm(false)}
+          setError={setError}
+        />
+      )}
+      {showIntroCall && (
+        <DeptHeadIntroCallModal
+          organizationName={ctx.outreach.organization_name}
+          contactName={deptHeadContactName}
+          campusName={ctx.campus.name}
+          phone={deptHeadPhone}
+          action={action}
+          onCancel={() => setShowIntroCall(false)}
+          onDone={() => setShowIntroCall(false)}
+          setError={setError}
+        />
+      )}
+      {showPreFlight && isOffice && (
+        <ProviderPreFlightModal
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
+          contacts={ctx.contacts}
+          generalContact={{ email: officeEmail ?? null, phone: officePhone }}
+          smartleadPreview={ctx.smartlead_preview}
+          cadenceKey={type}
+          pdfAudience="student"
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
+          onCancel={() => setShowPreFlight(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("schedule_sequence", payload);
+              setShowPreFlight(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Schedule failed");
+              throw e;
+            }
+          }}
+        />
+      )}
+      {showPreFlight && !isOffice && (
         <PreFlightReviewModal
           stakeholderType={type}
           organizationName={ctx.outreach.organization_name}
@@ -1030,6 +1288,34 @@ function ResearchModePanel({
 // short paragraph: what's happening + what to do next. The row cards
 // own the actual buttons; the drawer just describes and offers a few
 // always-visible CTAs (Mark Partner, Log meeting outcome).
+
+/** Read-only social channels (Instagram / Discord / GroupMe …) the AI surfaced
+ *  for an organization. Stored on research_data.socials at generation time;
+ *  shown as small links since student orgs often reach members via social. */
+function OrgSocials({ ctx }: { ctx: DrawerContext }) {
+  const socials =
+    ((ctx.outreach.research_data as { socials?: Array<{ platform?: string | null; url?: string | null }> } | null)
+      ?.socials ?? []).filter((s) => s?.url);
+  if (socials.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+        Socials
+      </span>
+      {socials.map((s, i) => (
+        <a
+          key={i}
+          href={s.url ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-primary-600 hover:underline"
+        >
+          {s.platform || "link"} ↗
+        </a>
+      ))}
+    </div>
+  );
+}
 
 function ResearchSection({
   ctx,
@@ -1070,11 +1356,10 @@ function ResearchSection({
 
   const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
 
-  // v8.7: for single-contact types (advisor / dept_head / professor) we
-  // render the primary contact inline here instead of a separate
-  // Contacts section. Track the first/last/email/phone right alongside
-  // the rest of the research fields.
-  const isMultiContact = type === "student_org";
+  // v8.7: for single-contact types (dept_head / professor) we render the
+  // primary contact inline here instead of a separate Contacts section.
+  // Office-shaped types (advisor / student_org) render named contacts via
+  // SpecificContactsSection instead, so they skip the inline person fields.
   const showTitleField = type === "dept_head" || type === "professor";
   const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const [title, setTitle] = useState(primary?.title ?? (showTitleField ? "Dr." : ""));
@@ -1082,6 +1367,35 @@ function ResearchSection({
   const [lastName, setLastName] = useState(primary?.last_name ?? "");
   const [email, setEmail] = useState(primary?.email ?? "");
   const [phone, setPhone] = useState(primary?.phone ?? "");
+
+  // Office-shaped advisor rows: an advising OFFICE has org-level contact info
+  // (general email/phone/website in research_data.general_contact) + a people
+  // roster (office_members) — not a single person. No person form, no programs.
+  const isOffice = isOfficeType(type);
+  const gc0 = ((ctx.outreach.research_data as Record<string, unknown>).general_contact ?? {}) as {
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
+  };
+  const [officeEmail, setOfficeEmail] = useState(gc0.email ?? "");
+  const [officePhone, setOfficePhone] = useState(gc0.phone ?? "");
+  const [officeWebsite, setOfficeWebsite] = useState(gc0.website ?? "");
+  const saveOfficeContact = async () => {
+    try {
+      await action("update_research", {
+        research: {
+          general_contact: {
+            ...gc0,
+            email: officeEmail.trim() || null,
+            phone: officePhone.trim() || null,
+            website: officeWebsite.trim() || null,
+          },
+        },
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  };
 
   const saveResearch = async () => {
     try {
@@ -1093,26 +1407,38 @@ function ResearchSection({
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
-  const saveOutreach = async () => {
+  // Accepts explicit overrides so dropdown onChange handlers persist the NEW
+  // value instead of the stale render-closure state (the prior setTimeout
+  // pattern saved the previous selection — e.g. the first program pick saved
+  // an empty list, leaving "Programs selected" stuck unchecked).
+  const saveOutreach = async (overrides?: { programs?: string[]; department?: string | null }) => {
     try {
-      const departmentValue = department === OTHER ? departmentOther.trim() || null : department || null;
+      const departmentValue =
+        overrides?.department !== undefined
+          ? overrides.department
+          : department === OTHER
+            ? departmentOther.trim() || null
+            : department || null;
+      const programsValue = overrides?.programs ?? programs;
       await action("update_outreach", {
         organization_name: orgName,
         department: departmentValue,
-        programs,
+        programs: programsValue,
       });
     } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); }
   };
 
   const savePrimaryContact = async () => {
     if (!primary) {
-      // No contact exists yet; create one. Only fire when there's at least a first name.
-      if (!firstName.trim()) return;
+      // No contact exists yet; create one. Partners often have only a shared
+      // general email (e.g. hpo@…) with no named person — so an email alone is
+      // enough; we don't require a name.
+      if (!firstName.trim() && !email.trim()) return;
       try {
         await action("add_contact", {
           title: title.trim() || null,
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
           email: email.trim() || null,
           phone: phone.trim() || null,
           is_primary: true,
@@ -1133,7 +1459,14 @@ function ResearchSection({
   };
 
   const showDepartment = type === "dept_head" || type === "professor";
-  const showOrgName = type === "student_org"; // others auto-derive
+  const showOrgName = type === "student_org" || isOffice; // offices need a name
+
+  // Source link by the name = the website / first research source where we
+  // found them (replaces the website field + the old sources dropdown).
+  const researchLinks = (((r as Record<string, unknown>).research_links ?? []) as Array<{ title?: string; url?: string }>).filter((s) => s?.url);
+  const sourceUrl = (gc0.website?.trim() || researchLinks[0]?.url || "") || null;
+
+  const notesField = <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />;
 
   return (
     <section>
@@ -1145,15 +1478,35 @@ function ResearchSection({
           <Guidance>{research.orientation}</Guidance>
         )}
         {showOrgName && (
-          <Field label="Organization name" value={orgName} onChange={setOrgName} onBlur={saveOutreach} />
+          <NameWithSource
+            label={type === "advisor" ? "Office name" : "Organization name"}
+            value={orgName}
+            onChange={setOrgName}
+            onBlur={saveOutreach}
+            sourceUrl={sourceUrl}
+          />
         )}
+
+        {/* Office-level contact (the outreach target). Website lives in the
+            source link by the name; people go in the named-contacts section. */}
+        {isOffice && (
+          <div className="grid grid-cols-2 gap-2">
+            <Field type="email" label="General email" value={officeEmail} onChange={setOfficeEmail} onBlur={saveOfficeContact} placeholder="org@uni.edu" />
+            <Field label="General phone" value={officePhone} onChange={setOfficePhone} onBlur={saveOfficeContact} />
+          </div>
+        )}
+
+        {/* Social channels the AI surfaced (Instagram / Discord / GroupMe …) —
+            read-only; useful context for student orgs whose primary reach is
+            social, not email. */}
+        {isOffice && <OrgSocials ctx={ctx} />}
 
         {showDepartment && (
           <>
             <Select
               label="Department"
               value={department}
-              onChange={(v) => { setDepartment(v); setTimeout(saveOutreach, 0); }}
+              onChange={(v) => { setDepartment(v); saveOutreach({ department: v === OTHER ? null : v || null }); }}
               options={DEPARTMENTS.map((d) => ({ value: d, label: d }))}
             />
             {department === OTHER && (
@@ -1167,8 +1520,9 @@ function ResearchSection({
           </>
         )}
 
-        {/* v8.7: primary contact embedded for single-contact types */}
-        {!isMultiContact && (
+        {/* v8.7: primary contact embedded for single-contact types (not offices —
+            offices use the general-contact fields above + the people roster). */}
+        {!isOffice && (
           <>
             {showTitleField && (
               <Field
@@ -1188,12 +1542,12 @@ function ResearchSection({
           </>
         )}
 
-        {/* Programs */}
-        {singleProgram(type) ? (
+        {/* Programs — not shown for advising offices. */}
+        {isOffice ? null : singleProgram(type) ? (
           <Select
             label="Program"
             value={programs[0] ?? ""}
-            onChange={(v) => { setPrograms(v ? [v] : []); setTimeout(saveOutreach, 0); }}
+            onChange={(v) => { const next = v ? [v] : []; setPrograms(next); saveOutreach({ programs: next }); }}
             options={programOptions.map((p) => ({ value: p, label: p }))}
           />
         ) : (
@@ -1204,19 +1558,52 @@ function ResearchSection({
             onToggle={(v) => {
               const next = programs.includes(v) ? programs.filter((p) => p !== v) : [...programs, v];
               setPrograms(next);
-              setTimeout(saveOutreach, 0);
+              saveOutreach({ programs: next });
             }}
           />
         )}
 
-        <Field label="Research notes" value={notes} onChange={setNotes} onBlur={saveResearch} multiline />
+        {/* Named contacts — the SAME shared component the Provider drawer uses
+            for Decision makers. Advising offices have "Advisors"; student
+            organizations have "Leaders" (with role presets). Stored in
+            research_data.office_members; materialized into recipients at launch
+            (launchOffice). */}
+        {type === "advisor" && (
+          <SpecificContactsSection
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            researchKey="office_members"
+            title="Advisors"
+            primaryRoleLabel="Advisor"
+            addLabel="Add an advisor"
+            helpText="Advisors at this office. Anyone with an email becomes a selectable recipient at launch, alongside the general office contact."
+          />
+        )}
+        {type === "student_org" && (
+          <SpecificContactsSection
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            researchKey="office_members"
+            title="Leaders"
+            primaryRoleLabel="President"
+            rolePresets={LEADER_ROLES}
+            addLabel="Add Leader"
+            helpText="Officers and the faculty advisor for this organization. Anyone with an email becomes a selectable recipient at launch, alongside the general org contact. The faculty advisor is the most valuable long-term contact (year-to-year continuity)."
+          />
+        )}
 
         {research && (
           <>
-            <ChecklistInline items={research.checklist} />
+            {research.checklist.length > 0 && <ChecklistInline items={research.checklist} />}
             <div className="pt-1">{research.cta}</div>
           </>
         )}
+
+        {/* Research notes sit BELOW the workflow (call to confirm + launch) so
+            they don't interrupt the main path. */}
+        {notesField}
       </div>
     </section>
   );
@@ -1253,8 +1640,8 @@ function ContactsSection({
       <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
         {multi && (
           <div className="rounded-md border border-blue-100 bg-blue-50/60 p-2.5 text-xs text-blue-900">
-            💡 Don't rely on one inbox — President, VP, and the outreach officer at minimum.
-            Email each officer so info reaches whoever's online first.
+            💡 Don&apos;t rely on one inbox — President, VP, and the outreach officer at minimum.
+            Email each officer so info reaches whoever&apos;s online first.
           </div>
         )}
         {ctx.contacts.length === 0 && !showAdd && (
@@ -1331,7 +1718,7 @@ function AddContactInline({
   return (
     <div className="space-y-2 rounded-md border border-dashed border-gray-200 p-3">
       <div className="grid grid-cols-2 gap-2">
-        <Field label="First name *" value={firstName} onChange={setFirstName} />
+        <Field label="First name" value={firstName} onChange={setFirstName} />
         <Field label="Last name" value={lastName} onChange={setLastName} />
       </div>
       <Select
@@ -1350,11 +1737,12 @@ function AddContactInline({
         Primary contact
       </label>
       <PrimaryButton onClick={async () => {
-        if (!firstName.trim()) { setError("First name required"); return; }
+        // A name OR an email is enough — partners may share one general inbox.
+        if (!firstName.trim() && !email.trim()) { setError("Add a name or an email"); return; }
         try {
           await action("add_contact", {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
+            first_name: firstName.trim() || null,
+            last_name: lastName.trim() || null,
             role: role === OTHER ? roleOther : role,
             email,
             phone,
@@ -1368,401 +1756,6 @@ function AddContactInline({
 }
 
 
-// ── Approvals (advisor + dept_head) ────────────────────────────────────
-
-// v8.7: collapsed to two binary permissions per the simplification spec.
-//   - "Email professors directly" — dept_head only. Yes = bulk import
-//     unlocks; No (denied) = dept distributes on our behalf.
-//   - "Post on university job board" — both advisor and dept_head. Yes =
-//     queue a campus-scoped post task (deduped by campus).
-//
-// Each kind doubles as the canonical approval_for string so we can
-// recognize granted/denied rows by string match against the approvals
-// table.
-
-interface PermissionKind {
-  key: string;
-  approval_for: string;
-  approval_type: "department" | "marketing" | "listserv" | "job_board" | "other";
-  title: string;
-  blurb: string;
-  tooltip: string;
-}
-
-const PROFESSOR_PERMISSION: PermissionKind = {
-  key: "email_professors",
-  approval_for: "Email professors directly",
-  approval_type: "department",
-  title: "Email professors directly",
-  blurb: "Yes — bulk-import professors. No — dept head distributes our materials on our behalf.",
-  tooltip: "When granted, you can bulk-import professors and email them directly.",
-};
-
-// v8.10.26: display labels say "task board"; the approval_for matching
-// key (database column) stays "Post on university job board" so we
-// don't break matching against existing approval rows.
-const JOB_BOARD_PERMISSION: PermissionKind = {
-  key: "job_board",
-  approval_for: "Post on university job board",
-  approval_type: "job_board",
-  title: "Post on university task board",
-  blurb: "Permission to publish Olera's clinical-experience posting on the campus task board.",
-  tooltip: "When granted, a 'Post to task board' task is queued (one per campus, deduped if multiple grant).",
-};
-
-function permissionKindsFor(
-  type: StakeholderType,
-  status: Status,
-): PermissionKind[] {
-  // v8.10.4: at research stages (prospect / researched), only show
-  // permissions that GATE the research flow itself. Job-board permission
-  // is only meaningful once they're an active partner, so hide it from
-  // research drawers entirely. Email-professors permission for dept_head
-  // stays — it gates the Bulk Professor Import flow during research.
-  const isResearch = status === "prospect" || status === "researched";
-  if (type === "dept_head") {
-    return isResearch ? [PROFESSOR_PERMISSION] : [PROFESSOR_PERMISSION, JOB_BOARD_PERMISSION];
-  }
-  if (type === "advisor") {
-    return isResearch ? [] : [JOB_BOARD_PERMISSION];
-  }
-  return [];
-}
-
-const ALL_PERMISSION_KINDS = [PROFESSOR_PERMISSION, JOB_BOARD_PERMISSION];
-
-function ApprovalsSection({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-}) {
-  const [showOther, setShowOther] = useState(false);
-  const [showBulkProf, setShowBulkProf] = useState(false);
-
-  const kinds = permissionKindsFor(ctx.outreach.stakeholder_type, ctx.outreach.status);
-
-  // Look up each permission's current status from approvals.
-  const findApproval = (approval_for: string) =>
-    ctx.approvals.find((a) => a.approval_for === approval_for) ?? null;
-
-  // Other approvals (non-checklist, e.g. "Other" generics or legacy
-  // listserv/distribute approvals from before v8.7's simplification).
-  const knownStrings: Set<string> = new Set(ALL_PERMISSION_KINDS.map((p) => p.approval_for));
-  const otherApprovals = ctx.approvals.filter((a) => !knownStrings.has(a.approval_for));
-
-  if (kinds.length === 0) return null;
-
-  return (
-    <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500" title="Permissions you can ask this stakeholder for. Track which is granted.">
-        Permissions
-      </h3>
-      <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-4">
-        {kinds.map((p) => {
-          const approval = findApproval(p.approval_for);
-          return (
-            <PermissionRow
-              key={p.key}
-              kind={p}
-              approval={approval}
-              action={action}
-              setError={setError}
-              onGranted={() => {
-                if (p.key === "email_professors") setShowBulkProf(true);
-              }}
-            />
-          );
-        })}
-
-        {otherApprovals.length > 0 && (
-          <div className="mt-2 border-t border-gray-100 pt-2">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500">Other</p>
-            {otherApprovals.map((a) => (
-              <ApprovalRow key={a.id} approval={a} action={action} setError={setError} resolved={a.status !== "requested"} />
-            ))}
-          </div>
-        )}
-
-        <div className="border-t border-gray-100 pt-2">
-          <button
-            onClick={() => setShowOther((s) => !s)}
-            className="text-xs text-gray-500 hover:text-gray-700"
-            title="Need to ask for something not on the checklist? Use this."
-          >
-            {showOther ? "Hide" : "+ Other approval"}
-          </button>
-          {showOther && (
-            <div className="mt-2">
-              <RequestApprovalModalInline
-                action={action}
-                setError={setError}
-                onClose={() => setShowOther(false)}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {showBulkProf && (
-        <BulkProfImportPrompt
-          ctx={ctx}
-          onClose={() => setShowBulkProf(false)}
-        />
-      )}
-    </section>
-  );
-}
-
-/**
- * One row in the permissions checklist. Maps the abstract permission to
- * either: a not-yet-asked CTA, an in-flight approval (with grant/deny),
- * or a resolved row.
- */
-function PermissionRow({
-  kind,
-  approval,
-  action,
-  setError,
-  onGranted,
-}: {
-  kind: PermissionKind;
-  approval: Approval | null;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-  onGranted: () => void;
-}) {
-  const [askInFlight, setAskInFlight] = useState(false);
-  const stateLabel = !approval
-    ? "Not asked yet"
-    : approval.status === "requested"
-    ? `Asked${approval.requested_at ? ` ${formatRelative(approval.requested_at)}` : ""}`
-    : approval.status === "granted"
-    ? "✓ Granted"
-    : approval.status === "denied"
-    ? "Denied"
-    : "Expired";
-
-  const tone = approval?.status === "granted"
-    ? "border-emerald-200 bg-emerald-50/40"
-    : approval?.status === "requested"
-    ? "border-amber-200 bg-amber-50/40"
-    : "border-gray-200";
-
-  const ask = async () => {
-    setAskInFlight(true);
-    try {
-      await action("request_approval", {
-        approval_type: kind.approval_type,
-        approval_for: kind.approval_for,
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Request failed");
-    } finally {
-      setAskInFlight(false);
-    }
-  };
-
-  const resolve = async (resolution: ApprovalStatus) => {
-    if (!approval) return;
-    try {
-      await action("resolve_approval", { approval_id: approval.id, resolution });
-      if (resolution === "granted") onGranted();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Resolve failed");
-    }
-  };
-
-  return (
-    <div className={`rounded-md border px-3 py-2 ${tone}`} title={kind.tooltip}>
-      <p className="text-sm font-medium text-gray-900">{kind.title}</p>
-      <p className="mt-0.5 text-xs text-gray-600">{kind.blurb}</p>
-      <p className="mt-0.5 text-[11px] text-gray-500">Status: {stateLabel}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {!approval && (
-          <button
-            onClick={ask}
-            disabled={askInFlight}
-            title="Send the ask externally, then click here to track that you asked."
-            className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            Mark as asked
-          </button>
-        )}
-        {approval?.status === "requested" && (
-          <>
-            <button
-              onClick={() => resolve("granted")}
-              title="They said yes. Records it and (for 'Email professors') opens the bulk import."
-              className="rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700"
-            >
-              Granted
-            </button>
-            <button
-              onClick={() => resolve("denied")}
-              title="They said no."
-              className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
-            >
-              Denied
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/**
- * After "Email professors directly" is granted, prompt admin to bulk-import
- * professors right away with simple guidance.
- */
-function BulkProfImportPrompt({
-  ctx,
-  onClose,
-}: {
-  ctx: DrawerContext;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl">
-        <header className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-base font-semibold text-gray-900">🎉 Permission granted!</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Now let's add the professors so we can email them.
-          </p>
-        </header>
-        <div className="space-y-2 px-6 py-4 text-sm text-gray-700">
-          <p><strong>Quick steps:</strong></p>
-          <ol className="ml-5 list-decimal space-y-1 text-xs">
-            <li>Open the <strong>{ctx.outreach.organization_name}</strong> faculty page on the university website.</li>
-            <li>Find the most relevant professors (target: faculty teaching pre-health-aligned courses).</li>
-            <li>Copy each professor's name + email into the bulk import form on the next screen.</li>
-            <li>Stuck finding emails? Ask your supervisor — they can help locate them.</li>
-          </ol>
-          <p className="mt-2 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-900">
-            💡 Open the Campus page to use Bulk Professor Import. The "Email professors" permission you just granted makes the import enabled.
-          </p>
-        </div>
-        <footer className="flex justify-end border-t border-gray-100 bg-gray-50 px-6 py-3">
-          <a
-            href={`/admin/student-outreach/campus/${ctx.campus.slug}`}
-            onClick={onClose}
-            className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
-          >
-            Open Campus page →
-          </a>
-          <button onClick={onClose} className="ml-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Later
-          </button>
-        </footer>
-      </div>
-    </div>
-  );
-}
-
-/** Inline lightweight "Other approval" form (collapses RequestApprovalModal contents). */
-function RequestApprovalModalInline({
-  action,
-  setError,
-  onClose,
-}: {
-  action: ActionFn;
-  setError: (e: string | null) => void;
-  onClose: () => void;
-}) {
-  const [approvalFor, setApprovalFor] = useState("");
-  const submit = async () => {
-    if (!approvalFor.trim()) return setError("Add a description");
-    try {
-      await action("request_approval", { approval_type: "other", approval_for: approvalFor.trim() });
-      onClose();
-    } catch (e) { setError(e instanceof Error ? e.message : "Request failed"); }
-  };
-  return (
-    <div className="space-y-2 rounded-md border border-dashed border-gray-300 p-2">
-      <input
-        value={approvalFor}
-        onChange={(e) => setApprovalFor(e.target.value)}
-        placeholder="What approval do you need?"
-        className="w-full rounded-md border border-gray-200 px-2 py-1 text-xs"
-      />
-      <div className="flex gap-2">
-        <button onClick={submit} className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white">Track this</button>
-        <button onClick={onClose} className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700">Cancel</button>
-      </div>
-    </div>
-  );
-}
-
-function formatRelative(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const min = Math.round(ms / 60_000);
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const d = Math.round(hr / 24);
-  return `${d}d ago`;
-}
-
-function ApprovalRow({
-  approval,
-  action,
-  setError,
-  resolved,
-}: {
-  approval: Approval;
-  action: ActionFn;
-  setError: (e: string | null) => void;
-  resolved?: boolean;
-}) {
-  const [notes, setNotes] = useState("");
-  const resolve = async (resolution: ApprovalStatus) => {
-    try {
-      await action("resolve_approval", { approval_id: approval.id, resolution, notes });
-    } catch (e) { setError(e instanceof Error ? e.message : "Resolve failed"); }
-  };
-  return (
-    <div className={`rounded-md border border-gray-100 px-3 py-2 ${resolved ? "bg-gray-50" : "bg-white"}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900">
-            {approval.approval_for}
-            <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-600">
-              {approval.approval_type}
-            </span>
-            <span className="ml-2 text-xs text-gray-500">{approval.status}</span>
-          </p>
-          {approval.approval_from && (
-            <p className="mt-0.5 text-xs text-gray-500">From: {approval.approval_from}</p>
-          )}
-          <p className="mt-0.5 text-[11px] text-gray-400">
-            Requested {new Date(approval.requested_at).toLocaleDateString()}
-            {approval.resolved_at && ` · Resolved ${new Date(approval.resolved_at).toLocaleDateString()}`}
-          </p>
-        </div>
-      </div>
-      {!resolved && (
-        <div className="mt-2 space-y-2">
-          <input
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Resolution notes (optional)"
-            className="w-full rounded-md border border-gray-200 px-2 py-1 text-sm"
-          />
-          <div className="flex flex-wrap gap-2">
-            <PrimaryButton onClick={() => resolve("granted")}>Granted</PrimaryButton>
-            <SecondaryButton onClick={() => resolve("denied")}>Denied</SecondaryButton>
-            <SecondaryButton onClick={() => resolve("expired")}>Expired</SecondaryButton>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 
 
@@ -1808,17 +1801,6 @@ function PrimaryButton({ children, onClick, disabled }: { children: React.ReactN
   );
 }
 
-function SecondaryButton({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => unknown; disabled?: boolean }) {
-  return (
-    <button
-      onClick={() => void onClick()}
-      disabled={disabled}
-      className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {children}
-    </button>
-  );
-}
 
 function DangerButton({ children, onClick }: { children: React.ReactNode; onClick: () => unknown }) {
   return (
@@ -1839,6 +1821,44 @@ function SmallButton({ children, onClick }: { children: React.ReactNode; onClick
     >
       {children}
     </button>
+  );
+}
+
+/** Name field with a green "source" link on the right of the label — opens the
+ *  website / research source where we found the record. Shared visual pattern
+ *  with the Provider Research Card. */
+function NameWithSource({
+  label, value, onChange, onBlur, sourceUrl,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  sourceUrl: string | null;
+}) {
+  return (
+    <div className="block">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-gray-600">{label}</span>
+        {sourceUrl && (
+          <a
+            href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+            title="Open the website / research source"
+          >
+            🌐 source ↗
+          </a>
+        )}
+      </div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none"
+      />
+    </div>
   );
 }
 

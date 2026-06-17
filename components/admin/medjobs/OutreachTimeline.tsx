@@ -38,10 +38,11 @@
  */
 
 import { useMemo, useState } from "react";
-import Input from "@/components/ui/Input";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
 import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import type { PartnerEvidence } from "@/components/admin/medjobs/PartnerEvidencePanel";
 
 type ActionFn = (
   actionName: string,
@@ -132,7 +133,9 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         whenIso: tp.created_at,
         icon: iconForTouchpoint(tp.touchpoint_type),
         title: n.text,
-        subline: tp.notes ?? null,
+        // n.detail owns the subline now — narration split title vs detail so a
+        // free-form note is never rendered twice (it used to land in both).
+        subline: n.detail,
         emailLogId,
         emailSentPayload: isEmailSent ? payload : null,
         admin: n.admin ?? null,
@@ -182,17 +185,26 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
       });
     }
 
+    // Smartlead owns the EMAIL drip, so queued emails aren't CRM tasks — only
+    // the call days are. Synthesize the upcoming email steps from the active
+    // cadence's schedule + enrollment anchor so "Upcoming" reflects the WHOLE
+    // cadence (emails + calls), not just calls. Past/overdue steps are omitted
+    // (they're already in Past Activity once Smartlead's webhook lands).
+    future.push(...syntheticUpcomingEmailRows(ctx));
+
     // Future ASC (soonest first), past DESC (newest first).
     future.sort((a, b) => a.whenIso.localeCompare(b.whenIso));
     past.sort((a, b) => b.whenIso.localeCompare(a.whenIso));
 
     return { futureRows: future, pastRows: past };
-  }, [ctx.touchpoints, ctx.pending_tasks, adminFirstNames, contactsById]);
+  }, [ctx, adminFirstNames, contactsById]);
 
   // v10 Bullet 5: Past Activity collapse. If past has >5 events,
   // default to showing last 3 + "Show all" affordance.
-  const PAST_COLLAPSE_THRESHOLD = 5;
-  const PAST_COLLAPSE_DEFAULT_SHOW = 3;
+  // Bias toward showing the relationship story: only collapse long histories,
+  // and when we do, keep a generous default window before "Show all".
+  const PAST_COLLAPSE_THRESHOLD = 8;
+  const PAST_COLLAPSE_DEFAULT_SHOW = 5;
   const [showAllPast, setShowAllPast] = useState(false);
   const pastNeedsCollapse = pastRows.length > PAST_COLLAPSE_THRESHOLD;
   const visiblePastRows =
@@ -211,6 +223,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
   const submitCallLog = async (
     outcome: string,
     notes: string,
+    partner?: PartnerEvidence,
   ): Promise<void> => {
     if (!callLogTask) return;
     try {
@@ -220,6 +233,11 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         task_id: callLogTask.taskId,
         cadence_day: callLogTask.cadenceDay ?? undefined,
       });
+      // Conversion outcome (convert_to_partner) rides a partner payload — fire
+      // mark_partner so the timeline path converts like the step-list path.
+      if (partner) {
+        await action("mark_partner", { ...partner });
+      }
       setCallLogTask(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to log call");
@@ -240,7 +258,6 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
           <p className="px-4 py-6 text-center text-sm text-gray-400">
             No outreach activity yet.
           </p>
-          <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
         </div>
       )}
 
@@ -296,18 +313,13 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         </div>
       )}
 
-      {hasAnyActivity && (
-        <div className="rounded-lg border border-gray-200 bg-white">
-          <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
-        </div>
-      )}
-
       {callLogTask && (
         <LogCallOutcomeModal
           organizationName={ctx.outreach.organization_name}
           contactName={callLogTask.recipientName}
           contactPhone={callLogTask.recipientPhone}
           rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
+          stakeholderType={ctx.outreach.stakeholder_type}
           onCancel={() => setCallLogTask(null)}
           onSubmit={submitCallLog}
         />
@@ -355,14 +367,20 @@ function TimelineRowView({
         </span>
         <div className="min-w-0 flex-1">
           <p
-            className={`truncate ${
-              row.kind === "future" ? "text-gray-600" : "text-gray-800"
-            }`}
+            className={
+              row.kind === "future"
+                ? "truncate text-gray-600"
+                : "text-gray-800" // past rows wrap so the full descriptive line shows
+            }
           >
             {row.title}
           </p>
           {row.subline && (
-            <p className="mt-0.5 truncate text-xs italic text-gray-500">
+            <p
+              className={`mt-0.5 text-xs italic text-gray-500 ${
+                row.kind === "future" ? "truncate" : "whitespace-pre-line"
+              }`}
+            >
               {row.subline}
             </p>
           )}
@@ -501,107 +519,57 @@ function formatCtaLabel(url: string): string {
   }
 }
 
-// ── Custom event footer ──────────────────────────────────────────────────
+// ── Synthetic upcoming Smartlead emails ──────────────────────────────────
+//
+// The Smartlead campaign sends the EMAIL drip, so queued emails never exist
+// as CRM tasks (only the call days do). Without this, a phone-less office in
+// an active cadence shows an empty "Upcoming" even though emails are queued.
+// We reconstruct the upcoming email steps from the active cadence's schedule
+// anchored at its enrollment time. Nominal dates (Smartlead actually sends
+// within business hours, so real sends can lag a little); steps whose nominal
+// time has passed are omitted — they're sent (in Past Activity) or about to be.
 
-function AddCustomEventFooter({
-  ctx: _ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (m: string | null) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [dueAt, setDueAt] = useState("");
-  const [saving, setSaving] = useState(false);
+function syntheticUpcomingEmailRows(ctx: DrawerContext): FutureRow[] {
+  const rd = ctx.outreach.research_data;
+  if (!rd) return [];
+  const status = ctx.outreach.status;
 
-  // Default due_at: tomorrow at noon. Matches the operational rhythm
-  // of "I owe a follow-up tomorrow" without forcing the admin to pick.
-  const defaultDueAt = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(12, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
-  }, []);
-
-  const submit = async () => {
-    const t = title.trim();
-    if (!t) {
-      setError("Add a title for the custom event.");
-      return;
-    }
-    const dueIso = (dueAt || defaultDueAt) + ":00.000Z";
-    setSaving(true);
-    setError(null);
-    try {
-      await action("queue_manual_task", {
-        task_type: "manual_followup",
-        due_at: new Date(dueAt || defaultDueAt).toISOString(),
-        notes: t,
-      });
-      setTitle("");
-      setDueAt("");
-      setOpen(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to add event");
-    } finally {
-      setSaving(false);
-    }
-    void dueIso; // silence unused
-  };
-
-  if (!open) {
-    return (
-      <div className="border-t border-gray-100 px-4 py-2">
-        <button
-          onClick={() => setOpen(true)}
-          className="text-xs font-medium text-primary-700 hover:underline"
-        >
-          + Add custom event
-        </button>
-      </div>
-    );
+  // One cadence is active at a time. Pick it by stage so we never show stale
+  // cold emails after activation/welcome takes over.
+  let cadenceKey: CadenceKey | null = null;
+  let anchorIso: string | null = null;
+  if (status === "active_partner" && rd.smartlead_welcome?.enrolled_at) {
+    cadenceKey = "partner_welcome";
+    anchorIso = rd.smartlead_welcome.enrolled_at;
+  } else if (status === "engaged" && rd.smartlead_activation?.enrolled_at) {
+    cadenceKey = "activation";
+    anchorIso = rd.smartlead_activation.enrolled_at;
+  } else if (status === "outreach_sent" && rd.smartlead?.enrolled_at) {
+    cadenceKey = ctx.outreach.kind === "provider" ? "provider" : ctx.outreach.stakeholder_type;
+    anchorIso = rd.smartlead.enrolled_at;
   }
+  if (!cadenceKey || !anchorIso) return [];
 
-  return (
-    <div className="space-y-2 border-t border-gray-100 px-4 py-3">
-      <Input
-        type="text"
-        autoFocus
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="e.g. Send proposal PDF · Call back when free"
-        size="sm"
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="datetime-local"
-          value={dueAt || defaultDueAt}
-          onChange={(e) => setDueAt(e.target.value)}
-          className="rounded-md border border-gray-200 px-2 py-1 text-xs"
-        />
-        <button
-          onClick={submit}
-          disabled={saving || !title.trim()}
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
-        >
-          {saving ? "Adding…" : "Add"}
-        </button>
-        <button
-          onClick={() => {
-            setOpen(false);
-            setTitle("");
-            setDueAt("");
-          }}
-          className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
+  const anchor = new Date(anchorIso).getTime();
+  if (Number.isNaN(anchor)) return [];
+  const now = Date.now();
+
+  const rows: FutureRow[] = [];
+  for (const day of OUTREACH_DAYS_BY_TYPE[cadenceKey]) {
+    if (!day.steps.some((s) => s.channel === "email")) continue;
+    const dueMs = anchor + day.day * 86_400_000;
+    if (dueMs <= now) continue; // already sent / sending → lives in Past Activity
+    rows.push({
+      kind: "future",
+      key: `sl-${cadenceKey}-${day.day}`,
+      whenIso: new Date(dueMs).toISOString(),
+      icon: "✉",
+      title: `Day ${day.day} email queued`,
+      subline: "via Smartlead",
+      callTask: null,
+    });
+  }
+  return rows;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────

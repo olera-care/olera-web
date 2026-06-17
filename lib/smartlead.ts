@@ -297,10 +297,50 @@ export async function listCampaignLeads(
 ): Promise<SmartleadResult<{ data?: SmartleadCampaignLead[]; total_leads?: number }>> {
   const limit = options.limit ?? 100;
   const offset = options.offset ?? 0;
-  return smartleadRequest(
+  const raw = await smartleadRequest<{ data?: unknown[]; total_leads?: number }>(
     "GET",
-    `/campaigns/${campaignId}/leads?limit=${limit}&offset=${offset}`
+    `/campaigns/${campaignId}/leads?limit=${limit}&offset=${offset}`,
   );
+  if (!raw.ok) {
+    return { ok: false, error: raw.error, status: raw.status };
+  }
+  // Smartlead's list-leads response wraps each lead under a `lead` key (the
+  // outer object is the campaign-lead map), and may return custom_fields as
+  // an array of { key, value }. Normalize to the flat SmartleadCampaignLead
+  // the callers expect — without this, email/custom_fields read as missing.
+  const items = (raw.data?.data ?? []) as Array<Record<string, unknown>>;
+  const data: SmartleadCampaignLead[] = items.map((item) => {
+    const l = ((item.lead ?? item) as Record<string, unknown>) ?? {};
+    const id = typeof l.id === "number" ? l.id : undefined;
+    return {
+      lead_id: id,
+      id,
+      email: typeof l.email === "string" ? l.email : undefined,
+      first_name: typeof l.first_name === "string" ? l.first_name : undefined,
+      last_name: typeof l.last_name === "string" ? l.last_name : undefined,
+      company_name: typeof l.company_name === "string" ? l.company_name : undefined,
+      custom_fields: normalizeCustomFields(l.custom_fields),
+    };
+  });
+  return { ok: true, data: { data, total_leads: raw.data?.total_leads }, status: raw.status };
+}
+
+/** Smartlead may return lead custom_fields as a flat object OR an array of
+ *  { key, value } entries. Normalize to a flat object (or null). */
+function normalizeCustomFields(cf: unknown): Record<string, unknown> | null {
+  if (!cf) return null;
+  if (Array.isArray(cf)) {
+    const obj: Record<string, unknown> = {};
+    for (const entry of cf) {
+      if (entry && typeof entry === "object" && "key" in entry) {
+        const k = (entry as { key?: unknown }).key;
+        if (typeof k === "string") obj[k] = (entry as { value?: unknown }).value;
+      }
+    }
+    return obj;
+  }
+  if (typeof cf === "object") return cf as Record<string, unknown>;
+  return null;
 }
 
 /**
@@ -316,7 +356,7 @@ export async function listCampaignLeads(
 export async function updateLeadInCampaign(
   campaignId: number,
   leadId: number,
-  patch: { custom_fields?: Record<string, unknown>; first_name?: string; last_name?: string }
+  patch: { email?: string; custom_fields?: Record<string, unknown>; first_name?: string; last_name?: string }
 ): Promise<SmartleadResult<{ ok?: boolean }>> {
   return smartleadRequest(
     "POST",

@@ -23,6 +23,23 @@ export type TemplateKey =
   | "followup_final"
   | "share"
   | "seasonal"
+  // Advisor relationship-first cadence (R1): meeting-led cold touches; sharing
+  // and the portal are deferred to the warm program-info touch + after the
+  // meeting. Each email stands alone (no narrative threading).
+  | "advisor_bump"
+  | "advisor_info"
+  | "advisor_nudge"
+  | "advisor_close"
+  // Student-org cadence (R1): value-first, share-led, lighter than advisors.
+  // Each email stands alone; the application link is the org's unique link.
+  | "org_bump"
+  | "org_followup"
+  | "org_close"
+  // Department-head cadence (R1): formal, meeting-led, gateway-framed. Same
+  // skeleton as advisors; the ask is a short Zoom, professor outreach deferred.
+  | "dept_bump"
+  | "dept_followup"
+  | "dept_close"
   // v9 provider cadence — distinct copy targeting agency owners /
   // hiring managers, not university stakeholders.
   | "provider_intro"
@@ -34,7 +51,15 @@ export type TemplateKey =
   // option; the cadence stops on Trial Active or a booked meeting.
   | "activation_intro"
   | "activation_nudge"
-  | "activation_final";
+  | "activation_final"
+  // Partner welcome cadence — launched when a stakeholder becomes an active
+  // Recruitment Partner. A slow, long nurture (every ~45-70 days) that
+  // welcomes them, shares the flyer + portal link, keeps the program fresh
+  // with periodic check-ins, and invites seasonal term-planning meetings
+  // with Dr. DuBose.
+  | "partner_welcome_intro"
+  | "partner_welcome_checkin"
+  | "partner_welcome_planning";
 
 /**
  * Cadence lookup key. Stakeholder rows use their StakeholderType;
@@ -42,7 +67,7 @@ export type TemplateKey =
  * Keeps one cadence registry serving both surfaces — the universal
  * launch path goes through schedule_sequence regardless of kind.
  */
-export type CadenceKey = StakeholderType | "provider" | "activation";
+export type CadenceKey = StakeholderType | "provider" | "activation" | "partner_welcome";
 
 export interface OutreachStep {
   id: StepId;
@@ -64,109 +89,94 @@ export interface OutreachDay {
 export const CADENCE_END_DAY = 14;
 
 export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
+  // Student organizations mirror the advising-office (advisor) cadence exactly:
+  // they're office-shaped partners confirmed at Pre-Flight (when a phone exists),
+  // so there's no cold Day-0 paired call. Phone steps queue only when a phone is
+  // on file (planSequence's has_phone gate) — most student orgs are email-only.
   student_org: [
     {
       day: 0,
-      title: "Day 0 · intro email + paired call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
+      title: "Day 0 · intro email",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 3,
-      title: "Day 3 · light follow-up",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_light" },
-      ],
+      title: "Day 3 · one-line bump",
+      steps: [{ id: "email", channel: "email", required: true, template: "org_bump" }],
     },
     {
-      day: 5,
-      title: "Day 5 · call attempt",
+      day: 6,
+      title: "Day 6 · call (if phone) + follow-up email",
       steps: [
-        { id: "phone", channel: "phone", required: true },
-      ],
-    },
-    {
-      day: 7,
-      title: "Day 7 · social-proof follow-up",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_socialproof" },
-      ],
-    },
-    {
-      day: 8,
-      title: "Day 8 · call attempt",
-      steps: [
-        { id: "phone", channel: "phone", required: true },
+        { id: "phone", channel: "phone", required: true, label: "Call — paid opportunity + speaker offer" },
+        { id: "email", channel: "email", required: true, template: "org_followup" },
       ],
     },
     {
       day: 10,
-      title: "Day 10 · final follow-up",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_final" },
-      ],
+      title: "Day 10 · short final",
+      steps: [{ id: "email", channel: "email", required: true, template: "org_close" }],
     },
   ],
   advisor: [
     {
+      // No Day-0 call for advising offices — they're confirmed by a Pre-Flight
+      // call before launch, so a paired Day-0 call would be redundant.
       day: 0,
-      title: "Day 0 · email + paired call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
+      title: "Day 0 · intro email (meeting-first)",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
       day: 3,
-      title: "Day 3 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
+      title: "Day 3 · one-line bump",
+      steps: [{ id: "email", channel: "email", required: true, template: "advisor_bump" }],
     },
     {
-      day: 5,
-      title: "Day 5 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
-    },
-    {
-      day: 8,
-      title: "Day 8 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
-    },
-    {
-      day: 10,
-      title: "Day 10 · final email",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
-    },
-  ],
-  dept_head: [
-    {
-      day: 0,
-      title: "Day 0 · formal intro email + paired call",
+      day: 6,
+      title: "Day 6 · intro call + program info email",
       steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
+        { id: "phone", channel: "phone", required: true, label: "Intro call — info is coming, then the meeting" },
+        { id: "email", channel: "email", required: true, template: "advisor_info" },
       ],
     },
     {
-      day: 5,
-      title: "Day 5 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
+      day: 10,
+      title: "Day 10 · short nudge",
+      steps: [{ id: "email", channel: "email", required: true, template: "advisor_nudge" }],
     },
     {
-      day: 7,
-      title: "Day 7 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 14,
+      title: "Day 14 · seasonal close",
+      steps: [{ id: "email", channel: "email", required: true, template: "advisor_close" }],
+    },
+  ],
+  // Dept heads (all Drs.) get a formal, meeting-led cadence, same skeleton as
+  // advisors. An optional non-blocking pre-launch intro call still lives at
+  // Pre-Flight; the Day-6 call below is the in-cadence follow-up. Each email
+  // stands alone; the ask is a short Zoom, professor outreach deferred.
+  dept_head: [
+    {
+      day: 0,
+      title: "Day 0 · formal intro email",
+      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
     },
     {
-      day: 11,
-      title: "Day 11 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 3,
+      title: "Day 3 · one-line bump",
+      steps: [{ id: "email", channel: "email", required: true, template: "dept_bump" }],
+    },
+    {
+      day: 6,
+      title: "Day 6 · call (if phone) + follow-up email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Call — program + Dr. DuBose Zoom offer" },
+        { id: "email", channel: "email", required: true, template: "dept_followup" },
+      ],
     },
     {
       day: 12,
-      title: "Day 12 · final email",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+      title: "Day 12 · gracious close",
+      steps: [{ id: "email", channel: "email", required: true, template: "dept_close" }],
     },
   ],
   professor: [
@@ -282,6 +292,63 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       title: "Day 7 · soft final",
       steps: [
         { id: "email", channel: "email", required: true, template: "activation_final" },
+      ],
+    },
+  ],
+  // Partner welcome cadence (MVP, 2026-06-11). Begins when a stakeholder is
+  // promoted to an active Recruitment Partner (the "Make a partner" button).
+  // Email-only, delivered via its own per-campus Smartlead campaign. Six
+  // touches spread every ~45-70 days across roughly a 10-month loop so the
+  // program stays top-of-mind without overdoing it:
+  //   Day 0   welcome + flyer + portal link, sets expectations
+  //   Day 45  light check-in
+  //   Day 110 term-planning meeting invite (Dr. DuBose)
+  //   Day 165 light check-in
+  //   Day 230 term-planning meeting invite
+  //   Day 300 term-planning meeting invite
+  // Seasonal beats (pre-Fall/Spring/Summer) are approximated by the relative
+  // spacing in MVP rather than pinned to real semester start dates.
+  partner_welcome: [
+    {
+      day: 0,
+      title: "Welcome · flyer + partner portal",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_intro" },
+      ],
+    },
+    {
+      day: 45,
+      title: "Day 45 · check-in",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_checkin" },
+      ],
+    },
+    {
+      day: 110,
+      title: "Day 110 · term-planning meeting",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
+      ],
+    },
+    {
+      day: 165,
+      title: "Day 165 · check-in",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_checkin" },
+      ],
+    },
+    {
+      day: 230,
+      title: "Day 230 · term-planning meeting",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
+      ],
+    },
+    {
+      day: 300,
+      title: "Day 300 · term-planning meeting",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
       ],
     },
   ],

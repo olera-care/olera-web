@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import CaregiverRedirect from "@/components/medjobs/CaregiverRedirect";
+import PartnerHelpCard from "@/components/medjobs/PartnerHelpCard";
 
 export const metadata: Metadata = {
-  title: "MedJobs — Student Caregiver Talent Marketplace | Olera",
+  title: "Olera's Student Caregiver Internship | Olera",
   description:
-    "Get paid healthcare experience as a student caregiver, or find motivated student talent for your senior care facility. Olera MedJobs connects students with providers.",
+    "A paid caregiver internship for pre-health students. Earn healthcare experience, a credential, and references for medical, PA, and nursing school. Providers: match with vetted student caregivers for recurring coverage.",
   openGraph: {
-    title: "MedJobs — Student Caregiver Talent Marketplace | Olera",
+    title: "Olera's Student Caregiver Internship | Olera",
     description:
-      "Get paid healthcare experience as a student caregiver, or find motivated student talent for your senior care facility.",
+      "A paid caregiver internship for pre-health students. Earn healthcare experience, a credential, and references toward your health career.",
   },
 };
 
@@ -25,8 +26,8 @@ const HOW_IT_WORKS = [
     ),
   },
   {
-    title: "Interview with care agencies near your university",
-    description: "Senior care providers in your area browse student profiles and reach out with caregiving opportunities.",
+    title: "Match with a provider near your university",
+    description: "Senior care providers in your area review intern profiles and match with you for a semester of recurring care.",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -101,7 +102,9 @@ export default function MedJobsPage() {
                 <span className="text-primary-600">while you&apos;re still in school</span>
               </h1>
               <p className="mt-5 text-[17px] text-gray-500 leading-relaxed max-w-lg">
-                Paid roles with senior care providers. Verified hours for your professional school application.
+                A paid caregiving internship for pre-health students. Earn the
+                experience, credential, and references your professional school
+                application needs.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
                 <Link
@@ -127,7 +130,7 @@ export default function MedJobsPage() {
               <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-lg shadow-gray-200/50">
                 <Image
                   src="/images/medjobs/hero-caregiving.jpg"
-                  alt="Student caregiver helping a senior — Olera MedJobs"
+                  alt="Pre-health intern helping a senior — Olera"
                   width={1080}
                   height={1080}
                   className="w-full h-full object-cover"
@@ -175,7 +178,7 @@ export default function MedJobsPage() {
             <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
               <Image
                 src="/images/medjobs/student-portrait.jpg"
-                alt="Student caregiver"
+                alt="Pre-health intern"
                 width={600}
                 height={800}
                 className="w-full h-full object-cover"
@@ -234,7 +237,7 @@ export default function MedJobsPage() {
               </h2>
               <p className="mt-4 text-lg text-gray-500 leading-relaxed">
                 PA programs require 1,000-2,000 patient care hours. Med schools want hundreds.
-                MedJobs is how you get them — while getting paid and making a real difference.
+                This internship is how you get them — while getting paid and making a real difference.
               </p>
               <div className="mt-10 space-y-6">
                 {STUDENT_FEATURES.map((item) => (
@@ -283,7 +286,7 @@ export default function MedJobsPage() {
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100">
                   <Image
                     src="/images/medjobs/college-caregivers.png"
-                    alt="College student caregivers"
+                    alt="Pre-health student interns"
                     width={400}
                     height={500}
                     className="w-full h-full object-cover"
@@ -296,40 +299,59 @@ export default function MedJobsPage() {
       </section>
 
 
-      {/* Meet the students */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <p className="text-sm tracking-widest uppercase text-gray-400 font-medium mb-3">
-              Meet the students
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-              Future doctors. Future nurses.
-              <br className="hidden sm:block" />
-              Current caregivers.
-            </h2>
+      {/* Full details — sample internship agreement (visible to students + partners) */}
+      <section className="py-12 sm:py-14 border-y border-gray-100 bg-gray-50/50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            Want the specifics?
+          </h2>
+          <p className="mt-2 text-gray-500">
+            Read exactly how the internship works, start to finish.
+          </p>
+          <div className="mt-5">
+            <a
+              href="/docs/internship-agreement-sample.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-6 py-3 bg-white border border-gray-200 text-gray-800 text-sm font-semibold rounded-full hover:border-gray-300 transition-colors"
+            >
+              Read the sample internship agreement ↗
+            </a>
           </div>
-          <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {[
-              { name: "Joshua S.", school: "Texas A&M", track: "Pre-Med", hours: "180 hrs verified", image: "/images/medjobs/student-joshua.jpg" },
-              { name: "Natasha J.", school: "University of Michigan", track: "Pre-PA", hours: "312 hrs verified", image: "/images/medjobs/student-natasha.jpg" },
-              { name: "Emma N.", school: "Texas A&M", track: "Pre-Nursing", hours: "456 hrs verified", image: "/images/medjobs/student-emma.jpg" },
-            ].map((student) => (
-              <div key={student.name} className="group">
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 mb-4">
-                  <Image
-                    src={student.image}
-                    alt={student.name}
-                    width={400}
-                    height={500}
-                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                  />
+        </div>
+      </section>
+
+      {/* For advisors, faculty & student orgs */}
+      <section id="help" className="py-16 sm:py-20 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12 lg:items-start">
+            <div className="mb-8 lg:mb-0">
+              <div className="flex items-center gap-3 mb-4">
+                <Image
+                  src="/images/for-providers/team/logan.jpg"
+                  alt="Dr. Logan DuBose"
+                  width={56}
+                  height={56}
+                  className="w-14 h-14 rounded-full object-cover shadow-sm"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Dr. Logan DuBose, MD</p>
+                  <p className="text-xs text-gray-500">Geriatric physician &middot; NIA researcher</p>
                 </div>
-                <p className="text-base font-semibold text-gray-900">{student.name}</p>
-                <p className="text-sm text-gray-500">{student.school} &middot; {student.track}</p>
-                <p className="text-sm text-primary-600 font-medium mt-0.5">{student.hours}</p>
               </div>
-            ))}
+              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
+                For advisors, faculty &amp; student orgs
+              </p>
+              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+                Help your pre-health students find this
+              </h2>
+              <p className="mt-4 text-gray-500 leading-relaxed">
+                A paid way to earn the patient-care hours, credential, and
+                references their med, PA, and nursing applications need.
+                Physician-led, NIA-backed, and safe for students.
+              </p>
+            </div>
+            <PartnerHelpCard />
           </div>
         </div>
       </section>
@@ -343,7 +365,7 @@ export default function MedJobsPage() {
               <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/5">
                 <Image
                   src="/images/medjobs/provider-caregiving.jpg"
-                  alt="Student caregiver with senior patient"
+                  alt="Pre-health intern with senior patient"
                   width={800}
                   height={600}
                   className="w-full h-full object-cover"
@@ -356,33 +378,33 @@ export default function MedJobsPage() {
                 For providers
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                Staff who show up
+                Reliable coverage
                 <br />for your clients
               </h2>
               <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-                Healthcare students aren&apos;t just filling a shift — they&apos;re building
-                a career in healthcare. Browse profiles, review resumes, and connect
-                directly.
+                Pre-health interns aren&apos;t just filling a shift — they commit to a
+                semester of recurring availability and we match them to your clients.
+                No commitment up front.
               </p>
               <div className="mt-8 grid sm:grid-cols-2 gap-6">
                 {[
-                  { stat: "85%", label: "Student retention after 90 days" },
-                  { stat: "15-20", label: "Average weekly hours per student" },
-                  { stat: "70%", label: "Available evenings & weekends" },
-                  { stat: "4.8/5", label: "Provider satisfaction" },
+                  { stat: "Semester", label: "Recurring availability per intern" },
+                  { stat: "No upfront cost", label: "Matched only when you have a need" },
+                  { stat: "Pre-nursing & pre-med", label: "Vetted local university students" },
+                  { stat: "NIH-backed", label: "Early work toward an NIA grant" },
                 ].map((item) => (
                   <div key={item.label} className="bg-white rounded-xl p-4 border border-gray-100">
-                    <p className="text-2xl font-bold text-gray-900">{item.stat}</p>
+                    <p className="text-xl font-bold text-gray-900">{item.stat}</p>
                     <p className="text-sm text-gray-500 mt-0.5">{item.label}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-8">
                 <Link
-                  href="/medjobs/candidates"
+                  href="/medjobs/providers"
                   className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
                 >
-                  Browse candidates
+                  See how it works for providers
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

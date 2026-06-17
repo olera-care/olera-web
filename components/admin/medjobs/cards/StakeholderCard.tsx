@@ -27,6 +27,7 @@ import {
   type TabRow,
 } from "@/lib/student-outreach/types";
 import {
+  cleanOrgName,
   formatDueDate,
   formatLongDate,
   formatRelative,
@@ -40,6 +41,7 @@ import type {
   TabKey,
 } from "@/lib/student-outreach/tab-config";
 import { STAGE_DISPLAY, type Stage } from "@/lib/medjobs/stage";
+import { smartleadInboxUrl } from "@/lib/medjobs/smartlead-inbox";
 
 // ── RowCard ──────────────────────────────────────────────────────────────
 
@@ -188,10 +190,11 @@ export function StakeholderCard({
   //                       this case.
   const isGeneralCard = row.recipient_kind === "general";
   const isSpecificCard = row.recipient_kind === "specific";
-  const titleText =
-    isGeneralCard
-      ? row.organization_name
-      : row.primary_contact_name || row.organization_name;
+  // Display-only cleanup of AI name artifacts (e.g. "(not a named person)").
+  const orgDisplay = cleanOrgName(row.organization_name);
+  const titleText = isGeneralCard
+    ? orgDisplay
+    : row.primary_contact_name || orgDisplay;
 
   return (
     <div
@@ -214,10 +217,10 @@ export function StakeholderCard({
             {isSpecificCard ? (
               <p className="truncate text-sm text-gray-900">
                 <span className={unread ? "font-semibold" : "font-medium"}>
-                  {row.primary_contact_name || row.organization_name}
+                  {row.primary_contact_name || orgDisplay}
                 </span>
                 {row.primary_contact_name &&
-                  row.primary_contact_name !== row.organization_name && (
+                  row.primary_contact_name !== orgDisplay && (
                     <>
                       <span className="font-normal text-gray-500"> · </span>
                       <span
@@ -225,7 +228,7 @@ export function StakeholderCard({
                           unread ? "font-semibold" : "font-semibold text-gray-900"
                         }
                       >
-                        {row.organization_name}
+                        {orgDisplay}
                       </span>
                     </>
                   )}
@@ -255,9 +258,9 @@ export function StakeholderCard({
             ) : (
               <>
                 {row.primary_contact_name &&
-                  row.primary_contact_name !== row.organization_name && (
+                  row.primary_contact_name !== orgDisplay && (
                     <>
-                      {row.organization_name}
+                      {orgDisplay}
                       {row.department &&
                         row.department !== row.organization_name &&
                         ` · ${row.department}`}
@@ -602,11 +605,21 @@ export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): R
 
 function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
   // Footnote answers "what does the admin need to do?". The card opens the
-  // drawer on click — that's where research + launch happen.
+  // drawer on click — that's where research + launch happen. Office prospects
+  // are generated WITH a general email, so "needs contact info" was wrong; the
+  // real next step is the confirmation call.
+  const rd = (row.research_data ?? {}) as Record<string, unknown>;
+  const gc = (rd.general_contact ?? {}) as { email?: string };
+  const members = (Array.isArray(rd.office_members) ? rd.office_members : []) as Array<{ email?: string }>;
+  const hasEmail = Boolean(gc.email) || members.some((m) => Boolean(m?.email));
+  // Precise verified state lives on touchpoints (shown in the drawer); the card
+  // just points to the next action by stage.
   const subStateText =
     row.status === "researched"
-      ? "Review contact info, then launch outreach"
-      : "Needs contact info before outreach";
+      ? "Confirm by call, then launch outreach"
+      : hasEmail
+        ? "Has contact — confirm and launch outreach"
+        : "Needs contact info before outreach";
   return {
     footnote: (
       <p className="mt-0.5 text-[11px] text-gray-500">{subStateText}</p>
@@ -847,17 +860,5 @@ function renderSmartleadInboxLink(
   );
 }
 
-function smartleadInboxUrl(
-  linkage: TabRow["smartlead_linkage"],
-): string | null {
-  const base = "https://app.smartlead.ai/app/master-inbox";
-  // We always want to surface the link when Smartlead is wired,
-  // even if one of lead_id/campaign_id is missing — root inbox is
-  // a graceful fallback.
-  if (!linkage) return null;
-  const params = new URLSearchParams();
-  if (linkage.lead_id) params.set("lead_id", linkage.lead_id);
-  if (linkage.campaign_id) params.set("campaign_id", linkage.campaign_id);
-  const qs = params.toString();
-  return qs ? `${base}?${qs}` : base;
-}
+// Inbox URL construction lives in lib/medjobs/smartlead-inbox.ts so the
+// awaiting-reply Next Step and both pre-launch modals share one builder.

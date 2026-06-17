@@ -55,17 +55,17 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "weekly-provider-digest",
     name: "Weekly provider digest",
     description:
-      "Demand email leading with a provider's newest unanswered question + a one-click answer link; page views / area demand are a personalization line. Recipients ordered by freshest question, then views.",
+      "Provider re-engagement digest that routes to the highest-value weekly hook: unanswered questions, fresh leads, profile completion, market/referral-source curiosity, then the plain analytics recap.",
     recipientCohort:
-      "Every provider with a live unanswered question, plus any provider with recent page-view / lead / question activity (~2,700; ~1,300 with an email on file). The Monday cron uses limit=2000 (covers the full reachable pool); a ?limit=N on a manual fire overrides it.",
+      "Every provider with a live unanswered question, plus any provider with recent page-view / lead / question activity (~2,700; ~1,300 with an email on file). Also proactively warms a small bounded set of email-reachable provider markets so future runs can send market/referral hooks without waiting for providers to discover Find Families first.",
     audience: "Providers",
     fn: "digest",
     schedule: "0 13 * * 1,2,3,4,5",
     humanSchedule: "Weekdays (Mon–Fri), 13:00 UTC (~8–9 AM ET) — each provider on a fixed weekday",
     path: "/api/cron/weekly-provider-digest",
     emailTypes: ["weekly_analytics_digest"],
-    successSignal: "Provider lands on the answer flow and answers a question (see /admin/questions).",
-    relatedAdminPath: "/admin/questions",
+    successSignal: "Provider answers a question, opens a lead, completes profile, works a referral target, or returns to the portal depending on the variant.",
+    relatedAdminPath: "/admin/activity?actor=providers",
   },
   {
     id: "verification-reminders",
@@ -428,6 +428,20 @@ export const CRON_REGISTRY: CronJob[] = [
     humanSchedule: "Daily, 04:00 UTC",
     path: "/api/cron/cleanup",
     emailTypes: [],
+  },
+  {
+    id: "email-preverify",
+    name: "Email pre-verification",
+    description:
+      "Proactively verifies cold-lane recipient addresses (question_received + the weekly digest's unclaimed slice) ahead of send, throttled to dodge ZeroBounce's burst rate limit. Pre-populates the email_verifications cache so the send path reliably suppresses known-bad addresses instead of failing open during the weekly burst. Caps NEW verifications per run; the backlog drains across runs then steady-states.",
+    recipientCohort: "(No recipients — a verification/data job. Verifies the question_received + unclaimed-digest address pools.)",
+    audience: "Data & maintenance",
+    fn: "maintenance",
+    schedule: "0 */6 * * *",
+    humanSchedule: "Every 6 hours (00/06/12/18 UTC) — the 12:00 run pre-warms the 13:00 weekday digest",
+    path: "/api/cron/email-preverify",
+    emailTypes: [],
+    relatedAdminPath: "/admin/automations",
   },
 ];
 

@@ -1563,7 +1563,7 @@ export default function ConnectionsTrackerPage() {
                 {selectedAction === "mark_viewed" && (
                   <>
                     <p className="text-sm text-gray-600">
-                      This will move the connection to the <span className="font-medium">Viewed</span> tab. Email sequences will continue to encourage them to connect.
+                      This will move the connection to the <span className="font-semibold text-gray-900">Viewed</span> tab. Email sequences will continue to encourage them to connect.
                     </p>
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                       <p className="text-xs text-amber-800">

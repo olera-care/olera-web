@@ -17,12 +17,18 @@ export default function ApplyButton({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { profiles } = useAuth();
+  const { profiles, activeProfile } = useAuth();
   const isStudent = !!profiles?.find((p) => p.type === "student");
+  const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  const target = isStudent
+    ? "/portal/medjobs"
+    : isProvider
+      ? "/medjobs/providers"
+      : "/medjobs/families?screener=1";
   return (
     <button
       type="button"
-      onClick={() => router.push(isStudent ? "/portal/medjobs" : "/medjobs/families?screener=1")}
+      onClick={() => router.push(target)}
       className={className}
     >
       {children}

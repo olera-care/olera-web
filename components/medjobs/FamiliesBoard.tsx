@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
@@ -45,6 +45,7 @@ interface StudentStatus {
 
 function Board() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { profiles, isLoading: authLoading } = useAuth();
 
   const campusParam = searchParams?.get("campus") || "";
@@ -162,7 +163,12 @@ function Board() {
 
   // Care-filtered, "Top"-sorted set + the options that actually have jobs.
   const visibleCards = careFilter ? cards.filter((c) => cardMatches(c, careFilter)) : cards;
-  const topCards = [...visibleCards].sort((a, b) => evidenceScore(b) - evidenceScore(a));
+  // Program (claimed/requestable) agencies first, then by evidence density.
+  const topCards = [...visibleCards].sort((a, b) => {
+    if (!!a.isProgram !== !!b.isProgram) return a.isProgram ? -1 : 1;
+    return evidenceScore(b) - evidenceScore(a);
+  });
+  const carouselCards = topCards.slice(0, 12); // the row is a preview; "View all" opens the rest
   const availableOptions = CARE_OPTIONS.filter((o) => cards.some((c) => cardMatches(c, o.kw)));
   const totalPages = Math.ceil(topCards.length / PAGE_SIZE);
   const pageCards = topCards.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -171,6 +177,18 @@ function Board() {
     setCareFilter(kw);
     setPage(1);
     topJobsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Close the screener AND strip ?screener from the URL, so a later marketing
+  // "Apply Now" (which pushes ?screener=1) re-triggers the open effect.
+  const closeScreener = () => {
+    setShowScreener(false);
+    const params = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+    if (params.has("screener")) {
+      params.delete("screener");
+      const qs = params.toString();
+      router.replace(qs ? `/medjobs/families?${qs}` : "/medjobs/families", { scroll: false });
+    }
   };
 
   const cardEl = (f: FamilyCard) => (
@@ -291,7 +309,7 @@ function Board() {
                 </>
               ) : (
                 <div className="relative">
-                  {topCards.length > 3 && (
+                  {carouselCards.length > 3 && (
                     <>
                       <button
                         type="button"
@@ -315,7 +333,7 @@ function Board() {
                     ref={carouselRef}
                     className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                   >
-                    {topCards.map((f) => (
+                    {carouselCards.map((f) => (
                       <div key={f.id} className="w-72 shrink-0 snap-start">
                         {cardEl(f)}
                       </div>
@@ -381,8 +399,8 @@ function Board() {
               source: searchParams?.get("src") || null,
             },
           }}
-          onClose={() => setShowScreener(false)}
-          onComplete={() => setShowScreener(false)}
+          onClose={closeScreener}
+          onComplete={closeScreener}
         />
       )}
     </>

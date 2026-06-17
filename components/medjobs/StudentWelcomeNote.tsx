@@ -43,7 +43,7 @@ export default function StudentWelcomeNote({
   const hi = firstName ? `, ${firstName}` : "";
 
   const lead =
-    variant === "live" ? `You're live${hi}.` : variant === "not_live" ? `You're in${hi}.` : "Welcome.";
+    variant === "live" ? `You're live${hi}.` : variant === "not_live" ? "You're in!" : "Welcome.";
 
   const body =
     variant === "live" ? (
@@ -54,9 +54,8 @@ export default function StudentWelcomeNote({
       </>
     ) : variant === "not_live" ? (
       <>
-        Complete your application so families near {campus} can reach you. These are
-        the families hiring near you right now &mdash; once you&apos;re live, you can
-        request interviews with any of them.
+        Complete your application to get hired and start getting paid healthcare
+        experience.
       </>
     ) : (
       <>
@@ -75,7 +74,7 @@ export default function StudentWelcomeNote({
           <p className="font-serif text-lg text-gray-900">{lead}</p>
           <p className="mt-1 text-sm leading-relaxed text-gray-700">{body}</p>
           <p className="mt-2 text-xs text-gray-500">
-            &mdash; Dr. Logan DuBose, MD &middot; geriatric-focused physician, NIA researcher
+            &mdash; Dr. Logan DuBose, MD, MBA &middot; General Practitioner &middot; Co-Founder of Olera
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -102,6 +101,9 @@ export default function StudentWelcomeNote({
               </>
             ) : variant === "not_live" ? (
               <>
+                <Link href="/medjobs" className="text-sm font-medium text-primary-700 hover:underline">
+                  How it works ↗
+                </Link>
                 <a
                   href={AGREEMENT_URL}
                   target="_blank"

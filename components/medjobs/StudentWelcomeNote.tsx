@@ -60,7 +60,7 @@ export default function StudentWelcomeNote({
     ) : (
       <>
         These are the local healthcare agencies and families hiring student caregivers
-        near {campus} right now. Read more and check if you are eligible.
+        near {campus} right now.
       </>
     );
 
@@ -81,7 +81,7 @@ export default function StudentWelcomeNote({
             {variant === "anon" ? (
               <>
                 <Link href="/medjobs" className="text-sm font-medium text-primary-700 hover:underline">
-                  How it works ↗
+                  How to get hired ↗
                 </Link>
                 <a
                   href={AGREEMENT_URL}
@@ -96,13 +96,13 @@ export default function StudentWelcomeNote({
                   onClick={onCheckEligibility}
                   className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
                 >
-                  Check Eligibility →
+                  Get started →
                 </button>
               </>
             ) : variant === "not_live" ? (
               <>
                 <Link href="/medjobs" className="text-sm font-medium text-primary-700 hover:underline">
-                  How it works ↗
+                  How to get hired ↗
                 </Link>
                 <a
                   href={AGREEMENT_URL}

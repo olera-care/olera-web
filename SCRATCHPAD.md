@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-06-17 — Design slash-command family: improve `/ui-critique` + add `/design-improvements` master (branch `graceful-mcclintock`)
+
+**Trigger:** TJ compared `/ui-critique` against `/punch` and asked where it could improve, then to fold in `/mobilize`, then to build a master command stringing them together.
+
+**Changes (`.claude/commands/`, tooling — no product code):**
+- **`ui-critique.md` (modified):** grafted `/punch`'s mandatory inspiration-folder study + anti-anchor rule (was a static brand-name prose list, no real frames); added a "Read the component" section (screenshot shows one state, code shows all — empty/loading/error); added a **Mobile/Responsive lens** (375px, tap targets, container discipline) that hands off to `/mobilize` instead of duplicating its 7 lenses; fixed positioning (diagnoses-not-builds, routes to `/punch` or `/mobilize`); killed the hardcoded "they mentioned having ideas" line.
+- **`design-improvements.md` (NEW):** master orchestrator. **Reads each sub-command file at runtime** (DRY — doesn't duplicate their logic, so it never goes stale). Pipeline `ui-critique → punch → mobilize → dejank → verify` (order deliberate: shape→mobile→motion). Phase 2 triages findings into lanes + asks TJ for scope before executing; honors each sub's own confirmation gates; verify once at the end via Vercel preview.
+
+**Command family now:** `/ui-critique` (diagnose, no build) → `/punch` (boldness/copy), `/mobilize` (mobile, waits), `/dejank` (motion). `/design-improvements` conducts all four.
+
+**`/pre-test`:** caught 1 real bug — `design-improvements` claimed "all four share the same inspiration folder + anti-anchor rule"; verified false (dejank is a console/state-tracing motion tool, reads no folder; mobilize has no formal anti-anchor rule + uses a 2nd folder). Scoped the claim to the 3 aesthetic lanes. Fixed. Inspiration folder + all 4 command paths confirmed on disk.
+
+**NEXT:** none required — self-contained tooling change. PR to staging.
+
 ### 2026-06-17 — Author byline on all weekly-digest variants (branch `good-pasteur`, PR #1093 → staging)
 
 **Trigger:** TJ noticed the "About the Author" trust byline (photo + "Olera is built by Dr. Logan DuBose … and TJ Falohun …") shipped on only some weekly-digest variants. Audit → game plan → build.

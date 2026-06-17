@@ -37,8 +37,10 @@ export function studentApplyUrl(opts: {
   if (opts.universityName) p.set("uni", opts.universityName);
   if (opts.partnerOutreachId) p.set("pid", opts.partnerOutreachId);
   if (opts.source) p.set("src", opts.source);
-  const qs = p.toString();
-  return `${base}/medjobs/apply${qs ? `?${qs}` : ""}`;
+  // The front door is now the eligibility screener on the families board.
+  // screener=1 auto-opens it; attribution params ride along unchanged.
+  p.set("screener", "1");
+  return `${base}/medjobs/families?${p.toString()}`;
 }
 
 function clean(v: unknown, max: number): string | null {

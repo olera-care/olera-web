@@ -51,7 +51,7 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     { title: "Mentorship around your classes", body: "Guidance from Dr. DuBose's team, on a schedule that fits your course load." },
   ],
   steps: [
-    "Apply online in a few minutes.",
+    "Check your eligibility in a few minutes.",
     "Quick screening + onboarding.",
     "Get matched with a local family who needs care.",
     "Start your shifts and start earning.",
@@ -68,5 +68,5 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     headline: "Paid hourly · flexible hours · start this semester",
     body: "You choose how much you work. We provide the training, the match, and ongoing support so you can focus on doing great work and building your health-career story.",
   },
-  ctaLabel: "Apply now: scan or visit",
+  ctaLabel: "Check eligibility: scan or visit",
 };

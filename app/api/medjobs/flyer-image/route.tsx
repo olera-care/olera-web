@@ -146,9 +146,9 @@ export async function GET(request: Request) {
         {/* QR + apply CTA */}
         <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 36 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qrDataUri} width={qrSize} height={qrSize} alt="Apply QR code" style={{ borderRadius: 16 }} />
+          <img src={qrDataUri} width={qrSize} height={qrSize} alt="Eligibility QR code" style={{ borderRadius: 16 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: GRAY_900 }}>Apply now</div>
+            <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: GRAY_900 }}>Check eligibility</div>
             <div style={{ display: "flex", fontSize: 32, color: EMERALD_DARK, fontWeight: 600 }}>{applyUrl}</div>
             <div style={{ display: "flex", fontSize: 26, color: GRAY_500 }}>Scan or visit to start</div>
           </div>

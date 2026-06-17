@@ -274,7 +274,13 @@ function FamiliesInner() {
           context={{
             campusName,
             campusSlug: campus || null,
+            universityName: searchParams?.get("uni") || campusName,
             demandCount: total,
+            referral: {
+              campus: campus || null,
+              partner_outreach_id: searchParams?.get("pid") || null,
+              source: searchParams?.get("src") || null,
+            },
           }}
           onClose={() => setShowScreener(false)}
           onComplete={() => setShowScreener(false)}

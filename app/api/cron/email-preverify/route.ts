@@ -184,13 +184,22 @@ export async function GET(request: NextRequest) {
       }
 
       // 3. Verify the batch, throttled. Serial with a fixed pause keeps us at
-      //    ≤1 req/1.5s. verifyAndCache caches every non-'unknown' verdict, so the
-      //    send path then reads it from cache. Fails open per-address.
+      //    ≤1 req/1.5s. A wall-clock deadline stops the loop before maxDuration
+      //    even when ZeroBounce responses are slow — at ~1.5s sleep + ~1s/call
+      //    we'd otherwise blow past 300s well before reaching `limit`, and the
+      //    function would be killed mid-loop (stale 'running' row, no summary).
+      //    The run is resumable: whatever we don't reach drops out of next run's
+      //    target list once cached. verifyAndCache caches every non-'unknown'
+      //    verdict, so the send path then reads it from cache. Fails open.
       const tally = { valid: 0, invalid: 0, risky: 0, unknown: 0 };
+      const deadline = Date.now() + 250_000; // ~50s headroom under maxDuration=300 for finishRun/stampEmails
+      let processed = 0;
       for (let i = 0; i < batch.length; i++) {
+        if (Date.now() > deadline) break;
         const res = await verifyAndCache(batch[i], maxAgeDays);
         tally[res.status]++;
-        if (i < batch.length - 1) await sleep(THROTTLE_MS);
+        processed++;
+        if (i < batch.length - 1 && Date.now() < deadline) await sleep(THROTTLE_MS);
       }
 
       return {
@@ -200,9 +209,9 @@ export async function GET(request: NextRequest) {
         candidates: allCandidates.length,
         already_fresh: fresh.size,
         uncached_or_stale: targets.length,
-        verified: batch.length,
-        capped: targets.length > batch.length,
-        remaining: targets.length - batch.length,
+        verified: processed,
+        capped: processed < targets.length,
+        remaining: targets.length - processed,
         tally,
       };
     },

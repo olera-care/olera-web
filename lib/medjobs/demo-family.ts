@@ -25,6 +25,11 @@ export function isSampleFamilySlug(slug: string): boolean {
   return slug.startsWith(SAMPLE_FAMILY_SLUG_PREFIX);
 }
 
+/** Resolve a sample family by slug, for the read-only sample detail page. */
+export function getSampleFamilyBySlug(slug: string): ProviderCardData | null {
+  return SAMPLE_FAMILIES.find((f) => f.slug === slug) ?? null;
+}
+
 function sample(
   id: string,
   name: string,

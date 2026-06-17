@@ -29,8 +29,7 @@ function FamiliesInner() {
   const autoScreener = searchParams?.get("screener") === "1";
 
   const [campus, setCampus] = useState<string>(campusParam);
-  const [city, setCity] = useState<string>("");
-  const [cities, setCities] = useState<string[]>([]);
+  const [sort, setSort] = useState<"newest" | "oldest">("newest");
   const [cards, setCards] = useState<FamilyCard[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,17 +44,15 @@ function FamiliesInner() {
   const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === campus)?.name ?? null;
 
   const fetchFamilies = useCallback(
-    async (page: number, campusSlug: string, cityName: string) => {
+    async (page: number, campusSlug: string, sortVal: string) => {
       setLoading(true);
       try {
-        const qs = new URLSearchParams({ page: String(page) });
+        const qs = new URLSearchParams({ page: String(page), sort: sortVal });
         if (campusSlug) qs.set("campus", campusSlug);
-        if (cityName) qs.set("city", cityName);
         const res = await fetch(`/api/medjobs/families?${qs.toString()}`);
         const data = await res.json();
         setCards(data.cards || []);
         setTotal(data.total || 0);
-        setCities(data.cities || []);
         setCurrentPage(page);
       } catch {
         /* ignore */
@@ -67,9 +64,9 @@ function FamiliesInner() {
   );
 
   useEffect(() => {
-    fetchFamilies(1, campus, city);
+    fetchFamilies(1, campus, sort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campus, city]);
+  }, [campus, sort]);
 
   // Auth → capture student profile + status (drives the note variant).
   useEffect(() => {
@@ -171,14 +168,11 @@ function FamiliesInner() {
           onCheckEligibility={() => setShowScreener(true)}
         />
 
-        {/* Filters: campus + city */}
+        {/* Filters: campus + sort */}
         <div className="mb-6 flex flex-wrap gap-3">
           <select
             value={campus}
-            onChange={(e) => {
-              setCity("");
-              setCampus(e.target.value);
-            }}
+            onChange={(e) => setCampus(e.target.value)}
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
           >
             <option value="">Select your campus…</option>
@@ -188,20 +182,14 @@ function FamiliesInner() {
               </option>
             ))}
           </select>
-          {cities.length > 0 && (
-            <select
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-            >
-              <option value="">All cities</option>
-              {cities.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          )}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "newest" | "oldest")}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
         </div>
 
         {loading ? (
@@ -246,7 +234,7 @@ function FamiliesInner() {
                   totalItems={total}
                   itemsPerPage={PAGE_SIZE}
                   onPageChange={(p) => {
-                    fetchFamilies(p, campus, city);
+                    fetchFamilies(p, campus, sort);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   itemLabel="families"

@@ -407,15 +407,18 @@ export default function BrowseCard({
     </>
   );
 
-  // Demo (sample) listings are non-clickable — there's no real page yet.
+  // Demo (sample) listings open a read-only sample detail page.
   if ((isStudent || isCandidate) && isDemo) {
+    const demoHref = isCandidate
+      ? `/medjobs/candidates/${provider.slug}`
+      : `/medjobs/families/${provider.slug}`;
     return (
-      <div className={`relative ${rootClass}`}>
+      <Link href={demoHref} className={`relative ${rootClass}`}>
         <span className="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-amber-100 text-amber-700 rounded-full">
           Demo
         </span>
         {cardBody}
-      </div>
+      </Link>
     );
   }
 

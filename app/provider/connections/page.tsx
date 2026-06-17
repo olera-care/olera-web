@@ -18,13 +18,12 @@ import Pagination from "@/components/ui/Pagination";
 import { Tooltip } from "@/components/ui/Tooltip";
 import ArchiveLeadModal from "@/components/provider/ArchiveLeadModal";
 import {
-  calculateLeadQualityScore,
   getLeadQualityColor,
   getLeadQualityIcon,
   getLeadQualityExplanation,
   type LeadQualityResult,
 } from "@/lib/lead-quality-score";
-import type { FamilyMetadata } from "@/lib/types";
+import { deriveLeadSignals } from "@/lib/provider/lead-signals";
 import { QUICK_REPLY_CONFIG } from "@/lib/quick-reply-config";
 
 // ── Lead types (previously from mock file) ──
@@ -1622,6 +1621,12 @@ function migrateLeadsViewedData(providerProfileId: string): void {
 
 interface ConnectionWithProfile extends Connection {
   fromProfile?: Profile | null;
+  // Injected by GET /api/provider/connections when the caller is UNVERIFIED:
+  // the server redacts name/email/phone but precomputes these from the full
+  // row so completeness/quality don't drop. Absent for verified callers.
+  __piiRedacted?: boolean;
+  __completeness?: number;
+  __quality?: LeadQualityResult;
 }
 
 function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
@@ -1805,41 +1810,21 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     preArchiveStatus = "replied";
   }
 
-  // Calculate profile completeness (same weights as components/portal/profile/completeness.ts)
-  let profileCompleteness = 0;
-  const hasRealName = fullName && fullName.toLowerCase() !== "care seeker";
-  if (familyProfile?.image_url) profileCompleteness += 2;
-  if (fullName) profileCompleteness += 5;
-  if (hasRealName) profileCompleteness += 5;
-  if (familyProfile?.city) profileCompleteness += 8;
-  if (email) profileCompleteness += 10;
-  if (phone) profileCompleteness += 12;
-  if (familyMeta.contact_preference) profileCompleteness += 2;
-  if (familyMeta.relationship_to_recipient || familyMeta.who_needs_care) profileCompleteness += 10;
-  if (careRecipientAge) profileCompleteness += 2;
-  if (aboutSituation || familyProfile?.description) profileCompleteness += 4;
-  if (profileCareTypes.length > 0) profileCompleteness += 8;
-  if (profileCareNeeds.length > 0) profileCompleteness += 6;
-  if (timeline) profileCompleteness += 12;
-  if (schedulePreference) profileCompleteness += 2;
-  if (paymentMethods && paymentMethods.length > 0) profileCompleteness += 12;
-  profileCompleteness = Math.min(profileCompleteness, 100);
+  // Completeness + quality: prefer server-injected values (present when the
+  // /api/provider/connections route redacted PII for an UNVERIFIED provider —
+  // it computes these from the full row so the displayed numbers don't change),
+  // otherwise derive locally from the (full-data) row. The shared
+  // deriveLeadSignals keeps the client and the server route in lockstep.
+  const leadSignals = deriveLeadSignals(conn);
+  const profileCompleteness = conn.__completeness ?? leadSignals.completeness;
 
   // Format member since date
   const memberSince = familyProfile?.created_at
     ? new Date(familyProfile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })
     : undefined;
 
-  // Calculate lead quality score
-  const leadQuality = calculateLeadQualityScore({
-    phone,
-    displayName: fullName,
-    careTypes: profileCareTypes,
-    metadata: familyMeta as FamilyMetadata,
-    thread,
-    familyProfileId: familyProfile?.id,
-    connectionCount: undefined, // Would need additional query - skip for now
-  });
+  // Calculate lead quality score (see note above re: server-injected override)
+  const leadQuality = conn.__quality ?? leadSignals.quality;
 
   return {
     id: conn.id,
@@ -2017,26 +2002,30 @@ export default function ProviderLeadsPage() {
     }
 
     try {
-      const supabase = createClient();
       const profileId = providerProfile.id;
 
-      // Fetch family-initiated inquiries only
-      // Provider-initiated outreach is handled separately on the Outreach page
-      const inquiriesResult = await supabase
-        .from("connections")
-        .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata, image_url, created_at)")
-        .eq("to_profile_id", profileId)
-        .eq("type", "inquiry")
-        .in("status", ["pending", "accepted"])
-        .order("created_at", { ascending: false });
+      // Fetch family-initiated inquiries via the authenticated server route.
+      // The read used to run client-side with the anon key, which shipped every
+      // family's real email/phone/name to the browser regardless of verification
+      // (the "verify to unlock" gate was cosmetic). The route now enforces it in
+      // the data layer: it redacts name/email/phone for unverified providers
+      // before responding, and injects completeness/quality computed from the
+      // full row so the UI numbers are unchanged. Provider-initiated outreach is
+      // handled separately on the Outreach page.
+      const res = await fetch("/api/provider/connections", {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
 
-      if (inquiriesResult.error) {
-        console.error("Failed to fetch leads:", inquiriesResult.error);
+      if (!res.ok) {
+        console.error("Failed to fetch leads:", res.status);
         if (isInitialLoad) setIsLoading(false);
         return;
       }
 
-      const uniqueConnections = (inquiriesResult.data || []) as ConnectionWithProfile[];
+      const payload = (await res.json()) as { connections?: ConnectionWithProfile[] };
+      const uniqueConnections = (payload.connections || []) as ConnectionWithProfile[];
 
       // Map connections to leads, filtering out hidden ones
       const mappedLeads = uniqueConnections

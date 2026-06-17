@@ -56,6 +56,22 @@ export async function POST(request: NextRequest) {
           { status: 422 },
         );
       }
+      // Catch-all ('risky'): the domain accepts all mail at the door, so we can't
+      // confirm a real inbox exists. These bounce ~15%, and the cold lane now
+      // suppresses catch-all at send (lib/email.ts) — so the deferred lead/
+      // question notification to this address would be skipped anyway. Warn the
+      // operator to find a named inbox; forcing through saves the address but the
+      // cold notification still won't fire.
+      if (verdict.status === "risky") {
+        return NextResponse.json(
+          {
+            error: "risky",
+            message:
+              "That looks like a catch-all domain — mail often won't reach a real inbox, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.",
+          },
+          { status: 422 },
+        );
+      }
     }
 
     const db = getServiceClient();

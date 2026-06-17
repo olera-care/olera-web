@@ -10,6 +10,7 @@ import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import EmailPreviewModal from "@/components/admin/EmailPreviewModal";
 import ProviderFactSheetModal from "@/components/admin/ProviderFactSheetModal";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
+import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 
 interface ProfileCompleteness {
   percentage: number;
@@ -394,6 +395,14 @@ export default function ConnectionRow({
   const [forceSubmit, setForceSubmit] = useState(false);
   const verifyDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Trust score state
+  const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
+  const [trustScoreReason, setTrustScoreReason] = useState<string>("");
+  const [candidateTrustScores, setCandidateTrustScores] = useState<Map<string, { level: TrustScoreStatus; reason: string }>>(new Map());
+
+  // Request counter to prevent race conditions (stale responses overwriting fresh ones)
+  const blurRequestIdRef = useRef(0);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -466,7 +475,51 @@ export default function ConnectionRow({
     }
   }, []);
 
-  // Handle email input blur - trigger verification after debounce
+  // Fetch trust score for an email
+  const fetchTrustScore = useCallback(async (email: string): Promise<{ level: TrustScoreStatus; reason: string }> => {
+    if (!email || !email.includes("@") || !c.provider.id) {
+      return { level: "idle", reason: "" };
+    }
+
+    try {
+      const res = await fetch("/api/admin/connections/preview-trust-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, providerId: c.provider.id }),
+      });
+
+      if (!res.ok) return { level: "idle", reason: "" };
+
+      const data = await res.json();
+      return { level: data.level as TrustScoreStatus, reason: data.reason || "" };
+    } catch {
+      return { level: "idle", reason: "" };
+    }
+  }, [c.provider.id]);
+
+  // Batch fetch trust scores for multiple emails
+  const batchFetchTrustScores = useCallback(async (emails: string[]): Promise<Map<string, { level: TrustScoreStatus; reason: string }>> => {
+    const results = new Map<string, { level: TrustScoreStatus; reason: string }>();
+    if (emails.length === 0 || !c.provider.id) return results;
+
+    // Fetch trust scores in parallel (limit to 5 concurrent requests)
+    const batchSize = 5;
+    for (let i = 0; i < emails.length; i += batchSize) {
+      const batch = emails.slice(i, i + batchSize);
+      const promises = batch.map(async (email) => {
+        const result = await fetchTrustScore(email);
+        return { email: email.toLowerCase(), result };
+      });
+      const batchResults = await Promise.all(promises);
+      batchResults.forEach(({ email, result }) => {
+        results.set(email, result);
+      });
+    }
+
+    return results;
+  }, [c.provider.id, fetchTrustScore]);
+
+  // Handle email input blur - trigger verification and trust scoring after debounce
   const handleEmailBlur = useCallback((email: string, mode: "edit" | "add") => {
     // Clear any pending verification
     if (verifyDebounceRef.current) {
@@ -476,16 +529,33 @@ export default function ConnectionRow({
     // Skip verification if email is empty or invalid format
     if (!email || !email.includes("@")) {
       setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
       return;
     }
 
-    // Debounce verification
+    // Increment request ID to track this specific request
+    const requestId = ++blurRequestIdRef.current;
+
+    // Debounce verification and trust scoring
     verifyDebounceRef.current = setTimeout(async () => {
+      // Run verification and trust scoring in parallel
       setVerificationStatus("verifying");
-      const status = await verifyEmail(email);
-      setVerificationStatus(status);
+      setTrustScoreStatus("scoring");
+
+      const [verifyStatus, trustResult] = await Promise.all([
+        verifyEmail(email),
+        fetchTrustScore(email),
+      ]);
+
+      // Only update state if this is still the latest request (prevents race conditions)
+      if (blurRequestIdRef.current === requestId) {
+        setVerificationStatus(verifyStatus);
+        setTrustScoreStatus(trustResult.level);
+        setTrustScoreReason(trustResult.reason);
+      }
     }, 300);
-  }, [verifyEmail]);
+  }, [verifyEmail, fetchTrustScore]);
 
   // Auto-suggest email when drawer opens and provider has no email
   useEffect(() => {
@@ -532,18 +602,30 @@ export default function ConnectionRow({
               setEmailToUrlMap(urlMap);
             }
 
-            // Batch verify all candidates
+            // Batch verify all candidates and fetch trust scores
             if (candidates.length > 0) {
               // Set all to verifying initially (use lowercase for consistency with API response)
               setCandidateStatuses(new Map(candidates.map(e => [e.toLowerCase(), "verifying" as VerificationStatus])));
+              setTrustScoreStatus("scoring");
 
-              const verifiedStatuses = await batchVerifyEmails(candidates);
+              // Run verification and trust scoring in parallel
+              const [verifiedStatuses, trustScores] = await Promise.all([
+                batchVerifyEmails(candidates),
+                batchFetchTrustScores(candidates),
+              ]);
+
               setCandidateStatuses(verifiedStatuses);
+              setCandidateTrustScores(trustScores);
 
-              // Also set the main input verification status (normalize to lowercase for lookup)
+              // Also set the main input verification and trust status (normalize to lowercase for lookup)
               const mainStatus = verifiedStatuses.get(data.email.toLowerCase());
               if (mainStatus) {
                 setVerificationStatus(mainStatus);
+              }
+              const mainTrust = trustScores.get(data.email.toLowerCase());
+              if (mainTrust) {
+                setTrustScoreStatus(mainTrust.level);
+                setTrustScoreReason(mainTrust.reason);
               }
             }
           } else if (res.ok && !data.email) {
@@ -576,8 +658,11 @@ export default function ConnectionRow({
       setVerificationStatus("idle");
       setCandidateStatuses(new Map());
       setForceSubmit(false);
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      setCandidateTrustScores(new Map());
     }
-  }, [open, detail, autoSuggestAttempted, c.provider.id, batchVerifyEmails]);
+  }, [open, detail, autoSuggestAttempted, c.provider.id, batchVerifyEmails, batchFetchTrustScores]);
 
   // Fact sheet modal state
   const [showFactSheet, setShowFactSheet] = useState(false);
@@ -945,6 +1030,9 @@ export default function ConnectionRow({
     setIsCachedResult(false);
     setCandidateStatuses(new Map());
     setVerificationStatus("idle");
+    setTrustScoreStatus("idle");
+    setTrustScoreReason("");
+    setCandidateTrustScores(new Map());
 
     try {
       const res = await fetch("/api/admin/connections/find-provider-email", {
@@ -986,18 +1074,30 @@ export default function ConnectionRow({
           setEmailToUrlMap(urlMap);
         }
 
-        // Batch verify all candidates
+        // Batch verify all candidates and fetch trust scores
         if (candidates.length > 0) {
           // Set all to verifying initially (use lowercase for consistency with API response)
           setCandidateStatuses(new Map(candidates.map(e => [e.toLowerCase(), "verifying" as VerificationStatus])));
+          setTrustScoreStatus("scoring");
 
-          const verifiedStatuses = await batchVerifyEmails(candidates);
+          // Run verification and trust scoring in parallel
+          const [verifiedStatuses, trustScores] = await Promise.all([
+            batchVerifyEmails(candidates),
+            batchFetchTrustScores(candidates),
+          ]);
+
           setCandidateStatuses(verifiedStatuses);
+          setCandidateTrustScores(trustScores);
 
-          // Also set the main input verification status (normalize to lowercase for lookup)
+          // Also set the main input verification and trust status (normalize to lowercase for lookup)
           const mainStatus = verifiedStatuses.get(data.email.toLowerCase());
           if (mainStatus) {
             setVerificationStatus(mainStatus);
+          }
+          const mainTrust = trustScores.get(data.email.toLowerCase());
+          if (mainTrust) {
+            setTrustScoreStatus(mainTrust.level);
+            setTrustScoreReason(mainTrust.reason);
           }
         }
       } else if (res.ok && !data.email) {
@@ -1465,6 +1565,10 @@ export default function ConnectionRow({
                                     setVerificationStatus("idle");
                                     setCandidateStatuses(new Map());
                                     setForceSubmit(false);
+                                    // Clear trust score state
+                                    setTrustScoreStatus("idle");
+                                    setTrustScoreReason("");
+                                    setCandidateTrustScores(new Map());
                                   }}
                                   className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
                                 >
@@ -1487,8 +1591,10 @@ export default function ConnectionRow({
                                   value={editEmailInput}
                                   onChange={(e) => {
                                     setEditEmailInput(e.target.value);
-                                    // Reset verification when typing
+                                    // Reset verification and trust score when typing
                                     setVerificationStatus("idle");
+                                    setTrustScoreStatus("idle");
+                                    setTrustScoreReason("");
                                     setForceSubmit(false);
                                     // Clear source indicator if user manually edits away from found emails
                                     if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
@@ -1561,6 +1667,10 @@ export default function ConnectionRow({
                                   setVerificationStatus("idle");
                                   setCandidateStatuses(new Map());
                                   setForceSubmit(false);
+                                  // Reset trust score state
+                                  setTrustScoreStatus("idle");
+                                  setTrustScoreReason("");
+                                  setCandidateTrustScores(new Map());
                                 }}
                                 disabled={editingEmailLoading || findingEmail}
                                 className="px-2 py-1 text-sm text-gray-500 hover:text-gray-700"
@@ -1568,8 +1678,11 @@ export default function ConnectionRow({
                                 Cancel
                               </button>
                             </div>
-                            {/* Verification badge */}
-                            <EmailVerificationBadge status={verificationStatus} />
+                            {/* Verification and trust score badges */}
+                            <div className="flex items-center gap-3">
+                              <EmailVerificationBadge status={verificationStatus} />
+                              <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+                            </div>
                             {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
                             {emailSource && (
                               <p className="text-xs text-gray-500">
@@ -1623,6 +1736,12 @@ export default function ConnectionRow({
                                           if (status && status !== "verifying") {
                                             setVerificationStatus(status);
                                           }
+                                          // Update trust score to match selected candidate
+                                          const trustScore = candidateTrustScores.get(email.toLowerCase());
+                                          if (trustScore) {
+                                            setTrustScoreStatus(trustScore.level);
+                                            setTrustScoreReason(trustScore.reason);
+                                          }
                                         }}
                                         className={`px-2 py-0.5 text-xs rounded border transition-colors inline-flex items-center gap-1 ${
                                           editEmailInput === email
@@ -1667,8 +1786,10 @@ export default function ConnectionRow({
                               value={emailInput}
                               onChange={(e) => {
                                 setEmailInput(e.target.value);
-                                // Reset verification when typing
+                                // Reset verification and trust score when typing
                                 setVerificationStatus("idle");
+                                setTrustScoreStatus("idle");
+                                setTrustScoreReason("");
                                 setForceSubmit(false);
                                 // Clear source indicator if user manually edits away from found emails
                                 if (emailSource && foundEmails.length > 0 && !foundEmails.includes(e.target.value)) {
@@ -1721,8 +1842,11 @@ export default function ConnectionRow({
                             </button>
                           )}
                         </div>
-                        {/* Verification badge */}
-                        <EmailVerificationBadge status={verificationStatus} />
+                        {/* Verification and trust score badges */}
+                        <div className="flex items-center gap-3">
+                          <EmailVerificationBadge status={verificationStatus} />
+                          <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+                        </div>
                         {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
                         {emailSource && (
                           <p className="text-xs text-gray-500">
@@ -1775,6 +1899,12 @@ export default function ConnectionRow({
                                       // Update verification status to match selected candidate
                                       if (status && status !== "verifying") {
                                         setVerificationStatus(status);
+                                      }
+                                      // Update trust score to match selected candidate
+                                      const trustScore = candidateTrustScores.get(email.toLowerCase());
+                                      if (trustScore) {
+                                        setTrustScoreStatus(trustScore.level);
+                                        setTrustScoreReason(trustScore.reason);
                                       }
                                     }}
                                     className={`px-2 py-0.5 text-xs rounded border transition-colors inline-flex items-center gap-1 ${

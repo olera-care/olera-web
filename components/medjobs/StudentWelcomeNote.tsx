@@ -3,39 +3,47 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { INTERNSHIP_AGREEMENT_URL } from "@/lib/medjobs/student-eligibility";
+
 /**
  * A note from Dr. DuBose — the universal anchor at the top of the student
  * families board, the mirror of DrDuBoseWelcome on the provider board.
  *
- * One component, two state-specific variants, each giving exactly one next step:
- *   not_live → profile not yet live: "Finish your profile to go live" (primary)
- *              + "Read the internship agreement" (secondary). Families below are
- *              the FOMO; going live is the action.
+ * One component, three state-specific variants, each giving exactly one next step
+ * (CTA order: agreement link LEFT, primary action button RIGHT):
+ *   anon     → not yet eligible: "Check your eligibility" (primary). The real
+ *              families below are the demand; the eligibility check is the action.
+ *   not_live → eligible, profile not yet complete: "Complete your application"
+ *              (primary). Going live is the action.
  *   live     → profile is live: "Families can find you — request interviews
  *              below," agreement available as a secondary link.
  */
 
-export type StudentNoteVariant = "not_live" | "live";
+export type StudentNoteVariant = "anon" | "not_live" | "live";
 
 const HEADSHOT = "/images/for-providers/team/logan.jpg";
-const AGREEMENT_URL = "/docs/internship-agreement-sample.pdf";
+const AGREEMENT_URL = INTERNSHIP_AGREEMENT_URL;
 
 export default function StudentWelcomeNote({
   variant,
   campusName,
   firstName,
   completeness,
+  onCheckEligibility,
 }: {
   variant: StudentNoteVariant;
   campusName?: string | null;
   firstName?: string | null;
   /** Profile completeness 0-100, shown subtly on the not_live note. */
   completeness?: number | null;
+  /** anon variant — opens the eligibility screener. */
+  onCheckEligibility?: () => void;
 }) {
   const campus = campusName || "your campus";
   const hi = firstName ? `, ${firstName}` : "";
 
-  const lead = variant === "live" ? `You're live${hi}.` : `You're in${hi}.`;
+  const lead =
+    variant === "live" ? `You're live${hi}.` : variant === "not_live" ? `You're in${hi}.` : "Welcome.";
 
   const body =
     variant === "live" ? (
@@ -44,11 +52,17 @@ export default function StudentWelcomeNote({
         request an interview when you find a fit. There&apos;s no commitment until
         you and the family confirm.
       </>
+    ) : variant === "not_live" ? (
+      <>
+        Complete your application so families near {campus} can reach you. These are
+        the families hiring near you right now &mdash; once you&apos;re live, you can
+        request interviews with any of them.
+      </>
     ) : (
       <>
-        Finish your profile so families near {campus} can reach you. These are the
-        families hiring near you right now &mdash; once you&apos;re live, you can
-        request interviews with any of them.
+        These are the families hiring student caregivers near {campus} right now.
+        Check your eligibility &mdash; it takes a few seconds &mdash; and we&apos;ll
+        match you to the ones who fit.
       </>
     );
 
@@ -66,25 +80,8 @@ export default function StudentWelcomeNote({
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {variant === "not_live" ? (
-              <>
-                <Link
-                  href="/portal/medjobs"
-                  className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
-                >
-                  Finish your profile to go live
-                  {typeof completeness === "number" ? ` · ${completeness}%` : ""} →
-                </Link>
-                <a
-                  href={AGREEMENT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-primary-700 hover:underline"
-                >
-                  Read the internship agreement ↗
-                </a>
-              </>
-            ) : (
+            {/* CTA order: agreement link LEFT, primary action button RIGHT. */}
+            {variant === "live" ? (
               <a
                 href={AGREEMENT_URL}
                 target="_blank"
@@ -93,6 +90,34 @@ export default function StudentWelcomeNote({
               >
                 Read the internship agreement ↗
               </a>
+            ) : (
+              <>
+                <a
+                  href={AGREEMENT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-primary-700 hover:underline"
+                >
+                  Read the internship agreement ↗
+                </a>
+                {variant === "anon" ? (
+                  <button
+                    type="button"
+                    onClick={onCheckEligibility}
+                    className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+                  >
+                    Check your eligibility →
+                  </button>
+                ) : (
+                  <Link
+                    href="/portal/medjobs"
+                    className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+                  >
+                    Complete your application
+                    {typeof completeness === "number" ? ` · ${completeness}%` : ""} →
+                  </Link>
+                )}
+              </>
             )}
           </div>
         </div>

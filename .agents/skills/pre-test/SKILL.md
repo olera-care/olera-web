@@ -1,6 +1,6 @@
 ---
 name: pre-test
-description: Use when the user says pre-test, pretest, before I test, what should I test, or asks for a critical review before preview/QA. Re-read recent changes, trace behavior end-to-end, verify schema and integration assumptions, run focused checks, fix real bugs, and report what to test.
+description: "Use when the user says pre-test, pretest, before I test, what should I test, or asks for a critical review before preview/QA. Re-read recent changes, trace behavior end-to-end, verify schema and integration assumptions, run focused checks, fix real bugs, and report what to test."
 ---
 
 # Pre-Test Critical Review

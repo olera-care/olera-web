@@ -91,7 +91,7 @@ export default function StudentWelcomeNote({
                   href="/medjobs"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-auto text-sm font-medium text-primary-700 hover:underline"
+                  className="text-sm font-medium text-primary-700 hover:underline"
                 >
                   How it works ↗
                 </a>

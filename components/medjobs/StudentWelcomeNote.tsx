@@ -98,17 +98,6 @@ export default function StudentWelcomeNote({
               </>
             ) : variant === "not_live" ? (
               <>
-                <Link href="/medjobs" className="text-sm font-medium text-primary-700 hover:underline">
-                  How it works ↗
-                </Link>
-                <a
-                  href={AGREEMENT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-primary-700 hover:underline"
-                >
-                  Student Agreement ↗
-                </a>
                 <Link
                   href="/portal/medjobs"
                   className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
@@ -116,6 +105,14 @@ export default function StudentWelcomeNote({
                   Complete your application
                   {typeof completeness === "number" ? ` · ${completeness}%` : ""} →
                 </Link>
+                <a
+                  href="/medjobs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-primary-700 hover:underline"
+                >
+                  How it works ↗
+                </a>
               </>
             ) : (
               <a

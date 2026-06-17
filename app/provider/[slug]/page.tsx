@@ -2,11 +2,10 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { buildPowerPageUrlForDeletedProvider } from "@/lib/power-pages";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
-import { iosProviderToProfile } from "@/lib/mock-providers";
-import type { Provider as IOSProvider } from "@/lib/types/provider";
+import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
+import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -60,61 +59,13 @@ import { ViewTracker } from "@/components/analytics/ViewTracker";
 // Dynamic Metadata (SEO title, description, OG, canonical)
 // ============================================================
 
-async function fetchProviderForMeta(slug: string) {
-  try {
-    const supabase = await createClient();
-
-    // Try slug column first (human-readable URL)
-    const { data: bySlug } = await supabase
-      .from("olera-providers")
-      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
-      .eq("slug", slug)
-      .not("deleted", "is", true)
-      .single();
-    if (bySlug) return bySlug;
-
-    // Fall back to provider_id (legacy alphanumeric ID)
-    const { data: byId } = await supabase
-      .from("olera-providers")
-      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
-      .eq("provider_id", slug)
-      .not("deleted", "is", true)
-      .single();
-    if (byId) return byId;
-  } catch { /* fall through */ }
-
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("business_profiles")
-      .select("display_name, category, city, state, description, image_url")
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .in("type", ["organization", "caregiver"])
-      .single();
-    if (data) {
-      return {
-        provider_name: data.display_name,
-        provider_category: data.category,
-        city: data.city,
-        state: data.state,
-        provider_description: data.description,
-        provider_images: null,
-        provider_logo: data.image_url,
-      };
-    }
-  } catch { /* fall through */ }
-
-  return null;
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const provider = await fetchProviderForMeta(slug);
+  const provider = await resolveProviderForMeta(slug, await createClient());
 
   if (!provider) {
     return { title: "Provider Not Found | Olera" };
@@ -275,10 +226,17 @@ function HighlightIcon({ icon, className }: { icon: HighlightIconType; className
 
 export default async function ProviderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
+  // MedJobs student context — families board → student-view of the provider:
+  // hiring banner + "Request interview" CTA, family-only sections hidden.
+  const sp = searchParams ? await searchParams : undefined;
+  const isStudentContext = sp?.ctx === "medjobs-student";
+  const studentCampus = typeof sp?.campus === "string" ? sp.campus : null;
 
   // --- Data fetching ---
   let profile: Profile | null = null;
@@ -290,127 +248,25 @@ export default async function ProviderPage({
   let parentOrganization: { name: string; url?: string } | null = null;
   let providerSource: "ios" | "bp" = "ios";
 
-  // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
-  try {
-    const supabase = await createClient();
-
-    // Try slug column (human-readable URL)
-    const { data: bySlug } = await supabase
-      .from("olera-providers")
-      .select("*")
-      .eq("slug", slug)
-      .not("deleted", "is", true)
-      .single<IOSProvider>();
-
-    if (bySlug) {
-      profile = iosProviderToProfile(bySlug);
-      googleReviewsData = bySlug.google_reviews_data;
-      cmsData = bySlug.cms_data ?? null;
-      aiTrustSignals = bySlug.ai_trust_signals ?? null;
-      providerPlaceId = bySlug.place_id;
-      rawProviderId = bySlug.provider_id;
-      parentOrganization = bySlug.parent_organization ?? null;
-    } else {
-      // Fall back to provider_id (legacy alphanumeric ID)
-      const { data: byId } = await supabase
-        .from("olera-providers")
-        .select("*")
-        .eq("provider_id", slug)
-        .not("deleted", "is", true)
-        .single<IOSProvider>();
-
-      if (byId) {
-        profile = iosProviderToProfile(byId);
-        googleReviewsData = byId.google_reviews_data;
-        cmsData = byId.cms_data ?? null;
-        aiTrustSignals = byId.ai_trust_signals ?? null;
-        providerPlaceId = byId.place_id;
-        rawProviderId = byId.provider_id;
-        parentOrganization = byId.parent_organization ?? null;
-      }
-    }
-  } catch {
-    // iOS Supabase not configured or provider not found
+  // Resolve the provider through the canonical front door (lib/providers).
+  // The resolver returns data only; control flow (notFound/permanentRedirect)
+  // stays here at the page boundary so those framework throws aren't swallowed.
+  // See plans/provider-data-foundation.md (Step 1).
+  const supabase = await createClient();
+  const resolved = await resolveProvider(slug, supabase);
+  if (resolved.kind === "gone") notFound();
+  if (resolved.kind === "redirect") permanentRedirect(resolved.to);
+  if (resolved.kind === "active") {
+    const p = resolved.provider;
+    profile = p.profile;
+    googleReviewsData = p.googleReviewsData;
+    cmsData = p.cmsData;
+    aiTrustSignals = p.aiTrustSignals;
+    providerPlaceId = p.placeId;
+    rawProviderId = p.rawProviderId;
+    parentOrganization = p.parentOrganization;
+    providerSource = p.source === "account" ? "bp" : "ios";
   }
-
-  // 2. Try web business_profiles table
-  if (!profile) {
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("business_profiles")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .in("type", ["organization", "caregiver"])
-        .single<Profile>();
-      if (data) {
-        profile = data;
-        providerSource = "bp";
-        // Extract Google data from business_profile metadata
-        const bpMeta = data.metadata as Record<string, unknown> | null;
-        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
-        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
-        if (bpGoogleReviews) {
-          googleReviewsData = bpGoogleReviews;
-        }
-        if (gm?.place_id) {
-          providerPlaceId = gm.place_id;
-        }
-        rawProviderId = data.id;
-      }
-    } catch {
-      // Supabase not configured — fall through to mock lookup
-    }
-  }
-
-  // 3. Reason-aware response for soft-deleted iOS providers (migration 081).
-  //    Runs AFTER both active-row lookups so a claimed business_profile
-  //    whose underlying iOS row got soft-deleted still wins. Without this,
-  //    every soft-delete falls to a generic 404 — ~40K rows bleeding into
-  //    the GSC "Not found" bucket and losing link equity.
-  //      provider_request → notFound() (placeholder for HTTP 410)
-  //      everything else  → permanentRedirect() to /{category}/{state}/{city}
-  //
-  //    Lookup runs inside try/catch (network can fail), but notFound() /
-  //    permanentRedirect() are called OUTSIDE — both throw control-flow
-  //    errors caught at the framework boundary, so a local catch would
-  //    swallow the redirect.
-  let deletedRedirect: string | null = null;
-  let deletedHardRemoval = false;
-  if (!profile) {
-    try {
-      const supabase = await createClient();
-      const { data: deletedRow } = await supabase
-        .from("olera-providers")
-        .select("provider_category, state, city, deletion_reason")
-        .or(`slug.eq.${slug},provider_id.eq.${slug}`)
-        .eq("deleted", true)
-        .limit(1)
-        .maybeSingle<{
-          provider_category: string | null;
-          state: string | null;
-          city: string | null;
-          deletion_reason: IOSProvider["deletion_reason"];
-        }>();
-
-      if (deletedRow) {
-        if (deletedRow.deletion_reason === "provider_request") {
-          deletedHardRemoval = true;
-        } else {
-          deletedRedirect = buildPowerPageUrlForDeletedProvider({
-            category: deletedRow.provider_category,
-            state: deletedRow.state,
-            city: deletedRow.city,
-          });
-        }
-      }
-    } catch {
-      // Supabase unreachable — fall through, page will 404 below
-    }
-  }
-  if (deletedHardRemoval) notFound();
-  if (deletedRedirect) permanentRedirect(deletedRedirect);
 
   if (!profile) {
     notFound();
@@ -496,19 +352,7 @@ export default async function ProviderPage({
   const [claimResult, similarProviders, qaResult, outreachCandidates] = await Promise.all([
     // 1. Actual claim state (iOS data always says "unclaimed")
     profile.source_provider_id
-      ? (async () => {
-          try {
-            const supabase = await createClient();
-            const { data: bp } = await supabase
-              .from("business_profiles")
-              .select("claim_state, account_id, metadata, verification_state")
-              .eq("source_provider_id", profile.source_provider_id!)
-              .maybeSingle();
-            return bp;
-          } catch {
-            return null;
-          }
-        })()
+      ? getClaimedAccount(profile.source_provider_id, supabase)
       : Promise.resolve(null),
 
     // 2. Similar providers for Compare section AND multi_provider card stack
@@ -1131,7 +975,7 @@ export default async function ProviderPage({
                   )}
                 </div>
 
-                {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
                   <div className="mt-1">
                     <PricingEducationBadge
                       category={profile.category!}
@@ -1150,7 +994,7 @@ export default async function ProviderPage({
                   />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                )}
+                ))}
 
                 {profile.address && (
                   <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
@@ -1297,7 +1141,7 @@ export default async function ProviderPage({
                   40% of visitors in the outreach or multi_provider arms of the
                   5-way intake A/B. The 60% in the 3 benefits arms see the existing
                   module unchanged (with its internal mod-3 copy A/B). */}
-              {hasBenefitsData && benefitsData && (
+              {!isStudentContext && hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                     <BenefitsDiscoveryModule
@@ -1521,6 +1365,18 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
           <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
+              {isStudentContext ? (
+                <StudentProviderCTA
+                  surface="sidebar"
+                  providerId={profile.id}
+                  providerName={profile.display_name}
+                  providerSlug={profile.slug}
+                  providerSource={providerSource}
+                  city={profile.city}
+                  state={profile.state}
+                  campus={studentCampus}
+                />
+              ) : (
               <DesktopCTAVariantRouter
                 providerId={profile.id}
                 providerName={profile.display_name}
@@ -1554,12 +1410,13 @@ export default async function ProviderPage({
                   highlights: p.highlights || [],
                 }))}
               />
+              )}
             </div>
           </div>
         </div>
 
-        {/* ===== Compare Providers ===== */}
-        {similarProviders.providers.length > 0 && (
+        {/* ===== Compare Providers (hidden in student context) ===== */}
+        {!isStudentContext && similarProviders.providers.length > 0 && (
           <div className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               {similarProviders.isLocal
@@ -1579,6 +1436,18 @@ export default async function ProviderPage({
       </div>
 
       {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
+      {isStudentContext ? (
+        <StudentProviderCTA
+          surface="mobile"
+          providerId={profile.id}
+          providerName={profile.display_name}
+          providerSlug={profile.slug}
+          providerSource={providerSource}
+          city={profile.city}
+          state={profile.state}
+          campus={studentCampus}
+        />
+      ) : (
       <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
@@ -1615,8 +1484,10 @@ export default async function ProviderPage({
           highlights: p.highlights || [],
         }))}
       />
+      )}
 
       {/* Lead capture sheet (unified modal for mobile + desktop) */}
+      {!isStudentContext && (
       <LeadCaptureSheetWrapper
         providerId={profile.id}
         providerName={profile.display_name}
@@ -1630,6 +1501,7 @@ export default async function ProviderPage({
           image: staff.image || null,
         } : null}
       />
+      )}
     </div>
   );
 }

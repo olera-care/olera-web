@@ -10,8 +10,9 @@ import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs
  * previewable (paste URL into a tab) + fetchable by the email-
  * send module when attaching to outreach.
  *
- * Defaults to ?university=texas-a-and-m when no slug is provided,
- * since Texas A&M is the only university currently configured.
+ * Defaults to ?university=texas-am for the provider brochure. The
+ * student flyer (audience=student) defaults to the generic, campus-
+ * agnostic config so the public #help card always renders.
  * Returns 404 when the slug isn't in lib/program-pdf/configs.
  *
  * No auth — this PDF is the same content recipients receive as
@@ -20,9 +21,12 @@ import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs
  */
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const slug = url.searchParams.get("university") ?? "texas-a-and-m";
   const audience: PdfAudience =
     url.searchParams.get("audience") === "student" ? "student" : "provider";
+  // Default to a configured slug per audience so a bare URL always renders:
+  // the generic flyer for students, the Texas A&M brochure for providers.
+  const slug =
+    url.searchParams.get("university") ?? (audience === "student" ? "generic" : "texas-am");
 
   if (!getProgramPdfConfig(slug, audience)) {
     return NextResponse.json(

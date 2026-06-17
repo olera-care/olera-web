@@ -38,11 +38,63 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-interface BrowseCardProps {
-  provider: ProviderCardData;
+// MedJobs student variant: students don't read "agency," so the card leads with
+// the care opportunity (the need) and names the agency as "through {name}".
+const CARE_OPPORTUNITY_LABELS: Record<string, string> = {
+  home_care: "In-home senior care",
+  in_home_care: "In-home senior care",
+  non_medical_home_care: "In-home senior care",
+  home_health: "Home health care",
+  assisted_living: "Assisted living care",
+  memory_care: "Memory care",
+  nursing_home: "Skilled nursing care",
+  skilled_nursing: "Skilled nursing care",
+  hospice: "Hospice & end-of-life care",
+  adult_day_care: "Adult day care",
+  adult_day: "Adult day care",
+  independent_living: "Senior living support",
+  senior_living: "Senior living support",
+  residential_care: "Residential senior care",
+};
+
+function careOpportunityLabel(provider: ProviderCardData): string {
+  const raw = provider.providerCategory;
+  if (raw && CARE_OPPORTUNITY_LABELS[raw]) return CARE_OPPORTUNITY_LABELS[raw];
+  if (provider.careTypes[0]) return getCategoryDisplayName(provider.careTypes[0]) || provider.careTypes[0];
+  return provider.primaryCategory || "Senior care";
 }
 
-export default function BrowseCard({ provider }: BrowseCardProps) {
+interface BrowseCardProps {
+  provider: ProviderCardData;
+  /** "student" re-renders this directory card for the MedJobs families board
+   *  (opportunity-led, Request-interview). "candidate" re-renders it for the
+   *  provider candidate board (a person: name, track·university, availability).
+   *  Both descend from the one directory card — only the contextual bits change. */
+  variant?: "default" | "student" | "candidate";
+  /** Sample listing (cold-start) — dashed border, "Demo" badge, non-clickable. */
+  isDemo?: boolean;
+  isRequested?: boolean;
+  canRequest?: boolean;
+  onRequestInterview?: () => void;
+  /** candidate variant — the detail link target (e.g. /medjobs/candidates/{slug}). */
+  href?: string;
+  /** candidate variant — "Covers your evenings" match line. */
+  matchLabel?: string;
+}
+
+export default function BrowseCard({
+  provider,
+  variant = "default",
+  isDemo = false,
+  isRequested = false,
+  canRequest = false,
+  onRequestInterview,
+  href,
+  matchLabel,
+}: BrowseCardProps) {
+  const isStudent = variant === "student";
+  const isCandidate = variant === "candidate";
+  const opportunityLabel = careOpportunityLabel(provider);
   const { activeProfile, openAuth } = useAuth();
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
   const isSaved = checkSaved(provider.id);
@@ -106,14 +158,14 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     }).catch(() => {});
   };
 
-  return (
-    <Link
-      href={`/provider/${provider.slug}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={handleCardClick}
-      className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
-    >
+  const rootClass = `group flex flex-col h-full bg-white rounded-xl overflow-hidden border transition-all duration-200 ${
+    isStudent && isDemo
+      ? "border-dashed border-slate-300"
+      : "border-gray-200 hover:shadow-md hover:border-gray-300"
+  }`;
+
+  const cardBody = (
+    <>
       {/* Image */}
       <div className="relative w-full aspect-[16/10] bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
         {showPlaceholder ? (
@@ -158,7 +210,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
           />
         )}
 
-        {/* Heart — top right */}
+        {/* Heart — top right (family-only; hidden in student/candidate variants) */}
+        {variant === "default" && (
         <button
           ref={heartButtonRef}
           onClick={(e) => {
@@ -197,6 +250,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
             />
           </svg>
         </button>
+        )}
 
         {/* Tooltip for non-family users */}
         {showTooltip && (
@@ -240,10 +294,15 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
 
       {/* Content */}
       <div className="flex-1 p-4 flex flex-col">
+        {isStudent && (
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary-600">
+            Paid caregiver role
+          </p>
+        )}
         {/* Name + Rating */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-sans font-semibold text-base text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
-            {provider.name}
+            {isStudent ? opportunityLabel : provider.name}
           </h3>
           {provider.rating > 0 && (
             <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
@@ -259,10 +318,23 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
           )}
         </div>
 
-        {/* Category + Location */}
+        {/* Subtitle — student: location + the agency; candidate: track · university;
+            default: care type + location. */}
         <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-          {careTypeLabel}{provider.address ? ` · ${provider.address}` : ""}
+          {isStudent
+            ? `${provider.address ? `${provider.address} · ` : ""}through ${provider.name}`
+            : isCandidate
+              ? `${provider.primaryCategory}${provider.address ? ` · ${provider.address}` : ""}`
+              : `${careTypeLabel}${provider.address ? ` · ${provider.address}` : ""}`}
         </p>
+        {isStudent && (
+          <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Hiring student caregivers
+          </p>
+        )}
+        {isCandidate && matchLabel && (
+          <p className="mt-1.5 text-xs font-medium text-emerald-600">✓ {matchLabel}</p>
+        )}
 
         {/* CMS Medicare Quality — only show 4/5 and 5/5 publicly (lower scores used for ranking only) */}
         {provider.cmsRating != null && provider.cmsRating >= 4 && (
@@ -301,8 +373,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
         {/* Spacer */}
         <div className="flex-1 min-h-2" />
 
-        {/* Price */}
-        {provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && (!provider.priceRange || provider.priceRange === "Contact for pricing" || provider.isRegionalEstimate) ? (
+        {/* Price (family-only — hidden in student/candidate variants) */}
+        {variant === "default" && (provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && (!provider.priceRange || provider.priceRange === "Contact for pricing" || provider.isRegionalEstimate) ? (
           <div className="mt-3"><PricingEducationBadge category={provider.providerCategory} compact /></div>
         ) : provider.priceRange && provider.priceRange !== "Contact for pricing" ? (
           <div className="mt-3">
@@ -314,8 +386,62 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
           </div>
         ) : provider.priceRange ? (
           <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
-        ) : null}
+        ) : null)}
+
+        {/* Student action: request interview */}
+        {isStudent && !isDemo && (
+          <div className="mt-3 flex items-center justify-end">
+            {isRequested ? (
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+                Requested
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequestInterview?.(); }}
+                disabled={!canRequest}
+                className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                Request interview
+              </button>
+            )}
+          </div>
+        )}
       </div>
+    </>
+  );
+
+  // Demo (sample) listings open a read-only sample detail page.
+  if ((isStudent || isCandidate) && isDemo) {
+    const demoHref = isCandidate
+      ? `/medjobs/candidates/${provider.slug}`
+      : `/medjobs/families/${provider.slug}`;
+    return (
+      <Link href={demoHref} className={`relative ${rootClass}`}>
+        <span className="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-amber-100 text-amber-700 rounded-full">
+          Demo
+        </span>
+        {cardBody}
+      </Link>
+    );
+  }
+
+  const linkHref = isCandidate
+    ? href ?? `/medjobs/candidates/${provider.slug}`
+    : isStudent
+      ? `/provider/${provider.slug}?ctx=medjobs-student`
+      : `/provider/${provider.slug}`;
+
+  return (
+    <Link
+      href={linkHref}
+      target={isCandidate ? undefined : "_blank"}
+      rel={isCandidate ? undefined : "noopener noreferrer"}
+      onClick={handleCardClick}
+      className={rootClass}
+    >
+      {cardBody}
     </Link>
   );
 }

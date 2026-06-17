@@ -1,6 +1,6 @@
 ---
 name: pr-merge
-description: Use when the user says pr-merge, merge PR, safely merge a PR, analyze a PR before merging to staging, or asks whether a PR is safe to merge. Performs conflict, branch-age, CI, overlapping-file, and content-regression analysis before asking for explicit confirmation to merge, rebase, reconcile, or abort.
+description: "Use when the user says pr-merge, merge PR, safely merge a PR, analyze a PR before merging to staging, or asks whether a PR is safe to merge. Performs conflict, branch-age, CI, overlapping-file, and content-regression analysis before asking for explicit confirmation to merge, rebase, reconcile, or abort."
 ---
 
 # Safe PR Merge

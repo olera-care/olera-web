@@ -11,6 +11,7 @@
 
 import { TEXAS_AM } from "./texas-am";
 import { TEXAS_AM_STUDENT } from "./texas-am-student";
+import { GENERIC_STUDENT } from "./generic-student";
 import type { ProgramPdfConfig } from "./texas-am";
 
 export type { ProgramPdfConfig };
@@ -25,6 +26,7 @@ export const PROGRAM_PDF_CONFIGS: Record<string, ProgramPdfConfig> = {
 
 export const PROGRAM_PDF_CONFIGS_STUDENT: Record<string, ProgramPdfConfig> = {
   [TEXAS_AM_STUDENT.slug]: TEXAS_AM_STUDENT,
+  [GENERIC_STUDENT.slug]: GENERIC_STUDENT,
 };
 
 /** Returns the config for a campus slug + audience, or null if not configured.

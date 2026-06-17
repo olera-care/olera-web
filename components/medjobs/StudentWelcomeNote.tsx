@@ -60,7 +60,7 @@ export default function StudentWelcomeNote({
     ) : (
       <>
         Apply to the local healthcare agencies and families hiring student caregivers
-        near you right now.
+        near {campusName || "you"} right now.
       </>
     );
 
@@ -80,17 +80,6 @@ export default function StudentWelcomeNote({
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {variant === "anon" ? (
               <>
-                <Link href="/medjobs" className="text-sm font-medium text-primary-700 hover:underline">
-                  How it works ↗
-                </Link>
-                <a
-                  href={AGREEMENT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-primary-700 hover:underline"
-                >
-                  Eligibility requirements ↗
-                </a>
                 <button
                   type="button"
                   onClick={onCheckEligibility}
@@ -98,6 +87,14 @@ export default function StudentWelcomeNote({
                 >
                   Apply Now →
                 </button>
+                <a
+                  href="/medjobs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto text-sm font-medium text-primary-700 hover:underline"
+                >
+                  How it works ↗
+                </a>
               </>
             ) : variant === "not_live" ? (
               <>

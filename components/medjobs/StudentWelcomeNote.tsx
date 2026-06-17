@@ -88,9 +88,7 @@ export default function StudentWelcomeNote({
                   Apply Now →
                 </button>
                 <a
-                  href="/medjobs"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="#how-it-works"
                   className="text-sm font-medium text-primary-700 hover:underline"
                 >
                   How it works ↗
@@ -106,9 +104,7 @@ export default function StudentWelcomeNote({
                   {typeof completeness === "number" ? ` · ${completeness}%` : ""} →
                 </Link>
                 <a
-                  href="/medjobs"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="#how-it-works"
                   className="text-sm font-medium text-primary-700 hover:underline"
                 >
                   How it works ↗

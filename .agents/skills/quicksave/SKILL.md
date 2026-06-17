@@ -1,6 +1,6 @@
 ---
 name: quicksave
-description: Use when the user says quicksave, quick save, save progress, save progress and PR, make a PR I can preview, or asks to finish a session by saving work. Saves session context, commits relevant changes, pushes a branch, and creates or updates a ready-for-review PR against staging for Vercel preview.
+description: "Use when the user says quicksave, quick save, save progress, save progress and PR, make a PR I can preview, or asks to finish a session by saving work. Saves session context, commits relevant changes, pushes a branch, and creates or updates a ready-for-review PR against staging for Vercel preview."
 ---
 
 # Quicksave

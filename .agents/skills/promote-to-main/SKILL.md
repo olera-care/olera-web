@@ -1,6 +1,6 @@
 ---
 name: promote-to-main
-description: Use when the user says promote-to-main, /promote-to-main, promote staging to main, ship staging to production, production release, or asks to analyze whether staging is safe to promote to main. Performs staging-to-main delta, CI, production-risk, migration/env, and content-regression checks before asking for explicit confirmation to create and merge a production PR.
+description: "Use when the user says promote-to-main, /promote-to-main, promote staging to main, ship staging to production, production release, or asks to analyze whether staging is safe to promote to main. Performs staging-to-main delta, CI, production-risk, migration/env, and content-regression checks before asking for explicit confirmation to create and merge a production PR."
 ---
 
 # Promote Staging To Main

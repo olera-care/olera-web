@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getServiceClient } from "@/lib/admin";
 import { SUPABASE_CAT_TO_PROFILE_CATEGORY } from "@/lib/types/provider";
+import { sendSlackAlert } from "@/lib/slack";
 
 function genSlug(base: string): string {
   const root = base
@@ -118,6 +119,18 @@ export async function POST(request: NextRequest) {
     if (error || !created) {
       console.error("[resolve-provider] insert error:", error);
       return NextResponse.json({ error: "Failed to resolve provider" }, { status: 500 });
+    }
+
+    // Outreach trigger: a student wants a provider not yet in the program.
+    // This turns demand into a real onboarding action so the request isn't a
+    // dead end (the shell profile has no owner to see it otherwise).
+    try {
+      const loc = [p.city, p.state].filter(Boolean).join(", ");
+      await sendSlackAlert(
+        `🎓 MedJobs: a student requested an interview with *${p.provider_name ?? "a local provider"}*${loc ? ` (${loc})` : ""} — not yet in the program. Outreach needed to onboard them.`,
+      );
+    } catch {
+      /* non-blocking */
     }
 
     return NextResponse.json({ providerProfileId: (created as { id: string }).id });

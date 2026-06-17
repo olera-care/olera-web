@@ -16,7 +16,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sanitizeReferral } from "@/lib/medjobs/apply-link";
-import type { IntendedProfessionalSchool, StudentProgramTrack } from "@/lib/types";
+import { sendEmail } from "@/lib/email";
+import { studentReturningEmail } from "@/lib/medjobs-email-templates";
+import { calculateCompleteness } from "@/lib/medjobs-completeness";
+import type { IntendedProfessionalSchool, StudentProgramTrack, StudentMetadata } from "@/lib/types";
 import {
   STUDENT_ELIGIBILITY_COMPLETED_KEY,
   AVAILABILITY_PROFILE_KEY,
@@ -108,11 +111,27 @@ export async function POST(request: NextRequest) {
 
     if (existingProfile) {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-      await supabaseAdmin.auth.admin.generateLink({
+      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
         email,
         options: { redirectTo: `${siteUrl}/medjobs/families` },
       });
+      // Actually send the sign-in link (generateLink only mints it).
+      try {
+        await sendEmail({
+          to: email,
+          subject: "Sign in to Olera MedJobs",
+          html: studentReturningEmail({
+            studentName: nameFromEmail(email),
+            profileSlug: (existingProfile as { slug: string }).slug,
+            magicLink: linkData?.properties?.action_link,
+          }),
+          emailType: "student_returning",
+          recipientType: "student",
+        });
+      } catch (err) {
+        console.error("[medjobs/student-eligibility] returning email error:", err);
+      }
       return NextResponse.json({
         slug: (existingProfile as { slug: string }).slug,
         existing: true,
@@ -136,9 +155,13 @@ export async function POST(request: NextRequest) {
       [PLATFORM_TERMS_KEY]: nowIso,
       seeking_status: "actively_looking",
       application_completed: false,
-      profile_completeness: 10,
       ...(referral ? { referral: { ...referral, captured_at: nowIso } } : {}),
     };
+    // Honest starting completeness (the dashboard recomputes on first visit).
+    metadata.profile_completeness = calculateCompleteness(
+      metadata as unknown as StudentMetadata,
+      false,
+    );
 
     // Create the student profile (is_active false until they complete + verify).
     const { data: profile, error } = await supabaseAdmin

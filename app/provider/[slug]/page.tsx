@@ -1139,7 +1139,7 @@ export default async function ProviderPage({
                   )}
                 </div>
 
-                {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
                   <div className="mt-1">
                     <PricingEducationBadge
                       category={profile.category!}
@@ -1158,7 +1158,7 @@ export default async function ProviderPage({
                   />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                )}
+                ))}
 
                 {profile.address && (
                   <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
@@ -1579,8 +1579,8 @@ export default async function ProviderPage({
           </div>
         </div>
 
-        {/* ===== Compare Providers ===== */}
-        {similarProviders.providers.length > 0 && (
+        {/* ===== Compare Providers (hidden in student context) ===== */}
+        {!isStudentContext && similarProviders.providers.length > 0 && (
           <div className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               {similarProviders.isLocal

@@ -3,19 +3,19 @@
  *
  * Mirror of demo-candidate.ts, in the student's direction: shown ONLY on the
  * families board when a student's campus has zero real provider-partners hiring
- * yet. They render through the SAME `FamilyCard` as real listings, with a "Demo"
- * treatment. Honesty rules:
+ * yet. They render through the SAME `BrowseCard` (student variant, isDemo) as
+ * real listings, with a dashed "Demo" treatment. Honesty rules:
  *   - clearly labeled "Demo" everywhere
  *   - NO specific city/agency named (the board header frames them as "the kind
  *     of families hiring near {campus}"), so the same set is honest everywhere
- *   - never requestable; the card suppresses the "Request interview" action
+ *   - never requestable; non-clickable (no real agency page behind them)
  *
- * Curated client-side only so they can never leak into the real fetch, requests,
- * or interviews. The "family" is the care need; the agency is the honest
- * employer-of-record, named generically ("a local home care agency").
+ * Shaped as ProviderCardData so they flow through BrowseCard exactly like real
+ * agency listings — the student variant leads with the care opportunity and
+ * names the agency generically ("a local home care agency").
  */
 
-import type { FamilyData } from "@/components/medjobs/FamilyCard";
+import type { ProviderCardData } from "@/lib/types/provider";
 
 /** Slug prefix marking a sample family listing (vs a real DB provider). */
 export const SAMPLE_FAMILY_SLUG_PREFIX = "sample-family-";
@@ -25,59 +25,51 @@ export function isSampleFamilySlug(slug: string): boolean {
   return slug.startsWith(SAMPLE_FAMILY_SLUG_PREFIX);
 }
 
+function sample(
+  id: string,
+  name: string,
+  providerCategory: string,
+  primaryCategory: string,
+  highlights: string[],
+): ProviderCardData {
+  return {
+    id,
+    slug: id,
+    name,
+    image: "",
+    imageType: "placeholder", // renders gradient + initials, never a fake photo
+    images: [],
+    address: "", // no city claimed — board header frames "near {campus}"
+    rating: 0,
+    priceRange: "",
+    primaryCategory,
+    providerCategory,
+    careTypes: [],
+    highlights,
+    acceptedPayments: [],
+    verified: false,
+  };
+}
+
 /**
  * Four representative care opportunities spanning the common care types, so a
  * student always sees the shape of local demand even before real partners join.
- * No city/state on purpose (campus-honesty) — the board header supplies the
- * "near {campus}" framing; display_name is a generic agency phrase.
  */
-export const SAMPLE_FAMILIES: FamilyData[] = [
-  {
-    id: "sample-family-inhome",
-    slug: "sample-family-inhome",
-    display_name: "a local home care agency",
-    city: null,
-    state: null,
-    category: "home_care",
-    image_url: null,
-    description:
-      "A family looking for steady daytime and weekend help with mobility, meals, and companionship for an older parent at home.",
-    care_types: ["Companion Care", "Personal Care", "Mobility"],
-  },
-  {
-    id: "sample-family-memory",
-    slug: "sample-family-memory",
-    display_name: "a local memory care provider",
-    city: null,
-    state: null,
-    category: "memory_care",
-    image_url: null,
-    description:
-      "A family caring for a loved one with early dementia, looking for a patient, consistent caregiver for evenings.",
-    care_types: ["Memory Care", "Companion Care"],
-  },
-  {
-    id: "sample-family-assisted",
-    slug: "sample-family-assisted",
-    display_name: "a local assisted living community",
-    city: null,
-    state: null,
-    category: "assisted_living",
-    image_url: null,
-    description:
-      "A community hiring student caregivers for recurring shifts supporting residents with daily activities.",
-    care_types: ["Personal Care", "Companion Care"],
-  },
-  {
-    id: "sample-family-homehealth",
-    slug: "sample-family-homehealth",
-    display_name: "a local home health agency",
-    city: null,
-    state: null,
-    category: "home_health",
-    image_url: null,
-    description:
-      "A family needing reliable post-hospital support at home, including medication reminders and light personal care.",
-    care_types: ["Personal Care", "Post-Surgical"],
-  },
+export const SAMPLE_FAMILIES: ProviderCardData[] = [
+  sample("sample-family-inhome", "a local home care agency", "home_care", "Home Care", [
+    "Evenings & weekends",
+    "Companionship & mobility",
+  ]),
+  sample("sample-family-memory", "a local memory care provider", "memory_care", "Memory Care", [
+    "Patient, consistent shifts",
+    "Dementia care",
+  ]),
+  sample("sample-family-assisted", "a local assisted living community", "assisted_living", "Assisted Living", [
+    "Recurring shifts",
+    "Daily-living support",
+  ]),
+  sample("sample-family-homehealth", "a local home health agency", "home_health", "Home Health", [
+    "Post-hospital support",
+    "Medication reminders",
+  ]),
 ];

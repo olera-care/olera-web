@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
-import FamilyCard from "@/components/medjobs/FamilyCard";
-import type { FamilyData } from "@/components/medjobs/FamilyCard";
+import BrowseCard from "@/components/browse/BrowseCard";
+import { businessProfileToCardFormat, type ProviderCardData } from "@/lib/types/provider";
+import type { BusinessProfile } from "@/lib/types";
 import StudentWelcomeNote, { type StudentNoteVariant } from "@/components/medjobs/StudentWelcomeNote";
 import { SAMPLE_FAMILIES } from "@/lib/medjobs/demo-family";
 import Pagination from "@/components/ui/Pagination";
@@ -24,12 +25,12 @@ interface StudentStatus {
 
 export default function FamiliesHiringPage() {
   const { profiles, isLoading: authLoading } = useAuth();
-  const [families, setFamilies] = useState<FamilyData[]>([]);
+  const [families, setFamilies] = useState<ProviderCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [studentProfileId, setStudentProfileId] = useState<string | null>(null);
   const [studentStatus, setStudentStatus] = useState<StudentStatus | null>(null);
   const [requested, setRequested] = useState<Set<string>>(new Set());
-  const [modalTarget, setModalTarget] = useState<FamilyData | null>(null);
+  const [modalTarget, setModalTarget] = useState<ProviderCardData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
@@ -110,7 +111,7 @@ export default function FamiliesHiringPage() {
           .eq("is_active", true),
         sb
           .from("business_profiles")
-          .select("id, slug, display_name, city, state, category, image_url, description, care_types")
+          .select("id, slug, display_name, city, state, category, image_url, description, care_types, metadata, claim_state, lat, lng")
           .in("type", ["organization", "caregiver"])
           .eq("is_active", true)
           .order("display_name")
@@ -118,7 +119,11 @@ export default function FamiliesHiringPage() {
       ]);
 
       setTotal(countResult.count || 0);
-      if (dataResult.data) setFamilies(dataResult.data);
+      if (dataResult.data) {
+        // Reuse the directory's converter so the families board renders the
+        // exact same agency card families see, via BrowseCard's student variant.
+        setFamilies(dataResult.data.map((bp) => businessProfileToCardFormat(bp as unknown as BusinessProfile)));
+      }
       setCurrentPage(page);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -237,7 +242,7 @@ export default function FamiliesHiringPage() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {SAMPLE_FAMILIES.map((f) => (
-                <FamilyCard key={f.id} family={f} isDemo />
+                <BrowseCard key={f.id} provider={f} variant="student" isDemo />
               ))}
             </div>
           </div>
@@ -259,9 +264,10 @@ export default function FamiliesHiringPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredFamilies.map((f) => (
-                <FamilyCard
+                <BrowseCard
                   key={f.id}
-                  family={f}
+                  provider={f}
+                  variant="student"
                   isRequested={requested.has(f.id)}
                   canRequest={!!studentProfileId}
                   onRequestInterview={() => setModalTarget(f)}
@@ -288,7 +294,7 @@ export default function FamiliesHiringPage() {
       {modalTarget && (
         <ScheduleInterviewModal
           providerProfileId={modalTarget.id}
-          otherName={modalTarget.display_name}
+          otherName={modalTarget.name}
           onClose={() => setModalTarget(null)}
           onScheduled={() => {
             setRequested((prev) => new Set(prev).add(modalTarget.id));

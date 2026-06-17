@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-06-17 — Admin overview provider count: show live listings, not raw table total (branch `codex/admin-provider-live-count`)
+
+**What:** Fixed the admin Overview "Provider Directory" stat after DB analysis showed `olera-providers` has 115,598 total rows but only ~74,139 active/live listings; the rest are soft-deleted data-sweep cleanup rows. The card was misleading because it fetched `/api/admin/directory?tab=all&count_only=true`, which intentionally includes deleted rows.
+
+**Change:** `app/admin/page.tsx` now fetches `/api/admin/directory?tab=published&count_only=true` and renames the card subtitle from "Total providers" to **"Live listings"**. This reuses the existing directory API's published scope (`deleted IS NULL OR false`) instead of changing API semantics for other screens.
+
+**Verification:** Static sanity check clean. `npm run lint` could not run in this worktree because `node_modules` is missing (`next: command not found`).
+
+**Next up:** Push/open PR, let preview/staging confirm the card shows the ~74k live count, then merge/deploy.
+
 ### 2026-06-10 — Editorial freshness: /caregiver-support/ decay audit + byline refresh-date emphasis (branch `modest-nobel`)
 
 Worked through the "Olera Action Items" Notion board. Two items shipped, one archived.
@@ -2684,5 +2694,4 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-
 

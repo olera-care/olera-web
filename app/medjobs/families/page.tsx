@@ -144,7 +144,7 @@ function FamiliesInner() {
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
             Get real healthcare experience near {campusName || "you"}
           </h1>
-          <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
+          <p className="mt-2 text-base sm:text-lg text-gray-500">
             Paid caregiving jobs for college students pursuing careers in medicine and nursing.
           </p>
         </div>

@@ -228,7 +228,7 @@ export function substituteVars(
 ): string {
   return text
     .replace(/\{program_pdf\}/g, vars.program_pdf ?? PROGRAM_URL)
-    .replace(/\{apply_url\}/g, vars.apply_url ?? "https://olera.care/medjobs/apply")
+    .replace(/\{apply_url\}/g, vars.apply_url ?? "https://olera.care/medjobs/families?screener=1")
     .replace(/\{salutation\}/g, vars.salutation ?? vars.first_name ?? "{salutation}")
     .replace(/\{first_name\}/g, vars.first_name ?? "{first_name}")
     .replace(/\{organization_name\}/g, vars.organization_name ?? "{organization_name}")

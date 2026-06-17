@@ -11,7 +11,12 @@ import { CALENDLY_URL } from "@/lib/student-outreach/templates";
  */
 
 const APPLY_URL = "https://olera.care/medjobs/apply";
-const FLYER_URL = "/docs/flyer-sample.pdf";
+// Real, generated assets (campus-agnostic "generic" config). Per-campus
+// versions flow through the partner portal + outreach emails, which know the
+// slug; this public card serves the any-school version.
+const FLYER_PDF_URL = "/api/medjobs/program-pdf?university=generic&audience=student";
+const FLYER_SQUARE_URL = "/api/medjobs/flyer-image?university=generic&format=square";
+const FLYER_STORY_URL = "/api/medjobs/flyer-image?university=generic&format=story";
 const AGREEMENT_URL = "/docs/internship-agreement-sample.pdf";
 
 const SHARE_TEXT =
@@ -44,16 +49,32 @@ export default function PartnerHelpCard() {
         <span className="text-2xl">📄</span>
         <p className="text-[15px] font-semibold text-gray-900">Share the flyer</p>
         <p className="text-sm text-gray-500 leading-relaxed">
-          A one-pager your students can act on.
+          Print the PDF, or post the social image to a group chat or story.
         </p>
         <div className="mt-auto flex flex-wrap gap-2 pt-2">
           <a
-            href={FLYER_URL}
+            href={FLYER_PDF_URL}
             target="_blank"
             rel="noopener noreferrer"
             className={`${btn} bg-gray-900 text-white hover:bg-gray-800`}
           >
-            Download
+            PDF
+          </a>
+          <a
+            href={FLYER_SQUARE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${btn} border border-gray-200 text-gray-700 hover:border-gray-300`}
+          >
+            Square
+          </a>
+          <a
+            href={FLYER_STORY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${btn} border border-gray-200 text-gray-700 hover:border-gray-300`}
+          >
+            Story
           </a>
           <button
             type="button"

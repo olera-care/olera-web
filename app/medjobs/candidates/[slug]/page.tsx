@@ -383,7 +383,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Video Section ── */}
               {videoAvailable && (
                 <div className="py-8 px-6 sm:px-8">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     Meet {firstName}
                   </h2>
                   <div className="rounded-xl overflow-hidden border border-gray-100">
@@ -421,7 +421,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
               {/* ── Availability Section ── */}
               <div className={`py-8 px-6 sm:px-8 ${videoAvailable ? "border-t border-gray-200" : ""}`}>
-                <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                   Availability
                 </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -494,7 +494,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
               {/* ── Qualifications Section ── */}
               <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                   Qualifications
                 </h2>
 
@@ -597,7 +597,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Commitments Section ── */}
               {hasCommitments && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     {firstName}&apos;s Commitments
                   </h2>
                   <p className="text-sm text-gray-500 mb-4">Verified commitments this candidate has made</p>
@@ -628,7 +628,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Screening Responses Section ── */}
               {hasScenarios && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     Screening Responses
                   </h2>
                   <p className="text-sm text-gray-500 mb-6">{firstName}&apos;s responses to common care scenarios</p>
@@ -646,7 +646,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── About Section ── */}
               {hasAbout && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     About {firstName}
                   </h2>
                   <div className="space-y-4">
@@ -679,7 +679,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── References Section ── */}
               {hasReferences && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     References
                   </h2>
                   <div className="space-y-4">
@@ -705,7 +705,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Documents & Links Section (Profile Owner / Paid Providers Only) ── */}
               {canViewFullProfile && (resumeUrl || meta.linkedin_url) && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     Documents & Links
                   </h2>
                   <div className="space-y-3">

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
+import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -225,10 +226,17 @@ function HighlightIcon({ icon, className }: { icon: HighlightIconType; className
 
 export default async function ProviderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
+  // MedJobs student context — families board → student-view of the provider:
+  // hiring banner + "Request interview" CTA, family-only sections hidden.
+  const sp = searchParams ? await searchParams : undefined;
+  const isStudentContext = sp?.ctx === "medjobs-student";
+  const studentCampus = typeof sp?.campus === "string" ? sp.campus : null;
 
   // --- Data fetching ---
   let profile: Profile | null = null;
@@ -967,7 +975,7 @@ export default async function ProviderPage({
                   )}
                 </div>
 
-                {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
                   <div className="mt-1">
                     <PricingEducationBadge
                       category={profile.category!}
@@ -986,7 +994,7 @@ export default async function ProviderPage({
                   />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                )}
+                ))}
 
                 {profile.address && (
                   <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
@@ -1133,7 +1141,7 @@ export default async function ProviderPage({
                   40% of visitors in the outreach or multi_provider arms of the
                   5-way intake A/B. The 60% in the 3 benefits arms see the existing
                   module unchanged (with its internal mod-3 copy A/B). */}
-              {hasBenefitsData && benefitsData && (
+              {!isStudentContext && hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                     <BenefitsDiscoveryModule
@@ -1357,6 +1365,18 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
           <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
+              {isStudentContext ? (
+                <StudentProviderCTA
+                  surface="sidebar"
+                  providerId={profile.id}
+                  providerName={profile.display_name}
+                  providerSlug={profile.slug}
+                  providerSource={providerSource}
+                  city={profile.city}
+                  state={profile.state}
+                  campus={studentCampus}
+                />
+              ) : (
               <DesktopCTAVariantRouter
                 providerId={profile.id}
                 providerName={profile.display_name}
@@ -1390,12 +1410,13 @@ export default async function ProviderPage({
                   highlights: p.highlights || [],
                 }))}
               />
+              )}
             </div>
           </div>
         </div>
 
-        {/* ===== Compare Providers ===== */}
-        {similarProviders.providers.length > 0 && (
+        {/* ===== Compare Providers (hidden in student context) ===== */}
+        {!isStudentContext && similarProviders.providers.length > 0 && (
           <div className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               {similarProviders.isLocal
@@ -1415,6 +1436,18 @@ export default async function ProviderPage({
       </div>
 
       {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
+      {isStudentContext ? (
+        <StudentProviderCTA
+          surface="mobile"
+          providerId={profile.id}
+          providerName={profile.display_name}
+          providerSlug={profile.slug}
+          providerSource={providerSource}
+          city={profile.city}
+          state={profile.state}
+          campus={studentCampus}
+        />
+      ) : (
       <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
@@ -1451,8 +1484,10 @@ export default async function ProviderPage({
           highlights: p.highlights || [],
         }))}
       />
+      )}
 
       {/* Lead capture sheet (unified modal for mobile + desktop) */}
+      {!isStudentContext && (
       <LeadCaptureSheetWrapper
         providerId={profile.id}
         providerName={profile.display_name}
@@ -1466,6 +1501,7 @@ export default async function ProviderPage({
           image: staff.image || null,
         } : null}
       />
+      )}
     </div>
   );
 }

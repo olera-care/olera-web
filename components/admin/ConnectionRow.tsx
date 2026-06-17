@@ -244,6 +244,7 @@ function daysAgo(isoDate: string | undefined): string {
 // because they're per-connection, not per-provider like the other engagement fields.
 function EngagementBadges({
   engagement,
+  engagementLevel,
   messaged = false,
   markedReplied = false,
   alreadyConnected = false,
@@ -251,6 +252,7 @@ function EngagementBadges({
   compact = false
 }: {
   engagement?: Engagement | DetailEngagement;
+  engagementLevel?: EngagementLevel;
   messaged?: boolean;
   markedReplied?: boolean;
   alreadyConnected?: boolean;
@@ -272,8 +274,12 @@ function EngagementBadges({
       : `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
     : "";
 
+  // Only show "Viewed" badge if engagement level confirms they viewed
+  // This ensures badge matches tab placement - no "Viewed" badge in "Needs Follow-up" tab
+  const showViewedBadge = engagementLevel === "viewed" || engagementLevel === "connected";
+
   const badges: { icon: string; label: string; active: boolean; highlight?: boolean }[] = [
-    { icon: "👁", label: "Viewed", active: engagement?.lead_opened ?? false },
+    { icon: "👁", label: "Viewed", active: showViewedBadge },
     { icon: "📋", label: "Copied Phone", active: engagement?.phone_copied ?? false },
     { icon: "📋", label: "Copied Email", active: engagement?.email_copied ?? false },
     { icon: "📞", label: "Called", active: engagement?.phone_clicked ?? false },
@@ -1059,7 +1065,7 @@ export default function ConnectionRow({
                 </svg>
               </span>
             )}
-            <EngagementBadges engagement={engagement} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
+            <EngagementBadges engagement={engagement} engagementLevel={c.engagementLevel} messaged={c.responded} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} compact />
           </div>
           {/* Secondary line: care type (+ timeline for family perspective) | waiting status | nudge info | badges */}
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
@@ -1367,7 +1373,7 @@ export default function ConnectionRow({
                 )}
 
                 {/* Engagement badges */}
-                <EngagementBadges engagement={detail.engagement} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} />
+                <EngagementBadges engagement={detail.engagement} engagementLevel={c.engagementLevel} markedReplied={c.markedReplied} alreadyConnected={c.alreadyConnected} adminOverride={c.adminOverride} />
 
                 {/* Nudge feedback */}
                 {nudgeMsg && (

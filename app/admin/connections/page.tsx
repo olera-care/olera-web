@@ -553,6 +553,7 @@ export default function ConnectionsTrackerPage() {
       reason: string | null;
       archivedBy: string | null;
       archivedAt: string | null;
+      notes: string | null;
     } | null;
   } | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
@@ -590,6 +591,22 @@ export default function ConnectionsTrackerPage() {
     { value: "provider_requested_no_emails", label: "Provider requested no emails" },
     { value: "inactive", label: "Inactive / Not responding" },
     { value: "duplicate", label: "Duplicate profile" },
+    { value: "out_of_business", label: "Out of business / Permanently closed" },
+    { value: "invalid_provider", label: "Invalid provider (fake/spam)" },
+    { value: "wrong_contact_info", label: "Wrong contact info (can't reach)" },
+    { value: "relocated", label: "Provider relocated / No longer in service area" },
+    { value: "compliance_issue", label: "Compliance issue" },
+    { value: "merged", label: "Merged with another provider" },
+    { value: "other", label: "Other" },
+  ] as const;
+
+  // Unarchive Provider reason options (maps to API values)
+  const UNARCHIVE_PROVIDER_REASONS = [
+    { value: "provider_reactivated", label: "Provider reactivated / Back in business" },
+    { value: "contact_info_updated", label: "Contact info updated" },
+    { value: "archived_in_error", label: "Archived in error" },
+    { value: "provider_requested", label: "Provider requested reactivation" },
+    { value: "compliance_resolved", label: "Compliance issue resolved" },
     { value: "other", label: "Other" },
   ] as const;
 
@@ -776,7 +793,7 @@ export default function ConnectionsTrackerPage() {
     providerName: string | null,
     isArchived: boolean,
     isProviderArchived: boolean,
-    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null } | null
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null
   ) => {
     setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo });
     setSelectedAction(null);
@@ -958,7 +975,8 @@ export default function ConnectionsTrackerPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action,
-            reason: action === "archive" ? actionReason : undefined,
+            reason: actionReason || undefined,
+            notes: actionNotes.trim() || undefined,
           }),
         });
         successMessage = pendingAction.isProviderArchived ? "Provider unarchived" : "Provider archived";
@@ -1545,7 +1563,7 @@ export default function ConnectionsTrackerPage() {
                 {selectedAction === "mark_viewed" && (
                   <>
                     <p className="text-sm text-gray-600">
-                      This will move the connection to the <span className="font-medium">Viewed</span> tab. Email sequences will continue to encourage them to connect.
+                      This will move the connection to the <span className="font-semibold text-gray-900">Viewed</span> tab. Email sequences will continue to encourage them to connect.
                     </p>
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                       <p className="text-xs text-amber-800">
@@ -1709,8 +1727,42 @@ export default function ConnectionsTrackerPage() {
                                 })}
                               </p>
                             )}
+                            {pendingAction.providerArchiveInfo.notes && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">Notes:</span> {pendingAction.providerArchiveInfo.notes}
+                              </p>
+                            )}
                           </div>
                         )}
+                        {/* Unarchive reason selector */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Why are you unarchiving this provider?
+                          </label>
+                          <select
+                            value={actionReason}
+                            onChange={(e) => setActionReason(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          >
+                            <option value="">Select a reason...</option>
+                            {UNARCHIVE_PROVIDER_REASONS.map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* Notes field - always visible, required for "other" */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Notes {actionReason === "other" ? "(required)" : "(optional)"}
+                          </label>
+                          <textarea
+                            value={actionNotes}
+                            onChange={(e) => setActionNotes(e.target.value)}
+                            placeholder="Add any additional context..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                            rows={2}
+                          />
+                        </div>
                       </>
                     ) : (
                       <>
@@ -1738,6 +1790,19 @@ export default function ConnectionsTrackerPage() {
                               <option key={r.value} value={r.value}>{r.label}</option>
                             ))}
                           </select>
+                        </div>
+                        {/* Notes field - always visible, required for "other" */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Notes {actionReason === "other" ? "(required)" : "(optional)"}
+                          </label>
+                          <textarea
+                            value={actionNotes}
+                            onChange={(e) => setActionNotes(e.target.value)}
+                            placeholder="Add any additional context..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+                            rows={2}
+                          />
                         </div>
                       </>
                     )}
@@ -1806,7 +1871,8 @@ export default function ConnectionsTrackerPage() {
                         (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
                         (selectedAction === "mark_not_interested" && !actionReason) ||
                         (selectedAction === "mark_not_interested" && actionReason === "Other" && !actionNotes.trim()) ||
-                        (selectedAction === "archive_provider" && !pendingAction.isProviderArchived && !actionReason)
+                        (selectedAction === "archive_provider" && !actionReason) ||
+                        (selectedAction === "archive_provider" && actionReason === "other" && !actionNotes.trim())
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
                         selectedAction === "mark_viewed"

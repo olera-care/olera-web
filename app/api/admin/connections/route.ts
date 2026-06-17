@@ -711,6 +711,7 @@ export async function GET(request: NextRequest) {
           reason: providerMeta.admin_archived_reason as string | null,
           archivedBy: providerMeta.admin_archived_by as string | null,
           archivedAt: providerMeta.admin_archived_at as string | null,
+          notes: providerMeta.admin_archived_notes as string | null,
         } : null,
         // Admin hidden flag - hides from admin UI without affecting anything else
         adminHidden: meta.admin_hidden === true,

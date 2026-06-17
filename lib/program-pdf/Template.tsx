@@ -364,7 +364,11 @@ export function ProgramPdfTemplate({
             emails' internship framing. */}
         <View style={styles.titleBlock}>
           <Text style={styles.programTitle}>
-            Olera&apos;s {config.universityShort} Pre-Health Caregiving Internship
+            {/* universityShort is empty for the generic flyer — collapse the
+                double space so the title reads "Olera's Pre-Health …". */}
+            {["Olera’s", config.universityShort, "Pre-Health Caregiving Internship"]
+              .filter(Boolean)
+              .join(" ")}
           </Text>
           <Text style={styles.programSubtitle}>{subtitle}</Text>
         </View>

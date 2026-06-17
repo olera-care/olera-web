@@ -43,7 +43,7 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   },
   heroHeadline: "Get paid for real caregiving experience that counts toward your health career.",
   heroSubhead:
-    "Olera's pre-health caregiving internship places Texas A&M students in paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience — plus a credential and references — that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes.",
+    "Olera's pre-health caregiving internship places Texas A&M students in paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience, plus a credential and references, that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes. Families near campus are hiring student caregivers now.",
   benefits: [
     { title: "Get paid", body: "Earn an hourly wage doing meaningful work — a paid internship, not a volunteer gig." },
     { title: "Real patient-care hours", body: "Direct experience caring for older adults — exactly what health programs look for." },
@@ -53,7 +53,7 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   steps: [
     "Apply online in a few minutes.",
     "Quick screening + onboarding.",
-    "Get matched with a local family or agency.",
+    "Get matched with a local family who needs care.",
     "Start your shifts and start earning.",
   ],
   // Repurposed "vetting" section → eligibility for students.
@@ -68,5 +68,5 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     headline: "Paid hourly · flexible hours · start this semester",
     body: "You choose how much you work. We provide the training, the match, and ongoing support so you can focus on doing great work and building your health-career story.",
   },
-  ctaLabel: "Apply now — scan or visit",
+  ctaLabel: "Apply now: scan or visit",
 };

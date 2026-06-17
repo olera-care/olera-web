@@ -285,11 +285,10 @@ function CandidateBrowseInner() {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
-            Hire Vetted Caregivers Near You
+            Hire vetted student caregivers
           </h1>
           <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Vetted pre-nursing and pre-medical students who commit to a semester
-            of recurring availability, ready to match with your clients.
+            Pre-health students committed to a semester of recurring shifts.
           </p>
 
           {total > 0 && (
@@ -388,21 +387,15 @@ function CandidateBrowseInner() {
         ) : showSamples ? (
           // No real students for this filter yet → show curated samples so the
           // board is never empty. Header frames them honestly as "joining near".
-          <div className="space-y-4">
-            <p className="text-sm font-medium text-gray-500">
-              Sample profiles — the caliber of{" "}
-              {selectedUniversityName ? `${selectedUniversityName} ` : ""}caregivers joining Olera
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {SAMPLE_CANDIDATES.map((c) => (
-                <BrowseCard
-                  key={c.id}
-                  provider={candidateToCardFormat(c, { isDemo: true })}
-                  variant="candidate"
-                  isDemo
-                />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SAMPLE_CANDIDATES.map((c) => (
+              <BrowseCard
+                key={c.id}
+                provider={candidateToCardFormat(c, { isDemo: true })}
+                variant="candidate"
+                isDemo
+              />
+            ))}
           </div>
         ) : (
           <>

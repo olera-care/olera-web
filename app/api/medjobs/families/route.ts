@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { getServiceClient } from "@/lib/admin";
 import { getPartnerUniversity, fetchNonMedicalProviders } from "@/lib/medjobs/catchment";
+import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import {
   toCardFormat,
   businessProfileToCardFormat,
@@ -38,12 +39,15 @@ const PAGE_SIZE = 12;
 function getCatchmentCards(campus: string): Promise<FamilyCard[]> {
   return unstable_cache(
     async (): Promise<FamilyCard[]> => {
-      const uni = getPartnerUniversity(campus);
-      if (!uni) return [];
+      // No campus → ALL: the union of every partner-university catchment.
+      const single = campus ? getPartnerUniversity(campus) : null;
+      const unis = campus ? (single ? [single] : []) : PARTNER_UNIVERSITIES;
+      if (unis.length === 0) return [];
+      const catchment = unis.flatMap((u) => u.catchment);
 
       const db = getServiceClient();
-      const states = Array.from(new Set(uni.catchment.map((c) => c.state)));
-      const cityKeys = new Set(uni.catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`));
+      const states = Array.from(new Set(catchment.map((c) => c.state)));
+      const cityKeys = new Set(catchment.map((c) => `${c.city.toLowerCase()}|${c.state}`));
       const inCatchment = (city: string | null, state: string | null) =>
         !!city && !!state && cityKeys.has(`${city.toLowerCase()}|${state}`);
 
@@ -88,7 +92,7 @@ function getCatchmentCards(campus: string): Promise<FamilyCard[]> {
 
       return [...programCards, ...directoryCards];
     },
-    [`medjobs-families-${campus}`],
+    [`medjobs-families-${campus || "all"}`],
     { revalidate: 300 },
   )();
 }
@@ -100,7 +104,8 @@ export async function GET(request: NextRequest) {
     const sort = searchParams.get("sort") === "oldest" ? "oldest" : "newest";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 
-    if (!campus || !getPartnerUniversity(campus)) {
+    // Invalid campus → empty; empty campus → all providers (union of catchments).
+    if (campus && !getPartnerUniversity(campus)) {
       return NextResponse.json({ cards: [], total: 0, page, pageSize: PAGE_SIZE });
     }
 

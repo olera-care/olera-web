@@ -77,12 +77,6 @@ export default function StudentEligibilityModal({
   const campus = context.campusName || "your campus";
   const reassurance = Q1.find((q) => q.value === track)?.reassure;
 
-  const demandLine = (() => {
-    const n = context.demandCount ?? null;
-    if (n != null && n >= 3) return `🔥 ${n} families near ${campus} are hiring right now.`;
-    return `Families near ${campus} are looking for student caregivers.`;
-  })();
-
   const toggleBucket = (b: CoverageBucket) =>
     setBuckets((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b]));
 
@@ -182,8 +176,11 @@ export default function StudentEligibilityModal({
           </div>
         ) : step === "q1" ? (
           <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary-600">
+              Eligibility check · 2 quick questions
+            </p>
             <p className="font-serif text-lg text-gray-900">Where are you headed?</p>
-            <p className="mt-1 text-sm text-gray-500">A quick check to match you to the right families.</p>
+            <p className="mt-1 text-sm text-gray-500">A quick check to match you to the right hosts for your hours.</p>
             <div className="mt-4 grid gap-2">
               {Q1.map((q) => (
                 <button
@@ -240,22 +237,28 @@ export default function StudentEligibilityModal({
           </div>
         ) : step === "email" ? (
           <div>
-            <p className="font-serif text-lg text-gray-900">🎉 You're in!</p>
-            <p className="mt-1 text-sm text-gray-700">{demandLine}</p>
-            <p className="mt-3 text-sm font-medium text-gray-800">Where do we send your matches?</p>
+            <p className="font-serif text-lg text-gray-900">🎉 You&apos;re in!</p>
+            <p className="mt-1 text-sm text-gray-700">
+              Start earning the patient-care hours your application needs — paid hosts near {campus}{" "}
+              are ready now.
+            </p>
+            <p className="mt-3 text-sm font-medium text-gray-800">Add your email to get started:</p>
             <input
               type="email"
               inputMode="email"
               autoFocus
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               placeholder="you@school.edu"
               className={fieldClass + " mt-2"}
             />
             {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
             <button type="button" className={btnPrimary} onClick={submit}>
-              See families near me →
+              Learn more about the internship →
             </button>
           </div>
         ) : (

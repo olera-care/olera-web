@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSampleFamilyBySlug } from "@/lib/medjobs/demo-family";
+import SampleFamilyCTA from "@/components/medjobs/SampleFamilyCTA";
 
 /**
  * Read-only sample family detail — the explorable page behind a demo card on
@@ -30,7 +31,7 @@ export default async function SampleFamilyPage({
     <main className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-16">
         <Link href="/medjobs/families" className="text-sm font-medium text-primary-700 hover:underline">
-          ← Back to families hiring
+          ← Back to hosts
         </Link>
 
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
@@ -77,17 +78,12 @@ export default async function SampleFamilyPage({
           {/* Sticky CTA */}
           <div className="mt-6 lg:mt-0">
             <div className="rounded-2xl border border-primary-200 bg-white p-6 lg:sticky lg:top-6">
-              <p className="font-serif text-lg text-gray-900">Want to work with families like this?</p>
+              <p className="font-serif text-lg text-gray-900">Want to work with hosts like this?</p>
               <p className="mt-1 text-sm text-gray-600">
-                Check your eligibility — it takes a few seconds — and we&apos;ll match you to real
-                families hiring near your campus.
+                This is the kind of host you can work with to earn the patient-care hours your
+                application needs.
               </p>
-              <Link
-                href="/medjobs/families?screener=1"
-                className="mt-4 block w-full rounded-xl bg-primary-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-700"
-              >
-                Check your eligibility →
-              </Link>
+              <SampleFamilyCTA />
             </div>
           </div>
         </div>

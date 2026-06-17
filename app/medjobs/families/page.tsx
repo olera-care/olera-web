@@ -142,20 +142,28 @@ function FamiliesInner() {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
-            Families hiring near you
+            Get real patient-care hours near you
           </h1>
           <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Local families hiring student caregivers this semester. Request an interview when you
-            find one that fits.
+            Paid caregiving roles with local families &amp; agencies, around your classes.
           </p>
-          {total > 0 && !loading && (
-            <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {!studentProfileId && (
+              <button
+                type="button"
+                onClick={() => setShowScreener(true)}
+                className="rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"
+              >
+                Check your eligibility →
+              </button>
+            )}
+            {total > 0 && !loading && (
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
                 <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
-                {total} famil{total !== 1 ? "ies" : "y"} hiring nearby
+                {total} caregiving role{total !== 1 ? "s" : ""} open nearby
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -175,7 +183,7 @@ function FamiliesInner() {
             onChange={(e) => setCampus(e.target.value)}
             className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
           >
-            <option value="">Select your campus…</option>
+            <option value="">All providers</option>
             {PARTNER_UNIVERSITIES.map((u) => (
               <option key={u.slug} value={u.slug}>
                 {u.name}
@@ -199,16 +207,10 @@ function FamiliesInner() {
             ))}
           </div>
         ) : showSamples ? (
-          <div className="space-y-4">
-            <p className="text-sm font-medium text-gray-500">
-              Sample listings — the kind of families hiring{" "}
-              {campusName ? `near ${campusName}` : "near you"} as partners join Olera
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {SAMPLE_FAMILIES.map((f) => (
-                <BrowseCard key={f.id} provider={f} variant="student" isDemo />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SAMPLE_FAMILIES.map((f) => (
+              <BrowseCard key={f.id} provider={f} variant="student" isDemo />
+            ))}
           </div>
         ) : (
           <>

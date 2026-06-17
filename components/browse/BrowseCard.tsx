@@ -294,6 +294,11 @@ export default function BrowseCard({
 
       {/* Content */}
       <div className="flex-1 p-4 flex flex-col">
+        {isStudent && (
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary-600">
+            Paid caregiver role
+          </p>
+        )}
         {/* Name + Rating */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-sans font-semibold text-base text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">

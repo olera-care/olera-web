@@ -406,7 +406,7 @@ export default function BrowseCard({
 
   return (
     <Link
-      href={`/provider/${provider.slug}`}
+      href={isStudent ? `/provider/${provider.slug}?ctx=medjobs-student` : `/provider/${provider.slug}`}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleCardClick}

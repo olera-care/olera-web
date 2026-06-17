@@ -7,6 +7,7 @@ import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsDat
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
+import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -275,10 +276,17 @@ function HighlightIcon({ icon, className }: { icon: HighlightIconType; className
 
 export default async function ProviderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
+  // MedJobs student context — families board → student-view of the provider:
+  // hiring banner + "Request interview" CTA, family-only sections hidden.
+  const sp = searchParams ? await searchParams : undefined;
+  const isStudentContext = sp?.ctx === "medjobs-student";
+  const studentCampus = typeof sp?.campus === "string" ? sp.campus : null;
 
   // --- Data fetching ---
   let profile: Profile | null = null;
@@ -1297,7 +1305,7 @@ export default async function ProviderPage({
                   40% of visitors in the outreach or multi_provider arms of the
                   5-way intake A/B. The 60% in the 3 benefits arms see the existing
                   module unchanged (with its internal mod-3 copy A/B). */}
-              {hasBenefitsData && benefitsData && (
+              {!isStudentContext && hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                     <BenefitsDiscoveryModule
@@ -1521,6 +1529,18 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
           <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
+              {isStudentContext ? (
+                <StudentProviderCTA
+                  surface="sidebar"
+                  providerId={profile.id}
+                  providerName={profile.display_name}
+                  providerSlug={profile.slug}
+                  providerSource={providerSource}
+                  city={profile.city}
+                  state={profile.state}
+                  campus={studentCampus}
+                />
+              ) : (
               <DesktopCTAVariantRouter
                 providerId={profile.id}
                 providerName={profile.display_name}
@@ -1554,6 +1574,7 @@ export default async function ProviderPage({
                   highlights: p.highlights || [],
                 }))}
               />
+              )}
             </div>
           </div>
         </div>
@@ -1579,6 +1600,18 @@ export default async function ProviderPage({
       </div>
 
       {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
+      {isStudentContext ? (
+        <StudentProviderCTA
+          surface="mobile"
+          providerId={profile.id}
+          providerName={profile.display_name}
+          providerSlug={profile.slug}
+          providerSource={providerSource}
+          city={profile.city}
+          state={profile.state}
+          campus={studentCampus}
+        />
+      ) : (
       <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
@@ -1615,8 +1648,10 @@ export default async function ProviderPage({
           highlights: p.highlights || [],
         }))}
       />
+      )}
 
       {/* Lead capture sheet (unified modal for mobile + desktop) */}
+      {!isStudentContext && (
       <LeadCaptureSheetWrapper
         providerId={profile.id}
         providerName={profile.display_name}
@@ -1630,6 +1665,7 @@ export default async function ProviderPage({
           image: staff.image || null,
         } : null}
       />
+      )}
     </div>
   );
 }

@@ -446,7 +446,7 @@ export default function InterviewCalendar({
             href={perspective === "provider" ? "/medjobs/candidates" : "/portal/medjobs/jobs"}
             className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
           >
-            {perspective === "provider" ? "Browse caregivers" : "Browse open jobs"}
+            {perspective === "provider" ? "Browse caregivers" : "See families hiring near you"}
           </Link>
         </div>
       )}

@@ -10,6 +10,36 @@ function formatCategory(category: string | null): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/**
+ * Students browse "families hiring near you," not agencies. Each card leads with
+ * the care opportunity (the need a family has), with the agency named quietly as
+ * "through {agency}" — honest about who the employer-of-record is, while speaking
+ * the student's mental model. Falls back to a humanized category, then care type.
+ */
+const CARE_OPPORTUNITY_LABELS: Record<string, string> = {
+  home_care: "In-home senior care",
+  in_home_care: "In-home senior care",
+  non_medical_home_care: "In-home senior care",
+  home_health: "Home health care",
+  assisted_living: "Assisted living care",
+  memory_care: "Memory care",
+  nursing_home: "Skilled nursing care",
+  skilled_nursing: "Skilled nursing care",
+  hospice: "Hospice & end-of-life care",
+  adult_day_care: "Adult day care",
+  adult_day: "Adult day care",
+  independent_living: "Senior living support",
+  senior_living: "Senior living support",
+  residential_care: "Residential senior care",
+};
+
+function careOpportunityLabel(category: string | null, careTypes: string[]): string {
+  if (category && CARE_OPPORTUNITY_LABELS[category]) return CARE_OPPORTUNITY_LABELS[category];
+  if (category) return formatCategory(category);
+  if (careTypes.length > 0) return careTypes[0];
+  return "Senior care";
+}
+
 export interface JobProviderData {
   id: string;
   slug: string;
@@ -36,8 +66,8 @@ export default function JobProviderCard({
   onRequestInterview,
 }: JobProviderCardProps) {
   const location = [provider.city, provider.state].filter(Boolean).join(", ");
-  const categoryLabel = formatCategory(provider.category);
   const careTypes = provider.care_types || [];
+  const opportunityLabel = careOpportunityLabel(provider.category, careTypes);
   const profileUrl = `/provider/${provider.slug}`;
 
   return (
@@ -77,17 +107,15 @@ export default function JobProviderCard({
             <p className="text-xs sm:text-sm text-gray-500 mb-0.5">{location}</p>
           )}
 
-          {/* Name */}
+          {/* Care opportunity — lead with the need, not the agency name */}
           <Link href={profileUrl} target="_blank" rel="noopener noreferrer">
             <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug line-clamp-1 hover:text-gray-700 transition-colors">
-              {provider.display_name}
+              {opportunityLabel}
             </h3>
           </Link>
 
-          {/* Category */}
-          {categoryLabel && (
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{categoryLabel}</p>
-          )}
+          {/* The agency placing you, named honestly */}
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">through {provider.display_name}</p>
 
           {/* Care types as tags */}
           {careTypes.length > 0 && (

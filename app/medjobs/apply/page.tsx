@@ -441,14 +441,14 @@ export default function MedJobsApplyPage() {
             ) : (
               <>
                 <h1 className="text-3xl font-semibold text-gray-900 mb-3">You&apos;re in, {displayName.split(" ")[0]}!</h1>
-                <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Next step: verify your identity so providers can start reaching out.</p>
+                <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Next step: verify your identity so families can start reaching out.</p>
               </>
             )}
           </div>
 
           <div className="text-left mb-10">
             <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">To complete verification</p>
-            <p className="text-sm text-gray-500 mb-4">We verify every student to protect the families you&apos;ll care for. Once verified, your profile goes live and providers can find you.</p>
+            <p className="text-sm text-gray-500 mb-4">We verify every student to protect the families you&apos;ll care for. Once verified, your profile goes live and families can find you.</p>
 
             <div className="space-y-3">
               {/* Application — already done */}
@@ -465,7 +465,7 @@ export default function MedJobsApplyPage() {
 
               {/* Remaining verification steps */}
               {[
-                { label: "Record a short intro video", desc: "2\u20133 min \u2014 providers want to see who they\u2019re hiring" },
+                { label: "Record a short intro video", desc: "2\u20133 min \u2014 families want to see who they\u2019re hiring" },
                 { label: "Upload driver\u2019s license", desc: "Verifies your identity \u2014 required for all caregiving roles" },
                 { label: "Upload car insurance", desc: "Confirms you can get to assignments safely" },
               ].map((item, i) => (
@@ -727,7 +727,7 @@ export default function MedJobsApplyPage() {
                   <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Hours per week</label>
                   <SearchDropdown options={HOURS_OPTIONS} value={hoursPerWeekRange} onSelect={setHoursPerWeekRange} placeholder="Select" />
                   <ReactiveHint show={!!hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange)}>
-                    Students who commit 15+ hrs/week are more competitive with providers.
+                    Students who commit 15+ hrs/week are more competitive with families.
                   </ReactiveHint>
                 </div>
                 <div>
@@ -741,7 +741,7 @@ export default function MedJobsApplyPage() {
 
               <div className="border-t border-gray-100 pt-5">
                 <p className="text-sm text-gray-500 leading-relaxed mb-3">
-                  These standards are why providers trust our interns. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
+                  These standards are why families and care teams trust our interns. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
               </p>
 
               <div className="space-y-3">
@@ -769,7 +769,7 @@ export default function MedJobsApplyPage() {
               </div>
 
               <ReactiveHint show={allAcknowledged}>
-                You&apos;re ready. Students who meet these standards are highly sought after by providers and gain clinical experience that strengthens professional school applications.
+                You&apos;re ready. Students who meet these standards are highly sought after by families and care teams and gain clinical experience that strengthens professional school applications.
               </ReactiveHint>
               </div>
             </div>

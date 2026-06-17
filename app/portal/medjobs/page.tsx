@@ -450,7 +450,7 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
   return (
     <div>
       <p className="text-sm text-gray-500 mb-2">
-        This is one of the first things providers read. Be genuine — think of it like a personal statement.
+        This is one of the first things the families and care teams who hire you will read. Be genuine — think of it like a personal statement.
       </p>
       <div className="text-xs text-gray-400 mb-2 space-y-1">
         <p><strong>Strong answers include:</strong></p>
@@ -459,7 +459,7 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
           <li>How this connects to your career path (med school, nursing, PA, etc.)</li>
           <li>A specific experience that motivated you (family care, volunteer work, etc.)</li>
         </ul>
-        <p className="mt-2 text-gray-300 italic">AI tools are fine for brainstorming, but write the final version in your own voice. Providers can tell when answers feel generic — your real story is what makes you stand out.</p>
+        <p className="mt-2 text-gray-300 italic">AI tools are fine for brainstorming, but write the final version in your own voice. Families and care teams can tell when answers feel generic — your real story is what makes you stand out.</p>
       </div>
       <div className="relative">
         <textarea
@@ -516,10 +516,10 @@ function ScenarioSection({ profileId, responses, onSave }: {
   return (
     <div>
       <p className="text-sm text-gray-500 mb-2">
-        Providers use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
+        Families and care teams use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
       </p>
       <p className="text-xs text-gray-300 italic mb-4">
-        You can use AI to organize your thoughts, but make sure the final answers reflect how you would actually respond. Providers may ask follow-up questions in interviews.
+        You can use AI to organize your thoughts, but make sure the final answers reflect how you would actually respond. They may ask follow-up questions in interviews.
       </p>
       <div className="space-y-5">
         {SCENARIO_QUESTIONS.map((q, i) => (
@@ -589,7 +589,7 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
         Commitment statement <span className="text-red-400">*</span>
       </label>
       <p className="text-xs text-gray-400 mb-2">
-        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. Visible to providers.
+        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. Visible to the families and care teams who hire.
       </p>
       {!text && (
         <div className="mb-3 space-y-2">
@@ -718,7 +718,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-xs text-blue-700 leading-relaxed">
-            This is the #1 thing providers look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months.
+            This is the #1 thing families and care teams look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months.
           </p>
         </div>
 
@@ -732,7 +732,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
         {/* Flexibility & accountability pledges */}
         <div>
           <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Additional commitments</label>
-          <p className="text-xs text-gray-400 mb-3">These show providers you understand the responsibility. Check all that apply.</p>
+          <p className="text-xs text-gray-400 mb-3">These show families and care teams you understand the responsibility. Check all that apply.</p>
           <div className="space-y-2">
             <button type="button" disabled={saving}
               onClick={() => { const next = !prnWilling; setPrnWilling(next); saveToggle("prn_willing", next); }}
@@ -744,7 +744,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
               }`}>
                 {prnWilling && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
               </span>
-              <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a client needs shifts that fit my schedule</span>
+              <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a family needs shifts that fit my schedule</span>
             </button>
 
             <button type="button" disabled={saving}
@@ -1538,7 +1538,7 @@ function StudentPortalContent({
                   <span className="text-sm font-medium text-gray-900">Not live yet</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Complete verification to make your profile visible to care providers.
+                  Complete verification to make your profile visible to local families.
                 </p>
                 <button
                   type="button"

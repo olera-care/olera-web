@@ -41,12 +41,13 @@ const HOURS_OPTIONS = [
 ];
 
 
-type Step = 0 | 1 | 2; // basic_info, availability_commitments, success
-const TOTAL_STEPS = 2;
+type Step = 0 | 1 | 2 | 3; // about_you, availability_commitments, contact, success
+const TOTAL_STEPS = 3;
 
 const STEP_TITLES = [
   "Let\u2019s get to know you",
   "Availability & commitments",
+  "How can families reach you?",
 ];
 
 /* ─── Reusable Components ──────────────────────────────────── */
@@ -297,65 +298,25 @@ export default function MedJobsApplyPage() {
     }, 200);
   }, [animating, step]);
 
-  // Track partial creation state
-  const [partialProfileId, setPartialProfileId] = useState("");
-  const [partialSlug, setPartialSlug] = useState("");
-  const [partialExisting, setPartialExisting] = useState(false);
-  const partialFiredRef = useRef(false);
-
+  // Contact (email/phone) is now collected on the final step, so there's no
+  // partial save mid-form: the profile + silent sign-in happen at submit.
   const goNext = useCallback(() => {
-    if (step < TOTAL_STEPS - 1) {
-      // Fire partial creation after step 0 (about_you) completes
-      if (step === 0 && !partialFiredRef.current) {
-        partialFiredRef.current = true;
-        fetch("/api/medjobs/apply-partial", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            displayName, email, phone, city, state,
-            website: honeypot,
-            referral: referralRef.current ?? undefined,
-          }),
-        })
-          .then((res) => res.json())
-          .then(async (data) => {
-            if (data.profileId && data.profileId !== "ok") {
-              setPartialProfileId(data.profileId);
-              setPartialSlug(data.slug || "");
-              if (data.existing) setPartialExisting(true);
-
-              // Auto-sign-in: establish browser session silently
-              // Uses singleton client so AuthProvider's onAuthStateChange listener fires
-              if (data.tokenHash) {
-                try {
-                  const supabase = createClient();
-                  await supabase.auth.verifyOtp({
-                    token_hash: data.tokenHash,
-                    type: "magiclink",
-                  });
-                } catch {
-                  // Non-blocking — sign-in is a nice-to-have during form fill
-                }
-              }
-            }
-          })
-          .catch(() => {
-            // Non-blocking — don't interrupt the user
-          });
-      }
-      goTo((step + 1) as Step);
-    }
-  }, [step, goTo, displayName, email, phone, city, state, honeypot]);
+    if (step < TOTAL_STEPS - 1) goTo((step + 1) as Step);
+  }, [step, goTo]);
 
   const goBack = useCallback(() => {
     if (step > 0) goTo((step - 1) as Step);
   }, [step, goTo]);
 
   const canAdvance = useCallback((): boolean => {
-    if (step === 0) return !!displayName.trim() && !!email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !!phone.trim();
-    if (step === 1) return allAcknowledged;
+    if (step === 0) {
+      const uni = universityOther ? universitySearch.trim() : university.trim();
+      return !!displayName.trim() && !!uni;
+    }
+    if (step === 1) return canSubmitStep1;
+    if (step === 2) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && !!phone.trim();
     return true;
-  }, [step, displayName, email, phone, allAcknowledged]);
+  }, [step, displayName, university, universityOther, universitySearch, canSubmitStep1, email, phone]);
 
   /* ─── Submit ─────────────────────────────────────────────── */
 
@@ -410,7 +371,7 @@ export default function MedJobsApplyPage() {
         }
       }
 
-      setStep(2 as Step);
+      setStep(3 as Step);
     } catch { setError("Network error. Please try again."); }
     finally { setLoading(false); }
   }, [
@@ -422,7 +383,7 @@ export default function MedJobsApplyPage() {
 
   /* ─── Success ────────────────────────────────────────────── */
 
-  if (step === 2) {
+  if (step === 3) {
     const nearLabel = city ? `near ${city}` : "near you";
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
@@ -583,6 +544,11 @@ export default function MedJobsApplyPage() {
         <div className={`tf-container ${animClass}`}>
           {/* Section header */}
           <div className="mb-8 pt-4">
+            {uniFromLink && university && (
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-primary-600">
+                {university} Student Caregiver Internship
+              </p>
+            )}
             <h1 className="text-2xl font-semibold text-gray-900">{STEP_TITLES[step]}</h1>
           </div>
 
@@ -597,35 +563,6 @@ export default function MedJobsApplyPage() {
                 <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Full name *</label>
                 <BottomLine value={displayName} onChange={setDisplayName} placeholder="Sarah Kim" autoFocus />
               </div>
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Email *</label>
-                <BottomLine value={email} onChange={setEmail} placeholder="sarah@university.edu" type="email" />
-                {/* Returning user detection */}
-                {returningUser && (
-                  <div className="mt-3 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <p className="text-sm text-emerald-800 mb-2">
-                      Welcome back, <span className="font-medium">{returningUser.displayName}</span>! You already have a profile with us.
-                    </p>
-                    <Link
-                      href="/portal/medjobs"
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors"
-                    >
-                      Go to your dashboard
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  </div>
-                )}
-                {checkingEmail && (
-                  <p className="mt-2 text-xs text-gray-400">Checking...</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Phone *</label>
-                <BottomLine value={phone} onChange={setPhone} placeholder="(555) 123-4567" type="tel" />
-              </div>
-
               <div>
                 <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">University *</label>
                 {uniFromLink && university && !editingUni ? (
@@ -776,6 +713,44 @@ export default function MedJobsApplyPage() {
             </div>
           )}
 
+          {/* ── Step 2: Contact ── */}
+          {step === 2 && (
+            <div className="space-y-7">
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Last step. How should families and our team reach you about matches and interviews?
+              </p>
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Email *</label>
+                <BottomLine value={email} onChange={setEmail} placeholder="sarah@university.edu" type="email" />
+                {/* Returning user detection — surfaced the moment they type, so a
+                    returning student doesn't submit a duplicate application. */}
+                {returningUser && (
+                  <div className="mt-3 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <p className="text-sm text-emerald-800 mb-2">
+                      Welcome back, <span className="font-medium">{returningUser.displayName}</span>! You already have a profile with us.
+                    </p>
+                    <Link
+                      href="/portal/medjobs"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors"
+                    >
+                      Go to your dashboard
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                )}
+                {checkingEmail && (
+                  <p className="mt-2 text-xs text-gray-400">Checking...</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Phone *</label>
+                <BottomLine value={phone} onChange={setPhone} placeholder="(555) 123-4567" type="tel" />
+              </div>
+            </div>
+          )}
+
           {/* ── Navigation ── */}
           <div className="mt-10 flex items-center justify-between">
             {step > 0 ? (
@@ -784,9 +759,9 @@ export default function MedJobsApplyPage() {
               </button>
             ) : <div />}
 
-            {step === 1 ? (
+            {step === 2 ? (
               <button type="button" onClick={handleSubmit}
-                disabled={loading || !canSubmitStep1}
+                disabled={loading || !canAdvance()}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors">
                 {loading ? "Submitting..." : "Submit application"}
               </button>

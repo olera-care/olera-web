@@ -429,6 +429,20 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/cleanup",
     emailTypes: [],
   },
+  {
+    id: "email-preverify",
+    name: "Email pre-verification",
+    description:
+      "Proactively verifies cold-lane recipient addresses (question_received + the weekly digest's unclaimed slice) ahead of send, throttled to dodge ZeroBounce's burst rate limit. Pre-populates the email_verifications cache so the send path reliably suppresses known-bad addresses instead of failing open during the weekly burst. Caps NEW verifications per run; the backlog drains across runs then steady-states.",
+    recipientCohort: "(No recipients — a verification/data job. Verifies the question_received + unclaimed-digest address pools.)",
+    audience: "Data & maintenance",
+    fn: "maintenance",
+    schedule: "0 */6 * * *",
+    humanSchedule: "Every 6 hours (00/06/12/18 UTC) — the 12:00 run pre-warms the 13:00 weekday digest",
+    path: "/api/cron/email-preverify",
+    emailTypes: [],
+    relatedAdminPath: "/admin/automations",
+  },
 ];
 
 export function getCronJob(id: string): CronJob | undefined {

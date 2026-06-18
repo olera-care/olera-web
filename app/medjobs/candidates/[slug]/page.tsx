@@ -261,13 +261,12 @@ export default async function StudentProfilePage({ params }: PageProps) {
           <BackLink studentSlug={profile.slug} />
         </div>
 
-        {/* Sample-profile banner — same layout as a real candidate, clearly
-            labeled so it's never mistaken for a live student. */}
+        {/* Sample-profile tag — small + green; the sticky CTA explains the rest. */}
         {isSample && (
-          <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            <span className="font-semibold">Sample profile</span> — an example of
-            the caliber of caregiver joining Olera, not a live student. Check your
-            eligibility and grab a time with Dr. DuBose to get set up.
+          <div className="mb-4">
+            <span className="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-700">
+              Sample profile
+            </span>
           </div>
         )}
 

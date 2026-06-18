@@ -434,7 +434,7 @@ export default function BrowseCard({
       : `/medjobs/families/${provider.slug}`;
     return (
       <Link href={demoHref} className={`relative ${rootClass}`}>
-        <span className="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-amber-100 text-amber-700 rounded-full">
+        <span className="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-primary-100 text-primary-700 rounded-full">
           Demo
         </span>
         {cardBody}

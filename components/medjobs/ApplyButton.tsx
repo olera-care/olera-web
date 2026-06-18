@@ -23,7 +23,7 @@ export default function ApplyButton({
   const target = isStudent
     ? "/portal/medjobs"
     : isProvider
-      ? "/medjobs/providers"
+      ? "/medjobs/candidates"
       : "/medjobs/families?screener=1";
   return (
     <button

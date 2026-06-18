@@ -129,6 +129,41 @@ function bumpHeroRotation(): number {
   }
 }
 
+// ── Dismiss (Robinhood-style, daily reset) ──────────────────────────────────
+// Providers can dismiss the *non-essential* banners (managed ads, market intel,
+// completion nudges) via an X. The action banners — a lead/question/family is
+// waiting, or a positive view spike — are the signals the hero exists to
+// surface, so they're never dismissible. Dismissal is NOT permanent: it lasts
+// only the provider's current calendar day, then the hero returns fresh (the
+// rotation counter has advanced, so it's usually a different card). A new
+// action signal still breaks through same-day, since those aren't dismissible.
+
+const HERO_DISMISS_KEY = "olera_hero_dismissed_date";
+
+/** A banner that carries an X. Promotional / housekeeping nags only. */
+const DISMISSIBLE_BANNER_IDS = new Set(["managed_ads", "find_families_intel"]);
+function isDismissibleBanner(bannerId: string): boolean {
+  return DISMISSIBLE_BANNER_IDS.has(bannerId) || bannerId.startsWith("completion:");
+}
+
+/** Local (not UTC) date stamp — dismissal resets on the provider's own day. */
+function todayStamp(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
+
+/** True if the provider already dismissed the hero today. SSR-safe + failure-safe. */
+function readDismissedToday(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(HERO_DISMISS_KEY) === todayStamp();
+  } catch {
+    return false;
+  }
+}
+
 interface Props {
   firstName: string;
   data: ProviderDashboardV2Data;
@@ -209,6 +244,22 @@ export default function DashboardHero({
   const [rotationCount] = useState(bumpHeroRotation);
   const hook = resolveHook(data, completeness, category, rotationCount);
 
+  // Robinhood-style dismiss: only the non-essential banner is hideable, and only
+  // for the rest of today. `hidden` gates rendering + every side effect below so
+  // a dismissed banner fires no impression and clears the mobile sticky CTA.
+  const [dismissedToday, setDismissedToday] = useState(readDismissedToday);
+  const dismissible = isDismissibleBanner(hook.bannerId);
+  const hidden = dismissible && dismissedToday;
+
+  const handleDismiss = () => {
+    try {
+      window.localStorage.setItem(HERO_DISMISS_KEY, todayStamp());
+    } catch {
+      /* storage blocked — dismissal just won't persist across reloads */
+    }
+    setDismissedToday(true);
+  };
+
   // Preload every tier image once the hero mounts. After a provider saves
   // a section the picker re-evaluates and the hero swaps to a different
   // image; without preload, the new image's ~150-260KB fetch causes a
@@ -240,6 +291,7 @@ export default function DashboardHero({
   // all banners. Section banners still carry section/weight for the existing
   // rollup.
   useEffect(() => {
+    if (hidden) return; // dismissed today — not shown, so not an impression
     if (firedImpression.current === bannerId) return;
     firedImpression.current = bannerId;
     track("provider_picker_impression", providerSlug, {
@@ -247,16 +299,18 @@ export default function DashboardHero({
       banner: bannerId,
       ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
-  }, [bannerId, sectionId, sectionWeight, providerSlug]);
+  }, [hidden, bannerId, sectionId, sectionWeight, providerSlug]);
 
   // Tell the dashboard which banner won this visit, so it can suppress the
   // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
   // When the managed-ads banner wins, also warm the boost-state cache so the
   // "Get started" → /provider/boost transition paints instantly (no snap).
   useEffect(() => {
-    onBannerResolved?.(bannerId);
-    if (bannerId === "managed_ads") prefetchBoostState();
-  }, [bannerId, onBannerResolved]);
+    // When dismissed, the hero shows nothing — report no resolved banner so the
+    // dashboard's separate (non-hero) managed-ads nudge isn't wrongly suppressed.
+    onBannerResolved?.(hidden ? "" : bannerId);
+    if (!hidden && bannerId === "managed_ads") prefetchBoostState();
+  }, [hidden, bannerId, onBannerResolved]);
 
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
   // the bar mirrors EXACTLY the tier the hero landed on this visit — no
@@ -266,7 +320,9 @@ export default function DashboardHero({
     hook.cta && !isSectionCta(hook.cta) ? hook.cta.href : null;
   useEffect(() => {
     if (!onHeroAction) return;
-    if (!hook.cta) {
+    // Hidden (dismissed) → clear the mobile sticky CTA so it doesn't mirror a
+    // banner that isn't on screen.
+    if (hidden || !hook.cta) {
       onHeroAction(null);
       return;
     }
@@ -277,7 +333,7 @@ export default function DashboardHero({
     );
     // hook.cta is recomputed each render; key the effect on its primitives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onHeroAction, sectionId, heroActionLabel, heroActionHref]);
+  }, [onHeroAction, hidden, sectionId, heroActionLabel, heroActionHref]);
 
   const handleSectionClick = (cta: SectionCta) => {
     track("provider_picker_clicked", providerSlug, {
@@ -312,6 +368,10 @@ export default function DashboardHero({
     }
   };
 
+  // Dismissed for today — render nothing. The wrapping div in DashboardPage has
+  // no intrinsic height, so this leaves no gap.
+  if (hidden) return null;
+
   return (
     <HeroCard
       firstName={firstName}
@@ -319,6 +379,7 @@ export default function DashboardHero({
       className="mb-6"
       onSectionClick={handleSectionClick}
       onNavClick={handleNavClick}
+      onDismiss={dismissible ? handleDismiss : undefined}
     />
   );
 }
@@ -350,6 +411,7 @@ export function HeroCard({
   className = "",
   onSectionClick,
   onNavClick,
+  onDismiss,
 }: {
   firstName: string;
   hook: Hook;
@@ -357,6 +419,10 @@ export function HeroCard({
   className?: string;
   onSectionClick?: (cta: SectionCta) => void;
   onNavClick?: (cta: NavCta) => void;
+  /** When provided, renders a dismiss (X) in the top-right. Only the live
+   *  dashboard passes this (for non-essential banners); the admin preview omits
+   *  it so previews show the banner content uncluttered. */
+  onDismiss?: () => void;
 }) {
   // Photo + gradient paint for desktop/responsive; mobile is solid warm-950.
   const showPhoto = surface !== "mobile";
@@ -377,6 +443,25 @@ export function HeroCard({
 
   return (
     <div className={`relative overflow-hidden rounded-2xl bg-warm-950 ${minH} ${className}`}>
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="absolute top-2.5 right-2.5 z-10 p-2 rounded-full text-warm-100/60 hover:text-white hover:bg-white/10 active:bg-white/15 transition-colors"
+        >
+          <svg
+            className="w-4 h-4 drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
       {showPhoto && (
         <>
           {/* Background image — warm photo behind the card. backgroundSize is

@@ -22,6 +22,26 @@ const PAGE_SIZE = 20;
 // it, even after exploring other parts of the portal and coming back).
 const UNIVERSITY_FILTER_KEY = "medjobs_university_filter";
 
+// Explore-by-availability tiles — filter the board by when a candidate is free.
+// Time-of-day keys map to metadata.availability_types; PRN/full-time map to
+// their own fields (best-effort) so a tile never silently returns nothing.
+const AVAILABILITY_TILES = [
+  { label: "Days", value: "in_between_classes", image: "/images/home-care.jpg" },
+  { label: "Evenings", value: "evenings", image: "/images/assisted-living.jpg" },
+  { label: "Weekends", value: "weekends", image: "/images/memory-care.jpg" },
+  { label: "Overnights", value: "overnights", image: "/images/nursing-home.jpg" },
+  { label: "PRN", value: "prn", image: "/images/home-health.jpg" },
+  { label: "Full-time", value: "full_time", image: "/images/medjobs/students-group.jpg" },
+];
+
+function matchesAvailability(c: CandidateData, val: string): boolean {
+  if (!val) return true;
+  const meta = c.metadata;
+  if (val === "prn") return !!meta.prn_willing;
+  if (val === "full_time") return /30|40|full/i.test(meta.hours_per_week_range ?? "");
+  return (meta.availability_types ?? []).includes(val);
+}
+
 interface University {
   id: string;
   name: string;
@@ -75,6 +95,7 @@ function CandidateBrowseInner() {
   const [universityId, setUniversityId] = useState<string>("");
   const [geoState, setGeoState] = useState<string | null>(null);
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
+  const [availabilityFilter, setAvailabilityFilter] = useState("");
   const [showScreener, setShowScreener] = useState(false);
 
   const initedRef = useRef(false);
@@ -197,6 +218,9 @@ function CandidateBrowseInner() {
           sort,
         });
         if (universityId) params.set("universityId", universityId);
+        // An availability filter is applied client-side, so pull the full set
+        // (the API caps loadAll) instead of a single page.
+        if (availabilityFilter) params.set("loadAll", "true");
 
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
@@ -204,7 +228,7 @@ function CandidateBrowseInner() {
         if (append) setCandidates((prev) => [...prev, ...newCandidates]);
         else setCandidates(newCandidates);
         setTotal(data.total || 0);
-        setHasMore(newCandidates.length === PAGE_SIZE);
+        setHasMore(!availabilityFilter && newCandidates.length === PAGE_SIZE);
       } catch (err) {
         console.error("[medjobs/candidates] fetch error:", err);
       } finally {
@@ -212,7 +236,7 @@ function CandidateBrowseInner() {
         setLoadingMore(false);
       }
     },
-    [universityId, sort]
+    [universityId, sort, availabilityFilter]
   );
 
   useEffect(() => {
@@ -240,7 +264,10 @@ function CandidateBrowseInner() {
   const selectedUniversityName =
     universities.find((u) => u.id === universityId)?.name ?? null;
 
-  const realCount = candidates.length;
+  const visibleCandidates = availabilityFilter
+    ? candidates.filter((c) => matchesAvailability(c, availabilityFilter))
+    : candidates;
+  const realCount = visibleCandidates.length;
   // Samples fill the board only when there are no real students for the
   // current filter (and the real fetch has settled).
   const showSamples = !loading && realCount === 0;
@@ -400,9 +427,22 @@ function CandidateBrowseInner() {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
             Top candidates {selectedUniversityName ? `near ${selectedUniversityName}` : "near you"}
           </h2>
-          {total > 0 && (
-            <span className="shrink-0 text-sm text-gray-500">{total} available</span>
-          )}
+          <div className="flex shrink-0 items-center gap-3 text-sm">
+            {availabilityFilter && (
+              <button
+                type="button"
+                onClick={() => setAvailabilityFilter("")}
+                className="font-medium text-gray-500 hover:text-gray-700"
+              >
+                Clear filter
+              </button>
+            )}
+            {total > 0 && (
+              <span className="text-gray-500">
+                {availabilityFilter ? `${realCount} matching` : `${total} available`}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Filters — university + sort only */}
@@ -475,7 +515,7 @@ function CandidateBrowseInner() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {candidates.map((candidate) => (
+              {visibleCandidates.map((candidate) => (
                 <BrowseCard
                   key={candidate.id}
                   provider={candidateToCardFormat(candidate)}
@@ -495,6 +535,38 @@ function CandidateBrowseInner() {
             {hasMore && !loadingMore && <div ref={sentinelRef} className="h-1" />}
           </>
         )}
+
+        {/* Explore candidates by availability — filters the board above */}
+        <div className="mt-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">Explore candidates by availability</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
+            {AVAILABILITY_TILES.map((t) => {
+              const active = availabilityFilter === t.value;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => {
+                    setAvailabilityFilter(active ? "" : t.value);
+                    document.getElementById("candidates")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className={`relative overflow-hidden rounded-2xl group aspect-[4/3] shadow-sm hover:shadow-lg transition-shadow duration-300 text-left ${active ? "ring-2 ring-primary-500" : ""}`}
+                >
+                  <Image src={t.image} alt={t.label} fill className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 flex items-end justify-between">
+                    <h3 className="text-white font-bold text-base md:text-lg leading-tight">{t.label}</h3>
+                    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:bg-white/25 transition-colors duration-300">
+                      <svg className="w-4 h-4 text-white transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <ProvidersMarketing />

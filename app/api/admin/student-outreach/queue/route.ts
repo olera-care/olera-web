@@ -91,6 +91,10 @@ export interface TabCounts {
   // territorial primitive. Mirrored here so the queue route can return
   // both keys; In Basket reads `sites`, legacy callers read `campuses`.
   sites?: number;
+  // Audience-composite counts for the In Basket primary bar (providers /
+  // partner_book). Mirrored in lib/student-outreach/types.ts.
+  providers?: number;
+  partner_book?: number;
 }
 
 export interface TabRow extends OutreachRow {
@@ -601,6 +605,12 @@ async function computeTabCounts(
     countProspectGeneration(db, { campusId: filters.campusId }),
   ]);
 
+  // Capture the materialized partner-prospect count (RESEARCH_STATUSES rows,
+  // kind != provider) BEFORE folding in the virtual provider prospects +
+  // research cards, so the audience-composite counts below can split cleanly.
+  const basePartnerProspects = counts.prospects;
+  const baseUnreadPartnerProspects = unread.prospects;
+
   counts.prospects += prospectGen.total;
   unread.prospects += prospectGen.unread;
 
@@ -772,6 +782,18 @@ async function computeTabCounts(
   // Legacy 'campuses' alias retained for queue-endpoint defenders.
   counts.campuses = counts.sites;
   unread.campuses = siteUnread;
+
+  // Audience-composite counts for the In Basket primary bar. Each audience
+  // tab folds its prospecting + active-entity work into one number:
+  //   providers    = virtual provider prospects + clients-with-task
+  //   partner_book = partner prospects (materialized) + research cards +
+  //                  active-partners-with-task
+  counts.providers = prospectGen.providerProspects.total + (counts.clients ?? 0);
+  unread.providers = prospectGen.providerProspects.unread + (unread.clients ?? 0);
+  counts.partner_book =
+    basePartnerProspects + prospectGen.researchCards.total + counts.partners;
+  unread.partner_book =
+    baseUnreadPartnerProspects + prospectGen.researchCards.unread + unread.partners;
 
   return { counts, unread };
 }

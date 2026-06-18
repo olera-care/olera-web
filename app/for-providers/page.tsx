@@ -41,8 +41,8 @@ export default function ForProvidersPage() {
       <HeroSection />
       <EasyToConnectSection />
       <HireCaregiversSection />
-      <StatsSection />
       <SetUpProfileSection />
+      <StatsSection />
       <BenefitsSection />
       <LeadershipSection />
       <FAQSection />

@@ -37,12 +37,14 @@ export default function HireCaregiversSection() {
 
   return (
     <section className="relative w-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px]">
-      {/* Edge-to-edge background image */}
+      {/* Edge-to-edge background image. The source is square and the band is
+          wide+short, so it crops hard vertically — bias the crop up to the
+          faces (~35%) so subjects stay in frame, not cut off at the neck. */}
       <Image
-        src="/images/medjobs/hero-caregiving.jpg"
+        src="/images/medjobs/provider-caregiving.jpg"
         alt="College student caregiver with a senior"
         fill
-        className="object-cover"
+        className="object-cover object-[50%_35%]"
         sizes="100vw"
       />
 

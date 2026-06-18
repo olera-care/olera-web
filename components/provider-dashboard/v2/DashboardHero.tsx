@@ -448,13 +448,13 @@ export function HeroCard({
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="absolute top-2.5 right-2.5 z-10 p-2 rounded-full text-warm-100/60 hover:text-white hover:bg-white/10 active:bg-white/15 transition-colors"
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/30 text-white/90 backdrop-blur-sm hover:bg-black/50 hover:text-white active:bg-black/60 transition-colors"
         >
           <svg
-            className="w-4 h-4 drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
-            strokeWidth={2}
+            strokeWidth={2.25}
             viewBox="0 0 24 24"
             aria-hidden
           >

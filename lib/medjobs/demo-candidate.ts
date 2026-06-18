@@ -50,7 +50,9 @@ export const SAMPLE_CANDIDATES: CandidateData[] = [
     description:
       "Pre-med sophomore who started caregiving to get real patient time before medical school. Calm, dependable, and great with mobility support.",
     care_types: ["Companion Care", "Personal Care"],
-    image_url: null,
+    image_url: "/images/for-providers/team/tj.jpg",
+    lat: 30.30,
+    lng: -97.70,
     created_at: CREATED_AT,
     metadata: {
       major: "Biology",
@@ -85,7 +87,9 @@ export const SAMPLE_CANDIDATES: CandidateData[] = [
     description:
       "Pre-nursing junior with two years of dementia-care experience. Warm, patient, and steady with memory-care clients.",
     care_types: ["Companion Care", "Memory Care"],
-    image_url: null,
+    image_url: "/images/for-providers/team/grazie.png",
+    lat: 30.25,
+    lng: -97.78,
     created_at: CREATED_AT,
     metadata: {
       major: "Nursing (pre)",
@@ -120,7 +124,9 @@ export const SAMPLE_CANDIDATES: CandidateData[] = [
     description:
       "Pre-nursing junior, open to PRN. Reliable for evening and overnight coverage and comfortable with memory care.",
     care_types: ["Personal Care", "Memory Care"],
-    image_url: null,
+    image_url: "/images/for-providers/team/logan.jpg",
+    lat: 30.35,
+    lng: -97.72,
     created_at: CREATED_AT,
     metadata: {
       major: "Kinesiology",
@@ -155,7 +161,9 @@ export const SAMPLE_CANDIDATES: CandidateData[] = [
     description:
       "Pre-PA senior with post-surgical care experience and a medication aide certification. Organized and detail-oriented.",
     care_types: ["Personal Care", "Companion Care"],
-    image_url: null,
+    image_url: "/images/for-providers/team/cecille.jpg",
+    lat: 30.22,
+    lng: -97.75,
     created_at: CREATED_AT,
     metadata: {
       major: "Health Sciences",

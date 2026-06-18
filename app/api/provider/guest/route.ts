@@ -71,9 +71,12 @@ export async function POST(request: Request) {
     if (existingAccount) {
       accountId = existingAccount.id;
     } else {
+      // Account display_name = "Guest" so the nav avatar/menu reads "Guest"
+      // (the nav keys off account.display_name). The typed org name lives on
+      // the profile and gets promoted on "Finish setup".
       const { data: newAccount, error: accErr } = await admin
         .from("accounts")
-        .insert({ user_id: user.id, display_name: displayName, onboarding_completed: true })
+        .insert({ user_id: user.id, display_name: "Guest", onboarding_completed: true })
         .select("id")
         .single();
       if (accErr || !newAccount) {

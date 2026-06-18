@@ -16,7 +16,7 @@ import type { CandidateData } from "@/components/medjobs/CandidateRow";
  * Reuses the public candidate feed + BrowseMap; demo fallback keeps it full.
  */
 
-const BrowseMap = dynamic(() => import("@/components/browse/BrowseMap"), {
+const CampusMap = dynamic(() => import("@/components/browse/CampusMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-gray-100 rounded-2xl animate-pulse flex items-center justify-center">
@@ -29,6 +29,8 @@ interface University {
   id: string;
   name: string;
   state: string | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 const AVAIL_OPTIONS = [
@@ -68,7 +70,7 @@ export default function HireCaregiversBoard() {
   useEffect(() => {
     const sb = createClient();
     sb.from("medjobs_universities")
-      .select("id, name, state")
+      .select("id, name, state, lat, lng")
       .eq("is_active", true)
       .order("name")
       .then(({ data }: { data: University[] | null }) => {
@@ -95,7 +97,12 @@ export default function HireCaregiversBoard() {
     fetchCandidates(universityId);
   }, [universityId, fetchCandidates]);
 
-  const campusName = universities.find((u) => u.id === universityId)?.name ?? null;
+  const selectedUni = universities.find((u) => u.id === universityId);
+  const campusName = selectedUni?.name ?? null;
+  const campusCenter =
+    selectedUni?.lat != null && selectedUni?.lng != null
+      ? { lat: selectedUni.lat, lng: selectedUni.lng }
+      : null;
   const filtered = candidates.filter((c) => matchesAvailability(c, availability));
   const showSamples = !loading && filtered.length === 0;
   const mapCards = filtered
@@ -160,7 +167,7 @@ export default function HireCaregiversBoard() {
         <div className="hidden lg:block">
           <div className="sticky top-24 h-[calc(100vh-7rem)]">
             <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-              <BrowseMap providers={mapCards} hoveredProviderId={hoveredId} onMarkerHover={setHoveredId} />
+              <CampusMap providers={mapCards} hoveredProviderId={hoveredId} onMarkerHover={setHoveredId} campusCenter={campusCenter} />
             </div>
           </div>
         </div>

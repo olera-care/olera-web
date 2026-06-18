@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
@@ -11,6 +11,7 @@ import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import DrDuBoseWelcome, { type NoteVariant } from "@/components/medjobs/DrDuBoseWelcome";
 import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
+import ProvidersMarketing from "@/components/medjobs/ProvidersMarketing";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import { US_STATES } from "@/lib/power-pages";
 
@@ -36,6 +37,7 @@ export default function CandidateBrowsePage() {
 
 function CandidateBrowseInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { profiles, refreshAccountData, isLoading } = useAuth();
 
   // A provider is any account that owns an organization/caregiver profile.
@@ -259,18 +261,16 @@ function CandidateBrowseInner() {
 
   // On screener completion, refresh auth in place (no reload), close, and strip
   // the one-shot params so a manual refresh doesn't re-open the screener.
+  // After the needs quiz, land the provider on their profile tab (/provider),
+  // where the state-aware welcome banner picks up the next step (book a call in
+  // the fallback era; browse candidates once there's liquidity). The screener's
+  // claim flow establishes the session before this runs, so /provider (gated)
+  // is reachable.
   const onScreenerComplete = useCallback(async () => {
     await refreshAccountData();
     setShowScreener(false);
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("welcome");
-      url.searchParams.delete("activate");
-      window.history.replaceState(null, "", url.toString());
-    } catch {
-      // ignore
-    }
-  }, [refreshAccountData]);
+    router.push("/provider");
+  }, [refreshAccountData, router]);
 
   const selectClass =
     "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";
@@ -421,6 +421,8 @@ function CandidateBrowseInner() {
           </>
         )}
       </div>
+
+      <ProvidersMarketing />
 
       {showScreener && (
         <EligibilityScreenerModal

@@ -14,7 +14,7 @@ export function managedAdsVariantSubLabel(variant: ManagedAdsVariant): string {
     case "direct_reach":
       return "Reach families already searching";
     case "local_plan":
-      return "See what we'd run locally";
+      return "Ads we run, families to your page";
   }
 }
 
@@ -28,9 +28,9 @@ export function managedAdsPitchCopy(variant: ManagedAdsVariant): ManagedAdsPitch
   switch (variant) {
     case "local_plan":
       return {
-        headline: "See what we'd run",
-        accent: "for your local market",
-        body: "We turn local demand into a simple launch plan: where we'd advertise, what budget makes sense, and how families get sent to your Olera page.",
+        headline: "Send local families",
+        accent: "straight to your page",
+        body: "We run Google, Meta, and local ads for your market. You pick timing and budget; we handle setup and send interested families to your Olera page.",
       };
     case "direct_reach":
       return {

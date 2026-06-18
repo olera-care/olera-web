@@ -12,6 +12,8 @@
  *    `getProviderEmailsByIds` (admin leads email-fallback).
  *  - PR #2b (admin directory): `listDirectory` / `countDirectory` /
  *    `exportDirectoryRows` (OP + orphan-BP union reads).
+ *  - PR #3 (sitemap): `countActiveProviders` / `getActiveProviderGeoByCategory`
+ *    / `getActiveProvidersForSitemapShard` / `getActiveClaimedProviderSlugs`.
  */
 export type { ProviderView, ProviderSource, ResolveResult } from "./types";
 export { directoryRowToProvider, accountRowToProvider } from "./adapters";
@@ -31,6 +33,13 @@ export type {
   DirectoryExportRow,
   DirectoryExportResult,
 } from "./directory.server";
+export {
+  countActiveProviders,
+  getActiveProviderGeoByCategory,
+  getActiveProvidersForSitemapShard,
+  getActiveClaimedProviderSlugs,
+} from "./sitemap.server";
+export type { ProviderGeoCombo, SitemapProviderRow } from "./sitemap.server";
 
 // The canonical-id resolver already lived here; re-export so the front door is
 // the one import site for provider identity too.

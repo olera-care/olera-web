@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)
+
+**Trigger:** TJ wanted to move providers from impressions to real managed-ads signups, then previewed the copy and asked for a sharper testable path. Later asked to adopt the richer design critique slash-command wrapper from the staging repo.
+
+**Shipped on branch:**
+- Reframed managed ads across provider surfaces around a clearer external-ads promise: ads run on Google/Meta/local channels, families land on the provider's Olera page, provider picks timing/budget.
+- Added local-demand context to `/provider/boost` and managed-ads tracking/Slack metadata; fixed the category namespace issue in `app/api/provider/ad-boost/request/route.ts`.
+- Added provider-level managed-ads pitch A/B test instrumentation: `direct_reach` vs `local_plan`, deterministic assignment, event metadata, variant copy helpers, admin allocation controls, and Analytics funnel card (`Shown -> Clicked -> Viewed Plan -> Requested`).
+- Added migration `supabase/migrations/111_managed_ads_pitch_variant_experiment.sql` to seed `managed_ads_pitch_variant` 50/50 and register `managed_ads_pitch_viewed` while preserving existing provider-event CHECK values.
+- Sharpened the `local_plan` variant after preview feedback: headline now reads "Send local families straight to your page" with body copy that says exactly what happens.
+- Added `.agents/skills/design-improvements/SKILL.md` so Codex can invoke the richer `/design-improvements` Claude command workflow; also copied it to the user-level skills folder.
+
+**Validation:** `npx --no-install tsc --noEmit` and `git diff --check` passed during build. Re-run once more in quicksave before PR. No cron/automation code changed.
+
+**QA next:** Apply migration 111, then preview `/provider/boost?preview_managed_ads=direct_reach` and `/provider/boost?preview_managed_ads=local_plan`; verify `/admin/analytics` Managed Ads Variants allocation/funnel; click through dashboard/Find Families nudges and confirm `managed_ads_pitch_viewed`, click, boost-view, and request events carry variant + market metadata.
+
 ### 2026-06-18 — Organic-traffic explainer for marketing team (no code; analysis + Slack memo + memory)
 
 **Trigger:** Logan asked "other reasons behind the increase in our traffic." TJ wanted a thorough, code-grounded analysis to relay to the team.
@@ -2994,4 +3010,3 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-

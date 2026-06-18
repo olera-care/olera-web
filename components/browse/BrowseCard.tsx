@@ -433,7 +433,12 @@ export default function BrowseCard({
       ? `/medjobs/candidates/${provider.slug}`
       : `/medjobs/families/${provider.slug}`;
     return (
-      <Link href={demoHref} className={`relative ${rootClass}`}>
+      <Link
+        href={demoHref}
+        target={isCandidate ? "_blank" : undefined}
+        rel={isCandidate ? "noopener noreferrer" : undefined}
+        className={`relative ${rootClass}`}
+      >
         <span className="absolute top-2 left-2 z-10 inline-flex items-center px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-primary-100 text-primary-700 rounded-full">
           Demo
         </span>
@@ -451,8 +456,8 @@ export default function BrowseCard({
   return (
     <Link
       href={linkHref}
-      target={isCandidate ? undefined : "_blank"}
-      rel={isCandidate ? undefined : "noopener noreferrer"}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={handleCardClick}
       className={rootClass}
     >

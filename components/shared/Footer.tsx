@@ -219,16 +219,6 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                     Young Caregivers
                   </Link>
                 </li>
-                <li>
-                  <Link href="/care-shifts" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Hire a caregiver (preview)
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/care-shifts/students" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Earn as a caregiver (preview)
-                  </Link>
-                </li>
               </ul>
             </div>
 
@@ -244,13 +234,23 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
+                  <Link href="/home-care" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Home Care
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/home-health-care" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Home Health
+                  </Link>
+                </li>
+                <li>
                   <Link href="/assisted-living" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Assisted Living
                   </Link>
                 </li>
                 <li>
-                  <Link href="/home-care" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Home Care
+                  <Link href="/independent-living" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Independent Living
                   </Link>
                 </li>
                 <li>
@@ -283,8 +283,13 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
+                  <Link href="/for-providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Find Families
+                  </Link>
+                </li>
+                <li>
                   <Link href="/medjobs/candidates" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Staffing
+                    Find Caregivers
                   </Link>
                 </li>
               </ul>
@@ -299,6 +304,16 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                 <li>
                   <Link href="/medjobs/families" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Become a Caregiver
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs/families?jobs=all" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Find Jobs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs/families#how-it-works" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    How It Works
                   </Link>
                 </li>
                 <li>

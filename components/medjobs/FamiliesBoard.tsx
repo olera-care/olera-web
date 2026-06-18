@@ -51,6 +51,7 @@ function Board() {
 
   const campusParam = searchParams?.get("campus") || "";
   const autoScreener = searchParams?.get("screener") === "1";
+  const autoViewAllJobs = searchParams?.get("jobs") === "all";
 
   const [campus, setCampus] = useState<string>(campusParam);
   const [cards, setCards] = useState<FamilyCard[]>([]);
@@ -67,6 +68,7 @@ function Board() {
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const topJobsRef = useRef<HTMLDivElement>(null);
+  const jobsDeepLinkRef = useRef(false);
 
   const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === campus)?.name ?? null;
 
@@ -111,6 +113,21 @@ function Board() {
     if (authLoading) return;
     if (autoScreener && !studentProfileId) setShowScreener(true);
   }, [autoScreener, authLoading, studentProfileId]);
+
+  // Deep link from the footer "Find Jobs" (?jobs=all): expand the Top Jobs grid
+  // (the "View all jobs" state) and scroll to it once the feed has loaded.
+  useEffect(() => {
+    if (jobsDeepLinkRef.current) return;
+    if (authLoading || loading || !autoViewAllJobs) return;
+    jobsDeepLinkRef.current = true;
+    setExpanded(true);
+    setPage(1);
+    // Wait for the expanded grid to paint before measuring the scroll target.
+    const t = setTimeout(() => {
+      topJobsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [autoViewAllJobs, authLoading, loading]);
 
   const fetchStudentStatus = async (profileId: string) => {
     try {

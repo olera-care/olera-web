@@ -26,6 +26,7 @@ const OPEN_STATUSES = ["requested", "scheduled", "live"];
 // Anything that should stop a provider from queueing a *second* campaign.
 const ACTIVE_OR_PENDING = ["pending_profile", "requested", "scheduled", "live"];
 const VALID_CHANNELS = ["google", "meta", "both"];
+const DEMAND_WINDOW_DAYS = 7;
 
 export async function GET() {
   const elig = await loadAdBoostEligibility();
@@ -34,6 +35,12 @@ export async function GET() {
   }
 
   const db = getServiceClient();
+  const demand = await loadDemandSignal(db, {
+    city: elig.city,
+    state: elig.state,
+    category: elig.category,
+  });
+
   let { data: latest } = await db
     .from("ad_campaign_requests")
     .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
@@ -91,7 +98,14 @@ export async function GET() {
 
   return NextResponse.json({
     eligibility: elig.eligibility,
-    provider: { slug: elig.slug, displayName: elig.displayName },
+    provider: {
+      slug: elig.slug,
+      displayName: elig.displayName,
+      city: elig.city,
+      state: elig.state,
+      category: elig.category,
+    },
+    demand,
     request: latest ?? null,
     delivered,
   });
@@ -224,4 +238,111 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, request: inserted, queued });
+}
+
+async function loadDemandSignal(
+  db: ReturnType<typeof getServiceClient>,
+  opts: { city: string | null; state: string | null; category: string | null },
+): Promise<{
+  count: number;
+  scope: "city" | "state" | null;
+  city: string | null;
+  state: string | null;
+  category: string | null;
+  windowDays: number;
+}> {
+  const windowStart = new Date();
+  windowStart.setDate(windowStart.getDate() - DEMAND_WINDOW_DAYS);
+  const startDate = windowStart.toISOString().slice(0, 10);
+
+  if (!opts.state || !opts.category) {
+    return {
+      count: 0,
+      scope: null,
+      city: opts.city,
+      state: opts.state,
+      category: opts.category,
+      windowDays: DEMAND_WINDOW_DAYS,
+    };
+  }
+
+  if (opts.city) {
+    const cityCount = await sumPageViewDemand(db, {
+      city: opts.city,
+      state: opts.state,
+      categories: demandCategoryVariants(opts.category),
+      startDate,
+    });
+    if (cityCount >= 5) {
+      return {
+        count: cityCount,
+        scope: "city",
+        city: opts.city,
+        state: opts.state,
+        category: opts.category,
+        windowDays: DEMAND_WINDOW_DAYS,
+      };
+    }
+  }
+
+  const stateCount = await sumPageViewDemand(db, {
+    state: opts.state,
+    categories: demandCategoryVariants(opts.category),
+    startDate,
+  });
+  return {
+    count: stateCount,
+    scope: stateCount > 0 ? "state" : null,
+    city: opts.city,
+    state: opts.state,
+    category: opts.category,
+    windowDays: DEMAND_WINDOW_DAYS,
+  };
+}
+
+async function sumPageViewDemand(
+  db: ReturnType<typeof getServiceClient>,
+  filter: {
+    city?: string;
+    state: string;
+    categories: string[];
+    startDate: string;
+  },
+): Promise<number> {
+  let query = db
+    .from("provider_page_view_stats")
+    .select("unique_view_count")
+    .eq("state", filter.state)
+    .gte("date", filter.startDate)
+    .limit(5000);
+
+  if (filter.city) query = query.eq("city", filter.city);
+  if (filter.categories.length === 1) {
+    query = query.eq("category", filter.categories[0]);
+  } else {
+    query = query.in("category", filter.categories);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("[ad-boost/request] demand signal failed:", error);
+    return 0;
+  }
+
+  return ((data ?? []) as Array<{ unique_view_count: number | null }>).reduce(
+    (sum, row) => sum + (row.unique_view_count ?? 0),
+    0,
+  );
+}
+
+function demandCategoryVariants(category: string): string[] {
+  const map: Record<string, string[]> = {
+    assisted_living: ["assisted_living", "Assisted Living"],
+    memory_care: ["memory_care", "Memory Care"],
+    nursing_home: ["nursing_home", "Nursing Home"],
+    independent_living: ["independent_living", "Independent Living"],
+    home_care_agency: ["home_care_agency", "Home Care (Non-medical)", "Home Care"],
+    home_health_agency: ["home_health_agency", "Home Health Care", "Home Health"],
+  };
+  return map[category] ?? [category];
 }

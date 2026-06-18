@@ -546,6 +546,10 @@ export async function POST(request: NextRequest) {
           providerSlug: provider_id,
           state: (meta.state as string) || "unknown",
           completeness: typeof meta.completeness === "number" ? meta.completeness : null,
+          city: (meta.city as string) || null,
+          region: (meta.region as string) || null,
+          localDemand: typeof meta.local_demand === "number" ? meta.local_demand : null,
+          demandScope: (meta.demand_scope as string) || null,
         });
         await sendSlackAlert(alert.text, alert.blocks);
       } catch {

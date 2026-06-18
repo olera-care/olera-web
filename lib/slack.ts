@@ -592,19 +592,35 @@ export function slackBoostViewed(opts: {
   providerSlug: string;
   state: string;
   completeness: number | null;
+  city?: string | null;
+  region?: string | null;
+  localDemand?: number | null;
+  demandScope?: string | null;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const stateLabel =
     opts.state === "gate" ? "below completeness gate"
     : opts.state === "apply" ? "eligible — picking a week"
+    : opts.state === "queued" ? "campaign queued"
     : opts.state === "in_motion" ? "campaign in motion"
     : opts.state;
+  const where = [opts.city, opts.region].filter(Boolean).join(", ");
   const fields: { type: string; text: string }[] = [
     { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
     { type: "mrkdwn", text: `*State:*\n${stateLabel}` },
   ];
   if (opts.completeness != null) {
     fields.push({ type: "mrkdwn", text: `*Completeness:*\n${opts.completeness}%` });
+  }
+  if (where) {
+    fields.push({ type: "mrkdwn", text: `*Market:*\n${where}` });
+  }
+  if (opts.localDemand != null && opts.localDemand > 0) {
+    const scope = opts.demandScope === "city" ? "local" : opts.demandScope === "state" ? "statewide" : "market";
+    fields.push({
+      type: "mrkdwn",
+      text: `*7d demand:*\n${opts.localDemand.toLocaleString()} ${scope} views`,
+    });
   }
   return {
     text: `Managed Ads page view: ${opts.providerName} — ${stateLabel}`,

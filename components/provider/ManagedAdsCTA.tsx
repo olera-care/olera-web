@@ -45,10 +45,10 @@ export default function ManagedAdsCTA({
           <span className="font-semibold text-gray-900">
             {tone === "more" ? "Want even more families?" : "Want us to bring families to you?"}
           </span>{" "}
-          We run targeted ads where families are looking and send them to your page.
+          Get a simple launch plan for the ads we&apos;d run in your market.
         </p>
         <span className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-primary-600 transition-all group-hover:gap-2">
-          Learn more
+          See plan
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
@@ -69,10 +69,10 @@ export default function ManagedAdsCTA({
             Managed Ads
           </p>
           <h4 className="mt-1.5 text-[16px] font-semibold text-gray-900 leading-snug">
-            Don&apos;t wait for families to find you — we&apos;ll go get them.
+            See the launch plan we&apos;d run for your market.
           </h4>
           <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-            We run targeted ads where families are looking and send them straight to your page.
+            Pick timing and budget, then we&apos;ll review the plan with you before anything goes live.
           </p>
         </div>
         <span className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white transition-transform group-hover:translate-x-0.5">

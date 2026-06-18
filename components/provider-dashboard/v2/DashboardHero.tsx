@@ -252,7 +252,7 @@ export default function DashboardHero({
   // Tell the dashboard which banner won this visit, so it can suppress the
   // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
   // When the managed-ads banner wins, also warm the boost-state cache so the
-  // "Get started" → /provider/boost transition paints instantly (no snap).
+  // "Get my launch plan" → /provider/boost transition paints instantly (no snap).
   useEffect(() => {
     onBannerResolved?.(bannerId);
     if (bannerId === "managed_ads") prefetchBoostState();
@@ -577,10 +577,10 @@ function marketIntelHook(): Hook {
 function managedAdsHook(): Hook {
   return {
     bannerId: "managed_ads",
-    headline: "Reach families already searching for care.",
+    headline: "See the ad plan we'd run for your market.",
     subline:
-      "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up.",
-    cta: { label: "Get started", href: "/provider/boost" },
+      "Pick timing and a starting budget, then Olera reviews the launch plan with you before anything goes live.",
+    cta: { label: "Get my launch plan", href: "/provider/boost" },
     imageUrl: TIER_MANAGED_ADS_IMAGE,
   };
 }

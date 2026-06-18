@@ -1,8 +1,8 @@
 /**
  * /api/medjobs/placements — Phase D (Stripe stubbed).
  *
- * The host-intern placement lifecycle:
- *   POST   provider offers to host a student   -> status "offered"
+ * The employer-student placement lifecycle:
+ *   POST   provider offers to hire a student   -> status "offered"
  *   PATCH  action: "accept" (student)          -> status "confirmed"  (payment stubbed)
  *          action: "decline" (student)         -> status "declined"
  *          action: "cancel"  (provider)        -> status "cancelled"

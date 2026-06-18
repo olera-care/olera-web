@@ -21,7 +21,7 @@ export const PLATFORM_TERMS_KEY = "platform_terms_accepted_at";
 /**
  * The student caregiver agreement — read (soft, not a gate) before/while
  * completing the application. Placeholder sample PDF for now; swap in the real
- * file at this path when legal sign-off lands. Mirror of HOST_AGREEMENT_URL.
+ * file at this path when legal sign-off lands. Mirror of EMPLOYER_AGREEMENT_URL.
  */
 export const STUDENT_AGREEMENT_URL = "/docs/student-caregiver-agreement-sample.pdf";
 

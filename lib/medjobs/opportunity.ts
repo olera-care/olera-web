@@ -1,12 +1,14 @@
 /**
  * Builds the "About this opportunity" content for the student-context provider
- * page. Degrades gracefully: a claimed/engaged host shows the richest version we
- * have; an unclaimed directory listing shows a credible, general version built
- * from its care type, clearly framed as typical and confirmed with the host.
+ * page. Degrades gracefully: a claimed/engaged employer shows the richest
+ * version we have; an unclaimed directory listing shows a credible, general
+ * version built from its care type, clearly framed as typical and confirmed
+ * with the employer.
  *
  * Pay is intentionally NOT taken from the directory's price range — that number
  * is the cost of care to a family, not a caregiver's wage. Showing it would
- * mislead students, so pay is "set with the host" until a host posts a wage.
+ * mislead students, so pay is "set with the employer" until an employer posts a
+ * wage.
  */
 
 /** Canned, honest task lists per care type — the fallback source of truth. */
@@ -72,8 +74,8 @@ export function buildOpportunity(args: {
   const bucketLabels: Record<string, string> = { day: "days", evening: "evenings", overnight: "overnights", weekend: "weekends" };
   const buckets = (args.coverageBuckets ?? []).map((b) => bucketLabels[b] ?? b);
   const when = buckets.length
-    ? `Usually ${buckets.length === 1 ? buckets[0] : `${buckets.slice(0, -1).join(", ")} and ${buckets[buckets.length - 1]}`}, arranged with the host.`
-    : "Flexible shifts arranged with the host, around your class schedule.";
+    ? `Usually ${buckets.length === 1 ? buckets[0] : `${buckets.slice(0, -1).join(", ")} and ${buckets[buckets.length - 1]}`}, arranged with the employer.`
+    : "Flexible shifts arranged with the employer, around your class schedule.";
 
   const isFallback = !args.isClaimed;
 
@@ -81,10 +83,10 @@ export function buildOpportunity(args: {
     roleLabel: `Student Caregiver · ${entry.label}`,
     tasks: entry.tasks,
     when,
-    pay: "Pay is set with the host.",
+    pay: "Pay is set with the employer.",
     isFallback,
     note: isFallback
-      ? `This is a typical ${entry.label.toLowerCase()} role. Exact details are confirmed with the host at your interview.`
+      ? `This is a typical ${entry.label.toLowerCase()} role. Exact details are confirmed with the employer at your interview.`
       : undefined,
   };
 }

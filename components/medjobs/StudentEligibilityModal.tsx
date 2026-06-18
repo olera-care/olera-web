@@ -187,7 +187,7 @@ export default function StudentEligibilityModal({
               Eligibility check · 2 quick questions
             </p>
             <p className="font-serif text-lg text-gray-900">Where are you headed?</p>
-            <p className="mt-1 text-sm text-gray-500">A quick check to match you to the right hosts for your hours.</p>
+            <p className="mt-1 text-sm text-gray-500">A quick check to match you to the right families and agencies for your hours.</p>
             <div className="mt-4 grid gap-2">
               {Q1.map((q) => (
                 <button

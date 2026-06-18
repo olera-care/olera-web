@@ -8,11 +8,11 @@
 
 ## 0. Goal
 
-Take a home-care agency from a cold outreach email all the way to a **confirmed, paid host–intern relationship**, one low-commitment "inch" at a time, reusing the live MVP wherever possible.
+Take a home-care agency from a cold outreach email all the way to a **confirmed, paid employer–student relationship**, one low-commitment "inch" at a time, reusing the live MVP wherever possible.
 
 ```
 cold outreach → eligibility → browse candidates → schedule interview
-→ interview complete → offer → accept → sign + pay → host–intern relationship confirmed
+→ interview complete → offer → accept → sign + pay → employer–student relationship confirmed
 ```
 
 ### The three loops
@@ -29,7 +29,7 @@ cold outreach → eligibility → browse candidates → schedule interview
 |---|---|
 | **Access re-key** | Replace `medjobsAccessActive` (pilot/subscription) as the gate for **board full-access (un-redact), invite ability, and banner state** with a new flag **`medjobs_eligibility_completed_at`** set on screener finish. Pilot/subscription metadata stays only for legacy billing. |
 | **Vocabulary** | "regular recurring shifts" / "PRN" — never "steady." |
-| **Pricing** | Absent from all core funnel screens. *Pull*: FAQ + Sample Hosting Agreement. *Push*: definitively at the Loop 3 offer/commit. Always bundled with **guarantee + value anchor + the credential line** ("the student earns verified hours + a recommendation through Olera"). |
+| **Pricing** | Absent from all core funnel screens. *Pull*: FAQ + Sample Employer Agreement. *Push*: definitively at the Loop 3 offer/commit. Always bundled with **guarantee + value anchor + the credential line** ("the student earns verified hours + a recommendation through Olera"). |
 | **Deplatforming / ToU** | Lightweight **platform Terms (non-circumvention)** via sign-in-wrap (a line under the S6 advance button) + a **welcome email on first auth**. Primary moat = the student's on-platform credential incentive. Direct contact gated until Loop 3 confirm. |
 | **Guarantee** | "If it doesn't work out, your next term is on us" — good-faith hours shortfall waives the next-term fee + rematches (same pair or new). |
 | **Fee timing** | **Authorize at offer/accept, capture at confirm** (manual-capture PaymentIntents). Both parties pay. |
@@ -69,8 +69,8 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 | On finish: write `medjobs_eligibility_completed_at` + `medjobs_demand_profile`, then reveal board | Build | screener submit → metadata; board reads the new flag for full access |
 | "You're a fit" **matches** state (preview + Dr. DuBose welcome graphic + `[Browse interns]`, terms line under button) | Build (reframe) | repurpose `WelcomeBanner.tsx` |
 | "You're a fit" **recruiting** state (= board empty state: recruiting + Dr. DuBose welcome + `[Meet Dr. DuBose]` Calendly) | Adapt | existing empty state in `candidates/page.tsx` (reframe the DEMO slot into the Dr. DuBose CTA) |
-| Welcome browse page banner: "Interview students before you commit" + `[Learn more about hosting]` | Adapt | `WelcomeBanner.tsx` (stateful: pre-eligibility = "Check eligibility"; post = "Learn more") |
-| **Learn-more info modal** (CTA "Interview students"; links Sample Hosting Agreement + Hosting FAQ) | Build (evolve) | from `PilotTermsModal.tsx` shell |
+| Welcome browse page banner: "Interview students before you commit" + `[Learn more about hiring]` | Adapt | `WelcomeBanner.tsx` (stateful: pre-eligibility = "Check eligibility"; post = "Learn more") |
+| **Learn-more info modal** (CTA "Interview students"; links Sample Employer Agreement + Employer FAQ) | Build (evolve) | from `PilotTermsModal.tsx` shell |
 | Board full-access / redaction re-keyed to eligibility flag | Adapt | `candidates/page.tsx`, `lib/medjobs/pilot-tier.ts` readers |
 | Welcome email on first auth (ToU + what's next) | Build | `lib/email-templates.tsx` |
 
@@ -95,8 +95,8 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 | Item | Type | Files |
 |---|---|---|
 | Auto post-interview emails at scheduled end (provider: "decide" w/ magic link to the calendar popup · student: "send intent to accept") | Build | scheduled job + `email-templates.tsx` |
-| Student "intent to accept" → thank-you/nudge email to provider w/ `[Offer to host]` | Build | endpoint + email |
-| **L3·S1 = the existing calendar detail popup**, + actions `[Offer to host]` / `[Not a fit]` for held interviews | Adapt | `InterviewCalendar.tsx` (detail modal ~464–891) |
+| Student "intent to accept" → thank-you/nudge email to provider w/ `[Offer to hire]` | Build | endpoint + email |
+| **L3·S1 = the existing calendar detail popup**, + actions `[Offer to hire]` / `[Not a fit]` for held interviews | Adapt | `InterviewCalendar.tsx` (detail modal ~464–891) |
 | **Offer** = sign Internship Agreement + **authorize** fee → send offer | Build | Internship Agreement modal (evolve `PilotTermsModal`); Stripe manual-capture; `placements` record |
 | **Accept** = student agree + **authorize** fee | Build | student offer view + Stripe |
 | **Confirmed** (auto on accept) = capture both → internship begins; contact unlocked; hours tracking begins | Build | capture + placement status + reuse verified-hours |
@@ -113,11 +113,11 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 
 ---
 
-## 5. Placeholder Internship Agreement (host-facing; for review)
+## 5. Placeholder Internship Agreement (employer-facing; for review)
 
 > **Olera Internship Agreement** — a short mutual agreement to run an Olera caregiving internship together. Covers the Olera internship only; your normal hiring/employment steps happen separately during onboarding.
 > **Both agree to:** run it in good faith, communicate openly, and keep the availability you agreed on, barring emergencies.
-> **The host agrees to:** be the employer (schedule, pay, supervision, your own background check before they start); **confirm the student's logged hours**; give a reference + recommendation **if asked and they meet your standards**.
+> **The employer agrees to:** be the employer (schedule, pay, supervision, your own background check before they start); **confirm the student's logged hours**; give a reference + recommendation **if asked and they meet your standards**.
 > **The student agrees to:** **log their own hours**, drive their own letter-of-rec request, keep agreed availability and communicate changes, act professionally, meet the hours threshold.
 > **Fee + guarantee:** [fee] per party, one time. If it doesn't work out in good faith (client demand / availability shifts), your next term is on us and we rematch — same pair or new — until it works.
 
@@ -181,7 +181,7 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 ### Phase B — Eligibility screener + states (shipped 2026-06-15, branch `claude/keen-mendel-6i8iW`)
 - New `components/medjobs/EligibilityScreenerModal.tsx` — intro → Q1 (demand: regular/varies/unpredictable) → Q2 (PRN) → Q3 (coverage buckets) → "finding your matches" loading; one question per screen with a short reassurance on each pick. Persists, then reloads the board.
 - New `app/api/medjobs/eligibility/route.ts` — writes `medjobs_eligibility_completed_at` + `medjobs_demand_profile` + `platform_terms_accepted_at` to the linked provider profile (service role, gated to an account-owned profile; no re-claim — the magic-link landing already links account ↔ profile).
-- New `components/medjobs/HostingInfoModal.tsx` — "Learn more about hosting" (info only; bullets + Sample Hosting Agreement + Hosting FAQ links; "Interview students" CTA).
+- New `components/medjobs/EmployerInfoModal.tsx` — "Learn more about hiring" (info only; bullets + Sample Employer Agreement + Employer FAQ links; "Interview students" CTA).
 - New `components/medjobs/DrDuBoseWelcome.tsx` — placeholder welcome (photo initials + message + optional Calendly), used in the eligible banner and the recruiting empty state.
 - Reworked `components/medjobs/WelcomeBanner.tsx` — two states keyed on eligibility: **not eligible** → "Check eligibility" + screener (auto-opens on `?welcome=1`/`?activate=1`) + Terms sign-in-wrap; **eligible** → "You're a fit / interview students before you commit" + Learn-more + Dr. DuBose welcome. Replaces the old PilotTermsModal banner (PilotTermsModal still lives at the interview gate in `ContactSection`).
 - `app/medjobs/candidates/page.tsx` — banner now shows for any provider and branches on eligibility; empty state reframed to recruiting + Dr. DuBose (DEMO card removed); `isPaid` → `isEligible`.
@@ -201,11 +201,11 @@ Legend: **Reuse** (as-is) · **Adapt** (small change to existing) · **Build** (
 **Loops 1–2 are now built end-to-end** (cold email → eligibility → browse w/ match lines → invite → interview). Remaining: **Phase D** (Loop 3 offer/accept/confirm + dual-pay), **Phase E** (Loop 2b re-activation), and deferred comms (welcome email, cold-send `{welcome_url}` wiring).
 
 ### Phase D — Loop 3 placements + agreement (shipped 2026-06-15, branch `claude/keen-mendel-6i8iW`; Stripe stubbed)
-- New `supabase/migrations/103_medjobs_placements.sql` — the host–intern **placement** record (`offered/accepted/confirmed/declined/cancelled/completed`), `internship_agreement_signed_at`, and **stubbed** fee/threshold/`*_paid_at` fields. **Must be applied before the API works.**
+- New `supabase/migrations/103_medjobs_placements.sql` — the employer–student **placement** record (`offered/accepted/confirmed/declined/cancelled/completed`), `internship_agreement_signed_at`, and **stubbed** fee/threshold/`*_paid_at` fields. **Must be applied before the API works.**
 - New `lib/medjobs/placements.ts` — `PlacementStatus` + `INTERNSHIP_FEE_USD` (100) + `HOURS_THRESHOLD` (120) + `GUARANTEE_LINE` + `Placement` type.
 - New `app/api/medjobs/placements/route.ts` — POST (provider offers → `offered`, signs agreement at offer), PATCH (student `accept` → `confirmed`; `decline`; provider `cancel`), GET (list for the caller's profiles). Auth + ownership-gated. **Payments stubbed** (no Stripe capture).
 - New `components/medjobs/InternshipAgreementModal.tsx` — the offer step: plain-language agreement + $100 fee + guarantee + the credential line + "Send offer" → POST. States payment isn't collected yet.
-- `components/medjobs/InterviewCalendar.tsx` — provider **"Offer to host {first}"** button on a confirmed interview → `InternshipAgreementModal` → "Offer sent" state.
+- `components/medjobs/InterviewCalendar.tsx` — provider **"Offer to hire {first}"** button on a confirmed interview → `InternshipAgreementModal` → "Offer sent" state.
 - Verified: `tsc --noEmit` clean; new/changed files lint clean.
 - **Remaining for Loop 3 (need app/DB verification):** apply the migration; the **student accept/decline surface** (load placements into the student view); confirmed-placement display + contact unlock; **Stripe** manual-capture (authorize-at-offer/capture-at-confirm) + the student-first refund guard; post-interview emails + reminders.
 - **Audit note:** provider can create an offer from a confirmed interview today; accept currently happens via the API (`PATCH action:"accept"`) until the student-side surface is wired.

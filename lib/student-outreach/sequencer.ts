@@ -347,7 +347,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   if (type === "provider") {
     if (day === 3) {
       // Day 3 call, paired with the Day 3 follow-up email. Confirm the email
-      // reached the right person, gauge host-site interest, and ask for the
+      // reached the right person, gauge employer interest, and ask for the
       // caregiver-hiring contact. The eligibility check is the easy next step.
       return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed {organization_name} about Olera's {campus_name} Student Caregiver Program, which places pre-nursing and pre-medical students in caregiver roles at home care agencies near campus. I wanted to make sure it reached the right person and see if you'd consider hiring a student caregiver. Could you point me to whoever handles caregiver hiring, or a better email for the eligibility details?"`;
     }

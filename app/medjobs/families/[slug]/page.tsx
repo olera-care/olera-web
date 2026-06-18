@@ -31,7 +31,7 @@ export default async function SampleFamilyPage({
     <main className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-16">
         <Link href="/medjobs/families" className="text-sm font-medium text-primary-700 hover:underline">
-          ← Back to hosts
+          ← Back to families
         </Link>
 
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
@@ -78,9 +78,9 @@ export default async function SampleFamilyPage({
           {/* Sticky CTA */}
           <div className="mt-6 lg:mt-0">
             <div className="rounded-2xl border border-primary-200 bg-white p-6 lg:sticky lg:top-6">
-              <p className="font-serif text-lg text-gray-900">Want to work with hosts like this?</p>
+              <p className="font-serif text-lg text-gray-900">Want to work with families like this?</p>
               <p className="mt-1 text-sm text-gray-600">
-                This is the kind of host you can work with to earn the patient-care hours your
+                This is the kind of family you can work with to earn the patient-care hours your
                 application needs.
               </p>
               <SampleFamilyCTA />

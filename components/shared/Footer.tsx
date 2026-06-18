@@ -174,7 +174,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                 <span className="text-lg font-bold text-gray-900">Olera</span>
               </Link>
               <p className="text-gray-400 max-w-xs leading-relaxed text-sm">
-                Helping families find the right senior care. Compare trusted providers and connect with confidence.
+                Helping families find senior care.
               </p>
             </div>
 

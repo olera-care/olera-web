@@ -9,7 +9,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import BrowseCard from "@/components/browse/BrowseCard";
 import StudentEligibilityModal from "@/components/medjobs/StudentEligibilityModal";
-import { INTERNSHIP_AGREEMENT_URL } from "@/lib/medjobs/student-eligibility";
+import { STUDENT_AGREEMENT_URL } from "@/lib/medjobs/student-eligibility";
 import { SAMPLE_FAMILIES } from "@/lib/medjobs/demo-family";
 import Pagination from "@/components/ui/Pagination";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
@@ -368,7 +368,7 @@ function Board() {
               Browse who&apos;s hiring below and request an interview when you find a fit.
             </p>
             <a
-              href={INTERNSHIP_AGREEMENT_URL}
+              href={STUDENT_AGREEMENT_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 text-sm font-semibold text-primary-700 hover:underline"

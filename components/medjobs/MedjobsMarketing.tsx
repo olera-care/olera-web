@@ -76,7 +76,7 @@ export default function MedjobsMarketing() {
                   Apply Now →
                 </ApplyButton>
                 <a
-                  href="/docs/internship-agreement-sample.pdf"
+                  href="/docs/student-caregiver-agreement-sample.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm font-semibold text-primary-700 hover:underline"
@@ -164,7 +164,7 @@ export default function MedjobsMarketing() {
                 stories for personal statements and interviews.
               </p>
               <a
-                href="/docs/internship-agreement-sample.pdf"
+                href="/docs/student-caregiver-agreement-sample.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 inline-flex items-center text-sm font-semibold text-primary-700 hover:underline"
@@ -232,7 +232,7 @@ export default function MedjobsMarketing() {
               Apply Now →
             </ApplyButton>
             <a
-              href="/docs/internship-agreement-sample.pdf"
+              href="/docs/student-caregiver-agreement-sample.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-semibold text-primary-700 hover:underline"

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant } from "@/hooks/use-managed-ads-variant";
 
 /**
  * Managed Ads call-to-action → /provider/boost. Shared across the provider
@@ -25,11 +27,15 @@ export default function ManagedAdsCTA({
   providerSlug?: string;
   providerName?: string;
 }) {
+  const assignedVariant = useManagedAdsVariant(providerSlug);
+  const copy = managedAdsPitchCopy(assignedVariant ?? "direct_reach");
+
   const trackClick = () => {
     if (providerSlug) {
       trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
         provider_name: providerName,
         source: "ff_banner",
+        managed_ads_variant: assignedVariant ?? "direct_reach",
       });
     }
   };
@@ -45,10 +51,12 @@ export default function ManagedAdsCTA({
           <span className="font-semibold text-gray-900">
             {tone === "more" ? "Want even more families?" : "Want us to bring families to you?"}
           </span>{" "}
-          We run targeted ads where families are looking and send them to your page.
+          {assignedVariant === "local_plan"
+            ? "Get a simple launch plan for the ads we'd run in your market."
+            : "We can run ads where families are already looking."}
         </p>
         <span className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-primary-600 transition-all group-hover:gap-2">
-          Learn more
+          See plan
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
@@ -69,10 +77,12 @@ export default function ManagedAdsCTA({
             Managed Ads
           </p>
           <h4 className="mt-1.5 text-[16px] font-semibold text-gray-900 leading-snug">
-            Don&apos;t wait for families to find you — we&apos;ll go get them.
+            {copy.headline} {copy.accent}.
           </h4>
           <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-            We run targeted ads where families are looking and send them straight to your page.
+            {assignedVariant === "local_plan"
+              ? "Pick timing and budget, then we'll review the plan with you before anything goes live."
+              : "Get a plan to send families straight to your Olera page."}
           </p>
         </div>
         <span className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white transition-transform group-hover:translate-x-0.5">

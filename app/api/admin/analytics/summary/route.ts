@@ -11,6 +11,10 @@ import {
   type ProviderEmailFunnelKey,
 } from "@/lib/analytics/provider-email-funnels";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
+import {
+  MANAGED_ADS_VARIANTS,
+  type ManagedAdsVariant,
+} from "@/lib/analytics/managed-ads-variant";
 import { resolveSlugsForRawIds, resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
 
 const PROVIDER_EVENT_TYPES = [
@@ -197,6 +201,20 @@ type CTAFunnel = {
 type CTAVariantRow = CTAFunnel;
 type CTAVariantKey = CTAVariant | "unassigned";
 type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
+// Managed Ads pitch A/B funnel. Distinct providers per stage:
+//   shown      → managed_ads_pitch_viewed
+//   clicked    → managed_ads_cta_clicked
+//   viewed     → managed_ads_boost_viewed
+//   requested  → managed_ads_requested
+type ManagedAdsFunnel = {
+  shown: number;
+  clicked: number;
+  viewed: number;
+  requested: number;
+};
+type ManagedAdsVariantRow = ManagedAdsFunnel;
+type ManagedAdsVariantKey = ManagedAdsVariant | "unassigned";
+type ManagedAdsFunnelByVariant = Record<ManagedAdsVariantKey, ManagedAdsVariantRow>;
 // Page-view referrer breakdown — counts page_view events by traffic class
 // (ai_chat / search / social / olera_internal / direct / other). Lets us
 // watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
@@ -217,6 +235,8 @@ type WindowResult = {
   benefits_funnel_by_variant: BenefitsFunnelByVariant;
   cta_funnel: CTAFunnel;
   cta_funnel_by_variant: CTAFunnelByVariant;
+  managed_ads_funnel: ManagedAdsFunnel;
+  managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
   referrer_breakdown: ReferrerBreakdown;
 };
 
@@ -322,6 +342,16 @@ const EMPTY_CTA_FUNNEL_BY_VARIANT = (): CTAFunnelByVariant => ({
   ...Object.fromEntries(CTA_VARIANTS.map(v => [v, EMPTY_CTA_FUNNEL()])),
   unassigned: EMPTY_CTA_FUNNEL(),
 }) as CTAFunnelByVariant;
+const EMPTY_MANAGED_ADS_FUNNEL = (): ManagedAdsFunnel => ({
+  shown: 0,
+  clicked: 0,
+  viewed: 0,
+  requested: 0,
+});
+const EMPTY_MANAGED_ADS_FUNNEL_BY_VARIANT = (): ManagedAdsFunnelByVariant => ({
+  ...Object.fromEntries(MANAGED_ADS_VARIANTS.map(v => [v, EMPTY_MANAGED_ADS_FUNNEL()])),
+  unassigned: EMPTY_MANAGED_ADS_FUNNEL(),
+}) as ManagedAdsFunnelByVariant;
 const EMPTY_REFERRER_BREAKDOWN = (): ReferrerBreakdown => ({
   ai_chat: 0,
   search: 0,
@@ -553,6 +583,22 @@ async function fetchWindow(
   if (from) ctaQ = ctaQ.gte("created_at", from);
   if (to) ctaQ = ctaQ.lt("created_at", to);
 
+  // Managed Ads pitch A/B funnel. Distinct provider-level stages for the
+  // logged-in buyer journey: shown → clicked → viewed plan → requested.
+  let managedAdsQ = db
+    .from("provider_activity")
+    .select("provider_id, event_type, metadata")
+    .in("event_type", [
+      "managed_ads_pitch_viewed",
+      "managed_ads_cta_clicked",
+      "managed_ads_boost_viewed",
+      "managed_ads_requested",
+    ])
+    .order("created_at", { ascending: false })
+    .limit(50000);
+  if (from) managedAdsQ = managedAdsQ.gte("created_at", from);
+  if (to) managedAdsQ = managedAdsQ.lt("created_at", to);
+
   // Dashboard Banners leaderboard. The provider-dashboard hero is a contextual
   // next-best-action engine (one banner per visit, chosen by the provider's own
   // state — NOT a randomized A/B test). Every banner fires a
@@ -612,7 +658,7 @@ async function fetchWindow(
   if (from) connectionsQ = connectionsQ.gte("created_at", from);
   if (to) connectionsQ = connectionsQ.lt("created_at", to);
 
-  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, commsFunnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, ctaRes, connectionsRes, bannerRes, bannerConvRes] = await Promise.all([
+  const [providerRes, seekerRes, distinctRes, openersRes, funnelRes, commsFunnelRes, issuesEventsRes, benefitsRes, outreachRes, multiProviderRes, ctaRes, managedAdsRes, connectionsRes, bannerRes, bannerConvRes] = await Promise.all([
     providerQ,
     seekerQ,
     distinctQ,
@@ -624,6 +670,7 @@ async function fetchWindow(
     outreachQ,
     multiProviderQ,
     ctaQ,
+    managedAdsQ,
     connectionsQ,
     bannerQ,
     bannerConvQ,
@@ -640,6 +687,7 @@ async function fetchWindow(
   if (issuesEventsRes.error) return { error: "Q&A issues query failed" };
   if (benefitsRes.error) return { error: "benefits funnel query failed" };
   if (ctaRes.error) return { error: "CTA funnel query failed" };
+  if (managedAdsRes.error) return { error: "managed ads funnel query failed" };
   if (connectionsRes.error) return { error: "connections query failed" };
   if (bannerRes.error) return { error: "dashboard banner query failed" };
   if (bannerConvRes.error) return { error: "dashboard banner conversion query failed" };
@@ -677,6 +725,9 @@ async function fetchWindow(
     if (r.provider_id) canonUniverse.add(r.provider_id);
   }
   for (const r of (bannerConvRes.data ?? []) as Array<{ provider_id: string | null }>) {
+    if (r.provider_id) canonUniverse.add(r.provider_id);
+  }
+  for (const r of (managedAdsRes.data ?? []) as Array<{ provider_id: string | null }>) {
     if (r.provider_id) canonUniverse.add(r.provider_id);
   }
   const canonByKey = await resolveCanonicalProviderKeys(db, canonUniverse);
@@ -1267,6 +1318,61 @@ async function fetchWindow(
     unassigned: ctaSizesFor("unassigned"),
   } as CTAFunnelByVariant;
 
+  // Managed Ads pitch A/B funnel rollup. Distinct providers per stage.
+  const emptyManagedAdsStages = (): Record<keyof ManagedAdsFunnel, Set<string>> => ({
+    shown: new Set(),
+    clicked: new Set(),
+    viewed: new Set(),
+    requested: new Set(),
+  });
+  const managedAdsStageSets = emptyManagedAdsStages();
+  const managedAdsByVariantSets: Record<ManagedAdsVariantKey, Record<keyof ManagedAdsFunnel, Set<string>>> = {
+    ...Object.fromEntries(MANAGED_ADS_VARIANTS.map(v => [v, emptyManagedAdsStages()])),
+    unassigned: emptyManagedAdsStages(),
+  } as Record<ManagedAdsVariantKey, Record<keyof ManagedAdsFunnel, Set<string>>>;
+  const MANAGED_ADS_BUCKETS = new Set<string>(MANAGED_ADS_VARIANTS);
+  let noProviderManagedAdsCounter = 0;
+
+  for (const r of (managedAdsRes.data ?? []) as Array<{
+    provider_id: string | null;
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    const pid = r.provider_id ? canon(r.provider_id) : `__no_provider_managed_ads_${noProviderManagedAdsCounter++}`;
+    const variant = r.metadata?.managed_ads_variant;
+    const bucket: ManagedAdsVariantKey =
+      typeof variant === "string" && MANAGED_ADS_BUCKETS.has(variant)
+        ? (variant as ManagedAdsVariant)
+        : "unassigned";
+
+    let stage: keyof ManagedAdsFunnel | undefined;
+    if (r.event_type === "managed_ads_pitch_viewed") stage = "shown";
+    else if (r.event_type === "managed_ads_cta_clicked") stage = "clicked";
+    else if (r.event_type === "managed_ads_boost_viewed") stage = "viewed";
+    else if (r.event_type === "managed_ads_requested") stage = "requested";
+    if (!stage) continue;
+
+    managedAdsStageSets[stage].add(pid);
+    managedAdsByVariantSets[bucket][stage].add(pid);
+  }
+
+  const managedAdsFunnel: ManagedAdsFunnel = {
+    shown: managedAdsStageSets.shown.size,
+    clicked: managedAdsStageSets.clicked.size,
+    viewed: managedAdsStageSets.viewed.size,
+    requested: managedAdsStageSets.requested.size,
+  };
+  const managedAdsSizesFor = (b: ManagedAdsVariantKey): ManagedAdsVariantRow => ({
+    shown: managedAdsByVariantSets[b].shown.size,
+    clicked: managedAdsByVariantSets[b].clicked.size,
+    viewed: managedAdsByVariantSets[b].viewed.size,
+    requested: managedAdsByVariantSets[b].requested.size,
+  });
+  const managedAdsFunnelByVariant: ManagedAdsFunnelByVariant = {
+    ...Object.fromEntries(MANAGED_ADS_VARIANTS.map(v => [v, managedAdsSizesFor(v)])),
+    unassigned: managedAdsSizesFor("unassigned"),
+  } as ManagedAdsFunnelByVariant;
+
   const connectionsRaw = (connectionsRes.data ?? []) as Array<{
     id: string;
     from_profile_id: string | null;
@@ -1386,6 +1492,8 @@ async function fetchWindow(
     benefits_funnel_by_variant: benefitsFunnelByVariant,
     cta_funnel: ctaFunnel,
     cta_funnel_by_variant: ctaFunnelByVariant,
+    managed_ads_funnel: managedAdsFunnel,
+    managed_ads_funnel_by_variant: managedAdsFunnelByVariant,
     referrer_breakdown: referrerBreakdown,
   };
 }
@@ -1835,6 +1943,8 @@ export async function GET(request: NextRequest) {
         benefits_funnel_by_variant: windowedRes.benefits_funnel_by_variant,
         cta_funnel: windowedRes.cta_funnel,
         cta_funnel_by_variant: windowedRes.cta_funnel_by_variant,
+        managed_ads_funnel: windowedRes.managed_ads_funnel,
+        managed_ads_funnel_by_variant: windowedRes.managed_ads_funnel_by_variant,
         referrer_breakdown: windowedRes.referrer_breakdown,
       },
       prior: prior
@@ -1850,6 +1960,8 @@ export async function GET(request: NextRequest) {
             benefits_funnel_by_variant: prior.benefits_funnel_by_variant,
             cta_funnel: prior.cta_funnel,
             cta_funnel_by_variant: prior.cta_funnel_by_variant,
+            managed_ads_funnel: prior.managed_ads_funnel,
+            managed_ads_funnel_by_variant: prior.managed_ads_funnel_by_variant,
             referrer_breakdown: prior.referrer_breakdown,
           }
         : null,

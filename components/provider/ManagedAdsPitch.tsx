@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import PlatformMarquee from "@/components/provider/PlatformMarquee";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 
 /**
  * The Managed Ads pitch — shared between the boost page (above the gate/picker)
@@ -42,7 +45,7 @@ function ValuePillars() {
 
 export default function ManagedAdsPitch({
   ctaHref,
-  ctaLabel = "Get started",
+  ctaLabel = "Get my launch plan",
   providerSlug,
   providerName,
 }: {
@@ -52,11 +55,26 @@ export default function ManagedAdsPitch({
   providerSlug?: string;
   providerName?: string;
 }) {
+  const assignedVariant = useManagedAdsVariant(providerSlug);
+  const copy = managedAdsPitchCopy(assignedVariant ?? "direct_reach");
+  const firedView = useRef(false);
+
+  useEffect(() => {
+    if (!providerSlug || !assignedVariant || firedView.current || isManagedAdsPreviewMode()) return;
+    firedView.current = true;
+    trackProviderEvent(providerSlug, "managed_ads_pitch_viewed", {
+      provider_name: providerName,
+      source: "ff_pitch",
+      managed_ads_variant: assignedVariant,
+    });
+  }, [assignedVariant, providerName, providerSlug]);
+
   const trackCta = () => {
     if (providerSlug) {
       trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
         provider_name: providerName,
         source: "ff_pitch",
+        managed_ads_variant: assignedVariant ?? "direct_reach",
       });
     }
   };
@@ -68,12 +86,11 @@ export default function ManagedAdsPitch({
           <span className="text-sm font-semibold text-primary-700">Managed Ads</span>
         </div>
         <h1 className="text-[clamp(2rem,4.5vw,2.75rem)] font-display font-bold text-gray-900 leading-[1.1] tracking-tight">
-          Reach families<br />
-          <span className="text-primary-600 italic">already searching for care</span>.
+          {copy.headline}<br />
+          <span className="text-primary-600 italic">{copy.accent}</span>.
         </h1>
         <p className="text-lg text-gray-500 mt-5 leading-relaxed">
-          We run the ads where families are already looking — and send every one of
-          them straight to your Olera page.
+          {copy.body}
         </p>
       </header>
 

@@ -30,7 +30,21 @@ export interface BoostRequest {
 
 export interface BoostStateResponse {
   eligibility: AdBoostEligibility;
-  provider: { slug: string; displayName: string | null };
+  provider: {
+    slug: string;
+    displayName: string | null;
+    city: string | null;
+    state: string | null;
+    category: string | null;
+  };
+  demand: {
+    count: number;
+    scope: "city" | "state" | null;
+    city: string | null;
+    state: string | null;
+    category: string | null;
+    windowDays: number;
+  };
   request: BoostRequest | null;
   /** Families delivered so far by this provider's campaign. */
   delivered: number;

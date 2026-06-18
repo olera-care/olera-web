@@ -7,6 +7,57 @@
 
 ## Current Focus
 
+### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)
+
+**Trigger:** TJ wanted to move providers from impressions to real managed-ads signups, then previewed the copy and asked for a sharper testable path. Later asked to adopt the richer design critique slash-command wrapper from the staging repo.
+
+**Shipped on branch:**
+- Reframed managed ads across provider surfaces around a clearer external-ads promise: ads run on Google/Meta/local channels, families land on the provider's Olera page, provider picks timing/budget.
+- Added local-demand context to `/provider/boost` and managed-ads tracking/Slack metadata; fixed the category namespace issue in `app/api/provider/ad-boost/request/route.ts`.
+- Added provider-level managed-ads pitch A/B test instrumentation: `direct_reach` vs `local_plan`, deterministic assignment, event metadata, variant copy helpers, admin allocation controls, and Analytics funnel card (`Shown -> Clicked -> Viewed Plan -> Requested`).
+- Added migration `supabase/migrations/111_managed_ads_pitch_variant_experiment.sql` to seed `managed_ads_pitch_variant` 50/50 and register `managed_ads_pitch_viewed` while preserving existing provider-event CHECK values.
+- Sharpened the `local_plan` variant after preview feedback: headline now reads "Send local families straight to your page" with body copy that says exactly what happens.
+- Added `.agents/skills/design-improvements/SKILL.md` so Codex can invoke the richer `/design-improvements` Claude command workflow; also copied it to the user-level skills folder.
+
+**Validation:** `npx --no-install tsc --noEmit` and `git diff --check` passed during build. Re-run once more in quicksave before PR. No cron/automation code changed.
+
+**QA next:** Apply migration 111, then preview `/provider/boost?preview_managed_ads=direct_reach` and `/provider/boost?preview_managed_ads=local_plan`; verify `/admin/analytics` Managed Ads Variants allocation/funnel; click through dashboard/Find Families nudges and confirm `managed_ads_pitch_viewed`, click, boost-view, and request events carry variant + market metadata.
+
+### 2026-06-18 — Fix post-sign-in "Sign in required" flash + close 2 stale Notion cards (`/dejank` → `/pre-test`, branch `eager-newton`, PR #1114 → staging)
+
+**Trigger:** TJ reported jank signing into the provider portal — after sign-in he'd first see the "Sign in required" gate, then the real Profile page after a refresh (sometimes auto-refreshing). Plus two "validate before building" passes on Notion cards.
+
+**Main fix (`/dejank`, PR #1114):** classic state-setter race.
+- **Root cause:** every sign-in path does `await refreshAccountData(userId)` then navigates, but `refreshAccountData` set `account` + `isLoading:false` and **never set `user`**. `user` was set *only* by the async `SIGNED_IN` event handler. When `SIGNED_IN` landed after navigation, the gate (`app/provider/layout.tsx:65`, and `RoleGate`) saw account-loaded-but-user-null → rendered "Sign in required" until the event fired and re-rendered (the perceived "auto-refresh").
+- **Fix:** set `user` atomically with `account`. `refreshAccountData(userId, overrideUser?)` now sets both in one `setState`; the 3 modal sign-in methods (password/passkey/OTP) pass the verified user via a new `toAuthUser()` helper. No-arg callers preserve `prev.user` (background refreshes unaffected). Fixes all sign-in methods + `RoleGate` at once. OAuth/magic-link were already fine (full reload re-bootstraps via `init()`).
+- **Files:** `components/auth/AuthProvider.tsx`, `components/auth/UnifiedAuthModal.tsx` (+34/−5).
+- **`/pre-test`:** clean — traced both version-counter interleavings between `refreshAccountData` and the `SIGNED_IN` handler; no flash in either (worst case = correct brief spinner). Confirmed `createClient()` is a singleton (the assumption the fix rests on). tsc clean.
+
+**Two Notion cards validated + CLOSED (no build):**
+1. **Email pre-verification cron + cold-lane suppression** — already shipped in PR #1096 (staging+main, same day card was filed). Pulled bounce data from `email_log`: account-wide **3.40%/60d, falling to 1.91%/7d** (under Resend's 4%); `oleracare.com` 3.08%→0/178 post-deploy; `question_received` 7.99%→0/20 post. Lever 4 (TTL re-verify) not warranted. CAVEAT: post-deploy window ~1d, weekly digest burst not yet fired — re-check after next digest.
+2. **Add ISR to benefits routes** — closed as won't-do/mis-scoped. Benefits content is committed TS (`pipeline-drafts.ts`/`waiver-library.ts`), not a runtime store, so "edit content → rebuild one page" is unachievable with ISR alone (every fix triggers a full rebuild regardless). Real (narrower) win = lazy SSG to cap build time at ~2,400 pages, premature until build time is a measured problem. Reopen trigger noted on card.
+
+**Run-env note:** worktree had no `node_modules`; symlinked from `~/Desktop/olera-web` (+ `.env.local`) to run tsc against current files instead of copying into the stale Desktop checkout. SCRATCHPAD updated off fresh staging (this branch) per `feedback_scratchpad_out_of_code_prs`.
+
+**NEXT:** TJ to sign in as a provider on the PR #1114 preview to confirm the flash is gone (not yet exercised on a live deploy). Then merge #1114. After next weekly digest fires, re-check `email_log` bounce by lane to confirm the deliverability fix held under burst load.
+
+### 2026-06-18 — Organic-traffic explainer for marketing team (no code; analysis + Slack memo + memory)
+
+**Trigger:** Logan asked "other reasons behind the increase in our traffic." TJ wanted a thorough, code-grounded analysis to relay to the team.
+
+**Method:** Fanned out 4 parallel agents over the codebase + git history, then dug into the repo's GSC exports directly (`docs/https___olera.care_-Coverage-Drilldown-2026-05-19/Chart.csv`, `docs/SEO Reports/.../Performance-on-Search-2026-03-27/`, and the `-2026-03-08/` Pages/Queries CSVs). Verified claims against real data instead of asserting.
+
+**Key findings (data-grounded):**
+- **Recovery, not pure growth:** the fast 4-wk climb is mostly the Vercel WAF region-block fix (403'd Googlebot ~Apr 9→mid-May) + `/review/*` noindex (PR #771, ~55% of the "crawled not indexed" bucket). Bucket doubled 31K→66K Apr 9→May 14, tracking city-pipeline thin-page growth.
+- **Benefits/insurance editorial is the organic engine.** March GSC top non-brand pages = Logan's VA-caregiver-assessment (399 clicks, pos 4.9) + BCBS-caregiver (238, pos 3.6). Chantel's TX benefits cluster (published Mar 30–May 26, so NOT in the repo's March exports — her real numbers live only in the live `/seo` thread) extends the proven shape; 640-page Senior Benefits Finder = breadth.
+- **Provider directory is an organic non-entity:** not 1 page in top 50; head terms ~pos 40. The 21K description rewrite was a wash because at pos ~40 CTR is ranking-bound, not copy-bound.
+
+**Forward direction captured (TJ, this session):** next technical-cleanup focus pivots to provider pages — category-tailored first-principles rebuild FIRST, then drive UGC completion (owner section, about, photos). Sequencing deliberate: page first so UGC lands on a page built to perform. Saved to memory `project_provider_page_seo_optimization` (+ index).
+
+**Shipped:** memo posted to **#marketing-team** (cc Chantel + Logan) via `/slack-notes`. Iterated heavily with TJ on framing — killed the "correcting our prior mistakes" spine, rebalanced so benefits content is a bright-spot-to-lean-into (not a pivot), fixed attribution (VA/BCBS = Logan's, not Chantel's).
+
+**NEXT (open, both quick GSC pulls):** (1) clicks 28d-before-Apr-9 vs latest-28d to confirm *above* baseline vs merely recovered; (2) Chantel's six TX URLs' current clicks/impressions to quantify her contribution (offered to post a follow-up in-thread once TJ supplies them).
+
 ### 2026-06-18 — Benefits program page: single layout spine (`/design-improvements` → `/punch`, branch `sparky-noether`, PR #1109 → staging)
 
 **Trigger:** TJ ran `/design-improvements` on a desktop full-page capture of `/benefits/texas/star-plus-medicaid-hcbs`. Phase 1 diagnosis surfaced 4 findings; TJ picked **#1, the layout spine alignment** to execute via `/punch`.
@@ -2977,4 +3028,3 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-

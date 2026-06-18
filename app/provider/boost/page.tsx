@@ -7,6 +7,8 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProfileSectionEditor } from "@/hooks/useProfileSectionEditor";
 import type { SectionId } from "@/components/provider-dashboard/edit-modals/types";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 import type {
   AdBoostEligibility,
   AdBoostMissingSection,
@@ -72,6 +74,7 @@ export default function ProviderBoostPage() {
   const [selectedBudget, setSelectedBudget] = useState<number | null>(DEFAULT_BUDGET);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const assignedVariant = useManagedAdsVariant(state?.provider.slug ?? null);
 
   const fetchState = useCallback(async () => {
     setLoading(true);
@@ -106,8 +109,24 @@ export default function ProviderBoostPage() {
   // Fire one managed_ads_boost_viewed event per load, once state resolves —
   // tags which funnel state they landed in (gate / apply / in_motion).
   const hasTrackedView = useRef(false);
+  const hasTrackedPitch = useRef(false);
   useEffect(() => {
-    if (!state || hasTrackedView.current) return;
+    if (!state || !assignedVariant) return;
+    if (isManagedAdsPreviewMode()) return;
+    if (!hasTrackedPitch.current) {
+      hasTrackedPitch.current = true;
+      trackProviderEvent(state.provider.slug, "managed_ads_pitch_viewed", {
+        provider_name: state.provider.displayName,
+        source: "boost",
+        managed_ads_variant: assignedVariant,
+        city: state.provider.city,
+        region: state.provider.state,
+        category: state.provider.category,
+        local_demand: state.demand.count,
+        demand_scope: state.demand.scope,
+      });
+    }
+    if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     const open = !!state.request && OPEN_STATUSES.includes(state.request.status);
     const pending = state.request?.status === "pending_profile";
@@ -122,8 +141,14 @@ export default function ProviderBoostPage() {
       provider_name: state.provider.displayName,
       state: viewState,
       completeness: state.eligibility.overall,
+      city: state.provider.city,
+      region: state.provider.state,
+      category: state.provider.category,
+      local_demand: state.demand.count,
+      demand_scope: state.demand.scope,
+      managed_ads_variant: assignedVariant,
     });
-  }, [state]);
+  }, [assignedVariant, state]);
 
   // Next four Mondays — "select next week to set up".
   const weekOptions = useMemo(() => nextMondays(4), []);
@@ -154,11 +179,17 @@ export default function ProviderBoostPage() {
         return;
       }
       setState((prev) => (prev ? { ...prev, request: json.request } : prev));
-      if (state) {
+      if (state && !isManagedAdsPreviewMode()) {
         trackProviderEvent(state.provider.slug, "managed_ads_requested", {
           provider_name: state.provider.displayName,
           setup_week: selectedWeek,
           channel,
+          city: state.provider.city,
+          region: state.provider.state,
+          category: state.provider.category,
+          local_demand: state.demand.count,
+          demand_scope: state.demand.scope,
+          managed_ads_variant: assignedVariant ?? "direct_reach",
           // Intended monthly budget (non-binding); null if not chosen.
           intended_monthly_budget: selectedBudget,
           // Queued under 70% (standing order) vs. an eligible, actionable request.
@@ -259,8 +290,11 @@ export default function ProviderBoostPage() {
         setSelectedBudget={setSelectedBudget}
         submitting={submitting}
         submitError={submitError}
-        onSubmit={submit}
-      />
+          provider={state.provider}
+          demand={state.demand}
+          managedAdsVariant={assignedVariant ?? "direct_reach"}
+          onSubmit={submit}
+        />
     </Shell>
   );
 }
@@ -275,7 +309,7 @@ function CampaignInMotion({
   delivered: number;
 }) {
   const label: Record<string, string> = {
-    requested: "Request received",
+    requested: "Launch plan received",
     scheduled: "Setup scheduled",
     live: "Your campaign is live",
   };
@@ -295,7 +329,7 @@ function CampaignInMotion({
       <p className="text-gray-500 mt-3 leading-relaxed">
         {isLive
           ? "Families we send arrive on your dashboard as they come in."
-          : "We’ll reach out before launch to confirm the details, then families arrive on your dashboard as they come in."}
+          : "We’ll send over the launch plan before anything goes live, confirm the details, then families arrive on your dashboard as they come in."}
       </p>
 
       {/* The campaign they committed to — week, channel, budget. */}
@@ -395,10 +429,10 @@ function PendingProfile({
         </span>
       </div>
       <h2 className="text-2xl font-display font-semibold text-gray-900">
-        Your campaign is queued.
+        Your launch plan is queued.
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
-        We’ll launch it the moment your profile’s ready to win the families we send.
+        We’ll build around the timing and budget you picked, then launch once your page is ready to convert the families we send.
       </p>
 
       {/* The campaign they committed to — week · channel · budget. */}
@@ -556,9 +590,9 @@ function ProgressRing({ percent }: { percent: number }) {
  *  to label-scale (icon + 2–3 words + a short tail), a scannable proof list, NOT
  *  the old competing 3-column paragraph grid. Lives in the support column. */
 const VALUE_PROPS = [
-  { title: "Targeted where families look", tail: "Search, social, and neighborhood feeds." },
-  { title: "Powered by your market", tail: "Aimed at the high-demand ZIPs we map for you." },
-  { title: "You do nothing", tail: "No ad account, no keywords, no agency." },
+  { title: "Market read first", tail: "We start with where families are already looking." },
+  { title: "Plan before launch", tail: "Timing, channel, and budget get confirmed with you." },
+  { title: "No ad chores", tail: "No ad account, no keywords, no agency handoff." },
 ];
 
 const STEP_LABELS = ["Timing", "Budget", "Confirm"] as const;
@@ -592,6 +626,9 @@ function ApplyExperience({
   setSelectedBudget,
   submitting,
   submitError,
+  provider,
+  demand,
+  managedAdsVariant,
   onSubmit,
 }: {
   /** True when the provider already clears the 70% gate. False → the submit
@@ -606,12 +643,16 @@ function ApplyExperience({
   setSelectedBudget: (v: number) => void;
   submitting: boolean;
   submitError: string | null;
+  provider: BoostStateResponse["provider"];
+  demand: BoostStateResponse["demand"];
+  managedAdsVariant: "direct_reach" | "local_plan";
   onSubmit: () => void;
 }) {
   const [step, setStep] = useState(0); // 0 Timing · 1 Budget · 2 Confirm
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
   const stop = budgetStop(selectedBudget);
+  const copy = managedAdsPitchCopy(managedAdsVariant);
 
   const canAdvance = step === 0 ? !!selectedWeek : step === 1 ? !!stop : true;
 
@@ -620,7 +661,7 @@ function ApplyExperience({
       {/* ─────────── LEFT: action spine ─────────── */}
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-          Managed Ads
+          Managed Ads Launch Plan
         </p>
 
         {/* Breadcrumb — text, not a stepper widget. Past steps are tappable. */}
@@ -650,13 +691,14 @@ function ApplyExperience({
         {step === 0 && (
           <div>
             <h1 className="mt-5 font-display font-bold text-[clamp(2rem,5vw,2.9rem)] text-gray-900 leading-[1.06] tracking-tight">
-              Reach families<br />
-              <span className="text-primary-600 italic">already searching for care</span>.
+              {copy.headline}<br />
+              <span className="text-primary-600 italic">{copy.accent}</span>.
             </h1>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
-              We run the ads where families are already looking — and send every one of
-              them straight to your Olera page.
+              {copy.body}
             </p>
+
+            <DemandDiagnosis provider={provider} demand={demand} />
 
             <fieldset className="mt-9">
               <legend className="text-sm font-medium text-gray-900 mb-3">Pick your week</legend>
@@ -712,11 +754,11 @@ function ApplyExperience({
         {step === 1 && (
           <div>
             <h2 className="mt-5 text-2xl font-display font-semibold text-gray-900">
-              Set your monthly budget
+              Choose a starting budget
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
-              You only fund what you approve — and your first $50 is on us. Pick a
-              starting point; you can change it anytime.
+              This is not a charge. It gives us a concrete plan to review with you
+              before anything goes live. Your first $50 is on us.
             </p>
 
             <fieldset className="mt-8 pt-3">
@@ -786,23 +828,23 @@ function ApplyExperience({
         {step === 2 && (
           <div>
             <h2 className="mt-5 text-2xl font-display font-semibold text-gray-900">
-              Review &amp; confirm
+              Get your launch plan
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
               {eligible
-                ? "Here's your campaign. We'll confirm the details and your budget before anything goes live."
-                : "Here's your campaign. We'll queue it now and launch the moment your profile's ready."}
+                ? "We'll review this, confirm the budget with you, and send the plan before anything goes live."
+                : "We'll queue this now, help you get the page ready, and send the plan before anything goes live."}
             </p>
 
             <dl className="mt-7 overflow-hidden rounded-2xl border border-gray-200/80 divide-y divide-gray-100">
               <ReviewRow label="Launch" value={weekLabel ?? "—"} />
               <ReviewRow label="Advertising on" value={channelLabel} />
-              <ReviewRow label="Monthly budget" value={stop?.label ?? "—"} />
+              <ReviewRow label="Starting budget" value={stop?.label ?? "—"} />
             </dl>
 
             <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
-              Advertising drives more local families to your page; it doesn&apos;t
-              guarantee a set number of leads.{" "}
+              This starts a concierge review. Advertising can drive more local
+              families to your page; it doesn&apos;t guarantee a set number of leads.{" "}
               <Link
                 href="/managed-ads-terms"
                 target="_blank"
@@ -848,7 +890,7 @@ function ApplyExperience({
               onClick={onSubmit}
               className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
             >
-              {submitting ? "Sending…" : eligible ? "Request my campaign" : "Queue my campaign"}
+              {submitting ? "Sending…" : eligible ? "Get my launch plan" : "Queue my launch plan"}
               {!submitting && (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -860,8 +902,8 @@ function ApplyExperience({
         {step === 2 && (
           <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
             {eligible
-              ? "No charge yet — we'll confirm your budget with you before anything goes live. Your first $50 is on us."
-              : "No charge to queue, and none until we confirm your budget with you before launch. Your first $50 is on us."}
+              ? "No charge yet. We confirm the budget with you before launch. Your first $50 is on us."
+              : "No charge to queue, and none until we confirm the budget with you before launch. Your first $50 is on us."}
           </p>
         )}
       </div>
@@ -905,6 +947,50 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function DemandDiagnosis({
+  provider,
+  demand,
+}: {
+  provider: BoostStateResponse["provider"];
+  demand: BoostStateResponse["demand"];
+}) {
+  const category = humanCategoryLabel(provider.category);
+  const place =
+    demand.scope === "city" && provider.city
+      ? provider.city
+      : provider.state
+        ? provider.state
+        : "your area";
+  const count = demand.count >= 5 ? demand.count : null;
+
+  return (
+    <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-5 py-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+        Local diagnosis
+      </p>
+      <p className="mt-2 text-[17px] font-semibold leading-snug text-gray-900">
+        {count
+          ? `${count.toLocaleString()} families looked at ${category} options in ${place} in the last ${demand.windowDays} days.`
+          : `Families in ${place} are searching for ${category} before they ever reach your page.`}
+      </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <PlanPoint title="Where they look" body="Google, Meta, and local feeds." />
+        <PlanPoint title="Where they land" body="Your Olera page, not a broker form." />
+        <PlanPoint title="What you get" body="A clear read on spend, clicks, and families delivered." />
+      </div>
+    </div>
+  );
+}
+
+function PlanPoint({ title, body }: { title: string; body: string }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold text-gray-900">{title}</p>
+      <p className="mt-1 text-sm leading-snug text-gray-500">{body}</p>
+    </div>
+  );
+}
+
 /** The live "Your campaign" card — accumulates as the provider picks (week →
  *  channel → budget + estimate). The single resting point of the flow; the
  *  estimate's reach→lead shift carries the honesty, capped by one caveat. */
@@ -922,7 +1008,7 @@ function CampaignSummary({
   return (
     <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
-        Your campaign
+        Your launch plan
       </p>
 
       <dl className="mt-4 space-y-3.5">
@@ -937,7 +1023,7 @@ function CampaignSummary({
           <dd className="text-sm font-medium text-gray-900 text-right">{channelLabel}</dd>
         </div>
         <div className="flex items-baseline justify-between gap-4">
-          <dt className="text-sm text-gray-500">Budget</dt>
+          <dt className="text-sm text-gray-500">Starting budget</dt>
           <dd className={`text-sm font-medium text-right ${stop ? "text-gray-900" : "text-gray-300"}`}>
             {stop?.label ?? "Pick a budget"}
           </dd>
@@ -955,7 +1041,7 @@ function CampaignSummary({
             <p className="mt-2 text-xs text-gray-400 leading-relaxed">{BUDGET_ESTIMATE_CAVEAT}</p>
             {!eligible && (
               <p className="mt-3 text-xs text-gray-400 leading-relaxed">
-                Queued now — launches once your profile&apos;s ready for the families we send.
+                Queued now — plan first, launch once your profile&apos;s ready for the families we send.
               </p>
             )}
           </>
@@ -966,13 +1052,25 @@ function CampaignSummary({
           </p>
         ) : (
           <p className="text-sm text-gray-500 leading-relaxed">
-            We&apos;ll <span className="font-medium text-gray-900">queue it now</span> and launch
-            the moment your profile&apos;s ready for the families we send.
+            We&apos;ll <span className="font-medium text-gray-900">queue the plan now</span> and launch
+            only after your profile&apos;s ready for the families we send.
           </p>
         )}
       </div>
     </div>
   );
+}
+
+function humanCategoryLabel(category: string | null): string {
+  const labels: Record<string, string> = {
+    assisted_living: "assisted living",
+    memory_care: "memory care",
+    nursing_home: "nursing home",
+    independent_living: "independent living",
+    home_care_agency: "home care",
+    home_health_agency: "home health care",
+  };
+  return category ? labels[category] ?? category.replace(/[_-]+/g, " ") : "senior care";
 }
 
 // ───────────────────────────────────────────────────────────── Chrome

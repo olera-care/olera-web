@@ -35,10 +35,10 @@ export default function PartnerHelpCard() {
   const chip =
     "w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center mb-3";
   const cta =
-    "inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors";
+    "inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors";
 
   return (
-    <div className="grid items-stretch gap-4 sm:grid-cols-3">
+    <div className="grid h-full items-stretch gap-4 sm:grid-cols-3">
       {/* Share the flyer */}
       <div className={card}>
         <span className={chip}>

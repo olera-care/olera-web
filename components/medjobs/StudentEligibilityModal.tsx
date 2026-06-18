@@ -75,7 +75,6 @@ export default function StudentEligibilityModal({
   const [error, setError] = useState<string | null>(null);
   const [existing, setExisting] = useState(false);
 
-  const campus = context.campusName || "your campus";
   const reassurance = Q1.find((q) => q.value === track)?.reassure;
 
   const toggleBucket = (b: CoverageBucket) =>
@@ -249,8 +248,7 @@ export default function StudentEligibilityModal({
               <div>
                 <p className="font-serif text-lg text-gray-900">You&apos;re a good fit!</p>
                 <p className="mt-1 text-sm text-gray-700">
-                  Start earning the patient-care hours your application needs — paid hosts near{" "}
-                  {campus} are ready now.
+                  Complete the full application to get hired for caregiving jobs near campus.
                 </p>
               </div>
             </div>

@@ -151,7 +151,7 @@ export default function MedjobsMarketing() {
       {/* For advisors, faculty & student orgs */}
       <section id="help" className="pt-8 md:pt-12 pb-8 md:pb-12 bg-gray-50/70 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12 lg:items-start">
+          <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12 lg:items-stretch">
             <div className="mb-8 lg:mb-0">
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
                 For advisors, faculty &amp; student orgs

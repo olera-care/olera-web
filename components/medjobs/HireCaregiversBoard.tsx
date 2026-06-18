@@ -9,10 +9,7 @@ import BrowseCard from "@/components/browse/BrowseCard";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
-import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-
-const PROVIDER_AGREEMENT_URL = "/docs/host-agreement-sample.pdf";
 
 /**
  * HireCaregiversBoard — the signed-in provider's "Hire caregivers" board at
@@ -74,6 +71,8 @@ export default function HireCaregiversBoard() {
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // "Post a Job" is a placeholder for now — see the HANDOFF note by the modal.
+  const [showPostJob, setShowPostJob] = useState(false);
 
   useEffect(() => {
     const sb = createClient();
@@ -138,53 +137,42 @@ export default function HireCaregiversBoard() {
                 className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
               />
               <div className="min-w-0">
-                <p className="text-[15px] font-semibold text-gray-900">You&apos;re set.</p>
+                <p className="text-[15px] font-semibold text-gray-900">You&apos;re all set.</p>
                 <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
-                  Let&apos;s talk, book a call so I can recruit students for your shifts.
+                  Now let&apos;s post a job and interview and hire a caregiver.
                 </p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
-              <a
-                href={PROVIDER_AGREEMENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-semibold text-primary-700 hover:underline"
-              >
-                Read provider agreement ↗
-              </a>
-              <a
-                href={CALENDLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => setShowPostJob(true)}
                 className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
               >
-                Book a call →
-              </a>
+                Post a Job →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <h1 className="mb-1 text-3xl md:text-4xl font-bold text-gray-900">
-        Find caregivers {campusName ? `near ${campusName}` : "near you"}
-      </h1>
-      <p className="mb-6 text-gray-500">
-        {loading ? "Loading caregivers…" : `${filtered.length} student caregiver${filtered.length === 1 ? "" : "s"}`}
-      </p>
-
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass}>
-          <option value="">All universities</option>
-          {universities.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
-          ))}
-        </select>
-        <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass}>
-          {AVAIL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          Find caregivers {campusName ? `near ${campusName}` : "near you"}
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass}>
+            <option value="">All universities</option>
+            {universities.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+          <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass}>
+            {AVAIL_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -234,6 +222,43 @@ export default function HireCaregiversBoard() {
           </div>
         </div>
       </div>
+
+      {/* ───────────────────────────────────────────────────────────────────
+          HANDOFF (Post a Job): placeholder only. The "Post a Job →" button in
+          the welcome banner opens this coming-soon modal. The real flow is the
+          next build — replace this modal with the post-job form and, on submit,
+          write a `MedJobsJobPost` (type already defined in lib/types.ts). Pick
+          this up on a fresh branch; the button wiring (showPostJob) is the seam.
+          ─────────────────────────────────────────────────────────────────── */}
+      {showPostJob && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setShowPostJob(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="font-serif text-xl text-gray-900">Post a Job</h3>
+            <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+              Coming soon. You&apos;ll be able to post a job, then interview and hire a
+              caregiver right here.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPostJob(false)}
+              className="mt-5 w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

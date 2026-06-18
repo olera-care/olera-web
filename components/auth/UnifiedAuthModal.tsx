@@ -41,6 +41,25 @@ function isPasskeyCancellation(err: unknown): boolean {
   );
 }
 
+/**
+ * Coerce a freshly-authenticated Supabase user into the AuthProvider's `user`
+ * shape so we can hand it to refreshAccountData and set `user` atomically with
+ * `account`. Without this, `user` only arrives via the async SIGNED_IN event,
+ * which races the awaited prewarm + navigation and causes the post-sign-in
+ * "Sign in required" flash on gated pages.
+ */
+function toAuthUser(
+  u: { id: string; email?: string | null; email_confirmed_at?: string | null } | null | undefined,
+  fallbackEmail: string,
+): { id: string; email: string; email_confirmed_at?: string } | undefined {
+  if (!u) return undefined;
+  return {
+    id: u.id,
+    email: u.email ?? fallbackEmail,
+    email_confirmed_at: u.email_confirmed_at ?? undefined,
+  };
+}
+
 // ============================================================
 // Types
 // ============================================================
@@ -354,7 +373,7 @@ export default function UnifiedAuthModal({
       if (userId) {
         try {
           await Promise.race([
-            refreshAccountData(userId),
+            refreshAccountData(userId, toAuthUser(signInData?.user, email)),
             new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
           ]);
         } catch {
@@ -417,7 +436,7 @@ export default function UnifiedAuthModal({
       if (userId) {
         try {
           await Promise.race([
-            refreshAccountData(userId),
+            refreshAccountData(userId, toAuthUser(data?.user, email)),
             new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
           ]);
         } catch {
@@ -507,7 +526,7 @@ export default function UnifiedAuthModal({
       if (userId) {
         try {
           await Promise.race([
-            refreshAccountData(userId),
+            refreshAccountData(userId, toAuthUser(verifyData.user, email)),
             new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
           ]);
         } catch {

@@ -721,10 +721,11 @@ interface NavSection {
   label: string;
 }
 
-function SectionNav({ sections, activeId }: { sections: NavSection[]; activeId: string }) {
+function SectionNav({ sections, activeId, hasRail }: { sections: NavSection[]; activeId: string; hasRail?: boolean }) {
   return (
     <div className="sticky top-0 z-30 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60">
-      <nav className="max-w-3xl mx-auto px-6 lg:px-8">
+      <nav className={hasRail ? "xl:max-w-[69rem] xl:mx-auto xl:flex xl:items-start xl:gap-10 xl:px-8" : "max-w-3xl mx-auto px-6 lg:px-8"}>
+        <div className={`min-w-0 ${hasRail ? "max-w-3xl mx-auto px-6 lg:px-8 xl:max-w-none xl:mx-0 xl:flex-1" : ""}`}>
         <div className="flex gap-1 py-2 overflow-x-auto scrollbar-hide -mx-1">
           {sections.map((s) => (
             <a
@@ -744,6 +745,8 @@ function SectionNav({ sections, activeId }: { sections: NavSection[]; activeId: 
             </a>
           ))}
         </div>
+        </div>
+        {hasRail && <div className="hidden xl:block xl:w-[21rem] xl:shrink-0" aria-hidden="true" />}
       </nav>
     </div>
   );
@@ -955,7 +958,8 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
       {/* ─── 1. Hero ─── */}
       <header className="relative pt-6 pb-10 md:pt-8 md:pb-14 overflow-hidden">
         <HeaderAccent />
-        <div className="relative max-w-2xl mx-auto px-6 lg:px-8">
+        <div className={`relative ${showBenefitsCTA ? "xl:max-w-[69rem] xl:mx-auto xl:flex xl:items-start xl:gap-10 xl:px-8" : ""}`}>
+          <div className={`max-w-2xl mx-auto px-6 lg:px-8 ${showBenefitsCTA ? "xl:max-w-none xl:mx-0 xl:flex-1 min-w-0" : ""}`}>
           {/* Mobile: a utility top bar — back affordance on the left, share/
               bookmark on the right — so the headline below owns the full
               width and never competes with the action buttons for space
@@ -1058,11 +1062,15 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             </div>
             <HeaderActions program={program} state={state} className="hidden sm:flex shrink-0 mt-2" />
           </div>
+          </div>
+          {showBenefitsCTA && (
+            <div className="hidden xl:block xl:w-[21rem] xl:shrink-0" aria-hidden="true" />
+          )}
         </div>
       </header>
 
       {/* ─── Section nav ─── */}
-      {navSections.length > 0 && <SectionNav sections={navSections} activeId={activeSection} />}
+      {navSections.length > 0 && <SectionNav sections={navSections} activeId={activeSection} hasRail={showBenefitsCTA} />}
 
       <main className="pb-24 pt-8">
         {/* Two-column on xl+: editorial content column + sticky benefits rail
@@ -1071,7 +1079,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
             bottom bar (ProgramBenefitsMobileCTA). Per-section max-widths are
             preserved — they center within the content column instead of the
             viewport. items-start + self-start lets the rail stick. */}
-        <div className="xl:mx-auto xl:flex xl:max-w-[84rem] xl:items-start xl:gap-12 xl:px-8">
+        <div className="xl:mx-auto xl:flex xl:max-w-[69rem] xl:items-start xl:gap-10 xl:px-8">
           <div className="min-w-0 xl:flex-1">
         {isResource ? (
           <div className="max-w-2xl mx-auto px-6 lg:px-8">

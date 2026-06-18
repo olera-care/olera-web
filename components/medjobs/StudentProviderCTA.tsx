@@ -114,7 +114,7 @@ export default function StudentProviderCTA({
             </p>
             <p className="mt-2 font-serif text-lg text-gray-900">{providerName}</p>
             <p className="mt-1 text-sm text-gray-600">
-              Request an interview to explore working with them this semester.
+              Apply to get hired.
             </p>
           </>
         )}
@@ -143,11 +143,8 @@ export default function StudentProviderCTA({
               disabled={isLoading || resolving}
               className="w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
             >
-              {resolving ? "Opening…" : "Request interview"}
+              {resolving ? "Opening…" : !studentProfile?.id ? "Apply Now →" : "Request interview"}
             </button>
-            {!studentProfile?.id && (
-              <p className="mt-1.5 text-center text-xs text-gray-500">Check your eligibility first.</p>
-            )}
           </div>
         )}
         {error ? <p className="mt-2 text-center text-xs text-red-600">{error}</p> : null}

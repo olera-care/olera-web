@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { IntendedProfessionalSchool } from "@/lib/types";
@@ -237,11 +238,22 @@ export default function StudentEligibilityModal({
           </div>
         ) : step === "email" ? (
           <div>
-            <p className="font-serif text-lg text-gray-900">🎉 You&apos;re in!</p>
-            <p className="mt-1 text-sm text-gray-700">
-              Start earning the patient-care hours your application needs — paid hosts near {campus}{" "}
-              are ready now.
-            </p>
+            <div className="flex items-start gap-3">
+              <Image
+                src="/images/for-providers/team/logan.jpg"
+                alt="Dr. Logan DuBose"
+                width={40}
+                height={40}
+                className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm"
+              />
+              <div>
+                <p className="font-serif text-lg text-gray-900">You&apos;re a good fit!</p>
+                <p className="mt-1 text-sm text-gray-700">
+                  Start earning the patient-care hours your application needs — paid hosts near{" "}
+                  {campus} are ready now.
+                </p>
+              </div>
+            </div>
             <p className="mt-3 text-sm font-medium text-gray-800">Add your email to get started:</p>
             <input
               type="email"
@@ -258,7 +270,7 @@ export default function StudentEligibilityModal({
             />
             {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
             <button type="button" className={btnPrimary} onClick={submit}>
-              Learn more about the internship →
+              Go to full application →
             </button>
           </div>
         ) : (

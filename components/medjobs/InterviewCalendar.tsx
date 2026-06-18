@@ -693,7 +693,7 @@ function InterviewDetailModal({
         <div className="space-y-3">
           {confirmedPlacement ? (
             <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
-              Internship confirmed.
+              Placement confirmed.
             </p>
           ) : perspective === "provider" ? (
             offerSent || offeredPlacement ? (
@@ -712,7 +712,7 @@ function InterviewDetailModal({
           ) : offeredPlacement ? (
             <div className="space-y-2 rounded-xl border border-primary-200 bg-primary-50/60 p-3">
               <p className="text-sm font-medium text-gray-900">
-                {otherName} offered to host you for the internship.
+                {otherName} offered to bring you on as a caregiver.
               </p>
               <button
                 type="button"

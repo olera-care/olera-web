@@ -48,7 +48,7 @@ export default function MedjobsMarketing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div className="aspect-[4/5] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
-              <Image src="/images/medjobs/student-portrait.jpg" alt="Pre-health intern" width={600} height={800} className="w-full h-full object-cover" />
+              <Image src="/images/medjobs/student-portrait.jpg" alt="Pre-health student caregiver" width={600} height={800} className="w-full h-full object-cover" />
             </div>
             <div className="lg:py-4">
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">How it works for students</p>
@@ -191,7 +191,7 @@ export default function MedjobsMarketing() {
               },
               {
                 q: "How many hours per week do I commit to?",
-                a: "You and the host agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most interns work a steady handful of hours each week through the semester.",
+                a: "You and the host agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most students work a steady handful of hours each week through the semester.",
               },
               {
                 q: "When and how do I get paid?",
@@ -199,7 +199,7 @@ export default function MedjobsMarketing() {
               },
               {
                 q: "What if I've never worked with seniors before?",
-                a: "Most of our interns haven't. You're matched with a host who fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
+                a: "Most of our students haven't. You're matched with a host who fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
               },
               {
                 q: "Is it really paid?",

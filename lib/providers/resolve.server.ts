@@ -96,6 +96,44 @@ export async function resolveProvider(
 }
 
 /**
+ * Batch directory email lookup: given a set of `olera-providers.provider_id`s,
+ * return a `provider_id → email` map for the rows that have an email and aren't
+ * soft-deleted. The lean projection (`provider_id, email`) is deliberate — this
+ * powers email-fallback resolution (admin leads), NOT display, so it never pulls
+ * the heavy JSONB columns a full `ProviderView` would.
+ *
+ * Centralizing this here keeps the `.from("olera-providers")` read behind the
+ * front door (the eslint guard later bans raw `.from(...)` outside this module).
+ * Chunks the id set so a large batch can't blow past PostgREST URL limits.
+ */
+export async function getProviderEmailsByIds(
+  ids: string[],
+  db: SupabaseClient,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (unique.length === 0) return out;
+
+  const CHUNK = 500;
+  for (let i = 0; i < unique.length; i += CHUNK) {
+    const slice = unique.slice(i, i + CHUNK);
+    try {
+      const { data } = await db
+        .from("olera-providers")
+        .select("provider_id, email")
+        .in("provider_id", slice)
+        .not("deleted", "is", true);
+      for (const row of (data as { provider_id: string; email: string | null }[] | null) ?? []) {
+        if (row.email) out.set(row.provider_id, row.email);
+      }
+    } catch {
+      // Supabase unreachable for this chunk — skip; partial map degrades gracefully.
+    }
+  }
+  return out;
+}
+
+/**
  * The claimed-account fields a directory provider needs to know its real claim
  * state (the directory row always reads "unclaimed"). `metadata` is left as
  * `unknown` so the caller casts it to whatever metadata shape it expects.

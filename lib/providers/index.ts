@@ -6,14 +6,22 @@
  * complete an eslint guard bans raw `.from(...)` on those tables outside here.
  * See plans/provider-data-foundation.md (Step 1).
  *
- * Step 1 status: parity-first, reads only. `resolveProvider` /
- * `resolveProviderForMeta` shipped with PR #1 (provider detail page).
- * Batch list reads (`getProvidersByIds`) land with PR #2's first consumer.
+ * Status: parity-first, reads only.
+ *  - PR #1 (provider detail page): `resolveProvider` / `resolveProviderForMeta`.
+ *  - PR #2 (read-heavy routes): `searchProviders` (organization-search) +
+ *    `getProviderEmailsByIds` (admin leads email-fallback).
  */
 export type { ProviderView, ProviderSource, ResolveResult } from "./types";
 export { directoryRowToProvider, accountRowToProvider } from "./adapters";
-export { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "./resolve.server";
+export {
+  resolveProvider,
+  resolveProviderForMeta,
+  getClaimedAccount,
+  getProviderEmailsByIds,
+} from "./resolve.server";
 export type { ProviderMeta, ClaimedAccount } from "./resolve.server";
+export { searchProviders } from "./search.server";
+export type { ProviderSearchResponse } from "./search.server";
 
 // The canonical-id resolver already lived here; re-export so the front door is
 // the one import site for provider identity too.

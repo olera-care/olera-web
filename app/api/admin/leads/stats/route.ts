@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 import { providerResponded } from "@/lib/connection-temperature";
+import { getProviderEmailsByIds } from "@/lib/providers";
 
 /**
  * GET /api/admin/leads/stats — same shape as questions/stats.
@@ -63,21 +64,8 @@ export async function GET(request: NextRequest) {
       })
       .filter(Boolean) as string[];
 
-    // Look up emails in olera-providers
-    const oleraEmailMap = new Map<string, string>();
-    if (sourceProviderIds.length > 0) {
-      const { data: oleraProviders } = await db
-        .from("olera-providers")
-        .select("provider_id, email")
-        .in("provider_id", sourceProviderIds)
-        .not("deleted", "is", true);
-
-      for (const p of oleraProviders ?? []) {
-        if (p.email) {
-          oleraEmailMap.set(p.provider_id, p.email);
-        }
-      }
-    }
+    // Look up emails in olera-providers (front door — batched, deleted-aware).
+    const oleraEmailMap = await getProviderEmailsByIds(sourceProviderIds, db);
 
     // Check live provider email status (matches Analytics approach exactly):
     // - Connection must be an inquiry (family → provider)

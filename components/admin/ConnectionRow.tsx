@@ -2059,9 +2059,14 @@ export default function ConnectionRow({
                       <p className="text-sm text-amber-800">
                         <span className="font-medium">Reason:</span>{" "}
                         {c.isProviderArchived
-                          ? (c.providerArchiveInfo?.notes || getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason))
+                          ? getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason)
                           : (c.rawArchiveReason?.trim() || "Not specified")}
                       </p>
+                      {c.isProviderArchived && c.providerArchiveInfo?.notes && (
+                        <p className="text-sm text-amber-800 mt-1">
+                          <span className="font-medium">Notes:</span> {c.providerArchiveInfo.notes}
+                        </p>
+                      )}
                       {c.isProviderArchived && c.providerArchiveInfo?.archivedBy && (
                         <p className="text-xs text-amber-600 mt-2">
                           Archived by {c.providerArchiveInfo.archivedBy}

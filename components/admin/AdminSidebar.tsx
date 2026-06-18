@@ -111,30 +111,24 @@ const STAKEHOLDERS_KEY = "stakeholders";
 // (territories that generate operational work), not itself an
 // operational queue. The In Basket + the queue items above surface the
 // actual triage work; Sites is the directory of activated territories.
+// v11: the MedJobs sidebar collapses to four entries. In Basket is the daily
+// work queue; Operations is the analytic hub that links out to the full list
+// pages (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates —
+// whose routes still exist, just no longer in the sidebar); Sites is the
+// territory anchor; Logs is history. Sites sits above Operations per design.
 const medjobsItems: NavItem[] = [
   { label: "In Basket",  href: "/admin/medjobs/in-basket" },
-  { label: "Prospects",  href: "/admin/medjobs/prospects" },
-  { label: "Calls",      href: "/admin/medjobs/calls" },
-  { label: "Replies",    href: "/admin/medjobs/replies" },
-  { label: "Meetings",   href: "/admin/medjobs/meetings" },
-  { label: "Clients",    href: "/admin/medjobs/clients" },
-  { label: "Partners",   href: "/admin/medjobs/partners" },
-  { label: "Candidates", href: "/admin/medjobs/candidates" },
   { label: "Sites",      href: "/admin/medjobs/sites" },
+  { label: "Operations", href: "/admin/medjobs/operations" },
   { label: "Logs",       href: "/admin/medjobs/logs" },
 ];
 
-/** Map nav-item href → sidebar-counts response key. */
+/** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
+ *  carry a count badge now; Operations + Logs are overview/history surfaces. */
 const COUNTS_KEY: Record<string, string | null> = {
   "/admin/medjobs/in-basket":  "in_basket",
   "/admin/medjobs/sites":      "sites",
-  "/admin/medjobs/prospects":  "prospects",
-  "/admin/medjobs/clients":    "clients",
-  "/admin/medjobs/partners":   "partners",
-  "/admin/medjobs/candidates": "candidates",
-  "/admin/medjobs/replies":    "replies",
-  "/admin/medjobs/meetings":   "meetings",
-  "/admin/medjobs/calls":      "calls",
+  "/admin/medjobs/operations": null,
   "/admin/medjobs/logs":       null,
 };
 

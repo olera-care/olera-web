@@ -415,10 +415,18 @@ export async function GET(request: NextRequest) {
     // Collect unique source_provider_ids that need email lookup from iOS table
     // Use Set to deduplicate (same provider may appear in multiple connections)
     const uniqueSourceIds = new Set<string>();
+    // Also collect source_provider_ids for INACTIVE providers to get deletion info
+    const inactiveProviderSourceIds = new Set<string>();
     for (const r of rows ?? []) {
       const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
-      if (provider?.source_provider_id && !provider?.email?.trim()) {
-        uniqueSourceIds.add(provider.source_provider_id);
+      if (provider?.source_provider_id) {
+        if (!provider?.email?.trim()) {
+          uniqueSourceIds.add(provider.source_provider_id);
+        }
+        // Track inactive providers for deletion info lookup
+        if (provider.is_active === false) {
+          inactiveProviderSourceIds.add(provider.source_provider_id);
+        }
       }
     }
 
@@ -444,6 +452,37 @@ export async function GET(request: NextRequest) {
         if (trimmedEmail) {
           providerEmailFallback.set(ios.provider_id, trimmedEmail);
         }
+      }
+    }
+
+    // Fetch deletion info from olera-providers for INACTIVE providers
+    // This tells us WHO deleted the provider (admin vs provider request)
+    type DeletionInfo = {
+      deleted: boolean;
+      deletedAt: string | null;
+      deletionReason: "data_sweep" | "provider_request" | "duplicate" | "out_of_scope" | "other" | null;
+    };
+    const providerDeletionInfo = new Map<string, DeletionInfo>();
+
+    if (inactiveProviderSourceIds.size > 0) {
+      const sourceIds = Array.from(inactiveProviderSourceIds);
+      // Query olera-providers INCLUDING deleted ones (no .not("deleted", "is", true))
+      const { data: iosProviders, error: iosError } = await db
+        .from("olera-providers")
+        .select("provider_id, deleted, deleted_at, deletion_reason")
+        .in("provider_id", sourceIds);
+
+      if (iosError) {
+        console.error("[connections] olera-providers deletion info lookup failed:", iosError);
+        // Continue with empty map - we'll show "Unknown" for these
+      }
+
+      for (const ios of iosProviders ?? []) {
+        providerDeletionInfo.set(ios.provider_id, {
+          deleted: ios.deleted === true,
+          deletedAt: ios.deleted_at as string | null,
+          deletionReason: ios.deletion_reason as DeletionInfo["deletionReason"],
+        });
       }
     }
 
@@ -496,6 +535,9 @@ export async function GET(request: NextRequest) {
       // archiveReason = valid provider decline reason (not_a_fit, not_accepting_clients, etc.)
       // This distinguishes provider-declined (Declined tab) from admin-archived (Archived tab)
       const archiveReason = parseArchiveReason(meta.archive_reason);
+      // rawArchiveReason = the actual free-text reason entered (for admin archive display)
+      // This preserves whatever text was typed, even if not a predefined reason
+      const rawArchiveReason = typeof meta.archive_reason === "string" ? meta.archive_reason : null;
       // archived = true if provider declined OR admin archived from leads page
       // - Provider decline: archived=true + valid archiveReason → Declined tab
       // - Admin archive: archived=true + no valid archiveReason → Archived tab
@@ -690,6 +732,8 @@ export async function GET(request: NextRequest) {
         // Archive state (provider archived in their portal)
         archived,
         archiveReason,
+        // Raw archive reason (free-text from leads page, for display in Archived tab)
+        rawArchiveReason,
         archivedAt,
         // Admin override for manual status marking
         adminOverride,
@@ -706,6 +750,38 @@ export async function GET(request: NextRequest) {
         isProviderArchived,
         // Provider is inactive (deleted account, removed, etc.) - shows in Archived tab
         isProviderInactive,
+        // Inactive provider info - shows who deleted them (admin vs provider themselves)
+        inactiveProviderInfo: isProviderInactive ? (() => {
+          // Check business_profiles.metadata for self-deletion flag
+          const selfDeleted = providerMeta.deleted_by_account_deletion === true;
+
+          // Check olera-providers for deletion info (if we have source_provider_id)
+          const iosDeletion = provider?.source_provider_id
+            ? providerDeletionInfo.get(provider.source_provider_id)
+            : null;
+
+          // Determine deletion source:
+          // 1. Self-deleted: metadata.deleted_by_account_deletion = true
+          // 2. Provider requested (via admin): olera-providers.deletion_reason = "provider_request"
+          // 3. Admin deleted: olera-providers.deleted = true with other reasons
+          // 4. Unknown: none of the above
+          let deletionSource: "self" | "provider_request" | "admin" | "unknown" = "unknown";
+
+          if (selfDeleted) {
+            deletionSource = "self";
+          } else if (iosDeletion?.deleted && iosDeletion.deletionReason === "provider_request") {
+            deletionSource = "provider_request";
+          } else if (iosDeletion?.deleted) {
+            // Deleted in olera-providers (may or may not have specific reason)
+            deletionSource = "admin";
+          }
+
+          return {
+            deletionSource,
+            deletionReason: iosDeletion?.deletionReason ?? null,
+            deletedAt: iosDeletion?.deletedAt ?? null,
+          };
+        })() : null,
         // Archive info for display in UI
         providerArchiveInfo: isProviderArchived ? {
           reason: providerMeta.admin_archived_reason as string | null,

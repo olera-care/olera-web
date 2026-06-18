@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
+import { getProviderDimensionsByIdentifiers } from "@/lib/providers";
 
 /**
  * GET /api/cron/aggregate-provider-views
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     // 3. Bulk-fetch city/state/category for these providers.
     const providerIds = [...byProvider.keys()];
-    const dimensions = await fetchProviderDimensions(db, providerIds);
+    const dimensions = await getProviderDimensionsByIdentifiers(providerIds, db);
 
     // 4. Build the per-provider rows.
     const statsRows = [...byProvider.entries()].map(([providerId, agg]) => {
@@ -189,93 +190,6 @@ function resolveTargetDate(override: string | null): string {
   const now = new Date();
   const y = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
   return y.toISOString().slice(0, 10);
-}
-
-interface ProviderDims {
-  city: string | null;
-  state: string | null;
-  category: string | null;
-}
-
-/**
- * Look up city/state/category for each provider_id (which is the URL slug).
- *
- * The URL parameter on /provider/[slug] resolves against either
- * olera-providers.slug (modern providers) OR olera-providers.provider_id
- * (legacy providers without slugs) OR business_profiles.slug (claimed).
- * We try all three in that order so legacy URLs aren't dropped.
- */
-async function fetchProviderDimensions(
-  db: ReturnType<typeof getServiceClient>,
-  providerIds: string[]
-): Promise<Map<string, ProviderDims>> {
-  const result = new Map<string, ProviderDims>();
-  if (providerIds.length === 0) return result;
-
-  // Chunk to keep the .in() filter under typical URL-length limits.
-  const chunks = chunk(providerIds, 200);
-
-  for (const ids of chunks) {
-    // 1. olera-providers by slug (most common — modern providers).
-    const { data: oleraBySlug } = await db
-      .from("olera-providers")
-      .select("slug, city, state, provider_category")
-      .in("slug", ids);
-    for (const row of oleraBySlug ?? []) {
-      if (row.slug && !result.has(row.slug)) {
-        result.set(row.slug, {
-          city: row.city ?? null,
-          state: row.state ?? null,
-          category: row.provider_category ?? null,
-        });
-      }
-    }
-
-    // 2. Legacy fallback: olera-providers by provider_id (URLs that use the
-    // alphanumeric ID instead of a slug).
-    let missing = ids.filter((id) => !result.has(id));
-    if (missing.length > 0) {
-      const { data: oleraById } = await db
-        .from("olera-providers")
-        .select("provider_id, city, state, provider_category")
-        .in("provider_id", missing);
-      for (const row of oleraById ?? []) {
-        if (row.provider_id && !result.has(row.provider_id)) {
-          result.set(row.provider_id, {
-            city: row.city ?? null,
-            state: row.state ?? null,
-            category: row.provider_category ?? null,
-          });
-        }
-      }
-      missing = ids.filter((id) => !result.has(id));
-    }
-
-    // 3. business_profiles by slug (claimed providers without olera-providers row).
-    if (missing.length > 0) {
-      const { data: bps } = await db
-        .from("business_profiles")
-        .select("slug, city, state, category")
-        .in("slug", missing);
-      for (const bp of bps ?? []) {
-        if (bp.slug && !result.has(bp.slug)) {
-          result.set(bp.slug, {
-            city: bp.city ?? null,
-            state: bp.state ?? null,
-            category: bp.category ?? null,
-          });
-        }
-      }
-    }
-  }
-
-  return result;
-}
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
 }
 
 function cohortKey(city: string | null, state: string | null, category: string | null): string {

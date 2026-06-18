@@ -234,10 +234,7 @@ function Board() {
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             {/* Left — copy */}
             <div>
-              <span className="inline-block px-4 py-2 rounded-full bg-warning-100 text-warning-800 text-xs font-semibold uppercase tracking-widest">
-                Hiring near {campusName || "you"}
-              </span>
-              <h1 className="mt-5 font-serif text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-[1.1]">
+              <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-[1.1]">
                 Get real healthcare experience
               </h1>
               <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">

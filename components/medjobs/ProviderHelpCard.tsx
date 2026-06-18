@@ -46,7 +46,7 @@ export default function ProviderHelpCard() {
         </span>
         <p className="text-[15px] font-semibold text-gray-900">Share with the decision-maker</p>
         <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-          A one-pager for the owner or operator who signs off on hiring.
+          A one-pager for the owner who signs off on hiring.
         </p>
         <a
           href={FLYER_PDF_URL}

@@ -25,7 +25,7 @@ const HOW_IT_WORKS = [
   },
   {
     title: "Match with student caregivers",
-    description: "We surface pre-health students near your campus whose availability fits the shifts you need covered.",
+    description: "We surface college students near you or at a campus near you whose availability fits the shifts you need covered.",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -55,7 +55,7 @@ export default function ProvidersMarketing() {
             </div>
             <div className="lg:py-4">
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">How it works</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">From need to recurring coverage</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">As needed or recurring coverage</h2>
               <div className="mt-10 space-y-0">
                 {HOW_IT_WORKS.map((item, i) => (
                   <div key={item.title} className="py-7 border-t border-gray-200/80 first:border-t-0">
@@ -110,7 +110,7 @@ export default function ProvidersMarketing() {
                       </svg>
                     </div>
                     <p className="text-[15px] text-gray-700">
-                      <span className="font-medium text-gray-900">{task.lead}</span> — {task.detail}
+                      <span className="font-medium text-gray-900">{task.lead}</span>: {task.detail}
                     </p>
                   </div>
                 ))}
@@ -118,7 +118,7 @@ export default function ProvidersMarketing() {
               <div className="mt-8 p-4 rounded-xl bg-primary-50 border border-primary-100">
                 <p className="text-sm text-gray-600 leading-relaxed">
                   <span className="font-semibold text-gray-900">Great for the shifts you can&apos;t fill.</span>{" "}
-                  Evenings, weekends, overnights, PRN — and full-time over winter and summer breaks.
+                  Evenings, weekends, overnights, PRN, and full-time over winter and summer breaks.
                 </p>
               </div>
             </div>
@@ -143,32 +143,6 @@ export default function ProvidersMarketing() {
       <section className="pt-8 md:pt-12 pb-8 md:pb-12 bg-gray-50/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">For managers</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Worried students are flaky? Here&apos;s why this works.
-              </h2>
-              <p className="mt-4 text-gray-500 leading-relaxed">
-                Pre-health students aren&apos;t picking up a side gig — they need patient-care hours and
-                references for their med, nursing, and PA applications. The incentive to show up is built in.
-              </p>
-              <div className="mt-8 space-y-4">
-                {[
-                  "Built-in motivation — this is their career, not a side job.",
-                  "Vetted both ways — we screen them, you interview them. You choose.",
-                  "Schedules set up front — you agree on shifts before they start.",
-                  "No-call/no-show = removed from the program, and no recommendation letter unless they perform.",
-                  "Physician-led, NIA-backed, with agreements signed before any match.",
-                ].map((item) => (
-                  <div key={item} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
             <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
               <p className="text-sm font-semibold text-gray-900">Every student is vetted before their profile goes live</p>
               <div className="mt-5 space-y-3">
@@ -187,6 +161,30 @@ export default function ProvidersMarketing() {
                 ))}
               </div>
             </div>
+            <div>
+              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">For managers</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Here&apos;s why this works.</h2>
+              <p className="mt-4 text-gray-500 leading-relaxed">
+                Pre-health students aren&apos;t picking up a side gig. They need patient-care hours and
+                references for their med, nursing, and PA applications, so the incentive to show up is built in.
+              </p>
+              <div className="mt-8 space-y-4">
+                {[
+                  "Built-in motivation: this is their career, not a side job.",
+                  "Vetted both ways: we screen them, you interview them. You choose.",
+                  "Schedules set up front: you agree on shifts before they start.",
+                  "No-call/no-show means removed from the program, and no recommendation letter unless they perform.",
+                  "Physician-led, NIA-backed, with agreements signed before any match.",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -201,7 +199,7 @@ export default function ProvidersMarketing() {
               </p>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Not the one who signs off on hiring?</h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Share it with the owner or operator — and read exactly how the program works before
+                Share it with the owner or operator, and read exactly how the program works before
                 you commit.
               </p>
               <a href={PROVIDER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center text-sm font-semibold text-primary-700 hover:underline">
@@ -220,8 +218,8 @@ export default function ProvidersMarketing() {
           <div className="divide-y divide-gray-200 border-t border-gray-200">
             {[
               {
-                q: "Are they reliable — what about no-shows?",
-                a: "Every student completes reliability acknowledgments and commits to a schedule before we match them. A no-call/no-show removes them from the program, and they don't earn a recommendation letter unless they perform — strong incentives to show up.",
+                q: "Are they reliable, and what about no-shows?",
+                a: "Every student completes reliability acknowledgments and commits to a schedule before we match them. A no-call/no-show removes them from the program, and they don't earn a recommendation letter unless they perform, so the incentive to show up is strong.",
               },
               {
                 q: "How are they vetted?",
@@ -229,7 +227,7 @@ export default function ProvidersMarketing() {
               },
               {
                 q: "Will they stick around with school?",
-                a: "Students commit to a semester of recurring availability, and many continue across terms. They're great for evenings, weekends, overnights, PRN — and full-time over winter and summer breaks.",
+                a: "Students commit to a semester of recurring availability, and many continue across terms. They're great for evenings, weekends, overnights, PRN, and full-time over winter and summer breaks.",
               },
               {
                 q: "What about insurance and liability?",
@@ -237,7 +235,7 @@ export default function ProvidersMarketing() {
               },
               {
                 q: "What does it cost?",
-                a: "$100 per confirmed hire, billed when the student works their first shift. Money back if they don't reach 15 hours — we verify against the student's required hour records, so there's nothing for you to track.",
+                a: "$100 per confirmed hire, billed when the student works their first shift. Money back if they don't reach 15 hours. We verify against the student's required hour records, so there's nothing for you to track.",
               },
             ].map((item) => (
               <details key={item.q} className="group py-5">
@@ -259,7 +257,7 @@ export default function ProvidersMarketing() {
         <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-            Stop worrying and <span className="text-primary-600">hire a student caregiver</span>.
+            Stop worrying and <span className="text-primary-600">hire college students</span>.
           </h2>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href={NEEDS_QUIZ_HREF} className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20">

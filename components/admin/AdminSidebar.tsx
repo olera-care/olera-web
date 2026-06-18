@@ -111,25 +111,23 @@ const STAKEHOLDERS_KEY = "stakeholders";
 // (territories that generate operational work), not itself an
 // operational queue. The In Basket + the queue items above surface the
 // actual triage work; Sites is the directory of activated territories.
-// v11: the MedJobs sidebar collapses to four entries. In Basket is the daily
-// work queue; Operations is the analytic hub that links out to the full list
-// pages (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates —
-// whose routes still exist, just no longer in the sidebar); Sites is the
-// territory anchor; Logs is history. Sites sits above Operations per design.
+// v11: the MedJobs sidebar collapses to three entries. In Basket is the daily
+// work queue; Stats is the analytic hub that links out to the full list pages
+// (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates, and Logs
+// — whose routes still exist, just no longer in the sidebar); Sites is the
+// territory anchor. Sites sits above Stats per design.
 const medjobsItems: NavItem[] = [
-  { label: "In Basket",  href: "/admin/medjobs/in-basket" },
-  { label: "Sites",      href: "/admin/medjobs/sites" },
-  { label: "Operations", href: "/admin/medjobs/operations" },
-  { label: "Logs",       href: "/admin/medjobs/logs" },
+  { label: "In Basket", href: "/admin/medjobs/in-basket" },
+  { label: "Sites",     href: "/admin/medjobs/sites" },
+  { label: "Stats",     href: "/admin/medjobs/stats" },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
- *  carry a count badge now; Operations + Logs are overview/history surfaces. */
+ *  carry a count badge now; Stats is an overview surface. */
 const COUNTS_KEY: Record<string, string | null> = {
-  "/admin/medjobs/in-basket":  "in_basket",
-  "/admin/medjobs/sites":      "sites",
-  "/admin/medjobs/operations": null,
-  "/admin/medjobs/logs":       null,
+  "/admin/medjobs/in-basket": "in_basket",
+  "/admin/medjobs/sites":     "sites",
+  "/admin/medjobs/stats":     null,
 };
 
 interface CountEntry {

@@ -7,11 +7,12 @@ import { KIND_LABELS } from "@/lib/student-outreach/types";
 import type { StakeholderType } from "@/lib/student-outreach/types";
 
 /**
- * MedJobs · Operations — the analytic overview hub. One tile per entity, each
- * with a headline number, delta + sparkline over the selected range, and a
- * "View all →" link to the full dedicated page. Grouped Pipeline / Activity /
- * Roster. The dedicated list pages (Prospects, Calls, Emails, Meetings,
- * Clients, Partners, Candidates) are reached from here rather than the sidebar.
+ * MedJobs · Stats — the analytic overview hub. One tile per entity, each with a
+ * headline number, delta + sparkline over the selected range, and a link to the
+ * full dedicated page. A flat tile grid (no group titles); the natural row order
+ * keeps the funnel up top with Logs in the top-right. The dedicated list pages
+ * (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates, Logs) are
+ * reached from here rather than the sidebar.
  */
 
 interface Breakdown {
@@ -22,6 +23,15 @@ interface Summary {
   provider_prospects: number;
   partner_prospects: Breakdown;
   partners: Breakdown;
+}
+interface DailyLog {
+  date: string;
+  count: number;
+}
+interface InBasketStats {
+  logs_today: number;
+  logs_today_breakdown: { calls: number; emails: number; meetings: number; replies: number; other: number };
+  daily_logs: DailyLog[];
 }
 
 const CHIP_ORDER: StakeholderType[] = ["student_org", "dept_head", "advisor", "professor"];
@@ -41,7 +51,28 @@ function SubtypeChips({ by_type }: { by_type: Record<StakeholderType, number> })
   );
 }
 
-export default function MedJobsOperationsPage() {
+function LogsChips({ b }: { b: InBasketStats["logs_today_breakdown"] }) {
+  const shown: Array<[string, number]> = (
+    [
+      ["calls", b.calls],
+      ["emails", b.emails],
+      ["mtgs", b.meetings],
+    ] as Array<[string, number]>
+  ).filter(([, n]) => n > 0);
+  if (shown.length === 0) return null;
+  return (
+    <p className="text-[11px] leading-relaxed text-gray-500">
+      {shown.map(([label, n], i) => (
+        <span key={label}>
+          {i > 0 ? " · " : ""}
+          {label} <span className="tabular-nums text-gray-700">{n}</span>
+        </span>
+      ))}
+    </p>
+  );
+}
+
+export default function MedJobsStatsPage() {
   const [range, setRange] = useState<DateRangeValue>({
     preset: "30d",
     customFrom: "",
@@ -50,6 +81,7 @@ export default function MedJobsOperationsPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [clientsTotal, setClientsTotal] = useState<number | null>(null);
   const [candidatesTotal, setCandidatesTotal] = useState<number | null>(null);
+  const [inBasket, setInBasket] = useState<InBasketStats | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,19 +98,27 @@ export default function MedJobsOperationsPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => !cancelled && setCandidatesTotal(d?.rows?.length ?? null))
       .catch(() => !cancelled && setCandidatesTotal(null));
+    fetch("/api/admin/medjobs/in-basket-stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => !cancelled && setInBasket(d))
+      .catch(() => !cancelled && setInBasket(null));
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Last ~30 business days for the Logs tile sparkline.
+  const logsSeries = inBasket?.daily_logs ? inBasket.daily_logs.slice(-30) : undefined;
+
   return (
     <div>
       <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Operations</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">MedJobs · Stats</h1>
         <DateRangePopover value={range} onChange={setRange} />
       </header>
 
-      <Group label="Pipeline">
+      {/* Flat tile grid — row order keeps the funnel up top with Logs top-right. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <OperationsStatBox
           title="Provider Prospects"
           href="/admin/medjobs/in-basket?tab=providers"
@@ -94,15 +134,22 @@ export default function MedJobsOperationsPage() {
           value={summary?.partner_prospects.total ?? null}
           chips={summary ? <SubtypeChips by_type={summary.partner_prospects.by_type} /> : null}
         />
-      </Group>
+        <OperationsStatBox
+          title="Logs"
+          href="/admin/medjobs/logs"
+          range={range}
+          series={logsSeries}
+          value={inBasket?.logs_today ?? null}
+          unit="logged today"
+          accent="gray"
+          cta="View all logs →"
+          chips={inBasket ? <LogsChips b={inBasket.logs_today_breakdown} /> : null}
+        />
 
-      <Group label="Activity">
         <OperationsStatBox title="Calls" href="/admin/medjobs/calls" range={range} metric="calls_made" unit="in range" />
         <OperationsStatBox title="Emails" href="/admin/medjobs/replies" range={range} metric="replies" unit="in range" />
         <OperationsStatBox title="Meetings" href="/admin/medjobs/meetings" range={range} metric="meetings_activity" unit="in range" />
-      </Group>
 
-      <Group label="Roster">
         <OperationsStatBox
           title="Clients"
           href="/admin/medjobs/clients"
@@ -125,16 +172,7 @@ export default function MedJobsOperationsPage() {
           metric="candidates"
           value={candidatesTotal}
         />
-      </Group>
+      </div>
     </div>
-  );
-}
-
-function Group({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <section className="mb-8">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
-    </section>
   );
 }

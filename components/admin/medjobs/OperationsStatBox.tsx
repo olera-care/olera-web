@@ -11,39 +11,59 @@ interface Stats {
   bucket: string;
 }
 
+type SeriesPoint = { date: string; count: number };
+
+const ACCENTS = {
+  emerald: { stroke: "#047857", link: "text-primary-700" },
+  gray: { stroke: "#6b7280", link: "text-gray-500" },
+} as const;
+
 /**
- * Compact dashboard tile for the Operations board: headline number + delta +
- * sparkline + "View all →". A controlled date range (owned by the board)
- * drives the sparkline/delta. Two modes:
- *   - metric set    → fetch /stats for the sparkline + delta. Headline is
- *     `value` (current roster/pipeline total) when provided, else stats.total.
- *   - metric unset  → count-only tile (no history), e.g. provider prospects.
+ * Compact dashboard tile for the Stats board: headline number + delta +
+ * sparkline + a "view all" link. A controlled date range (owned by the board)
+ * drives the sparkline/delta. Modes:
+ *   - metric set    → fetch /stats for the sparkline + delta.
+ *   - series set    → use the supplied series for the sparkline (no fetch, no
+ *     delta), e.g. the Logs tile sharing in-basket-stats daily_logs.
+ *   - neither       → count-only tile (no chart), e.g. provider prospects.
+ * Headline is `value` (current total) when provided, else the stats range
+ * total. `accent="gray"` marks a non-funnel tile (history).
  */
 export function OperationsStatBox({
   title,
   href,
   range,
   metric,
+  series,
   value,
   unit,
   chips,
+  accent = "emerald",
+  cta = "View all →",
 }: {
   title: string;
   href: string;
   range: DateRangeValue;
-  /** Stats metric for the sparkline + delta. Omit for a count-only tile. */
+  /** Stats metric for the sparkline + delta. Omit when `series` is supplied or
+   *  for a count-only tile. */
   metric?: string;
+  /** Pre-fetched sparkline series — skips the metric fetch when provided. */
+  series?: SeriesPoint[];
   /** Current total to show as the headline. When omitted (and metric set),
    *  the stats range total is shown instead. */
   value?: number | null;
-  /** Suffix under the number (e.g. "in catchment", "in range"). */
+  /** Suffix under the number (e.g. "in catchment", "logged today"). */
   unit?: string;
   chips?: React.ReactNode;
+  accent?: keyof typeof ACCENTS;
+  cta?: string;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
+  // Only fetch when a metric drives the chart AND no series was supplied.
+  const fetchMetric = metric && !series;
 
   useEffect(() => {
-    if (!metric) return;
+    if (!fetchMetric) return;
     let cancelled = false;
     const { from, to } = resolveRange(range);
     const params = new URLSearchParams();
@@ -61,13 +81,15 @@ export function OperationsStatBox({
     return () => {
       cancelled = true;
     };
-  }, [metric, range]);
+  }, [fetchMetric, metric, range]);
 
   // Headline: tiles that own a current count pass `value` (number while
   // loaded, null while loading → show "—"). Activity tiles omit `value`
   // entirely (undefined) and show the stats range total instead.
   const headline =
     value !== undefined ? value : metric ? stats?.total ?? null : null;
+  const sparkSeries = series ?? stats?.series ?? null;
+  const accentColors = ACCENTS[accent];
 
   return (
     <Link
@@ -78,8 +100,8 @@ export function OperationsStatBox({
         <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
           {title}
         </span>
-        <span className="text-xs text-primary-700 opacity-0 transition-opacity group-hover:opacity-100">
-          View all →
+        <span className={`text-xs opacity-0 transition-opacity group-hover:opacity-100 ${accentColors.link}`}>
+          {cta}
         </span>
       </div>
 
@@ -87,13 +109,13 @@ export function OperationsStatBox({
         <span className="text-3xl font-semibold tabular-nums leading-none text-gray-900">
           {headline != null ? headline.toLocaleString() : "—"}
         </span>
-        {metric ? <Delta stats={stats} range={range} /> : null}
+        {fetchMetric ? <Delta stats={stats} range={range} /> : null}
       </div>
       {unit ? <span className="mt-1 text-xs text-gray-400">{unit}</span> : null}
 
-      {metric ? (
+      {sparkSeries ? (
         <div className="mt-3">
-          <Sparkline series={stats?.series ?? []} />
+          <Sparkline series={sparkSeries} stroke={accentColors.stroke} />
         </div>
       ) : null}
 
@@ -117,7 +139,7 @@ function Delta({ stats, range }: { stats: Stats | null; range: DateRangeValue })
 const SPARK_W = 220;
 const SPARK_H = 36;
 
-function Sparkline({ series }: { series: { date: string; count: number }[] }) {
+function Sparkline({ series, stroke }: { series: SeriesPoint[]; stroke: string }) {
   const path = useMemo(() => {
     if (series.length === 0) return null;
     const max = Math.max(1, ...series.map((s) => s.count));
@@ -135,7 +157,7 @@ function Sparkline({ series }: { series: { date: string; count: number }[] }) {
   }
   return (
     <svg width="100%" height={SPARK_H} viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} preserveAspectRatio="none" aria-hidden>
-      <path d={path} fill="none" stroke="#047857" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={path} fill="none" stroke={stroke} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

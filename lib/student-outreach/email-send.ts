@@ -26,7 +26,7 @@ import {
   substituteVars,
 } from "./templates";
 import { bodyToHtml } from "./email-markdown";
-import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
+import { getProgramPdfConfig, GENERIC_SLUG } from "@/lib/program-pdf/configs";
 import {
   programPdfFilename,
   renderProgramPdf,
@@ -202,9 +202,14 @@ async function loadProgramPdfAttachment(
     }
   }
 
-  // Path 2: per-university code-defined Program PDF.
-  if (campusSlug && getProgramPdfConfig(campusSlug)) {
-    const cached = cachedProgramPdfBySlug.get(campusSlug);
+  // Path 2: code-defined Program PDF — the campus-specific config when one
+  // exists, else the generic floor config (the standard brochure). This mirrors
+  // the API route + launch guard: a flyer always resolves so emails never ship
+  // without the promised attachment.
+  const effectiveSlug =
+    campusSlug && getProgramPdfConfig(campusSlug) ? campusSlug : GENERIC_SLUG;
+  {
+    const cached = cachedProgramPdfBySlug.get(effectiveSlug);
     if (cached) {
       return [
         {
@@ -216,10 +221,10 @@ async function loadProgramPdfAttachment(
       ];
     }
     try {
-      const buf = await renderProgramPdf(campusSlug);
+      const buf = await renderProgramPdf(effectiveSlug);
       const content = buf.toString("base64");
-      const filename = programPdfFilename(campusSlug);
-      cachedProgramPdfBySlug.set(campusSlug, { content, filename });
+      const filename = programPdfFilename(effectiveSlug);
+      cachedProgramPdfBySlug.set(effectiveSlug, { content, filename });
       return [
         {
           filename,
@@ -234,7 +239,7 @@ async function loadProgramPdfAttachment(
     }
   }
 
-  // Path 2: env-var generic flyer (legacy fallback).
+  // Path 3: env-var generic flyer (legacy fallback).
   if (!FLYER_URL) return undefined;
   if (cachedEnvAttachmentChecked && cachedEnvAttachment) {
     return [

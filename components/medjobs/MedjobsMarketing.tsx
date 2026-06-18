@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import PartnerHelpCard from "@/components/medjobs/PartnerHelpCard";
 import ApplyButton from "@/components/medjobs/ApplyButton";
@@ -13,8 +12,8 @@ import ApplyButton from "@/components/medjobs/ApplyButton";
 
 const HOW_IT_WORKS = [
   {
-    title: "Create your profile",
-    description: "Add your university, major, certifications, and availability. Upload a resume and record a short video intro.",
+    title: "Complete your profile",
+    description: "Add your university, major, and semester availability. Upload a resume and record a short video intro.",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -22,8 +21,8 @@ const HOW_IT_WORKS = [
     ),
   },
   {
-    title: "Match with a family near your university",
-    description: "Local families and care teams near your university review intern profiles and match with you for a semester of recurring care.",
+    title: "Apply to caregiver jobs near your university",
+    description: "Local families and care teams near your university review profiles and hire for a semester of recurring care or as needed (PRN).",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -32,7 +31,7 @@ const HOW_IT_WORKS = [
   },
   {
     title: "Provide care while you're still in school",
-    description: "Log patient care hours, get your hours confirmed, and build a healthcare experience transcript for professional school.",
+    description: "Log real encounters, and build a healthcare experience transcript to help with your application to med, nursing, PA, or grad school.",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
@@ -54,7 +53,7 @@ export default function MedjobsMarketing() {
             <div className="lg:py-4">
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">How it works for students</p>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                From student to caregiver in 3 simple steps
+                From student to caregiver
               </h2>
               <div className="mt-10 space-y-0">
                 {HOW_IT_WORKS.map((item, i) => (
@@ -82,10 +81,9 @@ export default function MedjobsMarketing() {
                   rel="noopener noreferrer"
                   className="text-sm font-semibold text-primary-700 hover:underline"
                 >
-                  Want the exact details? Read the internship agreement ↗
+                  Read student agreement ↗
                 </a>
               </div>
-              <p className="mt-3 text-sm text-gray-400">No cost, no commitment.</p>
             </div>
           </div>
         </div>
@@ -100,32 +98,35 @@ export default function MedjobsMarketing() {
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">Day to day</p>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">What you&apos;ll actually do</h2>
               <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-                This isn&apos;t clinical work and you don&apos;t need a license. You&apos;re providing
-                companionship, light support, and genuine human connection.
+                You&apos;re providing personal care services (PAS) and genuine human connection to help
+                keep older adults safe at home.
               </p>
               <div className="mt-8 space-y-3">
                 {[
-                  "Conversation, games, and companionship",
-                  "Light meal prep and medication reminders",
-                  "Help with errands, walks, and appointments",
-                  "Light housekeeping and organization",
-                  "Monitoring wellbeing and reporting changes",
+                  { lead: "Personal care", detail: "bathing, dressing, grooming, and toileting" },
+                  { lead: "Mobility", detail: "safe transfers, walking, and getting to appointments" },
+                  { lead: "Medication reminders", detail: "plus light meal prep" },
+                  { lead: "Companionship", detail: "conversation, games, and genuine connection" },
+                  { lead: "Light housekeeping", detail: "laundry, tidying, and errands" },
+                  { lead: "Monitoring & communication", detail: "watch for changes and update the care team" },
                 ].map((task) => (
-                  <div key={task} className="flex items-center gap-3">
+                  <div key={task.lead} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                       <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                     </div>
-                    <p className="text-[15px] text-gray-700">{task}</p>
+                    <p className="text-[15px] text-gray-700">
+                      <span className="font-medium text-gray-900">{task.lead}</span> — {task.detail}
+                    </p>
                   </div>
                 ))}
               </div>
               <div className="mt-8 p-4 rounded-xl bg-primary-50 border border-primary-100">
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  <span className="font-semibold text-gray-900">No certifications required.</span>{" "}
-                  We provide free training on senior care basics, safety protocols, and communication
-                  skills before your first shift.
+                  <span className="font-semibold text-gray-900">No license required (for most positions).</span>{" "}
+                  On-the-job training is provided by partnering agencies on senior care basics, safety
+                  protocols, and communication skills before your first shift.
                 </p>
               </div>
             </div>
@@ -160,8 +161,8 @@ export default function MedjobsMarketing() {
                 Help your pre-health students find this
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                A paid, NIA-backed way to earn the patient-care hours, credential, and references
-                their applications need.
+                Paid caregiving jobs that build real healthcare experience, recommendation letters,
+                and the stories that strengthen personal statements and interviews.
               </p>
               <a
                 href="/docs/internship-agreement-sample.pdf"
@@ -225,19 +226,20 @@ export default function MedjobsMarketing() {
         <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-            Your healthcare experience starts here
+            Your healthcare career starts here
           </h2>
-          <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">Apply now. No cost, no commitment.</p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ApplyButton className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20">
               Apply Now
             </ApplyButton>
-            <Link href="/medjobs/providers" className="inline-flex items-center px-8 py-3.5 text-gray-600 text-sm font-medium hover:text-gray-900 transition-colors">
-              I&apos;m a provider
-              <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <a
+              href="/docs/internship-agreement-sample.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-primary-700 hover:underline"
+            >
+              Read student agreement ↗
+            </a>
           </div>
         </div>
       </section>

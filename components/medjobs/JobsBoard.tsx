@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
@@ -179,42 +180,28 @@ export default function JobsBoard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header + filters (campus + care type on one row) */}
-      <div className="mb-6 flex flex-col gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Find jobs near {campusName || "you"}
-          </h1>
-          <p className="mt-1 text-gray-500">
-            {loading ? "Loading jobs…" : `${sorted.length} open job${sorted.length === 1 ? "" : "s"}`}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <select value={campus} onChange={(e) => setCampus(e.target.value)} className={selectClass}>
-            <option value="">All campuses</option>
-            {PARTNER_UNIVERSITIES.map((u) => (
-              <option key={u.slug} value={u.slug}>
-                {u.name}
-              </option>
-            ))}
-          </select>
-          <select value={careFilter} onChange={(e) => setCareFilter(e.target.value)} className={selectClass}>
-            {CARE_OPTIONS.map((o) => (
-              <option key={o.label} value={o.kw}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <h1 className="mb-6 text-3xl md:text-4xl font-bold text-gray-900">
+        Find jobs near {campusName || "you"}
+      </h1>
 
-      {/* Reminder bar — shown only while the student isn't live yet */}
+      {/* Reminder banner — above the filters, shown only while not live */}
       {student.profileId && !student.isLive && (
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-gray-700">
-            <span className="font-semibold text-gray-900">Complete your profile to apply.</span>{" "}
-            Browse every job now — finishing your profile unlocks interview requests.
-          </p>
+          <div className="flex items-start gap-3">
+            <Image
+              src="/images/for-providers/team/logan.jpg"
+              alt="Dr. Logan DuBose"
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm"
+            />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Complete your profile to apply</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Browse every job now — finishing your profile unlocks interview requests.
+              </p>
+            </div>
+          </div>
           <Link
             href="/portal/medjobs"
             className="inline-flex shrink-0 items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
@@ -223,6 +210,25 @@ export default function JobsBoard() {
           </Link>
         </div>
       )}
+
+      {/* Filters — campus + care type on one row */}
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <select value={campus} onChange={(e) => setCampus(e.target.value)} className={selectClass}>
+          <option value="">All campuses</option>
+          {PARTNER_UNIVERSITIES.map((u) => (
+            <option key={u.slug} value={u.slug}>
+              {u.name}
+            </option>
+          ))}
+        </select>
+        <select value={careFilter} onChange={(e) => setCareFilter(e.target.value)} className={selectClass}>
+          {CARE_OPTIONS.map((o) => (
+            <option key={o.label} value={o.kw}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Two-column: cards left, sticky map right */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

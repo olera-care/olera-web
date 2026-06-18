@@ -288,12 +288,12 @@ function Board() {
                   className="h-9 w-9 rounded-full object-cover shadow-sm"
                 />
                 <p className="text-sm text-gray-500">
-                  Co Founded by Logan DuBose, MD, MBA &middot; General Practitioner &middot; Researcher
+                  Co-Founded by Logan DuBose, MD &middot; GP &middot; Researcher
                 </p>
               </div>
             </div>
 
-            {/* Right — hero image */}
+            {/* Right — hero image with a floating universities card */}
             <div className="relative">
               <div className="aspect-[3/2] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/10">
                 <Image
@@ -305,39 +305,36 @@ function Board() {
                   priority
                 />
               </div>
+              <div className="absolute -bottom-4 -left-4 sm:-left-6 max-w-[88%] rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-lg shadow-gray-900/10">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                  Students from
+                </p>
+                <div className="flex items-center gap-3">
+                  {[
+                    { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
+                    { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
+                    { name: "Prairie View A&M", logo: "/images/medjobs/universities/prairie-view.webp" },
+                    { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
+                    { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
+                  ].map((uni) => (
+                    <Image
+                      key={uni.name}
+                      src={uni.logo}
+                      alt={uni.name}
+                      width={120}
+                      height={60}
+                      className="h-6 w-auto object-contain opacity-80"
+                    />
+                  ))}
+                  <span className="text-lg leading-none text-gray-300" aria-hidden="true">
+                    …
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Trust band — universities (moved out of the hero to keep it short) */}
-      <div className="border-b border-gray-100 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
-            <p className="shrink-0 text-xs font-medium uppercase tracking-widest text-gray-400">
-              Students from top universities
-            </p>
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-              {[
-                { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
-                { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
-                { name: "Prairie View A&M", logo: "/images/medjobs/universities/prairie-view.webp" },
-                { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
-                { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
-              ].map((uni) => (
-                <Image
-                  key={uni.name}
-                  src={uni.logo}
-                  alt={uni.name}
-                  width={120}
-                  height={60}
-                  className="h-8 w-auto object-contain opacity-70"
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Status strip — signed-in students only (anon renders nothing) */}

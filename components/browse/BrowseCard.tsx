@@ -408,14 +408,13 @@ export default function BrowseCard({
                 Request interview
               </button>
             ) : (
-              // Anon: not a dead button — the card nudges to check eligibility on hover.
+              // Anon: not a dead button — routes into the eligibility screener.
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequestInterview?.(); }}
                 className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
               >
-                <span className="group-hover:hidden">Request interview</span>
-                <span className="hidden group-hover:inline">Check your eligibility →</span>
+                Apply Now →
               </button>
             )}
           </div>

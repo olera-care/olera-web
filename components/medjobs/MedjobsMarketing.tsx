@@ -47,7 +47,7 @@ export default function MedjobsMarketing() {
       <section id="how-it-works" className="pt-8 md:pt-12 pb-8 md:pb-12 bg-gray-50/70 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
+            <div className="aspect-[4/5] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
               <Image src="/images/medjobs/student-portrait.jpg" alt="Pre-health intern" width={600} height={800} className="w-full h-full object-cover" />
             </div>
             <div className="lg:py-4">
@@ -73,7 +73,7 @@ export default function MedjobsMarketing() {
               </div>
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <ApplyButton className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors">
-                  Apply Now
+                  Apply Now →
                 </ApplyButton>
                 <a
                   href="/docs/internship-agreement-sample.pdf"
@@ -125,8 +125,7 @@ export default function MedjobsMarketing() {
               <div className="mt-8 p-4 rounded-xl bg-primary-50 border border-primary-100">
                 <p className="text-sm text-gray-600 leading-relaxed">
                   <span className="font-semibold text-gray-900">No license required (for most positions).</span>{" "}
-                  On-the-job training is provided by partnering agencies on senior care basics, safety
-                  protocols, and communication skills before your first shift.
+                  Partnering agencies provide free on-the-job training before your first shift.
                 </p>
               </div>
             </div>
@@ -161,8 +160,8 @@ export default function MedjobsMarketing() {
                 Help your pre-health students find this
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Paid caregiving jobs that build real healthcare experience, recommendation letters,
-                and the stories that strengthen personal statements and interviews.
+                Paid caregiving jobs that earn healthcare experience, recommendation letters, and
+                stories for personal statements and interviews.
               </p>
               <a
                 href="/docs/internship-agreement-sample.pdf"
@@ -226,11 +225,11 @@ export default function MedjobsMarketing() {
         <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-            Your healthcare career starts here
+            Your healthcare career <span className="text-primary-600">starts here</span>
           </h2>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ApplyButton className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20">
-              Apply Now
+              Apply Now →
             </ApplyButton>
             <a
               href="/docs/internship-agreement-sample.pdf"

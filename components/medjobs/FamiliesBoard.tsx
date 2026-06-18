@@ -247,10 +247,7 @@ function Board() {
                     onClick={() => setShowScreener(true)}
                     className="inline-flex items-center px-7 py-3.5 bg-primary-600 text-white text-[15px] font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
                   >
-                    Apply Now
-                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
+                    Apply Now →
                   </button>
                 ) : (
                   <Link
@@ -505,7 +502,7 @@ function Board() {
         {/* ── Explore Job Options — all categories ── */}
         {!loading && cards.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">Explore job options</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">Explore job options near {campusName || "you"}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
               {CARE_OPTIONS.map((o) => (
                 <button

@@ -54,7 +54,7 @@ export default function PartnerHelpCard() {
           href={FLYER_PDF_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${cta} mt-4 border border-gray-200 text-gray-700 hover:border-gray-300`}
+          className={`${cta} mt-auto pt-4 border border-gray-200 text-gray-700 hover:border-gray-300`}
         >
           Download flyer →
         </a>
@@ -74,7 +74,7 @@ export default function PartnerHelpCard() {
         <button
           type="button"
           onClick={copyLink}
-          className={`${cta} mt-4 border border-gray-200 text-gray-700 hover:border-gray-300`}
+          className={`${cta} mt-auto pt-4 border border-gray-200 text-gray-700 hover:border-gray-300`}
         >
           {copied ? "Copied!" : "Copy link"}
         </button>
@@ -97,7 +97,7 @@ export default function PartnerHelpCard() {
           href={CALENDLY_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${cta} mt-4 bg-primary-600 text-white hover:bg-primary-700`}
+          className={`${cta} mt-auto pt-4 bg-primary-600 text-white hover:bg-primary-700`}
         >
           Book a time →
         </a>

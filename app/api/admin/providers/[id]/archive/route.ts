@@ -12,7 +12,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * - Family still gets their emails
  * - Provider profile stays live for SEO
  *
- * Body: { action: "archive" | "unarchive", reason?: string }
+ * Body: { action: "archive" | "unarchive", reason?: string, notes?: string }
  * Returns: { success, provider_id, admin_archived, connections_affected }
  */
 
@@ -20,10 +20,26 @@ const VALID_ARCHIVE_REASONS = [
   "provider_requested_no_emails",
   "inactive",
   "duplicate",
+  "out_of_business",
+  "invalid_provider",
+  "wrong_contact_info",
+  "relocated",
+  "compliance_issue",
+  "merged",
+  "other",
+] as const;
+
+const VALID_UNARCHIVE_REASONS = [
+  "provider_reactivated",
+  "contact_info_updated",
+  "archived_in_error",
+  "provider_requested",
+  "compliance_resolved",
   "other",
 ] as const;
 
 type ArchiveReason = (typeof VALID_ARCHIVE_REASONS)[number];
+type UnarchiveReason = (typeof VALID_UNARCHIVE_REASONS)[number];
 
 export async function POST(
   request: NextRequest,
@@ -51,14 +67,14 @@ export async function POST(
     }
 
     // Parse body
-    let body: { action?: string; reason?: string };
+    let body: { action?: string; reason?: string; notes?: string };
     try {
       body = await request.json();
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { action, reason } = body;
+    const { action, reason, notes } = body;
 
     if (action !== "archive" && action !== "unarchive") {
       return NextResponse.json(
@@ -95,10 +111,25 @@ export async function POST(
     const now = new Date().toISOString();
 
     if (action === "archive") {
-      // Validate reason if provided
-      if (reason && !VALID_ARCHIVE_REASONS.includes(reason as ArchiveReason)) {
+      // Validate reason is provided
+      if (!reason) {
+        return NextResponse.json(
+          { error: "Reason is required for archiving" },
+          { status: 400 }
+        );
+      }
+
+      if (!VALID_ARCHIVE_REASONS.includes(reason as ArchiveReason)) {
         return NextResponse.json(
           { error: `Invalid reason. Must be one of: ${VALID_ARCHIVE_REASONS.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      // Require notes for "other" reason
+      if (reason === "other" && !notes?.trim()) {
+        return NextResponse.json(
+          { error: "Notes are required when reason is 'other'" },
           { status: 400 }
         );
       }
@@ -109,7 +140,8 @@ export async function POST(
         admin_archived: true,
         admin_archived_at: now,
         admin_archived_by: user.email,
-        admin_archived_reason: reason || null,
+        admin_archived_reason: reason,
+        admin_archived_notes: notes?.trim() || null,
       };
 
       const { error: updateError } = await db
@@ -181,18 +213,44 @@ export async function POST(
         connections_affected: connectionsAffected,
         archived_at: now,
         archived_by: user.email,
-        reason: reason || null,
+        reason,
+        notes: notes?.trim() || null,
       });
     } else {
-      // Unarchive
+      // Unarchive - validate reason is provided
+      if (!reason) {
+        return NextResponse.json(
+          { error: "Reason is required for unarchiving" },
+          { status: 400 }
+        );
+      }
+
+      if (!VALID_UNARCHIVE_REASONS.includes(reason as UnarchiveReason)) {
+        return NextResponse.json(
+          { error: `Invalid reason. Must be one of: ${VALID_UNARCHIVE_REASONS.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      // Require notes for "other" reason
+      if (reason === "other" && !notes?.trim()) {
+        return NextResponse.json(
+          { error: "Notes are required when reason is 'other'" },
+          { status: 400 }
+        );
+      }
+
       const updatedMeta = { ...meta };
       delete updatedMeta.admin_archived;
       delete updatedMeta.admin_archived_at;
       delete updatedMeta.admin_archived_by;
       delete updatedMeta.admin_archived_reason;
+      delete updatedMeta.admin_archived_notes;
       // Add unarchive tracking
       updatedMeta.admin_unarchived_at = now;
       updatedMeta.admin_unarchived_by = user.email;
+      updatedMeta.admin_unarchived_reason = reason;
+      updatedMeta.admin_unarchived_notes = notes?.trim() || null;
 
       const { error: updateError } = await db
         .from("business_profiles")
@@ -260,6 +318,8 @@ export async function POST(
         connections_affected: connectionsAffected,
         unarchived_at: now,
         unarchived_by: user.email,
+        reason,
+        notes: notes?.trim() || null,
       });
     }
   } catch (err) {

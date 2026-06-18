@@ -1,5 +1,7 @@
 "use client";
 
+import { readDismissedToday } from "./heroDismiss";
+
 /**
  * Loading state for DashboardHero. Reserves the exact same dimensions as the
  * real hero so swapping in the resolved hero causes no layout shift. The
@@ -18,6 +20,16 @@ interface Props {
 }
 
 export default function DashboardHeroSkeleton({ firstName }: Props) {
+  // If the provider dismissed the hero today, don't flash the placeholder card
+  // during the v2Data fetch — the resolved (non-essential) hero will render null
+  // anyway, so the skeleton would just pop in and vanish. This only renders
+  // client-side (DashboardPage gates the whole tree on a client-resolved
+  // `profile`), so reading localStorage here is hydration-safe. Rare tradeoff:
+  // if a NEW action banner (lead/question) qualifies same-day after a dismiss,
+  // it appears without a skeleton — but it animates in via the parent's
+  // card-enter wrapper, and a fresh lead surfacing is good news, not jank.
+  if (readDismissedToday()) return null;
+
   return (
     <div
       aria-hidden

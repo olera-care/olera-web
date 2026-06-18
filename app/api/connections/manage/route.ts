@@ -310,7 +310,8 @@ export async function POST(request: Request) {
             .single();
 
           const recheckMeta = (recheck?.metadata as Record<string, unknown>) || {};
-          const wasAlreadyArchived = recheckMeta.archived === true;
+          // Check BOTH flags: `archived` (inbox) and `lead_archived` (provider decline)
+          const wasAlreadyArchived = recheckMeta.archived === true || recheckMeta.lead_archived === true;
 
           if (wasAlreadyArchived) {
             // Another request already archived and sent email, skip to avoid duplicate

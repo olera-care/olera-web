@@ -340,8 +340,8 @@ export default function EditPricingModal({
           </div>
           <p className="text-[13px] text-gray-500 mt-3">
             {contactForPricing
-              ? "Families will see 'Contact for pricing' instead of rates."
-              : "Families will see your starting rates on your profile."}
+              ? "Families will see ‘Contact for pricing.’ That’s fine if you can’t publish rates — though listings that show a starting price tend to get more inquiries, so we recommend it when you can."
+              : "Families will see your starting rates — listings with prices tend to get more inquiries."}
           </p>
 
           {/* Category-specific pricing guidance */}

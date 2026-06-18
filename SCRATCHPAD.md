@@ -7,6 +7,123 @@
 
 ## Current Focus
 
+### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)
+
+**Trigger:** TJ wanted to move providers from impressions to real managed-ads signups, then previewed the copy and asked for a sharper testable path. Later asked to adopt the richer design critique slash-command wrapper from the staging repo.
+
+**Shipped on branch:**
+- Reframed managed ads across provider surfaces around a clearer external-ads promise: ads run on Google/Meta/local channels, families land on the provider's Olera page, provider picks timing/budget.
+- Added local-demand context to `/provider/boost` and managed-ads tracking/Slack metadata; fixed the category namespace issue in `app/api/provider/ad-boost/request/route.ts`.
+- Added provider-level managed-ads pitch A/B test instrumentation: `direct_reach` vs `local_plan`, deterministic assignment, event metadata, variant copy helpers, admin allocation controls, and Analytics funnel card (`Shown -> Clicked -> Viewed Plan -> Requested`).
+- Added migration `supabase/migrations/111_managed_ads_pitch_variant_experiment.sql` to seed `managed_ads_pitch_variant` 50/50 and register `managed_ads_pitch_viewed` while preserving existing provider-event CHECK values.
+- Sharpened the `local_plan` variant after preview feedback: headline now reads "Send local families straight to your page" with body copy that says exactly what happens.
+- Added `.agents/skills/design-improvements/SKILL.md` so Codex can invoke the richer `/design-improvements` Claude command workflow; also copied it to the user-level skills folder.
+
+**Validation:** `npx --no-install tsc --noEmit` and `git diff --check` passed during build. Re-run once more in quicksave before PR. No cron/automation code changed.
+
+**QA next:** Apply migration 111, then preview `/provider/boost?preview_managed_ads=direct_reach` and `/provider/boost?preview_managed_ads=local_plan`; verify `/admin/analytics` Managed Ads Variants allocation/funnel; click through dashboard/Find Families nudges and confirm `managed_ads_pitch_viewed`, click, boost-view, and request events carry variant + market metadata.
+
+### 2026-06-18 — Fix post-sign-in "Sign in required" flash + close 2 stale Notion cards (`/dejank` → `/pre-test`, branch `eager-newton`, PR #1114 → staging)
+
+**Trigger:** TJ reported jank signing into the provider portal — after sign-in he'd first see the "Sign in required" gate, then the real Profile page after a refresh (sometimes auto-refreshing). Plus two "validate before building" passes on Notion cards.
+
+**Main fix (`/dejank`, PR #1114):** classic state-setter race.
+- **Root cause:** every sign-in path does `await refreshAccountData(userId)` then navigates, but `refreshAccountData` set `account` + `isLoading:false` and **never set `user`**. `user` was set *only* by the async `SIGNED_IN` event handler. When `SIGNED_IN` landed after navigation, the gate (`app/provider/layout.tsx:65`, and `RoleGate`) saw account-loaded-but-user-null → rendered "Sign in required" until the event fired and re-rendered (the perceived "auto-refresh").
+- **Fix:** set `user` atomically with `account`. `refreshAccountData(userId, overrideUser?)` now sets both in one `setState`; the 3 modal sign-in methods (password/passkey/OTP) pass the verified user via a new `toAuthUser()` helper. No-arg callers preserve `prev.user` (background refreshes unaffected). Fixes all sign-in methods + `RoleGate` at once. OAuth/magic-link were already fine (full reload re-bootstraps via `init()`).
+- **Files:** `components/auth/AuthProvider.tsx`, `components/auth/UnifiedAuthModal.tsx` (+34/−5).
+- **`/pre-test`:** clean — traced both version-counter interleavings between `refreshAccountData` and the `SIGNED_IN` handler; no flash in either (worst case = correct brief spinner). Confirmed `createClient()` is a singleton (the assumption the fix rests on). tsc clean.
+
+**Two Notion cards validated + CLOSED (no build):**
+1. **Email pre-verification cron + cold-lane suppression** — already shipped in PR #1096 (staging+main, same day card was filed). Pulled bounce data from `email_log`: account-wide **3.40%/60d, falling to 1.91%/7d** (under Resend's 4%); `oleracare.com` 3.08%→0/178 post-deploy; `question_received` 7.99%→0/20 post. Lever 4 (TTL re-verify) not warranted. CAVEAT: post-deploy window ~1d, weekly digest burst not yet fired — re-check after next digest.
+2. **Add ISR to benefits routes** — closed as won't-do/mis-scoped. Benefits content is committed TS (`pipeline-drafts.ts`/`waiver-library.ts`), not a runtime store, so "edit content → rebuild one page" is unachievable with ISR alone (every fix triggers a full rebuild regardless). Real (narrower) win = lazy SSG to cap build time at ~2,400 pages, premature until build time is a measured problem. Reopen trigger noted on card.
+
+**Run-env note:** worktree had no `node_modules`; symlinked from `~/Desktop/olera-web` (+ `.env.local`) to run tsc against current files instead of copying into the stale Desktop checkout. SCRATCHPAD updated off fresh staging (this branch) per `feedback_scratchpad_out_of_code_prs`.
+
+**NEXT:** TJ to sign in as a provider on the PR #1114 preview to confirm the flash is gone (not yet exercised on a live deploy). Then merge #1114. After next weekly digest fires, re-check `email_log` bounce by lane to confirm the deliverability fix held under burst load.
+
+### 2026-06-18 — Organic-traffic explainer for marketing team (no code; analysis + Slack memo + memory)
+
+**Trigger:** Logan asked "other reasons behind the increase in our traffic." TJ wanted a thorough, code-grounded analysis to relay to the team.
+
+**Method:** Fanned out 4 parallel agents over the codebase + git history, then dug into the repo's GSC exports directly (`docs/https___olera.care_-Coverage-Drilldown-2026-05-19/Chart.csv`, `docs/SEO Reports/.../Performance-on-Search-2026-03-27/`, and the `-2026-03-08/` Pages/Queries CSVs). Verified claims against real data instead of asserting.
+
+**Key findings (data-grounded):**
+- **Recovery, not pure growth:** the fast 4-wk climb is mostly the Vercel WAF region-block fix (403'd Googlebot ~Apr 9→mid-May) + `/review/*` noindex (PR #771, ~55% of the "crawled not indexed" bucket). Bucket doubled 31K→66K Apr 9→May 14, tracking city-pipeline thin-page growth.
+- **Benefits/insurance editorial is the organic engine.** March GSC top non-brand pages = Logan's VA-caregiver-assessment (399 clicks, pos 4.9) + BCBS-caregiver (238, pos 3.6). Chantel's TX benefits cluster (published Mar 30–May 26, so NOT in the repo's March exports — her real numbers live only in the live `/seo` thread) extends the proven shape; 640-page Senior Benefits Finder = breadth.
+- **Provider directory is an organic non-entity:** not 1 page in top 50; head terms ~pos 40. The 21K description rewrite was a wash because at pos ~40 CTR is ranking-bound, not copy-bound.
+
+**Forward direction captured (TJ, this session):** next technical-cleanup focus pivots to provider pages — category-tailored first-principles rebuild FIRST, then drive UGC completion (owner section, about, photos). Sequencing deliberate: page first so UGC lands on a page built to perform. Saved to memory `project_provider_page_seo_optimization` (+ index).
+
+**Shipped:** memo posted to **#marketing-team** (cc Chantel + Logan) via `/slack-notes`. Iterated heavily with TJ on framing — killed the "correcting our prior mistakes" spine, rebalanced so benefits content is a bright-spot-to-lean-into (not a pivot), fixed attribution (VA/BCBS = Logan's, not Chantel's).
+
+**NEXT (open, both quick GSC pulls):** (1) clicks 28d-before-Apr-9 vs latest-28d to confirm *above* baseline vs merely recovered; (2) Chantel's six TX URLs' current clicks/impressions to quantify her contribution (offered to post a follow-up in-thread once TJ supplies them).
+
+### 2026-06-18 — Benefits program page: single layout spine (`/design-improvements` → `/punch`, branch `sparky-noether`, PR #1109 → staging)
+
+**Trigger:** TJ ran `/design-improvements` on a desktop full-page capture of `/benefits/texas/star-plus-medicaid-hcbs`. Phase 1 diagnosis surfaced 4 findings; TJ picked **#1, the layout spine alignment** to execute via `/punch`.
+
+**Root cause:** On `xl` benefit pages the hero (`max-w-2xl mx-auto`, centers in full viewport) and the body+rail (separate `xl:max-w-[84rem]` flex, content centered in a ~60rem `flex-1`) hung off **three different centering axes**. The H1 and body left edges didn't match, and the sticky "Could you qualify?" card floated with a ~12rem dead gulf beside the content.
+
+**Fix (`components/waiver-library/ProgramPageV3.tsx`, +13/−5, 4 surgical `xl:`-gated edits):**
+1. Container `xl:max-w-[84rem] gap-12` → `[69rem] gap-10` — `flex-1` now lands at the readable ~41.5rem so content *fills* its column (no gulf, no inter-section wander).
+2. Hero wrapped in the same two-column frame + a `21rem` reserved rail column (only when `showBenefitsCTA`), so the H1 shares the body's left gutter.
+3. Section nav (`SectionNav` got a `hasRail` prop) gets the same frame — full-width sticky bar preserved, pills shift to the content gutter.
+4. All gated on `showBenefitsCTA` + `xl:` — resource/navigator (no-rail) pages stay viewport-centered; below-xl is byte-identical to before.
+
+**Verified:** `/pre-test` traced all 4 breakpoint×rail states — hero/body/nav/card share one left gutter in the rail case (math: both `flex-1` text-left = `container_left + 4rem`), viewport-centered in the no-rail case, original below xl. tsc clean (0). Key alignment math holds to the pixel because hero `flex-1` carries `px-6 lg:px-8` matching the body section gutter, and both `flex-1`s are the same width.
+
+**Disclosed tradeoff (not a bug):** the `max-w-5xl` service-area map clamps to the column on xl-rail pages → tighter 2-up grid. But `draftToWaiverProgram` (page.tsx) never maps `serviceAreas`, so draft-based pages (e.g. TX STAR+PLUS) render no map at all; only rarer waiver-library base programs are affected.
+
+**NEXT:** TJ to eyeball the Vercel preview at **≥1280px** (xl breakpoint — won't show on mobile), confirm one clean column, then merge #1109. Remaining `/design-improvements` findings if he wants more: #2 elevate the conversion card, #3 de-template "What's covered" (both `/punch`), #4 mobile container discipline (`/mobilize`, needs a 375px shot).
+
+### 2026-06-17 — Design slash-command family: improve `/ui-critique` + add `/design-improvements` master (branch `graceful-mcclintock`)
+
+**Trigger:** TJ compared `/ui-critique` against `/punch` and asked where it could improve, then to fold in `/mobilize`, then to build a master command stringing them together.
+
+**Changes (`.claude/commands/`, tooling — no product code):**
+- **`ui-critique.md` (modified):** grafted `/punch`'s mandatory inspiration-folder study + anti-anchor rule (was a static brand-name prose list, no real frames); added a "Read the component" section (screenshot shows one state, code shows all — empty/loading/error); added a **Mobile/Responsive lens** (375px, tap targets, container discipline) that hands off to `/mobilize` instead of duplicating its 7 lenses; fixed positioning (diagnoses-not-builds, routes to `/punch` or `/mobilize`); killed the hardcoded "they mentioned having ideas" line.
+- **`design-improvements.md` (NEW):** master orchestrator. **Reads each sub-command file at runtime** (DRY — doesn't duplicate their logic, so it never goes stale). Pipeline `ui-critique → punch → mobilize → dejank → verify` (order deliberate: shape→mobile→motion). Phase 2 triages findings into lanes + asks TJ for scope before executing; honors each sub's own confirmation gates; verify once at the end via Vercel preview.
+
+**Command family now:** `/ui-critique` (diagnose, no build) → `/punch` (boldness/copy), `/mobilize` (mobile, waits), `/dejank` (motion). `/design-improvements` conducts all four.
+
+**`/pre-test`:** caught 1 real bug — `design-improvements` claimed "all four share the same inspiration folder + anti-anchor rule"; verified false (dejank is a console/state-tracing motion tool, reads no folder; mobilize has no formal anti-anchor rule + uses a 2nd folder). Scoped the claim to the 3 aesthetic lanes. Fixed. Inspiration folder + all 4 command paths confirmed on disk.
+
+**NEXT:** none required — self-contained tooling change. PR to staging.
+
+### 2026-06-17 — Author byline on all weekly-digest variants (branch `good-pasteur`, PR #1093 → staging)
+
+**Trigger:** TJ noticed the "About the Author" trust byline (photo + "Olera is built by Dr. Logan DuBose … and TJ Falohun …") shipped on only some weekly-digest variants. Audit → game plan → build.
+
+**Audit:** byline on **3 of 8** variants as **three drifting copies** — `managed_ads` (inline), `referral_teaser` (`referralTeaserTrustBlock`, richer "Why Olera maps this"), `cold_rank_note` (deliberate Logan-only CRO sig). One copy had a wrong WAF-blocked `olera.care/images` photo URL. **5 bare:** `family_question`, `leads_recap`, `market_rank_digest`, `weekly_digest_plain`, `completion_nudge`.
+
+**Built (`lib/email-templates.tsx`):** new `authorBylineBlock({topBorder?,heading?,tail?})` helper = one source of truth (Supabase-hosted photo — olera.care/images is WAF-challenged in email). Added to all 5 bare variants; refactored `managed_ads` + `referral_teaser` onto it; left `cold_rank_note` alone. `/pre-test` = clean (balanced HTML all 3 shapes, 0 tsc errors, no signature changes). Commit `dc91d3a7`, **PR #1093 → staging**.
+
+**NEXT (in progress):** move outbound weekly-digest sends **off `olera.care`** to a cousin domain to protect the crown-jewel domain from bounce/reputation damage — auditing send-from wiring + path forward. See [[project_email_deliverability]] (three-tier domains; provider-notify domain split shipped via PR #860, env-gated).
+
+### 2026-06-17 — June 16 mega-meeting → per-team brief in Notion (no code)
+
+Read the **full transcript** (not just the auto-summary) of the June 16 "Careshifts (Chantel Workflow Integration) & Olera Product Development Meeting" and split it into 3 copy-paste team chunks (metrics + summary + action items): **(1) CareShifts** (Chantel onboarding to staging/main cadence; ~50–60% reusable from MedJobs; Approach A student/internship pipeline vs B recruit-10-vetted-caregivers fork), **(2) Eng & Ops** (provider email bouncing on leads/Daily Digest; claimed-provider email-change-overrides-verification security hole, editing temp-disabled; first-ever paying customer re-engaged), **(3) Marketing/SEO** (4-wk WoW organic uptrend, provider pages 90%/benefits #2/blogs punch above weight; Instagram CTA → move to FB ads; editorial = Cess audits→Logan rewrites; provider-page UGC/category levers **deferred 2–4wk** until MVPs stabilize). Notion brief: `3825903a-0ffe-8182-9f92-c39617e1f01b` (child of meeting note `3815903a-0ffe-8019-…`). Name fix: transcript "Seth"→**Cess**, "Gracie/Greasy"→**Graize**. TJ distributed chunks to #marketing-team + #ai-product-development. No repo changes.
+
+### 2026-06-16 — First managed-ads conversion (Franchil) + Ad Boost admin overhaul (branch `adboost-admin-delete`, PR #1073)
+
+**Trigger:** Franchil LLC (Killeen TX home-care, self-serve signup 6/11, 95% complete, 0 organic leads) became the **first real managed-ads concierge conversion** — submitted a Google+Meta request, setup week 6/22. Sparked two threads.
+
+**Thread 1 — Franchil outreach + terms (PR #1072, MERGED to staging; TJ promoted staging→main separately).**
+- Drafted the outreach email to Hilda Boiwo → **Notion page** under "Olera Pro 2.0 / monetization exploration" (`3815903a…`). Iterations: dropped "you're our first" framing (reads as untested), reframed $50 as no-risk "to get you started," **killed the meeting ask** → one-reply "go" close ($50 starter run needs no budget decision; budget convo deferred to after results).
+- **New hosted T&C page `/managed-ads-terms`** (`app/managed-ads-terms/page.tsx`, noindex, reuses `LegalPageLayout`) — email links to it instead of pasting terms inline. Covers: claimed+consenting only, campaigns on Olera's own accounts→own page, **no guaranteed results**, leads stay provider's/no commission, cancel anytime, TX law. Pressure-tested the legal model (own-page + consent = clean; counsel sign-off + fee-vs-at-cost decision flagged before scaling).
+
+**Thread 2 — Ad Boost admin queue rebuilt (PR #1073, branch `adboost-admin-delete`, NOT yet merged).** Files: `app/admin/ad-boost/page.tsx` (list), `app/admin/ad-boost/[id]/page.tsx` (NEW detail), `app/api/admin/ad-boost/route.ts`, `components/admin/AdBoostShared.tsx` (NEW shared), `lib/ad-boost/delivered.server.ts`, migrations 108+109.
+- **Delete + soft-delete/archive.** Hard delete (test scrub) + reversible archive (`deleted_at`) for real providers. Active/Archived tabs w/ counts. Migration **108** (`deleted_at`) — APPLIED.
+- **List redesigned** from sloppy stacked form-cards → dense 3-column triage table (Provider · Status · Setup week + Archive/Delete), fixed-width cols (fixed an `auto`-last-column misalignment bug), sorted by setup week asc, channel as subline tag, inline edit removed. Date formatting unified + local-parse fix (UTC off-by-one).
+- **Per-campaign detail page** (provider name → `/admin/ad-boost/[id]`): Campaign setup (status/channel/setup-week/tag/note + UTM URL), **Leads** (real benefits_completed families attributed by utm_campaign, no PHI — care need/state/date), **Performance** (delivered + manual spend/clicks entry → cost-per-family computed; migration **109** `ad_spend_cents`/`ad_clicks` — APPLIED), Manage (archive/delete). Header "View provider record" → `/admin/directory/[providerId]` (admin record w/ comms timeline), not bare public page.
+- **`/code-review` (high effort, 8 angles): clean** — no reachable correctness bugs. Survivors all low: optional race-guard on detail fetch (practically unreachable), `Number.isFinite` spend hardening (devtools-only), duplicated archive/delete handlers (could be a hook). tsc clean throughout.
+
+**Thread 2 update (PM) — all merged + a reconcile.** `/pr-merge` landed **#1073** (Ad Boost rework) and **#1076** to staging. **#1056** (`fix-boost-gallery-completeness`, a parallel session) came up for merge but was 68 commits behind and diverged on the now-rewritten `page.tsx`+`route.ts` with a redundant admin-delete → **reconciled**: cherry-picked only its still-current completeness work (`scoreGallery` 3-photos→100, `scorePricing` decision-not-a-wall, eligibility remaining-impact sort, EditPricingModal copy) into **#1076** off fresh staging; **#1056 CLOSED**. Skipped the 2 optional hardenings (review was clean). Migrations 108+109 applied. Notion PR-merge reports filed for #1073/#1076/#1056-reconcile.
+
+**Thread 1 update (PM) — Franchil email fully scrubbed + ready to send.** Worked the outreach email line-by-line with TJ (Notion `3815903a…`, "Email — ready to copy" block). Key honesty/voice fixes: **killed the `$50 → "bring in your first lead"` overpromise** (cost math: home-care lead ~$80–150; $50 ≈ ~1 at best, contradicts terms §5 "no guaranteed results" + the #1075 budget-step copy) → reframed $50 as "get live + families seeing your page"; **dropped "one of the most complete we've seen / nothing to fix"** (unsubstantiated + her photos are okay-not-great) → "in good shape, can launch as-is" + soft post-launch "stronger photos" nudge (page photos = ad creative); **dropped the "reply 'go'" CTA** (she already requested it — don't re-ask consent) → confirmation tone; **clarified budget roles** ("you set the spend, we run the campaign", not vague "we'll set the budget"); **removed all em dashes** (AI tell); dropped the fixed "live by June 22" date → "within a few days". Subject: **"Getting Franchil's campaign live"** (TJ's pick over my options). Solo TJ sig (dropped two-founder bio). **Terms link is on main/prod but render NOT machine-confirmed (WAF/429) — TJ to eyeball `olera.care/managed-ads-terms` in browser before sending.**
+
+**NEXT:** TJ sends the Franchil email (after browser-checking the terms link), then builds the actual Google+Meta $50 campaign (concierge v1, manual). **#1075 `managed-ads-budget-step` MERGED** (parallel session, 10:29 UTC) — migration collision resolved by renumber **108→110** (`110_ad_campaign_budget.sql`, adds `intended_monthly_budget` column), rebased onto the rewritten admin files. Verify migration 110 is applied to the shared DB (108+109 were applied this session; 110 likely applied by the other session — confirm). Other opens: per-channel (Google-vs-Meta) Performance split; connection-request leads (need utm-on-event check); counsel sign-off + fee-vs-at-cost decision before scaling; suggested-to-skip detail-page hardenings (race guard + isFinite) if ever revisited.
+
 ### 2026-06-14 — Provider outreach reframed to host-site / eligibility-screener funnel (branch `claude/keen-mendel-6i8iW`)
 
 **Context:** Long design session (with Logan) reworking the MedJobs **provider funnel** around a lightweight **eligibility screener** as the single converging CTA, an **internship/host-site** framing, a **two-tier terms** model (free non-circumvention "interview terms" = existing `interview_terms_accepted_at` / `PilotTermsModal`, before any interview; paid internship agreement at good-fit), **coarse coverage buckets + PRN** for matching, **term-scoped** availability with finals re-plans, and a **pay-once, guaranteed-until-threshold-hours** fee. Funnel is being designed step-by-step ("inch by inch") before any build.
@@ -210,6 +327,16 @@ Two threads, neither touching the codebase (DNS + Notion + memory only — `git 
 **2. olera.care human-send email auth FIXED (Notion P2 → Done, live-verified).** Manual Gmail sends from @olera.care (TJ/Logan/Graize) were landing in spam — mail-tester 4/10, driven entirely by a −6 SPF/DKIM/DMARC auth fail. Two root causes, both fixed in Cloudflare DNS + Google Admin: (a) duplicate root SPF (Google + leftover Squarespace = RFC-7208 PermError) → merged to one `v=spf1 include:_spf.google.com include:squarespace-mail.com ~all`, deleted the standalone Squarespace record; (b) no Google DKIM → published the Workspace 2048-bit key at `google._domainkey` (Cloudflare auto-split the 408-char value, correct) + clicked Start Authentication. Re-test **10/10**, "properly authenticated" green. Resend transactional path verified unaffected throughout (own `resend._domainkey` + `send.olera.care` envelope SPF — the broken root SPF never touched it). → memory `project_email_deliverability` updated; Slack-noted to #ai-product-development.
 
 **Next up:** remaining open P1 work = connect-two-sides remnants (email-quality badge, lead-outcome cron, `connection_succeeded` event) + the overdue SBF V3 keep/kill decision (variant's been live at ~60% — pull the funnel and call it). Squarespace SPF include can be trimmed later if olera.care no longer sends via Squarespace.
+
+### 2026-06-17 — Admin overview provider count: show live listings, not raw table total (branch `codex/admin-provider-live-count`)
+
+**What:** Fixed the admin Overview "Provider Directory" stat after DB analysis showed `olera-providers` has 115,598 total rows but only ~74,139 active/live listings; the rest are soft-deleted data-sweep cleanup rows. The card was misleading because it fetched `/api/admin/directory?tab=all&count_only=true`, which intentionally includes deleted rows.
+
+**Change:** `app/admin/page.tsx` now fetches `/api/admin/directory?tab=published&count_only=true` and renames the card subtitle from "Total providers" to **"Live listings"**. This reuses the existing directory API's published scope (`deleted IS NULL OR false`) instead of changing API semantics for other screens.
+
+**Verification:** Static sanity check clean. `npm run lint` could not run in this worktree because `node_modules` is missing (`next: command not found`).
+
+**Next up:** Push/open PR, let preview/staging confirm the card shows the ~74k live count, then merge/deploy.
 
 ### 2026-06-10 — Editorial freshness: /caregiver-support/ decay audit + byline refresh-date emphasis (branch `modest-nobel`)
 
@@ -2901,4 +3028,3 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-

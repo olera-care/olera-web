@@ -139,6 +139,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Skip if provider is admin-archived (no emails sent to them)
+      if (meta.admin_archived === true) {
+        counts.skipped++;
+        continue;
+      }
+
       const providerName = provider.display_name || "your organization";
       const createdAt = new Date(provider.created_at);
       const createdMonth = createdAt.getMonth() + 1;

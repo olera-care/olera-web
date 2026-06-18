@@ -23,6 +23,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { connection_id, source, destination } = body;
 
+    // Require connection_id - without it, the event becomes an "orphan" that
+    // can't be matched to a specific lead, causing providers to appear stuck
+    if (!connection_id) {
+      return NextResponse.json({ tracked: false, reason: "no_connection_id" });
+    }
+
     // Get authenticated user
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -92,8 +98,8 @@ export async function POST(request: NextRequest) {
       profile_id: profile.id,
       event_type: "lead_opened",
       metadata: {
-        connection_id: connection_id || null,
-        lead_id: connection_id || null,
+        connection_id,
+        lead_id: connection_id,
         source: source || "magic_link",
         destination: destination || null,
       },

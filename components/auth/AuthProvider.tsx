@@ -84,7 +84,7 @@ interface AuthContextValue extends AuthState {
   /** Close the unified auth modal */
   closeUnifiedAuth: () => void;
   signOut: (onComplete?: () => void) => Promise<void>;
-  refreshAccountData: (overrideUserId?: string) => Promise<void>;
+  refreshAccountData: (overrideUserId?: string, overrideUser?: AuthState["user"]) => Promise<void>;
   switchProfile: (profileId: string) => void;
 }
 
@@ -912,7 +912,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
    * authentication (before React state has updated the ref).
    * Updates cache on success. Clears fetchError on success.
    */
-  const refreshAccountData = useCallback(async (overrideUserId?: string) => {
+  const refreshAccountData = useCallback(async (
+    overrideUserId?: string,
+    overrideUser?: AuthState["user"],
+  ) => {
     const userId = overrideUserId || userIdRef.current;
     if (!userId) return;
 
@@ -926,6 +929,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         cacheAuthData(userId, data);
         setState((prev) => ({
           ...prev,
+          // Set `user` atomically with `account` when the caller supplies it
+          // (immediately after sign-in). Auth gates key on `user`, but `user`
+          // is otherwise only set by the async SIGNED_IN event — which lands a
+          // beat AFTER this awaited prewarm sets `account`. That gap is the
+          // post-sign-in "Sign in required" flash: account loaded, user still
+          // null. Setting both together closes it for every sign-in method.
+          user: overrideUser ?? prev.user,
           account: data.account,
           activeProfile: data.activeProfile,
           profiles: data.profiles,

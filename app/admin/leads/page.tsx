@@ -168,7 +168,9 @@ function InlineEmailInput({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [undeliverable, setUndeliverable] = useState(false);
+  // Which verdict (if any) is offering a force-through escape: a hard-bounce
+  // 'undeliverable', or a catch-all 'risky'. null = no override affordance.
+  const [forceKind, setForceKind] = useState<"undeliverable" | "risky" | null>(null);
 
   async function submit(force: boolean) {
     if (!email.trim() || !lead.to_profile?.id) return;
@@ -188,18 +190,22 @@ function InlineEmailInput({
 
       if (res.ok) {
         setSuccess(true);
-        setUndeliverable(false);
+        setForceKind(null);
         setTimeout(() => onEmailAdded(), 1500);
       } else {
         const data = await res.json();
         setError(data.message || data.error || "Couldn't save that — try again.");
-        // 422 + undeliverable: address was rejected — let the operator grab a
-        // better one, or send to it anyway if they're sure.
-        setUndeliverable(res.status === 422 && data.error === "undeliverable");
+        // 422 + undeliverable/risky: address was rejected — let the operator grab
+        // a better one, or override if they're sure.
+        setForceKind(
+          res.status === 422 && (data.error === "undeliverable" || data.error === "risky")
+            ? data.error
+            : null,
+        );
       }
     } catch {
       setError("Network hiccup — try again.");
-      setUndeliverable(false);
+      setForceKind(null);
     } finally {
       setSaving(false);
     }
@@ -252,7 +258,7 @@ function InlineEmailInput({
       {error && (
         <p className="text-xs text-gray-500">
           {error}
-          {undeliverable && (
+          {forceKind && (
             <>
               {" · "}
               <button
@@ -261,7 +267,7 @@ function InlineEmailInput({
                 disabled={saving}
                 className="text-gray-400 underline underline-offset-2 hover:text-gray-700 transition disabled:opacity-40"
               >
-                send to it anyway
+                {forceKind === "risky" ? "add it anyway" : "send to it anyway"}
               </button>
             </>
           )}

@@ -14,6 +14,15 @@ import {
 } from "@/lib/next-best-action";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
+import {
+  HERO_DISMISS_KEY,
+  isDismissibleBanner,
+  todayStamp,
+  readDismissedToday,
+} from "./heroDismiss";
+import type { ManagedAdsVariant } from "@/lib/analytics/managed-ads-variant";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -129,6 +138,9 @@ function bumpHeroRotation(): number {
   }
 }
 
+// Dismiss helpers (shared with DashboardHeroSkeleton so the skeleton hides too).
+// See heroDismiss.ts for the Robinhood-style daily-reset rationale.
+
 interface Props {
   firstName: string;
   data: ProviderDashboardV2Data;
@@ -207,7 +219,30 @@ export default function DashboardHero({
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
   // rotation below.
   const [rotationCount] = useState(bumpHeroRotation);
-  const hook = resolveHook(data, completeness, category, rotationCount);
+  const managedAdsVariant = useManagedAdsVariant(providerSlug);
+  const hook = resolveHook(
+    data,
+    completeness,
+    category,
+    rotationCount,
+    managedAdsVariant ?? "direct_reach",
+  );
+
+  // Robinhood-style dismiss: only the non-essential banner is hideable, and only
+  // for the rest of today. `hidden` gates rendering + every side effect below so
+  // a dismissed banner fires no impression and clears the mobile sticky CTA.
+  const [dismissedToday, setDismissedToday] = useState(readDismissedToday);
+  const dismissible = isDismissibleBanner(hook.bannerId);
+  const hidden = dismissible && dismissedToday;
+
+  const handleDismiss = () => {
+    try {
+      window.localStorage.setItem(HERO_DISMISS_KEY, todayStamp());
+    } catch {
+      /* storage blocked — dismissal just won't persist across reloads */
+    }
+    setDismissedToday(true);
+  };
 
   // Preload every tier image once the hero mounts. After a provider saves
   // a section the picker re-evaluates and the hero swaps to a different
@@ -229,6 +264,7 @@ export default function DashboardHero({
   }, []);
 
   const firedImpression = useRef<string | null>(null);
+  const firedManagedAdsPitch = useRef(false);
   const { bannerId } = hook;
   const sectionId =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;
@@ -240,23 +276,38 @@ export default function DashboardHero({
   // all banners. Section banners still carry section/weight for the existing
   // rollup.
   useEffect(() => {
+    if (hidden) return; // dismissed today — not shown, so not an impression
     if (firedImpression.current === bannerId) return;
     firedImpression.current = bannerId;
     track("provider_picker_impression", providerSlug, {
       source: "hero",
       banner: bannerId,
+      ...(bannerId === "managed_ads" ? { managed_ads_variant: managedAdsVariant ?? "direct_reach" } : {}),
       ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
-  }, [bannerId, sectionId, sectionWeight, providerSlug]);
+  }, [hidden, bannerId, managedAdsVariant, sectionId, sectionWeight, providerSlug]);
+
+  useEffect(() => {
+    if (hidden || bannerId !== "managed_ads" || !managedAdsVariant || firedManagedAdsPitch.current) return;
+    if (isManagedAdsPreviewMode()) return;
+    firedManagedAdsPitch.current = true;
+    trackProviderEvent(providerSlug, "managed_ads_pitch_viewed", {
+      provider_name: firstName,
+      source: "hero",
+      managed_ads_variant: managedAdsVariant,
+    });
+  }, [hidden, bannerId, firstName, managedAdsVariant, providerSlug]);
 
   // Tell the dashboard which banner won this visit, so it can suppress the
   // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
   // When the managed-ads banner wins, also warm the boost-state cache so the
-  // "Get started" → /provider/boost transition paints instantly (no snap).
+  // "Get my launch plan" → /provider/boost transition paints instantly (no snap).
   useEffect(() => {
-    onBannerResolved?.(bannerId);
-    if (bannerId === "managed_ads") prefetchBoostState();
-  }, [bannerId, onBannerResolved]);
+    // When dismissed, the hero shows nothing — report no resolved banner so the
+    // dashboard's separate (non-hero) managed-ads nudge isn't wrongly suppressed.
+    onBannerResolved?.(hidden ? "" : bannerId);
+    if (!hidden && bannerId === "managed_ads") prefetchBoostState();
+  }, [hidden, bannerId, onBannerResolved]);
 
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
   // the bar mirrors EXACTLY the tier the hero landed on this visit — no
@@ -266,7 +317,9 @@ export default function DashboardHero({
     hook.cta && !isSectionCta(hook.cta) ? hook.cta.href : null;
   useEffect(() => {
     if (!onHeroAction) return;
-    if (!hook.cta) {
+    // Hidden (dismissed) → clear the mobile sticky CTA so it doesn't mirror a
+    // banner that isn't on screen.
+    if (hidden || !hook.cta) {
       onHeroAction(null);
       return;
     }
@@ -277,7 +330,7 @@ export default function DashboardHero({
     );
     // hook.cta is recomputed each render; key the effect on its primitives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onHeroAction, sectionId, heroActionLabel, heroActionHref]);
+  }, [onHeroAction, hidden, sectionId, heroActionLabel, heroActionHref]);
 
   const handleSectionClick = (cta: SectionCta) => {
     track("provider_picker_clicked", providerSlug, {
@@ -308,9 +361,14 @@ export default function DashboardHero({
       trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
         provider_name: firstName,
         source: "hero",
+        managed_ads_variant: managedAdsVariant ?? "direct_reach",
       });
     }
   };
+
+  // Dismissed for today — render nothing. The wrapping div in DashboardPage has
+  // no intrinsic height, so this leaves no gap.
+  if (hidden) return null;
 
   return (
     <HeroCard
@@ -319,6 +377,7 @@ export default function DashboardHero({
       className="mb-6"
       onSectionClick={handleSectionClick}
       onNavClick={handleNavClick}
+      onDismiss={dismissible ? handleDismiss : undefined}
     />
   );
 }
@@ -350,6 +409,7 @@ export function HeroCard({
   className = "",
   onSectionClick,
   onNavClick,
+  onDismiss,
 }: {
   firstName: string;
   hook: Hook;
@@ -357,6 +417,10 @@ export function HeroCard({
   className?: string;
   onSectionClick?: (cta: SectionCta) => void;
   onNavClick?: (cta: NavCta) => void;
+  /** When provided, renders a dismiss (X) in the top-right. Only the live
+   *  dashboard passes this (for non-essential banners); the admin preview omits
+   *  it so previews show the banner content uncluttered. */
+  onDismiss?: () => void;
 }) {
   // Photo + gradient paint for desktop/responsive; mobile is solid warm-950.
   const showPhoto = surface !== "mobile";
@@ -377,6 +441,25 @@ export function HeroCard({
 
   return (
     <div className={`relative overflow-hidden rounded-2xl bg-warm-950 ${minH} ${className}`}>
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/30 text-white/90 backdrop-blur-sm hover:bg-black/50 hover:text-white active:bg-black/60 transition-colors"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.25}
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
       {showPhoto && (
         <>
           {/* Background image — warm photo behind the card. backgroundSize is
@@ -574,13 +657,13 @@ function marketIntelHook(): Hook {
  *  Shown regardless of completeness — the 70% eligibility gate lives on
  *  /provider/boost, which routes thin profiles to "finish these to unlock," so
  *  the ads desire pulls providers into completing. */
-function managedAdsHook(): Hook {
+function managedAdsHook(variant: ManagedAdsVariant): Hook {
+  const copy = managedAdsPitchCopy(variant);
   return {
     bannerId: "managed_ads",
-    headline: "Reach families already searching for care.",
-    subline:
-      "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up.",
-    cta: { label: "Get started", href: "/provider/boost" },
+    headline: `${copy.headline} ${copy.accent}.`,
+    subline: copy.body,
+    cta: { label: "Get my launch plan", href: "/provider/boost" },
     imageUrl: TIER_MANAGED_ADS_IMAGE,
   };
 }
@@ -590,6 +673,7 @@ function resolveHook(
   completeness: ProfileCompleteness,
   category: ProfileCategory | null,
   rotationCount: number,
+  managedAdsVariant: ManagedAdsVariant,
 ): Hook {
   const { greeting } = data;
 
@@ -646,7 +730,7 @@ function resolveHook(
     if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();
   }
-  return managedAdsHook();
+  return managedAdsHook(managedAdsVariant);
 }
 
 /** One previewable banner: the stable id (matches the leaderboard) + the hook
@@ -667,7 +751,7 @@ export function buildBannerPreviews(): BannerPreview[] {
     { bannerId: "leads", hook: leadsHook(3) },
     { bannerId: "questions", hook: questionsHook(2) },
     { bannerId: "find_families_live", hook: nearbyFamiliesHook(1) },
-    { bannerId: "managed_ads", hook: managedAdsHook() },
+    { bannerId: "managed_ads", hook: managedAdsHook("direct_reach") },
     { bannerId: "find_families_intel", hook: marketIntelHook() },
     { bannerId: "view_spike", hook: viewSpikeHook(33, 12, 9) },
   ];

@@ -1199,11 +1199,26 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Domain ring-fence (per-recipient, not per-type). Unclaimed/directory
+      // recipients are the high-bounce pool (cold_rank, managed_ads, plain
+      // digest bounce 9-14% sending to never-verified addresses). Route their
+      // From to PROVIDER_NOTIFY_FROM (the cousin domain) when configured so
+      // their bounces don't degrade olera.care; claimed/engaged providers (0%
+      // bounce, brand-positive) stay on the crown jewel. Verification applies to
+      // the whole digest regardless via VERIFY_ON_SEND_TYPES in lib/email.ts.
+      // Undefined → sendEmail falls back to the default olera.care From.
+      const isUnclaimed = !bp.account_id && bp.claim_state !== "claimed";
+      const digestFrom =
+        isUnclaimed && process.env.PROVIDER_NOTIFY_FROM
+          ? process.env.PROVIDER_NOTIFY_FROM
+          : undefined;
+
       try {
         await sendEmail({
           to: bp.email,
           subject,
           html,
+          from: digestFrom,
           emailType: "weekly_analytics_digest",
           recipientType: "provider",
           // Stamp the email_log row with the same id the answer endpoint

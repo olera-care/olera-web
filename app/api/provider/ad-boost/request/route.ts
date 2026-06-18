@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
 import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
+import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
 
 /**
  * Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — campaign request.
@@ -25,6 +26,7 @@ const OPEN_STATUSES = ["requested", "scheduled", "live"];
 // Anything that should stop a provider from queueing a *second* campaign.
 const ACTIVE_OR_PENDING = ["pending_profile", "requested", "scheduled", "live"];
 const VALID_CHANNELS = ["google", "meta", "both"];
+const DEMAND_WINDOW_DAYS = 7;
 
 export async function GET() {
   const elig = await loadAdBoostEligibility();
@@ -33,9 +35,15 @@ export async function GET() {
   }
 
   const db = getServiceClient();
+  const demand = await loadDemandSignal(db, {
+    city: elig.city,
+    state: elig.state,
+    category: elig.category,
+  });
+
   let { data: latest } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -56,7 +64,7 @@ export async function GET() {
       })
       .eq("id", latest.id)
       .eq("status", "pending_profile") // guard against a double-promote race
-      .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
       .maybeSingle();
 
     if (promoted) {
@@ -71,6 +79,7 @@ export async function GET() {
         completeness: elig.eligibility.overall,
         setupWeek: promoted.requested_setup_week,
         channel: promoted.channel,
+        budget: promoted.intended_monthly_budget,
         launchReady: true,
       });
       await sendSlackAlert(alert.text, alert.blocks);
@@ -89,7 +98,14 @@ export async function GET() {
 
   return NextResponse.json({
     eligibility: elig.eligibility,
-    provider: { slug: elig.slug, displayName: elig.displayName },
+    provider: {
+      slug: elig.slug,
+      displayName: elig.displayName,
+      city: elig.city,
+      state: elig.state,
+      category: elig.category,
+    },
+    demand,
     request: latest ?? null,
     delivered,
   });
@@ -108,7 +124,7 @@ export async function POST(request: NextRequest) {
   // not entry. No 403; commitment-first is the whole point.
   const queued = !elig.eligibility.eligible;
 
-  let body: { setupWeek?: unknown; channel?: unknown };
+  let body: { setupWeek?: unknown; channel?: unknown; intendedMonthlyBudget?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -143,12 +159,29 @@ export async function POST(request: NextRequest) {
     channel = body.channel;
   }
 
+  // ── Validate optional intended budget ── (non-binding; seeds the concierge
+  // conversation, NOT a charge). Allowlisted to the budget stops so the value is
+  // always concrete — an arbitrary number can't sneak in.
+  let intendedMonthlyBudget: number | null = null;
+  if (body.intendedMonthlyBudget != null) {
+    if (
+      typeof body.intendedMonthlyBudget !== "number" ||
+      !BUDGET_VALUES.includes(body.intendedMonthlyBudget)
+    ) {
+      return NextResponse.json(
+        { error: `intendedMonthlyBudget must be one of: ${BUDGET_VALUES.join(", ")}` },
+        { status: 400 },
+      );
+    }
+    intendedMonthlyBudget = body.intendedMonthlyBudget;
+  }
+
   const db = getServiceClient();
 
   // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
     .eq("provider_id", elig.profileId)
     .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
@@ -172,9 +205,10 @@ export async function POST(request: NextRequest) {
       requested_setup_week: setupWeek,
       completeness_at_submit: elig.eligibility.overall,
       channel,
+      intended_monthly_budget: intendedMonthlyBudget,
       status: queued ? "pending_profile" : "requested",
     })
-    .select("id, status, requested_setup_week, channel, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
     .single();
 
   if (insertError || !inserted) {
@@ -198,9 +232,117 @@ export async function POST(request: NextRequest) {
       completeness: elig.eligibility.overall,
       setupWeek,
       channel,
+      budget: intendedMonthlyBudget,
     });
     await sendSlackAlert(alert.text, alert.blocks);
   }
 
   return NextResponse.json({ ok: true, request: inserted, queued });
+}
+
+async function loadDemandSignal(
+  db: ReturnType<typeof getServiceClient>,
+  opts: { city: string | null; state: string | null; category: string | null },
+): Promise<{
+  count: number;
+  scope: "city" | "state" | null;
+  city: string | null;
+  state: string | null;
+  category: string | null;
+  windowDays: number;
+}> {
+  const windowStart = new Date();
+  windowStart.setDate(windowStart.getDate() - DEMAND_WINDOW_DAYS);
+  const startDate = windowStart.toISOString().slice(0, 10);
+
+  if (!opts.state || !opts.category) {
+    return {
+      count: 0,
+      scope: null,
+      city: opts.city,
+      state: opts.state,
+      category: opts.category,
+      windowDays: DEMAND_WINDOW_DAYS,
+    };
+  }
+
+  if (opts.city) {
+    const cityCount = await sumPageViewDemand(db, {
+      city: opts.city,
+      state: opts.state,
+      categories: demandCategoryVariants(opts.category),
+      startDate,
+    });
+    if (cityCount >= 5) {
+      return {
+        count: cityCount,
+        scope: "city",
+        city: opts.city,
+        state: opts.state,
+        category: opts.category,
+        windowDays: DEMAND_WINDOW_DAYS,
+      };
+    }
+  }
+
+  const stateCount = await sumPageViewDemand(db, {
+    state: opts.state,
+    categories: demandCategoryVariants(opts.category),
+    startDate,
+  });
+  return {
+    count: stateCount,
+    scope: stateCount > 0 ? "state" : null,
+    city: opts.city,
+    state: opts.state,
+    category: opts.category,
+    windowDays: DEMAND_WINDOW_DAYS,
+  };
+}
+
+async function sumPageViewDemand(
+  db: ReturnType<typeof getServiceClient>,
+  filter: {
+    city?: string;
+    state: string;
+    categories: string[];
+    startDate: string;
+  },
+): Promise<number> {
+  let query = db
+    .from("provider_page_view_stats")
+    .select("unique_view_count")
+    .eq("state", filter.state)
+    .gte("date", filter.startDate)
+    .limit(5000);
+
+  if (filter.city) query = query.eq("city", filter.city);
+  if (filter.categories.length === 1) {
+    query = query.eq("category", filter.categories[0]);
+  } else {
+    query = query.in("category", filter.categories);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("[ad-boost/request] demand signal failed:", error);
+    return 0;
+  }
+
+  return ((data ?? []) as Array<{ unique_view_count: number | null }>).reduce(
+    (sum, row) => sum + (row.unique_view_count ?? 0),
+    0,
+  );
+}
+
+function demandCategoryVariants(category: string): string[] {
+  const map: Record<string, string[]> = {
+    assisted_living: ["assisted_living", "Assisted Living"],
+    memory_care: ["memory_care", "Memory Care"],
+    nursing_home: ["nursing_home", "Nursing Home"],
+    independent_living: ["independent_living", "Independent Living"],
+    home_care_agency: ["home_care_agency", "Home Care (Non-medical)", "Home Care"],
+    home_health_agency: ["home_health_agency", "Home Health Care", "Home Health"],
+  };
+  return map[category] ?? [category];
 }

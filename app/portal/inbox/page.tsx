@@ -14,6 +14,7 @@ import ReportConnectionModal from "@/components/messaging/ReportConnectionModal"
 import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
+import type { QuickReplyRequest } from "@/lib/quick-reply-config";
 
 type RoleFilter = "all" | "family" | "provider";
 
@@ -665,20 +666,19 @@ function InboxContent() {
     }
   }, [activeProfile]);
 
-  // Handle message sent — update thread in local state
-  const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[]) => {
+  // Handle message sent — update thread and quick_reply_request in local state
+  const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[], quickReplyRequest?: QuickReplyRequest | null) => {
     setConnections((prev) =>
-      prev.map((conn) =>
-        conn.id === connectionId
-          ? {
-              ...conn,
-              metadata: {
-                ...((conn.metadata as Record<string, unknown>) || {}),
-                thread,
-              },
-            }
-          : conn
-      )
+      prev.map((conn) => {
+        if (conn.id !== connectionId) return conn;
+        const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+        const updatedMeta: Record<string, unknown> = { ...existingMeta, thread };
+        // Update quick_reply_request if provided
+        if (quickReplyRequest !== undefined) {
+          updatedMeta.quick_reply_request = quickReplyRequest;
+        }
+        return { ...conn, metadata: updatedMeta };
+      })
     );
   }, []);
 

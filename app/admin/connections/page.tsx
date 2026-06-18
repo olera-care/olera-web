@@ -23,7 +23,7 @@ interface WorkflowCounts {
 
 interface EngagementCounts {
   all: number;
-  new: number;
+  awaiting: number;
   viewed: number;
   connected: number;
   needs_follow_up: number;
@@ -54,14 +54,12 @@ interface ProviderActions {
   viewed: number;
   copiedPhone: number;
   copiedEmail: number;
-  clickedPhone: number;
-  clickedEmail: number;
-  continuedToInbox: number;
+  messaged: number;
+  declined: number;
   copiedPhoneRate: number;
   copiedEmailRate: number;
-  clickedPhoneRate: number;
-  clickedEmailRate: number;
-  continuedToInboxRate: number;
+  messagedRate: number;
+  declinedRate: number;
 }
 
 interface ListResponse {
@@ -78,14 +76,14 @@ interface ListResponse {
 }
 
 // Engagement level type
-type EngagementLevel = "new" | "viewed" | "connected" | "needs_follow_up";
+type EngagementLevel = "awaiting" | "viewed" | "connected" | "needs_follow_up";
 type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up";
 
 // Perspective type
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "archived";
+type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "admin_not_interested" | "archived";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -97,13 +95,18 @@ interface TabConfig {
 }
 
 // Provider perspective tabs
+// First 4: Provider lifecycle (what providers do)
+// Rest: Admin workflow (what admin handles)
 const PROVIDER_TABS: TabConfig[] = [
-  { key: "new", label: "New", description: "Lead sent, provider hasn't viewed", emptyMessage: "No new leads waiting to be viewed." },
+  // Provider actions
+  { key: "awaiting", label: "Awaiting", description: "Provider hasn't engaged yet, automation still working", emptyMessage: "No leads awaiting provider engagement." },
   { key: "viewed", label: "Viewed", description: "Provider opened the lead drawer", emptyMessage: "No leads have been viewed yet." },
   { key: "connected", label: "Connected", description: "Provider reached out to family", emptyMessage: "No connected leads yet." },
-  { key: "declined", label: "Declined", description: "Provider declined lead (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
-  { key: "needs_follow_up", label: "Needs Follow-up", description: "No activity for 10+ days, requires manual intervention", emptyMessage: "No providers need follow-up." },
+  { key: "declined", label: "Declined", description: "Provider declined lead in portal (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
+  // Admin workflow
+  { key: "needs_follow_up", label: "Needs Follow-up", description: "Email sequence complete, no response - requires manual intervention", emptyMessage: "No providers need follow-up." },
   { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
+  { key: "admin_not_interested", label: "Not Interested", description: "Admin confirmed provider not interested (soft rejection)", emptyMessage: "No leads marked as not interested." },
   { key: "archived", label: "Archived", description: "Admin-archived providers - no emails sent to them", emptyMessage: "No archived providers." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
 ];
@@ -514,7 +517,7 @@ export default function ConnectionsTrackerPage() {
   const initialDirection = searchParams.get("direction") === "outbound" ? "outbound" : "inbound";
 
   const [range, setRange] = useState<DateRangeValue>({
-    preset: "30d",
+    preset: "all",
     customFrom: "",
     customTo: "",
   });
@@ -522,9 +525,9 @@ export default function ConnectionsTrackerPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [direction, setDirection] = useState<Direction>(initialDirection);
   const [perspective, setPerspective] = useState<Perspective>("provider");
-  // Default filter: "new" for inbound, "all" for outbound
+  // Default filter: "awaiting" for inbound, "all" for outbound
   const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>(
-    initialDirection === "outbound" ? "all" : "new"
+    initialDirection === "outbound" ? "all" : "awaiting"
   );
   const [page, setPage] = useState(0);
 
@@ -532,8 +535,13 @@ export default function ConnectionsTrackerPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [actionsExpanded, setActionsExpanded] = useState(false);
 
-  // Action dialog state - supports Mark Connected, Archive Provider, Unarchive
-  type ActionType = "mark_connected" | "archive_provider" | "unarchive_lead";
+  // Export CSV state
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Action dialog state - supports Mark Viewed, Mark Connected, Mark Not Interested, Archive Provider, Unarchive, Hide
+  type ActionType = "mark_viewed" | "mark_connected" | "mark_not_interested" | "archive_provider" | "unarchive_lead" | "hide_connection";
   const [pendingAction, setPendingAction] = useState<{
     connectionId: string;
     providerId: string | null;
@@ -541,6 +549,14 @@ export default function ConnectionsTrackerPage() {
     providerName: string | null;
     isArchived: boolean; // true if lead is already archived (for unarchive)
     isProviderArchived: boolean; // true if provider is admin-archived
+    providerArchiveInfo?: {
+      reason: string | null;
+      archivedBy: string | null;
+      archivedAt: string | null;
+      notes: string | null;
+    } | null;
+    // Raw archive reason from leads page (free-text)
+    rawArchiveReason?: string | null;
   } | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -548,12 +564,52 @@ export default function ConnectionsTrackerPage() {
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
 
+  // Mark Viewed reason options
+  const MARK_VIEWED_REASONS = [
+    "Provider confirmed they saw it (phone call)",
+    "Provider confirmed they saw it (email)",
+    "Other",
+  ] as const;
+
   // Mark Connected reason options
   const MARK_CONNECTED_REASONS = [
     "Confirmed via phone call",
     "Confirmed via email",
     "Provider confirmed in portal",
     "Other",
+  ] as const;
+
+  // Mark Not Interested reason options
+  const MARK_NOT_INTERESTED_REASONS = [
+    "Not a fit for family's needs",
+    "Not accepting new clients",
+    "Unable to reach family",
+    "Provider requested no more leads",
+    "Other",
+  ] as const;
+
+  // Archive Provider reason options (maps to API values)
+  const ARCHIVE_PROVIDER_REASONS = [
+    { value: "provider_requested_no_emails", label: "Provider requested no emails" },
+    { value: "inactive", label: "Inactive / Not responding" },
+    { value: "duplicate", label: "Duplicate profile" },
+    { value: "out_of_business", label: "Out of business / Permanently closed" },
+    { value: "invalid_provider", label: "Invalid provider (fake/spam)" },
+    { value: "wrong_contact_info", label: "Wrong contact info (can't reach)" },
+    { value: "relocated", label: "Provider relocated / No longer in service area" },
+    { value: "compliance_issue", label: "Compliance issue" },
+    { value: "merged", label: "Merged with another provider" },
+    { value: "other", label: "Other" },
+  ] as const;
+
+  // Unarchive Provider reason options (maps to API values)
+  const UNARCHIVE_PROVIDER_REASONS = [
+    { value: "provider_reactivated", label: "Provider reactivated / Back in business" },
+    { value: "contact_info_updated", label: "Contact info updated" },
+    { value: "archived_in_error", label: "Archived in error" },
+    { value: "provider_requested", label: "Provider requested reactivation" },
+    { value: "compliance_resolved", label: "Compliance issue resolved" },
+    { value: "other", label: "Other" },
   ] as const;
 
   // Debounce search input by 300ms
@@ -580,7 +636,8 @@ export default function ConnectionsTrackerPage() {
 
   // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
-    setActiveFilter("new");
+    // Family perspective starts with "new", provider with "awaiting"
+    setActiveFilter(perspective === "family" ? "new" : "awaiting");
     setPage(0);
   }, [perspective]);
 
@@ -589,7 +646,7 @@ export default function ConnectionsTrackerPage() {
     if (direction === "outbound") {
       setActiveFilter("all"); // Outbound default tab
     } else {
-      setActiveFilter("new"); // Inbound default tab
+      setActiveFilter("awaiting"); // Inbound default tab
     }
     setPage(0);
   }, [direction]);
@@ -606,6 +663,52 @@ export default function ConnectionsTrackerPage() {
     if (to) params.set("date_to", to);
     return params;
   }, [range]);
+
+  // Toast helper
+  function showToast(message: string, type: "success" | "error" = "success") {
+    if (toastRef.current) clearTimeout(toastRef.current);
+    setToast({ message, type });
+    toastRef.current = setTimeout(() => setToast(null), 3000);
+  }
+
+  // Export CSV handler
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const params = buildDateParams();
+      params.set("direction", direction);
+      if (direction === "inbound") {
+        params.set("perspective", perspective);
+      }
+      params.set("filter", activeFilter);
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+
+      const res = await fetch(`/api/admin/connections/export?${params}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || "Export failed", "error");
+        return;
+      }
+
+      const exportCount = res.headers.get("X-Export-Count");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || "olera-connections.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      const count = exportCount ? parseInt(exportCount, 10) : 0;
+      showToast(`Exported ${count.toLocaleString()} connections`);
+    } catch {
+      showToast("Export failed. Please try again.", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const fetchConnections = useCallback(() => {
     setLoading(true);
@@ -691,9 +794,11 @@ export default function ConnectionsTrackerPage() {
     familyName: string | null,
     providerName: string | null,
     isArchived: boolean,
-    isProviderArchived: boolean
+    isProviderArchived: boolean,
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null,
+    rawArchiveReason?: string | null
   ) => {
-    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived });
+    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo, rawArchiveReason });
     setSelectedAction(null);
     setActionError(null);
     setActionReason("");
@@ -709,6 +814,61 @@ export default function ConnectionsTrackerPage() {
     setActionNotes("");
   };
 
+  // Calculate destination tab for a connection (used in confirmation modals)
+  // Note: This predicts where the connection will go AFTER the action completes
+  const getDestinationTab = (connectionId: string, action?: ActionType): { tab: string; label: string; warning?: string } | null => {
+    const conn = list?.connections.find(c => c.id === connectionId);
+    if (!conn) return null;
+
+    // If provider is inactive (deleted account), connection stays in Archived
+    // regardless of unarchive actions - is_active is a separate flag we can't change
+    if (conn.isProviderInactive) {
+      return {
+        tab: "archived",
+        label: "Archived",
+        warning: "Provider account is inactive"
+      };
+    }
+
+    // For "Unarchive Lead" action: if provider is still admin-archived at provider level,
+    // the connection stays in Archived (we're only clearing connection-level archive)
+    // Note: This shouldn't happen since the action is hidden when provider is archived,
+    // but check anyway for safety
+    if (action === "unarchive_lead" && conn.isProviderArchived) {
+      return {
+        tab: "archived",
+        label: "Archived",
+        warning: "Provider is archived at provider level"
+      };
+    }
+
+    // Check email issue and claimed status
+    const hasEmailIssue = conn.emailIssueType !== null && conn.emailIssueType !== undefined;
+    const isProviderClaimed = conn.provider?.isAccountClaimed === true;
+    const engagementLevel = conn.engagementLevel;
+    const hasProviderEngagement = engagementLevel === "viewed" || engagementLevel === "connected";
+
+    // Claimed providers with email issues go to engagement tab (we can't fix their email)
+    // Unclaimed providers with email issues and no engagement go to Needs Email
+    if (hasEmailIssue && !isProviderClaimed && !hasProviderEngagement) {
+      return { tab: "needs_email", label: "Needs Email" };
+    }
+
+    // Otherwise, go to engagement-based tab
+    const tabLabels: Record<EngagementLevel, string> = {
+      awaiting: "Awaiting",
+      viewed: "Viewed",
+      connected: "Connected",
+      needs_follow_up: "Needs Follow-up",
+    };
+
+    if (engagementLevel && tabLabels[engagementLevel]) {
+      return { tab: engagementLevel, label: tabLabels[engagementLevel] };
+    }
+
+    return { tab: "awaiting", label: "Awaiting" };
+  };
+
   // Execute the selected action
   const confirmAction = async () => {
     if (!pendingAction || !selectedAction) return;
@@ -720,7 +880,31 @@ export default function ConnectionsTrackerPage() {
       let res: Response;
       let successMessage = "";
 
-      if (selectedAction === "mark_connected") {
+      if (selectedAction === "mark_viewed") {
+        // Mark as Viewed API - moves to Viewed tab, emails continue
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "viewed",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as viewed";
+
+      } else if (selectedAction === "mark_connected") {
         // Mark as Connected API
         if (!actionReason.trim()) {
           setActionError("Please select a reason");
@@ -743,6 +927,30 @@ export default function ConnectionsTrackerPage() {
           }),
         });
         successMessage = "Marked as connected";
+
+      } else if (selectedAction === "mark_not_interested") {
+        // Mark as Not Interested API
+        if (!actionReason.trim()) {
+          setActionError("Please select a reason");
+          setActionLoading(false);
+          return;
+        }
+        if (actionReason === "Other" && !actionNotes.trim()) {
+          setActionError("Please provide notes when selecting 'Other'");
+          setActionLoading(false);
+          return;
+        }
+
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/mark-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "not_interested",
+            reason: actionReason.trim(),
+            notes: actionNotes.trim() || undefined,
+          }),
+        });
+        successMessage = "Marked as not interested";
 
       } else if (selectedAction === "unarchive_lead") {
         // Unarchive Lead API (via leads page)
@@ -770,10 +978,20 @@ export default function ConnectionsTrackerPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action,
-            reason: action === "archive" ? "provider_requested_no_emails" : undefined,
+            reason: actionReason || undefined,
+            notes: actionNotes.trim() || undefined,
           }),
         });
         successMessage = pendingAction.isProviderArchived ? "Provider unarchived" : "Provider archived";
+
+      } else if (selectedAction === "hide_connection") {
+        // Hide Connection API
+        res = await fetch(`/api/admin/connections/${pendingAction.connectionId}/hide`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hide" }),
+        });
+        successMessage = "Connection hidden";
 
       } else {
         setActionError("Unknown action");
@@ -813,7 +1031,7 @@ export default function ConnectionsTrackerPage() {
         range={range}
         onRangeChange={setRange}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
               <button
                 type="button"
@@ -838,6 +1056,14 @@ export default function ConnectionsTrackerPage() {
                 Outbound
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting || loading}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exporting ? "Exporting..." : "Export CSV"}
+            </button>
           </div>
         }
       />
@@ -917,37 +1143,31 @@ export default function ConnectionsTrackerPage() {
           </button>
 
           {actionsExpanded && list?.providerActions && (
-            <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
               <FunnelStat label="Viewed Lead" value={list.providerActions.viewed} />
               <FunnelStat
-                label="Copied Phone"
+                label="Called"
                 value={list.providerActions.copiedPhoneRate}
                 format="percent"
-                subtitle={`${list.providerActions.copiedPhone} copied`}
+                subtitle={`${list.providerActions.copiedPhone} called`}
               />
               <FunnelStat
-                label="Copied Email"
+                label="Emailed"
                 value={list.providerActions.copiedEmailRate}
                 format="percent"
-                subtitle={`${list.providerActions.copiedEmail} copied`}
+                subtitle={`${list.providerActions.copiedEmail} emailed`}
               />
               <FunnelStat
-                label="Clicked to Call"
-                value={list.providerActions.clickedPhoneRate}
+                label="Messaged"
+                value={list.providerActions.messagedRate}
                 format="percent"
-                subtitle={`${list.providerActions.clickedPhone} called`}
+                subtitle={`${list.providerActions.messaged} sent`}
               />
               <FunnelStat
-                label="Clicked to Email"
-                value={list.providerActions.clickedEmailRate}
+                label="Declined"
+                value={list.providerActions.declinedRate}
                 format="percent"
-                subtitle={`${list.providerActions.clickedEmail} emailed`}
-              />
-              <FunnelStat
-                label="Continued to Inbox"
-                value={list.providerActions.continuedToInboxRate}
-                format="percent"
-                subtitle={`${list.providerActions.continuedToInbox} clicked`}
+                subtitle={`${list.providerActions.declined} declined`}
               />
             </div>
           )}
@@ -1108,9 +1328,7 @@ export default function ConnectionsTrackerPage() {
                   key={c.id}
                   c={c}
                   perspective={perspective}
-                  engagement={
-                    c.provider.activityKey ? list.engagement[c.provider.activityKey] : undefined
-                  }
+                  engagement={list.engagement[c.id]}
                   onConnectionAction={handleConnectionAction}
                   onNudgeSuccess={fetchConnections}
                 />
@@ -1217,6 +1435,25 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
+                {/* Mark as Viewed - move to Viewed tab, emails continue */}
+                <button
+                  onClick={() => setSelectedAction("mark_viewed")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Mark as Viewed</p>
+                      <p className="text-xs text-gray-500">Provider confirmed they saw it, emails continue</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Mark as Connected - always show, but add note if provider is archived */}
                 <button
                   onClick={() => setSelectedAction("mark_connected")}
@@ -1242,6 +1479,24 @@ export default function ConnectionsTrackerPage() {
                           : "Confirm this lead successfully connected"
                         }
                       </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Mark Not Interested - admin confirms provider declined during phone call */}
+                <button
+                  onClick={() => setSelectedAction("mark_not_interested")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Mark Not Interested</p>
+                      <p className="text-xs text-gray-500">Provider declined during admin phone call</p>
                     </div>
                   </div>
                 </button>
@@ -1273,6 +1528,24 @@ export default function ConnectionsTrackerPage() {
                   </button>
                 )}
 
+                {/* Hide Connection - for cleaning up test data */}
+                <button
+                  onClick={() => setSelectedAction("hide_connection")}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Hide Connection</p>
+                      <p className="text-xs text-gray-500">Remove from admin view (test data cleanup)</p>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Cancel button */}
                 <div className="pt-2 flex justify-end">
                   <button
@@ -1289,11 +1562,47 @@ export default function ConnectionsTrackerPage() {
             {/* Action confirmation - Step 2 */}
             {selectedAction && (
               <div className="space-y-4">
+                {/* Mark Viewed form */}
+                {selectedAction === "mark_viewed" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will move the connection to the <span className="font-semibold text-gray-900">Viewed</span> tab. Email sequences will continue to encourage them to connect.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-xs text-amber-800">
+                        Use this when you have called the provider and they confirmed they saw the lead but have not connected yet.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">How was this confirmed?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_VIEWED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe how this was confirmed..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
+                )}
+
                 {/* Mark Connected form */}
                 {selectedAction === "mark_connected" && (
                   <>
                     <p className="text-sm text-gray-600">
-                      This will mark the lead as successfully connected and stop follow-up emails.
+                      This will move the connection to the <span className="font-semibold text-gray-900">Connected</span> tab and stop follow-up emails.
                     </p>
                     {pendingAction.isProviderArchived && (
                       <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1327,20 +1636,146 @@ export default function ConnectionsTrackerPage() {
                   </>
                 )}
 
-                {/* Unarchive Lead confirmation */}
-                {selectedAction === "unarchive_lead" && (
-                  <p className="text-sm text-gray-600">
-                    This will unarchive the lead and return it to the appropriate tab based on engagement status.
-                  </p>
+                {/* Mark Not Interested form */}
+                {selectedAction === "mark_not_interested" && (
+                  <>
+                    <p className="text-sm text-gray-600">
+                      This will move the connection to the <span className="font-semibold text-gray-900">Not Interested</span> tab and stop follow-up emails. If the provider later views or engages, they&apos;ll move back to active tracking and emails will resume.
+                    </p>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">Why is provider not interested?</label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {MARK_NOT_INTERESTED_REASONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {actionReason === "Other" && (
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Please describe the reason..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+                        rows={2}
+                      />
+                    )}
+                  </>
                 )}
 
+                {/* Unarchive Lead confirmation */}
+                {selectedAction === "unarchive_lead" && (() => {
+                  const dest = getDestinationTab(pendingAction.connectionId, "unarchive_lead");
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">
+                        This will unarchive the lead and move it to the{" "}
+                        <span className="font-semibold text-gray-900">
+                          {dest?.label || "appropriate"}
+                        </span>{" "}
+                        tab.
+                      </p>
+                      {dest?.warning && (
+                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                          Note: {dest.warning}
+                        </p>
+                      )}
+                      {/* Show why they were archived (from leads page free-text) */}
+                      {pendingAction.rawArchiveReason?.trim() && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <p className="text-xs font-medium text-amber-800">Previously archived:</p>
+                          <p className="text-xs text-amber-700 mt-1">
+                            {pendingAction.rawArchiveReason.trim()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Archive Provider confirmation */}
-                {selectedAction === "archive_provider" && (
+                {selectedAction === "archive_provider" && (() => {
+                  const dest = getDestinationTab(pendingAction.connectionId, "archive_provider");
+                  return (
                   <div className="space-y-3">
                     {pendingAction.isProviderArchived ? (
-                      <p className="text-sm text-gray-600">
-                        This will unarchive the provider. Email sequences will resume for their connections.
-                      </p>
+                      <>
+                        <p className="text-sm text-gray-600">
+                          This will unarchive <span className="font-medium">{pendingAction.providerName}</span>. This connection will move to the{" "}
+                          <span className="font-semibold text-gray-900">
+                            {dest?.label || "appropriate"}
+                          </span>{" "}
+                          tab for this provider, and email sequences will resume.
+                        </p>
+                        {dest?.warning && (
+                          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                            Note: {dest.warning}
+                          </p>
+                        )}
+                        {/* Show why they were archived */}
+                        {pendingAction.providerArchiveInfo && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+                            <p className="text-xs font-medium text-amber-800">Previously archived:</p>
+                            <p className="text-xs text-amber-700">
+                              <span className="font-medium">Reason:</span>{" "}
+                              {ARCHIVE_PROVIDER_REASONS.find(r => r.value === pendingAction.providerArchiveInfo?.reason)?.label || pendingAction.providerArchiveInfo.reason || "Not specified"}
+                            </p>
+                            {pendingAction.providerArchiveInfo.archivedBy && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">By:</span> {pendingAction.providerArchiveInfo.archivedBy}
+                              </p>
+                            )}
+                            {pendingAction.providerArchiveInfo.archivedAt && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">On:</span>{" "}
+                                {new Date(pendingAction.providerArchiveInfo.archivedAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            )}
+                            {pendingAction.providerArchiveInfo.notes && (
+                              <p className="text-xs text-amber-700">
+                                <span className="font-medium">Notes:</span> {pendingAction.providerArchiveInfo.notes}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {/* Unarchive reason selector */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Why are you unarchiving this provider?
+                          </label>
+                          <select
+                            value={actionReason}
+                            onChange={(e) => setActionReason(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          >
+                            <option value="">Select a reason...</option>
+                            {UNARCHIVE_PROVIDER_REASONS.map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* Notes field - always visible, required for "other" */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Notes {actionReason === "other" ? "(required)" : "(optional)"}
+                          </label>
+                          <textarea
+                            value={actionNotes}
+                            onChange={(e) => setActionNotes(e.target.value)}
+                            placeholder="Add any additional context..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                            rows={2}
+                          />
+                        </div>
+                      </>
                     ) : (
                       <>
                         <p className="text-sm text-gray-600">
@@ -1352,8 +1787,59 @@ export default function ConnectionsTrackerPage() {
                           <li>New leads will automatically be archived</li>
                           <li>Family emails are not affected</li>
                         </ul>
+                        {/* Reason selector */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Why are you archiving this provider?
+                          </label>
+                          <select
+                            value={actionReason}
+                            onChange={(e) => setActionReason(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                          >
+                            <option value="">Select a reason...</option>
+                            {ARCHIVE_PROVIDER_REASONS.map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* Notes field - always visible, required for "other" */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Notes {actionReason === "other" ? "(required)" : "(optional)"}
+                          </label>
+                          <textarea
+                            value={actionNotes}
+                            onChange={(e) => setActionNotes(e.target.value)}
+                            placeholder="Add any additional context..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+                            rows={2}
+                          />
+                        </div>
                       </>
                     )}
+                  </div>
+                  );
+                })()}
+
+                {/* Hide Connection confirmation */}
+                {selectedAction === "hide_connection" && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      This will hide the connection from the admin connections page.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-xs text-blue-800 font-medium mb-1">This is safe:</p>
+                      <ul className="text-xs text-blue-700 space-y-0.5 ml-3 list-disc">
+                        <li>Data stays in database (not deleted)</li>
+                        <li>Provider still sees the lead in their portal</li>
+                        <li>Family experience unchanged</li>
+                        <li>Email sequences continue normally</li>
+                      </ul>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Use this to clean up test data from the admin view.
+                    </p>
                   </div>
                 )}
 
@@ -1391,23 +1877,41 @@ export default function ConnectionsTrackerPage() {
                       onClick={confirmAction}
                       disabled={
                         actionLoading ||
+                        (selectedAction === "mark_viewed" && !actionReason) ||
+                        (selectedAction === "mark_viewed" && actionReason === "Other" && !actionNotes.trim()) ||
                         (selectedAction === "mark_connected" && !actionReason) ||
-                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim())
+                        (selectedAction === "mark_connected" && actionReason === "Other" && !actionNotes.trim()) ||
+                        (selectedAction === "mark_not_interested" && !actionReason) ||
+                        (selectedAction === "mark_not_interested" && actionReason === "Other" && !actionNotes.trim()) ||
+                        (selectedAction === "archive_provider" && !actionReason) ||
+                        (selectedAction === "archive_provider" && actionReason === "other" && !actionNotes.trim())
                       }
                       className={`text-xs font-medium text-white px-3 py-1.5 rounded-md disabled:opacity-50 ${
-                        selectedAction === "mark_connected"
+                        selectedAction === "mark_viewed"
+                          ? "bg-amber-600 hover:bg-amber-700"
+                          : selectedAction === "mark_connected"
                           ? "bg-green-600 hover:bg-green-700"
+                          : selectedAction === "mark_not_interested"
+                          ? "bg-orange-600 hover:bg-orange-700"
                           : selectedAction === "archive_provider"
                           ? pendingAction.isProviderArchived ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
+                          : selectedAction === "hide_connection"
+                          ? "bg-gray-600 hover:bg-gray-700"
                           : "bg-blue-600 hover:bg-blue-700"
                       }`}
                     >
                       {actionLoading
                         ? "Processing..."
+                        : selectedAction === "mark_viewed"
+                        ? "Mark Viewed"
                         : selectedAction === "mark_connected"
                         ? "Mark Connected"
+                        : selectedAction === "mark_not_interested"
+                        ? "Mark Not Interested"
                         : selectedAction === "unarchive_lead"
                         ? "Unarchive"
+                        : selectedAction === "hide_connection"
+                        ? "Hide Connection"
                         : pendingAction.isProviderArchived
                         ? "Unarchive Provider"
                         : "Archive Provider"
@@ -1418,6 +1922,19 @@ export default function ConnectionsTrackerPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
+            toast.type === "success"
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white"
+          }`}
+        >
+          {toast.message}
         </div>
       )}
     </div>

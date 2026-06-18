@@ -124,11 +124,16 @@ function scoreProfileOverview(profile: Profile): number {
 }
 
 function scorePricing(meta: ExtendedMetadata): number {
-  let score = 0;
-  // Check for pricing display option (either showing rates or contact for pricing)
-  if (meta.contact_for_pricing || meta.lower_price || meta.price_range?.trim()) score += 50;
-  if (meta.pricing_details && meta.pricing_details.length > 0) score += 50;
-  return clamp(score);
+  // Pricing is a DECISION, not a wall. Some providers can't publish rates
+  // (franchise rules, ahead-of-market positioning), so an explicit "Contact for
+  // pricing" is a complete, valid choice — we never nag them to disclose.
+  // Showing actual rates is preferred (listings with prices get more inquiries)
+  // and encouraged in the editor, but it's a strength signal, not a completeness
+  // requirement. Any deliberate pricing input completes the section.
+  if (meta.contact_for_pricing) return 100;
+  if (meta.lower_price || meta.price_range?.trim() || (meta.pricing_details?.length ?? 0) > 0)
+    return 100;
+  return 0;
 }
 
 function scoreStaffScreening(meta: ExtendedMetadata): number {
@@ -148,10 +153,13 @@ function scoreCareServices(profile: Profile): number {
 
 function scoreGallery(meta: ExtendedMetadata): number {
   const count = meta.images?.length ?? 0;
-  if (count >= 8) return 100;
-  if (count >= 5) return 75;
-  if (count >= 3) return 50;
-  if (count >= 1) return 25;
+  // A real, presentable gallery is "complete" at 3 photos — demanding 8 made
+  // providers who'd clearly filled in their gallery read as half-done and got
+  // nagged to "complete" it (confusing during setup). More photos help, but
+  // that's a strength signal, not a completeness requirement.
+  if (count >= 3) return 100;
+  if (count >= 2) return 70;
+  if (count >= 1) return 40;
   return 0;
 }
 

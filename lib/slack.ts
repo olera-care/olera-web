@@ -592,19 +592,35 @@ export function slackBoostViewed(opts: {
   providerSlug: string;
   state: string;
   completeness: number | null;
+  city?: string | null;
+  region?: string | null;
+  localDemand?: number | null;
+  demandScope?: string | null;
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const stateLabel =
     opts.state === "gate" ? "below completeness gate"
     : opts.state === "apply" ? "eligible — picking a week"
+    : opts.state === "queued" ? "campaign queued"
     : opts.state === "in_motion" ? "campaign in motion"
     : opts.state;
+  const where = [opts.city, opts.region].filter(Boolean).join(", ");
   const fields: { type: string; text: string }[] = [
     { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
     { type: "mrkdwn", text: `*State:*\n${stateLabel}` },
   ];
   if (opts.completeness != null) {
     fields.push({ type: "mrkdwn", text: `*Completeness:*\n${opts.completeness}%` });
+  }
+  if (where) {
+    fields.push({ type: "mrkdwn", text: `*Market:*\n${where}` });
+  }
+  if (opts.localDemand != null && opts.localDemand > 0) {
+    const scope = opts.demandScope === "city" ? "local" : opts.demandScope === "state" ? "statewide" : "market";
+    fields.push({
+      type: "mrkdwn",
+      text: `*7d demand:*\n${opts.localDemand.toLocaleString()} ${scope} views`,
+    });
   }
   return {
     text: `Managed Ads page view: ${opts.providerName} — ${stateLabel}`,
@@ -1362,6 +1378,9 @@ export function slackAdBoostRequested(opts: {
   completeness: number;
   setupWeek: string; // ISO date (Monday of the chosen week)
   channel?: string | null;
+  /** Provider's intended monthly ad budget in whole USD (non-binding — concierge
+   *  confirms before spend). Null when not chosen. */
+  budget?: number | null;
   /** True when this request was queued under 70% and JUST auto-promoted after
    *  the provider crossed the completeness threshold (the standing-order
    *  release). Changes the header so the concierge knows it's a fresh,
@@ -1379,6 +1398,10 @@ export function slackAdBoostRequested(opts: {
     { type: "mrkdwn", text: `*Setup week:*\n${opts.setupWeek}` },
   ];
   if (opts.channel) fields.push({ type: "mrkdwn", text: `*Channel:*\n${opts.channel}` });
+  fields.push({
+    type: "mrkdwn",
+    text: `*Intended budget:*\n${opts.budget != null ? `$${opts.budget}/mo (confirm before spend)` : "—"}`,
+  });
 
   const header = opts.launchReady
     ? "🚀 Ad Boost now LAUNCH-READY — provider just cleared 70%"

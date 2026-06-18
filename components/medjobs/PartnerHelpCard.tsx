@@ -82,16 +82,22 @@ export default function PartnerHelpCard() {
 
       {/* Book a call with Dr. DuBose */}
       <div className={card}>
-        <Image
-          src="/images/for-providers/team/logan.jpg"
-          alt="Dr. Logan DuBose"
-          width={40}
-          height={40}
-          className="mb-3 h-10 w-10 rounded-full object-cover shadow-sm"
-        />
+        <div className="mb-3 flex items-center gap-2.5">
+          <Image
+            src="/images/for-providers/team/logan.jpg"
+            alt="Dr. Logan DuBose"
+            width={40}
+            height={40}
+            className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm"
+          />
+          <div className="leading-tight">
+            <p className="text-sm font-semibold text-gray-900">Logan DuBose, MD</p>
+            <p className="text-xs text-gray-500">Co-Founder</p>
+          </div>
+        </div>
         <p className="text-[15px] font-semibold text-gray-900">Book a Call</p>
         <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-          Have Dr. Logan DuBose speak to your students, or set up an ongoing relationship.
+          Have him speak to your students or set up a visit.
         </p>
         <a
           href={CALENDLY_URL}

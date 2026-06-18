@@ -32,6 +32,8 @@ interface InBasketStats {
   logs_today: number;
   logs_today_breakdown: { calls: number; emails: number; meetings: number; replies: number; other: number };
   daily_logs: DailyLog[];
+  streak_days: number;
+  streak_target: number;
 }
 
 const CHIP_ORDER: StakeholderType[] = ["student_org", "dept_head", "advisor", "professor"];
@@ -117,6 +119,14 @@ export default function MedJobsStatsPage() {
         <DateRangePopover value={range} onChange={setRange} />
       </header>
 
+      {inBasket ? (
+        <StreakTracker
+          days={inBasket.daily_logs.slice(-14)}
+          target={inBasket.streak_target}
+          streak={inBasket.streak_days}
+        />
+      ) : null}
+
       {/* Flat tile grid — row order keeps the funnel up top with Logs top-right. */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <OperationsStatBox
@@ -172,6 +182,57 @@ export default function MedJobsStatsPage() {
           metric="candidates"
           value={candidatesTotal}
         />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Day-by-day log streak tracker: one bar per business day, emerald when the
+ * day hit the target, gray below. The dashed line marks the target. Today is
+ * the rightmost bar (in progress).
+ */
+function StreakTracker({
+  days,
+  target,
+  streak,
+}: {
+  days: DailyLog[];
+  target: number;
+  streak: number;
+}) {
+  if (days.length === 0) return null;
+  const scaleMax = Math.max(target, ...days.map((d) => d.count), 1);
+  const targetPct = (target / scaleMax) * 100;
+
+  return (
+    <div className="mb-6 rounded-2xl border border-gray-100 bg-white px-5 py-4">
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Log streak
+        </span>
+        <span className="text-xs text-gray-500">
+          {streak === 0 ? "no active streak" : `${streak} day${streak === 1 ? "" : "s"}`} · target{" "}
+          <span className="tabular-nums text-gray-700">{target}</span>/day
+        </span>
+      </div>
+      <div className="relative mt-3 flex items-end gap-1" style={{ height: 48 }}>
+        <div
+          className="pointer-events-none absolute inset-x-0 border-t border-dashed border-gray-300"
+          style={{ bottom: `${targetPct}%` }}
+          aria-hidden
+        />
+        {days.map((d) => (
+          <div
+            key={d.date}
+            title={`${d.date}: ${d.count} log${d.count === 1 ? "" : "s"}`}
+            className="flex-1 rounded-sm"
+            style={{
+              height: `${Math.max(3, (d.count / scaleMax) * 100)}%`,
+              backgroundColor: d.count >= target ? "#10b981" : "#d1d5db",
+            }}
+          />
+        ))}
       </div>
     </div>
   );

@@ -7,6 +7,23 @@
 
 ## Current Focus
 
+### 2026-06-18 — Organic-traffic explainer for marketing team (no code; analysis + Slack memo + memory)
+
+**Trigger:** Logan asked "other reasons behind the increase in our traffic." TJ wanted a thorough, code-grounded analysis to relay to the team.
+
+**Method:** Fanned out 4 parallel agents over the codebase + git history, then dug into the repo's GSC exports directly (`docs/https___olera.care_-Coverage-Drilldown-2026-05-19/Chart.csv`, `docs/SEO Reports/.../Performance-on-Search-2026-03-27/`, and the `-2026-03-08/` Pages/Queries CSVs). Verified claims against real data instead of asserting.
+
+**Key findings (data-grounded):**
+- **Recovery, not pure growth:** the fast 4-wk climb is mostly the Vercel WAF region-block fix (403'd Googlebot ~Apr 9→mid-May) + `/review/*` noindex (PR #771, ~55% of the "crawled not indexed" bucket). Bucket doubled 31K→66K Apr 9→May 14, tracking city-pipeline thin-page growth.
+- **Benefits/insurance editorial is the organic engine.** March GSC top non-brand pages = Logan's VA-caregiver-assessment (399 clicks, pos 4.9) + BCBS-caregiver (238, pos 3.6). Chantel's TX benefits cluster (published Mar 30–May 26, so NOT in the repo's March exports — her real numbers live only in the live `/seo` thread) extends the proven shape; 640-page Senior Benefits Finder = breadth.
+- **Provider directory is an organic non-entity:** not 1 page in top 50; head terms ~pos 40. The 21K description rewrite was a wash because at pos ~40 CTR is ranking-bound, not copy-bound.
+
+**Forward direction captured (TJ, this session):** next technical-cleanup focus pivots to provider pages — category-tailored first-principles rebuild FIRST, then drive UGC completion (owner section, about, photos). Sequencing deliberate: page first so UGC lands on a page built to perform. Saved to memory `project_provider_page_seo_optimization` (+ index).
+
+**Shipped:** memo posted to **#marketing-team** (cc Chantel + Logan) via `/slack-notes`. Iterated heavily with TJ on framing — killed the "correcting our prior mistakes" spine, rebalanced so benefits content is a bright-spot-to-lean-into (not a pivot), fixed attribution (VA/BCBS = Logan's, not Chantel's).
+
+**NEXT (open, both quick GSC pulls):** (1) clicks 28d-before-Apr-9 vs latest-28d to confirm *above* baseline vs merely recovered; (2) Chantel's six TX URLs' current clicks/impressions to quantify her contribution (offered to post a follow-up in-thread once TJ supplies them).
+
 ### 2026-06-18 — Benefits program page: single layout spine (`/design-improvements` → `/punch`, branch `sparky-noether`, PR #1109 → staging)
 
 **Trigger:** TJ ran `/design-improvements` on a desktop full-page capture of `/benefits/texas/star-plus-medicaid-hcbs`. Phase 1 diagnosis surfaced 4 findings; TJ picked **#1, the layout spine alignment** to execute via `/punch`.

@@ -63,8 +63,11 @@ export function OperationsStatBox({
     };
   }, [metric, range]);
 
+  // Headline: tiles that own a current count pass `value` (number while
+  // loaded, null while loading → show "—"). Activity tiles omit `value`
+  // entirely (undefined) and show the stats range total instead.
   const headline =
-    value != null ? value : metric ? stats?.total ?? null : null;
+    value !== undefined ? value : metric ? stats?.total ?? null : null;
 
   return (
     <Link

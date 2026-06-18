@@ -412,8 +412,10 @@ async function computeTabCounts(
   const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
 
   // Single status scan in scope. v9.0 Phase 4: also pull viewed_at so
-  // we can split totals into unread/total per tab in one pass.
-  let q = db.from("student_outreach").select("id, status, viewed_at");
+  // we can split totals into unread/total per tab in one pass. kind lets
+  // us split research-status rows by audience (provider vs partner) for the
+  // audience-composite counts below.
+  let q = db.from("student_outreach").select("id, status, viewed_at, kind");
   if (filters.campusId) q = q.eq("campus_id", filters.campusId);
   if (filters.type) q = q.eq("stakeholder_type", filters.type);
   const { data: scan } = await q;
@@ -424,7 +426,14 @@ async function computeTabCounts(
 
   let inProgressIds: string[] = [];
   const unreadIds = new Set<string>();
-  for (const row of (scan ?? []) as Array<{ id: string; status: string; viewed_at: string | null }>) {
+  // Research-status rows split by audience so the providers / partner_book
+  // composite counts match exactly what each tab renders (providers shows
+  // kind=provider research rows; partner_book shows kind!=provider).
+  let providerResearch = 0;
+  let providerResearchUnread = 0;
+  let partnerResearch = 0;
+  let partnerResearchUnread = 0;
+  for (const row of (scan ?? []) as Array<{ id: string; status: string; viewed_at: string | null; kind: string | null }>) {
     const isUnread = row.viewed_at == null;
     if (isUnread) unreadIds.add(row.id);
     counts.all++;
@@ -432,6 +441,13 @@ async function computeTabCounts(
     if (research.has(row.status)) {
       counts.prospects++;
       if (isUnread) unread.prospects++;
+      if (row.kind === "provider") {
+        providerResearch++;
+        if (isUnread) providerResearchUnread++;
+      } else {
+        partnerResearch++;
+        if (isUnread) partnerResearchUnread++;
+      }
     } else if (partner.has(row.status)) {
       counts.partners++;
       if (isUnread) unread.partners++;
@@ -604,12 +620,6 @@ async function computeTabCounts(
       .eq("status", "pending"),
     countProspectGeneration(db, { campusId: filters.campusId }),
   ]);
-
-  // Capture the materialized partner-prospect count (RESEARCH_STATUSES rows,
-  // kind != provider) BEFORE folding in the virtual provider prospects +
-  // research cards, so the audience-composite counts below can split cleanly.
-  const basePartnerProspects = counts.prospects;
-  const baseUnreadPartnerProspects = unread.prospects;
 
   counts.prospects += prospectGen.total;
   unread.prospects += prospectGen.unread;
@@ -784,16 +794,20 @@ async function computeTabCounts(
   unread.campuses = siteUnread;
 
   // Audience-composite counts for the In Basket primary bar. Each audience
-  // tab folds its prospecting + active-entity work into one number:
-  //   providers    = virtual provider prospects + clients-with-task
-  //   partner_book = partner prospects (materialized) + research cards +
+  // tab folds its prospecting + active-entity work into one number, matching
+  // exactly what the tab renders:
+  //   providers    = virtual provider prospects + materialized provider
+  //                  research rows + clients-with-task
+  //   partner_book = partner research rows + research cards +
   //                  active-partners-with-task
-  counts.providers = prospectGen.providerProspects.total + (counts.clients ?? 0);
-  unread.providers = prospectGen.providerProspects.unread + (unread.clients ?? 0);
+  counts.providers =
+    prospectGen.providerProspects.total + providerResearch + (counts.clients ?? 0);
+  unread.providers =
+    prospectGen.providerProspects.unread + providerResearchUnread + (unread.clients ?? 0);
   counts.partner_book =
-    basePartnerProspects + prospectGen.researchCards.total + counts.partners;
+    partnerResearch + prospectGen.researchCards.total + counts.partners;
   unread.partner_book =
-    baseUnreadPartnerProspects + prospectGen.researchCards.unread + unread.partners;
+    partnerResearchUnread + prospectGen.researchCards.unread + unread.partners;
 
   return { counts, unread };
 }

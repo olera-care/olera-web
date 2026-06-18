@@ -78,6 +78,8 @@ export interface ConnectionRowData {
   /** Provider archived this lead in their portal */
   archived?: boolean;
   archiveReason?: "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
+  /** Raw archive reason (free-text from leads page, for display in Archived tab) */
+  rawArchiveReason?: string | null;
   archivedAt?: string;
   /** Email issue type for "Needs Email" tab */
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
@@ -210,7 +212,7 @@ function fmtDate(iso: string | null): string {
   }
 }
 
-// Map archive reason codes to display labels
+// Map archive reason codes to display labels (provider-side, when they decline a lead)
 function getArchiveReasonLabel(reason: string | null | undefined): string {
   if (!reason) return "Archived";
   switch (reason) {
@@ -222,6 +224,35 @@ function getArchiveReasonLabel(reason: string | null | undefined): string {
       return "Not accepting new clients";
     case "unable_to_reach":
       return "Unable to reach";
+    case "other":
+      return "Other";
+    default:
+      return "Archived";
+  }
+}
+
+// Map admin archive reason codes to display labels (admin-side, when admin archives a provider)
+function getAdminArchiveReasonLabel(reason: string | null | undefined): string {
+  if (!reason) return "Archived";
+  switch (reason) {
+    case "provider_requested_no_emails":
+      return "Requested no emails";
+    case "inactive":
+      return "Inactive";
+    case "duplicate":
+      return "Duplicate";
+    case "out_of_business":
+      return "Out of business";
+    case "invalid_provider":
+      return "Invalid provider";
+    case "wrong_contact_info":
+      return "Wrong contact info";
+    case "relocated":
+      return "Relocated";
+    case "compliance_issue":
+      return "Compliance issue";
+    case "merged":
+      return "Merged";
     case "other":
       return "Other";
     default:
@@ -338,7 +369,8 @@ export default function ConnectionRow({
     providerName: string | null,
     isArchived: boolean,
     isProviderArchived: boolean,
-    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null,
+    rawArchiveReason?: string | null
   ) => void;
   onNudgeSuccess?: () => void;
 }) {
@@ -1176,8 +1208,17 @@ export default function ConnectionRow({
               </span>
             )}
             {isAdminArchived && !isProviderInactive && (
-              <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                Archived
+              <span
+                className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded"
+                title={
+                  c.isProviderArchived
+                    ? c.providerArchiveInfo?.notes || c.providerArchiveInfo?.reason || "Archived"
+                    : c.rawArchiveReason?.trim() || "Archived"
+                }
+              >
+                {c.isProviderArchived
+                  ? getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason)
+                  : "Archived"}
               </span>
             )}
             {/* Verified checkmark - only shown for verified providers (clean, minimal) */}
@@ -1309,7 +1350,8 @@ export default function ConnectionRow({
                 c.provider.display_name,
                 isConnectionArchived,
                 isProviderArchived,
-                c.providerArchiveInfo
+                c.providerArchiveInfo,
+                c.rawArchiveReason
               );
             }}
             className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
@@ -1998,6 +2040,39 @@ export default function ConnectionRow({
                       {detail.archivedAt && (
                         <p className="text-xs text-gray-400 mt-2">
                           Declined {daysAgo(detail.archivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin archive information - show for provider-level or connection-level admin archives */}
+              {(c.isProviderArchived || (c.archived && !c.archiveReason && c.rawArchiveReason?.trim())) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">📁</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-amber-900 mb-1">
+                        {c.isProviderArchived ? "Provider Archived" : "Lead Archived"}
+                      </h3>
+                      <p className="text-sm text-amber-800">
+                        <span className="font-medium">Reason:</span>{" "}
+                        {c.isProviderArchived
+                          ? (c.providerArchiveInfo?.notes || getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason))
+                          : c.rawArchiveReason?.trim()}
+                      </p>
+                      {c.isProviderArchived && c.providerArchiveInfo?.archivedBy && (
+                        <p className="text-xs text-amber-600 mt-2">
+                          Archived by {c.providerArchiveInfo.archivedBy}
+                          {c.providerArchiveInfo.archivedAt && (
+                            <> · {daysAgo(c.providerArchiveInfo.archivedAt)}</>
+                          )}
+                        </p>
+                      )}
+                      {!c.isProviderArchived && c.archivedAt && (
+                        <p className="text-xs text-amber-600 mt-2">
+                          Archived {daysAgo(c.archivedAt)}
                         </p>
                       )}
                     </div>

@@ -653,6 +653,10 @@ function ApplyExperience({
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
   const stop = budgetStop(selectedBudget);
   const copy = managedAdsPitchCopy(managedAdsVariant);
+  const introBody =
+    managedAdsVariant === "local_plan"
+      ? "Pick a week, then a budget. We run Google, Meta, and local ads, then send interested families to your Olera page."
+      : copy.body;
 
   const canAdvance = step === 0 ? !!selectedWeek : step === 1 ? !!stop : true;
 
@@ -695,12 +699,10 @@ function ApplyExperience({
               <span className="text-primary-600 italic">{copy.accent}</span>.
             </h1>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
-              {copy.body}
+              {introBody}
             </p>
 
-            <DemandDiagnosis provider={provider} demand={demand} />
-
-            <fieldset className="mt-9">
+            <fieldset className="mt-8">
               <legend className="text-sm font-medium text-gray-900 mb-3">Pick your week</legend>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {weekOptions.map((w) => {
@@ -723,6 +725,8 @@ function ApplyExperience({
                 })}
               </div>
             </fieldset>
+
+            <DemandDiagnosis provider={provider} demand={demand} />
 
             <fieldset className="mt-7">
               <legend className="text-sm font-medium text-gray-900 mb-3">Where we advertise</legend>
@@ -878,7 +882,7 @@ function ApplyExperience({
               onClick={() => setStep(step + 1)}
               className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
             >
-              Continue
+              {step === 0 && !selectedWeek ? "Pick a week first" : "Continue"}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
@@ -915,24 +919,9 @@ function ApplyExperience({
           weekLabel={weekLabel}
           channelLabel={channelLabel}
           stop={stop}
+          showProof={step === 0}
         />
 
-        {/* Value props — quiet, scannable proof, only on the entry step. On the
-            budget step the estimate hero is the focus; on confirm the review is
-            self-contained — repeating the props there is dead column. */}
-        {step === 0 && (
-          <ul className="space-y-3.5 px-1">
-            {VALUE_PROPS.map((p) => (
-              <li key={p.title} className="flex gap-2.5">
-                <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
-                <span className="text-sm leading-snug">
-                  <span className="font-medium text-gray-900">{p.title}</span>
-                  <span className="text-gray-500"> — {p.tail}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
       </aside>
     </div>
   );
@@ -964,29 +953,16 @@ function DemandDiagnosis({
   const count = demand.count >= 5 ? demand.count : null;
 
   return (
-    <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-5 py-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-        Local diagnosis
-      </p>
-      <p className="mt-2 text-[17px] font-semibold leading-snug text-gray-900">
+    <div className="mt-7 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-4 py-3.5">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">Local read</p>
+      <p className="mt-1.5 text-sm font-medium leading-snug text-gray-900">
         {count
           ? `${count.toLocaleString()} families looked at ${category} options in ${place} in the last ${demand.windowDays} days.`
-          : `Families in ${place} are searching for ${category} before they ever reach your page.`}
+          : `Families in ${place} are already searching for ${category}.`}
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <PlanPoint title="Where they look" body="Google, Meta, and local feeds." />
-        <PlanPoint title="Where they land" body="Your Olera page, not a broker form." />
-        <PlanPoint title="What you get" body="A clear read on spend, clicks, and families delivered." />
-      </div>
-    </div>
-  );
-}
-
-function PlanPoint({ title, body }: { title: string; body: string }) {
-  return (
-    <div>
-      <p className="text-sm font-semibold text-gray-900">{title}</p>
-      <p className="mt-1 text-sm leading-snug text-gray-500">{body}</p>
+      <p className="mt-2 text-xs text-gray-500">
+        Google + Meta + local feeds → your Olera page → spend, clicks, and families delivered.
+      </p>
     </div>
   );
 }
@@ -999,38 +975,48 @@ function CampaignSummary({
   weekLabel,
   channelLabel,
   stop,
+  showProof,
 }: {
   eligible: boolean;
   weekLabel: string | null;
   channelLabel: string;
   stop: BudgetStop | null;
+  showProof: boolean;
 }) {
+  const launchReady = !!weekLabel;
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
-        Your launch plan
-      </p>
+    <div className="rounded-[1.35rem] border border-gray-900/10 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_18px_42px_-20px_rgba(15,23,42,0.35)]">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
+          Launch ticket
+        </p>
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+          launchReady ? "bg-primary-50 text-primary-700" : "bg-gray-100 text-gray-400"
+        }`}>
+          {launchReady ? "Timing set" : "Timing first"}
+        </span>
+      </div>
 
-      <dl className="mt-4 space-y-3.5">
-        <div className="flex items-baseline justify-between gap-4">
+      <dl className="mt-5 divide-y divide-gray-100 border-y border-gray-100">
+        <div className="flex items-baseline justify-between gap-4 py-3">
           <dt className="text-sm text-gray-500">Launch</dt>
-          <dd className={`text-sm font-medium text-right ${weekLabel ? "text-gray-900" : "text-gray-300"}`}>
+          <dd className={`text-base font-semibold text-right ${weekLabel ? "text-gray-900" : "text-gray-300"}`}>
             {weekLabel ?? "Pick a week"}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-4">
+        <div className="flex items-baseline justify-between gap-4 py-3">
           <dt className="text-sm text-gray-500">Advertising on</dt>
-          <dd className="text-sm font-medium text-gray-900 text-right">{channelLabel}</dd>
+          <dd className="text-base font-semibold text-gray-900 text-right">{channelLabel}</dd>
         </div>
-        <div className="flex items-baseline justify-between gap-4">
+        <div className="flex items-baseline justify-between gap-4 py-3">
           <dt className="text-sm text-gray-500">Starting budget</dt>
-          <dd className={`text-sm font-medium text-right ${stop ? "text-gray-900" : "text-gray-300"}`}>
+          <dd className={`text-base font-semibold text-right ${stop ? "text-gray-900" : "text-gray-300"}`}>
             {stop?.label ?? "Pick a budget"}
           </dd>
         </div>
       </dl>
 
-      <div className="mt-5 pt-5 border-t border-gray-100">
+      <div className="mt-5">
         {stop ? (
           <>
             {/* Compact estimate (the big version lives in the left hero on the
@@ -1057,6 +1043,20 @@ function CampaignSummary({
           </p>
         )}
       </div>
+
+      {showProof && (
+        <div className="mt-5 flex flex-wrap gap-2">
+          {VALUE_PROPS.map((p) => (
+            <span
+              key={p.title}
+              className="rounded-full border border-primary-100 bg-primary-50/50 px-2.5 py-1 text-[11px] font-medium text-primary-800"
+              title={p.tail}
+            >
+              {p.title}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

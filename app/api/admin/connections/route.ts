@@ -496,6 +496,9 @@ export async function GET(request: NextRequest) {
       // archiveReason = valid provider decline reason (not_a_fit, not_accepting_clients, etc.)
       // This distinguishes provider-declined (Declined tab) from admin-archived (Archived tab)
       const archiveReason = parseArchiveReason(meta.archive_reason);
+      // rawArchiveReason = the actual free-text reason entered (for admin archive display)
+      // This preserves whatever text was typed, even if not a predefined reason
+      const rawArchiveReason = typeof meta.archive_reason === "string" ? meta.archive_reason : null;
       // archived = true if provider declined OR admin archived from leads page
       // - Provider decline: archived=true + valid archiveReason → Declined tab
       // - Admin archive: archived=true + no valid archiveReason → Archived tab
@@ -690,6 +693,8 @@ export async function GET(request: NextRequest) {
         // Archive state (provider archived in their portal)
         archived,
         archiveReason,
+        // Raw archive reason (free-text from leads page, for display in Archived tab)
+        rawArchiveReason,
         archivedAt,
         // Admin override for manual status marking
         adminOverride,

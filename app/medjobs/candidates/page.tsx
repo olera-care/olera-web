@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
@@ -278,32 +279,96 @@ function CandidateBrowseInner() {
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")";
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
+    <main className="min-h-screen bg-white">
       <RefreshAfterCheckout />
 
-      {/* Hero header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
-            Hire vetted student caregivers
-          </h1>
-          <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
-            Pre-health students committed to a semester of recurring shifts.
-          </p>
-
-          {total > 0 && (
-            <div className="mt-4 flex items-center gap-4">
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
-                <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
-                {total} caregiver{total !== 1 ? "s" : ""}
-                {selectedUniversityName ? ` near ${selectedUniversityName}` : " available"}
-              </span>
+      {/* Hero — two-column, campus-aware */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary-50" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 md:pt-12 md:pb-12">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div>
+              <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-[1.1]">
+                Hire college students {selectedUniversityName ? `from ${selectedUniversityName}` : "near you"}
+              </h1>
+              <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">
+                Future doctors, nurses, and healthcare professionals seeking caregiving jobs.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
+                <button
+                  type="button"
+                  onClick={onCheckEligibility}
+                  className="inline-flex items-center px-7 py-3.5 bg-primary-600 text-white text-[15px] font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
+                >
+                  Tell us your hiring needs →
+                </button>
+                <a
+                  href="#candidates"
+                  className="inline-flex items-center px-5 py-3.5 text-gray-500 text-[15px] font-medium hover:text-gray-900 transition-colors"
+                >
+                  Browse student caregivers
+                  <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </a>
+              </div>
+              <div className="mt-6 flex items-center gap-2.5">
+                <Image
+                  src="/images/for-providers/team/logan.jpg"
+                  alt="Dr. Logan DuBose"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-full object-cover shadow-sm"
+                />
+                <p className="text-sm text-gray-500">
+                  Co-Founded by Logan DuBose, MD &middot; GP &middot; Researcher
+                </p>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <div className="relative">
+              <div className="aspect-[3/2] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/10">
+                <Image
+                  src="/images/medjobs/provider-caregiving.jpg"
+                  alt="Student caregiver with a senior client"
+                  width={800}
+                  height={600}
+                  className="w-full h-full object-cover"
+                  priority
+                />
+              </div>
+              <div className="absolute -bottom-4 -left-4 sm:-left-6 max-w-[88%] rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-lg shadow-gray-900/10">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                  Students from
+                </p>
+                <div className="flex items-center gap-3">
+                  {[
+                    { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
+                    { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
+                    { name: "Prairie View A&M", logo: "/images/medjobs/universities/prairie-view.webp" },
+                    { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
+                    { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
+                  ].map((uni) => (
+                    <Image
+                      key={uni.name}
+                      src={uni.logo}
+                      alt={uni.name}
+                      width={120}
+                      height={60}
+                      className="h-6 w-auto object-contain opacity-80"
+                    />
+                  ))}
+                  <span className="text-lg leading-none text-gray-300" aria-hidden="true">
+                    …
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {claimConflict && (
           <div className="mb-6 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4">
             <h2 className="font-serif text-lg text-gray-900">
@@ -329,6 +394,16 @@ function CandidateBrowseInner() {
             onCheckEligibility={onCheckEligibility}
           />
         )}
+
+        {/* Top candidates */}
+        <div id="candidates" className="scroll-mt-20 mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            Top candidates {selectedUniversityName ? `near ${selectedUniversityName}` : "near you"}
+          </h2>
+          {total > 0 && (
+            <span className="shrink-0 text-sm text-gray-500">{total} available</span>
+          )}
+        </div>
 
         {/* Filters — university + sort only */}
         <div className="flex flex-wrap items-center gap-3 mb-6">

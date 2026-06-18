@@ -55,7 +55,7 @@ export default function ProvidersMarketing() {
             </div>
             <div className="lg:py-4">
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">How it works</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">As needed or recurring coverage</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">PRN or recurring shifts</h2>
               <div className="mt-10 space-y-0">
                 {HOW_IT_WORKS.map((item, i) => (
                   <div key={item.title} className="py-7 border-t border-gray-200/80 first:border-t-0">
@@ -144,8 +144,24 @@ export default function ProvidersMarketing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="rounded-3xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-              <p className="text-sm font-semibold text-gray-900">Every student is vetted before their profile goes live</p>
-              <div className="mt-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <Image
+                  src="/images/for-providers/team/logan.jpg"
+                  alt="Dr. Logan DuBose"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
+                />
+                <div>
+                  <p className="font-serif text-lg text-gray-900 leading-snug">
+                    &ldquo;Every student is vetted before their profile goes live.&rdquo;
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Logan DuBose, MD &middot; General Practitioner &middot; Researcher
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 space-y-3 border-t border-gray-100 pt-5">
                 {[
                   "Intro video reviewed",
                   "Reliability & professionalism acknowledgments completed",

@@ -111,10 +111,14 @@ export default function HireCaregiversBoard() {
     selectedUni?.lat != null && selectedUni?.lng != null
       ? { lat: selectedUni.lat, lng: selectedUni.lng }
       : null;
-  const filtered = candidates.filter((c) => matchesAvailability(c, availability));
-  const showSamples = !loading && filtered.length === 0;
+  // Demo era (no real students yet) → fall back to the curated samples so both
+  // the cards AND the map stay populated. They carry Austin-area coords.
+  const isDemoEra = !loading && candidates.length === 0;
+  const baseCards = candidates.length > 0 ? candidates : SAMPLE_CANDIDATES;
+  const filtered = baseCards.filter((c) => matchesAvailability(c, availability));
+  const availLabel = AVAIL_OPTIONS.find((o) => o.value === availability)?.label ?? null;
   const mapCards = filtered
-    .map((c) => candidateToCardFormat(c))
+    .map((c) => candidateToCardFormat(c, isDemoEra ? { isDemo: true } : undefined))
     .filter((c) => c.lat != null && c.lon != null);
 
   const selectClass = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700";
@@ -191,22 +195,31 @@ export default function HireCaregiversBoard() {
                 <div key={i} className="bg-white rounded-2xl border border-gray-100 h-64 animate-pulse" />
               ))}
             </div>
-          ) : showSamples ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SAMPLE_CANDIDATES.map((c) => (
-                <BrowseCard key={c.id} provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
-              ))}
+          ) : filtered.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-12 text-center">
+              <p className="text-gray-500">
+                No {availLabel ? availLabel.toLowerCase() : "matching"} caregivers near {campusName || "you"} yet.
+              </p>
+              {availability && (
+                <button type="button" onClick={() => setAvailability("")} className="mt-3 text-sm font-semibold text-primary-700 hover:underline">
+                  Clear filter
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {filtered.map((c) => (
                 <div key={c.id} onMouseEnter={() => setHoveredId(c.id)} onMouseLeave={() => setHoveredId(null)}>
-                  <BrowseCard
-                    provider={candidateToCardFormat(c)}
-                    variant="candidate"
-                    href={`/medjobs/candidates/${c.slug}`}
-                    matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
-                  />
+                  {isDemoEra ? (
+                    <BrowseCard provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
+                  ) : (
+                    <BrowseCard
+                      provider={candidateToCardFormat(c)}
+                      variant="candidate"
+                      href={`/medjobs/candidates/${c.slug}`}
+                      matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
+                    />
+                  )}
                 </div>
               ))}
             </div>

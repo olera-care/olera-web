@@ -222,13 +222,16 @@ function CandidateBrowseInner() {
     universities.find((u) => u.id === universityId)?.name ?? null;
   const availabilityLabel = AVAILABILITY_TILES.find((t) => t.value === availabilityFilter)?.label ?? null;
 
+  // Demo era (no real students yet) → fall back to curated samples so the
+  // carousel / view-all / map all stay populated, exactly like real cards.
+  const isDemoEra = !loading && candidates.length === 0;
+  const baseCards = candidates.length > 0 ? candidates : SAMPLE_CANDIDATES;
   const topCards = availabilityFilter
-    ? candidates.filter((c) => matchesAvailability(c, availabilityFilter))
-    : candidates;
+    ? baseCards.filter((c) => matchesAvailability(c, availabilityFilter))
+    : baseCards;
   const carouselCards = topCards.slice(0, 12);
   const totalPages = Math.ceil(topCards.length / GRID_PAGE);
   const pageCards = topCards.slice((page - 1) * GRID_PAGE, page * GRID_PAGE);
-  const showSamples = !loading && candidates.length === 0;
 
   const onCheckEligibility = useCallback(() => setShowScreener(true), []);
 
@@ -247,15 +250,18 @@ function CandidateBrowseInner() {
   const chevronBg =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")";
 
-  const cardEl = (c: CandidateData) => (
-    <BrowseCard
-      key={c.id}
-      provider={candidateToCardFormat(c)}
-      variant="candidate"
-      href={`/medjobs/candidates/${c.slug}`}
-      matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
-    />
-  );
+  const cardEl = (c: CandidateData) =>
+    isDemoEra ? (
+      <BrowseCard key={c.id} provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
+    ) : (
+      <BrowseCard
+        key={c.id}
+        provider={candidateToCardFormat(c)}
+        variant="candidate"
+        href={`/medjobs/candidates/${c.slug}`}
+        matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
+      />
+    );
 
   return (
     <main className="min-h-screen bg-white">
@@ -395,12 +401,6 @@ function CandidateBrowseInner() {
                 <div key={i} className="bg-white rounded-2xl border border-gray-100 h-64 animate-pulse" />
               ))}
             </div>
-          ) : showSamples ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {SAMPLE_CANDIDATES.map((c) => (
-                <BrowseCard key={c.id} provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
-              ))}
-            </div>
           ) : topCards.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-12 text-center">
               <p className="text-gray-500">
@@ -449,7 +449,7 @@ function CandidateBrowseInner() {
           )}
 
           {/* Bottom row — active filter label, clear, view all (right-aligned) */}
-          {!loading && !showSamples && topCards.length > 0 && (
+          {!loading && topCards.length > 0 && (
             <div className="mt-6 flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm">
               {availabilityFilter && (
                 <>
@@ -482,7 +482,7 @@ function CandidateBrowseInner() {
         </div>
 
         {/* ── Explore candidates by availability ── */}
-        {!loading && candidates.length > 0 && (
+        {!loading && baseCards.length > 0 && (
           <div className="mt-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-5">Explore candidates by availability</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">

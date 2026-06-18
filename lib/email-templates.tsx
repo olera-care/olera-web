@@ -192,7 +192,7 @@ export function providerManagedAdsEmail(opts: {
       <p style="font-size:15px;font-weight:600;color:#111827;margin:0;line-height:1.5;">No bidding against other agencies for the same family.</p>
     </div>
     <p style="font-size:15px;color:#374151;margin:0 0 28px;line-height:1.65;">Just your own campaign, pointed at your own page.</p>
-    <div>${button("See how it works →", opts.ctaUrl)}</div>
+    <div>${button("Get my launch plan →", opts.ctaUrl)}</div>
     ${authorBylineBlock()}
     <div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;"><a href="${unsubUrl}" style="color:#9ca3af;">Stop these weekly digests</a></p>

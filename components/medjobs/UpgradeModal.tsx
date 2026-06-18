@@ -44,8 +44,8 @@ export default function UpgradeModal({ creditsUsed, onClose }: UpgradeModalProps
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Unlock unlimited interviews</h2>
         <p className="text-sm text-gray-500 mb-4">
           {creditsUsed > 0
-            ? "You\u2019ve used your free interviews and seen the program firsthand. Keep hiring the best pre-health interns."
-            : "Upgrade to schedule interviews with top pre-health interns."}
+            ? "You\u2019ve used your free interviews and seen the program firsthand. Keep hiring the best pre-health student caregivers."
+            : "Upgrade to schedule interviews with top pre-health student caregivers."}
         </p>
 
         <div className="bg-gray-50 rounded-xl p-4 mb-5">

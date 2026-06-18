@@ -115,7 +115,7 @@ function StaffingPilotContent() {
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Welcome aboard!</h1>
           <p className="text-lg text-gray-600 mb-6">
             <span className="font-semibold text-gray-900">{enrollmentData.providerName}</span> is now a partner
-            in the {enrollmentData.universityName} Pre-Health Caregiving Internship.
+            in the {enrollmentData.universityName} Student Caregiver Program.
           </p>
           <div className="bg-white rounded-xl border border-gray-200 p-6 text-left mb-8">
             <h2 className="font-semibold text-gray-900 mb-3">What happens next?</h2>
@@ -126,11 +126,11 @@ function StaffingPilotContent() {
               </li>
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-medium">2</span>
-                <span>We match a committed pre-health intern whose availability fits</span>
+                <span>We match a committed pre-health student caregiver whose availability fits</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-medium">3</span>
-                <span>Interview, hire, and the semester internship begins</span>
+                <span>Interview, hire, and the semester begins</span>
               </li>
             </ul>
           </div>
@@ -154,9 +154,9 @@ function StaffingPilotContent() {
           <div className="flex justify-center mb-4">
             <Image src="/images/olera-logo.png" alt="Olera" width={120} height={40} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Pre-Health Caregiving Internship</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Caregiver Program</h1>
           <p className="text-lg text-gray-600">
-            Partner with us to host vetted pre-health interns for a semester of recurring care.
+            Partner with us to hire vetted pre-health student caregivers for a semester of recurring care.
           </p>
         </div>
 
@@ -169,10 +169,10 @@ function StaffingPilotContent() {
 
           <div className="p-6 max-h-80 overflow-y-auto bg-gray-50 text-sm text-gray-700 space-y-4">
             <p>
-              <strong>Program Overview:</strong> The Olera Pre-Health Caregiving Internship places
+              <strong>Program Overview:</strong> The Olera Student Caregiver Program places
               pre-nursing and pre-medical students with home care agencies for paid, supervised
-              caregiving. Interns commit to a semester of recurring availability, and we match them
-              to your clients whose schedules line up — giving you reliable coverage while students
+              caregiving. Students commit to a semester of recurring availability, and we match them
+              to your clients whose schedules line up, giving you reliable coverage while students
               earn the experience and references their health-career applications need.
             </p>
 
@@ -180,24 +180,24 @@ function StaffingPilotContent() {
               <strong>What You&apos;ll Receive:</strong>
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Vetted intern profiles matched to your recurring coverage needs</li>
+              <li>Vetted student caregiver profiles matched to your recurring coverage needs</li>
               <li>Students who have completed background checks and committed to a semester of availability</li>
               <li>A motivated pre-health pipeline you could hire on after the term</li>
-              <li>No commitment up front — matching begins only when you have a recurring need</li>
+              <li>No commitment up front, matching begins only when you have a recurring need</li>
             </ul>
 
             <p>
               <strong>Your Commitment:</strong>
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Review matched intern profiles in a timely manner</li>
+              <li>Review matched student caregiver profiles in a timely manner</li>
               <li>Provide feedback to help us improve matching</li>
               <li>Conduct your standard hiring and onboarding process</li>
-              <li>Share occasional feedback about the internship</li>
+              <li>Share occasional feedback about the program</li>
             </ul>
 
             <p>
-              <strong>Program Terms:</strong> This internship is early-stage. Olera may modify or
+              <strong>Program Terms:</strong> This program is early-stage. Olera may modify or
               discontinue it at any time. You may opt out at any time by contacting us. There are no
               fees or long-term commitments during the program.
             </p>
@@ -220,11 +220,11 @@ function StaffingPilotContent() {
               disabled={loading}
               className="w-full rounded-lg bg-primary-600 py-3 text-white font-semibold hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? "Joining..." : "I Accept — Join as a Partner"}
+              {loading ? "Joining..." : "I Accept and Join as a Partner"}
             </button>
 
             <p className="mt-4 text-xs text-center text-gray-500">
-              By clicking above, you agree to participate in the internship program under these terms.
+              By clicking above, you agree to participate in the program under these terms.
             </p>
           </div>
         </div>

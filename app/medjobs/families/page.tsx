@@ -4,13 +4,13 @@ import MedjobsMarketing from "@/components/medjobs/MedjobsMarketing";
 
 // Migrated from the retired /medjobs landing so the indexed page survives.
 export const metadata: Metadata = {
-  title: "Olera's Student Caregiver Internship | Olera",
+  title: "Olera's Student Caregiver Program | Olera",
   description:
-    "A paid caregiver internship for pre-health students. Earn healthcare experience, a credential, and references for medical, PA, and nursing school. Providers: match with vetted student caregivers for recurring coverage.",
+    "A paid caregiving program for pre-health students. Earn healthcare experience, a credential, and references for medical, PA, and nursing school. Providers: match with vetted student caregivers for recurring coverage.",
   openGraph: {
-    title: "Olera's Student Caregiver Internship | Olera",
+    title: "Olera's Student Caregiver Program | Olera",
     description:
-      "A paid caregiver internship for pre-health students. Earn healthcare experience, a credential, and references toward your health career.",
+      "A paid caregiving program for pre-health students. Earn healthcare experience, a credential, and references toward your health career.",
   },
 };
 

@@ -112,11 +112,16 @@ async function queryBusinessProfiles(
   const columns =
     "id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url";
 
+  // Null-safe guard: never surface MedJobs guest profiles (metadata.is_guest)
+  // in search — they're inactive placeholders from "Continue as guest".
+  const notGuest = "metadata->>is_guest.is.null,metadata->>is_guest.neq.true";
+
   const fullPhraseQuery = db
     .from("business_profiles")
     .select(columns)
     .in("type", ["organization", "caregiver"])
     .or(`display_name.ilike.${fullPattern},city.ilike.${fullPattern}`)
+    .or(notGuest)
     .order("display_name", { ascending: true })
     .limit(PER_STRATEGY_LIMIT);
 
@@ -128,6 +133,7 @@ async function queryBusinessProfiles(
           .in("type", ["organization", "caregiver"])
           .ilike("display_name", `%${strategies.nameWords}%`)
           .ilike("city", `%${strategies.lastWord}%`)
+          .or(notGuest)
           .order("display_name", { ascending: true })
           .limit(PER_STRATEGY_LIMIT)
       : Promise.resolve({ data: [] as BpRow[], error: null });

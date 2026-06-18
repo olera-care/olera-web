@@ -156,7 +156,7 @@ export default function StudentEligibilityModal({
 
         {context.campusName ? (
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary-600">
-            {context.campusName} · Student Caregiver Internship
+            {context.campusName} · Student Caregiver Program
           </p>
         ) : null}
 

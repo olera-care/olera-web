@@ -63,16 +63,16 @@ export default function InternshipAgreementModal({
 
         <div className="flex-1 space-y-3 overflow-y-auto px-6 py-5 text-sm text-gray-700">
           {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          <p className="text-gray-600">The Olera Internship Agreement, in plain language:</p>
+          <p className="text-gray-600">The Olera Student Caregiver Agreement, in plain language:</p>
           <Bullet>You&apos;re the employer: schedule, pay, supervision, and your own background check.</Bullet>
           <Bullet>
             The student logs their own hours and drives their recommendation-letter request; you
             confirm hours and give a reference if they meet your standards.
           </Bullet>
-          <Bullet>Run the internship in good faith and keep the agreed availability, barring emergencies.</Bullet>
+          <Bullet>Run the program in good faith and keep the agreed availability, barring emergencies.</Bullet>
           <div className="rounded-xl bg-gray-50 px-4 py-3">
             <p className="text-sm text-gray-900">
-              <span className="font-semibold">Internship fee: ${INTERNSHIP_FEE_USD}</span> each, one time.
+              <span className="font-semibold">Program fee: ${INTERNSHIP_FEE_USD}</span> each, one time.
             </p>
             <p className="mt-1 text-sm text-gray-600">{GUARANTEE_LINE}</p>
             <p className="mt-1 text-xs text-gray-400">

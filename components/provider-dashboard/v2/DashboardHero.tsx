@@ -14,6 +14,12 @@ import {
 } from "@/lib/next-best-action";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
+import {
+  HERO_DISMISS_KEY,
+  isDismissibleBanner,
+  todayStamp,
+  readDismissedToday,
+} from "./heroDismiss";
 import type { ManagedAdsVariant } from "@/lib/analytics/managed-ads-variant";
 import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
 import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
@@ -132,40 +138,8 @@ function bumpHeroRotation(): number {
   }
 }
 
-// ── Dismiss (Robinhood-style, daily reset) ──────────────────────────────────
-// Providers can dismiss the *non-essential* banners (managed ads, market intel,
-// completion nudges) via an X. The action banners — a lead/question/family is
-// waiting, or a positive view spike — are the signals the hero exists to
-// surface, so they're never dismissible. Dismissal is NOT permanent: it lasts
-// only the provider's current calendar day, then the hero returns fresh (the
-// rotation counter has advanced, so it's usually a different card). A new
-// action signal still breaks through same-day, since those aren't dismissible.
-
-const HERO_DISMISS_KEY = "olera_hero_dismissed_date";
-
-/** A banner that carries an X. Promotional / housekeeping nags only. */
-const DISMISSIBLE_BANNER_IDS = new Set(["managed_ads", "find_families_intel"]);
-function isDismissibleBanner(bannerId: string): boolean {
-  return DISMISSIBLE_BANNER_IDS.has(bannerId) || bannerId.startsWith("completion:");
-}
-
-/** Local (not UTC) date stamp — dismissal resets on the provider's own day. */
-function todayStamp(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
-}
-
-/** True if the provider already dismissed the hero today. SSR-safe + failure-safe. */
-function readDismissedToday(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(HERO_DISMISS_KEY) === todayStamp();
-  } catch {
-    return false;
-  }
-}
+// Dismiss helpers (shared with DashboardHeroSkeleton so the skeleton hides too).
+// See heroDismiss.ts for the Robinhood-style daily-reset rationale.
 
 interface Props {
   firstName: string;

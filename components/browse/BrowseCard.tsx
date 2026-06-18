@@ -76,6 +76,9 @@ interface BrowseCardProps {
   isRequested?: boolean;
   canRequest?: boolean;
   onRequestInterview?: () => void;
+  /** student variant — label for the request button (defaults to "Request
+   *  interview"; not-live students get "Complete profile to apply →"). */
+  requestLabel?: string;
   /** candidate variant — the detail link target (e.g. /medjobs/candidates/{slug}). */
   href?: string;
   /** candidate variant — "Covers your evenings" match line. */
@@ -91,6 +94,7 @@ export default function BrowseCard({
   isRequested = false,
   canRequest = false,
   onRequestInterview,
+  requestLabel = "Request interview",
   href,
   matchLabel,
   campus,
@@ -405,7 +409,7 @@ export default function BrowseCard({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequestInterview?.(); }}
                 className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
               >
-                Request interview
+                {requestLabel}
               </button>
             ) : (
               // Anon: not a dead button — routes into the eligibility screener.

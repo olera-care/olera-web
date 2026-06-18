@@ -1274,49 +1274,46 @@ function StudentPortalContent({
         {/* Welcome + FOMO banner — a note from Dr. DuBose while not yet live */}
         {!profile.is_active && (
           <div className="mb-6 rounded-2xl border border-primary-100/60 bg-gradient-to-r from-primary-50 to-vanilla-50 p-5">
-            <div className="flex items-start gap-4">
-              <Image
-                src="/images/for-providers/team/logan.jpg"
-                alt="Dr. Logan DuBose"
-                width={48}
-                height={48}
-                className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold text-gray-900">
-                  Welcome, {firstName} — you&apos;re in.
-                </p>
-                <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
-                  Complete your profile to apply to{" "}
-                  {typeof openJobs === "number" && openJobs > 0 ? (
-                    <span className="font-semibold text-gray-900">{openJobs} open jobs</span>
-                  ) : (
-                    "the open jobs"
-                  )}{" "}
-                  near {campusName || "you"}.
-                </p>
-                <p className="mt-1 text-xs text-gray-400">
-                  &mdash; Dr. Logan DuBose, MD, MBA &middot; Co-Founder
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => {
-                      guided.startGuided();
-                      if (guided.firstIncompleteSection) {
-                        setEditingSection(guided.firstIncompleteSection);
-                      }
-                    }}
-                    className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-                  >
-                    Complete your profile{completenessPercent > 0 ? ` · ${completenessPercent}%` : ""} →
-                  </button>
-                  <Link
-                    href="/portal/medjobs/jobs"
-                    className="text-sm font-semibold text-primary-700 hover:underline"
-                  >
-                    Browse open jobs ↗
-                  </Link>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <Image
+                  src="/images/for-providers/team/logan.jpg"
+                  alt="Dr. Logan DuBose"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
+                />
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold text-gray-900">Welcome.</p>
+                  <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
+                    Complete your profile to apply to{" "}
+                    {typeof openJobs === "number" && openJobs > 0 ? (
+                      <span className="font-semibold text-gray-900">{openJobs} open caregiving jobs</span>
+                    ) : (
+                      "open caregiving jobs"
+                    )}{" "}
+                    near {campusName || "you"}.
+                  </p>
                 </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
+                <button
+                  onClick={() => {
+                    guided.startGuided();
+                    if (guided.firstIncompleteSection) {
+                      setEditingSection(guided.firstIncompleteSection);
+                    }
+                  }}
+                  className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
+                >
+                  Complete your profile{completenessPercent > 0 ? ` · ${completenessPercent}%` : ""} →
+                </button>
+                <Link
+                  href="/portal/medjobs/jobs"
+                  className="text-sm font-semibold text-primary-700 hover:underline"
+                >
+                  Browse open jobs ↗
+                </Link>
               </div>
             </div>
           </div>

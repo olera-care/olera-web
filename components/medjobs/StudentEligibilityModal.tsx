@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { IntendedProfessionalSchool } from "@/lib/types";
 import type { CoverageBucket } from "@/lib/medjobs/student-eligibility";
+import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 
 /**
  * StudentEligibilityModal — the student funnel front door (mirror of the
@@ -71,6 +72,7 @@ export default function StudentEligibilityModal({
   const [track, setTrack] = useState<IntendedProfessionalSchool | null>(null);
   const [buckets, setBuckets] = useState<CoverageBucket[]>([]);
   const [email, setEmail] = useState("");
+  const [university, setUniversity] = useState<string>(context.campusSlug ?? "");
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [existing, setExisting] = useState(false);
@@ -81,6 +83,10 @@ export default function StudentEligibilityModal({
     setBuckets((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b]));
 
   async function submit() {
+    if (!university) {
+      setError("Please select your university.");
+      return;
+    }
     if (!EMAIL_RE.test(email)) {
       setError("Please enter a valid email.");
       return;
@@ -88,6 +94,7 @@ export default function StudentEligibilityModal({
     setError(null);
     setStep("loading");
     try {
+      const selectedUni = PARTNER_UNIVERSITIES.find((u) => u.slug === university);
       const res = await fetch("/api/medjobs/student-eligibility", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -95,9 +102,9 @@ export default function StudentEligibilityModal({
           email: email.trim(),
           careerPath: track,
           coverageBuckets: buckets,
-          university: context.universityName ?? undefined,
+          university: selectedUni?.name ?? context.universityName ?? undefined,
           universityId: context.universityId ?? undefined,
-          campus: context.campusSlug ?? undefined,
+          campus: university,
           city: context.city ?? undefined,
           state: context.state ?? undefined,
           referral: context.referral,
@@ -252,11 +259,26 @@ export default function StudentEligibilityModal({
                 </p>
               </div>
             </div>
+            <p className="mt-3 text-sm font-medium text-gray-800">Your university:</p>
+            <select
+              value={university}
+              onChange={(e) => {
+                setUniversity(e.target.value);
+                if (error) setError(null);
+              }}
+              className={fieldClass + " mt-2"}
+            >
+              <option value="">Select your university</option>
+              {PARTNER_UNIVERSITIES.map((u) => (
+                <option key={u.slug} value={u.slug}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
             <p className="mt-3 text-sm font-medium text-gray-800">Add your email to get started:</p>
             <input
               type="email"
               inputMode="email"
-              autoFocus
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -267,7 +289,12 @@ export default function StudentEligibilityModal({
               className={fieldClass + " mt-2"}
             />
             {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
-            <button type="button" className={btnPrimary} onClick={submit}>
+            <button
+              type="button"
+              disabled={!university || !email.trim()}
+              className={btnPrimary + " disabled:opacity-50"}
+              onClick={submit}
+            >
               Go to full application →
             </button>
           </div>

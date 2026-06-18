@@ -198,7 +198,7 @@ export default function JobsBoard() {
             <div>
               <p className="text-sm font-semibold text-gray-900">Complete your profile to apply</p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Browse every job now — finishing your profile unlocks interview requests.
+                Then share it and get hired for caregiver jobs near {campusName || "you"}.
               </p>
             </div>
           </div>
@@ -206,7 +206,7 @@ export default function JobsBoard() {
             href="/portal/medjobs"
             className="inline-flex shrink-0 items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
           >
-            Finish your profile →
+            Complete profile to apply →
           </Link>
         </div>
       )}
@@ -270,6 +270,7 @@ export default function JobsBoard() {
                       campus={campus || undefined}
                       isRequested={requested.has(f.id)}
                       canRequest={!!student.profileId}
+                      requestLabel={student.isLive ? "Request interview" : "Complete profile to apply →"}
                       onRequestInterview={() => onRequest(f)}
                     />
                   </div>

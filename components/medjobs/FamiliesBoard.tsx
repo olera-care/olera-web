@@ -221,6 +221,7 @@ function Board() {
       campus={campus || undefined}
       isRequested={requested.has(f.id)}
       canRequest={!!studentProfileId}
+      requestLabel={studentStatus?.isLive ? "Request interview" : "Complete profile to apply →"}
       onRequestInterview={() => (studentProfileId ? setModalTarget(f) : setShowScreener(true))}
     />
   );

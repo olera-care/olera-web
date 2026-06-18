@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId } from "@/lib/medjobs-helpers";
@@ -1116,6 +1118,7 @@ function StudentPortalContent({
   const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
+  const [openJobs, setOpenJobs] = useState<number | null>(null);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
 
@@ -1139,6 +1142,25 @@ function StudentPortalContent({
   // Section-based completeness (8 logical sections)
   const completeSections = getSectionCompleteness(meta, hasPhoto, hasBasicInfo);
   const completenessPercent = calculateCompleteness(meta, hasPhoto, hasBasicInfo);
+
+  // Campus + live open-jobs count for the welcome/FOMO banner.
+  const campusSlug = typeof meta.campus === "string" ? meta.campus : "";
+  const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === campusSlug)?.name ?? null;
+  useEffect(() => {
+    let cancelled = false;
+    const qs = campusSlug ? `?campus=${encodeURIComponent(campusSlug)}` : "";
+    fetch(`/api/medjobs/families${qs}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d && typeof d.total === "number") setOpenJobs(d.total);
+      })
+      .catch(() => {
+        /* count is decorative — ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [campusSlug]);
 
   // Convert sections to items format for guided onboarding hook
   const completenessItems = completeSections.map((s) => ({
@@ -1249,35 +1271,50 @@ function StudentPortalContent({
   return (
     <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Guided onboarding banner */}
-        {guided.shouldPrompt && !guided.isGuidedActive && (
-          <div className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-[15px] font-semibold text-gray-900">
-                Complete your application to get matched faster
-              </p>
-              <p className="text-sm text-gray-500 mt-0.5">
-                We&apos;ll guide you through each section step by step.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={guided.dismiss}
-                className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2"
-              >
-                Dismiss
-              </button>
-              <button
-                onClick={() => {
-                  guided.startGuided();
-                  if (guided.firstIncompleteSection) {
-                    setEditingSection(guided.firstIncompleteSection);
-                  }
-                }}
-                className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
-              >
-                Get Started
-              </button>
+        {/* Welcome + FOMO banner — a note from Dr. DuBose while not yet live */}
+        {!profile.is_active && (
+          <div className="mb-6 rounded-2xl border border-primary-100/60 bg-gradient-to-r from-primary-50 to-vanilla-50 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <Image
+                  src="/images/for-providers/team/logan.jpg"
+                  alt="Dr. Logan DuBose"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
+                />
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold text-gray-900">Welcome.</p>
+                  <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
+                    Complete your profile to apply to{" "}
+                    {typeof openJobs === "number" && openJobs > 0 ? (
+                      <span className="font-semibold text-gray-900">{openJobs} open caregiving jobs</span>
+                    ) : (
+                      "open caregiving jobs"
+                    )}{" "}
+                    near {campusName || "you"}.
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
+                <Link
+                  href="/portal/medjobs/jobs"
+                  className="text-sm font-semibold text-primary-700 hover:underline"
+                >
+                  Browse open jobs ↗
+                </Link>
+                <button
+                  onClick={() => {
+                    guided.startGuided();
+                    if (guided.firstIncompleteSection) {
+                      setEditingSection(guided.firstIncompleteSection);
+                    }
+                  }}
+                  className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
+                >
+                  Complete your profile{completenessPercent > 0 ? ` · ${completenessPercent}%` : ""} →
+                </button>
+              </div>
             </div>
           </div>
         )}

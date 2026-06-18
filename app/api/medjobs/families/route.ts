@@ -102,11 +102,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const campus = searchParams.get("campus")?.trim() || "";
     const sort = searchParams.get("sort") === "oldest" ? "oldest" : "newest";
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 
     // Invalid campus → empty; empty campus → all providers (union of catchments).
     if (campus && !getPartnerUniversity(campus)) {
-      return NextResponse.json({ cards: [], total: 0, page, pageSize: PAGE_SIZE });
+      return NextResponse.json({ cards: [], total: 0, pageSize: PAGE_SIZE });
     }
 
     const unsorted = await getCatchmentCards(campus);
@@ -116,11 +115,11 @@ export async function GET(request: NextRequest) {
       return sort === "oldest" ? ta - tb : tb - ta;
     });
 
-    const total = all.length;
-    const from = (page - 1) * PAGE_SIZE;
-    const cards = all.slice(from, from + PAGE_SIZE);
+    // Return the full catchment (capped) so the board can Top-sort, care-filter,
+    // and paginate client-side.
+    const cards = all.slice(0, 200);
 
-    return NextResponse.json({ cards, total, page, pageSize: PAGE_SIZE });
+    return NextResponse.json({ cards, total: all.length, pageSize: PAGE_SIZE });
   } catch (err) {
     console.error("[medjobs/families] error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

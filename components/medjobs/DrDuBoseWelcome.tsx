@@ -102,7 +102,7 @@ export default function DrDuBoseWelcome({
           <p className="font-serif text-lg text-gray-900">{lead}</p>
           <p className="mt-1 text-sm leading-relaxed text-gray-700">{body}</p>
           <p className="mt-2 text-xs text-gray-500">
-            — Dr. Logan DuBose, MD · geriatric-focused physician, NIA researcher
+            — Dr. Logan DuBose, MD, MBA · General Practitioner · Co-Founder of Olera
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">

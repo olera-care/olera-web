@@ -86,7 +86,7 @@ export default function InternshipAgreementModal({
               rel="noopener noreferrer"
               className="font-medium text-primary-700 hover:underline"
             >
-              Sample agreement →
+              Read the agreement →
             </Link>
             <Link href="/medjobs/hosting-faq" className="font-medium text-primary-700 hover:underline">
               FAQ →

@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-06-18 — Benefits program page: single layout spine (`/design-improvements` → `/punch`, branch `sparky-noether`, PR #1109 → staging)
+
+**Trigger:** TJ ran `/design-improvements` on a desktop full-page capture of `/benefits/texas/star-plus-medicaid-hcbs`. Phase 1 diagnosis surfaced 4 findings; TJ picked **#1, the layout spine alignment** to execute via `/punch`.
+
+**Root cause:** On `xl` benefit pages the hero (`max-w-2xl mx-auto`, centers in full viewport) and the body+rail (separate `xl:max-w-[84rem]` flex, content centered in a ~60rem `flex-1`) hung off **three different centering axes**. The H1 and body left edges didn't match, and the sticky "Could you qualify?" card floated with a ~12rem dead gulf beside the content.
+
+**Fix (`components/waiver-library/ProgramPageV3.tsx`, +13/−5, 4 surgical `xl:`-gated edits):**
+1. Container `xl:max-w-[84rem] gap-12` → `[69rem] gap-10` — `flex-1` now lands at the readable ~41.5rem so content *fills* its column (no gulf, no inter-section wander).
+2. Hero wrapped in the same two-column frame + a `21rem` reserved rail column (only when `showBenefitsCTA`), so the H1 shares the body's left gutter.
+3. Section nav (`SectionNav` got a `hasRail` prop) gets the same frame — full-width sticky bar preserved, pills shift to the content gutter.
+4. All gated on `showBenefitsCTA` + `xl:` — resource/navigator (no-rail) pages stay viewport-centered; below-xl is byte-identical to before.
+
+**Verified:** `/pre-test` traced all 4 breakpoint×rail states — hero/body/nav/card share one left gutter in the rail case (math: both `flex-1` text-left = `container_left + 4rem`), viewport-centered in the no-rail case, original below xl. tsc clean (0). Key alignment math holds to the pixel because hero `flex-1` carries `px-6 lg:px-8` matching the body section gutter, and both `flex-1`s are the same width.
+
+**Disclosed tradeoff (not a bug):** the `max-w-5xl` service-area map clamps to the column on xl-rail pages → tighter 2-up grid. But `draftToWaiverProgram` (page.tsx) never maps `serviceAreas`, so draft-based pages (e.g. TX STAR+PLUS) render no map at all; only rarer waiver-library base programs are affected.
+
+**NEXT:** TJ to eyeball the Vercel preview at **≥1280px** (xl breakpoint — won't show on mobile), confirm one clean column, then merge #1109. Remaining `/design-improvements` findings if he wants more: #2 elevate the conversion card, #3 de-template "What's covered" (both `/punch`), #4 mobile container discipline (`/mobilize`, needs a 375px shot).
+
 ### 2026-06-17 — Design slash-command family: improve `/ui-critique` + add `/design-improvements` master (branch `graceful-mcclintock`)
 
 **Trigger:** TJ compared `/ui-critique` against `/punch` and asked where it could improve, then to fold in `/mobilize`, then to build a master command stringing them together.

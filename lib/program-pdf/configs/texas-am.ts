@@ -86,9 +86,9 @@ export const TEXAS_AM: ProgramPdfConfig = {
   universityAccent: "#500000", // Aggie maroon
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Local Texas A&M pre-health interns, matched to the recurring shifts you struggle to cover.",
+    "Local Texas A&M pre-health student caregivers, matched to the recurring shifts you struggle to cover.",
   heroSubhead:
-    "Olera runs a pre-health caregiving internship that places pre-nursing and pre-medical students from Texas A&M with home care agencies. Interns commit to a semester of recurring availability, and we match them to your clients whose schedules line up. You get reliable recurring coverage; students get the supervised hours and recommendation letters that strengthen their applications to medical, PA, and nursing school.",
+    "Olera runs a Student Caregiver Program that places pre-nursing and pre-medical students from Texas A&M with home care agencies. Students commit to a semester of recurring availability, and we match them to your clients whose schedules line up. You get reliable recurring coverage; students get the supervised hours and recommendation letters that strengthen their applications to medical, PA, and nursing school.",
   // v9.1 Graize 05.13 audit (Item 12): two benefit cards retitled
   // to better fit the program's actual value to operators + clients.
   // "Local Aggie talent pipeline" -> "Local evergreen talent pipeline"
@@ -100,15 +100,15 @@ export const TEXAS_AM: ProgramPdfConfig = {
   benefits: [
     {
       title: "Cover recurring shifts",
-      body: "Interns commit to a semester of recurring availability — reliable coverage for nights, weekends, and standing schedules.",
+      body: "Students commit to a semester of recurring availability: reliable coverage for nights, weekends, and standing schedules.",
     },
     {
       title: "Motivated by experience, not just pay",
-      body: "Interns prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
+      body: "Students prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
     },
     {
       title: "Local talent, semester after semester",
-      body: "Pre-nursing and pre-medical interns from the Bryan/College Station area, available term after term.",
+      body: "Pre-nursing and pre-medical students from the Bryan/College Station area, available term after term.",
     },
     {
       title: "Caregivers your clients remember",
@@ -118,18 +118,18 @@ export const TEXAS_AM: ProgramPdfConfig = {
   steps: [
     "Create your account and accept the partner terms.",
     "Tell us about a client who needs recurring coverage.",
-    "We match a committed intern whose availability fits.",
-    "Interview, hire, and the semester internship begins.",
+    "We match a committed student caregiver whose availability fits.",
+    "Interview, hire, and the semester begins.",
   ],
   vetting: [
-    "Screened pre-nursing and pre-medical interns.",
+    "Screened pre-nursing and pre-medical students.",
     "Committed to a semester of recurring availability.",
     "Professionalism and scheduling expectations set up-front.",
     "Background-check support coordinated with your standard onboarding.",
   ],
   pricing: {
     headline: "No commitment up front. Matched only when you have a recurring need.",
-    body: "Matching, vetting, and program management are handled by Olera. We pair you with a committed intern for the semester — you run your standard hiring and onboarding.",
+    body: "Matching, vetting, and program management are handled by Olera. We pair you with a committed student caregiver for the semester, and you run your standard hiring and onboarding.",
   },
   // v9.1 Graize 05.13 audit (Item 13): shorter CTA so the label
   // doesn't truncate next to the QR code. The QR target URL already

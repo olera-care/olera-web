@@ -307,6 +307,11 @@ export interface OrganizationMetadata {
   demo_mode?: boolean;
   demo_reviews?: DemoReview[];
 
+  // MedJobs guest provider: created via "Continue as guest" (anonymous auth).
+  // Always paired with is_active=false + unclaimed so existing visibility
+  // filters hide it; flipped off on "Finish setup". See app/api/provider/guest.
+  is_guest?: boolean;
+
   // Google Places data (external, read-only)
   google_metadata?: GoogleMetadata;
 

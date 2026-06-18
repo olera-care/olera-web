@@ -32,9 +32,9 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     source: "flyer",
     siteUrl: "https://olera.care",
   }),
-  universityTagLine: "Paid pre-health caregiving internship",
-  subtitle: "A paid pre-health caregiving internship for pre-nursing and pre-medical students",
-  documentSubject: "Student internship flyer",
+  universityTagLine: "Paid Student Caregiver Program",
+  subtitle: "A paid Student Caregiver Program for pre-nursing and pre-medical students",
+  documentSubject: "Student Caregiver Program flyer",
   sectionHeaders: {
     benefits: "Why students join",
     steps: "How to join",
@@ -43,10 +43,10 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   },
   heroHeadline: "Get paid for real caregiving experience that counts toward your health career.",
   heroSubhead:
-    "Olera's pre-health caregiving internship places Texas A&M students in paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience, plus a credential and references, that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes. Families near campus are hiring student caregivers now.",
+    "Olera's Student Caregiver Program places Texas A&M students in paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience, plus a credential and references, that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes. Families near campus are hiring student caregivers now.",
   benefits: [
-    { title: "Get paid", body: "Earn an hourly wage doing meaningful work — a paid internship, not a volunteer gig." },
-    { title: "Real patient-care hours", body: "Direct experience caring for older adults — exactly what health programs look for." },
+    { title: "Get paid", body: "Earn an hourly wage doing meaningful work, a paid role, not a volunteer gig." },
+    { title: "Real patient-care hours", body: "Direct experience caring for older adults, exactly what health programs look for." },
     { title: "A credential + references", body: "Earn a credential and recommendation letters for medical, PA, and nursing school applications." },
     { title: "Mentorship around your classes", body: "Guidance from Dr. DuBose's team, on a schedule that fits your course load." },
   ],

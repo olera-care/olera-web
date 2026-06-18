@@ -3,6 +3,12 @@
 Chunk-by-chunk build plan. Each chunk is a self-contained PR to `staging`,
 ordered so the tree is always shippable and no surface is ever orphaned.
 
+> **Status (2026-06-18, branch `claude/keen-mendel-6i8iW`):** all chunks built,
+> tsc + lint clean. Chunk 2 collapsed (no backend split needed — see F1).
+> Chunk 3 (In Basket composite tabs) needs a browser QA pass before promote;
+> everything else is additive/mechanical. `next build` here is blocked only by
+> the sandbox's Google-Fonts fetch (environment, unrelated to these changes).
+
 ## Locked decisions (from design pass)
 
 - **Sidebar → 4 items**, in order: **In Basket · Sites · Operations · Logs**.

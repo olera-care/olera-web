@@ -9,7 +9,6 @@ import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
 import PostJobComingSoonModal from "@/components/medjobs/PostJobComingSoonModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
-import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
@@ -133,19 +132,6 @@ export default function ContactSection({
     persistScheduled();
   }, [persistScheduled]);
 
-  const fireInterest = () => {
-    try {
-      fetch("/api/medjobs/interest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source: "sample_profile" }),
-        keepalive: true,
-      }).catch(() => {});
-    } catch {
-      /* ignore */
-    }
-  };
-
   const stickyWrap =
     "fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3";
   const stickyStyle = { paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" } as const;
@@ -242,38 +228,49 @@ export default function ContactSection({
     );
   }
 
-  // ── Eligible + sample → book a recruitment call ──
+  // ── Eligible + sample → Post a Job (coming soon), same CTA as non-eligible ──
   if (isSample) {
+    const postJobModal = showPostJob ? (
+      <PostJobComingSoonModal onClose={() => setShowPostJob(false)} />
+    ) : null;
     const cta = (
-      <a
-        href={CALENDLY_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={fireInterest}
+      <button
+        type="button"
+        onClick={() => setShowPostJob(true)}
         className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
       >
-        Grab a time with me →
-      </a>
+        Post a Job →
+      </button>
     );
     if (variant === "sticky") {
       return (
-        <div className={stickyWrap} style={stickyStyle}>{cta}</div>
+        <>
+          <div className={stickyWrap} style={stickyStyle}>{cta}</div>
+          {postJobModal}
+        </>
       );
     }
     return (
-      <div className={cardWrap(variant === "inline")}>
-        <div className="flex items-start gap-3">
-          {duBose}
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Let&apos;s talk recruitment</p>
-            <p className="mt-1 text-sm text-gray-600 leading-relaxed">
-              Real caregivers near you are being recruited now. Grab a time and we&apos;ll get you
-              set up to interview them.
-            </p>
+      <>
+        <div className={cardWrap(variant === "inline")}>
+          <div className="flex items-start gap-3">
+            {duBose}
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                Want to hire a caregiver like this?
+              </p>
+              <p className="mt-1 text-sm text-gray-600 leading-relaxed">
+                Post a job to start interviewing student caregivers.
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Tell us the shifts you need covered and we&apos;ll match you.
+              </p>
+            </div>
           </div>
+          {cta}
         </div>
-        {cta}
-      </div>
+        {postJobModal}
+      </>
     );
   }
 

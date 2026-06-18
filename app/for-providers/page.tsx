@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import HeroSection from "@/components/for-providers/HeroSection";
 import EasyToConnectSection from "@/components/for-providers/EasyToConnectSection";
+import HireCaregiversSection from "@/components/for-providers/HireCaregiversSection";
 import StatsSection from "@/components/for-providers/StatsSection";
 import SetUpProfileSection from "@/components/for-providers/SetUpProfileSection";
 import BenefitsSection from "@/components/for-providers/BenefitsSection";
@@ -39,6 +40,7 @@ export default function ForProvidersPage() {
       <ProviderRedirect />
       <HeroSection />
       <EasyToConnectSection />
+      <HireCaregiversSection />
       <StatsSection />
       <SetUpProfileSection />
       <BenefitsSection />

@@ -242,8 +242,12 @@ function CandidateBrowseInner() {
   const onScreenerComplete = useCallback(async () => {
     await refreshAccountData();
     setShowScreener(false);
-    router.push("/provider/medjobs/candidates");
-  }, [refreshAccountData, router]);
+    // Hard navigation (not router.push): the screener's in-modal sign-in flips
+    // auth state on the same tick, which can swallow a client-side push and
+    // strand the provider on this marketing page. A full document load forces a
+    // fresh server auth fetch so the gated board route resolves cleanly.
+    window.location.assign("/provider/medjobs/candidates");
+  }, [refreshAccountData]);
 
   const selectClass =
     "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";

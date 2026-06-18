@@ -283,7 +283,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
-                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                  <Link href="/medjobs/candidates" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Staffing
                   </Link>
                 </li>
@@ -297,7 +297,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
               </h3>
               <ul className="space-y-0">
                 <li>
-                  <Link href="/medjobs" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                  <Link href="/medjobs/families" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Become a Caregiver
                   </Link>
                 </li>

@@ -85,5 +85,7 @@ export function candidateToCardFormat(
     highlights: highlights.slice(0, 3),
     acceptedPayments: [],
     verified: verifiedHours > 0 || hasVideo(meta),
+    lat: c.lat ?? null,
+    lon: c.lng ?? null,
   };
 }

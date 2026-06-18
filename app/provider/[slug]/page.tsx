@@ -6,6 +6,7 @@ import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsDat
 import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
 import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
+import { buildOpportunity } from "@/lib/medjobs/opportunity";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -1076,6 +1077,38 @@ export default async function ProviderPage({
                ══════════════════════════════════════════ */}
             <div data-spotlight-parent>
 
+              {/* ── About this opportunity (student context only) ── */}
+              {isStudentContext && (() => {
+                const opp = buildOpportunity({
+                  careText: categoryLabel ?? profile.category,
+                  isClaimed: providerSource === "bp",
+                });
+                return (
+                  <div className="py-8 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About this opportunity</h2>
+                    <p className="text-base font-semibold text-gray-900">{opp.roleLabel}</p>
+                    <p className="mt-4 text-sm font-medium text-gray-500">What you&apos;d do</p>
+                    <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-0.5">
+                      {opp.tasks.map((t) => (<li key={t}>{t}</li>))}
+                    </ul>
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">When</p>
+                        <p className="text-sm text-gray-700">{opp.when}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Pay</p>
+                        <p className="text-sm text-gray-700">{opp.pay}</p>
+                      </div>
+                    </div>
+                    <p className="mt-4 text-sm font-medium text-emerald-700">
+                      Counts toward your 120 patient-care hours.
+                    </p>
+                    {opp.note && <p className="mt-2 text-xs text-gray-500">{opp.note}</p>}
+                  </div>
+                );
+              })()}
+
               {/* ── What families are saying (above services when reviews exist) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
                 <div id="reviews" className="scroll-mt-20">
@@ -1087,12 +1120,14 @@ export default async function ProviderPage({
                     isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
                     googleReviewsData={googleReviewsData}
                     placeId={providerPlaceId}
+                    heading={isStudentContext ? "About this provider" : undefined}
                     hideBorder
                   />
                 </div>
               )}
 
-              {/* ── Customer Questions & Answers ── */}
+              {/* ── Customer Questions & Answers (family-facing; hidden in student context) ── */}
+              {!isStudentContext && (
               <div id="qa" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
                 <QASectionWithVariant
                   providerId={profile.slug}
@@ -1135,6 +1170,7 @@ export default async function ProviderPage({
                   />
                 )}
               </div>
+              )}
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
@@ -1191,8 +1227,9 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
-              {(googleReviewsData?.reviews?.length ?? 0) === 0 && (
+              {/* ── What families are saying (below Q&A when no reviews — empty state;
+                    hidden in student context, the "be first to review" prompt is family-facing) ── */}
+              {!isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
                 <div id="reviews" className="scroll-mt-20">
                   <ReviewsSection
                     providerId={profile.slug}

@@ -41,6 +41,8 @@ export interface CandidateData {
   metadata: StudentMetadata;
   image_url?: string | null;
   created_at: string;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface CandidateRowProps {

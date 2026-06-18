@@ -10,6 +10,8 @@
  *  - PR #1 (provider detail page): `resolveProvider` / `resolveProviderForMeta`.
  *  - PR #2 (read-heavy routes): `searchProviders` (organization-search) +
  *    `getProviderEmailsByIds` (admin leads email-fallback).
+ *  - PR #2b (admin directory): `listDirectory` / `countDirectory` /
+ *    `exportDirectoryRows` (OP + orphan-BP union reads).
  */
 export type { ProviderView, ProviderSource, ResolveResult } from "./types";
 export { directoryRowToProvider, accountRowToProvider } from "./adapters";
@@ -22,6 +24,13 @@ export {
 export type { ProviderMeta, ClaimedAccount } from "./resolve.server";
 export { searchProviders } from "./search.server";
 export type { ProviderSearchResponse } from "./search.server";
+export { countDirectory, listDirectory, exportDirectoryRows } from "./directory.server";
+export type {
+  DirectoryFilters,
+  DirectoryListPage,
+  DirectoryExportRow,
+  DirectoryExportResult,
+} from "./directory.server";
 
 // The canonical-id resolver already lived here; re-export so the front door is
 // the one import site for provider identity too.

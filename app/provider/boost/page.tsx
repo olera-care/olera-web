@@ -666,12 +666,12 @@ function ApplyExperience({
         {step === 0 && (
           <div>
             <h1 className="mt-5 font-display font-bold text-[clamp(2rem,5vw,2.9rem)] text-gray-900 leading-[1.06] tracking-tight">
-              See what we&apos;d run<br />
-              <span className="text-primary-600 italic">for your local market</span>.
+              Reach families<br />
+              <span className="text-primary-600 italic">already searching for care</span>.
             </h1>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
-              We&apos;ll turn your local demand into a simple launch plan: where we&apos;d
-              advertise, what budget makes sense, and what your page needs before spend starts.
+              We run the ads where families are already looking — and send every one of
+              them straight to your Olera page.
             </p>
 
             <DemandDiagnosis provider={provider} demand={demand} />

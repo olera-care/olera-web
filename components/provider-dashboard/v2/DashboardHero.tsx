@@ -577,9 +577,9 @@ function marketIntelHook(): Hook {
 function managedAdsHook(): Hook {
   return {
     bannerId: "managed_ads",
-    headline: "See the ad plan we'd run for your market.",
+    headline: "Reach families already searching for care.",
     subline:
-      "Pick timing and a starting budget, then Olera reviews the launch plan with you before anything goes live.",
+      "We run the ads where families are already looking and send them straight to your Olera page.",
     cta: { label: "Get my launch plan", href: "/provider/boost" },
     imageUrl: TIER_MANAGED_ADS_IMAGE,
   };

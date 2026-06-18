@@ -7,8 +7,8 @@ import ApplyButton from "@/components/medjobs/ApplyButton";
  * The static "understand" half of the converged /medjobs/families page.
  * Standardized to the olera.care home page design spec: max-w-7xl container,
  * pt-8 md:pt-12 pb-8 md:pb-12 rhythm, sans-bold section headings, alternating
- * white / gray-50 backgrounds. Sections: How it works for students, For
- * advisors, and the closer.
+ * white / gray-50 backgrounds. Sections (alternating gray/white): How it works
+ * for students, Day to day, For advisors, FAQ, and the closer.
  */
 
 const HOW_IT_WORKS = [
@@ -91,18 +91,68 @@ export default function MedjobsMarketing() {
         </div>
       </section>
 
+      {/* Day to day — what the work actually is (image right) */}
+      <section className="pt-8 md:pt-12 pb-8 md:pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Text — left */}
+            <div>
+              <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">Day to day</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">What you&apos;ll actually do</h2>
+              <p className="mt-4 text-lg text-gray-500 leading-relaxed">
+                This isn&apos;t clinical work and you don&apos;t need a license. You&apos;re providing
+                companionship, light support, and genuine human connection.
+              </p>
+              <div className="mt-8 space-y-3">
+                {[
+                  "Conversation, games, and companionship",
+                  "Light meal prep and medication reminders",
+                  "Help with errands, walks, and appointments",
+                  "Light housekeeping and organization",
+                  "Monitoring wellbeing and reporting changes",
+                ].map((task) => (
+                  <div key={task} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    </div>
+                    <p className="text-[15px] text-gray-700">{task}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 p-4 rounded-xl bg-primary-50 border border-primary-100">
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  <span className="font-semibold text-gray-900">No certifications required.</span>{" "}
+                  We provide free training on senior care basics, safety protocols, and communication
+                  skills before your first shift.
+                </p>
+              </div>
+            </div>
+
+            {/* Photo mosaic — right */}
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-7 aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
+                <Image src="/images/medjobs/caregiving-support.jpg" alt="Student providing companion care to a senior" width={500} height={667} className="w-full h-full object-cover" />
+              </div>
+              <div className="col-span-5 space-y-3">
+                <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                  <Image src="/images/medjobs/students-group.jpg" alt="Student caregivers together" width={400} height={400} className="w-full h-full object-cover" />
+                </div>
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100">
+                  <Image src="/images/medjobs/college-caregivers.png" alt="College student caregiver" width={400} height={500} className="w-full h-full object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* For advisors, faculty & student orgs */}
-      <section id="help" className="pt-8 md:pt-12 pb-8 md:pb-12 scroll-mt-20">
+      <section id="help" className="pt-8 md:pt-12 pb-8 md:pb-12 bg-gray-50/70 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-[1fr_2fr] lg:gap-12 lg:items-start">
             <div className="mb-8 lg:mb-0">
-              <div className="flex items-center gap-3 mb-4">
-                <Image src="/images/for-providers/team/logan.jpg" alt="Dr. Logan DuBose" width={56} height={56} className="w-14 h-14 rounded-full object-cover shadow-sm" />
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
-                  <p className="text-xs text-gray-500">General Practitioner &middot; Co-Founder of Olera</p>
-                </div>
-              </div>
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
                 For advisors, faculty &amp; student orgs
               </p>
@@ -110,11 +160,71 @@ export default function MedjobsMarketing() {
                 Help your pre-health students find this
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                A paid way to earn the patient-care hours, credential, and references their med, PA,
-                and nursing applications need. Physician-led, NIA-backed, and safe for students.
+                A paid way to earn the patient-care hours, credential, and references their
+                applications need. Physician-led, NIA-backed, and safe for students.
               </p>
+              <a
+                href="/docs/internship-agreement-sample.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center text-sm font-semibold text-primary-700 hover:underline"
+              >
+                Read student agreement ↗
+              </a>
             </div>
             <PartnerHelpCard />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="pt-8 md:pt-12 pb-8 md:pb-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-lg shadow-gray-200/40 p-6 sm:p-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Common questions</h2>
+            </div>
+            <div className="space-y-3">
+              {[
+                {
+                  q: "Do I need any certifications or experience?",
+                  a: "No. If you're a current college student with a compassionate attitude, you qualify. Free training on senior care basics, safety, and communication comes before your first match.",
+                },
+                {
+                  q: "How many hours per week do I commit to?",
+                  a: "You and the host agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most interns work a steady handful of hours each week through the semester.",
+                },
+                {
+                  q: "When and how do I get paid?",
+                  a: "You're paid by the host, not by Olera. Families can run pay through Olera, and agencies pay through their own payroll. Your rate is set with the host before you start.",
+                },
+                {
+                  q: "What if I've never worked with seniors before?",
+                  a: "Most of our interns haven't. You're matched with a host who fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
+                },
+                {
+                  q: "Is it really paid?",
+                  a: "Yes. These are paid caregiving roles — not volunteering or shadowing. You earn real patient-care hours and get paid for them.",
+                },
+              ].map((item) => (
+                <details key={item.q} className="group bg-primary-25 border border-primary-100 rounded-xl overflow-hidden">
+                  <summary className="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-primary-50 transition-colors">
+                    <h3 className="text-[15px] font-semibold text-gray-900 pr-4">{item.q}</h3>
+                    <svg className="w-5 h-5 text-primary-400 flex-shrink-0 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </summary>
+                  <div className="px-5 pb-4">
+                    <p className="text-sm text-gray-500 leading-relaxed">{item.a}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       </section>

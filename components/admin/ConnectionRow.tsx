@@ -2048,7 +2048,7 @@ export default function ConnectionRow({
               )}
 
               {/* Admin archive information - show for provider-level or connection-level admin archives */}
-              {(c.isProviderArchived || (c.archived && !c.archiveReason && c.rawArchiveReason?.trim())) && (
+              {(c.isProviderArchived || (c.archived && !c.archiveReason)) && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <div className="flex items-start gap-2">
                     <span className="text-lg">📁</span>
@@ -2060,7 +2060,7 @@ export default function ConnectionRow({
                         <span className="font-medium">Reason:</span>{" "}
                         {c.isProviderArchived
                           ? (c.providerArchiveInfo?.notes || getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason))
-                          : c.rawArchiveReason?.trim()}
+                          : (c.rawArchiveReason?.trim() || "Not specified")}
                       </p>
                       {c.isProviderArchived && c.providerArchiveInfo?.archivedBy && (
                         <p className="text-xs text-amber-600 mt-2">

@@ -2,12 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
+import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
+import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
+
+const PROVIDER_AGREEMENT_URL = "/docs/host-agreement-sample.pdf";
 
 /**
  * HireCaregiversBoard — the signed-in provider's "Hire caregivers" board at
@@ -59,6 +64,9 @@ export default function HireCaregiversBoard() {
       "medjobs_demand_profile"
     ] as { coverage_buckets?: string[] } | undefined
   )?.coverage_buckets;
+  const eligible = isMedjobsEligible(
+    (providerProfile?.metadata ?? null) as Record<string, unknown> | null,
+  );
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [universityId, setUniversityId] = useState("");
@@ -113,6 +121,47 @@ export default function HireCaregiversBoard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Welcome banner — a note from Dr. DuBose for eligible providers */}
+      {eligible && (
+        <div className="mb-8 rounded-2xl border border-primary-100/60 bg-gradient-to-r from-primary-50 to-vanilla-50 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <Image
+                src="/images/for-providers/team/logan.jpg"
+                alt="Dr. Logan DuBose"
+                width={48}
+                height={48}
+                className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
+              />
+              <div className="min-w-0">
+                <p className="text-[15px] font-semibold text-gray-900">You&apos;re set.</p>
+                <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
+                  Let&apos;s talk, book a call so I can recruit students for your shifts.
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
+              <a
+                href={PROVIDER_AGREEMENT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-semibold text-primary-700 hover:underline"
+              >
+                Read provider agreement ↗
+              </a>
+              <a
+                href={CALENDLY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
+              >
+                Book a call →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="mb-1 text-3xl md:text-4xl font-bold text-gray-900">
         Find caregivers {campusName ? `near ${campusName}` : "near you"}
       </h1>

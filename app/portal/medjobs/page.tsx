@@ -1297,6 +1297,12 @@ function StudentPortalContent({
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
+                <Link
+                  href="/portal/medjobs/jobs"
+                  className="text-sm font-semibold text-primary-700 hover:underline"
+                >
+                  Browse open jobs ↗
+                </Link>
                 <button
                   onClick={() => {
                     guided.startGuided();
@@ -1308,12 +1314,6 @@ function StudentPortalContent({
                 >
                   Complete your profile{completenessPercent > 0 ? ` · ${completenessPercent}%` : ""} →
                 </button>
-                <Link
-                  href="/portal/medjobs/jobs"
-                  className="text-sm font-semibold text-primary-700 hover:underline"
-                >
-                  Browse open jobs ↗
-                </Link>
               </div>
             </div>
           </div>

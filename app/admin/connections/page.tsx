@@ -555,8 +555,6 @@ export default function ConnectionsTrackerPage() {
       archivedAt: string | null;
       notes: string | null;
     } | null;
-    // Raw archive reason from leads page (free-text)
-    rawArchiveReason?: string | null;
   } | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -795,10 +793,9 @@ export default function ConnectionsTrackerPage() {
     providerName: string | null,
     isArchived: boolean,
     isProviderArchived: boolean,
-    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null,
-    rawArchiveReason?: string | null
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null
   ) => {
-    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo, rawArchiveReason });
+    setPendingAction({ connectionId, providerId, familyName, providerName, isArchived, isProviderArchived, providerArchiveInfo });
     setSelectedAction(null);
     setActionError(null);
     setActionReason("");
@@ -1683,15 +1680,6 @@ export default function ConnectionsTrackerPage() {
                         <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
                           Note: {dest.warning}
                         </p>
-                      )}
-                      {/* Show why they were archived (from leads page free-text) */}
-                      {pendingAction.rawArchiveReason?.trim() && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                          <p className="text-xs font-medium text-amber-800">Previously archived:</p>
-                          <p className="text-xs text-amber-700 mt-1">
-                            {pendingAction.rawArchiveReason.trim()}
-                          </p>
-                        </div>
                       )}
                     </div>
                   );

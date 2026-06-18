@@ -192,6 +192,27 @@ function Board() {
     }
   };
 
+  // On successful eligibility (silent auth done), send the new student to their
+  // portal — but only if a session is actually established, since /portal is
+  // middleware-protected and would bounce a session-less visitor to "/".
+  const handleScreenerComplete = async () => {
+    try {
+      const sb = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        setShowScreener(false);
+        router.push("/portal/medjobs");
+        return;
+      }
+    } catch {
+      /* fall through to the safe default */
+    }
+    closeScreener();
+  };
+
   const cardEl = (f: FamilyCard) => (
     <BrowseCard
       key={f.id}
@@ -209,17 +230,15 @@ function Board() {
       {/* Hero — two-column, campus- and auth-aware */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-primary-50" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-20 pb-12 lg:pb-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 md:pt-12 md:pb-12">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             {/* Left — copy */}
             <div>
               <span className="inline-block px-4 py-2 rounded-full bg-warning-100 text-warning-800 text-xs font-semibold uppercase tracking-widest">
                 Hiring near {campusName || "you"}
               </span>
-              <h1 className="mt-5 font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-gray-900 leading-[1.08]">
+              <h1 className="mt-5 font-serif text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-[1.1]">
                 Get real healthcare experience
-                <br />
-                <span className="text-primary-600">while you&apos;re still in school.</span>
               </h1>
               <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">
                 Paid caregiving jobs for college students pursuing careers in medicine and nursing.
@@ -272,35 +291,11 @@ function Board() {
                   Co Founded by Logan DuBose, MD, MBA &middot; General Practitioner &middot; Researcher
                 </p>
               </div>
-              {/* University trust logos */}
-              <div className="mt-8">
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-4">
-                  Students from top universities
-                </p>
-                <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-                  {[
-                    { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
-                    { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
-                    { name: "Prairie View A&M", logo: "/images/medjobs/universities/prairie-view.webp" },
-                    { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
-                    { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
-                  ].map((uni) => (
-                    <Image
-                      key={uni.name}
-                      src={uni.logo}
-                      alt={uni.name}
-                      width={120}
-                      height={60}
-                      className="h-9 w-auto object-contain opacity-80"
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Right — hero image */}
             <div className="relative">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/10">
+              <div className="aspect-[3/2] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/10">
                 <Image
                   src="/images/young-caregiver-hero.webp"
                   alt="Student caregiver sharing a warm moment with an elderly client at home"
@@ -314,6 +309,35 @@ function Board() {
           </div>
         </div>
       </section>
+
+      {/* Trust band — universities (moved out of the hero to keep it short) */}
+      <div className="border-b border-gray-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+            <p className="shrink-0 text-xs font-medium uppercase tracking-widest text-gray-400">
+              Students from top universities
+            </p>
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+              {[
+                { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
+                { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
+                { name: "Prairie View A&M", logo: "/images/medjobs/universities/prairie-view.webp" },
+                { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
+                { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
+              ].map((uni) => (
+                <Image
+                  key={uni.name}
+                  src={uni.logo}
+                  alt={uni.name}
+                  width={120}
+                  height={60}
+                  className="h-8 w-auto object-contain opacity-70"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Status strip — signed-in students only (anon renders nothing) */}
@@ -467,6 +491,12 @@ function Board() {
               <button
                 type="button"
                 onClick={() => {
+                  // Signed-in students get the full Find Jobs board (map + cards);
+                  // anon visitors expand the preview inline.
+                  if (studentProfileId) {
+                    router.push("/portal/medjobs/jobs");
+                    return;
+                  }
                   setExpanded((e) => !e);
                   setPage(1);
                 }}
@@ -533,7 +563,7 @@ function Board() {
             },
           }}
           onClose={closeScreener}
-          onComplete={closeScreener}
+          onComplete={handleScreenerComplete}
         />
       )}
     </>

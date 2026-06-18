@@ -189,7 +189,7 @@ export function studentActivationEmail({
       Share this link when reaching out — it shows your video, availability, and background at a glance.
     </p>
     <p style="margin:0 0 16px;">
-      ${button("See families hiring near you", `${BASE_URL}/portal/medjobs/jobs`)}
+      ${button("See families hiring near you", `${BASE_URL}/medjobs/families`)}
     </p>
   `);
 }

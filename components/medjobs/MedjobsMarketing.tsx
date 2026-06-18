@@ -160,8 +160,8 @@ export default function MedjobsMarketing() {
                 Help your pre-health students find this
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                A paid way to earn the patient-care hours, credential, and references their
-                applications need. Physician-led, NIA-backed, and safe for students.
+                A paid, NIA-backed way to earn the patient-care hours, credential, and references
+                their applications need.
               </p>
               <a
                 href="/docs/internship-agreement-sample.pdf"
@@ -177,54 +177,45 @@ export default function MedjobsMarketing() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ — flat, centered */}
       <section className="pt-8 md:pt-12 pb-8 md:pb-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-lg shadow-gray-200/40 p-6 sm:p-10">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Common questions</h2>
-            </div>
-            <div className="space-y-3">
-              {[
-                {
-                  q: "Do I need any certifications or experience?",
-                  a: "No. If you're a current college student with a compassionate attitude, you qualify. Free training on senior care basics, safety, and communication comes before your first match.",
-                },
-                {
-                  q: "How many hours per week do I commit to?",
-                  a: "You and the host agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most interns work a steady handful of hours each week through the semester.",
-                },
-                {
-                  q: "When and how do I get paid?",
-                  a: "You're paid by the host, not by Olera. Families can run pay through Olera, and agencies pay through their own payroll. Your rate is set with the host before you start.",
-                },
-                {
-                  q: "What if I've never worked with seniors before?",
-                  a: "Most of our interns haven't. You're matched with a host who fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
-                },
-                {
-                  q: "Is it really paid?",
-                  a: "Yes. These are paid caregiving roles — not volunteering or shadowing. You earn real patient-care hours and get paid for them.",
-                },
-              ].map((item) => (
-                <details key={item.q} className="group bg-primary-25 border border-primary-100 rounded-xl overflow-hidden">
-                  <summary className="flex items-center justify-between cursor-pointer list-none px-5 py-4 hover:bg-primary-50 transition-colors">
-                    <h3 className="text-[15px] font-semibold text-gray-900 pr-4">{item.q}</h3>
-                    <svg className="w-5 h-5 text-primary-400 flex-shrink-0 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </summary>
-                  <div className="px-5 pb-4">
-                    <p className="text-sm text-gray-500 leading-relaxed">{item.a}</p>
-                  </div>
-                </details>
-              ))}
-            </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-10">
+            Common questions
+          </h2>
+          <div className="divide-y divide-gray-200 border-t border-gray-200">
+            {[
+              {
+                q: "Do I need any certifications or experience?",
+                a: "No. If you're a current college student with a compassionate attitude, you qualify. Free training on senior care basics, safety, and communication comes before your first match.",
+              },
+              {
+                q: "How many hours per week do I commit to?",
+                a: "You and the host agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most interns work a steady handful of hours each week through the semester.",
+              },
+              {
+                q: "When and how do I get paid?",
+                a: "You're paid by the host, not by Olera. Families can run pay through Olera, and agencies pay through their own payroll. Your rate is set with the host before you start.",
+              },
+              {
+                q: "What if I've never worked with seniors before?",
+                a: "Most of our interns haven't. You're matched with a host who fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
+              },
+              {
+                q: "Is it really paid?",
+                a: "Yes. These are paid caregiving roles — not volunteering or shadowing. You earn real patient-care hours and get paid for them.",
+              },
+            ].map((item) => (
+              <details key={item.q} className="group py-5">
+                <summary className="flex items-center justify-between cursor-pointer list-none gap-4">
+                  <h3 className="text-base font-semibold text-gray-900">{item.q}</h3>
+                  <svg className="w-5 h-5 text-gray-400 flex-shrink-0 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </summary>
+                <p className="mt-3 text-[15px] text-gray-500 leading-relaxed">{item.a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>

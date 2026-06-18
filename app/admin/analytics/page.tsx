@@ -16,6 +16,14 @@ import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
 import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
 import { ctaVariantLabel, ctaVariantSubLabel } from "@/lib/analytics/cta-variant-copy";
+import {
+  MANAGED_ADS_VARIANTS,
+  type ManagedAdsVariant,
+} from "@/lib/analytics/managed-ads-variant";
+import {
+  managedAdsVariantLabel,
+  managedAdsVariantSubLabel,
+} from "@/lib/analytics/managed-ads-variant-copy";
 import CTAVariantSessionsList from "@/components/admin/CTAVariantSessionsList";
 import {
   PROVIDER_EMAIL_FUNNEL_LABELS,
@@ -169,6 +177,16 @@ interface CTAFunnel {
 type CTAVariantKeyWithUnassigned = CTAVariant | "unassigned";
 type CTAFunnelByVariant = Record<CTAVariantKeyWithUnassigned, CTAFunnel>;
 
+interface ManagedAdsFunnel {
+  shown: number;
+  clicked: number;
+  viewed: number;
+  requested: number;
+}
+
+type ManagedAdsVariantKeyWithUnassigned = ManagedAdsVariant | "unassigned";
+type ManagedAdsFunnelByVariant = Record<ManagedAdsVariantKeyWithUnassigned, ManagedAdsFunnel>;
+
 interface ReferrerBreakdown {
   ai_chat: number;
   search: number;
@@ -206,6 +224,8 @@ interface SummaryResponse {
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     cta_funnel: CTAFunnel;
     cta_funnel_by_variant: CTAFunnelByVariant;
+    managed_ads_funnel: ManagedAdsFunnel;
+    managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
   };
   prior: {
@@ -220,6 +240,8 @@ interface SummaryResponse {
     benefits_funnel_by_variant: BenefitsFunnelByVariant;
     cta_funnel: CTAFunnel;
     cta_funnel_by_variant: CTAFunnelByVariant;
+    managed_ads_funnel: ManagedAdsFunnel;
+    managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
     referrer_breakdown: ReferrerBreakdown;
   } | null;
   insight: string | null;
@@ -411,6 +433,15 @@ export default function AdminAnalyticsPage() {
         loading={loading && !!summary}
       >
         <CTAVariantsCard summary={summary} loading={loading} range={range} />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Managed Ads Variants"
+        storageKey="managedAdsFunnel"
+        defaultCollapsed={true}
+        loading={loading && !!summary}
+      >
+        <ManagedAdsVariantsCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -2755,6 +2786,347 @@ function CTAVariantSplit({
       {byVariant.unassigned.impressions > 0 && (
         <p className="text-[11px] text-gray-400 mt-3">
           {byVariant.unassigned.impressions} sessions in window with no variant assigned (events fired before CTA A/B was wired).
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Managed Ads Variants ───────────────────────────────────────────────────
+
+function ManagedAdsVariantsCard({
+  summary,
+  loading,
+  range,
+}: {
+  summary: SummaryResponse | null;
+  loading: boolean;
+  range: DateRangeValue;
+}) {
+  if (loading && !summary) {
+    return <div className="h-48 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />;
+  }
+  if (!summary) return null;
+
+  const f = summary.windowed.managed_ads_funnel;
+  const pf = summary.prior?.managed_ads_funnel ?? null;
+  const stages: Array<{
+    label: string;
+    value: number;
+    prior: number | null;
+    prev: number | null;
+    tooltip: string;
+  }> = [
+    {
+      label: "Shown",
+      value: f.shown,
+      prior: pf?.shown ?? null,
+      prev: null,
+      tooltip: "Distinct providers who saw a managed-ads pitch surface.",
+    },
+    {
+      label: "Clicked",
+      value: f.clicked,
+      prior: pf?.clicked ?? null,
+      prev: f.shown,
+      tooltip: "Distinct providers who clicked toward the managed-ads launch plan.",
+    },
+    {
+      label: "Viewed Plan",
+      value: f.viewed,
+      prior: pf?.viewed ?? null,
+      prev: f.clicked,
+      tooltip: "Distinct providers who landed on /provider/boost.",
+    },
+    {
+      label: "Requested",
+      value: f.requested,
+      prior: pf?.requested ?? null,
+      prev: f.viewed,
+      tooltip: "Distinct providers who submitted a managed-ads request.",
+    },
+  ];
+
+  return (
+    <>
+      <p className="text-xs text-gray-500 mb-5">
+        Managed Ads A/B testing funnel {rangeLabel(range).toLowerCase()} — distinct providers per stage. Shown = pitch rendered; Clicked = launch-plan CTA clicked; Viewed Plan = /provider/boost viewed; Requested = campaign request submitted.
+      </p>
+
+      <div className="grid grid-cols-4 gap-x-5 gap-y-4 mb-6">
+        {stages.map((s) => (
+          <FunnelStat key={s.label} {...s} />
+        ))}
+      </div>
+
+      <ManagedAdsTrafficAllocationControl />
+      <ManagedAdsVariantSplit byVariant={summary.windowed.managed_ads_funnel_by_variant} />
+    </>
+  );
+}
+
+function buildManagedAdsEqualSplit(): Record<ManagedAdsVariant, number> {
+  const n = MANAGED_ADS_VARIANTS.length;
+  const base = Math.floor(100 / n);
+  const remainder = 100 - base * n;
+  return Object.fromEntries(
+    MANAGED_ADS_VARIANTS.map((v, i) => [v, base + (i === 0 ? remainder : 0)]),
+  ) as Record<ManagedAdsVariant, number>;
+}
+
+function ManagedAdsTrafficAllocationControl() {
+  const [loaded, setLoaded] = useState(false);
+  const initial = useMemo(buildManagedAdsEqualSplit, []);
+  const [weights, setWeights] = useState<Record<ManagedAdsVariant, number>>(initial);
+  const [savedWeights, setSavedWeights] = useState<Record<ManagedAdsVariant, number>>(initial);
+  const [version, setVersion] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/analytics/managed-ads-variant-weights", { cache: "no-store" })
+      .then(async (r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setFeedback({ kind: "err", msg: `Failed to load current allocation (${r.status}).` });
+          setLoaded(true);
+          return;
+        }
+        const data = await r.json().catch(() => null);
+        if (!data) {
+          setFeedback({ kind: "err", msg: "Failed to parse current allocation." });
+          setLoaded(true);
+          return;
+        }
+        const w = (data.weights ?? {}) as Partial<Record<ManagedAdsVariant, number>>;
+        const merged = Object.fromEntries(
+          MANAGED_ADS_VARIANTS.map((v) => [v, typeof w[v] === "number" ? (w[v] as number) : 0]),
+        ) as Record<ManagedAdsVariant, number>;
+        setWeights(merged);
+        setSavedWeights(merged);
+        setVersion(typeof data.version === "number" ? data.version : 0);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setFeedback({ kind: "err", msg: "Network error loading allocation — try refreshing." });
+        setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sum = MANAGED_ADS_VARIANTS.reduce((s, v) => s + (weights[v] || 0), 0);
+  const sumIsValid = sum === 100;
+  const isDirty = MANAGED_ADS_VARIANTS.some((v) => weights[v] !== savedWeights[v]);
+  const canSave = loaded && sumIsValid && isDirty && !saving;
+
+  const setArm = (arm: ManagedAdsVariant, raw: string) => {
+    const n = raw === "" ? 0 : parseInt(raw, 10);
+    if (Number.isNaN(n)) return;
+    setWeights((prev) => ({ ...prev, [arm]: Math.max(0, Math.min(100, n)) }));
+    if (feedback?.kind === "ok") setFeedback(null);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/admin/analytics/managed-ads-variant-weights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weights }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFeedback({ kind: "err", msg: body?.error || `Save failed (${res.status})` });
+      } else {
+        const w = (body?.weights ?? {}) as Partial<Record<ManagedAdsVariant, number>>;
+        const merged = { ...weights };
+        for (const v of MANAGED_ADS_VARIANTS) {
+          if (typeof w[v] === "number") merged[v] = w[v] as number;
+        }
+        setSavedWeights(merged);
+        setWeights(merged);
+        setVersion(typeof body?.version === "number" ? body.version : version + 1);
+        setFeedback({ kind: "ok", msg: "Saved — providers reshuffle on their next visit." });
+      }
+    } catch {
+      setFeedback({ kind: "err", msg: "Network error — try again." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="flex items-baseline justify-between mb-1">
+        <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+          Traffic allocation
+        </div>
+        <div className="text-[11px] text-gray-400 tabular-nums">v{version}</div>
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        Live dial for the provider-level managed-ads pitch split. Set any arm to 0 to dark it out.
+      </p>
+
+      <div
+        className="grid gap-3 mb-3"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
+      >
+        {MANAGED_ADS_VARIANTS.map((v) => (
+          <label
+            key={v}
+            className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2"
+          >
+            <span className="text-[11px] font-medium text-gray-700">{managedAdsVariantLabel(v)}</span>
+            <span className="text-[10px] text-gray-400 leading-tight">{managedAdsVariantSubLabel(v)}</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                disabled={!loaded || saving}
+                value={weights[v]}
+                onChange={(e) => setArm(v, e.target.value)}
+                className="w-16 text-right tabular-nums text-base font-medium text-gray-900 bg-transparent border-b border-gray-200 focus:border-gray-900 focus:outline-none disabled:opacity-50"
+              />
+              <span className="text-xs text-gray-400">%</span>
+              <a
+                href={managedAdsPreviewUrl(v)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                title="Open the boost page with this managed-ads variant forced."
+              >
+                Preview ↗
+              </a>
+            </div>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <span
+          className={`text-[12px] tabular-nums px-2 py-0.5 rounded ${
+            sumIsValid ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          Sum: {sum} / 100{sumIsValid ? "" : ` (${sum > 100 ? "+" : ""}${sum - 100})`}
+        </span>
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave}
+          className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+            canSave
+              ? "bg-gray-900 text-white hover:bg-gray-800"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {saving ? "Saving…" : "Save allocation"}
+        </button>
+        {isDirty && !saving && (
+          <button
+            type="button"
+            onClick={() => {
+              setWeights(savedWeights);
+              setFeedback(null);
+            }}
+            className="text-xs text-gray-500 hover:text-gray-800 underline underline-offset-2"
+          >
+            Discard changes
+          </button>
+        )}
+        {feedback && (
+          <span className={`text-[11px] ${feedback.kind === "ok" ? "text-emerald-700" : "text-rose-700"}`}>
+            {feedback.msg}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function managedAdsPreviewUrl(arm: string): string {
+  return `/provider/boost?preview_managed_ads=${encodeURIComponent(arm)}`;
+}
+
+function ManagedAdsVariantSplit({
+  byVariant,
+}: {
+  byVariant: ManagedAdsFunnelByVariant;
+}) {
+  const totalAssigned = MANAGED_ADS_VARIANTS.reduce((sum, v) => sum + (byVariant[v]?.shown ?? 0), 0);
+  const waitingForFirstShown = totalAssigned === 0;
+  const rate = (num: number, den: number) =>
+    den > 0 ? `${Math.round((num / den) * 100)}%` : "—";
+
+  return (
+    <div className="mt-6 pt-5 border-t border-gray-100">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+        A/B Test — Managed Ads Variants
+      </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        Deterministic split by provider id. Shown = pitch rendered; Clicked = launch-plan CTA clicked; Viewed Plan = /provider/boost viewed; Requested = managed-ads request submitted.
+      </p>
+      {waitingForFirstShown && (
+        <p className="text-[12px] text-emerald-700 bg-emerald-50/60 border border-emerald-100 rounded-lg px-3 py-2 mb-3">
+          Waiting for the first managed-ads pitch view. The numbers below populate once managed_ads_pitch_viewed fires in this window.
+        </p>
+      )}
+      <div className="overflow-x-auto -mx-1">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+              <th className="px-3 py-2 font-medium">Variant</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Shown</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Clicked</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Viewed Plan</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Requested</th>
+              <th className="px-3 py-2 font-medium tabular-nums text-right">Req%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MANAGED_ADS_VARIANTS.map((key) => {
+              const r = byVariant[key];
+              return (
+                <tr key={key} className="border-b border-gray-50">
+                  <td className="px-3 py-2 font-medium text-gray-700">
+                    <div className="flex items-center gap-1.5">
+                      <span>{managedAdsVariantLabel(key)}</span>
+                      <a
+                        href={managedAdsPreviewUrl(key)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1 text-[10px] text-gray-400 hover:text-gray-700 underline underline-offset-2"
+                        title="Open the boost page with this managed-ads variant forced."
+                      >
+                        Preview ↗
+                      </a>
+                    </div>
+                    <div className="text-[11px] font-normal text-gray-400 truncate max-w-[340px]">
+                      {managedAdsVariantSubLabel(key)}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-900">{r.shown}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.clicked}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.viewed}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-gray-700">{r.requested}</td>
+                  <td className="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{rate(r.requested, r.shown)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {byVariant.unassigned.shown > 0 && (
+        <p className="text-[11px] text-gray-400 mt-3">
+          {byVariant.unassigned.shown} providers in window with no managed-ads variant assigned.
         </p>
       )}
     </div>

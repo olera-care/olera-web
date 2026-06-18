@@ -14,6 +14,9 @@ import {
 } from "@/lib/next-best-action";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
+import type { ManagedAdsVariant } from "@/lib/analytics/managed-ads-variant";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -207,7 +210,14 @@ export default function DashboardHero({
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
   // rotation below.
   const [rotationCount] = useState(bumpHeroRotation);
-  const hook = resolveHook(data, completeness, category, rotationCount);
+  const managedAdsVariant = useManagedAdsVariant(providerSlug);
+  const hook = resolveHook(
+    data,
+    completeness,
+    category,
+    rotationCount,
+    managedAdsVariant ?? "direct_reach",
+  );
 
   // Preload every tier image once the hero mounts. After a provider saves
   // a section the picker re-evaluates and the hero swaps to a different
@@ -229,6 +239,7 @@ export default function DashboardHero({
   }, []);
 
   const firedImpression = useRef<string | null>(null);
+  const firedManagedAdsPitch = useRef(false);
   const { bannerId } = hook;
   const sectionId =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;
@@ -245,9 +256,21 @@ export default function DashboardHero({
     track("provider_picker_impression", providerSlug, {
       source: "hero",
       banner: bannerId,
+      ...(bannerId === "managed_ads" ? { managed_ads_variant: managedAdsVariant ?? "direct_reach" } : {}),
       ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
-  }, [bannerId, sectionId, sectionWeight, providerSlug]);
+  }, [bannerId, managedAdsVariant, sectionId, sectionWeight, providerSlug]);
+
+  useEffect(() => {
+    if (bannerId !== "managed_ads" || !managedAdsVariant || firedManagedAdsPitch.current) return;
+    if (isManagedAdsPreviewMode()) return;
+    firedManagedAdsPitch.current = true;
+    trackProviderEvent(providerSlug, "managed_ads_pitch_viewed", {
+      provider_name: firstName,
+      source: "hero",
+      managed_ads_variant: managedAdsVariant,
+    });
+  }, [bannerId, firstName, managedAdsVariant, providerSlug]);
 
   // Tell the dashboard which banner won this visit, so it can suppress the
   // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
@@ -308,6 +331,7 @@ export default function DashboardHero({
       trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
         provider_name: firstName,
         source: "hero",
+        managed_ads_variant: managedAdsVariant ?? "direct_reach",
       });
     }
   };
@@ -574,12 +598,12 @@ function marketIntelHook(): Hook {
  *  Shown regardless of completeness — the 70% eligibility gate lives on
  *  /provider/boost, which routes thin profiles to "finish these to unlock," so
  *  the ads desire pulls providers into completing. */
-function managedAdsHook(): Hook {
+function managedAdsHook(variant: ManagedAdsVariant): Hook {
+  const copy = managedAdsPitchCopy(variant);
   return {
     bannerId: "managed_ads",
-    headline: "Reach families already searching for care.",
-    subline:
-      "We run the ads where families are already looking and send them straight to your Olera page.",
+    headline: `${copy.headline} ${copy.accent}.`,
+    subline: copy.body,
     cta: { label: "Get my launch plan", href: "/provider/boost" },
     imageUrl: TIER_MANAGED_ADS_IMAGE,
   };
@@ -590,6 +614,7 @@ function resolveHook(
   completeness: ProfileCompleteness,
   category: ProfileCategory | null,
   rotationCount: number,
+  managedAdsVariant: ManagedAdsVariant,
 ): Hook {
   const { greeting } = data;
 
@@ -646,7 +671,7 @@ function resolveHook(
     if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();
   }
-  return managedAdsHook();
+  return managedAdsHook(managedAdsVariant);
 }
 
 /** One previewable banner: the stable id (matches the leaderboard) + the hook
@@ -667,7 +692,7 @@ export function buildBannerPreviews(): BannerPreview[] {
     { bannerId: "leads", hook: leadsHook(3) },
     { bannerId: "questions", hook: questionsHook(2) },
     { bannerId: "find_families_live", hook: nearbyFamiliesHook(1) },
-    { bannerId: "managed_ads", hook: managedAdsHook() },
+    { bannerId: "managed_ads", hook: managedAdsHook("direct_reach") },
     { bannerId: "find_families_intel", hook: marketIntelHook() },
     { bannerId: "view_spike", hook: viewSpikeHook(33, 12, 9) },
   ];

@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 
 /**
  * Contextual Managed Ads nudge — shown once per session right after a provider
@@ -20,6 +23,20 @@ export default function PostEditAdsNudge({
   providerName?: string;
   onDismiss: () => void;
 }) {
+  const assignedVariant = useManagedAdsVariant(providerSlug);
+  const copy = managedAdsPitchCopy(assignedVariant ?? "direct_reach");
+  const firedView = useRef(false);
+
+  useEffect(() => {
+    if (!providerSlug || !assignedVariant || firedView.current || isManagedAdsPreviewMode()) return;
+    firedView.current = true;
+    trackProviderEvent(providerSlug, "managed_ads_pitch_viewed", {
+      provider_name: providerName,
+      source: "post_edit",
+      managed_ads_variant: assignedVariant,
+    });
+  }, [assignedVariant, providerName, providerSlug]);
+
   return (
     <div
       className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-primary-100/70 bg-primary-50/50 px-4 py-3"
@@ -27,7 +44,9 @@ export default function PostEditAdsNudge({
     >
       <p className="text-sm text-gray-700 leading-snug">
         <span className="font-semibold text-gray-900">Looking sharp.</span>{" "}
-        See the local ad plan we&apos;d run before any spend starts.
+        {assignedVariant === "local_plan"
+          ? "See the local ad plan we'd run before any spend starts."
+          : `${copy.headline} ${copy.accent.toLowerCase()} with a simple launch plan.`}
       </p>
       <div className="flex shrink-0 items-center gap-1">
         <Link
@@ -37,6 +56,7 @@ export default function PostEditAdsNudge({
               trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
                 provider_name: providerName,
                 source: "post_edit",
+                managed_ads_variant: assignedVariant ?? "direct_reach",
               });
             }
           }}

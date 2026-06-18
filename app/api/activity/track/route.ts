@@ -34,6 +34,7 @@ const PROVIDER_EVENT_TYPES = [
   "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw the managed-ads pitch
   "market_outreach_status_updated", // Provider updated a referral target in "Your Market"
   // Managed Ads funnel + Your Market (migration 105)
+  "managed_ads_pitch_viewed",  // Provider saw a managed-ads pitch surface
   "managed_ads_cta_clicked",   // Provider tapped a CTA toward /provider/boost
   "managed_ads_boost_viewed",  // Provider viewed the managed-ads page
   "managed_ads_requested",     // Provider submitted a managed-ads campaign request
@@ -82,6 +83,7 @@ const ANONYMOUS_EVENT_TYPES = [
   //   _save_all     — secondary save action (logged-in flow)
   "multi_provider_viewed",
   "multi_provider_card_shown",
+  "multi_provider_engaged",
   "multi_provider_asked",
   "multi_provider_skipped",
   "multi_provider_converted",

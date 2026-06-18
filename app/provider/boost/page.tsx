@@ -7,6 +7,8 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProfileSectionEditor } from "@/hooks/useProfileSectionEditor";
 import type { SectionId } from "@/components/provider-dashboard/edit-modals/types";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 import type {
   AdBoostEligibility,
   AdBoostMissingSection,
@@ -72,6 +74,7 @@ export default function ProviderBoostPage() {
   const [selectedBudget, setSelectedBudget] = useState<number | null>(DEFAULT_BUDGET);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const assignedVariant = useManagedAdsVariant(state?.provider.slug ?? null);
 
   const fetchState = useCallback(async () => {
     setLoading(true);
@@ -106,8 +109,24 @@ export default function ProviderBoostPage() {
   // Fire one managed_ads_boost_viewed event per load, once state resolves —
   // tags which funnel state they landed in (gate / apply / in_motion).
   const hasTrackedView = useRef(false);
+  const hasTrackedPitch = useRef(false);
   useEffect(() => {
-    if (!state || hasTrackedView.current) return;
+    if (!state || !assignedVariant) return;
+    if (isManagedAdsPreviewMode()) return;
+    if (!hasTrackedPitch.current) {
+      hasTrackedPitch.current = true;
+      trackProviderEvent(state.provider.slug, "managed_ads_pitch_viewed", {
+        provider_name: state.provider.displayName,
+        source: "boost",
+        managed_ads_variant: assignedVariant,
+        city: state.provider.city,
+        region: state.provider.state,
+        category: state.provider.category,
+        local_demand: state.demand.count,
+        demand_scope: state.demand.scope,
+      });
+    }
+    if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     const open = !!state.request && OPEN_STATUSES.includes(state.request.status);
     const pending = state.request?.status === "pending_profile";
@@ -127,8 +146,9 @@ export default function ProviderBoostPage() {
       category: state.provider.category,
       local_demand: state.demand.count,
       demand_scope: state.demand.scope,
+      managed_ads_variant: assignedVariant,
     });
-  }, [state]);
+  }, [assignedVariant, state]);
 
   // Next four Mondays — "select next week to set up".
   const weekOptions = useMemo(() => nextMondays(4), []);
@@ -159,7 +179,7 @@ export default function ProviderBoostPage() {
         return;
       }
       setState((prev) => (prev ? { ...prev, request: json.request } : prev));
-      if (state) {
+      if (state && !isManagedAdsPreviewMode()) {
         trackProviderEvent(state.provider.slug, "managed_ads_requested", {
           provider_name: state.provider.displayName,
           setup_week: selectedWeek,
@@ -169,6 +189,7 @@ export default function ProviderBoostPage() {
           category: state.provider.category,
           local_demand: state.demand.count,
           demand_scope: state.demand.scope,
+          managed_ads_variant: assignedVariant ?? "direct_reach",
           // Intended monthly budget (non-binding); null if not chosen.
           intended_monthly_budget: selectedBudget,
           // Queued under 70% (standing order) vs. an eligible, actionable request.
@@ -269,10 +290,11 @@ export default function ProviderBoostPage() {
         setSelectedBudget={setSelectedBudget}
         submitting={submitting}
         submitError={submitError}
-        provider={state.provider}
-        demand={state.demand}
-        onSubmit={submit}
-      />
+          provider={state.provider}
+          demand={state.demand}
+          managedAdsVariant={assignedVariant ?? "direct_reach"}
+          onSubmit={submit}
+        />
     </Shell>
   );
 }
@@ -606,6 +628,7 @@ function ApplyExperience({
   submitError,
   provider,
   demand,
+  managedAdsVariant,
   onSubmit,
 }: {
   /** True when the provider already clears the 70% gate. False → the submit
@@ -622,12 +645,14 @@ function ApplyExperience({
   submitError: string | null;
   provider: BoostStateResponse["provider"];
   demand: BoostStateResponse["demand"];
+  managedAdsVariant: "direct_reach" | "local_plan";
   onSubmit: () => void;
 }) {
   const [step, setStep] = useState(0); // 0 Timing · 1 Budget · 2 Confirm
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
   const stop = budgetStop(selectedBudget);
+  const copy = managedAdsPitchCopy(managedAdsVariant);
 
   const canAdvance = step === 0 ? !!selectedWeek : step === 1 ? !!stop : true;
 
@@ -666,12 +691,11 @@ function ApplyExperience({
         {step === 0 && (
           <div>
             <h1 className="mt-5 font-display font-bold text-[clamp(2rem,5vw,2.9rem)] text-gray-900 leading-[1.06] tracking-tight">
-              Reach families<br />
-              <span className="text-primary-600 italic">already searching for care</span>.
+              {copy.headline}<br />
+              <span className="text-primary-600 italic">{copy.accent}</span>.
             </h1>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
-              We run the ads where families are already looking — and send every one of
-              them straight to your Olera page.
+              {copy.body}
             </p>
 
             <DemandDiagnosis provider={provider} demand={demand} />

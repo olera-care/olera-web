@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
 import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
-import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
+import PostJobComingSoonModal from "@/components/medjobs/PostJobComingSoonModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
@@ -41,12 +41,12 @@ export default function ContactSection({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user, profiles, refreshAccountData } = useAuth();
+  const { user, profiles } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
   const [showQuickScheduleModal, setShowQuickScheduleModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
-  const [showScreener, setShowScreener] = useState(false);
+  const [showPostJob, setShowPostJob] = useState(false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
   // Load scheduled state from localStorage on mount
@@ -196,36 +196,25 @@ export default function ContactSection({
     );
   }
 
-  const screenerModal = showScreener ? (
-    <EligibilityScreenerModal
-      providerProfileId={providerProfile?.id}
-      orgName={providerProfile?.display_name ?? null}
-      onClose={() => setShowScreener(false)}
-      onComplete={async () => {
-        setShowScreener(false);
-        await refreshAccountData();
-        // After the quiz, real candidates → open the invite; demos stay on the
-        // "let's talk recruitment" state (no live student to schedule).
-        if (!isSample) setShowModal(true);
-      }}
-    />
-  ) : null;
-
-  // ── Not eligible (anon, or signed-in provider w/o the needs quiz) → push the quiz ──
+  // ── Not eligible (anon, or signed-in provider w/o the needs quiz) →
+  //    point them at Post a Job (coming soon for now). ──
   if (!eligible) {
     const cta = (
       <button
-        onClick={() => setShowScreener(true)}
+        onClick={() => setShowPostJob(true)}
         className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
       >
-        Tell us your hiring needs →
+        Post a Job →
       </button>
     );
+    const postJobModal = showPostJob ? (
+      <PostJobComingSoonModal onClose={() => setShowPostJob(false)} />
+    ) : null;
     if (variant === "sticky") {
       return (
         <>
           <div className={stickyWrap} style={stickyStyle}>{cta}</div>
-          {screenerModal}
+          {postJobModal}
         </>
       );
     }
@@ -235,16 +224,20 @@ export default function ContactSection({
           <div className="flex items-start gap-3">
             {duBose}
             <div>
-              <p className="text-sm font-semibold text-gray-900">Hiring student caregivers?</p>
+              <p className="text-sm font-semibold text-gray-900">
+                Want to hire {isSample ? "a caregiver like this" : firstName}?
+              </p>
               <p className="mt-1 text-sm text-gray-600 leading-relaxed">
-                Tell us your hiring needs and we&apos;ll get you set up to interview
-                {isSample ? " students like this" : ` ${firstName}`}.
+                Post a job to start interviewing student caregivers.
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Tell us the shifts you need covered and we&apos;ll match you.
               </p>
             </div>
           </div>
           {cta}
         </div>
-        {screenerModal}
+        {postJobModal}
       </>
     );
   }

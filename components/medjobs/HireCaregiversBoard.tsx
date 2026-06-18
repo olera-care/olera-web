@@ -9,10 +9,8 @@ import BrowseCard from "@/components/browse/BrowseCard";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
-import { CALENDLY_URL } from "@/lib/student-outreach/templates";
+import PostJobComingSoonModal from "@/components/medjobs/PostJobComingSoonModal";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-
-const PROVIDER_AGREEMENT_URL = "/docs/host-agreement-sample.pdf";
 
 /**
  * HireCaregiversBoard — the signed-in provider's "Hire caregivers" board at
@@ -74,6 +72,8 @@ export default function HireCaregiversBoard() {
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // "Post a Job" is a placeholder for now — see the HANDOFF note by the modal.
+  const [showPostJob, setShowPostJob] = useState(false);
 
   useEffect(() => {
     const sb = createClient();
@@ -138,53 +138,42 @@ export default function HireCaregiversBoard() {
                 className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
               />
               <div className="min-w-0">
-                <p className="text-[15px] font-semibold text-gray-900">You&apos;re set.</p>
+                <p className="text-[15px] font-semibold text-gray-900">You&apos;re all set.</p>
                 <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
-                  Let&apos;s talk, book a call so I can recruit students for your shifts.
+                  Now let&apos;s post a job and interview and hire a caregiver.
                 </p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
-              <a
-                href={PROVIDER_AGREEMENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-semibold text-primary-700 hover:underline"
-              >
-                Read provider agreement ↗
-              </a>
-              <a
-                href={CALENDLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => setShowPostJob(true)}
                 className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
               >
-                Book a call →
-              </a>
+                Post a Job →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <h1 className="mb-1 text-3xl md:text-4xl font-bold text-gray-900">
-        Find caregivers {campusName ? `near ${campusName}` : "near you"}
-      </h1>
-      <p className="mb-6 text-gray-500">
-        {loading ? "Loading caregivers…" : `${filtered.length} student caregiver${filtered.length === 1 ? "" : "s"}`}
-      </p>
-
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass}>
-          <option value="">All universities</option>
-          {universities.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
-          ))}
-        </select>
-        <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass}>
-          {AVAIL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          Find caregivers {campusName ? `near ${campusName}` : "near you"}
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass}>
+            <option value="">All universities</option>
+            {universities.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+          <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass}>
+            {AVAIL_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -234,6 +223,10 @@ export default function HireCaregiversBoard() {
           </div>
         </div>
       </div>
+
+      {/* Post a Job is a coming-soon placeholder — see PostJobComingSoonModal
+          for the HANDOFF note on building the real flow. */}
+      {showPostJob && <PostJobComingSoonModal onClose={() => setShowPostJob(false)} />}
     </div>
   );
 }

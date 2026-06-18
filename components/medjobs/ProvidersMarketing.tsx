@@ -181,8 +181,8 @@ export default function ProvidersMarketing() {
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">For managers</p>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Here&apos;s why this works.</h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Pre-health students aren&apos;t picking up a side gig. They need patient-care hours and
-                references for their med, nursing, and PA applications, so the incentive to show up is built in.
+                College students need experience and references for their future careers as
+                healthcare providers, so the incentive to show up is built in.
               </p>
               <div className="mt-8 space-y-4">
                 {[
@@ -239,7 +239,7 @@ export default function ProvidersMarketing() {
               },
               {
                 q: "How are they vetted?",
-                a: "We review an intro video, verify university enrollment, and collect reliability and professionalism acknowledgments before a profile goes live. You then interview and choose who to hire; background checks and licenses are on file for verified candidates.",
+                a: "We review an intro video, verify university enrollment, and collect reliability and professionalism acknowledgments before a profile goes live. You then interview and choose who to hire.",
               },
               {
                 q: "Will they stick around with school?",

@@ -446,7 +446,7 @@ export function MedJobsTabPage({
         <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
       </header>
 
-      <InBasketHero />
+      <InBasketHero tabCounts={tabCounts} tabUnreadCounts={tabUnreadCounts} />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="min-w-[220px] flex-1">
@@ -565,9 +565,9 @@ export function MedJobsTabPage({
         // Provider audience queue: prospecting (catchment agency prospects)
         // folded with active clients. Provider-kind materialized rows + virtual
         // catchment cards render via ResearchTabContent (provider side only).
-        <div className="space-y-8">
+        <div>
+          {/* Prospecting: agencies in catchment */}
           <section>
-            <AudienceSectionHeader label="Prospecting · agencies in catchment" />
             <ResearchTabContent
               rows={rows.filter((r) => r.kind === "provider")}
               providerProspects={providerProspects}
@@ -577,8 +577,8 @@ export function MedJobsTabPage({
               tabCountsAll={tabCounts?.all ?? 0}
             />
           </section>
-          <section>
-            <AudienceSectionHeader label="Active clients · pending steps" />
+          {/* Active clients with pending steps — hairline divider, no title */}
+          <section className="mt-6 border-t border-gray-100 pt-6">
             {clientRows.length === 0 ? (
               <p className="py-8 text-center text-sm text-gray-400">
                 No clients with pending steps right now.
@@ -592,9 +592,9 @@ export function MedJobsTabPage({
         // Partner audience queue: prospecting (campus stakeholders + research
         // cards) folded with active partners. Partner-kind prospect rows render
         // via ResearchTabContent (partner side only); active partners below.
-        <div className="space-y-8">
+        <div>
+          {/* Prospecting: campus stakeholders + research cards */}
           <section>
-            <AudienceSectionHeader label="Prospecting · campus stakeholders" />
             <ResearchTabContent
               rows={rows.filter((r) => r.kind !== "provider")}
               providerProspects={[]}
@@ -604,8 +604,8 @@ export function MedJobsTabPage({
               tabCountsAll={tabCounts?.all ?? 0}
             />
           </section>
-          <section>
-            <AudienceSectionHeader label="Active partners · pending steps" />
+          {/* Active partners with pending steps — hairline divider, no title */}
+          <section className="mt-6 border-t border-gray-100 pt-6">
             {partnerRows.length === 0 ? (
               <p className="py-8 text-center text-sm text-gray-400">
                 No partners have open tasks right now.
@@ -780,17 +780,6 @@ export function MedJobsTabPage({
         />
       )}
     </div>
-  );
-}
-
-
-// Section header for the audience queues (Providers / Partners), separating
-// each tab's prospecting and active-entity sections.
-function AudienceSectionHeader({ label }: { label: string }) {
-  return (
-    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-      {label}
-    </p>
   );
 }
 

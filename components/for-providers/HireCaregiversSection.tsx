@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 
+// Handed to the eligibility screener so it can pre-fill (and lock) the org the
+// provider already chose here, instead of asking for it again. Read + cleared by
+// EligibilityScreenerModal.
+const HIRE_PREFILL_KEY = "olera_medjobs_hire_prefill";
+
 /**
  * HireCaregiversSection — the provider-side mirror of the "Reach more families"
  * hero. Same OrganizationSearch + "Get started" UI/behavior, but anchored
@@ -22,9 +27,22 @@ export default function HireCaregiversSection() {
   }, []);
 
   const handleGetStarted = () => {
-    // Into the hire-caregivers funnel: ?welcome=1 auto-opens the "Tell us your
-    // hiring needs" screener on the candidates board for a not-yet-eligible
-    // provider. The screener collects the org itself, so nothing to thread here.
+    // Carry the org the provider chose here into the funnel so the screener can
+    // pre-fill + lock it (no re-typing). ?welcome=1 auto-opens the "Tell us your
+    // hiring needs" screener on the candidates board.
+    try {
+      const orgName = selectedOrg?.name || searchInput.trim();
+      if (orgName) {
+        sessionStorage.setItem(
+          HIRE_PREFILL_KEY,
+          JSON.stringify({ selectedOrg, searchQuery: searchInput.trim() }),
+        );
+      } else {
+        sessionStorage.removeItem(HIRE_PREFILL_KEY);
+      }
+    } catch {
+      /* sessionStorage unavailable — screener just asks for the org */
+    }
     router.push("/medjobs/candidates?welcome=1");
   };
 

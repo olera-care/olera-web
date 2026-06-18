@@ -164,6 +164,33 @@ export default function EligibilityScreenerModal({
     !conflict &&
     (creating ? !!(orgQuery.trim() && city.trim() && stateCode.trim()) : true);
 
+  // "Continue as guest": skip email/account creation. Start an anonymous
+  // Supabase session, provision an inactive guest provider profile (carrying
+  // the Q1-Q3 answers so the board is personalized), then finish like a normal
+  // completion. They convert later via "Finish setup".
+  const handleGuest = async () => {
+    setStep("provisioning");
+    setError(null);
+    try {
+      const { data, error } = await createClient().auth.signInAnonymously();
+      if (error || !data?.user) {
+        throw new Error("Could not start a guest session. Please try again.");
+      }
+      const res = await fetch("/api/provider/guest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ demandProfile: demandProfile(), orgName: orgQuery.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Could not set up guest access.");
+      await refreshAccountData(data.user.id);
+      await onComplete();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setStep("claim");
+    }
+  };
+
   const handleClaim = async () => {
     if (!canContinue) return;
     setStep("provisioning");
@@ -423,6 +450,13 @@ export default function EligibilityScreenerModal({
 
               <button type="button" disabled={!canContinue} onClick={handleClaim} className={btnPrimary}>
                 Continue →
+              </button>
+              <button
+                type="button"
+                onClick={handleGuest}
+                className="mt-1 w-full text-center text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                Continue as guest →
               </button>
             </div>
           )}

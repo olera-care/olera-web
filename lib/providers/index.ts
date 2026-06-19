@@ -50,6 +50,25 @@ export {
   getActiveClaimedProviderSlugs,
 } from "./sitemap.server";
 export type { ProviderGeoCombo, SitemapProviderRow } from "./sitemap.server";
+export {
+  scanProvidersForPrewarm,
+  getProvidersByPlaceIds,
+  getActiveFamilySeekers,
+  getClaimedProvidersInBox,
+  getBusinessProfilesBySlugs,
+  getBusinessProfilesBySourceIds,
+  getIosProvidersBySlugs,
+  getIosProvidersByIds,
+  getProviderPlaceIdBySourceId,
+} from "./digest.server";
+export type {
+  PrewarmCandidate,
+  RankEligibleProvider,
+  FamilySeekerRow,
+  NearbyClaimedRow,
+  DigestBusinessProfile,
+  DigestIosProvider,
+} from "./digest.server";
 
 // The canonical-id resolver already lived here; re-export so the front door is
 // the one import site for provider identity too.

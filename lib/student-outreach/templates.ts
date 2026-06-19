@@ -362,7 +362,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `I'm Graize, research assistant to Dr. Logan DuBose, reaching out regarding the Student Caregiver Program for ${PLACEHOLDER.campus} students. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
           ``,
-          `I'm reaching out to you as the head of your department because your students are among those it would serve. Dr. DuBose and I would value the chance to talk it through with you. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a short Zoom this week or next.`,
+          `I'm reaching out to you as the head of your department because your students are among those it would serve. Dr. DuBose and I would value the chance to talk it through with you and learn how we may connect with your faculty and students about it. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a short Zoom this week or next.`,
           ``,
           `Thank you for looking into this program for your students.`,
         ].join("\n"),

@@ -127,6 +127,13 @@ export function MedJobsTabPage({
     return () => clearTimeout(t);
   }, [search]);
 
+  // Stale-response guard: overlapping fetches happen (a drawer's mark_read
+  // fires the global refresh while it's open, then close fires another; tab
+  // switches mid-flight). Each fetch tags itself with a sequence number and
+  // only commits if it's still the latest — so a slower earlier response can't
+  // overwrite a newer one and visually reorder/flicker the list.
+  const requestSeqRef = useRef(0);
+
   // Core fetch. `skeleton` true → show the list skeleton (view changes only);
   // false → silent in-place refresh (data swaps when ready, no flash). All the
   // tab's sources are fetched in PARALLEL and committed in one atomic state
@@ -136,6 +143,7 @@ export function MedJobsTabPage({
   // empty, never rejects the batch).
   const fetchData = useCallback(
     async (skeleton: boolean) => {
+      const seq = ++requestSeqRef.current;
       if (skeleton) setViewLoading(true);
       setError(null);
 
@@ -183,6 +191,9 @@ export function MedJobsTabPage({
           wantCandidates ? sideJson(`/api/admin/student-outreach/candidates?with_pending_task=true`) : Promise.resolve(null),
         ]);
 
+        // Superseded by a newer fetch while we were awaiting → drop this one.
+        if (seq !== requestSeqRef.current) return;
+
         // Queue is the critical source — failure surfaces the error state.
         if (!queueRes.ok) {
           throw new Error(
@@ -191,6 +202,7 @@ export function MedJobsTabPage({
           );
         }
         const data = await queueRes.json();
+        if (seq !== requestSeqRef.current) return; // re-check after the json await
 
         // Atomic commit — one batched render, no intermediate empty/stale paint.
         setCampuses(data.campuses ?? []);
@@ -208,6 +220,7 @@ export function MedJobsTabPage({
         setClientRows(wantClients ? ((clients?.rows ?? []) as ClientRow[]) : []);
         setCandidateRows(wantCandidates ? ((candidates?.rows ?? []) as CandidateRow[]) : []);
       } catch (e) {
+        if (seq !== requestSeqRef.current) return; // stale failure — ignore
         // Only a view-load surfaces the error (it owns the screen). A silent
         // refresh that blips keeps the current list on screen rather than
         // blanking it to an error message.
@@ -217,7 +230,9 @@ export function MedJobsTabPage({
           console.warn("[MedJobsTabPage] silent refresh failed:", e);
         }
       } finally {
-        if (skeleton) setViewLoading(false);
+        // Only the latest request owns viewLoading — a superseded one must not
+        // clear the skeleton out from under the newer load.
+        if (seq === requestSeqRef.current) setViewLoading(false);
       }
     },
     [campusSlug, typeFilter, tab, debouncedSearch],

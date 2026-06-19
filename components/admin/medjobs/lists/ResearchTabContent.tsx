@@ -35,7 +35,7 @@
  * No bulk selection in MVP — admins click rows individually.
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { ResearchCampusCard, TabRow } from "@/lib/student-outreach/types";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { ProviderProspectCard } from "../cards/ProviderProspectCard";
@@ -67,6 +67,10 @@ export function ResearchTabContent({
 }) {
   const router = useRouter();
   const [researchCampus, setResearchCampus] = useState<ResearchCampusCard | null>(null);
+  // Established render order for the provider section (see providerItems
+  // below). Declared here so the hook runs unconditionally, before the
+  // empty-state early return.
+  const orderRef = useRef<string[]>([]);
   // Split materialized rows by kind. Provider-kind rows belong with the
   // virtual provider catchment cards; everything else is a stakeholder
   // (advisor / professor / dept_head / student_org) that lives under
@@ -203,25 +207,42 @@ export function ResearchTabContent({
     />
   );
 
-  const providerItems = hasProvider
-    ? [
-        ...providerRows.map((row) => ({
-          key: row.row_key ?? row.id,
-          sortKey: row.created_at,
-          node: renderRow(row),
-        })),
-        ...providerProspects.map((p) => ({
-          key: p.id,
-          sortKey: p.created_at,
-          node: renderVirtualProspect(p),
-        })),
-      ].sort((a, b) => {
+  // Stable render order — a function of WHICH cards exist, not of any
+  // mutable field. A card keeps its position once it has one; new cards
+  // append (newest-first among the newcomers); removed cards drop out.
+  // This makes it structurally impossible for ANY re-render — a read-state
+  // flip, an optimistic update, a background refresh — to reorder the list.
+  // Only a genuine change to the set of cards moves anything. Replaces the
+  // every-render re-sort by created_at, where order was derived from a
+  // refetched/mutable field and so shuffled whenever the list re-rendered.
+  let providerItems: Array<{ key: string; node: ReactNode }> = [];
+  if (hasProvider) {
+    const items = new Map<string, { key: string; sortKey: string; node: ReactNode }>();
+    for (const row of providerRows) {
+      const key = row.row_key ?? row.id;
+      items.set(key, { key, sortKey: row.created_at, node: renderRow(row) });
+    }
+    for (const p of providerProspects) {
+      items.set(p.id, { key: p.id, sortKey: p.created_at, node: renderVirtualProspect(p) });
+    }
+    const established = orderRef.current.filter((k) => items.has(k));
+    const establishedKeys = new Set(established);
+    const incoming = [...items.values()]
+      .filter((it) => !establishedKeys.has(it.key))
+      .sort((a, b) => {
         const byDate = b.sortKey.localeCompare(a.sortKey);
-        // Tiebreak by stable key so cards sharing a created_at (e.g. the
-        // unknown-date prospect cohort) don't shuffle between renders.
         return byDate !== 0 ? byDate : a.key.localeCompare(b.key);
       })
-    : [];
+      .map((it) => it.key);
+    const order = [...established, ...incoming];
+    orderRef.current = order;
+    providerItems = order.map((k) => {
+      const it = items.get(k)!;
+      return { key: it.key, node: it.node };
+    });
+  } else {
+    orderRef.current = [];
+  }
 
   const providerCardList = hasProvider ? (
     <ul className="space-y-2 pt-2">

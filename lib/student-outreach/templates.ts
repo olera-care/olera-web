@@ -334,9 +334,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, I work with Dr. Logan DuBose, a physician and researcher at Olera. We run a paid caregiving program for pre-health students: they get paid to care for older adults and earn real hands-on experience plus recommendation letters for med, PA, and nursing school.`,
+          `I'm Graize, I work with Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. We run a paid caregiving program for pre-health students: they get paid to care for older adults and earn real hands-on experience plus recommendation letters for med, PA, and nursing school.`,
           ``,
-          `Your members are exactly who it's for. If you think they'd want to apply, you can circulate the flyer and application link to your group chat or listserv, both here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+          `Your members are exactly who it's for. If you think they'd want to apply, you can circulate the flyer and application link to your group chat or listserv, both here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
           ``,
           `Dr. DuBose would also love to speak at one of your meetings about it. If that sounds good, reply with a couple of dates that work and I'll line it up.`,
           ``,
@@ -351,7 +351,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
           ``,
           `I'm Graize, I work with Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. He started a paid caregiving program that places pre-health students with older adults in the community, so they earn the hands-on experience and references that med, PA, and nursing programs ask for.`,
           ``,
-          `I'm writing because you're one of the people ${PLACEHOLDER.campus} pre-health students turn to for exactly this. If it looks worthwhile, the simplest way to help is to pass the flyer and application link to your students, both here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+          `I'm writing because you're one of the people ${PLACEHOLDER.campus} pre-health students turn to for exactly this. If it looks worthwhile, the simplest way to help is to pass the flyer and application link to your students, both here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
           ``,
           `Dr. DuBose would also love to meet you and talk about how he can support your office. If you're open to it, reply with a couple of times that work this week or next and I'll set it up.`,
           ``,
@@ -364,9 +364,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I work with Dr. Logan DuBose, a physician and NIH-funded researcher at Olera. He runs a paid caregiving program that places pre-health students with older adults, giving them the hands-on experience and references that medical, PA, and nursing programs expect.`,
+          `I'm Graize, I work with Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. He runs a paid caregiving program that places pre-health students with older adults, giving them the hands-on experience and references that medical, PA, and nursing programs expect.`,
           ``,
-          `I'm reaching out to you as the head of your department because your students are among those it would serve. You can see how it works here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+          `I'm reaching out to you as the head of your department because your students are among those it would serve. You can see how it works here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
           ``,
           `If it seems worthwhile, Dr. DuBose would like to meet to talk through sharing it with your professors and students. Let me know a few times that suit you this week or next and I'll set it up.`,
           ``,
@@ -451,7 +451,7 @@ export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to make sure this reached you. We have a paid caregiving program that gives ${PLACEHOLDER.campus} pre-health students real hands-on experience and references for med, PA, and nursing school. If it could help your students, the flyer and application link are here to pass along: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `Wanted to make sure this reached you. We have a paid caregiving program that gives ${PLACEHOLDER.campus} pre-health students real hands-on experience and references for med, PA, and nursing school. If it could help your students, the flyer and application link are here to pass along: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `Dr. DuBose would also love to meet and learn how he can support your office, so reply with a few times that work and I'll set it up.`,
     ].join("\n"),
@@ -467,7 +467,7 @@ export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `A little more on the program: Dr. DuBose places ${PLACEHOLDER.campus} pre-health students with older adults in paid caregiver roles, so they earn hours, a credential, and references for professional school, all around their classes. We handle the matching, training, and support.`,
       ``,
-      `The flyer and application link to share with your students are here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `The flyer and application link to share with your students are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `Dr. DuBose would like to meet to talk through how the program can help your students; reply with a couple of times and I'll set it up.`,
     ].join("\n"),
@@ -483,7 +483,7 @@ export function advisorNudgeEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `We have room for more ${PLACEHOLDER.campus} pre-health students in the caregiving program this term. It earns them real hands-on experience and references for med, PA, and nursing school, around their classes.`,
       ``,
-      `If it could help your students, the flyer and application link are here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}). Dr. DuBose is glad to meet as well; just reply with a few times that work.`,
+      `If it could help your students, the flyer and application link are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}). Dr. DuBose is glad to meet as well; just reply with a few times that work.`,
     ].join("\n"),
   };
 }
@@ -495,7 +495,7 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We'd still love to support your ${PLACEHOLDER.campus} pre-health students through the caregiving program. The flyer and application link are here to share anytime: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}), and Dr. DuBose is glad to meet whenever it's useful.`,
+      `We'd still love to support your ${PLACEHOLDER.campus} pre-health students through the caregiving program. The flyer and application link are here to share anytime: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}), and Dr. DuBose is glad to meet whenever it's useful.`,
       ``,
       `If someone else advises pre-health students at ${PLACEHOLDER.campus}, I'd be grateful for a name.`,
     ].join("\n"),
@@ -513,7 +513,7 @@ export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to make sure your members saw this: a paid caregiving program that earns them real hands-on experience and recommendation letters for med, PA, and nursing school. The flyer and application link to drop in your group chat or listserv are here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `Wanted to make sure your members saw this: a paid caregiving program that earns them real hands-on experience and recommendation letters for med, PA, and nursing school. The flyer and application link to drop in your group chat or listserv are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `Dr. DuBose would also love to speak at one of your meetings about it; reply with a few dates and I'll line it up.`,
     ].join("\n"),
@@ -529,7 +529,7 @@ export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `A quick recap for your members: a paid caregiving program through Olera, with Dr. Logan DuBose, that earns pre-health students real hands-on experience and recommendation letters for professional school.`,
       ``,
-      `If your members would want it, here's the flyer and application link to circulate: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `If your members would want it, here's the flyer and application link to circulate: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `Dr. DuBose would also love to speak at one of your meetings; reply with a few dates and I'll set it up.`,
     ].join("\n"),
@@ -543,7 +543,7 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `If your members would benefit, the flyer and application link are here to share anytime: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}), and Dr. DuBose is glad to come speak at a meeting.`,
+      `If your members would benefit, the flyer and application link are here to share anytime: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}), and Dr. DuBose is glad to come speak at a meeting.`,
       ``,
       `If another officer handles this, point me their way. Thanks for looking out for your members.`,
     ].join("\n"),
@@ -561,7 +561,7 @@ export function deptHeadBumpEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to put this back in front of you. Dr. Logan DuBose's paid caregiving program gives your department's pre-health students real hands-on experience and references for medical, PA, and nursing school. Details here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `Wanted to put this back in front of you. Dr. Logan DuBose's paid caregiving program gives your department's pre-health students real hands-on experience and references for medical, PA, and nursing school. Details here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `If it could serve your students, Dr. DuBose would like to meet to plan the best way to share it; let me know a few times and I'll set it up.`,
     ].join("\n"),
@@ -575,7 +575,7 @@ export function deptHeadFollowupEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
-      `A bit more on the program: Dr. DuBose places pre-health students with older adults in paid caregiver roles, so they earn hours, a credential, and references for medical, PA, and nursing school, around their coursework. Full details here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `A bit more on the program: Dr. DuBose places pre-health students with older adults in paid caregiver roles, so they earn hours, a credential, and references for medical, PA, and nursing school, around their coursework. Full details here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `If it would be valuable for your students, Dr. DuBose would like to meet to talk through sharing it with your professors and students; reply with a few times and I'll arrange it.`,
     ].join("\n"),
@@ -589,7 +589,7 @@ export function deptHeadCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
-      `If the program could serve your department's students now or next term, please let me know. Dr. DuBose would like to meet to talk it through, and the full details are here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+      `If the program could serve your department's students now or next term, please let me know. Dr. DuBose would like to meet to talk it through, and the full details are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
       ``,
       `If another faculty member would be the better contact, I'd appreciate a pointer. Thank you for your time.`,
     ].join("\n"),
@@ -844,7 +844,7 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `Just making sure this reached you. The flyer and application link to share with your students are here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+        `Just making sure this reached you. The flyer and application link to share with your students are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
         ``,
         `And Dr. DuBose would love to meet whenever it's useful, just reply with a couple of times that work and I'll set it up.`,
       ].join("\n"),
@@ -871,7 +871,7 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `No rush at all. Whenever you're ready, the flyer and application link to share with your students are here: [${PROGRAM_NAME}](${PARTNER_PROGRAM_URL}).`,
+        `No rush at all. Whenever you're ready, the flyer and application link to share with your students are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
         ``,
         `And Dr. DuBose is glad to meet whenever it helps, just reply with a few times that work.`,
       ].join("\n"),

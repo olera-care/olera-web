@@ -350,7 +350,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
       // Day 3 call, paired with the Day 3 follow-up email. Reference Monday's
       // email (the open-rate lever — they expect it), confirm it reached the
       // right person, and ask for the caregiver-hiring contact.
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera. We emailed {organization_name} on Monday about our Student Caregiver Program for pre-health students near {campus_name}, and I wanted to make sure it reached the right person. Could you point me to whoever handles caregiver hiring, or a better email for the details?"`;
+      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera. We emailed {organization_name} earlier this week about our Student Caregiver Program for pre-health students near {campus_name}, and I wanted to make sure it reached the right person. Could you point me to whoever handles caregiver hiring, or a better email for the details?"`;
     }
     if (day === 5) {
       return `"Hi, this is {admin_first_name} from Dr. DuBose's office, circling back on the Student Caregiver Program we emailed about earlier this week. I just wanted to make sure it reached the right person, and see if I can answer any questions."`;

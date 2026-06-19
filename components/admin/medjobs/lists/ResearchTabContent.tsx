@@ -73,8 +73,6 @@ export function ResearchTabContent({
   const nodeCacheRef = useRef<Map<string, { src: unknown; node: ReactNode }>>(
     new Map(),
   );
-  const renderCountRef = useRef(0); // DEBUG
-  renderCountRef.current += 1;
   // Split materialized rows by kind. Provider-kind rows belong with the
   // virtual provider catchment cards; everything else is a stakeholder
   // (advisor / professor / dept_head / student_org) that lives under
@@ -228,7 +226,6 @@ export function ResearchTabContent({
   // (full-list re-render + drawer mount in one commit) is what made
   // opening an UNREAD card slow while a READ card opened instantly.
   let providerItems: Array<{ key: string; node: ReactNode }> = [];
-  let providerRebuilt = 0; // DEBUG: cards re-rendered (cache misses) this render
   if (hasProvider) {
     const nextCache = new Map<string, { src: unknown; node: ReactNode }>();
     const cachedNode = (key: string, src: unknown, make: () => ReactNode): ReactNode => {
@@ -237,7 +234,6 @@ export function ResearchTabContent({
         nextCache.set(key, prev);
         return prev.node;
       }
-      providerRebuilt++;
       const node = make();
       nextCache.set(key, { src, node });
       return node;
@@ -283,12 +279,6 @@ export function ResearchTabContent({
 
   const providerCardList = hasProvider ? (
     <ul className="space-y-2 pt-2">
-      {/* DEBUG (pass-3): on each interaction watch "rebuilt". 1 = only the
-          clicked card re-rendered (good). Equal to total = the whole list
-          re-rendered (a hidden refetch replaced every row). */}
-      <li className="rounded bg-fuchsia-100 px-2 py-1 text-[11px] font-mono font-semibold text-fuchsia-800">
-        DEBUG render #{renderCountRef.current} · rebuilt {providerRebuilt}/{providerItems.length} cards
-      </li>
       {providerItems.map((it) => (
         <li key={it.key}>{it.node}</li>
       ))}

@@ -668,12 +668,11 @@ export const followupEmail = followupLightEmail;
  * email-send.ts → bodyToHtml).
  */
 export function providerIntroEmail(
-  ctx: TemplateContext,
+  _ctx: TemplateContext,
   _contacts: Contact[] | undefined,
 ): EmailDraft {
-  const variant = ctx.variant ?? "general";
   const subject = PROGRAM_NAME;
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hi again,`;
+  const greeting = `Hi again,`;
   return {
     subject,
     body: [
@@ -703,12 +702,11 @@ export function providerIntroEmail(
  * Re-surfaces the same magic-link CTA. Short and conversational.
  */
 export function providerFollowupEmail(
-  ctx: TemplateContext,
+  _ctx: TemplateContext,
   _contacts: Contact[] | undefined,
 ): EmailDraft {
-  const variant = ctx.variant ?? "general";
   const subject = PROGRAM_NAME;
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hi again,`;
+  const greeting = `Hi again,`;
   return {
     subject,
     body: [
@@ -729,12 +727,11 @@ export function providerFollowupEmail(
  * rather than a fresh push.
  */
 export function providerFinalEmail(
-  ctx: TemplateContext,
+  _ctx: TemplateContext,
   _contacts: Contact[] | undefined,
 ): EmailDraft {
-  const variant = ctx.variant ?? "general";
   const subject = PROGRAM_NAME;
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hi again,`;
+  const greeting = `Hi again,`;
   return {
     subject,
     body: [

@@ -204,21 +204,44 @@ export function MedJobsTabPage({
         const data = await queueRes.json();
         if (seq !== requestSeqRef.current) return; // re-check after the json await
 
-        // Atomic commit — one batched render, no intermediate empty/stale paint.
+        // Non-ordered state: always replace.
         setCampuses(data.campuses ?? []);
-        setRows(data.rows ?? []);
         setTabCounts(data.tab_counts ?? null);
         setTabUnreadCounts(data.tab_unread_counts ?? null);
-        setResearchCampuses(data.research_campuses ?? []);
-        setProviderProspects(wantProviderProspects ? ((pp?.rows ?? []) as ProviderProspectRow[]) : []);
-        setPartnerRows(wantPartners ? ((partners?.rows ?? []) as TabRow[]) : []);
-        // Sites tab content = sites with a pending site_task only (matches the
-        // queue counts.sites + sidebar Sites fraction).
-        setCampusBanners(
-          wantSites ? ((sites?.rows ?? []) as CampusRow[]).filter((c) => c.has_pending_task === true) : [],
-        );
-        setClientRows(wantClients ? ((clients?.rows ?? []) as ClientRow[]) : []);
-        setCandidateRows(wantCandidates ? ((candidates?.rows ?? []) as CandidateRow[]) : []);
+
+        // Ordered lists. A view change (skeleton) takes the fresh server order;
+        // a SILENT refresh merges in place — existing rows keep their position
+        // with refreshed data, new rows append, removed rows drop. This makes
+        // card order independent of read/unread state (a read just updates the
+        // row in place; it never re-sorts the list).
+        const rowKey = (r: TabRow) => r.row_key ?? r.id;
+        const nextRows = (data.rows ?? []) as TabRow[];
+        const nextResearch = (data.research_campuses ?? []) as ResearchCampusCard[];
+        const nextPP = wantProviderProspects ? ((pp?.rows ?? []) as ProviderProspectRow[]) : [];
+        const nextPartners = wantPartners ? ((partners?.rows ?? []) as TabRow[]) : [];
+        const nextSites = wantSites
+          ? ((sites?.rows ?? []) as CampusRow[]).filter((c) => c.has_pending_task === true)
+          : [];
+        const nextClients = wantClients ? ((clients?.rows ?? []) as ClientRow[]) : [];
+        const nextCandidates = wantCandidates ? ((candidates?.rows ?? []) as CandidateRow[]) : [];
+
+        if (skeleton) {
+          setRows(nextRows);
+          setResearchCampuses(nextResearch);
+          setProviderProspects(nextPP);
+          setPartnerRows(nextPartners);
+          setCampusBanners(nextSites);
+          setClientRows(nextClients);
+          setCandidateRows(nextCandidates);
+        } else {
+          setRows((prev) => mergeByKey(prev, nextRows, rowKey));
+          setResearchCampuses((prev) => mergeByKey(prev, nextResearch, (c) => c.id));
+          setProviderProspects((prev) => mergeByKey(prev, nextPP, (p) => p.id));
+          setPartnerRows((prev) => mergeByKey(prev, nextPartners, rowKey));
+          setCampusBanners((prev) => mergeByKey(prev, nextSites, (c) => c.id));
+          setClientRows((prev) => mergeByKey(prev, nextClients, (r) => r.id));
+          setCandidateRows((prev) => mergeByKey(prev, nextCandidates, (r) => r.id));
+        }
       } catch (e) {
         if (seq !== requestSeqRef.current) return; // stale failure — ignore
         // Only a view-load surfaces the error (it owns the screen). A silent
@@ -800,6 +823,28 @@ export function MedJobsTabPage({
   );
 }
 
+
+// Merge `next` into `prev` preserving prev's order: existing items keep their
+// position with refreshed data, removed items drop, new items append. Lets a
+// silent refresh update rows in place without reordering — so a card's
+// read/unread change never moves it.
+function mergeByKey<T>(prev: T[], next: T[], key: (t: T) => string): T[] {
+  const nextByKey = new Map(next.map((t) => [key(t), t] as const));
+  const result: T[] = [];
+  const seen = new Set<string>();
+  for (const p of prev) {
+    const k = key(p);
+    const updated = nextByKey.get(k);
+    if (updated !== undefined) {
+      result.push(updated);
+      seen.add(k);
+    }
+  }
+  for (const n of next) {
+    if (!seen.has(key(n))) result.push(n);
+  }
+  return result;
+}
 
 // List skeleton — shown on a view change (first mount / tab switch). Reserves
 // row-height layout so the real content swaps in without a shift, and avoids

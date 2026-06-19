@@ -20,6 +20,7 @@ import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
+import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
 
 type ActionFn = (
   actionName: string,
@@ -133,19 +134,10 @@ export function DeptHeadIntroCallModal({
         </>
       }
     >
-      <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-          Suggested script
-        </p>
-        <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
-          &ldquo;Hello, this is [your name], research assistant to Dr. Logan
-          DuBose at Olera. I&apos;m reaching out about the Student Caregiver
-          Program for {campus} students, which places pre-health students in paid
-          caregiver roles with older adults. Before I send any details, are you
-          the right person in the department to talk with, or is there a better
-          contact?&rdquo;
-        </p>
-      </section>
+      <CallScriptBlock
+        label="Suggested script"
+        script={`"Hello, this is [your name], research assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${campus} students, which places pre-health students in paid caregiver roles with older adults. Before I send any details, are you the right person in the department to talk with, or is there a better contact?"`}
+      />
 
       <div className="space-y-1.5">
         {OUTCOMES.map((opt) => (

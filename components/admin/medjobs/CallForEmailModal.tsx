@@ -36,6 +36,7 @@ import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
+import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
 
 type ActionFn = (
   actionName: string,
@@ -323,18 +324,6 @@ function StatusCard({
  */
 function SuggestedScript({ campusName }: { campusName: string | null }) {
   const campus = campusName?.trim() || "campus";
-  return (
-    <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        Suggested script
-      </p>
-      <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
-        &ldquo;Hi, this is [your name] from Dr. DuBose&apos;s office,
-        calling about his Student Caregiver Program for {campus}{" "}
-        students. I&apos;d like to send your team an email with the
-        details, and wanted to check first on the best address to send
-        it to.&rdquo;
-      </p>
-    </section>
-  );
+  const script = `"Hi, this is [your name] from Dr. DuBose's office, calling about his Student Caregiver Program for ${campus} students. I'd like to send your team an email with the details, and wanted to check first on the best address to send it to."`;
+  return <CallScriptBlock label="Suggested script" script={script} />;
 }

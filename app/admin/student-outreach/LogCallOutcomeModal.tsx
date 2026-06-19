@@ -27,6 +27,7 @@
 
 import { useState } from "react";
 import { LogModalShell } from "@/components/admin/medjobs/LogModalShell";
+import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
 import {
   PartnerEvidencePanel,
   DEFAULT_PARTNER_EVIDENCE,
@@ -71,6 +72,9 @@ interface Props {
    *  captures the professor-outreach documentation instead of the generic
    *  distribution-evidence panel. */
   stakeholderType?: StakeholderType;
+  /** The day's call script, shown read-only at the top (design C). */
+  script?: string | null;
+  scriptLabel?: string;
   onCancel: () => void;
   /**
    * Called on submit. When the admin picked the partner outcome,
@@ -173,6 +177,8 @@ export function LogCallOutcomeModal({
   contactPhone,
   rowKind = "stakeholder",
   stakeholderType,
+  script,
+  scriptLabel,
   onCancel,
   onSubmit,
 }: Props) {
@@ -277,6 +283,9 @@ export function LogCallOutcomeModal({
         </>
       }
     >
+      {script && (
+        <CallScriptBlock label={scriptLabel ?? "Call script"} script={script} />
+      )}
       <OutcomeGroup
         title="Didn't reach them"
         outcomes={DIDNT_REACH}

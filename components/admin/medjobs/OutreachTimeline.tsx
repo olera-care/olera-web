@@ -74,6 +74,7 @@ interface FutureRow {
     recipientPhone: string | null;
     recipientRole: string | null;
     cadenceDay: number | null;
+    script: string | null;
   } | null;
 }
 
@@ -180,6 +181,10 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
                   ? (payload.recipient_role as string)
                   : null,
               cadenceDay: day,
+              script:
+                typeof payload?.script === "string"
+                  ? (payload.script as string)
+                  : null,
             }
           : null,
       });
@@ -320,6 +325,12 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
           contactPhone={callLogTask.recipientPhone}
           rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
           stakeholderType={ctx.outreach.stakeholder_type}
+          script={callLogTask.script}
+          scriptLabel={
+            callLogTask.cadenceDay != null
+              ? `Day ${callLogTask.cadenceDay} script`
+              : "Call script"
+          }
           onCancel={() => setCallLogTask(null)}
           onSubmit={submitCallLog}
         />

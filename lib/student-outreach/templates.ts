@@ -334,11 +334,9 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, I work with Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. We run a paid caregiving program for pre-health students: they get paid to care for older adults and earn real hands-on experience plus recommendation letters for med, PA, and nursing school.`,
+          `I'm Graize, research assistant to Dr. Logan DuBose, reaching out regarding the Student Caregiver Program for ${PLACEHOLDER.campus} students. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
           ``,
-          `Your members are exactly who it's for. If you think they'd want to apply, you can circulate the flyer and application link to your group chat or listserv, both here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
-          ``,
-          `Dr. DuBose would also love to speak at one of your meetings about it. If that sounds good, reply with a couple of dates that work and I'll line it up.`,
+          `Your members are exactly who it's for, and Dr. DuBose and I are hoping to share it with pre-health groups like yours. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a time for Dr. DuBose to speak with your members.`,
           ``,
           `Thanks for looking out for your members.`,
         ].join("\n"),
@@ -494,9 +492,10 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
   };
 }
 
-// ── Student-org cadence (value-first, share-led) ────────────────────────
-// Lighter than advisors. Each email stands alone and restates the offer; the
-// application link is the org's unique link so applies count for that org.
+// ── Student-org cadence (relationship-first, reply-with-interest) ────────
+// Each email stands alone. The cold ask is a soft "reply with your interest
+// level"; the unique apply link + a meeting slot for Dr. DuBose follow once
+// the org engages, so applies still trace to that org.
 
 /** Touch 2 — standalone bump. */
 export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
@@ -505,9 +504,7 @@ export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to make sure your members saw this: a paid caregiving program that earns them real hands-on experience and recommendation letters for med, PA, and nursing school. The flyer and application link to drop in your group chat or listserv are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
-      ``,
-      `Dr. DuBose would also love to speak at one of your meetings about it; reply with a few dates and I'll line it up.`,
+      `Following up in case my last note got buried. Dr. DuBose and I would still love to share the Student Caregiver Program for ${PLACEHOLDER.campus} students with your members. If you're open to it, just reply with your general interest level and we'll follow up with more information.`,
     ].join("\n"),
   };
 }
@@ -519,11 +516,9 @@ export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `A quick recap for your members: a paid caregiving program through Olera, with Dr. Logan DuBose, that earns pre-health students real hands-on experience and recommendation letters for professional school.`,
+      `A bit more on the program: Dr. DuBose places ${PLACEHOLDER.campus} pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications. We handle the matching, training, and support.`,
       ``,
-      `If your members would want it, here's the flyer and application link to circulate: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
-      ``,
-      `Dr. DuBose would also love to speak at one of your meetings; reply with a few dates and I'll set it up.`,
+      `If your members would be interested, just reply with your interest level and we can set up a time for Dr. DuBose to share it with your group, or a quick call to talk it through.`,
     ].join("\n"),
   };
 }
@@ -535,9 +530,9 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `If your members would benefit, the flyer and application link are here to share anytime: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}), and Dr. DuBose is glad to come speak at a meeting.`,
+      `We'd still love to get the Student Caregiver Program for ${PLACEHOLDER.campus} students in front of your members, so just reply anytime with your interest level and we'll take it from there.`,
       ``,
-      `If another officer handles this, point me their way. Thanks for looking out for your members.`,
+      `And if another officer handles this, a quick pointer their way would be appreciated. Thanks for looking out for your members.`,
     ].join("\n"),
   };
 }

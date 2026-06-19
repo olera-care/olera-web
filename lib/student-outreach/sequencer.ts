@@ -357,9 +357,9 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
     }
   }
   if (type === "student_org") {
-    // Day 6 org call (phone permitting), paired with the follow-up email. Lead
-    // with the opportunity for their members + the easy share + the speaker.
-    return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera. We sent your org info on a paid caregiving program for pre-health students near {campus_name} — paid healthcare experience that counts toward med, PA, and nursing applications. It's easy to share with members, and Dr. DuBose would gladly speak at a meeting. Would your members be interested?"`;
+    // Day 6 org call (phone permitting), paired with the follow-up email.
+    // Reference the email, gauge interest, offer Dr. DuBose at a meeting.
+    return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed your org about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose would love to share it with your members and is glad to speak at a meeting. Would your members be interested?"`;
   }
   if (type === "advisor") {
     // Day 6 intro call, paired with the program-info email that goes out the

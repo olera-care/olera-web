@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { DemandProfile } from "@/lib/medjobs/eligibility";
 import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -51,6 +51,11 @@ const fieldClass =
 
 const EMAIL_RE = /\S+@\S+\.\S+/;
 
+// Set by the For Providers "Hire more caregivers" band: the org the provider
+// already chose there. When present we pre-fill + lock the org so the claim step
+// only needs an email (point 5: don't re-ask for the org).
+const HIRE_PREFILL_KEY = "olera_medjobs_hire_prefill";
+
 export default function EligibilityScreenerModal({
   providerProfileId,
   onClose,
@@ -77,9 +82,35 @@ export default function EligibilityScreenerModal({
   const [stateCode, setStateCode] = useState("");
   const [email, setEmail] = useState("");
   const [cityOpen, setCityOpen] = useState(false);
+  // Org carried in from the "Hire more caregivers" band → shown locked.
+  const [orgLocked, setOrgLocked] = useState(false);
   const cityRef = useRef<HTMLDivElement>(null);
   const { results: cityResults } = useCitySearch(city);
   useClickOutside(cityRef, () => setCityOpen(false));
+
+  // Read the band's prefill once on mount: pre-fill + lock the chosen org so the
+  // claim step doesn't ask for it again. Anon path only (an authed provider
+  // never reaches the claim step).
+  useEffect(() => {
+    if (providerProfileId) return;
+    try {
+      const raw = sessionStorage.getItem(HIRE_PREFILL_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw) as { selectedOrg?: SelectedOrg | null; searchQuery?: string };
+      if (data.selectedOrg) {
+        setSelectedOrg(data.selectedOrg);
+        setOrgQuery(data.selectedOrg.name);
+        if (data.selectedOrg.city) setCity(data.selectedOrg.city);
+        if (data.selectedOrg.state) setStateCode(data.selectedOrg.state);
+        setOrgLocked(true);
+      } else if (data.searchQuery?.trim()) {
+        setOrgQuery(data.searchQuery.trim());
+        setOrgLocked(true);
+      }
+    } catch {
+      /* malformed/unavailable — fall back to the normal org search */
+    }
+  }, [providerProfileId]);
 
   const toggle = (v: Bucket) =>
     setBuckets((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]));
@@ -132,6 +163,33 @@ export default function EligibilityScreenerModal({
     emailValid &&
     !conflict &&
     (creating ? !!(orgQuery.trim() && city.trim() && stateCode.trim()) : true);
+
+  // "Continue as guest": skip email/account creation. Start an anonymous
+  // Supabase session, provision an inactive guest provider profile (carrying
+  // the Q1-Q3 answers so the board is personalized), then finish like a normal
+  // completion. They convert later via "Finish setup".
+  const handleGuest = async () => {
+    setStep("provisioning");
+    setError(null);
+    try {
+      const { data, error } = await createClient().auth.signInAnonymously();
+      if (error || !data?.user) {
+        throw new Error("Could not start a guest session. Please try again.");
+      }
+      const res = await fetch("/api/provider/guest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ demandProfile: demandProfile(), orgName: orgQuery.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Could not set up guest access.");
+      await refreshAccountData(data.user.id);
+      await onComplete();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setStep("claim");
+    }
+  };
 
   const handleClaim = async () => {
     if (!canContinue) return;
@@ -198,6 +256,11 @@ export default function EligibilityScreenerModal({
 
       // Now authed + owns an org → write the captured eligibility.
       await writeEligibility(result.profileId);
+      try {
+        sessionStorage.removeItem(HIRE_PREFILL_KEY);
+      } catch {
+        /* ignore */
+      }
       await onComplete();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
@@ -222,11 +285,11 @@ export default function EligibilityScreenerModal({
           {step === "q1" && (
             <div className="space-y-4">
               {/* Intro folded into Q1 so a magic-link arrival lands straight on
-                  the first question (no extra "Check eligibility →" click). */}
+                  the first question (no extra click). */}
               <div>
-                <h3 className="font-serif text-xl text-gray-900">Check your eligibility</h3>
+                <h3 className="font-serif text-xl text-gray-900">Tell us your hiring needs</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  A quick check, about a minute. No commitment.
+                  Three quick questions about the shifts you need covered.
                 </p>
               </div>
               <QuestionFrame dots={1} title="How steady are your staffing needs?">
@@ -264,7 +327,7 @@ export default function EligibilityScreenerModal({
                 ))}
               </div>
               <button type="button" disabled={buckets.length === 0} onClick={finish} className={btnPrimary}>
-                See my matches →
+                Continue →
               </button>
             </QuestionFrame>
           )}
@@ -272,31 +335,57 @@ export default function EligibilityScreenerModal({
           {step === "claim" && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-serif text-xl text-gray-900">You&apos;re a fit!</h3>
+                <h3 className="font-serif text-xl text-gray-900">Last step: confirm your details</h3>
                 <p className="mt-1 text-sm text-gray-600">
-                  Create or claim your account to hire caregivers near you.
+                  {orgLocked
+                    ? "Add your email and we'll set up your account to hire caregivers near you."
+                    : "Create or claim your account to hire caregivers near you."}
                 </p>
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-gray-700">Organization name</label>
-                <OrganizationSearch
-                  value={orgQuery}
-                  onChange={(v) => {
-                    setOrgQuery(v);
-                    setSelectedOrg(null);
-                  }}
-                  onSelect={(org) => {
-                    setSelectedOrg(org);
-                    if (org) {
-                      setOrgQuery(org.name);
-                      if (org.city) setCity(org.city);
-                      if (org.state) setStateCode(org.state);
-                    }
-                  }}
-                  selected={!!selectedOrg}
-                  placeholder="Your home care agency"
-                />
+                {orgLocked ? (
+                  // Org came in from the "Hire more caregivers" band — show it
+                  // locked so the provider doesn't re-enter it.
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3">
+                    <span className="flex items-center gap-2 truncate text-base text-gray-900">
+                      <svg className="h-4 w-4 shrink-0 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="truncate">{orgQuery}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOrgLocked(false);
+                        setSelectedOrg(null);
+                        setOrgQuery("");
+                      }}
+                      className="shrink-0 text-sm font-semibold text-primary-700 hover:underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <OrganizationSearch
+                    value={orgQuery}
+                    onChange={(v) => {
+                      setOrgQuery(v);
+                      setSelectedOrg(null);
+                    }}
+                    onSelect={(org) => {
+                      setSelectedOrg(org);
+                      if (org) {
+                        setOrgQuery(org.name);
+                        if (org.city) setCity(org.city);
+                        if (org.state) setStateCode(org.state);
+                      }
+                    }}
+                    selected={!!selectedOrg}
+                    placeholder="Your home care agency"
+                  />
+                )}
                 {conflict && (
                   <p className="text-xs text-amber-700">
                     That agency is already managed. Create a new one below, or email{" "}
@@ -362,6 +451,13 @@ export default function EligibilityScreenerModal({
               <button type="button" disabled={!canContinue} onClick={handleClaim} className={btnPrimary}>
                 Continue →
               </button>
+              <button
+                type="button"
+                onClick={handleGuest}
+                className="mt-1 w-full text-center text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                Continue as guest →
+              </button>
             </div>
           )}
 
@@ -369,7 +465,7 @@ export default function EligibilityScreenerModal({
             <div className="flex flex-col items-center gap-4 py-10">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-primary-600" />
               <p className="text-sm text-gray-500">
-                {step === "provisioning" ? "Setting up your account…" : "Finding your matches…"}
+                {step === "provisioning" ? "Setting up your account…" : "Saving your answers…"}
               </p>
             </div>
           )}

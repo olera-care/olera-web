@@ -1,6 +1,6 @@
 /**
- * MedJobs placements (Phase D) — the host-intern relationship created when a
- * provider offers to host a student after a good interview, and confirmed when
+ * MedJobs placements (Phase D) — the employer-student relationship created when
+ * a provider offers to hire a student after a good interview, and confirmed when
  * the student accepts.
  *
  * Payments are STUBBED for now (Stripe wiring deferred). The fee + hours

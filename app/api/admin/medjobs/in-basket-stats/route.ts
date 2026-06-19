@@ -15,13 +15,19 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *     logged today, plus a per-type breakdown (calls / emails /
  *     meetings / replies / other).
  *   - streak_days: consecutive business days (Mon-Fri) ending
- *     today, where each day has ≥1 log. Weekends are skipped, not
- *     streak-breaking.
+ *     today, where each day hit the daily target (STREAK_TARGET
+ *     logs). Weekends are skipped, not streak-breaking. Today only
+ *     breaks the streak once it's a past day — an in-progress today
+ *     below target doesn't reset it.
+ *   - daily_logs: per-business-day log counts over the lookback,
+ *     ascending, for the Stats-page streak tracker.
  *
  * Single endpoint — one round-trip serves the whole hero.
  */
 
 const STREAK_LOOKBACK_DAYS = 60;
+/** Daily log target — a business day counts toward the streak at or above this. */
+const STREAK_TARGET = 50;
 
 const CLOSED_STATUSES = [
   "no_response_closed",
@@ -127,8 +133,10 @@ export async function GET(_req: NextRequest) {
   }
   queuedRead += (pendingBpTasks ?? 0) + (pendingSiteTasks ?? 0);
 
-  // Logs today + breakdown.
-  const datesWithLogs = new Set<string>();
+  // Logs today + breakdown. logsByDate holds the per-day log count (not just
+  // presence) so the streak can require a daily target and the tracker can
+  // chart counts.
+  const logsByDate = new Map<string, number>();
   let logsToday = 0;
   const breakdown = { calls: 0, emails: 0, meetings: 0, replies: 0, other: 0 };
   const todayKey = dateKey(todayStart);
@@ -138,7 +146,7 @@ export async function GET(_req: NextRequest) {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return;
     const k = dateKey(startOfDayUTC(d));
-    datesWithLogs.add(k);
+    logsByDate.set(k, (logsByDate.get(k) ?? 0) + 1);
     if (k === todayKey) {
       logsToday += 1;
       if (bucket) breakdown[bucket] += 1;
@@ -159,10 +167,12 @@ export async function GET(_req: NextRequest) {
     noteDate(row.completed_at, "other");
   }
 
-  // Streak.
+  // Streak: consecutive business days at or above the daily target. An
+  // in-progress today below target is skipped (not counted, not breaking).
+  const metTarget = (k: string) => (logsByDate.get(k) ?? 0) >= STREAK_TARGET;
   let streakDays = 0;
   let cursor = new Date(todayStart);
-  if (!datesWithLogs.has(todayKey) && !isWeekend(cursor)) {
+  if (!metTarget(todayKey) && !isWeekend(cursor)) {
     cursor = new Date(cursor.getTime() - 86400_000);
   }
   for (let i = 0; i < STREAK_LOOKBACK_DAYS; i++) {
@@ -170,12 +180,24 @@ export async function GET(_req: NextRequest) {
       cursor = new Date(cursor.getTime() - 86400_000);
       continue;
     }
-    if (datesWithLogs.has(dateKey(cursor))) {
+    if (metTarget(dateKey(cursor))) {
       streakDays += 1;
       cursor = new Date(cursor.getTime() - 86400_000);
     } else {
       break;
     }
+  }
+
+  // Per-business-day counts over the lookback (ascending) for the tracker.
+  const dailyLogs: { date: string; count: number }[] = [];
+  for (
+    let d = new Date(lookbackStart);
+    d.getTime() <= todayStart.getTime();
+    d = new Date(d.getTime() + 86400_000)
+  ) {
+    if (isWeekend(d)) continue;
+    const k = dateKey(d);
+    dailyLogs.push({ date: k, count: logsByDate.get(k) ?? 0 });
   }
 
   return NextResponse.json({
@@ -184,5 +206,7 @@ export async function GET(_req: NextRequest) {
     logs_today: logsToday,
     logs_today_breakdown: breakdown,
     streak_days: streakDays,
+    streak_target: STREAK_TARGET,
+    daily_logs: dailyLogs,
   });
 }

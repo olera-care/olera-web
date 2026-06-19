@@ -2,7 +2,6 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
 import type { StudentMetadata } from "@/lib/types";
 import {
@@ -16,7 +15,6 @@ import {
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
-import BackLink from "./BackLink";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { getSampleBySlug, isSampleSlug } from "@/lib/medjobs/demo-candidate";
 
@@ -144,7 +142,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const redactedName = parts.length <= 1 ? parts[0] : `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
 
   return {
-    title: `${redactedName} — Pre-Health Intern | Olera`,
+    title: `${redactedName}, Pre-Health Student Caregiver | Olera`,
     description: `${redactedName} is a ${trackLabel || "healthcare"} student${meta.university ? ` at ${meta.university}` : ""} seeking healthcare experience${data.city ? ` in ${data.city}, ${data.state}` : ""}.`,
   };
 }
@@ -256,21 +254,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
           this just pulls the updated DB state into client memory. */}
       <RefreshAfterCheckout />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-32 lg:pb-12">
-        {/* Back link - hidden when viewing own profile */}
-        <div className="mb-4">
-          <BackLink studentSlug={profile.slug} />
-        </div>
-
-        {/* Sample-profile banner — same layout as a real candidate, clearly
-            labeled so it's never mistaken for a live student. */}
-        {isSample && (
-          <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            <span className="font-semibold">Sample profile</span> — an example of
-            the caliber of caregiver joining Olera, not a live student. Check your
-            eligibility and grab a time with Dr. DuBose to get set up.
-          </div>
-        )}
-
         {/* ═══════════════════════════════════════════════════════════════════
             TWO-COLUMN LAYOUT: Content (left) + Sticky CTA (right)
             ═══════════════════════════════════════════════════════════════════ */}
@@ -328,10 +311,17 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     {meta.university && (
                       <p className="text-base text-gray-700 font-medium">{meta.university}</p>
                     )}
-                    <p className="text-sm text-gray-500">
-                      {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
-                        .filter(Boolean)
-                        .join(" · ")}
+                    <p className="text-sm text-gray-500 flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+                      <span>
+                        {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                      {isSample && (
+                        <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-semibold text-primary-700">
+                          Demo
+                        </span>
+                      )}
                     </p>
                   </div>
 

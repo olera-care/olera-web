@@ -65,6 +65,8 @@ interface ReviewsSectionProps {
   placeId?: string | null;
   /** Hide the top border (e.g., when this is the first section) */
   hideBorder?: boolean;
+  /** Section heading override (defaults to "What families are saying"). */
+  heading?: string;
 }
 
 // ── Component ──
@@ -78,6 +80,7 @@ export default function ReviewsSection({
   googleReviewsData,
   placeId,
   hideBorder = false,
+  heading = "What families are saying",
 }: ReviewsSectionProps) {
   const { user, account, activeProfile } = useAuth();
 
@@ -229,7 +232,7 @@ export default function ReviewsSection({
       <div className="mb-4 md:mb-6">
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
-            What families are saying
+            {heading}
           </h2>
           {showingDemoReviews && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">

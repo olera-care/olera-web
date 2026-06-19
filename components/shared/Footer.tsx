@@ -174,7 +174,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                 <span className="text-lg font-bold text-gray-900">Olera</span>
               </Link>
               <p className="text-gray-400 max-w-xs leading-relaxed text-sm">
-                Helping families find the right senior care. Compare trusted providers and connect with confidence.
+                Helping families find senior care.
               </p>
             </div>
 
@@ -219,16 +219,6 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                     Young Caregivers
                   </Link>
                 </li>
-                <li>
-                  <Link href="/care-shifts" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Hire a caregiver (preview)
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/care-shifts/students" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Earn as a caregiver (preview)
-                  </Link>
-                </li>
               </ul>
             </div>
 
@@ -244,13 +234,23 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
+                  <Link href="/home-care" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Home Care
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/home-health-care" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Home Health
+                  </Link>
+                </li>
+                <li>
                   <Link href="/assisted-living" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Assisted Living
                   </Link>
                 </li>
                 <li>
-                  <Link href="/home-care" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Home Care
+                  <Link href="/independent-living" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Independent Living
                   </Link>
                 </li>
                 <li>
@@ -283,8 +283,13 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
-                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Staffing
+                  <Link href="/for-providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Find Families
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs/candidates" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Find Caregivers
                   </Link>
                 </li>
               </ul>
@@ -297,8 +302,18 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
               </h3>
               <ul className="space-y-0">
                 <li>
-                  <Link href="/medjobs" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                  <Link href="/medjobs/families" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Become a Caregiver
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs/families?jobs=all" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Find Jobs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs/families#how-it-works" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    How It Works
                   </Link>
                 </li>
                 <li>

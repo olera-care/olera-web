@@ -523,12 +523,16 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/(^|\n)Hello,/g, `$1${MERGE_SALUTATION},`);
 }
 
+// Email-client image hosts: olera.care/images/* is WAF-challenged (429) for
+// non-browser fetches, so signature photos there silently fail to render in
+// inboxes. Default to the Supabase public bucket (same host the Resend family
+// templates use; both assets verified 200). Env overrides still win.
 const LOGAN_PHOTO_URL =
   process.env.STUDENT_OUTREACH_LOGAN_PHOTO_URL ??
-  "https://olera.care/images/for-providers/team/logan.jpg";
+  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 const GRAZIE_PHOTO_URL =
   process.env.STUDENT_OUTREACH_GRAZIE_PHOTO_URL ??
-  "https://olera.care/images/for-providers/team/grazie.png";
+  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/grazie.png";
 
 /**
  * Smartlead-side outreach footer. Mirrors `email-send.ts:composeFooterHtml`
@@ -546,7 +550,7 @@ const GRAZIE_PHOTO_URL =
 function composeSmartleadFooterHtml(): string {
   return [
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
+    `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
     grazieSignatureHtml(),
     `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
     `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
@@ -567,7 +571,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Pre-Health Caregiving Internship</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}?utm_content={{outreach_id}}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -578,7 +582,7 @@ function loganSignatureHtml(): string {
 
 function grazieSignatureHtml(): string {
   return `
-<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+<table cellpadding="0" cellspacing="0" style="margin-top:6px;">
   <tr>
     <td style="vertical-align:top;padding-right:16px;">
       <img src="${GRAZIE_PHOTO_URL}" alt="Graize Belandres" width="100" height="100" style="border-radius:8px;display:block;" />

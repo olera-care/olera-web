@@ -125,7 +125,7 @@ export default function PilotTermsModal({
               <span className="font-semibold">
                 Your agency makes all hiring decisions
               </span>{" "}
-              — we just match you with interns.
+              , we just match you with student caregivers.
             </ReassuranceBullet>
             <ReassuranceBullet>
               <span className="font-semibold">

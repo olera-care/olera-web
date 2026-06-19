@@ -317,8 +317,8 @@ export function ProgramPdfTemplate({
   // Provider defaults — the student config overrides each of these.
   const subtitle =
     config.subtitle ??
-    "A pre-health caregiving internship that matches vetted interns to your recurring shifts";
-  const universityTagLine = config.universityTagLine ?? "Pre-health caregiving internship";
+    "A Student Caregiver Program that matches vetted student caregivers to your recurring shifts";
+  const universityTagLine = config.universityTagLine ?? "Student Caregiver Program";
   const headers = config.sectionHeaders ?? {
     benefits: "Why agencies participate",
     steps: "How it works",
@@ -327,7 +327,7 @@ export function ProgramPdfTemplate({
   };
   return (
     <Document
-      title={`${config.universityShort} Pre-Health Caregiving Internship`}
+      title={`${config.universityShort} Student Caregiver Program`}
       author="Olera"
       subject={config.documentSubject ?? "Provider outreach packet"}
     >
@@ -343,7 +343,7 @@ export function ProgramPdfTemplate({
               ) : null}
               <Text style={styles.brandWord}>Olera</Text>
             </View>
-            <Text style={styles.brandTag}>Pre-Health Caregiving Internship</Text>
+            <Text style={styles.brandTag}>Student Caregiver Program</Text>
           </View>
           <View>
             <Text
@@ -359,14 +359,13 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Title */}
-        {/* Title reads "Olera's {university} Pre-Health Caregiving
-            Internship" to anchor the brand and match the outreach
-            emails' internship framing. */}
+        {/* Title reads "Olera's {university} Student Caregiver Program"
+            to anchor the brand and match the outreach emails' framing. */}
         <View style={styles.titleBlock}>
           <Text style={styles.programTitle}>
             {/* universityShort is empty for the generic flyer — collapse the
                 double space so the title reads "Olera's Pre-Health …". */}
-            {["Olera’s", config.universityShort, "Pre-Health Caregiving Internship"]
+            {["Olera’s", config.universityShort, "Student Caregiver Program"]
               .filter(Boolean)
               .join(" ")}
           </Text>
@@ -434,7 +433,7 @@ export function ProgramPdfTemplate({
                 <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
                 <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
                 <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Director, Olera Pre-Health Caregiving Internship</Text>
+                <Text style={styles.sigCred}>Director, Olera Student Caregiver Program</Text>
               </View>
             </View>
             <View style={styles.sigBlock}>

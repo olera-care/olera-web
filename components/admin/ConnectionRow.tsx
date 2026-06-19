@@ -78,6 +78,8 @@ export interface ConnectionRowData {
   /** Provider archived this lead in their portal */
   archived?: boolean;
   archiveReason?: "not_a_fit" | "not_accepting_clients" | "unable_to_reach" | "other" | null;
+  /** Raw archive reason (free-text from leads page, for display in Archived tab) */
+  rawArchiveReason?: string | null;
   archivedAt?: string;
   /** Email issue type for "Needs Email" tab */
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
@@ -85,6 +87,15 @@ export interface ConnectionRowData {
   isProviderArchived?: boolean;
   /** Provider is inactive (deleted account, removed, etc.) */
   isProviderInactive?: boolean;
+  /** Inactive provider info - shows who deleted them */
+  inactiveProviderInfo?: {
+    /** Who deleted: "self" (account deletion), "provider_request" (asked admin), "admin", or "unknown" */
+    deletionSource: "self" | "provider_request" | "admin" | "unknown";
+    /** Raw deletion reason from olera-providers table */
+    deletionReason: "data_sweep" | "provider_request" | "duplicate" | "out_of_scope" | "other" | null;
+    /** When the provider was deleted */
+    deletedAt: string | null;
+  } | null;
   /** Archive info when provider is admin-archived */
   providerArchiveInfo?: {
     reason: string | null;
@@ -210,7 +221,7 @@ function fmtDate(iso: string | null): string {
   }
 }
 
-// Map archive reason codes to display labels
+// Map archive reason codes to display labels (provider-side, when they decline a lead)
 function getArchiveReasonLabel(reason: string | null | undefined): string {
   if (!reason) return "Archived";
   switch (reason) {
@@ -222,6 +233,35 @@ function getArchiveReasonLabel(reason: string | null | undefined): string {
       return "Not accepting new clients";
     case "unable_to_reach":
       return "Unable to reach";
+    case "other":
+      return "Other";
+    default:
+      return "Archived";
+  }
+}
+
+// Map admin archive reason codes to display labels (admin-side, when admin archives a provider)
+function getAdminArchiveReasonLabel(reason: string | null | undefined): string {
+  if (!reason) return "Archived";
+  switch (reason) {
+    case "provider_requested_no_emails":
+      return "Requested no emails";
+    case "inactive":
+      return "Inactive";
+    case "duplicate":
+      return "Duplicate";
+    case "out_of_business":
+      return "Out of business";
+    case "invalid_provider":
+      return "Invalid provider";
+    case "wrong_contact_info":
+      return "Wrong contact info";
+    case "relocated":
+      return "Relocated";
+    case "compliance_issue":
+      return "Compliance issue";
+    case "merged":
+      return "Merged";
     case "other":
       return "Other";
     default:
@@ -338,7 +378,8 @@ export default function ConnectionRow({
     providerName: string | null,
     isArchived: boolean,
     isProviderArchived: boolean,
-    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null
+    providerArchiveInfo?: { reason: string | null; archivedBy: string | null; archivedAt: string | null; notes: string | null } | null,
+    rawArchiveReason?: string | null
   ) => void;
   onNudgeSuccess?: () => void;
 }) {
@@ -1171,13 +1212,33 @@ export default function ConnectionRow({
             <span className="text-gray-400">→</span>
             <span className={`font-medium truncate ${isAdminArchived || isProviderInactive ? "text-gray-500" : "text-gray-900"}`}>{provider}</span>
             {isProviderInactive && (
-              <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+              <span
+                className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded"
+                title={
+                  c.inactiveProviderInfo?.deletionSource === "self"
+                    ? "Provider deleted their own account"
+                    : c.inactiveProviderInfo?.deletionSource === "provider_request"
+                    ? "Provider requested deletion (via admin)"
+                    : c.inactiveProviderInfo?.deletionSource === "admin"
+                    ? "Admin removed provider from directory"
+                    : "Account deactivated (reason unknown)"
+                }
+              >
                 Provider Inactive
               </span>
             )}
             {isAdminArchived && !isProviderInactive && (
-              <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                Archived
+              <span
+                className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded"
+                title={
+                  c.isProviderArchived
+                    ? c.providerArchiveInfo?.notes || c.providerArchiveInfo?.reason || "Archived"
+                    : c.rawArchiveReason?.trim() || "Archived"
+                }
+              >
+                {c.isProviderArchived
+                  ? getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason)
+                  : "Archived"}
               </span>
             )}
             {/* Verified checkmark - only shown for verified providers (clean, minimal) */}
@@ -1309,7 +1370,8 @@ export default function ConnectionRow({
                 c.provider.display_name,
                 isConnectionArchived,
                 isProviderArchived,
-                c.providerArchiveInfo
+                c.providerArchiveInfo,
+                c.rawArchiveReason
               );
             }}
             className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
@@ -1998,6 +2060,86 @@ export default function ConnectionRow({
                       {detail.archivedAt && (
                         <p className="text-xs text-gray-400 mt-2">
                           Declined {daysAgo(detail.archivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin archive information - show for provider-level or connection-level admin archives */}
+              {(c.isProviderArchived || (c.archived && !c.archiveReason)) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">📁</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-amber-900 mb-1">
+                        {c.isProviderArchived ? "Provider Archived" : "Lead Archived"}
+                      </h3>
+                      <p className="text-sm text-amber-800">
+                        <span className="font-medium">Reason:</span>{" "}
+                        {c.isProviderArchived
+                          ? getAdminArchiveReasonLabel(c.providerArchiveInfo?.reason)
+                          : (c.rawArchiveReason?.trim() || "Not specified")}
+                      </p>
+                      {c.isProviderArchived && c.providerArchiveInfo?.notes && (
+                        <p className="text-sm text-amber-800 mt-1">
+                          <span className="font-medium">Notes:</span> {c.providerArchiveInfo.notes}
+                        </p>
+                      )}
+                      {c.isProviderArchived && c.providerArchiveInfo?.archivedBy && (
+                        <p className="text-xs text-amber-600 mt-2">
+                          Archived by {c.providerArchiveInfo.archivedBy}
+                          {c.providerArchiveInfo.archivedAt && (
+                            <> · {daysAgo(c.providerArchiveInfo.archivedAt)}</>
+                          )}
+                        </p>
+                      )}
+                      {!c.isProviderArchived && c.archivedAt && (
+                        <p className="text-xs text-amber-600 mt-2">
+                          Archived {daysAgo(c.archivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Provider inactive information - shows WHO deleted the provider */}
+              {c.isProviderInactive && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🚫</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-red-900 mb-1">
+                        Provider Inactive
+                      </h3>
+                      <p className="text-sm text-red-800">
+                        <span className="font-medium">Deleted by:</span>{" "}
+                        {c.inactiveProviderInfo?.deletionSource === "self" ? (
+                          "Provider (self-deleted their account)"
+                        ) : c.inactiveProviderInfo?.deletionSource === "provider_request" ? (
+                          "Provider request (admin processed)"
+                        ) : c.inactiveProviderInfo?.deletionSource === "admin" ? (
+                          "Admin (removed from directory)"
+                        ) : (
+                          "Unknown"
+                        )}
+                      </p>
+                      {/* Show deletion reason for admin deletions */}
+                      {c.inactiveProviderInfo?.deletionSource === "admin" && c.inactiveProviderInfo.deletionReason && (
+                        <p className="text-sm text-red-800 mt-1">
+                          <span className="font-medium">Reason:</span>{" "}
+                          {c.inactiveProviderInfo.deletionReason === "data_sweep" ? "Data cleanup" :
+                           c.inactiveProviderInfo.deletionReason === "duplicate" ? "Duplicate entry" :
+                           c.inactiveProviderInfo.deletionReason === "out_of_scope" ? "Out of scope" :
+                           c.inactiveProviderInfo.deletionReason === "other" ? "Other" :
+                           c.inactiveProviderInfo.deletionReason}
+                        </p>
+                      )}
+                      {c.inactiveProviderInfo?.deletedAt && (
+                        <p className="text-xs text-red-600 mt-2">
+                          Deleted {daysAgo(c.inactiveProviderInfo.deletedAt)}
                         </p>
                       )}
                     </div>

@@ -6,12 +6,12 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * SampleFamilyCTA — the one-next-step CTA on a read-only sample (demo) host
+ * SampleFamilyCTA — the one-next-step CTA on a read-only sample (demo) family
  * page. Staged by where the student is in the funnel, so they only ever see
  * the single next action:
  *   not signed in       → Check your eligibility
  *   eligible, not live  → Complete your application
- *   live                → Find a host
+ *   live                → Find a job
  */
 export default function SampleFamilyCTA() {
   const { profiles } = useAuth();
@@ -54,7 +54,7 @@ export default function SampleFamilyCTA() {
   }
   return (
     <Link href="/medjobs/families" className={cls}>
-      Find a host →
+      Find a job →
     </Link>
   );
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { INTERNSHIP_FEE_USD, GUARANTEE_LINE } from "@/lib/medjobs/placements";
 
 /**
- * InternshipAgreementModal — Phase D. The provider's offer-to-host step: the
+ * InternshipAgreementModal — Phase D. The provider's offer step: the
  * plain-language Olera Internship Agreement + the fee + guarantee, ending in
  * "Send offer" (POST /api/medjobs/placements). Payment is STUBBED for now
  * (Stripe deferred); sending the offer notifies the student to accept.
@@ -58,21 +58,21 @@ export default function InternshipAgreementModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="shrink-0 border-b border-gray-100 px-6 py-5">
-          <h3 className="font-serif text-xl text-gray-900">Offer to host {first}</h3>
+          <h3 className="font-serif text-xl text-gray-900">Offer to hire {first}</h3>
         </header>
 
         <div className="flex-1 space-y-3 overflow-y-auto px-6 py-5 text-sm text-gray-700">
           {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          <p className="text-gray-600">The Olera Internship Agreement, in plain language:</p>
+          <p className="text-gray-600">The Olera Student Caregiver Agreement, in plain language:</p>
           <Bullet>You&apos;re the employer: schedule, pay, supervision, and your own background check.</Bullet>
           <Bullet>
             The student logs their own hours and drives their recommendation-letter request; you
             confirm hours and give a reference if they meet your standards.
           </Bullet>
-          <Bullet>Run the internship in good faith and keep the agreed availability, barring emergencies.</Bullet>
+          <Bullet>Run the program in good faith and keep the agreed availability, barring emergencies.</Bullet>
           <div className="rounded-xl bg-gray-50 px-4 py-3">
             <p className="text-sm text-gray-900">
-              <span className="font-semibold">Internship fee: ${INTERNSHIP_FEE_USD}</span> each, one time.
+              <span className="font-semibold">Program fee: ${INTERNSHIP_FEE_USD}</span> each, one time.
             </p>
             <p className="mt-1 text-sm text-gray-600">{GUARANTEE_LINE}</p>
             <p className="mt-1 text-xs text-gray-400">
@@ -81,14 +81,14 @@ export default function InternshipAgreementModal({
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             <Link
-              href="/medjobs/hosting-agreement.pdf"
+              href="/medjobs/employer-agreement.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-primary-700 hover:underline"
             >
-              Sample agreement →
+              Read the agreement →
             </Link>
-            <Link href="/medjobs/hosting-faq" className="font-medium text-primary-700 hover:underline">
+            <Link href="/medjobs/employer-faq" className="font-medium text-primary-700 hover:underline">
               FAQ →
             </Link>
           </div>

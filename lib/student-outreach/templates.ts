@@ -121,6 +121,9 @@ const PLACEHOLDER = {
 /** Program name with the {campus_name} placeholder baked in (template use). */
 const PROGRAM_NAME = programName(PLACEHOLDER.campus);
 
+/** Uniform subject for every activation-cadence email (provider + partner). */
+const ACTIVATION_SUBJECT = "Follow up - Olera's Student Caregiver Program";
+
 /**
  * Inline call-scheduling phrases. Embedded into the closing
  * sentence of each template rather than rendered as a standalone
@@ -321,7 +324,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
   switch (stakeholder_type) {
     case "student_org":
       return {
-        subject: `Something for your pre-health members: ${PROGRAM_NAME}`,
+        subject: PROGRAM_NAME,
         body: [
           greeting,
           ``,
@@ -438,7 +441,7 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 2 — standalone bump. */
 export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `A paid caregiving program for your pre-health students`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -452,7 +455,7 @@ export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 3 — program info (paired with the Day-6 intro call). */
 export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `More on the program for your students`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -468,7 +471,7 @@ export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 4 — short, standalone nudge. */
 export function advisorNudgeEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `Room for more ${PLACEHOLDER.campus} pre-health students`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -482,7 +485,7 @@ export function advisorNudgeEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 5 — gracious, standalone close that reopens by season. */
 export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `Before the semester`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -500,7 +503,7 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 2 — standalone bump. */
 export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `A paid caregiving program for your pre-health members`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -514,7 +517,7 @@ export function orgBumpEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 3 — follow-up (paired with the Day-6 call when a phone exists). */
 export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `Easy to share with your members`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -530,7 +533,7 @@ export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 4 — short, standalone final. */
 export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `For your pre-health members`,
+    subject: PROGRAM_NAME,
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
@@ -548,7 +551,7 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 2 — standalone bump. */
 export function deptHeadBumpEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `A paid caregiving program for your department's students`,
+    subject: PROGRAM_NAME,
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
@@ -562,7 +565,7 @@ export function deptHeadBumpEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 3 — standalone follow-up (paired with the Day-6 call). */
 export function deptHeadFollowupEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `More on the program for your department`,
+    subject: PROGRAM_NAME,
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
@@ -576,7 +579,7 @@ export function deptHeadFollowupEmail(_ctx: TemplateContext): EmailDraft {
 /** Touch 4 — gracious, standalone close that reopens by season. */
 export function deptHeadCloseEmail(_ctx: TemplateContext): EmailDraft {
   return {
-    subject: `For your department's pre-health students`,
+    subject: PROGRAM_NAME,
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
@@ -771,7 +774,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     // send. A menu of ways to help, then a meeting via reply-with-times.
     if (ctx.stakeholder_type === "dept_head") {
       return {
-        subject: `Sharing the program with your department`,
+        subject: ACTIVATION_SUBJECT,
         body: [
           greeting,
           ``,
@@ -790,7 +793,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     }
     if (ctx.stakeholder_type === "student_org") {
       return {
-        subject: `Easy ways to share with your members`,
+        subject: ACTIVATION_SUBJECT,
         body: [
           greeting,
           ``,
@@ -809,7 +812,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     }
     // advisor (and any other partner type)
     return {
-      subject: `Getting the program to your students`,
+      subject: ACTIVATION_SUBJECT,
       body: [
         greeting,
         ``,
@@ -828,7 +831,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     };
   }
   return {
-    subject: `Next step for hiring ${PLACEHOLDER.campus} student caregivers`,
+    subject: ACTIVATION_SUBJECT,
     body: [
       greeting,
       ``,
@@ -844,7 +847,7 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
   if (ctx.is_partner) {
     return {
-      subject: `A couple of easy ways to help your students`,
+      subject: ACTIVATION_SUBJECT,
       body: [
         greeting,
         ``,
@@ -855,7 +858,7 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
     };
   }
   return {
-    subject: `Your ${PLACEHOLDER.campus} agency eligibility check`,
+    subject: ACTIVATION_SUBJECT,
     body: [
       greeting,
       ``,
@@ -871,7 +874,7 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
   const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
   if (ctx.is_partner) {
     return {
-      subject: `Here whenever it's useful`,
+      subject: ACTIVATION_SUBJECT,
       body: [
         greeting,
         ``,
@@ -882,7 +885,7 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
     };
   }
   return {
-    subject: `Still here when you're ready`,
+    subject: ACTIVATION_SUBJECT,
     body: [
       greeting,
       ``,

@@ -1340,7 +1340,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                    className={`flex items-center justify-between w-full py-4 text-lg font-medium border-b border-gray-100 transition active:opacity-60 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center justify-between w-full py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     aria-expanded={isMobileCareOpen}
                   >
                     <span className="flex items-center gap-3">
@@ -1372,7 +1372,7 @@ export default function Navbar() {
                   {/* Caregiver Support */}
                   <Link
                     href="/caregiver-support"
-                    className={`flex items-center gap-3 py-4 text-lg font-medium border-b border-gray-100 transition active:opacity-60 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1384,7 +1384,7 @@ export default function Navbar() {
                   {/* Find Benefits */}
                   <Link
                     href="/senior-benefits"
-                    className={`flex items-center gap-3 py-4 text-lg font-medium border-b border-gray-100 transition active:opacity-60 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1397,7 +1397,7 @@ export default function Navbar() {
                   {(!hasSession || hasFamilyProfile) && (
                     <Link
                       href="/saved"
-                      className={`flex items-center gap-3 py-4 text-lg font-medium transition active:opacity-60 ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                      className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <svg className={`w-5 h-5 shrink-0 ${pathname === "/saved" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1413,7 +1413,7 @@ export default function Navbar() {
                       <div className="my-3 border-t border-gray-100" />
                       <Link
                         href="/for-providers"
-                        className={`flex items-center gap-3 py-4 text-lg font-medium transition active:opacity-60 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                        className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

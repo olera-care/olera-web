@@ -363,8 +363,8 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
   }
   if (type === "advisor") {
     // Day 6 intro call, paired with the program-info email that goes out the
-    // same day. Introduce, signal the info is coming, and tee up the meeting.
-    return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera. Dr. DuBose runs a paid Student Caregiver Program that gives pre-health students near {campus_name} paid healthcare experience and a credential for their applications. I just sent some info over and wanted to introduce it — what's the best email, and is there a good time for Dr. DuBose to connect?"`;
+    // same day. Reference the email, gauge interest, and tee up a Zoom.
+    return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed you about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose would love to talk it through with you. Is there a good time for a quick Zoom this week or next?"`;
   }
   if (type === "dept_head") {
     // Day 6 call, paired with the follow-up email. Formal, meeting-led.

@@ -349,13 +349,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, research assistant to Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. He runs the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}), which places pre-health students in paid caregiver roles with older adults. They earn supervised hands-on hours, a recommendation letter, and a credential that strengthens their med, PA, and nursing applications, all around their classes.`,
+          `I'm Graize, research assistant to Dr. Logan DuBose, reaching out regarding the Student Caregiver Program for ${PLACEHOLDER.campus} students. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
           ``,
-          `You're one of the people ${PLACEHOLDER.campus} pre-health students turn to for exactly this, so the simplest way to help is to pass that flyer and application link along to your students.`,
+          `Dr. DuBose and I are hoping to talk about the program with the ${PLACEHOLDER.campus} advisors that pre-health students turn to for advice on getting into medical or nursing school. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a couple of times that work this week or next for a Zoom call.`,
           ``,
-          `Dr. DuBose would also love to meet and hear how he can support your office. If you're open to it, just reply with a couple of times that work this week or next.`,
-          ``,
-          `Thank you for looking out for your students.`,
+          `Thank you for looking into this program for your students.`,
         ].join("\n"),
       };
     case "dept_head":
@@ -441,8 +439,8 @@ export function followupFinalEmail(_ctx: TemplateContext): EmailDraft {
 }
 
 // ── Advisor relationship-first cadence (meeting-led) ────────────────────
-// Each email stands alone (no narrative threading). The only ask in the cold
-// stretch is a meeting; sharing/portal arrive at the program-info touch.
+// Each email stands alone (no narrative threading). The cold ask is a soft
+// "reply with your interest level"; details + a Zoom follow once they bite.
 
 /** Touch 2 — standalone bump. */
 export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
@@ -451,7 +449,7 @@ export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up in case my last note got buried. If the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}) could help your pre-health students, that flyer and application link are yours to share. And Dr. DuBose is glad to meet whenever it's useful, so just reply with a couple of times that work.`,
+      `Following up in case my last note got buried. Dr. DuBose and I would still love to talk with you about the Student Caregiver Program for ${PLACEHOLDER.campus} students. If you're open to it, just reply with your general interest level and we'll follow up with more information.`,
     ].join("\n"),
   };
 }
@@ -463,11 +461,9 @@ export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `A little more on the program: Dr. DuBose places ${PLACEHOLDER.campus} pre-health students with older adults in paid caregiver roles, so they earn hours, a credential, and references for professional school, all around their classes. We handle the matching, training, and support.`,
+      `A bit more on the program: Dr. DuBose places ${PLACEHOLDER.campus} pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications. We handle the matching, training, and support.`,
       ``,
-      `The flyer and application link to share with your students are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
-      ``,
-      `Dr. DuBose would like to meet to talk through how the program can help your students; reply with a couple of times and I'll set it up.`,
+      `If this could be useful for the students you advise, just reply with your interest level and we can set up a quick Zoom with Dr. DuBose to talk it through.`,
     ].join("\n"),
   };
 }
@@ -479,9 +475,7 @@ export function advisorNudgeEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We have room for more ${PLACEHOLDER.campus} pre-health students in the caregiving program this term. It earns them real hands-on experience and references for med, PA, and nursing school, around their classes.`,
-      ``,
-      `If it could help your students, the flyer and application link are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}). Dr. DuBose is glad to meet as well; just reply with a few times that work.`,
+      `We have room for more ${PLACEHOLDER.campus} pre-health students in the program this term. If it could help the students you advise, just reply with your interest level and Dr. DuBose and I will follow up with more information and a time to talk.`,
     ].join("\n"),
   };
 }
@@ -493,9 +487,9 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We'd still love to support your ${PLACEHOLDER.campus} pre-health students through the caregiving program. The flyer and application link are here to share anytime: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}), and Dr. DuBose is glad to meet whenever it's useful.`,
+      `We'd still love to support your ${PLACEHOLDER.campus} pre-health students through the program, so just reply anytime with your interest level and we'll take it from there.`,
       ``,
-      `If someone else advises pre-health students at ${PLACEHOLDER.campus}, I'd be grateful for a name.`,
+      `And if someone else advises pre-health students at ${PLACEHOLDER.campus}, a quick pointer to them would be appreciated. Thank you.`,
     ].join("\n"),
   };
 }

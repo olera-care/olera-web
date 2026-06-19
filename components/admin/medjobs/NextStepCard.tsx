@@ -44,6 +44,10 @@ import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import {
+  CallOutcomeModal,
+  type OutcomeChoice,
+} from "@/components/admin/medjobs/CallOutcomeModal";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
@@ -313,6 +317,41 @@ function isActivationRunning(ctx: DrawerContext): boolean {
 
 // ── call_due ─────────────────────────────────────────────────────────────
 
+// Config B outcomes for the cadence "call to follow up" modal. Happy states
+// (Interested / Meeting booked) drive the funnel; the rest resolve the call.
+const CALL_FOLLOWUP_OUTCOMES: OutcomeChoice[] = [
+  {
+    key: "interested",
+    label: "Interested",
+    blurb: "They want to move forward. Launches the activation sequence.",
+    tone: "happy",
+  },
+  {
+    key: "meeting_booked",
+    label: "📅 Meeting booked",
+    blurb: "Opens the Calendly booking page and marks a meeting scheduled.",
+    tone: "happy",
+  },
+  {
+    key: "no_answer",
+    label: "No answer",
+    blurb: "Marks this call done; the next cadence call stays scheduled.",
+    tone: "neutral",
+  },
+  {
+    key: "voicemail",
+    label: "Voicemail",
+    blurb: "Left a message; the next cadence call stays scheduled.",
+    tone: "neutral",
+  },
+  {
+    key: "not_interested",
+    label: "Not interested",
+    blurb: "Closes the row and cancels remaining outreach.",
+    tone: "close",
+  },
+];
+
 /**
  * v9.1 Graize 05.13 audit (Item 5): Calls drawer Next Step
  * restructured so the three actions are unmistakable:
@@ -335,9 +374,13 @@ function CallDueBody({
   action: ActionFn;
   setError: (m: string | null) => void;
 }) {
-  const [reaching, setReaching] = useState(false);
+  const [showOutcome, setShowOutcome] = useState(false);
+  const [showLaunch, setShowLaunch] = useState(false);
+
   const primaryContact =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ?? null;
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
   const contactName = primaryContact
     ? [primaryContact.title, primaryContact.first_name, primaryContact.last_name]
         .filter(Boolean)
@@ -357,18 +400,49 @@ function CallDueBody({
       ? (nextCallTask.payload.day as number)
       : null;
 
-  // Couldn't reach → clears this call off the queue (reuses the existing
-  // no_answer outcome). The next cadence call, if any, stays scheduled.
-  const couldntReach = async () => {
-    setReaching(true);
-    setError(null);
-    try {
-      await action("log_call_outcome", { outcome: "no_answer" });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setReaching(false);
+  // Recipient for the activation handoff (mirrors ActivationActions).
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const gc = ctx.outreach.research_data?.general_contact;
+  const recipientEmail =
+    (dm && !dm.unavailable && dm.email ? dm.email : null) ??
+    primaryContact?.email ??
+    gc?.email ??
+    null;
+  const recipientPhone = primaryContact?.phone ?? gc?.phone ?? null;
+  const recipientName = contactName ?? dm?.name ?? null;
+  const recipientContactId = primaryContact?.id ?? null;
+  const recipientFirstName =
+    primaryContact?.first_name ??
+    (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ??
+    null;
+  const recipientLastName = primaryContact?.last_name ?? null;
+
+  // The "Call to follow up" outcome modal handles every result. Any log
+  // resolves THIS call task (the cadence queues the next call); "Interested"
+  // hands off to the activation launch; "Meeting booked" opens Calendly.
+  const dispatch = async (outcomeKey: string | null, notes: string | null) => {
+    if (outcomeKey === "interested") {
+      await action("log_call_outcome", { outcome: "connected_engaged", notes });
+      setShowOutcome(false);
+      setShowLaunch(true);
+      return;
     }
+    if (outcomeKey === "meeting_booked") {
+      await action("mark_meeting_scheduled", { notes });
+      window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer");
+      setShowOutcome(false);
+      return;
+    }
+    const map: Record<string, string> = {
+      no_answer: "no_answer",
+      voicemail: "voicemail",
+      not_interested: "connected_not_interested",
+    };
+    await action("log_call_outcome", {
+      outcome: map[outcomeKey ?? "no_answer"] ?? "no_answer",
+      notes,
+    });
+    setShowOutcome(false);
   };
 
   return (
@@ -378,8 +452,9 @@ function CallDueBody({
           Call
         </span>
       </div>
+      <p className="mt-2 text-sm font-medium text-gray-900">Next step: call to follow up</p>
       {primaryContact?.phone && (
-        <p className="mt-2 text-sm">
+        <p className="mt-1 text-sm">
           <a
             href={`tel:${primaryContact.phone}`}
             className="font-semibold text-primary-700 hover:underline"
@@ -391,43 +466,63 @@ function CallDueBody({
           )}
         </p>
       )}
-      {callScript && (
-        // Visible by default — the opener is the whole point of the call step.
-        // Hiding it behind a click made admins improvise the hardest moment
-        // (the cold open). Read-off-able the instant the card appears.
-        <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            {callDay != null ? `Day ${callDay} script — read this` : "Script — read this"}
-          </p>
-          <pre className="mt-1.5 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-gray-800">
-            {callScript}
-          </pre>
-        </div>
-      )}
-      <ActivationActions
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        source="phone"
-        trailing={
-          <>
-            <BookMeetingLink ctx={ctx} inline />
-            {isPartnerRow(ctx) && (
-              <PartnerActivate ctx={ctx} action={action} setError={setError} />
-            )}
-          </>
-        }
-      />
-      <div className="mt-2">
+      <div className="mt-3">
         <button
-          onClick={couldntReach}
-          disabled={reaching}
-          title="No answer / voicemail — clears this call; the next one stays scheduled."
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          onClick={() => setShowOutcome(true)}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          {reaching ? "Saving…" : "Couldn't reach"}
+          ☎ Call to follow up
         </button>
       </div>
+      {showOutcome && (
+        <CallOutcomeModal
+          title="Log call"
+          subtitle={
+            <>
+              {ctx.outreach.organization_name}
+              {primaryContact?.phone && ` · ${primaryContact.phone}`}
+            </>
+          }
+          scriptLabel={callDay != null ? `Day ${callDay} script` : "Call script"}
+          script={callScript}
+          outcomes={CALL_FOLLOWUP_OUTCOMES}
+          onCancel={() => setShowOutcome(false)}
+          onSubmit={dispatch}
+        />
+      )}
+      {showLaunch && (
+        <CadenceLaunchModal
+          cadenceKey="activation"
+          isPartner={ctx.outreach.kind != null && ctx.outreach.kind !== "provider"}
+          partnerStakeholderType={ctx.outreach.stakeholder_type}
+          organizationName={ctx.outreach.organization_name}
+          campusName={ctx.campus.name}
+          recipientName={recipientName}
+          recipientEmail={recipientEmail}
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
+          onCancel={() => setShowLaunch(false)}
+          onSubmit={async (payload) => {
+            try {
+              await action("launch_activation", {
+                call_scripts: payload.call_scripts,
+                recipient: {
+                  name: recipientName,
+                  email: recipientEmail,
+                  phone: recipientPhone,
+                  contact_id: recipientContactId,
+                  first_name: recipientFirstName,
+                  last_name: recipientLastName,
+                },
+                source: "phone",
+              });
+              setShowLaunch(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Launch failed");
+              throw e;
+            }
+          }}
+        />
+      )}
     </>
   );
 }

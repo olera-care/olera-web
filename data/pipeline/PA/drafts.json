@@ -2,8 +2,8 @@
   "state": "PA",
   "stateName": "Pennsylvania",
   "draftedAt": "2026-04-13T21:50:19.563Z",
-  "total": 9,
-  "successful": 9,
+  "total": 10,
+  "successful": 10,
   "programs": [
     {
       "id": "community-healthchoices-chc",
@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 21+ and enrolled in both Medicare and Medicaid, or qualifies for Medicaid long-term care due to needing daily help with bathing, dressing, or medication management, Community HealthChoices (CHC) provides comprehensive home and community-based services. Because CHC is a managed care program, your loved one gets coordinated services through one organization instead of juggling multiple providers.\n\nCHC covers up to 32 services including personal care, home health, attendant care, adult day services, pest eradication, educational support, and nursing facility care if needed. Services are individualized based on your loved one's needs assessment, there are no fixed dollar amounts or hour limits. Monthly income limit is $2,901 per person in 2025, and home equity up to $730,000 is exempt if your loved one lives there or intends to return.",
+      "intro": "If your loved one is 21+ and enrolled in both Medicare and Medicaid, or qualifies for Medicaid long-term care due to needing daily help with bathing, dressing, or medication management, Community HealthChoices (CHC) provides comprehensive home and community-based services. Because CHC is a managed care program, your loved one gets coordinated services through one organization instead of juggling multiple providers.\n\nCHC covers a wide range of services—including personal care, home health, attendant care, adult day services, pest eradication, educational support, and nursing facility care if needed. Services are individualized based on your loved one's needs assessment, ensuring the care plan fits their specific situation. As of 2026, the monthly income limit is $2,982 per person, and home equity up to $752,000 is exempt if your loved one lives there or intends to return.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -32,12 +32,12 @@
           "Pennsylvania resident",
           "Enrolled in Medicaid",
           "Dual eligible OR needs nursing facility level care",
-          "Income up to $2,901/month (2025)"
+          "Income up to $2,982/month (2026)"
         ],
         "ageRequirement": "21+",
         "incomeTable": null,
         "assetLimits": {
-          "individual": null,
+          "individual": 8000,
           "couple": null,
           "countedAssets": [
             "bank accounts",
@@ -48,7 +48,8 @@
             "primary home under equity limit",
             "certain personal items"
           ],
-          "homeEquityCap": 730000
+          "homeEquityCap": 752000,
+          "note": "To qualify, your loved one's \"countable\" assets must generally be under $8,000 for an individual (if their monthly income is $2,982 or less). If their income is higher, the asset limit is $2,400."
         },
         "functionalRequirement": "Must need nursing facility level of care (assessment of whether your loved one needs daily help with Activities of Daily Living like bathing, dressing, eating, or transferring)",
         "otherRequirements": [
@@ -64,23 +65,33 @@
         "steps": [
           {
             "step": 1,
-            "title": "Check financial eligibility",
-            "description": "Submit PA-600 form to your County Assistance Office (CAO) with income and asset documentation for Medicaid eligibility review."
+            "title": "Submit a Referral",
+            "description": "Start by submitting a Community Referral Form to the Pennsylvania Independent Enrollment Broker (PA IEB). You can do this online at paieb.com, by phone at 1-877-550-4227, or by mail."
           },
           {
             "step": 2,
-            "title": "Get functional assessment",
-            "description": "Contact your local Area Agency on Aging (AAA) for a Functional Eligibility Determination (FED) to assess your loved one's need for daily care assistance."
+            "title": "Complete Physician Certification",
+            "description": "The PA IEB will send a Physician Certification Form to your loved one's doctor. This form must be completed and returned to the PA IEB to verify that your loved one meets the clinical criteria for long-term care services."
           },
           {
             "step": 3,
-            "title": "Enroll in CHC",
-            "description": "Call Pennsylvania Independent Enrollment Broker at 1-877-550-4227 or apply online through COMPASS website once Medicaid eligibility is confirmed."
+            "title": "Initial Assessment",
+            "description": "An intake specialist from the PA IEB will schedule an in-home visit to discuss your loved one's needs, abilities, and program options. They will also assist with the Medicaid application (such as the PA 600) if your loved one is not already enrolled."
           },
           {
             "step": 4,
-            "title": "Choose managed care organization",
-            "description": "Select an MCO after approval, this organization will coordinate all your loved one's services and providers."
+            "title": "Functional Eligibility Determination (FED)",
+            "description": "After the initial visit, the PA IEB coordinates with the local Area Agency on Aging (AAA) to conduct a Functional Eligibility Determination (FED) assessment. This confirms your loved one meets the level-of-care requirements for home and community-based services."
+          },
+          {
+            "step": 5,
+            "title": "Financial Eligibility Review",
+            "description": "The County Assistance Office (CAO) reviews the submitted Medicaid application to determine financial eligibility."
+          },
+          {
+            "step": 6,
+            "title": "Enrollment",
+            "description": "Once both clinical and financial eligibility are confirmed, the CAO will notify you, the PA IEB, and the Managed Care Organization (MCO) you have selected. You will then finalize your enrollment and work with your MCO to select a service coordinator and develop a care plan."
           }
         ],
         "processingTime": "Screening within 90 days for new dual eligibles; comprehensive needs assessment as needed or requested",
@@ -142,7 +153,7 @@
       "faqs": [
         {
           "question": "Can my loved one keep their house if it's worth more than the asset limits?",
-          "answer": "Yes, your loved one can keep their primary home as long as the equity is under $730,000 in 2025, they live there, intend to return, or a non-applicant spouse or dependent lives there. Home equity above this limit may affect eligibility."
+          "answer": "Yes, your loved one can keep their primary home as long as the equity is under $752,000 in 2026, they live there, intend to return, or a non-applicant spouse or dependent lives there. Home equity above this limit may affect eligibility."
         },
         {
           "question": "What if my loved one has intellectual or developmental disabilities?",
@@ -150,7 +161,7 @@
         },
         {
           "question": "Can my loved one stay in their current nursing home if they're already there?",
-          "answer": "Not if they're in a state-operated nursing facility or veterans' home, CHC excludes residents of these facilities. Private nursing homes may be covered through CHC's managed care organizations."
+          "answer": "If your loved one is in a nursing home paid for by Medicaid, they will be enrolled in Community HealthChoices (CHC). They can generally remain in their current nursing home, provided the facility is in their chosen Managed Care Organization's (MCO) network. CHC does not cover residents in state-operated facilities, such as state veterans' homes, which remain outside the CHC program."
         },
         {
           "question": "How do we choose between different managed care organizations?",
@@ -165,8 +176,8 @@
           "answer": "Yes, hospital discharge planners often help initiate the CHC application process. This can help ensure services are in place before your loved one returns home or moves to a care facility."
         },
         {
-          "question": "What if my loved one's income is slightly over the $2,901 monthly limit?",
-          "answer": "Your loved one may still qualify through Medicaid spend-down if they meet the functional eligibility requirements. The County Assistance Office will calculate if medical expenses bring their countable income below the limit."
+          "question": "What if my loved one's income is slightly over the $2,982 monthly limit?",
+          "answer": "Your loved one may still qualify even if their income exceeds the limit. Pennsylvania offers pathways such as 'spend-down' or specific Medicaid planning strategies (like Qualified Income Trusts) to help applicants who are over the income threshold. The County Assistance Office will determine if their medical expenses can be used to meet eligibility requirements."
         },
         {
           "question": "How often are services reassessed once my loved one is enrolled?",
@@ -184,12 +195,119 @@
       "icon": "House",
       "phone": "1-877-550-4227",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/medicaid/chc",
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
+    },
+    {
+      "id": "life-program",
+      "name": "LIFE (Living Independence for the Elderly)",
+      "shortName": "LIFE",
+      "tagline": "Pennsylvania's all-inclusive care program (the state's PACE): full medical and long-term care so frail seniors 55+ can keep living at home instead of in a nursing facility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state"
+      },
+      "intro": "If your loved one is 55 or older, needs nursing-home level of care, but wants to keep living at home, Pennsylvania's LIFE program may cover everything — medical care, prescriptions, in-home help, and more — at little or no cost. LIFE is Pennsylvania's version of the national PACE model (Program of All-Inclusive Care for the Elderly). One provider organization coordinates and pays for all of your loved one's care, so you are not juggling separate doctors, pharmacies, home aides, and insurers.\n\nEverything is built around a local LIFE center your loved one attends as often as their care plan calls for. The team there — doctors, nurses, therapists, social workers, and aides — manages primary and specialty care, prescriptions, physical and occupational therapy, adult day services, personal and home care, meals, dental, vision, hearing, and transportation to the center and to medical appointments. If your loved one ever needs a hospital stay or nursing-facility care, LIFE covers that too.\n\nTo qualify, your loved one must be 55 or older, be certified by the state as needing a nursing-facility level of care, live in the service area of a LIFE provider, and be able to live safely in the community with LIFE's help when they enroll. Most participants qualify through Medicaid and pay nothing; people who are not eligible for Medicaid can still enroll and pay privately.",
+      "savingsRange": "$15,000 – $35,000/year",
+      "savingsSource": "Estimated value of the comprehensive medical and long-term care covered for dual-eligible participants at no cost",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55 or older",
+          "Certified as needing a nursing-facility level of care",
+          "Lives in a LIFE provider's service area",
+          "Able to live safely at home with LIFE services when enrolling",
+          "Most participants qualify through Medicaid (Medicare-only and private-pay also accepted)"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be clinically certified as needing a nursing-facility level of care while still being able to live safely in the community with LIFE services.",
+        "otherRequirements": [
+          "Must live in the service area of a participating LIFE provider"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact a LIFE provider that serves your loved one's county, or the PA Department of Aging, to start an enrollment assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find a LIFE provider near you",
+            "description": "LIFE is delivered by local provider organizations. Contact the PA Department of Aging or your local Area Agency on Aging to find the LIFE provider that serves your loved one's county."
+          },
+          {
+            "step": 2,
+            "title": "Request an enrollment assessment",
+            "description": "The provider arranges an assessment to confirm your loved one is 55+, needs a nursing-facility level of care, and can live safely at home with LIFE's support."
+          },
+          {
+            "step": 3,
+            "title": "Complete financial eligibility",
+            "description": "If your loved one isn't already on Medicaid, the provider helps apply. Dual-eligible participants typically pay nothing; Medicare-only and private-pay options are available."
+          },
+          {
+            "step": 4,
+            "title": "Enroll and build a care plan",
+            "description": "Once eligibility is confirmed, your loved one enrolls and the LIFE team builds an individualized care plan around the local LIFE center."
+          }
+        ],
+        "processingTime": "Varies by provider; assessments are typically scheduled within a few weeks.",
+        "waitlist": null,
+        "tip": "Enrollment is voluntary and can be ended at any time. Because LIFE coordinates all care, your loved one generally uses the LIFE provider's network of doctors and specialists.",
+        "urls": []
+      },
+      "documentsNeeded": null,
+      "contacts": [
+        {
+          "label": "PA Department of Aging",
+          "phone": "717-783-1550",
+          "description": "Help finding the LIFE provider that serves your county",
+          "hours": "Monday–Friday, business hours"
+        }
+      ],
+      "applicationNotes": [
+        "LIFE is the same model as PACE nationally; in Pennsylvania the program is branded 'LIFE.' It is separate from Pennsylvania's PACE prescription-assistance program, which only helps with drug costs.",
+        "Dual-eligible participants (Medicare and Medicaid) pay no monthly premium, deductible, or copay for covered care.",
+        "Because one organization coordinates all care, your loved one generally must use the LIFE provider's network of doctors and specialists."
+      ],
+      "relatedPrograms": [
+        "Community HealthChoices (CHC)",
+        "Caregiver Support Program"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "Is LIFE the same as the PACE prescription program?",
+          "answer": "No. Pennsylvania uses two confusingly similar names. LIFE (Living Independence for the Elderly) is the all-inclusive medical and long-term care program described here — Pennsylvania's version of the national PACE model. The other 'PACE' (Pharmaceutical Assistance Contract for the Elderly) only helps pay for prescription drugs. Your loved one can look into both."
+        },
+        {
+          "question": "Does my loved one have to move into a nursing home to qualify?",
+          "answer": "No — it's the opposite. To enroll, your loved one must be certified as needing a nursing-facility level of care but still be able to live safely at home with LIFE's support. The point of LIFE is to provide that level of care at home and at a local LIFE center so they can avoid moving into a facility."
+        },
+        {
+          "question": "How much does LIFE cost?",
+          "answer": "Most participants are eligible for both Medicare and Medicaid and pay nothing — no premium, deductible, or copay for covered services. If your loved one has Medicare but not Medicaid, they can still enroll by paying the Medicaid portion privately, and people with neither can pay the full cost out of pocket."
+        },
+        {
+          "question": "Can my loved one keep their own doctor?",
+          "answer": "Generally no. Because a single LIFE organization coordinates and pays for all care, your loved one uses that provider's team and network. If keeping a specific doctor matters, ask the LIFE provider whether that doctor is in their network before enrolling."
+        }
+      ],
+      "layoutIntent": null,
+      "icon": null,
+      "phone": "717-783-1550",
+      "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-06-19"
     },
     {
       "id": "pace-prescription-assistance",
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "PACE (Pharmaceutical Assistance Contract for the Elderly) in Pennsylvania",
       "shortName": "PA PACE",
       "tagline": "Low-cost prescriptions for Pennsylvania seniors 65+ with limited income",
       "programType": "benefit",
@@ -204,7 +322,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and living on a fixed income in Pennsylvania, PACE can dramatically reduce their prescription costs. The program covers both generic and brand-name medications with co-pays of just $6 for generics and $9 for brand names, no monthly premium required.\n\nTo qualify, your loved one's previous year income must be $14,500 or less for a single person, or $17,700 for a married couple. The program has no asset limits, so your loved one's savings, home value, or investments won't disqualify them. However, they cannot be enrolled in Medicaid prescription benefits.\n\nImportant: This is Pennsylvania's prescription assistance program, not the national PACE long-term care program. If you're looking for comprehensive medical services including adult day health and transportation, you'll need to search separately for PACE providers through the National PACE Association.",
+      "intro": "If your loved one is 65+ and living on a fixed income in Pennsylvania, PACE can dramatically reduce their prescription costs. The program covers both generic and brand-name medications with co-pays of just $6 for generics and $9 for brand names, no monthly premium required.\n\nTo qualify, your loved one's previous year income must be $14,500 or less for a single person, or $17,700 for a married couple. The program has no asset limits, so your loved one's savings, home value, or investments won't disqualify them. However, they cannot be enrolled in Medicaid prescription benefits.\n\nImportant: This is Pennsylvania's prescription assistance program, not the national PACE long-term care program. If your loved one needs comprehensive medical and long-term care services (such as in-home care, therapies, and coordinated medical care), that is Pennsylvania's LIFE program, which is a separate benefit.",
       "savingsRange": "$1,200 – $3,600/year in 2026",
       "savingsSource": "Based on $6-$9 co-pays versus average prescription costs",
       "savingsVerified": false,
@@ -216,16 +334,7 @@
           "Not on Medicaid prescription benefits"
         ],
         "ageRequirement": "65+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1208
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 1475
-          }
-        ],
+        "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
@@ -305,10 +414,11 @@
         }
       ],
       "applicationNotes": [
-        "Income from capital gains counts if from a home sale within the past 2 years, this can push some applicants over the limit",
-        "Medicare Part B premiums are excluded from your income calculation, but full Medicaid prescription coverage disqualifies you",
-        "The program doesn't automatically adjust income limits annually, thresholds may stay the same for multiple years",
-        "If your loved one's income varies year to year, they may cycle in and out of eligibility based on the previous calendar year's earnings"
+        "If your loved one sold their home, all capital gains must be declared as income within two years of the sale date. However, if they sold their home to pay for nursing home costs or used the proceeds to purchase another primary residence, those proceeds are typically not considered income.",
+        "Medicare Part B premiums are excluded from your income calculation.",
+        "If your loved one is already enrolled in the full Medicaid prescription benefit, they are not eligible for PACE/PACENET.",
+        "While income limits do not automatically adjust for inflation, the Pennsylvania General Assembly periodically passes legislation to update eligibility thresholds and implement moratoriums to protect seniors from losing eligibility solely due to Social Security cost-of-living adjustments (COLAs).",
+        "Eligibility is based on the previous calendar year's gross income. If your loved one's income varies, they will indeed be re-evaluated annually based on that previous year's earnings. Because income is based on the prior year, a recent drop in income will not result in immediate eligibility; they will need to wait until the next annual evaluation cycle to report their lower income."
       ],
       "relatedPrograms": [
         "PACENET (higher income prescription assistance)",
@@ -328,7 +438,7 @@
         },
         {
           "question": "My loved one's income was higher last year but dropped this year, when can they apply?",
-          "answer": "PACE uses the previous calendar year's income for eligibility. If your loved one's income dropped in the current year, they'll need to wait until next year's application cycle to qualify based on this year's lower income."
+          "answer": "PACE eligibility is primarily based on the previous calendar year's gross income. However, if your loved one has experienced a significant, permanent change in income, the PACE program may offer a 'financial change of status' review. Instead of waiting until the next calendar year, call the PACE hotline at 1-800-225-7223 to explain the situation; they can determine if your loved one qualifies for a re-evaluation based on their current circumstances."
         },
         {
           "question": "Does Social Security count toward the income limit?",
@@ -340,7 +450,7 @@
         },
         {
           "question": "What happens if my loved one needs a prescription that's not covered?",
-          "answer": "PACE covers most prescription medications, but coverage details aren't specified in the program materials. Call 1-800-225-7223 to ask about specific medications before applying."
+          "answer": "PACE covers a wide range of medications through its comprehensive formulary. If your loved one takes a specific drug, you can check the online formulary on the PACE website to see if it is covered before applying. If a medication is not on the list, there is a formal exception process that your loved one's doctor can initiate on their behalf."
         },
         {
           "question": "If my loved one moves to another state, can they keep PACE benefits?",
@@ -362,14 +472,16 @@
       "icon": "Pill",
       "phone": "1-800-225-7223",
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/pace-program",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "healthy-horizons-qmb-slmb-qi",
       "name": "Healthy Horizons (QMB, SLMB, QI)",
       "shortName": "Healthy Horizons",
-      "tagline": "If your loved one has Medicare and limited income, this program can cover their Medicare premiums, deductibles, and copays.",
+      "tagline": "Save on Medicare costs: See if your loved one qualifies for Pennsylvania’s Healthy Horizons.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -382,7 +494,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ with Medicare and struggling to afford their monthly premiums or medical bills, Pennsylvania's Healthy Horizons program can help pay those costs. This program has four tiers based on income, from full Medicaid coverage plus all Medicare costs covered (QMB) to just Medicare Part B premium assistance (SLMB, QI). The highest benefit tier covers Medicare Part A and B premiums, deductibles, and all copayments, potentially saving thousands per year.\n\nYour loved one must be entitled to Medicare Part A (even if not enrolled) and meet income limits that range from $1,350/month for the full benefit to higher limits for premium-only help. Because this program includes spouse income and assets in calculations, the financial picture can be complex, but the savings are substantial for those who qualify.",
+      "intro": "If your loved one is 65+ with Medicare and struggling with out-of-pocket medical costs, Pennsylvania's Healthy Horizons program can help. This program offers different levels of assistance depending on income: the QMB tier can cover Medicare Part A and B premiums, deductibles, and coinsurance, while SLMB and QI tiers provide assistance with the Medicare Part B premium.\n\nTo qualify, your loved one must be entitled to Medicare Part A and meet income and resource limits. Because these calculations can include spousal income and assets, the financial picture may be complex, but the potential savings are significant for those who qualify.",
       "savingsRange": "$200 – $3,000/year in 2026",
       "savingsSource": "Medicare Part B premium ($185/month in 2026) plus deductibles and copayments",
       "savingsVerified": true,
@@ -406,8 +518,8 @@
           }
         ],
         "assetLimits": {
-          "individual": 2000,
-          "couple": 3000,
+          "individual": 9950,
+          "couple": 14910,
           "countedAssets": [
             "Bank accounts",
             "Stocks",
@@ -446,7 +558,7 @@
           {
             "step": 2,
             "title": "Apply online or by phone",
-            "description": "Apply online at www.compass.state.pa.us using the MAWD-1 form, or call your local CAO directly to start a phone application."
+            "description": "Apply online at COMPASS by selecting \"Medical Assistance.\" Alternatively, you can request a PA 600M form to complete by mail or call your local CAO directly to start an application over the phone."
           },
           {
             "step": 3,
@@ -503,10 +615,10 @@
         }
       ],
       "applicationNotes": [
-        "Your County Assistance Office must screen you for all tiers, if you don't qualify for QMB (full benefits), they'll automatically check SLMB and QI eligibility",
-        "Spouse income and resources are always counted, even if your spouse isn't applying, this is often overlooked and causes application problems",
-        "QI-1 and QI-2 participants cannot receive full Medicaid simultaneously, you'll get Medicare premium help only",
-        "Asset limits are higher for cost-sharing programs ($9,950 individual) but stricter about what counts, a second car counts as an asset"
+        "Automatic Screening: Your County Assistance Office (CAO) will screen you for all tiers of Healthy Horizons. If you do not qualify for QMB, they will automatically check your eligibility for SLMB and QI.",
+        "Spousal Income & Assets: If you are married, your spouse's income and resources are included in the calculation, even if they are not applying themselves. This is a common factor that can impact eligibility.",
+        "QI Exclusivity: If you qualify for the QI program, you cannot receive full-scope Medicaid coverage at the same time. QI only provides assistance with your Medicare Part B premium.",
+        "Asset Rules: While the resource limits are more generous for Medicare Savings Programs ($9,950 for individuals), the rules remain strict. Items like a second vehicle, investment accounts, or real estate that is not your primary residence are counted toward your total assets."
       ],
       "relatedPrograms": [
         "Pennsylvania Medicaid",
@@ -524,7 +636,7 @@
       "faqs": [
         {
           "question": "Can my loved one keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, the primary home is exempt from asset limits regardless of value. Only countable assets like bank accounts, stocks, and second vehicles count toward the $2,000–$14,910 limits depending on the program tier."
+          "answer": "Yes, the primary home is exempt from asset limits regardless of value, provided the applicant lives there. Only countable assets like bank accounts, stocks, and secondary vehicles count toward the current 2026 resource limits of $9,950 for an individual or $14,910 for a married couple."
         },
         {
           "question": "What happens if my loved one's income is too high for QMB but might qualify for SLMB?",
@@ -540,7 +652,7 @@
         },
         {
           "question": "How much will this actually save on Medicare costs?",
-          "answer": "At minimum, Medicare Part B premium coverage saves $185/month ($2,220/year in 2026). Full QMB coverage adds Medicare Part A deductibles ($1,676 in 2026), Part B deductibles ($240), and all copayments, potentially $3,000+ annually for someone with regular medical care."
+          "answer": "At a minimum, Medicare Part B premium coverage saves $202.90 per month ($2,434.80 per year in 2026). Full QMB coverage adds significant protection by covering the Medicare Part A inpatient hospital deductible ($1,736 per benefit period), the annual Part B deductible ($283), and 20% coinsurance for doctor visits and outpatient services. For someone with regular medical needs, this can mean thousands of dollars in annual savings."
         },
         {
           "question": "Can I apply for my loved one if they have dementia or can't handle paperwork?",
@@ -566,14 +678,16 @@
       "icon": "ShieldCheck",
       "phone": "(866) 550-4355",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/aging-physical-disabilities/medicaid-older-people-and-people-with-disabilities",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "Up to $300/month toward groceries if your loved one is 60+ and on a fixed income",
+      "tagline": "Monthly food support to help seniors stay healthy and independent at home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -586,7 +700,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries, SNAP provides an EBT card that works like a debit card at supermarkets and food stores. The average older adult receives $106/month, but benefits can reach $273/month for a single person or $546/month for a couple, depending on income and expenses like medical bills and housing costs.\n\nPennsylvania makes it easier for seniors to qualify than younger adults. Even if your loved one's income is above the standard limit (currently $2,608/month for one person), they can still qualify through special senior rules that account for high medical expenses and housing costs. There's no asset limit for most households, so your loved one can keep their home, car, and savings while receiving benefits.\n\nThe program covers most food items including fresh produce, meat, dairy, and pantry staples. Benefits are loaded onto an EBT card each month and can be used at virtually all grocery stores, many farmers markets, and some online retailers including Amazon and Walmart.",
+      "intro": "If your loved one is 60 or older and struggling to afford groceries, SNAP can help. Benefits are loaded onto an EBT card each month, which works like a debit card at most grocery stores, farmers' markets, and authorized online retailers like Amazon and Walmart.  <br>The amount your loved one receives is based on their unique financial situation—including their household size, income, and allowable expenses like housing and out-of-pocket medical costs. While the maximum benefit for a single person in the 48 contiguous states is **$298 per month** (and **$546** for a two-person household), many households receive an amount tailored to their specific needs.  <br>Pennsylvania makes it easier for seniors to qualify than younger adults. Even if your loved one's gross income is slightly above the standard limit, they may still qualify by using special 'net income' rules that account for high medical and housing expenses. Furthermore, Pennsylvania does not have an asset test for most SNAP applicants, meaning your loved one can typically maintain eligibility while owning their home, a car, and modest savings.",
       "savingsRange": "$100 – $3,276/year in 2026",
       "savingsSource": "Average $106/month for older adults, maximum $273/month for individuals",
       "savingsVerified": true,
@@ -720,15 +834,21 @@
           "hours": "24 hours, 7 days a week"
         },
         {
-          "label": "COMPASS Customer Service",
-          "phone": "(877) 395-8930",
+          "label": "COMPASS Helpline",
+          "phone": "(800) 692-7462",
           "description": "Technical help with online applications",
           "hours": "Monday-Friday 8am-5pm"
+        },
+        {
+          "label": "PA Department of Human Services Statewide Customer Service Center",
+          "phone": "(877) 395-8930",
+          "description": "For questions about an active case, to report income changes, or to speak directly with a caseworker",
+          "hours": "Monday–Friday, business hours"
         }
       ],
       "applicationNotes": [
-        "If all household members are 60+ or receive SSI/SSDI with no work earnings, you may qualify for the simplified ESAP application process",
-        "Households facing immediate food insecurity may qualify for expedited processing within 7 days",
+        "If all members of your household are 60 or older or receive SSI/SSDI and have no earned income, you may qualify for the Elderly Simplified Application Project (ESAP). This process is designed to reduce paperwork and simplify your renewal.",
+        "If your household is facing immediate food insecurity and meets specific low-income criteria, you may qualify for 'expedited processing,' which requires the state to provide benefits within 5 calendar days. Be sure to mention your emergency situation immediately when you apply.",
         "Medical expenses over $35/month are deducted from income to increase benefit amounts, save all receipts",
         "Starting February 2026, you must verify shelter and utility costs when applying, renewing benefits, or moving to a new address"
       ],
@@ -746,7 +866,7 @@
         },
         {
           "question": "What if my loved one's income is slightly over the limit but they have high medical bills?",
-          "answer": "Seniors with income over $2,608/month can still qualify through Pennsylvania's net income test. Medical expenses over $35/month are subtracted from income, potentially bringing them under the limit. Apply anyway, many seniors are surprised to learn they qualify."
+          "answer": "Even if your loved one's gross income is above the standard limit, they may still qualify. Seniors (60+) can deduct verified out-of-pocket medical expenses that exceed $35/month from their income. These deductions lower their countable income, often bringing them under the limit to qualify for benefits. Always apply; many seniors are surprised to find they are eligible after these deductions are applied."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -766,7 +886,7 @@
         },
         {
           "question": "How often does my loved one need to renew SNAP benefits?",
-          "answer": "Seniors typically recertify every 12-24 months depending on their income source. You'll receive renewal paperwork by mail with plenty of advance notice. Fixed income households often have longer certification periods."
+          "answer": "Seniors often receive a longer certification period—typically 24 or 36 months—making it easier to maintain benefits without frequent paperwork. You will receive renewal notices in the mail with clear instructions on when to recertify. Keep an eye on your mail, as missing these notices can cause a gap in coverage."
         },
         {
           "question": "Can my loved one get SNAP if they're already receiving Medicaid or Medicare?",
@@ -784,8 +904,10 @@
       "icon": "BowlFood",
       "phone": "(877) 999-5964",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "ship-medicare-counseling",
@@ -902,14 +1024,16 @@
       "icon": "Compass",
       "phone": "1-800-783-7067",
       "sourceUrl": "https://www.shiphelp.org/ships/pennsylvania/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "home-delivered-meals",
       "name": "Home-Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
-      "tagline": "If your loved one can't safely shop or cook, they may qualify for free home-delivered meals 5 days a week.",
+      "tagline": "Healthy Meals at Home: Support for Your Loved One's Daily Independence.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -942,7 +1066,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to cook or shop safely, Home-Delivered Meals can bring nutritious meals directly to their door. Each meal provides one-third of daily nutritional requirements, is certified by a dietitian, and accommodates conditions like diabetes and heart disease. Most counties deliver 5 days per week at no cost.\n\nThis isn't automatic, your loved one needs an in-home assessment by their local Area Agency on Aging to confirm they're homebound and unable to prepare meals safely. Because Pennsylvania has 52 different Area Agencies on Aging, eligibility details and wait times vary by county, but the core requirement is being unable to leave home regularly or prepare nutritious meals due to physical, mental, or emotional limitations.",
+      "intro": "If your loved one is 60 or older and struggles to shop for groceries or prepare meals safely due to physical, mental, or emotional limitations, they may qualify for home-delivered meal programs. These services are coordinated through Pennsylvania's local Area Agencies on Aging (AAAs). When you apply, a care manager will conduct an assessment to confirm eligibility, which includes verifying that your loved one is homebound and lacks the support to prepare adequate meals.\n\nPlease keep in mind that these programs are not universally free or guaranteed to be delivered five days a week in every location. Delivery frequency and meal types vary significantly by county, and many programs are publicly funded and may request a voluntary donation. Due to high demand, some counties may also have waiting lists. Since Pennsylvania has 52 different Area Agencies on Aging, service availability depends on where your loved one lives. The best first step is to contact your local Area Agency on Aging to request an assessment and find out what is specifically available in your community.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -1079,8 +1203,10 @@
       "icon": "BowlFood",
       "phone": null,
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/meals-and-food-assistance",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "caregiver-support-program",
@@ -1181,7 +1307,7 @@
         {
           "label": "Local Area Agency on Aging",
           "phone": "Varies by county",
-          "description": "Application and assessment scheduling",
+          "description": "Your Local Area Agency on Aging (AAA)\nFor help with specific services, application forms, or to schedule an in-home assessment.\nVisit the official PA Department of Aging Local Resources page (https://www.google.com/search?q=https://www.pa.gov/agencies/aging/local-resources/area-agencies-on-aging)to look up the contact information for your specific county.",
           "hours": "Contact your county AAA for specific hours"
         }
       ],
@@ -1220,7 +1346,7 @@
         },
         {
           "question": "Can I use this program and Medicaid waiver services at the same time?",
-          "answer": "This program is separate from Medicaid OPTIONS and other waiver programs. Ask your care manager about coordinating benefits, as eligibility rules and income limits differ significantly between programs."
+          "answer": "Generally, individuals enrolled in Medicaid Long-Term Services and Supports (such as Community HealthChoices or the LIFE program) are not eligible for the Caregiver Support Program, as those programs already provide comprehensive caregiving support. If your loved one is considering enrolling in a Medicaid waiver, discuss how this may impact your eligibility for the Caregiver Support Program with your local Area Agency on Aging during your initial assessment."
         },
         {
           "question": "What happens if my loved one's income changes after I'm enrolled?",
@@ -1242,8 +1368,10 @@
       "icon": "HandHeart",
       "phone": "(717) 783-1550",
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/caregiver-support-program",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "oplap-legal-assistance",
@@ -1347,7 +1475,7 @@
           "label": "Pennsylvania SeniorLAW Helpline",
           "phone": "(877) 727-7529",
           "description": "Statewide legal aid screening and referral for seniors",
-          "hours": "Business hours (specific hours not specified)"
+          "hours": "Hours: Monday through Thursday, 10:00 a.m. to 12:00 p.m."
         },
         {
           "label": "Pennsylvania 2-1-1",
@@ -1369,7 +1497,7 @@
       "faqs": [
         {
           "question": "What if my loved one's legal issue isn't on the covered list?",
-          "answer": "OPLAP specifically excludes divorce, property settlements, and family disputes. If your loved one's issue involves basic needs like housing, healthcare, or government benefits, call the helpline to confirm coverage. For other legal matters, they may refer you to other resources or private attorneys who work with seniors."
+          "answer": "If your loved one’s specific legal issue isn't listed, don't let that stop you from calling. The program is designed to protect the rights, health, and independence of older Pennsylvanians, focusing on areas like housing, healthcare, and public benefits. While OPLAP is not generally designed for matters like contested divorce or complex property settlements, local legal providers may have other resources or be able to offer guidance on how to find the right support for your situation. It is always best to contact your local Area Agency on Aging to discuss your specific needs."
         },
         {
           "question": "Can I apply on behalf of my loved one who has dementia?",
@@ -1391,8 +1519,10 @@
       "icon": "Scales",
       "phone": "(877) 727-7529",
       "sourceUrl": "https://www.pa.gov/services/aging/apply-for-the-older-pennsylvanians-legal-assistance-program",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     },
     {
       "id": "ltc-ombudsman",
@@ -1440,7 +1570,7 @@
           {
             "step": 1,
             "title": "Contact your county's ombudsman",
-            "description": "Call your local Area Agency on Aging ombudsman program directly. Each county has its own number, for example, Franklin County (717-299-7979), Montgomery County (610-278-1320), or the statewide Elder Abuse Hotline (1-800-734-2020)."
+            "description": "Call your local Area Agency on Aging ombudsman program directly. Each county has its own number, for example, Franklin County (717-299-7979), Montgomery County (610-278-1320), or the statewide Elder Abuse Hotline (1-800-490-8505)."
           },
           {
             "step": 2,
@@ -1467,13 +1597,13 @@
       "contacts": [
         {
           "label": "Elder Abuse Hotline",
-          "phone": "1-800-734-2020",
+          "phone": "1-800-490-8505",
           "description": "Statewide hotline for elder abuse and ombudsman referrals",
           "hours": "24 hours, 7 days a week"
         },
         {
           "label": "PA State Ombudsman Office",
-          "phone": null,
+          "phone": "717-783-8975",
           "description": "555 Walnut Street, 5th Floor, Harrisburg, PA 17101 - for statewide coordination",
           "hours": "Business hours"
         }
@@ -1488,7 +1618,7 @@
       "faqs": [
         {
           "question": "Can I file a complaint if my loved one has dementia and can't give permission?",
-          "answer": "Yes, if you have power of attorney or your loved one cannot express their wishes due to cognitive impairment, the ombudsman can proceed without explicit verbal permission. They will use their judgment to act in the resident's best interest while respecting their rights and dignity."
+          "answer": "Yes. If your loved one has dementia or is unable to express their wishes, you can contact the Ombudsman on their behalf. The Ombudsman will work to protect your loved one’s rights and quality of life by making decisions based on what your loved one would want if they could express it (their 'substituted judgment') or what is in their best interest. They will still maintain confidentiality and advocate for your loved one’s dignity and safety, but they will look to you as a representative or family member to help them understand your loved one’s needs and values."
         },
         {
           "question": "What if the facility retaliates against my loved one after I file a complaint?",
@@ -1508,10 +1638,12 @@
         "visualTone": "minimal"
       },
       "icon": "Scales",
-      "phone": "1-800-734-2020",
+      "phone": "1-800-490-8505",
       "sourceUrl": "https://www.pa.gov/agencies/aging/aging-programs-and-services/advocacy-education-protection",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "reviewedBy": "Cecille Chavez",
+      "reviewedAt": "2026-06-17"
     }
   ],
   "stateOverview": {
@@ -1537,6 +1669,7 @@
       {
         "need": "Help paying for daily care at home",
         "programs": [
+          "LIFE (Living Independence for the Elderly)",
           "Community HealthChoices (CHC)",
           "Caregiver Support Program"
         ],
@@ -1545,7 +1678,7 @@
       {
         "need": "Lower medical and prescription costs",
         "programs": [
-          "PACE (Program of All-Inclusive Care for the Elderly)",
+          "PACE (Pharmaceutical Assistance Contract for the Elderly) in Pennsylvania",
           "Healthy Horizons (QMB, SLMB, QI)"
         ],
         "description": "Reduced prescription costs and Medicare premium coverage for seniors with limited income."

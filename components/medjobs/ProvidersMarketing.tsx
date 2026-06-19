@@ -10,7 +10,7 @@ import ProviderHelpCard from "@/components/medjobs/ProviderHelpCard";
  * decision-maker · Common questions · Closer.
  */
 
-const PROVIDER_AGREEMENT_URL = "/docs/host-agreement-sample.pdf";
+const PROVIDER_AGREEMENT_URL = "/docs/employer-agreement-sample.pdf";
 const NEEDS_QUIZ_HREF = "/medjobs/candidates?welcome=1";
 
 const HOW_IT_WORKS = [

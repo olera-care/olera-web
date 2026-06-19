@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
-import { HOST_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
+import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
 
 /**
  * A note from Dr. DuBose — the universal anchor on the candidate board.
  *
  * One component, four state-specific variants. It replaces the old separate
- * "Check your eligibility to host" gate card: every board state now leads with
+ * "Check your eligibility to hire" gate card: every board state now leads with
  * a note from Dr. DuBose that frames where the provider is and gives exactly
  * one next step.
  *
@@ -19,7 +19,7 @@ import { HOST_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
  *
  * For anon/not_eligible the primary CTA is owned by the page (sign-in or open
  * the screener) via `onCheckEligibility`. For happy/fallback the two CTAs are
- * the hosting agreement (read-only link) and "Grab a time with me" (booking +
+ * the employer agreement (read-only link) and "Grab a time with me" (booking +
  * an "interested + eligible" team ping).
  */
 
@@ -52,7 +52,7 @@ export default function DrDuBoseWelcome({
     variant === "anon" ? (
       <>
         These are the caliber of pre-health caregivers joining Olera near {campus}.
-        Check your eligibility to host and you can start interviewing the ones who
+        Check your eligibility to hire and you can start interviewing the ones who
         fit your clients.
       </>
     ) : variant === "not_eligible" ? (
@@ -62,7 +62,7 @@ export default function DrDuBoseWelcome({
       </>
     ) : variant === "happy" ? (
       <>
-        Read our hosting agreement first. If you&apos;re ready, start reviewing and
+        Read our employer agreement first. If you&apos;re ready, start reviewing and
         interviewing candidates below to see who&apos;s a good fit for {agency}. If
         you&apos;d like me to walk through the requirements or answer questions, grab
         a time with me. There&apos;s no commitment until you and the student confirm
@@ -70,7 +70,7 @@ export default function DrDuBoseWelcome({
       </>
     ) : (
       <>
-        Read our hosting agreement and grab a time with me to go over host
+        Read our employer agreement and grab a time with me to go over the
         requirements. Let&apos;s get you set up so you&apos;re ready to interview{" "}
         {campus} candidates and see if any are a good fit for {agency}.
       </>
@@ -113,26 +113,26 @@ export default function DrDuBoseWelcome({
                   onClick={onCheckEligibility}
                   className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
                 >
-                  Check your eligibility to host →
+                  Check your eligibility to hire →
                 </button>
                 <a
-                  href={HOST_AGREEMENT_URL}
+                  href={EMPLOYER_AGREEMENT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm font-medium text-primary-700 hover:underline"
                 >
-                  Read the hosting agreement ↗
+                  Read the employer agreement ↗
                 </a>
               </>
             ) : (
               <>
                 <a
-                  href={HOST_AGREEMENT_URL}
+                  href={EMPLOYER_AGREEMENT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-xl border border-primary-200 bg-white px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50"
                 >
-                  Read the hosting agreement ↗
+                  Read the employer agreement ↗
                 </a>
                 <a
                   href={CALENDLY_URL}

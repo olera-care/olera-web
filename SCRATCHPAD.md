@@ -7,6 +7,23 @@
 
 ## Current Focus
 
+### 2026-06-18 — De-"host" copy + MedJobs admin reorg + flyer floor (branch `claude/keen-mendel-6i8iW`)
+
+**Trigger:** Logan — (1) "host" was vestigial internship language; students are now in a regular paid placement where the family/agency is the employer. (2) Simplify the MedJobs admin sidebar and split the dual-purpose Prospects surface by audience. (3) The "no student flyer configured" launch blocker.
+
+**Shipped on branch (6 chunks, each tsc + lint clean):**
+- **De-host pass:** "host" → "employer" (formal) / "the family or agency" (warm) across agreements, emails, UI; renamed agreement PDFs → `employer-agreement(-sample).pdf` (regenerated); `HOST_AGREEMENT_URL` → `EMPLOYER_AGREEMENT_URL`; "Offer to host" → "Offer to hire". (Earlier commit set.)
+- **Chunk 1 — flyer floor:** `GENERIC_PROVIDER` brochure + `resolveProgramPdfConfig` fallback; program-pdf route serves generic on a miss; `requireProgramPdf` + preflight modal honor the floor (red block → soft "standard flyer" note); Resend attachment renders generic when no campus config. Removes the launch-blocking flyer error.
+- **Chunk 2 (collapsed):** no new metric split needed — `prospects_added` is already partner-only; provider prospects are virtual/no-history (count-only). Subtype breakdown handled in the Operations summary endpoint.
+- **Chunk 3 — In Basket audience queues:** new `providers` + `partner_book` tabs fold each audience's prospecting + active work (sectioned); server-composed `counts.providers`/`counts.partner_book`; per-section card-slot dispatch; old keys retained for dedicated pages/queue/deep links. **Needs browser QA.**
+- **Chunk 4 — Operations hub:** `/admin/medjobs/operations` with Pipeline/Activity/Roster tiles (headline + delta + sparkline + View all). New `operations-summary` endpoint (provider count + partner subtype breakdowns); clients/candidates counts reused from their endpoints to avoid drift.
+- **Chunk 5 — sidebar:** collapsed to In Basket · Sites · Operations · Logs.
+- **Plan + pre-build risk review:** `plans/medjobs-nav-operations-flyer-plan.md`.
+
+**Validation:** `npx tsc --noEmit` clean; eslint clean on all 31 changed files. `next build` blocked only by sandbox Google-Fonts fetch (env, unrelated).
+
+**QA next (before promote):** Click-test the In Basket Providers/Partners tabs (both sections render, counts/bolding/auto-pivot correct, drawers open, slot actions right per section); Operations tiles load + links land on the right pages; launch outreach for a campus with no config and confirm the standard flyer attaches/links (no block).
+
 ### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)
 
 **Trigger:** TJ wanted to move providers from impressions to real managed-ads signups, then previewed the copy and asked for a sharper testable path. Later asked to adopt the richer design critique slash-command wrapper from the staging repo.

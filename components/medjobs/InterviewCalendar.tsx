@@ -706,7 +706,7 @@ function InterviewDetailModal({
                 onClick={() => setShowOffer(true)}
                 className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-base font-semibold text-white transition-colors"
               >
-                Offer to host {otherName.split(" ")[0]}
+                Offer to hire {otherName.split(" ")[0]}
               </button>
             )
           ) : offeredPlacement ? (

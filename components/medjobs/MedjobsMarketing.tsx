@@ -191,15 +191,15 @@ export default function MedjobsMarketing() {
               },
               {
                 q: "How many hours per week do I commit to?",
-                a: "You and the host agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most students work a steady handful of hours each week through the semester.",
+                a: "You and the family or agency agree on a recurring schedule that fits around your classes, and you can adjust it during exams. Most students work a steady handful of hours each week through the semester.",
               },
               {
                 q: "When and how do I get paid?",
-                a: "You're paid by the host, not by Olera. Families can run pay through Olera, and agencies pay through their own payroll. Your rate is set with the host before you start.",
+                a: "You're paid by the family or agency, not by Olera. Families can run pay through Olera, and agencies pay through their own payroll. Your rate is set with them before you start.",
               },
               {
                 q: "What if I've never worked with seniors before?",
-                a: "Most of our students haven't. You're matched with a host who fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
+                a: "Most of our students haven't. You're matched with a family or agency that fits your comfort level, and your first visits are supported so you're never figuring it out alone.",
               },
               {
                 q: "Is it really paid?",

@@ -83,6 +83,12 @@ interface BrowseCardProps {
   href?: string;
   /** candidate variant — "Covers your evenings" match line. */
   matchLabel?: string;
+  /** candidate variant — 0-100 match score. Shows colored badge on card. */
+  matchScore?: number | null;
+  /** candidate variant — quick invite button callback. */
+  onQuickInvite?: () => void;
+  /** candidate variant — true if already invited. */
+  isInvited?: boolean;
   /** student variant — campus slug, carried into the provider detail link. */
   campus?: string;
 }
@@ -97,6 +103,9 @@ export default function BrowseCard({
   requestLabel = "Request interview",
   href,
   matchLabel,
+  matchScore,
+  onQuickInvite,
+  isInvited = false,
   campus,
 }: BrowseCardProps) {
   const isStudent = variant === "student";
@@ -289,6 +298,26 @@ export default function BrowseCard({
           </div>
         )}
 
+        {/* Match score badge — candidate variant, top right */}
+        {isCandidate && matchScore != null && matchScore > 0 && (
+          <div className="absolute top-2 right-2 z-10 group/match">
+            <span
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold shadow-sm cursor-default ${
+                matchScore >= 80
+                  ? "bg-white text-emerald-700 ring-1 ring-emerald-200"
+                  : matchScore >= 50
+                    ? "bg-white text-orange-700 ring-1 ring-orange-200"
+                    : "bg-white text-amber-700 ring-1 ring-amber-200"
+              }`}
+            >
+              {matchScore}% match
+            </span>
+            <div className="absolute right-0 top-full mt-1.5 w-56 rounded-lg bg-gray-900 text-white text-[11px] leading-relaxed px-3 py-2 shadow-lg opacity-0 pointer-events-none group-hover/match:opacity-100 transition-opacity z-20">
+              Matching is based on the skill set, training, and certifications mentioned in your job posting.
+            </div>
+          </div>
+        )}
+
         {/* Badge — bottom left */}
         {provider.badge && (
           <div className="absolute bottom-2.5 left-2.5 z-10">
@@ -394,6 +423,29 @@ export default function BrowseCard({
         ) : provider.priceRange ? (
           <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
         ) : null)}
+
+        {/* Candidate action: quick invite */}
+        {isCandidate && onQuickInvite && (
+          <div className="mt-3 flex items-center justify-end">
+            {isInvited ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+                Invited
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickInvite(); }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors shadow-sm"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+                Invite
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Student action: request interview */}
         {isStudent && !isDemo && (

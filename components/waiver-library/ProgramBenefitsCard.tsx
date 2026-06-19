@@ -284,8 +284,15 @@ export default function ProgramBenefitsCard({
   }, [cardState, profileId, programId, stateCode, ctaSurface]);
 
   // Save enrichment data to the profile
-  const saveEnrichmentData = useCallback(async (finalCompletedSteps: BenefitsEnrichmentStep[]) => {
+  // Note: finalPayment is passed directly to avoid stale closure issue
+  // (React state updates are async, so paymentMethod may not be updated yet when called from selectPayment)
+  const saveEnrichmentData = useCallback(async (
+    finalCompletedSteps: BenefitsEnrichmentStep[],
+    finalPayment?: string
+  ) => {
     if (!profileId) return;
+
+    const payment = finalPayment ?? paymentMethod;
 
     // Track completion
     trackBenefitsEnrichmentCompleted(
@@ -294,7 +301,7 @@ export default function ProgramBenefitsCard({
     );
 
     // Only call API if we have data to save
-    if (recipient || timeline || paymentMethod) {
+    if (recipient || timeline || payment) {
       try {
         await fetch("/api/benefits/update-enrichment", {
           method: "PATCH",
@@ -304,7 +311,7 @@ export default function ProgramBenefitsCard({
             token: resultToken,
             recipient,
             timeline,
-            paymentMethod,
+            paymentMethod: payment,
             sessionId,
             completedSteps: finalCompletedSteps,
           }),
@@ -341,7 +348,8 @@ export default function ProgramBenefitsCard({
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 3];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(3, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
-    setTimeout(() => saveEnrichmentData(newCompleted), 150);
+    // Pass val directly to avoid stale closure (state won't be updated yet)
+    setTimeout(() => saveEnrichmentData(newCompleted, val), 150);
   }, [completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
 
   // Skip current step

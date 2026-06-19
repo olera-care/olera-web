@@ -1847,6 +1847,21 @@ async function handleLogCall(
       await transitionStage(db, row, "wrong_contact", userId, body.notes ?? null);
       return;
     }
+    case "logged": {
+      // Note-only resolve: admin logged the call (notes) without a
+      // categorical outcome. The current call task is already cleared above
+      // (markCurrentCallTaskComplete); the next cadence call stays scheduled.
+      // Touchpoint label only — no status/stage change.
+      await insertTouchpoint(db, row.id, "call_connected", userId, {
+        contact_id: body.contact_id ?? null,
+        channel: "phone",
+        outcome,
+        notes: body.notes ?? null,
+        payload: callPayload,
+      });
+      await touchOutreach(db, row.id, userId);
+      return;
+    }
     default:
       throw new Error(`Unknown call outcome: ${outcome}`);
   }

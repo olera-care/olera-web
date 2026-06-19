@@ -20,8 +20,11 @@ import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
-import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
-import { DeptHeadIntroCallModal } from "@/components/admin/medjobs/DeptHeadIntroCallModal";
+import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
+import {
+  CallOutcomeModal,
+  type OutcomeChoice,
+} from "@/components/admin/medjobs/CallOutcomeModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
@@ -73,6 +76,30 @@ interface DrawerProps {
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
+
+// Dept-head pre-launch intro call — a recommended, non-gating courtesy call.
+// All three outcomes log a research call (no stage change); the email sequence
+// still launches explicitly afterward.
+const INTRO_CALL_OUTCOMES: OutcomeChoice[] = [
+  {
+    key: "connected",
+    label: "Reached them",
+    blurb: "Spoke with the department head (or their office). Introduced ourselves + Dr. DuBose.",
+    tone: "happy",
+  },
+  {
+    key: "voicemail",
+    label: "Left a voicemail",
+    blurb: "Left a brief professional message that information is on the way.",
+    tone: "neutral",
+  },
+  {
+    key: "no_answer",
+    label: "No answer",
+    blurb: "Nobody picked up. Launch anyway — the intro email still goes out.",
+    tone: "neutral",
+  },
+];
 
 // v8.10.37: terminal closed statuses — Step Board hides for these so the
 // drawer doesn't invite adding workflow steps to a closed/DNC stakeholder.
@@ -1089,7 +1116,7 @@ function ResearchModePanel({
   // Office prospects mirror provider Pre-Flight EXACTLY: outreach is gated on a
   // logged confirmation call. The launcher stays disabled until a "Confirmed"
   // call outcome is logged (or Pre-Flight is overridden) — same verification
-  // state, same modal (CallForEmailModal) as providers.
+  // state, same modal (PreFlightCallModal) as providers.
   const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
   const verificationState = getVerificationState(ctx.touchpoints, overridden);
   const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
@@ -1249,7 +1276,7 @@ function ResearchModePanel({
         research={{ orientation, checklist, cta }}
       />
       {showCallConfirm && (
-        <CallForEmailModal
+        <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           phone={officePhone}
@@ -1260,15 +1287,36 @@ function ResearchModePanel({
         />
       )}
       {showIntroCall && (
-        <DeptHeadIntroCallModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={deptHeadContactName}
-          campusName={ctx.campus.name}
-          phone={deptHeadPhone}
-          action={action}
+        <CallOutcomeModal
+          title="Intro call (recommended)"
+          subtitle={
+            <>
+              {ctx.outreach.organization_name}
+              {deptHeadContactName ? ` · ${deptHeadContactName}` : ""}
+              {deptHeadPhone ? ` · ${deptHeadPhone}` : ""}
+            </>
+          }
+          scriptLabel="Suggested script"
+          script={`"Hello, this is [your name], research assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${
+            ctx.campus.name?.trim() || "your campus"
+          } students, which places pre-health students in paid caregiver roles with older adults. Before I send any details, are you the right person in the department to talk with, or is there a better contact?"`}
+          outcomes={INTRO_CALL_OUTCOMES}
           onCancel={() => setShowIntroCall(false)}
-          onDone={() => setShowIntroCall(false)}
-          setError={setError}
+          onSubmit={async (outcomeKey, notes) => {
+            setError(null);
+            try {
+              // log_research_call records the call without advancing the stage —
+              // the row still launches via the email sequence afterward.
+              await action("log_research_call", {
+                outcome: outcomeKey ?? "connected",
+                notes,
+              });
+              setShowIntroCall(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to log the intro call");
+              throw e;
+            }
+          }}
         />
       )}
       {showPreFlight && isOffice && (

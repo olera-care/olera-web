@@ -94,6 +94,8 @@ export function MedJobsTabPage({
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
   const [tabUnreadCounts, setTabUnreadCounts] = useState<TabUnreadCounts | null>(null);
   const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
+  // Active partners (TabRows) for the Partners audience tab's active section.
+  const [partnerRows, setPartnerRows] = useState<TabRow[]>([]);
   const [researchCampuses, setResearchCampuses] = useState<ResearchCampusCard[]>([]);
   const [campusBanners, setCampusBanners] = useState<CampusRow[]>([]);
   // v9.0 Phase 7 Commit N: entity rows for the In Basket tabs that key
@@ -119,10 +121,15 @@ export function MedJobsTabPage({
     setLoading(true);
     setError(null);
     try {
+      // Audience queues compose existing queue views: their primary rows are
+      // the prospecting side (tab=prospects), with the active-entity side
+      // pulled in via side-fetches below. Other tabs query their own key.
+      const queueTab: TabKey =
+        tab === "providers" || tab === "partner_book" ? "prospects" : tab;
       const queueParams = new URLSearchParams();
       if (campusSlug) queueParams.set("campus", campusSlug);
       if (typeFilter !== "all") queueParams.set("type", typeFilter);
-      queueParams.set("tab", tab);
+      queueParams.set("tab", queueTab);
       if (debouncedSearch) queueParams.set("search", debouncedSearch);
 
       const res = await fetch(`/api/admin/student-outreach/queue?${queueParams}`);
@@ -135,7 +142,9 @@ export function MedJobsTabPage({
       setResearchCampuses(data.research_campuses ?? []);
 
       // Per-tab side fetches.
-      if (tab === "prospects") {
+      // Provider prospects (virtual catchment rows) feed the Prospects tab and
+      // the Providers audience tab's prospecting section.
+      if (tab === "prospects" || tab === "providers") {
         const p = new URLSearchParams();
         if (campusSlug) p.set("campus", campusSlug);
         const r = await fetch(`/api/admin/medjobs/provider-prospects?${p}`);
@@ -147,6 +156,27 @@ export function MedJobsTabPage({
         }
       } else {
         setProviderProspects([]);
+      }
+
+      // Active partners (kind != provider, status active_partner, pending task)
+      // feed the Partners audience tab's active section. Pulled from the queue
+      // with tab=partners so they hydrate as full TabRows (same RowCard +
+      // drawer path as the prospecting section).
+      if (tab === "partner_book") {
+        const p = new URLSearchParams();
+        if (campusSlug) p.set("campus", campusSlug);
+        if (typeFilter !== "all") p.set("type", typeFilter);
+        p.set("tab", "partners");
+        if (debouncedSearch) p.set("search", debouncedSearch);
+        const r = await fetch(`/api/admin/student-outreach/queue?${p}`);
+        if (r.ok) {
+          const d = await r.json();
+          setPartnerRows(d.rows ?? []);
+        } else {
+          setPartnerRows([]);
+        }
+      } else {
+        setPartnerRows([]);
       }
 
       if (tab === "sites") {
@@ -176,7 +206,9 @@ export function MedJobsTabPage({
       // student_outreach rows. The dedicated entity endpoints accept
       // ?with_pending_task=true to narrow the result to the In Basket
       // subset.
-      if (tab === "clients") {
+      // Active clients feed the Clients tab and the Providers audience tab's
+      // active section.
+      if (tab === "clients" || tab === "providers") {
         const r = await fetch(
           `/api/admin/medjobs/clients?with_pending_task=true`,
         );
@@ -267,9 +299,13 @@ export function MedJobsTabPage({
   );
 
   const renderRow = useCallback(
-    (row: TabRow) => (
+    // slotTab selects the card's action-slots (buildRowSlots). Audience tabs
+    // pass an explicit underlying key per section ("prospects" for the
+    // prospecting rows, "partners" for the active-partner rows) so each row
+    // gets the right buttons even though the active tab is providers/partner_book.
+    (row: TabRow, slotTab: TabKey = tab) => (
       <RowCard
-        tab={tab}
+        tab={slotTab}
         row={row}
         recentlyMoved={isRecent(row.id)}
         onOpenDrawer={() => setOpenOutreachId(row.id)}
@@ -297,6 +333,60 @@ export function MedJobsTabPage({
       />
     ),
     [tab, callAction, isRecent],
+  );
+
+  // Shared prospect-research handlers — used by the Prospects tab and the
+  // Providers / Partners audience tabs (which reuse ResearchTabContent for
+  // their prospecting sections).
+  const startProviderOutreach = useCallback(
+    async (p: ProviderProspectRow) => {
+      try {
+        const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
+        });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || "Failed to materialize");
+        await refetch();
+        setOpenOutreachId(body.id);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to start outreach");
+      }
+    },
+    [refetch],
+  );
+
+  // Client list renderer — shared by the Clients tab and the Providers
+  // audience tab's active section.
+  const renderClientList = useCallback(
+    (list: ClientRow[]) => (
+      <ul className="space-y-2">
+        {list.map((r) => (
+          <li key={r.id}>
+            <ClientCard
+              row={r}
+              onManage={() => setOpenProviderId(r.id)}
+              overflowMenu={
+                <CardOverflowMenu
+                  items={[
+                    {
+                      label: "Mark as unread",
+                      onClick: async () => {
+                        await markEntityUnread("client", r.id);
+                        await refetch();
+                        refreshMedJobs();
+                      },
+                    },
+                  ]}
+                />
+              }
+            />
+          </li>
+        ))}
+      </ul>
+    ),
+    [markEntityUnread, refetch],
   );
 
   // Always show the four core operational tabs (Prospects · Calls · Emails ·
@@ -356,7 +446,7 @@ export function MedJobsTabPage({
         <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
       </header>
 
-      <InBasketHero />
+      <InBasketHero tabCounts={tabCounts} tabUnreadCounts={tabUnreadCounts} />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="min-w-[220px] flex-1">
@@ -471,48 +561,72 @@ export function MedJobsTabPage({
             {" "}to review what you and the team finished.
           </p>
         </div>
+      ) : tab === "providers" ? (
+        // Provider audience queue: prospecting (catchment agency prospects)
+        // folded with active clients. Provider-kind materialized rows + virtual
+        // catchment cards render via ResearchTabContent (provider side only).
+        <div>
+          {/* Prospecting: agencies in catchment */}
+          <section>
+            <ResearchTabContent
+              rows={rows.filter((r) => r.kind === "provider")}
+              providerProspects={providerProspects}
+              researchCampuses={[]}
+              renderRow={(row) => renderRow(row, "prospects")}
+              onStartProviderOutreach={startProviderOutreach}
+              tabCountsAll={tabCounts?.all ?? 0}
+            />
+          </section>
+          {/* Active clients with pending steps — hairline divider, no title */}
+          <section className="mt-6 border-t border-gray-100 pt-6">
+            {clientRows.length === 0 ? (
+              <p className="py-8 text-center text-sm text-gray-400">
+                No clients with pending steps right now.
+              </p>
+            ) : (
+              renderClientList(clientRows)
+            )}
+          </section>
+        </div>
+      ) : tab === "partner_book" ? (
+        // Partner audience queue: prospecting (campus stakeholders + research
+        // cards) folded with active partners. Partner-kind prospect rows render
+        // via ResearchTabContent (partner side only); active partners below.
+        <div>
+          {/* Prospecting: campus stakeholders + research cards */}
+          <section>
+            <ResearchTabContent
+              rows={rows.filter((r) => r.kind !== "provider")}
+              providerProspects={[]}
+              researchCampuses={researchCampuses}
+              renderRow={(row) => renderRow(row, "prospects")}
+              onStartProviderOutreach={startProviderOutreach}
+              tabCountsAll={tabCounts?.all ?? 0}
+            />
+          </section>
+          {/* Active partners with pending steps — hairline divider, no title */}
+          <section className="mt-6 border-t border-gray-100 pt-6">
+            {partnerRows.length === 0 ? (
+              <p className="py-8 text-center text-sm text-gray-400">
+                No partners have open tasks right now.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {partnerRows.map((row) => (
+                  <li key={row.row_key ?? row.id}>{renderRow(row, "partners")}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       ) : tab === "prospects" ? (
         <ResearchTabContent
           rows={rows}
           providerProspects={providerProspects}
           researchCampuses={researchCampuses}
           renderRow={renderRow}
-          onStartProviderOutreach={async (p) => {
-            try {
-              const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
-              });
-              const body = await res.json();
-              if (!res.ok) throw new Error(body.error || "Failed to materialize");
-              await refetch();
-              setOpenOutreachId(body.id);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Failed to start outreach");
-            }
-          }}
+          onStartProviderOutreach={startProviderOutreach}
           onOpenCampusResearch={(campus) => setBulkResearchCampus(campus)}
-          onMarkResearchComplete={async (campus) => {
-            try {
-              const res = await fetch(
-                `/api/admin/student-outreach/campuses/${campus.slug}`,
-                {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ research_complete: true }),
-                },
-              );
-              if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                throw new Error(body.error || "Failed to mark research complete");
-              }
-              await refetch();
-              refreshMedJobs();
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Failed to mark research complete");
-            }
-          }}
           tabCountsAll={tabCounts?.all ?? 0}
         />
       ) : tab === "replies" ? (
@@ -555,30 +669,7 @@ export function MedJobsTabPage({
             No clients with pending steps right now.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {clientRows.map((r) => (
-              <li key={r.id}>
-                <ClientCard
-                  row={r}
-                  onManage={() => setOpenProviderId(r.id)}
-                  overflowMenu={
-                    <CardOverflowMenu
-                      items={[
-                        {
-                          label: "Mark as unread",
-                          onClick: async () => {
-                            await markEntityUnread("client", r.id);
-                            await refetch();
-                            refreshMedJobs();
-                          },
-                        },
-                      ]}
-                    />
-                  }
-                />
-              </li>
-            ))}
-          </ul>
+          renderClientList(clientRows)
         )
       ) : tab === "candidates" ? (
         candidateRows.length === 0 ? (

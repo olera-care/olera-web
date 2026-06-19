@@ -560,6 +560,11 @@ export interface TabCounts {
   all: number;
   clients?: number;
   campuses?: number;
+  // Audience queues — server-composed totals for the In Basket primary bar.
+  // providers   = virtual provider prospects + clients-with-task
+  // partner_book = partner prospects + research cards + active-partners-with-task
+  providers?: number;
+  partner_book?: number;
   // v9.0 Phase 5: legacy menu-tab keys retained on the type so
   // callers indexing by TabKey type-check, even though these tabs
   // are no longer rendered in In Basket (their content moved to
@@ -592,6 +597,8 @@ export interface TabUnreadCounts {
   all: number;
   clients?: number;
   campuses?: number;
+  providers?: number;
+  partner_book?: number;
   outbound?: number;
   emails_sent?: number;
   signups?: number;

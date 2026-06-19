@@ -4,7 +4,7 @@
  *
  * Fired (fire-and-forget) when an eligible provider clicks "Grab a time with
  * me" on the Dr. DuBose note. Sends a best-effort Slack ping so the team knows
- * to follow up on host requirements + onboarding. Never blocks the user —
+ * to follow up on employer requirements + onboarding. Never blocks the user —
  * always returns ok; the booking link opens regardless.
  *
  * Auth: signed-in provider. No DB writes (the eligibility flag already records

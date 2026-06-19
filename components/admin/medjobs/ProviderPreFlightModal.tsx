@@ -57,7 +57,11 @@ import {
 } from "@/lib/student-outreach/sequencer";
 import type { Contact, SmartleadPreviewSnapshot } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
-import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
+import {
+  getProgramPdfConfig,
+  resolveProgramPdfConfig,
+  type PdfAudience,
+} from "@/lib/program-pdf/configs";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 
@@ -170,8 +174,11 @@ export function ProviderPreFlightModal({
   // admin sees the outreach package before launching. Resolution
   // mirrors the server's loadProgramPdfAttachment order:
   //   1. campus.program_pdf_url override (custom upload)
-  //   2. lib/program-pdf/configs/<slug>.ts (template config)
-  //   3. null — no PDF indicator, no attachment
+  //   2. lib/program-pdf/configs/<slug>.ts (campus-specific config)
+  //   3. the generic floor config for this audience (standard flyer)
+  // There is always a PDF — the generic config is the floor, so launch is
+  // never blocked on a missing per-campus flyer.
+  const hasCampusConfig = Boolean(campusSlug && getProgramPdfConfig(campusSlug, pdfAudience));
   const programPdfAttachment = (() => {
     if (campusProgramPdfUrl) {
       const filename =
@@ -183,20 +190,22 @@ export function ProviderPreFlightModal({
         previewUrl: campusProgramPdfUrl,
       };
     }
-    if (!campusSlug) return null;
-    const config = getProgramPdfConfig(campusSlug, pdfAudience);
+    const config = resolveProgramPdfConfig(campusSlug, pdfAudience);
     if (!config) return null;
+    // config.slug is the campus slug when configured, else "generic". The route
+    // also falls back to generic, so linking the campus slug is equivalent.
     return {
-      source: "template" as const,
+      source: hasCampusConfig ? ("template" as const) : ("generic" as const),
       filename: `${config.slug}-${pdfAudience === "student" ? "student-program" : "student-caregiver-program"}.pdf`,
       previewUrl: `/api/medjobs/program-pdf?university=${config.slug}&audience=${pdfAudience}`,
     };
   })();
 
-  // The Smartlead email links the RENDERED config PDF (not the override), so a
-  // launch is only valid when a config exists for this campus + audience. Hard
-  // block (mirrors the server gate) — never ship a broken/marketing flyer link.
-  const pdfConfigured = Boolean(campusSlug && getProgramPdfConfig(campusSlug, pdfAudience));
+  // A flyer always resolves (campus upload, campus config, or the generic
+  // floor), so launch is never blocked. usingGenericFlyer drives the soft
+  // "standard flyer" note in place of the old hard block.
+  const pdfConfigured = programPdfAttachment != null;
+  const usingGenericFlyer = programPdfAttachment?.source === "generic";
   // Build the recipient roster. First slot (when present) is the
   // synthetic General Contact row — organization-level fallback
   // (research_data.general_contact || business_profiles fields).
@@ -393,11 +402,11 @@ export function ProviderPreFlightModal({
             </p>
           )}
 
-          {!pdfConfigured && (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              ⚠ No {pdfAudience === "student" ? "student flyer" : "provider brochure"} PDF
-              is configured for {campusName}. The emails promise a {pdfAudience === "student" ? "flyer" : "brochure"} —
-              launching is blocked until the {pdfAudience} program PDF exists for this campus.
+          {usingGenericFlyer && (
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Using the standard Olera {pdfAudience === "student" ? "student flyer" : "provider brochure"} —
+              no campus-specific {pdfAudience === "student" ? "flyer" : "brochure"} is configured for {campusName}.
+              Launch is fine; add a campus config or upload a custom PDF later to personalize it.
             </p>
           )}
 
@@ -424,7 +433,8 @@ export function ProviderPreFlightModal({
               Program PDF:{" "}
               {programPdfAttachment ? (
                 <span className="text-gray-700">
-                  ✓ linked in body per email ({programPdfAttachment.filename}){" "}
+                  ✓ linked in body per email ({programPdfAttachment.filename}
+                  {usingGenericFlyer ? " · standard flyer" : ""}){" "}
                   <a
                     href={programPdfAttachment.previewUrl}
                     target="_blank"
@@ -436,8 +446,7 @@ export function ProviderPreFlightModal({
                 </span>
               ) : (
                 <span className="text-amber-700">
-                  ✗ no PDF configured for {campusName} — emails will ship
-                  without a program PDF link
+                  ✗ no PDF available — emails will ship without a program PDF link
                 </span>
               )}
             </p>

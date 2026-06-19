@@ -4,29 +4,27 @@
  * v9.0 Phase 7 Commit K: In Basket hero panel.
  *
  * Three-element KPI strip rendered above the In Basket tab bar.
- * Always shows the same three KPIs regardless of active tab; updates
- * live as admins work the queue (drawer mark_read, log actions, and
- * task completions all fire the shared refresh signal).
  *
- *   Queued                — total active unfinished operational
- *                            workload across all entity types, with
- *                            an unread/read sub-line.
+ *   Queued                — total work across the five In Basket surfaces
+ *                            (Providers + Partners + Calls + Emails +
+ *                            Meetings), with an unread/read sub-line. Derived
+ *                            from the same tab counts the bar shows, so the
+ *                            number always matches the sum of the badges.
  *   Logs Completed Today  — distinct steps logged today, with a
  *                            sub-breakdown by type (calls / meetings
  *                            / replies / etc.).
- *   Streak                — consecutive business days with ≥1 log,
- *                            with a one-line description of the rule.
+ *   Streak                — consecutive business days at/above the 50/day
+ *                            log target.
  *
- * Powered by /api/admin/medjobs/in-basket-stats (single round-trip
- * for all three).
+ * Queued comes from props (the page already fetches tab counts); logs + streak
+ * come from /api/admin/medjobs/in-basket-stats.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
+import type { TabCounts, TabUnreadCounts } from "@/lib/student-outreach/types";
 
 interface InBasketStats {
-  queued_unread: number;
-  queued_read: number;
   logs_today: number;
   logs_today_breakdown: {
     calls: number;
@@ -36,9 +34,24 @@ interface InBasketStats {
     other: number;
   };
   streak_days: number;
+  streak_target?: number;
 }
 
-export function InBasketHero() {
+// The five In Basket surfaces that make up "Queued".
+const QUEUED_KEYS = ["providers", "partner_book", "calls", "replies", "meetings"] as const;
+
+function sumQueued(counts: TabCounts | TabUnreadCounts | null | undefined): number {
+  if (!counts) return 0;
+  return QUEUED_KEYS.reduce((acc, k) => acc + (counts[k] ?? 0), 0);
+}
+
+export function InBasketHero({
+  tabCounts,
+  tabUnreadCounts,
+}: {
+  tabCounts: TabCounts | null;
+  tabUnreadCounts: TabUnreadCounts | null;
+}) {
   const [stats, setStats] = useState<InBasketStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,20 +77,24 @@ export function InBasketHero() {
   }, [refetch]);
   useMedJobsRefresh(refetch);
 
-  const queuedTotal = stats ? stats.queued_unread + stats.queued_read : null;
-  const queuedSub = stats
-    ? `${stats.queued_unread} unread · ${stats.queued_read} read`
-    : null;
+  // Queued = sum of the five surfaces, from the tab counts the page already has.
+  const queuedTotal = tabCounts ? sumQueued(tabCounts) : null;
+  const queuedUnread = sumQueued(tabUnreadCounts);
+  const queuedSub =
+    queuedTotal != null
+      ? `${queuedUnread} unread · ${Math.max(0, queuedTotal - queuedUnread)} read`
+      : null;
 
   const logsBreakdownSub = stats ? formatLogBreakdown(stats.logs_today_breakdown) : null;
+  const target = stats?.streak_target ?? 50;
 
   return (
     <div className="mb-4 grid grid-cols-3 gap-3">
       <Tile
         label="Queued"
-        value={queuedTotal != null ? String(queuedTotal) : loading ? "…" : "—"}
+        value={queuedTotal != null ? String(queuedTotal) : "…"}
         sub={queuedSub ?? undefined}
-        title="Total active unfinished operational workload across all entity types — student outreach, partner relationships, entity tasks. Unread items get bold treatment in their lists; queue position is recency, not urgency."
+        title="Total work across the five In Basket surfaces — Providers, Partners, Calls, Emails, Meetings. Equals the sum of the tab badges. Unread items get bold treatment in their lists; queue position is recency, not urgency."
       />
       <Tile
         label="Logs completed today"
@@ -88,8 +105,8 @@ export function InBasketHero() {
       <Tile
         label="Streak"
         value={stats ? streakLabel(stats.streak_days) : loading ? "…" : "—"}
-        sub="Consecutive business days hitting your log goal (target: 50/day)."
-        title="Mon–Fri days with at least one logged step. Weekends are skipped, not streak-breaking. The 50/day target is directional for now — the streak counts any business day with at least one log."
+        sub={`Consecutive business days hitting ${target} logs. Weekends skipped.`}
+        title={`Mon–Fri days at or above the ${target}-logs daily target. Weekends are skipped, not streak-breaking. An in-progress today below target doesn't reset the streak.`}
       />
     </div>
   );

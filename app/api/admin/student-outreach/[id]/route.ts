@@ -28,7 +28,7 @@ import {
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import { executeEmailTask } from "@/lib/student-outreach/auto-send-executor";
-import { getProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
+import { resolveProgramPdfConfig, type PdfAudience } from "@/lib/program-pdf/configs";
 import {
   buildSmartleadPreview,
   enrollRowIntoCampusCampaign,
@@ -2499,24 +2499,23 @@ async function handleStopAllOutreach(db: DB, row: OutreachRow, userId: string) {
 }
 
 /**
- * Hard PDF gate. The Smartlead email body links the RENDERED program PDF
- * (/api/medjobs/program-pdf?university=<slug>&audience=<aud>), never the
- * campus override — so the link only works when a code config exists for this
- * campus + audience. Without one the "flyer" link 404s (or, with no slug,
- * silently becomes the marketing page). Refuse to enroll so we never ship a
- * broken/marketing-page link where the copy promises a flyer/brochure.
+ * PDF gate. The Smartlead email body links the RENDERED program PDF
+ * (/api/medjobs/program-pdf?university=<slug>&audience=<aud>). That route falls
+ * back to the generic floor config when a campus has no specific config, so the
+ * link always resolves to a real flyer/brochure — the campus slug never 404s.
+ * This gate therefore only refuses to enroll in the (shouldn't-happen) case
+ * where even the generic floor config is missing for the audience.
  */
 function requireProgramPdf(
   campusSlug: string | null,
   audience: PdfAudience,
   campusName: string,
 ): void {
-  if (campusSlug && getProgramPdfConfig(campusSlug, audience)) return;
+  if (resolveProgramPdfConfig(campusSlug, audience)) return;
   const what = audience === "student" ? "student flyer" : "provider brochure";
   throw new Error(
-    `No ${audience} program PDF is configured for ${campusName} — outreach emails ` +
-      `would link a broken page instead of the ${what}. Add the ${audience} PDF ` +
-      `config for this campus, then relaunch.`,
+    `No ${audience} program PDF available for ${campusName} — not even the ` +
+      `generic ${what}. Check lib/program-pdf/configs.`,
   );
 }
 

@@ -251,9 +251,19 @@ export function ResearchTabContent({
     // which is what made a freshly-clicked prospect jump to the end of the
     // list. The per-card node cache (above) is what keeps re-renders cheap;
     // sorting by a stable key is what keeps positions correct.
+    // Shared provider identity key: a virtual prospect and the outreach row
+    // it materializes into both key to `${olera_provider_id}|${campus_id}`,
+    // so materialization is an in-place content swap (same key, same sort
+    // position) instead of a remove + re-add that jumps the card. Falls back
+    // to the row id for legacy rows without an olera_provider_id.
+    const providerKey = (row: (typeof providerRows)[number]): string => {
+      const opid = (row.research_data as { olera_provider_id?: string } | null)
+        ?.olera_provider_id;
+      return opid ? `${opid}|${row.campus_id}` : row.row_key ?? row.id;
+    };
     const sorted = [
       ...providerRows.map((row) => {
-        const key = row.row_key ?? row.id;
+        const key = providerKey(row);
         return { key, sortKey: row.created_at, node: cachedNode(key, row, () => renderRow(row)) };
       }),
       ...providerProspects.map((p) => ({

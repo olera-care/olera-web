@@ -418,6 +418,15 @@ export function MedJobsTabPage({
     [tab, callAction, isRecent, setStakeholderRead],
   );
 
+  // Stable wrapper for the audience tabs' prospect rows (providers /
+  // partner_book pass slotTab="prospects"). Inlining `(row) => renderRow(
+  // row, "prospects")` created a new function every render, defeating the
+  // per-card element cache in ResearchTabContent.
+  const renderProspectRow = useCallback(
+    (row: TabRow) => renderRow(row, "prospects"),
+    [renderRow],
+  );
+
   // Shared prospect-research handlers — used by the Prospects tab and the
   // Providers / Partners audience tabs (which reuse ResearchTabContent for
   // their prospecting sections).
@@ -534,7 +543,7 @@ export function MedJobsTabPage({
           title="Branch build marker"
           className="rounded-full bg-fuchsia-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white"
         >
-          dejank build · pass-1
+          dejank build · pass-2
         </span>
       </header>
 
@@ -662,7 +671,7 @@ export function MedJobsTabPage({
               rows={rows.filter((r) => r.kind === "provider")}
               providerProspects={providerProspects}
               researchCampuses={[]}
-              renderRow={(row) => renderRow(row, "prospects")}
+              renderRow={renderProspectRow}
               onStartProviderOutreach={startProviderOutreach}
               tabCountsAll={tabCounts?.all ?? 0}
             />
@@ -689,7 +698,7 @@ export function MedJobsTabPage({
               rows={rows.filter((r) => r.kind !== "provider")}
               providerProspects={[]}
               researchCampuses={researchCampuses}
-              renderRow={(row) => renderRow(row, "prospects")}
+              renderRow={renderProspectRow}
               onStartProviderOutreach={startProviderOutreach}
               tabCountsAll={tabCounts?.all ?? 0}
             />

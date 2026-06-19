@@ -67,10 +67,13 @@ export function ResearchTabContent({
 }) {
   const router = useRouter();
   const [researchCampus, setResearchCampus] = useState<ResearchCampusCard | null>(null);
-  // Established render order for the provider section (see providerItems
-  // below). Declared here so the hook runs unconditionally, before the
-  // empty-state early return.
+  // Established render order + per-card element cache for the provider
+  // section (see providerItems below). Declared here so the hooks run
+  // unconditionally, before the empty-state early return.
   const orderRef = useRef<string[]>([]);
+  const nodeCacheRef = useRef<Map<string, { src: unknown; node: ReactNode }>>(
+    new Map(),
+  );
   // Split materialized rows by kind. Provider-kind rows belong with the
   // virtual provider catchment cards; everything else is a stakeholder
   // (advisor / professor / dept_head / student_org) that lives under
@@ -215,16 +218,40 @@ export function ResearchTabContent({
   // Only a genuine change to the set of cards moves anything. Replaces the
   // every-render re-sort by created_at, where order was derived from a
   // refetched/mutable field and so shuffled whenever the list re-rendered.
+  // Per-card element cache. A card's rendered element is reused (SAME
+  // object reference) as long as its source row object is unchanged, so
+  // React bails out of re-rendering that card entirely. An optimistic read
+  // flip (setStakeholderRead) creates a new object ONLY for the clicked
+  // row — every other row keeps its reference — so opening an unread card
+  // re-renders just that one card instead of all ~60. That double-work
+  // (full-list re-render + drawer mount in one commit) is what made
+  // opening an UNREAD card slow while a READ card opened instantly.
   let providerItems: Array<{ key: string; node: ReactNode }> = [];
   if (hasProvider) {
+    const nextCache = new Map<string, { src: unknown; node: ReactNode }>();
+    const cachedNode = (key: string, src: unknown, make: () => ReactNode): ReactNode => {
+      const prev = nodeCacheRef.current.get(key);
+      const node = prev && prev.src === src ? prev.node : make();
+      nextCache.set(key, { src, node });
+      return node;
+    };
     const items = new Map<string, { key: string; sortKey: string; node: ReactNode }>();
     for (const row of providerRows) {
       const key = row.row_key ?? row.id;
-      items.set(key, { key, sortKey: row.created_at, node: renderRow(row) });
+      items.set(key, {
+        key,
+        sortKey: row.created_at,
+        node: cachedNode(key, row, () => renderRow(row)),
+      });
     }
     for (const p of providerProspects) {
-      items.set(p.id, { key: p.id, sortKey: p.created_at, node: renderVirtualProspect(p) });
+      items.set(p.id, {
+        key: p.id,
+        sortKey: p.created_at,
+        node: cachedNode(p.id, p, () => renderVirtualProspect(p)),
+      });
     }
+    nodeCacheRef.current = nextCache;
     const established = orderRef.current.filter((k) => items.has(k));
     const establishedKeys = new Set(established);
     const incoming = [...items.values()]
@@ -242,6 +269,7 @@ export function ResearchTabContent({
     });
   } else {
     orderRef.current = [];
+    nodeCacheRef.current = new Map();
   }
 
   const providerCardList = hasProvider ? (

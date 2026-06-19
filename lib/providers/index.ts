@@ -6,7 +6,7 @@
  * complete an eslint guard bans raw `.from(...)` on those tables outside here.
  * See plans/provider-data-foundation.md (Step 1).
  *
- * Status: parity-first, reads only.
+ * Status: parity-first. Reads + (starting with the crons) writes.
  *  - PR #1 (provider detail page): `resolveProvider` / `resolveProviderForMeta`.
  *  - PR #2 (read-heavy routes): `searchProviders` (organization-search) +
  *    `getProviderEmailsByIds` (admin leads email-fallback).
@@ -14,6 +14,9 @@
  *    `exportDirectoryRows` (OP + orphan-BP union reads).
  *  - PR #3 (sitemap): `countActiveProviders` / `getActiveProviderGeoByCategory`
  *    / `getActiveProvidersForSitemapShard` / `getActiveClaimedProviderSlugs`.
+ *  - Crons A (aggregate-views + google-reviews): `getProviderDimensionsByIdentifiers`
+ *    + `getClaimedProviderSlugs` / `getProvidersForReviewRefresh` /
+ *    `updateProviderGoogleReviews` (first provider-table WRITE behind the door).
  */
 export type { ProviderView, ProviderSource, ResolveResult } from "./types";
 export { directoryRowToProvider, accountRowToProvider } from "./adapters";
@@ -22,8 +25,15 @@ export {
   resolveProviderForMeta,
   getClaimedAccount,
   getProviderEmailsByIds,
+  getProviderDimensionsByIdentifiers,
 } from "./resolve.server";
-export type { ProviderMeta, ClaimedAccount } from "./resolve.server";
+export type { ProviderMeta, ClaimedAccount, ProviderDimensions } from "./resolve.server";
+export {
+  getClaimedProviderSlugs,
+  getProvidersForReviewRefresh,
+  updateProviderGoogleReviews,
+} from "./reviews.server";
+export type { ReviewRefreshProvider } from "./reviews.server";
 export { searchProviders } from "./search.server";
 export type { ProviderSearchResponse } from "./search.server";
 export { countDirectory, listDirectory, exportDirectoryRows } from "./directory.server";

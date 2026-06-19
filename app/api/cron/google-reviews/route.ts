@@ -3,6 +3,11 @@ import { getServiceClient } from "@/lib/admin";
 import { fetchGoogleReviews } from "@/lib/google-places";
 import type { GoogleReviewsData } from "@/lib/types";
 import { withCronRun } from "@/lib/crons/run";
+import {
+  getClaimedProviderSlugs,
+  getProvidersForReviewRefresh,
+  updateProviderGoogleReviews,
+} from "@/lib/providers";
 
 /**
  * GET /api/cron/google-reviews
@@ -33,29 +38,19 @@ export async function GET(request: NextRequest) {
   try {
     // ── Tier 1: Claimed providers with stale data ──
     // These are providers who've claimed their page (have a matching business_profile)
-    const { data: claimedSlugs } = await db
-      .from("business_profiles")
-      .select("slug")
-      .eq("claim_state", "claimed")
-      .not("slug", "is", null);
-
-    const claimedSlugSet = new Set((claimedSlugs ?? []).map((r) => r.slug));
+    const claimedSlugSet = await getClaimedProviderSlugs(db);
 
     // ── Fetch all providers needing refresh ──
     // Single query: has place_id, not deleted, stale or never synced
-    const { data: providers, error: fetchErr } = await db
-      .from("olera-providers")
-      .select("provider_id, place_id, slug, google_reviews_data, last_viewed_at")
-      .eq("deleted", false)
-      .not("place_id", "is", null)
-      .limit(5000);
-
-    if (fetchErr) {
-      console.error("[google-reviews-cron] Failed to fetch providers:", fetchErr);
+    let providers;
+    try {
+      providers = await getProvidersForReviewRefresh(db);
+    } catch {
+      // getProvidersForReviewRefresh already logged the underlying error.
       return NextResponse.json({ error: "DB error" }, { status: 500 });
     }
 
-    if (!providers?.length) {
+    if (!providers.length) {
       return NextResponse.json({ message: "No providers to refresh", stats });
     }
 
@@ -65,7 +60,7 @@ export async function GET(request: NextRequest) {
     for (const p of providers) {
       const existing = p.google_reviews_data as GoogleReviewsData | null;
       const lastSynced = existing?.last_synced ? new Date(existing.last_synced) : null;
-      const isClaimed = claimedSlugSet.has(p.slug);
+      const isClaimed = claimedSlugSet.has(p.slug as string);
       const wasViewedRecently = p.last_viewed_at && new Date(p.last_viewed_at) > new Date(thirtyDaysAgo);
 
       if (isClaimed && (!lastSynced || lastSynced < new Date(thirtyDaysAgo))) {
@@ -94,16 +89,7 @@ export async function GET(request: NextRequest) {
           const data = await fetchGoogleReviews(p.place_id);
           if (!data) return null;
 
-          const { error: updateErr } = await db
-            .from("olera-providers")
-            .update({ google_reviews_data: data })
-            .eq("provider_id", p.provider_id);
-
-          if (updateErr) {
-            console.error(`[google-reviews-cron] Update failed for ${p.provider_id}:`, updateErr);
-            throw updateErr;
-          }
-
+          await updateProviderGoogleReviews(p.provider_id, data, db);
           return p.provider_id;
         }),
       );

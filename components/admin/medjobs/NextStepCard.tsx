@@ -392,14 +392,17 @@ function CallDueBody({
         </p>
       )}
       {callScript && (
-        <details className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-          <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            {callDay != null ? `Day ${callDay} script` : "Suggested script"}
-          </summary>
-          <pre className="mt-2 whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
+        // Visible by default — the opener is the whole point of the call step.
+        // Hiding it behind a click made admins improvise the hardest moment
+        // (the cold open). Read-off-able the instant the card appears.
+        <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+            {callDay != null ? `Day ${callDay} script — read this` : "Script — read this"}
+          </p>
+          <pre className="mt-1.5 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-gray-800">
             {callScript}
           </pre>
-        </details>
+        </div>
       )}
       <ActivationActions
         ctx={ctx}

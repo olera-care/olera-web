@@ -88,11 +88,17 @@ export const PARTNER_PROGRAM_URL = "https://olera.care/medjobs#help";
 
 /**
  * Canonical program name. Single source of truth so the framing never drifts
- * back to "internship". Defaults to the {campus_name} placeholder; pass a real
- * campus when rendering outside the template-substitution path.
+ * back to "internship".
+ *
+ * The university name is deliberately NOT part of the brand. Possessive
+ * framing like "Olera's <University> Student Caregiver Program" implies the
+ * university runs or endorses the program, which it doesn't — a trademark /
+ * false-affiliation risk for a public university's protected name. The campus
+ * is referenced descriptively in body copy instead ("students near
+ * <campus>"), which keeps the name legally clean while staying personal.
  */
-export function programName(campus: string = "{campus_name}"): string {
-  return `Olera's ${campus} Student Caregiver Program`;
+export function programName(): string {
+  return "Olera's Student Caregiver Program";
 }
 
 const PLACEHOLDER = {
@@ -118,8 +124,8 @@ const PLACEHOLDER = {
   applyUrl: "{apply_url}",
 };
 
-/** Program name with the {campus_name} placeholder baked in (template use). */
-const PROGRAM_NAME = programName(PLACEHOLDER.campus);
+/** Canonical program name (no university name baked in — see programName). */
+const PROGRAM_NAME = programName();
 
 /** Uniform subject for every activation-cadence email (provider + partner). */
 const ACTIVATION_SUBJECT = "Follow up - Olera's Student Caregiver Program";
@@ -972,16 +978,16 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
     return {
       title: "Day 0 — referenced email",
       script: [
-        `"Hi, this is ${ctx.admin_first_name ?? "Graize"} calling from Dr. Logan DuBose's office. I'm a research assistant on Olera's ${ctx.campus_name} Student Caregiver Program."`,
+        `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office at Olera. We run a Student Caregiver Program that places pre-health students in paid caregiver roles at home care agencies near ${ctx.campus_name}."`,
         ``,
-        `"I came across ${ctx.organization_name} while we were identifying home care agencies near ${ctx.campus_name} for the program, and I wanted to reach out personally. We place vetted pre-health students into caregiver roles at home care agencies like yours, as paid healthcare experience for the students. I wanted to see if you'd consider hiring a student caregiver this fall."`,
+        `"I came across ${ctx.organization_name} while identifying agencies near ${ctx.campus_name} for the program, and wanted to see if you'd consider hiring a student caregiver this fall. Could you point me to whoever handles caregiver hiring?"`,
       ].join("\n"),
     };
   }
   return {
     title: `Day ${day} follow-up`,
     script: [
-      `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office, following up on prior outreach about Olera's ${ctx.campus_name} Student Caregiver Program. Just hoping to connect with whoever handles staffing at ${ctx.organization_name}."`,
+      `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office at Olera, following up on our note to ${ctx.organization_name} about Olera's Student Caregiver Program for pre-health students near ${ctx.campus_name}. Is there a better person or email I should send the details to?"`,
     ].join("\n"),
   };
 }

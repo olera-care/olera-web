@@ -341,21 +341,19 @@ function StatusCard({
  * an outcome.
  */
 function SuggestedScript({ campusName }: { campusName: string | null }) {
-  const campus = campusName?.trim() || "your campus";
+  const campus = campusName?.trim() || "campus";
   return (
     <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
         Suggested script
       </p>
       <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
-        &ldquo;Hi, this is Graize calling on behalf of Dr. Logan DuBose
-        and Olera&apos;s {campus} Student Caregiver Program. We found
-        this email online and are planning to send over information
-        about the program. Before we do, we wanted to confirm this is
-        the right general email — and ask whether there&apos;s someone
-        in hiring, recruiting, or ownership who would be the best
-        person to review the program info. Is there a specific person
-        we should send it to?&rdquo;
+        &ldquo;Hi, this is [your name] from Dr. Logan DuBose&apos;s
+        office at Olera. We run a Student Caregiver Program that places
+        pre-health students in paid caregiver roles at home care
+        agencies near {campus}. I&apos;d like to send over some details
+        — could you point me to the best email for whoever handles
+        caregiver hiring?&rdquo;
       </p>
     </section>
   );

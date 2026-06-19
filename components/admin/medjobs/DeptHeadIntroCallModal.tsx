@@ -138,12 +138,13 @@ export function DeptHeadIntroCallModal({
           Suggested script
         </p>
         <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
-          &ldquo;Hello, this is Graize, a research assistant working with Dr. Logan
-          DuBose at Olera. I&apos;m reaching out about our {campus} Student Caregiver
-          Program for pre-health students, and wanted to introduce myself before
-          sending the details. Are you the right person to share this with, or is
-          there a better contact? I&apos;ll follow up by email with a short student
-          flyer and an invitation to meet Dr. DuBose.&rdquo;
+          &ldquo;Hello, this is [your name], a research assistant in Dr. Logan
+          DuBose&apos;s office at Olera. I&apos;m reaching out about Olera&apos;s
+          Student Caregiver Program for pre-health students near {campus}, and
+          wanted to introduce myself before sending the details. Are you the right
+          person to share this with, or is there a better contact? I&apos;ll follow
+          up by email with a short student flyer and an invitation to meet Dr.
+          DuBose.&rdquo;
         </p>
       </section>
 

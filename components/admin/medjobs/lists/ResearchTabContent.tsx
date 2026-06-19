@@ -215,7 +215,12 @@ export function ResearchTabContent({
           sortKey: p.created_at,
           node: renderVirtualProspect(p),
         })),
-      ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+      ].sort((a, b) => {
+        const byDate = b.sortKey.localeCompare(a.sortKey);
+        // Tiebreak by stable key so cards sharing a created_at (e.g. the
+        // unknown-date prospect cohort) don't shuffle between renders.
+        return byDate !== 0 ? byDate : a.key.localeCompare(b.key);
+      })
     : [];
 
   const providerCardList = hasProvider ? (

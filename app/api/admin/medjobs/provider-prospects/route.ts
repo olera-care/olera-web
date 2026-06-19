@@ -120,8 +120,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Sort: most recent provider creation first (newest agencies
-    // surface to the top — likeliest to need outreach soon).
-    rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // surface to the top — likeliest to need outreach soon). Tiebreak by
+    // id so providers sharing a created_at (e.g. the unknown-date cohort)
+    // hold a stable order across refreshes instead of shuffling.
+    rows.sort((a, b) => {
+      const byDate = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return byDate !== 0 ? byDate : a.id.localeCompare(b.id);
+    });
 
     return NextResponse.json({ rows, total: rows.length });
   } catch (err) {

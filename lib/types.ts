@@ -529,6 +529,9 @@ export interface StudentMetadata {
   advance_notice_pledge?: boolean;
   prn_willing?: boolean;
 
+  // Skills (matches job-posting SKILLS for matching)
+  skills?: string[];
+
   // Scenario Responses
   scenario_responses?: Array<{
     question: string;

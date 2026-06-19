@@ -40,6 +40,7 @@ export type SectionId =
   | "why"
   | "scenarios"
   | "background"
+  | "skills"
   | "resume";
 
 export interface CompletenessSection {
@@ -131,6 +132,13 @@ export function getSectionCompleteness(
   const backgroundDone = backgroundItems.filter((i) => i.done).length;
   const backgroundPercent = Math.round((backgroundDone / backgroundItems.length) * 100);
 
+  // 7b. Skills
+  const skillsItems = [
+    { key: "skills", label: "Skills", done: (meta.skills?.length ?? 0) >= 1 },
+  ];
+  const skillsDone = skillsItems.filter((i) => i.done).length;
+  const skillsPercent = Math.round((skillsDone / skillsItems.length) * 100);
+
   // 8. Resume & LinkedIn
   const resumeItems = [
     { key: "resume_linkedin", label: "Resume or LinkedIn", done: !!(meta.resume_url || meta.linkedin_url) },
@@ -145,6 +153,7 @@ export function getSectionCompleteness(
     { id: "why", label: "Why I Want to Be a Caregiver", percent: whyPercent, done: whyPercent === 100, items: whyItems },
     { id: "scenarios", label: "Screening Questions", percent: scenariosPercent, done: scenariosPercent === 100, items: scenarioItems },
     { id: "background", label: "Background & Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
+    { id: "skills", label: "Skills", percent: skillsPercent, done: skillsPercent === 100, items: skillsItems },
     { id: "resume", label: "Resume & LinkedIn", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
     { id: "verification", label: "Verification", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },
   ];

@@ -4,4 +4,5 @@ export { default as AvailabilityCard } from "./AvailabilityCard";
 export { default as WhyCard } from "./WhyCard";
 export { default as ScenariosCard } from "./ScenariosCard";
 export { default as BackgroundCard } from "./BackgroundCard";
+export { default as SkillsCard } from "./SkillsCard";
 export { default as ResumeCard } from "./ResumeCard";

@@ -411,12 +411,7 @@ export async function sendEmail(
       ? to[0]
       : null
     : to;
-  if (
-    soleRecipient &&
-    emailType &&
-    !SUPPRESSION_EXEMPT_TYPES.has(emailType) &&
-    !(await isTrustedRecipient(soleRecipient))
-  ) {
+  if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
     // Cold lane = mail to scraped / unclaimed directory addresses (the high-bounce
     // pool). Two signals: a cold provider-notification type, OR a send whose From
     // resolved to the isolated PROVIDER_NOTIFY_FROM domain — the weekly digest's
@@ -450,6 +445,14 @@ export async function sendEmail(
       // Every other (transactional) type stays cache-only (isUndeliverable) so the
       // transactional path never makes a network call. Also fails OPEN.
       suppressReason = "verified undeliverable";
+    }
+    // A human-trusted address (email_overrides) supersedes ANY suppression
+    // signal above — a person confirmed the inbox is real, which beats a stale
+    // bounce or a predictive verdict. Only pay for this lookup when we'd
+    // otherwise drop the send (rare), never on the hot path of every send.
+    if (suppressReason && (await isTrustedRecipient(soleRecipient))) {
+      console.log(`[email] Trusted override — sending ${emailType} to ${soleRecipient} despite: ${suppressReason}`);
+      suppressReason = null;
     }
     if (suppressReason) {
       console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — ${suppressReason}`);

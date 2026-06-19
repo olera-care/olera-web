@@ -999,9 +999,9 @@ export default function Navbar() {
           </div>
 
           {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col">
-            {/* Logged-out: my-auto centers the short nav in the void (scroll-safe, unlike justify-center). max-w-md keeps a tidy column on tablet. */}
-            <div className={`flex flex-col w-full max-w-md mx-auto ${!authLoading && !hasSession ? "my-auto" : ""}`}>
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {/* Top-anchored list (Apple Settings / Airbnb sections), not centered. max-w-md keeps a tidy column on tablet. */}
+            <div className="flex flex-col w-full max-w-md mx-auto">
               {authLoading ? (
                 /* Loading state - show skeleton while auth is initializing */
                 <div className="py-4 space-y-4">
@@ -1340,7 +1340,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                    className={`flex items-center justify-between w-full py-4 text-lg font-medium transition active:opacity-60 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center justify-between w-full py-4 text-lg font-medium border-b border-gray-100 transition active:opacity-60 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     aria-expanded={isMobileCareOpen}
                   >
                     <span className="flex items-center gap-3">
@@ -1372,7 +1372,7 @@ export default function Navbar() {
                   {/* Caregiver Support */}
                   <Link
                     href="/caregiver-support"
-                    className={`flex items-center gap-3 py-4 text-lg font-medium transition active:opacity-60 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center gap-3 py-4 text-lg font-medium border-b border-gray-100 transition active:opacity-60 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1384,7 +1384,7 @@ export default function Navbar() {
                   {/* Find Benefits */}
                   <Link
                     href="/senior-benefits"
-                    className={`flex items-center gap-3 py-4 text-lg font-medium transition active:opacity-60 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center gap-3 py-4 text-lg font-medium border-b border-gray-100 transition active:opacity-60 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

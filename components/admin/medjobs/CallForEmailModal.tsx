@@ -3,11 +3,12 @@
 /**
  * Pre-Flight Outcome Modal (formerly CallForEmailModal).
  *
- * One modal, six outcomes — the admin clicks Call to Confirm, picks the
+ * One modal, five outcomes — the admin clicks Call to Confirm, picks the
  * outcome that happened, and the modal dispatches the right action. The
  * verification gate in `verification-state.ts` reads the resulting
- * touchpoints + research_data.pre_flight_overridden flag to decide whether
- * Launch Outreach unlocks.
+ * touchpoints to decide whether Launch Outreach unlocks. Launch requires a
+ * CONFIRMED call — there is no manual override (removed); if a call doesn't
+ * connect, the prospect stays in Pre-Flight and the admin keeps trying.
  *
  * Outcomes
  * --------
@@ -21,11 +22,8 @@
  *                                    Prospect stays in Pre-Flight, research required.
  * - Not Interested                 → log_call_outcome (connected_not_interested)
  *                                    Row closes (status → not_interested).
- * - Override Pre-Flight            → override_pre_flight
- *                                    Sets research_data.pre_flight_overridden = true,
- *                                    emits a note_added touchpoint for audit.
  *
- * All six outcomes are single-click — no engagement panel, no inline
+ * All five outcomes are single-click — no engagement panel, no inline
  * contact form (Decision Maker now lives in the Research Card; admin
  * captures it there during research). Optional notes field below the
  * outcome buttons for free-text context.
@@ -49,8 +47,7 @@ type Outcome =
   | "no_answer"
   | "voicemail"
   | "wrong_number"
-  | "not_interested"
-  | "override";
+  | "not_interested";
 
 interface OutcomeChoice {
   key: Outcome;
@@ -91,13 +88,6 @@ const OUTCOME_CHOICES: OutcomeChoice[] = [
     label: "Not Interested",
     blurb: "They don't want information. Closes the row — no outreach.",
     tone: "close",
-  },
-  {
-    key: "override",
-    label: "Override Pre-Flight",
-    blurb:
-      "Bypass verification (already verified elsewhere, trusted source, leadership exception). Launch unlocks.",
-    tone: "override",
   },
 ];
 
@@ -168,9 +158,6 @@ export function CallForEmailModal({
             notes: trimmedNotes,
           });
           break;
-        case "override":
-          await action("override_pre_flight", { notes: trimmedNotes });
-          break;
       }
       onDone();
     } catch (e) {
@@ -197,11 +184,7 @@ export function CallForEmailModal({
   );
 
   const submitLabel =
-    outcome === "override"
-      ? "Override Pre-Flight"
-      : outcome === "not_interested"
-        ? "Close prospect"
-        : "Log call";
+    outcome === "not_interested" ? "Close prospect" : "Log call";
 
   return (
     <LogModalShell
@@ -252,11 +235,9 @@ export function CallForEmailModal({
           placeholder={
             outcome === "confirmed"
               ? "What did the provider confirm? Anything useful for outreach copy?"
-              : outcome === "override"
-                ? "Why are you overriding (audit trail)?"
-                : outcome === "not_interested"
-                  ? "What did they say? Useful for future re-engage decisions."
-                  : "Context for this attempt."
+              : outcome === "not_interested"
+                ? "What did they say? Useful for future re-engage decisions."
+                : "Context for this attempt."
           }
           rows={3}
           size="sm"

@@ -26,15 +26,23 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
 type OverrideReason = "phone_verified" | "official_website" | "claimed_account" | "admin";
 const VALID_REASONS = new Set<string>(["phone_verified", "official_website", "claimed_account", "admin"]);
 
+// Default question batch size when flushing via this endpoint, so a large
+// backlog (e.g. The Grove's ~24) doesn't blast the provider all at once.
+// Override with ?limit=N; pass a large N to flush everything.
+const DEFAULT_FLUSH_LIMIT = 5;
+
 async function handle(params: {
   email?: string | null;
   providerSlug?: string | null;
   reason?: string | null;
   note?: string | null;
+  limit?: string | null;
   adminEmail: string;
   adminUserId: string;
 }) {
   const { providerSlug, adminEmail, adminUserId } = params;
+  const parsedLimit = params.limit != null && params.limit !== "" ? parseInt(params.limit, 10) : NaN;
+  const flushLimit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : DEFAULT_FLUSH_LIMIT;
   const reason: OverrideReason =
     params.reason && VALID_REASONS.has(params.reason) ? (params.reason as OverrideReason) : "admin";
   const note = params.note ?? null;
@@ -112,9 +120,12 @@ async function handle(params: {
   }
 
   // Flush the pile-up for this provider, if we have one. Now that the address is
-  // trusted, the deferred sends skip suppression and actually go out.
+  // trusted, the deferred sends skip suppression and actually go out. Capped at
+  // flushLimit questions per call (newest first) so a big backlog is paced —
+  // re-hit the endpoint to send the next batch.
   let questionEmailsSent = 0;
   let leadEmailsSent = 0;
+  let questionsRemaining = 0;
   if (providerSlug && (provider || iosProvider)) {
     const iosProviderId = provider?.source_provider_id || iosProvider?.provider_id;
     const variantSet = new Set<string>();
@@ -130,9 +141,23 @@ async function handle(params: {
       providerName: provider?.display_name || iosProvider?.provider_name || providerSlug,
       providerSlug,
       additionalSlugVariants: Array.from(variantSet),
+      maxQuestions: flushLimit,
     });
     questionEmailsSent = result.questionEmailsSent;
     leadEmailsSent = result.leadEmailsSent;
+
+    // How many questions are still waiting (so the operator knows whether to
+    // run it again). Counts pending questions across all variants that haven't
+    // been emailed yet.
+    const allVariants = Array.from(new Set([providerSlug, ...variantSet]));
+    const { data: stillPending } = await db
+      .from("provider_questions")
+      .select("id, metadata")
+      .in("provider_id", allVariants)
+      .eq("status", "pending");
+    questionsRemaining = (stillPending ?? []).filter(
+      (q) => !(q.metadata as Record<string, unknown> | null)?.email_sent_at,
+    ).length;
   }
 
   await logAuditAction({
@@ -140,16 +165,19 @@ async function handle(params: {
     action: "email_override_trust",
     targetType: provider ? "business_profile" : iosProvider ? "olera_provider" : "email",
     targetId: provider?.id || iosProvider?.provider_id || email,
-    details: { email, reason, note, provider_slug: providerSlug ?? null, questionEmailsSent, leadEmailsSent },
+    details: { email, reason, note, provider_slug: providerSlug ?? null, questionEmailsSent, leadEmailsSent, questionsRemaining },
   });
 
   return NextResponse.json({
     success: true,
     email,
     reason,
-    flushed: { questionEmailsSent, leadEmailsSent },
+    flushed: { questionEmailsSent, leadEmailsSent, questionsRemaining },
     message: providerSlug
-      ? `Trusted ${email} and flushed ${questionEmailsSent} question + ${leadEmailsSent} lead notification(s).`
+      ? `Trusted ${email} and sent ${questionEmailsSent} question + ${leadEmailsSent} lead notification(s).` +
+        (questionsRemaining > 0
+          ? ` ${questionsRemaining} question(s) still waiting — re-run this URL to send the next ${flushLimit}.`
+          : " All caught up.")
       : `Trusted ${email}. Future sends will bypass suppression.`,
   });
 }
@@ -172,6 +200,7 @@ export async function POST(request: NextRequest) {
       providerSlug: body.providerSlug ?? null,
       reason: body.reason ?? null,
       note: body.note ?? null,
+      limit: body.limit != null ? String(body.limit) : null,
       adminEmail: a.adminEmail,
       adminUserId: a.adminUser.id,
     });
@@ -191,6 +220,7 @@ export async function GET(request: NextRequest) {
       providerSlug: sp.get("providerSlug"),
       reason: sp.get("reason"),
       note: sp.get("note"),
+      limit: sp.get("limit"),
       adminEmail: a.adminEmail,
       adminUserId: a.adminUser.id,
     });

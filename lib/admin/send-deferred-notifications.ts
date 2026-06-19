@@ -26,6 +26,13 @@ interface SendDeferredNotificationsOptions {
   additionalSlugVariants?: string[];
   /** If true, provider has unsubscribed from lead emails */
   leadsUnsubscribed?: boolean;
+  /**
+   * Cap how many QUESTION notifications to send this call (newest first), so a
+   * large backlog can be paced instead of blasting the provider all at once.
+   * Undefined = no cap (send all) — preserves existing add-email behavior.
+   * Leads are not capped.
+   */
+  maxQuestions?: number;
 }
 
 /**
@@ -52,6 +59,7 @@ export async function sendDeferredNotificationsForProvider(
     providerSlug,
     additionalSlugVariants = [],
     leadsUnsubscribed,
+    maxQuestions,
   } = options;
   const db = getServiceClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -326,12 +334,18 @@ export async function sendDeferredNotificationsForProvider(
 
   // Convert Set to Array for iteration (avoids TypeScript downlevelIteration issues)
   for (const slug of Array.from(slugVariants)) {
-    // Only fetch pending questions (not answered, archived, or rejected)
+    // Stop once we've hit the per-call question cap (paced flush).
+    if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
+
+    // Only fetch pending questions (not answered, archived, or rejected).
+    // Newest first so a paced/capped flush sends the freshest questions —
+    // the ones a family is most likely still waiting on.
     const { data: pendingQuestions } = await db
       .from("provider_questions")
       .select("id, question, asker_name, metadata")
       .eq("provider_id", slug)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
 
     // Filter to only those without email_sent_at and not already processed
     const unnotifiedQuestions = (pendingQuestions ?? []).filter((q) => {
@@ -341,6 +355,8 @@ export async function sendDeferredNotificationsForProvider(
     });
 
     for (const q of unnotifiedQuestions) {
+      // Honor the per-call cap across all slug variants.
+      if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
       try {
         // Re-fetch metadata to check if another process already sent this notification
         const { data: freshQ } = await db

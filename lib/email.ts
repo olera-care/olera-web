@@ -182,6 +182,63 @@ export async function isSuppressedRecipient(email: string): Promise<boolean> {
 }
 
 /**
+ * Returns true if an address is on the human-trust allowlist (email_overrides).
+ * Such an address is "send anyway": it bypasses BOTH suppression signals — the
+ * reactive bounce/complaint check above AND the proactive verification verdict
+ * (isUndeliverable / verifyAndCache). Added when a human has higher-quality
+ * evidence the inbox is real (QA phoned the provider, pulled it off their
+ * official website, or it's a claimed account's confirmed inbox) than the
+ * automated checker, which has been over-aggressively blocking valid mail.
+ *
+ * Fails OPEN inverted: any error returns false (NOT trusted → normal gating
+ * applies), so a transient DB issue can't accidentally punch mail through.
+ */
+export async function isTrustedRecipient(email: string): Promise<boolean> {
+  try {
+    const db = getServiceDb();
+    if (!db) return false;
+    const { data } = await db
+      .from("email_overrides")
+      .select("email")
+      .eq("email", email.trim().toLowerCase())
+      .limit(1)
+      .maybeSingle();
+    return !!data;
+  } catch (err) {
+    console.error("[email] Trust check failed (not trusting):", err);
+    return false;
+  }
+}
+
+/**
+ * Add an address to the human-trust allowlist so future sends bypass
+ * suppression. Best-effort; never throws. Returns true on a confirmed write.
+ */
+export async function markEmailTrusted(
+  email: string,
+  opts: { reason?: "phone_verified" | "official_website" | "claimed_account" | "admin"; note?: string; createdBy?: string } = {}
+): Promise<boolean> {
+  try {
+    const db = getServiceDb();
+    if (!db) return false;
+    const { error } = await db.from("email_overrides").upsert(
+      {
+        email: email.trim().toLowerCase(),
+        reason: opts.reason ?? "admin",
+        note: opts.note ?? null,
+        created_by: opts.createdBy ?? null,
+        created_at: new Date().toISOString(),
+      },
+      { onConflict: "email" }
+    );
+    return !error;
+  } catch (err) {
+    console.error("[email] Failed to mark email trusted:", err);
+    return false;
+  }
+}
+
+/**
  * Pre-create an email_log row before sending. Returns the row ID
  * so callers can embed it in tracking links (e.g. ?eid={id}).
  * Returns null if logging fails — callers should still send the email.
@@ -345,14 +402,21 @@ export async function sendEmail(
   // email_verifications, populated by scripts/verify-emails.js). Both protect
   // domain reputation against Resend's <4% bounce / <0.08% complaint suspension
   // thresholds. Auth/verification mail (SUPPRESSION_EXEMPT_TYPES) bypasses this.
-  // Multi-recipient sends are skipped here since one bad address shouldn't drop
-  // mail to the others. Both checks fail open.
+  // Addresses on the human-trust allowlist (email_overrides) also bypass it: a
+  // human confirmed the inbox is real, which supersedes a stale bounce or a
+  // predictive verification guess. Multi-recipient sends are skipped here since
+  // one bad address shouldn't drop mail to the others. All checks fail open.
   const soleRecipient = Array.isArray(to)
     ? to.length === 1
       ? to[0]
       : null
     : to;
-  if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
+  if (
+    soleRecipient &&
+    emailType &&
+    !SUPPRESSION_EXEMPT_TYPES.has(emailType) &&
+    !(await isTrustedRecipient(soleRecipient))
+  ) {
     // Cold lane = mail to scraped / unclaimed directory addresses (the high-bounce
     // pool). Two signals: a cold provider-notification type, OR a send whose From
     // resolved to the isolated PROVIDER_NOTIFY_FROM domain — the weekly digest's

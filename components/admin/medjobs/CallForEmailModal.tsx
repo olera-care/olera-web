@@ -348,12 +348,11 @@ function SuggestedScript({ campusName }: { campusName: string | null }) {
         Suggested script
       </p>
       <p className="mt-1 text-[12px] leading-relaxed text-gray-700">
-        &ldquo;Hi, this is [your name] from Dr. Logan DuBose&apos;s
-        office at Olera. We run a Student Caregiver Program that places
-        pre-health students in paid caregiver roles at home care
-        agencies near {campus}. I&apos;d like to send over some details
-        — could you point me to the best email for whoever handles
-        caregiver hiring?&rdquo;
+        &ldquo;Hi, this is [your name] from Dr. DuBose&apos;s office,
+        calling about his Student Caregiver Program for {campus}{" "}
+        students. I&apos;d like to send your team an email with the
+        details, and wanted to check first on the best address to send
+        it to.&rdquo;
       </p>
     </section>
   );

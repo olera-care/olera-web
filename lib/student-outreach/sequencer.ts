@@ -353,7 +353,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
       return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera. We emailed {organization_name} on Monday about our Student Caregiver Program for pre-health students near {campus_name}, and I wanted to make sure it reached the right person. Could you point me to whoever handles caregiver hiring, or a better email for the details?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera, circling back on the Student Caregiver Program we emailed {organization_name} about. If you're open to hiring a pre-health student caregiver near {campus_name} this fall, the eligibility check takes about a minute — I can send the link or set up a quick call with Dr. DuBose."`;
+      return `"Hi, this is {admin_first_name} from Dr. DuBose's office, circling back on the Student Caregiver Program we emailed about earlier this week. I just wanted to make sure it reached the right person, and see if I can answer any questions."`;
     }
   }
   if (type === "student_org") {

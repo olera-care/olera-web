@@ -669,33 +669,27 @@ export const followupEmail = followupLightEmail;
  */
 export function providerIntroEmail(
   ctx: TemplateContext,
-  contacts: Contact[] | undefined,
+  _contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
   const subject = PROGRAM_NAME;
-  const greeting =
-    variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hi again,`;
   return {
     subject,
     body: [
       greeting,
       ``,
-      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician and National Institute on Aging (NIA) researcher. I'm reaching out about [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}): a program that places **pre-nursing and pre-medical students in caregiver roles at home care agencies near campus.** I came across ${PLACEHOLDER.orgName} while researching nearby home care agencies, and I'd like to invite you to learn about the program and tell us about your hiring needs.`,
+      `Thanks for the call today. As promised, this is Graize, Dr. DuBose's research assistant, sending over more on the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PLACEHOLDER.programUrl}).`,
       ``,
-      `We think it's a win-win-win for providers, students, and the clients. You need staff, students need experience, clients need caregivers. This program delivers all three.`,
+      `Here are the highlights:`,
       ``,
-      `Here is what it looks like:`,
+      `• Vetted college students matched to your agency based on client schedules, or brought on PRN for coverage when you need it.`,
+      `• Students set their availability for the full term, so you get predictable coverage.`,
+      `• Students are mainly in it for the experience and a recommendation letter, so their pay expectations sit at the lower end of market rates.`,
+      `• Many stay on for future semesters, or go full-time over winter and summer breaks or during gap years before grad school.`,
+      `• It's a win-win-win: you need staff, students need experience, and clients need caregivers.`,
       ``,
-      `• Vetted student caregivers matched to your agency based on your client needs, or brought on PRN for coverage when you need it.`,
-      `• Students set availability they pledge to keep open for the full semester, giving you predictable coverage for client assignments.`,
-      `• Students work mainly for the experience and a recommendation letter, and their pay expectations sit at the lower end of your usual rates.`,
-      `• Many students stay on for future semesters, or go full-time over winter and summer breaks or during gap years before grad school.`,
-      ``,
-      `Getting started takes about a minute: [tell us about your hiring needs](${PLACEHOLDER.welcomeUrl}).`,
-      ``,
-      `There is no commitment to get started. The commitment begins only once you are fully set up and you and a student caregiver agree it's a good fit.`,
-      ``,
-      `We hope you'll consider learning about the program and hiring a student caregiver. If you are interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps (set-up call, program costs, onboarding).`,
+      `If you're interested, just reply "Interested" and Dr. DuBose or I will follow up with next steps.`,
       ``,
       `Thank you for your service to the community. Have a great day!`,
     ].join("\n"),
@@ -710,22 +704,19 @@ export function providerIntroEmail(
  */
 export function providerFollowupEmail(
   ctx: TemplateContext,
-  contacts: Contact[] | undefined,
+  _contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
   const subject = PROGRAM_NAME;
-  const greeting =
-    variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hi again,`;
   return {
     subject,
     body: [
       greeting,
       ``,
-      `Following up in case my last note got buried. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric-focused physician and NIA researcher. We run [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}), which places pre-nursing and pre-medical students in caregiver roles at home care agencies near campus.`,
+      `Following up on my last note about the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PLACEHOLDER.programUrl}). If you're interested, just reply "Interested" and Dr. DuBose or I will follow up with next steps.`,
       ``,
-      `It's a win-win-win for providers, students, and the clients: you get vetted caregivers who pledge their availability for the full semester, students get experience and a recommendation letter, and your clients get care. Many students stay on for future semesters or go full-time over breaks.`,
-      ``,
-      `Getting started takes about a minute: [tell us about your hiring needs](${PLACEHOLDER.welcomeUrl}). There's no commitment. If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps.`,
+      `Graize`,
     ].join("\n"),
   };
 }
@@ -739,22 +730,21 @@ export function providerFollowupEmail(
  */
 export function providerFinalEmail(
   ctx: TemplateContext,
-  contacts: Contact[] | undefined,
+  _contacts: Contact[] | undefined,
 ): EmailDraft {
   const variant = ctx.variant ?? "general";
   const subject = PROGRAM_NAME;
-  const greeting =
-    variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : providerSalutation(contacts);
+  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hi again,`;
   return {
     subject,
     body: [
       greeting,
       ``,
-      `Circling back one last time on [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}). If hiring a vetted pre-health student caregiver would help ${PLACEHOLDER.orgName}, the first step takes about a minute: [tell us about your hiring needs](${PLACEHOLDER.welcomeUrl}). There's no commitment until you're set up and you and a student caregiver agree it's a good fit.`,
+      `Circling back one last time on Olera's Student Caregiver Program.`,
       ``,
-      `If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help.`,
+      `If you're interested, just reply "Interested" and Dr. DuBose or I will follow up with next steps. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick forward to them would be appreciated.`,
       ``,
-      `Thank you for your service to the community. Have a great day!`,
+      `Thank you. Have a great day!`,
     ].join("\n"),
   };
 }

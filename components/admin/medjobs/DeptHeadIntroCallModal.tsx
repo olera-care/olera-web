@@ -143,8 +143,7 @@ export function DeptHeadIntroCallModal({
           Program for {campus} students, which places pre-health students in paid
           caregiver roles with older adults. Before I send any details, are you
           the right person in the department to talk with, or is there a better
-          contact? I&apos;ll follow up by email, and Dr. DuBose would value a short
-          Zoom to talk it through.&rdquo;
+          contact?&rdquo;
         </p>
       </section>
 

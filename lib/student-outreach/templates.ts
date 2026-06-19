@@ -457,7 +457,7 @@ export function advisorInfoEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up. The Student Caregiver Program for ${PLACEHOLDER.campus} students places pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications. We handle the matching, training, and support.`,
+      `Following up. The Student Caregiver Program for ${PLACEHOLDER.campus} students places pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
       ``,
       `If this could be useful for the students you advise, just reply with your interest level and we can set up a quick Zoom with Dr. DuBose to talk it through.`,
     ].join("\n"),
@@ -485,7 +485,7 @@ export function advisorCloseEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `We'd still love to support your ${PLACEHOLDER.campus} pre-health students through the program, so just reply anytime with your interest level and we'll take it from there.`,
       ``,
-      `And if someone else advises pre-health students at ${PLACEHOLDER.campus}, a quick pointer to them would be appreciated. Thank you.`,
+      `And if someone else advises pre-health students at ${PLACEHOLDER.campus}, a quick forward to them would be appreciated. Thank you.`,
     ].join("\n"),
   };
 }
@@ -514,7 +514,7 @@ export function orgFollowupEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up. The Student Caregiver Program for ${PLACEHOLDER.campus} students places pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications. We handle the matching, training, and support.`,
+      `Following up. The Student Caregiver Program for ${PLACEHOLDER.campus} students places pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
       ``,
       `If your members would be interested, just reply with your interest level and we can set up a time for Dr. DuBose to share it with your group, or a quick call to talk it through.`,
     ].join("\n"),
@@ -528,9 +528,9 @@ export function orgCloseEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `We'd still love to get the Student Caregiver Program for ${PLACEHOLDER.campus} students in front of your members, so just reply anytime with your interest level and we'll take it from there.`,
+      `We'd still love to get the Student Caregiver Program for ${PLACEHOLDER.campus} students in front of your members, so just reply anytime with your interest level and we'll follow up with more info and next steps.`,
       ``,
-      `And if another officer handles this, a quick pointer their way would be appreciated. Thanks for looking out for your members.`,
+      `And if another officer handles this, a quick forward their way would be appreciated. Thanks for looking out for your members.`,
     ].join("\n"),
   };
 }
@@ -558,9 +558,7 @@ export function deptHeadFollowupEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Dear ${PLACEHOLDER.salutation},`,
       ``,
-      `Following up. The Student Caregiver Program for ${PLACEHOLDER.campus} students places pre-health students in paid caregiver roles with older adults, so they earn hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications. We handle the matching, training, and support.`,
-      ``,
-      `If this could serve your department's students, just reply with your interest level and we can set up a short Zoom with Dr. DuBose to talk it through.`,
+      `Following up on the Student Caregiver Program for ${PLACEHOLDER.campus} students. If this could serve your department's students, just reply with your interest level and Dr. DuBose and I would love to meet and talk about how we could connect with your faculty and students who may benefit.`,
     ].join("\n"),
   };
 }
@@ -574,7 +572,7 @@ export function deptHeadCloseEmail(_ctx: TemplateContext): EmailDraft {
       ``,
       `We'd still value the chance to support your department's pre-health students through the program, so just reply anytime with your interest level and we'll take it from there.`,
       ``,
-      `And if another faculty member would be the better contact, I'd appreciate a pointer. Thank you for your time.`,
+      `And if another faculty member would be the better contact, I'd appreciate a quick forward to them. Thank you for your time.`,
     ].join("\n"),
   };
 }

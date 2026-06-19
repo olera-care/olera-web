@@ -103,6 +103,28 @@ Closed the email/Questions arc end-to-end. Everything below is **in production**
 - `/promote-to-main` to ship #1154 (+#1155 if merged) to production (awaiting TJ go).
 - **Step 2 — lane split** (`PROVIDER_NOTIFY_FROM`): verify the cousin domain is a separate Resend reputation unit before flipping it on. The weekly-digest carve-out in the send gate depends on this staying OFF until verified — do not remove that carve-out first.
 
+### 2026-06-19 — `/design-improvements` on auth modal + mobile nav drawer (PRs #1141, #1142)
+
+**Trigger:** TJ ran `/design-improvements` on two surfaces back-to-back, starting from screenshots.
+
+**Auth modal — sign-in "Welcome back" (PR #1141, branch `upbeat-jemison`):** punch-only pass on `components/auth/UnifiedAuthModal.tsx`.
+- Bumped step titles `text-xl` → `text-[26px]` tight-leading so the title is the focal point (the edge-aligned back/X chrome had been reading as the header).
+- Demoted "Email me a code instead" from `text-primary-600` (teal) → `text-gray-600` so only the Sign In button owns the accent.
+- Inserted the existing "or" divider between Sign In and the passkey button so passkey reads as a fallback, not a co-equal CTA.
+- `/pre-test`: clean (presentation-only, zero type surface).
+
+**Mobile nav drawer — logged-out (PR #1142, branch `mobile-nav-drawer-polish`):** punch + mobilize on the `Navbar.tsx` `lg:hidden` full-screen menu. **Iterated 4×** against TJ screenshots. Final state:
+- Labels `text-xl font-semibold`; Caregiver Support icon mortarboard → book-open (it links to the articles hub); footer secondaries `gray-500` → `gray-700 font-medium`; `active:` tap feedback on rows + CTAs; `max-w-md` centered column on tablet.
+- **Reverted two missed attempts:** (1) vertical-centering the nav (`my-auto`) — looked like a marooned text island; (2) per-row hairline dividers — fragmented the list AND the one under "Find Care" cut it off from its own subcategories. Final = top-anchored, single original group divider before "For Providers."
+
+**Decision / lesson:** A **nav list** is the Apple-Settings pattern (top-anchored, hairline rows) — NOT an empty-state hero (centered illustration + headline + CTA, à la Airbnb/Robinhood). Don't vertically center a bare list of links. Burned 3 iterations learning TJ's taste on this screen; went restrained after.
+
+**Open item:** the thin gray nav icons still read as weak. Options floated to TJ: drop entirely (typographic menu) / strengthen / keep receding behind bold labels. Awaiting his call — did NOT change unprompted.
+
+**Run-env note:** worktree has no `node_modules`; could not run tsc/build locally. All changes are className/SVG-path/JSX only (zero type surface); Vercel preview build is the compile check. SCRATCHPAD updated off fresh `staging` per [[feedback_scratchpad_out_of_code_prs]].
+
+**NEXT:** TJ verifies both PRs on their Vercel preview links (sign-in modal for #1141; logged-out hamburger for #1142). Decide the nav-icon direction. Then merge.
+
 ### 2026-06-18 — De-"host" copy + MedJobs admin reorg + flyer floor (branch `claude/keen-mendel-6i8iW`)
 
 **Trigger:** Logan — (1) "host" was vestigial internship language; students are now in a regular paid placement where the family/agency is the employer. (2) Simplify the MedJobs admin sidebar and split the dual-purpose Prospects surface by audience. (3) The "no student flyer configured" launch blocker.

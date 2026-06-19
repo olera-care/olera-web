@@ -69,15 +69,14 @@ const FLYER_FILENAME = "olera-student-outreach-flyer.pdf";
  */
 // olera.care/images/* is WAF-challenged (429) for non-browser fetches, so
 // signature photos there fail to render in inboxes. Default to the Supabase
-// public bucket (same asset the Resend family templates use). Logan is there;
-// Grazie is NOT yet — its default stays on olera.care until grazie.png lands at
-// content-images/team/grazie.png. Env overrides still win either way.
+// public bucket (same host the Resend family templates use; both assets
+// verified 200). Env overrides still win either way.
 const LOGAN_PHOTO_URL =
   process.env.STUDENT_OUTREACH_LOGAN_PHOTO_URL ??
   "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 const GRAZIE_PHOTO_URL =
   process.env.STUDENT_OUTREACH_GRAZIE_PHOTO_URL ??
-  "https://olera.care/images/for-providers/team/grazie.png";
+  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/grazie.png";
 
 const RESEND_THROTTLE_MS = 150;
 

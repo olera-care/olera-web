@@ -201,10 +201,8 @@ export function ProviderPreFlightModal({
   })();
 
   // A flyer always resolves (campus upload, campus config, or the generic
-  // floor), so launch is never blocked. usingGenericFlyer drives the soft
-  // "standard flyer" note in place of the old hard block.
+  // floor), so launch is never blocked.
   const pdfConfigured = programPdfAttachment != null;
-  const usingGenericFlyer = programPdfAttachment?.source === "generic";
   // Build the recipient roster. First slot (when present) is the
   // synthetic General Contact row — organization-level fallback
   // (research_data.general_contact || business_profiles fields).
@@ -406,32 +404,6 @@ export function ProviderPreFlightModal({
               {queuedEmails === 1 ? "" : "s"} +{" "}
               <strong className="tabular-nums">{queuedCalls}</strong> call
               {queuedCalls === 1 ? "" : "s"} across the cadence below
-            </p>
-            <p className="mt-0.5 text-[11px] text-gray-600">
-              {smartleadPreview?.sender_pool.length
-                ? `Sender: ${smartleadPreview.sender_pool.join(" / ")} (rotated by Smartlead)`
-                : "Sender: all connected Smartlead mailboxes (rotated)"}
-            </p>
-            <p className="mt-0.5 text-[11px]">
-              Program PDF:{" "}
-              {programPdfAttachment ? (
-                <span className="text-gray-700">
-                  ✓ linked in body per email ({programPdfAttachment.filename}
-                  {usingGenericFlyer ? " · standard flyer" : ""}){" "}
-                  <a
-                    href={programPdfAttachment.previewUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-700 hover:underline"
-                  >
-                    preview ↗
-                  </a>
-                </span>
-              ) : (
-                <span className="text-amber-700">
-                  ✗ no PDF available — emails will ship without a program PDF link
-                </span>
-              )}
             </p>
           </section>
 

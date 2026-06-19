@@ -525,8 +525,17 @@ export function MedJobsTabPage({
           Stakeholder were noise on a calm operational surface; they
           live on more contextual surfaces (the Sites page hosts
           stakeholder additions per-site). */}
-      <header className="mb-4">
+      <header className="mb-4 flex items-center gap-2">
         <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+        {/* Build marker — confirms which deploy you're on. If you don't see
+            this badge, you're on the wrong URL (staging/prod/old preview),
+            not this branch's preview. Bump the label on each deploy. */}
+        <span
+          title="Branch build marker"
+          className="rounded-full bg-fuchsia-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white"
+        >
+          dejank build · pass-1
+        </span>
       </header>
 
       <InBasketHero tabCounts={tabCounts} tabUnreadCounts={tabUnreadCounts} />

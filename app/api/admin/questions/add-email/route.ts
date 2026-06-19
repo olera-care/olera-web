@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
 import { verifyAndCache } from "@/lib/email-verification";
+import { markEmailTrusted } from "@/lib/email";
 
 /**
  * POST /api/admin/questions/add-email
@@ -197,6 +198,15 @@ export async function POST(request: NextRequest) {
       variantSet.add(provider.slug);
     }
     const additionalSlugVariants = Array.from(variantSet);
+
+    // When an operator forces past the deliverability warning, they're asserting
+    // human knowledge that the inbox is real (they fetched it, called, etc.).
+    // Trust it so the deferred send below — and all future sends — bypass
+    // suppression. Without this, a prior bounce on this address would still skip
+    // the send here, which is the "override just retries and rejects" bug.
+    if (force && effectiveEmail) {
+      await markEmailTrusted(effectiveEmail, { reason: "admin", note: "force-added via Questions tab", createdBy: adminUser.id });
+    }
 
     // Send deferred notifications using the unified function
     // Note: For questions-only providers (no business_profile), we still try to send

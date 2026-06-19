@@ -63,6 +63,14 @@ interface DrawerProps {
   onClose: () => void;
   /** Optional in non-stakeholder modes. */
   onAction?: (refreshed: DrawerContext | null) => void;
+  /** Instant-render seed: the row's display name, shown as the drawer headline
+   *  immediately while the detail hydrates (stakeholder / provider modes) so
+   *  the drawer never opens to a blank "Loading…" title. */
+  seedName?: string;
+  /** Candidate mode: the already-loaded list row. CandidateDrawerData is a
+   *  subset of the list row, so passing it renders the drawer instantly with
+   *  no fetch (avoids the fetch-all-then-find). */
+  candidateSeed?: CandidateDrawerData;
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
@@ -109,16 +117,17 @@ const LEADER_ROLES = [
 // aside, ESC handler, close button) via DrawerShell.
 export function Drawer(props: DrawerProps) {
   if (props.providerId) {
-    return <ProviderDrawer providerId={props.providerId} onClose={props.onClose} />;
+    return <ProviderDrawer providerId={props.providerId} onClose={props.onClose} seedName={props.seedName} />;
   }
   if (props.candidateId) {
-    return <CandidateDrawer candidateId={props.candidateId} onClose={props.onClose} />;
+    return <CandidateDrawer candidateId={props.candidateId} onClose={props.onClose} seed={props.candidateSeed} />;
   }
   if (!props.outreachId) {
     return null;
   }
   return (
     <StakeholderDrawer
+      seedName={props.seedName}
       outreachId={props.outreachId}
       onClose={props.onClose}
       onAction={props.onAction ?? (() => {})}
@@ -193,14 +202,29 @@ function DrawerHeaderOverflow({
   );
 }
 
+// Drawer body skeleton — shown while detail hydrates, so a drawer opened with
+// a seed name reads as "open + loading content" rather than a blank spinner.
+function DrawerBodySkeleton() {
+  return (
+    <div className="space-y-3" aria-hidden>
+      <div className="h-24 animate-pulse rounded-xl bg-gray-100" />
+      <div className="h-4 w-1/3 animate-pulse rounded bg-gray-100" />
+      <div className="h-16 animate-pulse rounded-xl bg-gray-100" />
+      <div className="h-16 animate-pulse rounded-xl bg-gray-100" />
+    </div>
+  );
+}
+
 function StakeholderDrawer({
   outreachId,
   onClose,
   onAction,
+  seedName,
 }: {
   outreachId: string;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
+  seedName?: string;
 }) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -337,7 +361,9 @@ function StakeholderDrawer({
               )}
             </>
           );
-        })() : (
+        })() : seedName ? (
+          <h2 className="truncate text-lg font-semibold text-gray-900">{seedName}</h2>
+        ) : (
           <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
         )
       }
@@ -381,7 +407,7 @@ function StakeholderDrawer({
       }
     >
       {loading ? (
-        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+        <DrawerBodySkeleton />
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : ctx ? (
@@ -444,9 +470,11 @@ interface ProviderDrawerData {
 function ProviderDrawer({
   providerId,
   onClose,
+  seedName,
 }: {
   providerId: string;
   onClose: () => void;
+  seedName?: string;
 }) {
   const [data, setData] = useState<ProviderDrawerData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -502,13 +530,15 @@ function ProviderDrawer({
             </p>
             <ProviderStatusLabel data={data} />
           </>
+        ) : seedName ? (
+          <h2 className="truncate text-lg font-semibold text-gray-900">{seedName}</h2>
         ) : (
           <h2 className="text-lg font-semibold text-gray-400">Loading…</h2>
         )
       }
     >
       {loading ? (
-        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+        <DrawerBodySkeleton />
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : data ? (
@@ -716,23 +746,28 @@ interface CandidateDrawerData {
 function CandidateDrawer({
   candidateId,
   onClose,
+  seed,
 }: {
   candidateId: string;
   onClose: () => void;
+  seed?: CandidateDrawerData;
 }) {
-  const [data, setData] = useState<CandidateDrawerData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<CandidateDrawerData | null>(seed ?? null);
+  const [loading, setLoading] = useState(!seed);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Seeded from the list row — CandidateDrawerData is a subset of the row,
+    // so render instantly with no fetch (avoids fetching the whole candidate
+    // list just to find one).
+    if (seed) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
     (async () => {
       try {
-        // Reuse the candidates list endpoint and pick the matching row.
-        // No per-candidate endpoint exists yet; the inventory list is
-        // small enough (live candidates only) to scan client-side.
+        // Fallback (no seed): reuse the candidates list endpoint and pick the
+        // matching row.
         const res = await fetch(`/api/admin/student-outreach/candidates`);
         if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
         const body = await res.json();
@@ -757,7 +792,7 @@ function CandidateDrawer({
       }
     })();
     return () => { cancelled = true; };
-  }, [candidateId]);
+  }, [candidateId, seed]);
 
   // v9.0 Phase 7 Commit O: mark candidate read on mount.
   useEffect(() => {
@@ -794,7 +829,7 @@ function CandidateDrawer({
       }
     >
       {loading ? (
-        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+        <DrawerBodySkeleton />
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : data ? (
@@ -1024,8 +1059,6 @@ function ResearchModePanel({
     [primaryContact?.title, primaryContact?.first_name, primaryContact?.last_name]
       .filter(Boolean)
       .join(" ") || null;
-  const havePrograms = ctx.outreach.programs.length > 0;
-  const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
   const eligibleEmail = ctx.contacts.filter(
     (c) => c.status === "active" && c.email,
   ).length;
@@ -1038,10 +1071,14 @@ function ResearchModePanel({
   const hasOfficeEmail = Boolean(officeEmail) || members.some((m) => m?.email) || eligibleEmail > 0;
 
   const isProspect = status === "prospect";
+  // c1: non-office partner prospects (dept_head, student_org) launch on a
+  // contact alone — programs/department are no longer a gate (they don't
+  // personalize the partner emails), so the drawer skips straight to the
+  // email-sequence review like advising offices do.
   const ready = isOffice
     ? hasOfficeEmail
     : isProspect
-      ? haveContact && havePrograms && haveDept
+      ? haveContact
       : eligibleEmail > 0;
 
   // v8.10.11: orientation copy trimmed — the section h3 ("RESEARCH")
@@ -1101,7 +1138,7 @@ function ResearchModePanel({
       <>Check the info, then launch outreach.</>
     )
   ) : isProspect ? (
-    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
+    <>Add a contact below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
     <>Check the info, call to confirm, then launch outreach.</>
   );
@@ -1111,8 +1148,6 @@ function ResearchModePanel({
     : isProspect
       ? [
           { done: haveContact, label: "At least one active contact added" },
-          { done: havePrograms, label: "Programs selected" },
-          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
         ]
       : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
@@ -1122,7 +1157,7 @@ function ResearchModePanel({
   if (!isOffice && isProspect) {
     const label = ready
       ? "✓ Research complete — review email sequence"
-      : "Add a contact + programs to continue";
+      : "Add a contact to continue";
     cta = (
       <div className="space-y-2">
         {/* Dept heads: recommended (non-blocking) intro call when a phone

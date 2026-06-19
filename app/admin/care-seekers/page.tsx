@@ -137,6 +137,16 @@ const ENRICHMENT_STEP_LABELS: Record<number, string> = {
   7: "Go Live",
 };
 
+// Benefits enrichment flow (3 steps)
+const BENEFITS_ENRICHMENT_DISPLAY_STEPS = [1, 2, 3];
+const BENEFITS_ENRICHMENT_STEP_LABELS: Record<number, string> = {
+  1: "Recipient",
+  2: "Timeline",
+  3: "Payment",
+};
+
+type EnrichmentSource = "all" | "provider" | "benefits";
+
 // Helper to format relative time
 function timeAgo(isoDate: string | undefined): string {
   if (!isoDate) return "Never";
@@ -384,6 +394,7 @@ export default function AdminCareSeekersPage() {
   const [enrichmentExpanded, setEnrichmentExpanded] = useState(false);
   const [enrichmentByVariantExpanded, setEnrichmentByVariantExpanded] = useState(false);
   const [enrichmentWeeklyExpanded, setEnrichmentWeeklyExpanded] = useState(false);
+  const [enrichmentSource, setEnrichmentSource] = useState<EnrichmentSource>("all");
   const enrichmentFetchedAt = useRef<number>(0);
 
   function showToast(message: string, type: "success" | "error" = "success") {
@@ -508,11 +519,11 @@ export default function AdminCareSeekersPage() {
     loadEngagement();
   }, [engagementExpanded, engagement, dateRange]);
 
-  // Clear enrichment cache when date range changes
+  // Clear enrichment cache when date range or source changes
   useEffect(() => {
     setEnrichment(null);
     enrichmentFetchedAt.current = 0;
-  }, [dateRange]);
+  }, [dateRange, enrichmentSource]);
 
   // Fetch enrichment funnel data when section is expanded (refresh after 5 minutes or date change)
   useEffect(() => {
@@ -530,6 +541,7 @@ export default function AdminCareSeekersPage() {
         const resolved = resolveRange(dateRange);
         if (resolved.from) params.set("from_date", resolved.from);
         if (resolved.to) params.set("to_date", resolved.to);
+        if (enrichmentSource !== "all") params.set("source", enrichmentSource);
 
         const res = await fetch(`/api/admin/analytics/enrichment-funnel?${params}`);
         if (res.ok) {
@@ -541,7 +553,7 @@ export default function AdminCareSeekersPage() {
       setEnrichmentLoading(false);
     }
     loadEnrichment();
-  }, [enrichmentExpanded, enrichment, dateRange]);
+  }, [enrichmentExpanded, enrichment, dateRange, enrichmentSource]);
 
   useEffect(() => {
     fetchSeekers();
@@ -833,21 +845,37 @@ export default function AdminCareSeekersPage() {
 
       {/* Enrichment Funnel Section */}
       <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setEnrichmentExpanded(!enrichmentExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-3 h-3 transition-transform ${enrichmentExpanded ? "rotate-90" : ""}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setEnrichmentExpanded(!enrichmentExpanded)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
-          </svg>
-          Enrichment Funnel
-          <span className="text-xs text-gray-400 font-normal">post-signup questions · last 30 days</span>
-        </button>
+            <svg
+              className={`w-3 h-3 transition-transform ${enrichmentExpanded ? "rotate-90" : ""}`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+            </svg>
+            Enrichment Funnel
+            <span className="text-xs text-gray-400 font-normal">
+              {enrichmentSource === "benefits" ? "3 steps" : "6 steps"} · last 30 days
+            </span>
+          </button>
+
+          {/* Source filter */}
+          <select
+            value={enrichmentSource}
+            onChange={(e) => setEnrichmentSource(e.target.value as EnrichmentSource)}
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-white text-gray-600 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
+          >
+            <option value="all">All Sources</option>
+            <option value="provider">Provider CTA</option>
+            <option value="benefits">Benefits CTA</option>
+          </select>
+        </div>
 
         {enrichmentExpanded && (
           <div className="mt-4">
@@ -855,74 +883,143 @@ export default function AdminCareSeekersPage() {
               <div className="text-sm text-gray-400">Loading enrichment data...</div>
             ) : enrichment ? (
               <>
-                {/* 7-Card Funnel (Started + 6 visible steps, step 3 is pre-filled) */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
-                  {/* Started */}
-                  <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-                    <div className="text-xl font-semibold tabular-nums text-gray-900">
-                      {enrichment.funnel.started}
+                {/* Funnel cards - different layout for provider (7 cols) vs benefits (4 cols) */}
+                {enrichmentSource === "benefits" ? (
+                  /* Benefits CTA: 4-Card Funnel (Started + 3 steps) */
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {/* Started */}
+                    <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                      <div className="text-xl font-semibold tabular-nums text-gray-900">
+                        {enrichment.funnel.started}
+                      </div>
+                      <div className="mt-0.5 text-xs text-gray-500">Started</div>
                     </div>
-                    <div className="mt-0.5 text-xs text-gray-500">Started</div>
-                  </div>
 
-                  {/* Steps 1-6 (skipping step 3 which is now pre-filled) */}
-                  {ENRICHMENT_DISPLAY_STEPS.map((step, displayIndex) => {
-                    const displayStep = displayIndex + 1; // 1-6 for display
-                    const stepKey = `step${step}_completed` as keyof typeof enrichment.funnel;
-                    const rateKey = `step${step}Rate` as keyof typeof enrichment.funnel.rates;
-                    const completed = enrichment.funnel[stepKey] as number;
-                    const rate = enrichment.funnel.rates[rateKey];
-                    const skips = enrichment.funnel.skipsByStep[step] || 0;
+                    {/* Steps 1-3 */}
+                    {BENEFITS_ENRICHMENT_DISPLAY_STEPS.map((step, displayIndex) => {
+                      const stepKey = `step${step}_completed` as keyof typeof enrichment.funnel;
+                      const rateKey = `step${step}Rate` as keyof typeof enrichment.funnel.rates;
+                      const completed = enrichment.funnel[stepKey] as number;
+                      const rate = enrichment.funnel.rates[rateKey];
+                      const skips = enrichment.funnel.skipsByStep[step] || 0;
 
-                    // Find highest drop-off step (using actual step data, skipping step 3)
-                    const prevStepIndex = displayIndex - 1;
-                    const prevActualStep = prevStepIndex < 0 ? null : ENRICHMENT_DISPLAY_STEPS[prevStepIndex];
-                    const prevCompleted = prevActualStep === null
-                      ? enrichment.funnel.started
-                      : (enrichment.funnel[`step${prevActualStep}_completed` as keyof typeof enrichment.funnel] as number);
-                    const dropOff = prevCompleted > 0 ? Math.round(((prevCompleted - completed) / prevCompleted) * 100) : 0;
-                    const isHighestDropOff = displayIndex > 0 && dropOff > 20 && dropOff === Math.max(
-                      ...(ENRICHMENT_DISPLAY_STEPS.map((s, i) => {
-                        const prevIdx = i - 1;
-                        const prevS = prevIdx < 0 ? null : ENRICHMENT_DISPLAY_STEPS[prevIdx];
-                        const prev = prevS === null ? enrichment.funnel.started : (enrichment.funnel[`step${prevS}_completed` as keyof typeof enrichment.funnel] as number);
-                        const curr = enrichment.funnel[`step${s}_completed` as keyof typeof enrichment.funnel] as number;
-                        return prev > 0 ? Math.round(((prev - curr) / prev) * 100) : 0;
-                      }))
-                    );
+                      // Find highest drop-off step
+                      const prevStep = displayIndex === 0 ? null : BENEFITS_ENRICHMENT_DISPLAY_STEPS[displayIndex - 1];
+                      const prevCompleted = prevStep === null
+                        ? enrichment.funnel.started
+                        : (enrichment.funnel[`step${prevStep}_completed` as keyof typeof enrichment.funnel] as number);
+                      const dropOff = prevCompleted > 0 ? Math.round(((prevCompleted - completed) / prevCompleted) * 100) : 0;
+                      const isHighestDropOff = displayIndex > 0 && dropOff > 20 && dropOff === Math.max(
+                        ...(BENEFITS_ENRICHMENT_DISPLAY_STEPS.map((s, i) => {
+                          const prevS = i === 0 ? null : BENEFITS_ENRICHMENT_DISPLAY_STEPS[i - 1];
+                          const prev = prevS === null ? enrichment.funnel.started : (enrichment.funnel[`step${prevS}_completed` as keyof typeof enrichment.funnel] as number);
+                          const curr = enrichment.funnel[`step${s}_completed` as keyof typeof enrichment.funnel] as number;
+                          return prev > 0 ? Math.round(((prev - curr) / prev) * 100) : 0;
+                        }))
+                      );
 
-                    return (
-                      <div
-                        key={step}
-                        className={`rounded-xl border px-3 py-2.5 ${
-                          isHighestDropOff
-                            ? "border-amber-300 bg-amber-50/50"
-                            : step === 7 // Last step (Go Live)
-                            ? "border-emerald-200 bg-emerald-50/50"
-                            : "border-gray-200 bg-white"
-                        }`}
-                      >
-                        <div className="text-xl font-semibold tabular-nums text-gray-900">
-                          {rate}%
-                        </div>
-                        <div className="mt-0.5 text-xs text-gray-500 truncate" title={ENRICHMENT_STEP_LABELS[step]}>
-                          {displayStep}. {ENRICHMENT_STEP_LABELS[step]}
-                        </div>
-                        <div className="mt-0.5 text-[10px] text-gray-400 flex items-center gap-1.5">
-                          {completed} done
-                          {skips > 0 && (
-                            <span className="text-amber-500">· {skips} skip</span>
+                      return (
+                        <div
+                          key={step}
+                          className={`rounded-xl border px-3 py-2.5 ${
+                            isHighestDropOff
+                              ? "border-amber-300 bg-amber-50/50"
+                              : step === 3 // Last step
+                              ? "border-emerald-200 bg-emerald-50/50"
+                              : "border-gray-200 bg-white"
+                          }`}
+                        >
+                          <div className="text-xl font-semibold tabular-nums text-gray-900">
+                            {rate}%
+                          </div>
+                          <div className="mt-0.5 text-xs text-gray-500 truncate" title={BENEFITS_ENRICHMENT_STEP_LABELS[step]}>
+                            {step}. {BENEFITS_ENRICHMENT_STEP_LABELS[step]}
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-gray-400 flex items-center gap-1.5">
+                            {completed} done
+                            {skips > 0 && (
+                              <span className="text-amber-500">· {skips} skip</span>
+                            )}
+                          </div>
+                          {isHighestDropOff && (
+                            <div className="mt-1 text-[10px] text-amber-600 font-medium">
+                              ↓ {dropOff}% drop-off
+                            </div>
                           )}
                         </div>
-                        {isHighestDropOff && (
-                          <div className="mt-1 text-[10px] text-amber-600 font-medium">
-                            ↓ {dropOff}% drop-off
-                          </div>
-                        )}
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Provider CTA: 7-Card Funnel (Started + 6 visible steps, step 3 is pre-filled) */
+                  <div className="grid grid-cols-7 gap-2 mb-4">
+                    {/* Started */}
+                    <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                      <div className="text-xl font-semibold tabular-nums text-gray-900">
+                        {enrichment.funnel.started}
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="mt-0.5 text-xs text-gray-500">Started</div>
+                    </div>
+
+                    {/* Steps 1-6 (skipping step 3 which is now pre-filled) */}
+                    {ENRICHMENT_DISPLAY_STEPS.map((step, displayIndex) => {
+                      const displayStep = displayIndex + 1; // 1-6 for display
+                      const stepKey = `step${step}_completed` as keyof typeof enrichment.funnel;
+                      const rateKey = `step${step}Rate` as keyof typeof enrichment.funnel.rates;
+                      const completed = enrichment.funnel[stepKey] as number;
+                      const rate = enrichment.funnel.rates[rateKey];
+                      const skips = enrichment.funnel.skipsByStep[step] || 0;
+
+                      // Find highest drop-off step (using actual step data, skipping step 3)
+                      const prevStepIndex = displayIndex - 1;
+                      const prevActualStep = prevStepIndex < 0 ? null : ENRICHMENT_DISPLAY_STEPS[prevStepIndex];
+                      const prevCompleted = prevActualStep === null
+                        ? enrichment.funnel.started
+                        : (enrichment.funnel[`step${prevActualStep}_completed` as keyof typeof enrichment.funnel] as number);
+                      const dropOff = prevCompleted > 0 ? Math.round(((prevCompleted - completed) / prevCompleted) * 100) : 0;
+                      const isHighestDropOff = displayIndex > 0 && dropOff > 20 && dropOff === Math.max(
+                        ...(ENRICHMENT_DISPLAY_STEPS.map((s, i) => {
+                          const prevIdx = i - 1;
+                          const prevS = prevIdx < 0 ? null : ENRICHMENT_DISPLAY_STEPS[prevIdx];
+                          const prev = prevS === null ? enrichment.funnel.started : (enrichment.funnel[`step${prevS}_completed` as keyof typeof enrichment.funnel] as number);
+                          const curr = enrichment.funnel[`step${s}_completed` as keyof typeof enrichment.funnel] as number;
+                          return prev > 0 ? Math.round(((prev - curr) / prev) * 100) : 0;
+                        }))
+                      );
+
+                      return (
+                        <div
+                          key={step}
+                          className={`rounded-xl border px-3 py-2.5 ${
+                            isHighestDropOff
+                              ? "border-amber-300 bg-amber-50/50"
+                              : step === 7 // Last step (Go Live)
+                              ? "border-emerald-200 bg-emerald-50/50"
+                              : "border-gray-200 bg-white"
+                          }`}
+                        >
+                          <div className="text-xl font-semibold tabular-nums text-gray-900">
+                            {rate}%
+                          </div>
+                          <div className="mt-0.5 text-xs text-gray-500 truncate" title={ENRICHMENT_STEP_LABELS[step]}>
+                            {displayStep}. {ENRICHMENT_STEP_LABELS[step]}
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-gray-400 flex items-center gap-1.5">
+                            {completed} done
+                            {skips > 0 && (
+                              <span className="text-amber-500">· {skips} skip</span>
+                            )}
+                          </div>
+                          {isHighestDropOff && (
+                            <div className="mt-1 text-[10px] text-amber-600 font-medium">
+                              ↓ {dropOff}% drop-off
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Summary row */}
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
@@ -930,7 +1027,7 @@ export default function AdminCareSeekersPage() {
                     <span className="font-medium text-gray-900">{enrichment.funnel.completed}</span>
                     <span className="text-gray-400"> / </span>
                     <span>{enrichment.funnel.started}</span>
-                    <span className="text-gray-500"> completed all 6 steps</span>
+                    <span className="text-gray-500"> completed all {enrichmentSource === "benefits" ? "3" : "6"} steps</span>
                   </span>
                   <span className="text-gray-300">·</span>
                   <span>

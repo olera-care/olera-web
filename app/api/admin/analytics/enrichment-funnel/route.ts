@@ -8,6 +8,10 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Optionally filter by CTA variant to compare enrichment completion across variants.
  *
  * Query params:
+ * - source: Filter by enrichment source (provider, benefits, all)
+ *           - provider: 6-step provider CTA enrichment (default)
+ *           - benefits: 3-step benefits program page enrichment
+ *           - all: combined from both sources
  * - variant: Filter by CTA variant (legacy, compare, guide)
  * - from_date: Start date (ISO string)
  * - to_date: End date (ISO string)
@@ -20,6 +24,7 @@ interface EnrichmentEvent {
     step_name?: string;
     completed_steps?: number[];
     completed_count?: number;
+    total_answered?: number;
     ctaVariant?: string;
     cta_variant?: string;
     session_id?: string;
@@ -28,13 +33,22 @@ interface EnrichmentEvent {
   created_at: string;
 }
 
-const ENRICHMENT_EVENT_TYPES = [
+// Provider CTA enrichment events (6 steps + Go Live)
+const PROVIDER_ENRICHMENT_EVENT_TYPES = [
   "enrichment_started",
   "enrichment_step_completed",
   "enrichment_step_skipped",
   "enrichment_completed",
   "enrichment_profile_published",   // Go Live: clicked "Go live"
   "enrichment_go_live_skipped",     // Go Live: clicked "Maybe later"
+];
+
+// Benefits program page enrichment events (3 steps)
+const BENEFITS_ENRICHMENT_EVENT_TYPES = [
+  "benefits_enrichment_started",
+  "benefits_enrichment_step_completed",
+  "benefits_enrichment_step_skipped",
+  "benefits_enrichment_completed",
 ];
 
 export async function GET(request: Request) {
@@ -50,6 +64,7 @@ export async function GET(request: Request) {
 
   const db = getServiceClient();
   const { searchParams } = new URL(request.url);
+  const source = searchParams.get("source") || "all"; // provider, benefits, all
   const variant = searchParams.get("variant");
   const fromDate = searchParams.get("from_date");
   const toDate = searchParams.get("to_date");
@@ -61,12 +76,19 @@ export async function GET(request: Request) {
   const startDate = fromDate || allTimeStart;
   const endDate = toDate || now.toISOString();
 
+  // Determine which event types to query based on source
+  // Note: "all" uses provider events since the funnels have different step counts
+  // and can't be meaningfully combined. Admin should use source filter to view each.
+  const eventTypes =
+    source === "benefits" ? BENEFITS_ENRICHMENT_EVENT_TYPES :
+    PROVIDER_ENRICHMENT_EVENT_TYPES;
+
   try {
-    // Query all enrichment events
-    let query = db
+    // Query enrichment events based on source
+    const query = db
       .from("provider_activity")
       .select("event_type, metadata, created_at")
-      .in("event_type", ENRICHMENT_EVENT_TYPES)
+      .in("event_type", eventTypes)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
       .order("created_at", { ascending: true })
@@ -89,21 +111,28 @@ export async function GET(request: Request) {
         })
       : allEvents;
 
-    // Calculate funnel metrics
-    const funnel = calculateEnrichmentFunnel(filteredEvents);
+    // Calculate funnel metrics (different calculators for different sources)
+    const funnel = source === "benefits"
+      ? calculateBenefitsEnrichmentFunnel(filteredEvents)
+      : calculateEnrichmentFunnel(filteredEvents);
 
-    // Calculate by variant breakdown (if not already filtered)
-    const byVariant = variant ? null : calculateByVariant(allEvents);
+    // Calculate by variant breakdown (if not already filtered, only for provider source)
+    const byVariant = variant || source === "benefits" ? null : calculateByVariant(allEvents);
 
     // Calculate weekly trend
-    const trend = calculateWeeklyTrend(filteredEvents);
+    const trend = source === "benefits"
+      ? calculateBenefitsWeeklyTrend(filteredEvents)
+      : calculateWeeklyTrend(filteredEvents);
 
     return NextResponse.json({
       funnel,
       byVariant,
       trend,
       dateRange: { from: startDate, to: endDate },
+      source,
       variant: variant || "all",
+      // Indicate the step count for the UI
+      stepCount: source === "benefits" ? 3 : 7,
     });
   } catch (err) {
     console.error("[enrichment-funnel] Error:", err);
@@ -306,4 +335,129 @@ function getWeekStart(dateStr: string): string {
   monday.setUTCDate(date.getUTCDate() + diff);
   monday.setUTCHours(0, 0, 0, 0);
   return monday.toISOString().split("T")[0];
+}
+
+// ─── Benefits Enrichment Funnel (3 steps) ───────────────────────────────────
+
+interface BenefitsFunnelMetrics {
+  started: number;
+  step1_completed: number;  // recipient (Who needs care?)
+  step2_completed: number;  // timeline (How soon?)
+  step3_completed: number;  // payment (How will you pay?)
+  completed: number;        // finished all 3 steps (answered or skipped)
+  skipped: number;          // skipped at any point
+  skipsByStep: Record<number, number>;  // count of skips per step
+  rates: {
+    step1Rate: number;
+    step2Rate: number;
+    step3Rate: number;
+    completionRate: number;
+  };
+}
+
+function calculateBenefitsEnrichmentFunnel(events: EnrichmentEvent[]): BenefitsFunnelMetrics {
+  // Group events by session to track unique user journeys
+  const sessionMap = new Map<string, EnrichmentEvent[]>();
+
+  for (const event of events) {
+    const sessionId = event.metadata?.session_id;
+    if (!sessionId) continue;
+
+    if (!sessionMap.has(sessionId)) {
+      sessionMap.set(sessionId, []);
+    }
+    sessionMap.get(sessionId)!.push(event);
+  }
+
+  let started = 0;
+  const stepCompleted = [0, 0, 0]; // steps 1-3
+  let completed = 0;
+  let skipped = 0;
+  const skipsByStep: Record<number, number> = { 1: 0, 2: 0, 3: 0 };
+
+  for (const [, sessionEvents] of sessionMap) {
+    // Check what events this session has
+    const hasStarted = sessionEvents.some((e) => e.event_type === "benefits_enrichment_started");
+    const hasCompleted = sessionEvents.some((e) => e.event_type === "benefits_enrichment_completed");
+    const hasSkipped = sessionEvents.some((e) => e.event_type === "benefits_enrichment_step_skipped");
+
+    if (hasStarted) started++;
+    if (hasCompleted) completed++;
+    if (hasSkipped) skipped++;
+
+    // Count UNIQUE step completions per session (dedupe duplicate events)
+    const completedStepsInSession = new Set<number>();
+    const skippedStepsInSession = new Set<number>();
+
+    for (const event of sessionEvents) {
+      if (event.event_type === "benefits_enrichment_step_completed") {
+        const step = event.metadata?.step;
+        if (step && step >= 1 && step <= 3) {
+          completedStepsInSession.add(step);
+        }
+      }
+
+      if (event.event_type === "benefits_enrichment_step_skipped") {
+        const step = event.metadata?.step;
+        if (step && step >= 1 && step <= 3) {
+          skippedStepsInSession.add(step);
+        }
+      }
+    }
+
+    // Increment session-level counts (not event-level)
+    for (const step of completedStepsInSession) {
+      stepCompleted[step - 1]++;
+    }
+    for (const step of skippedStepsInSession) {
+      skipsByStep[step]++;
+    }
+  }
+
+  // Calculate rates (percentage of started that completed each step)
+  const rates = {
+    step1Rate: started > 0 ? Math.round((stepCompleted[0] / started) * 100) : 0,
+    step2Rate: started > 0 ? Math.round((stepCompleted[1] / started) * 100) : 0,
+    step3Rate: started > 0 ? Math.round((stepCompleted[2] / started) * 100) : 0,
+    completionRate: started > 0 ? Math.round((completed / started) * 100) : 0,
+  };
+
+  return {
+    started,
+    step1_completed: stepCompleted[0],
+    step2_completed: stepCompleted[1],
+    step3_completed: stepCompleted[2],
+    completed,
+    skipped,
+    skipsByStep,
+    rates,
+  };
+}
+
+function calculateBenefitsWeeklyTrend(events: EnrichmentEvent[]): WeeklyData[] {
+  // Group events by week
+  const weekMap = new Map<string, EnrichmentEvent[]>();
+
+  for (const event of events) {
+    const weekKey = getWeekStart(event.created_at);
+    if (!weekMap.has(weekKey)) {
+      weekMap.set(weekKey, []);
+    }
+    weekMap.get(weekKey)!.push(event);
+  }
+
+  // Calculate funnel for each week
+  const weeks = Array.from(weekMap.keys()).sort().reverse().slice(0, 4);
+
+  return weeks.map((week) => {
+    const weekEvents = weekMap.get(week) || [];
+    const funnel = calculateBenefitsEnrichmentFunnel(weekEvents);
+
+    return {
+      week,
+      started: funnel.started,
+      completed: funnel.completed,
+      completionRate: funnel.rates.completionRate,
+    };
+  });
 }

@@ -62,7 +62,6 @@ import {
   resolveProgramPdfConfig,
   type PdfAudience,
 } from "@/lib/program-pdf/configs";
-import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 
 interface Props {
@@ -377,14 +376,6 @@ export function ProviderPreFlightModal({
             <h3 className="text-base font-semibold text-gray-900">
               Confirm outreach plan
             </h3>
-            <p className="mt-0.5 text-xs text-gray-500">
-              {organizationName} · Smartlead campaign. Emails ship from
-              findmedjobs.co (warmed); calls queue to the Calls tab.
-            </p>
-            {/* Replies land in Smartlead — open the inbox to answer by hand. */}
-            <p className="mt-1">
-              <SmartleadInboxLink linkage={smartleadLinkage} label="Reply manually in Smartlead" />
-            </p>
           </div>
           <button
             onClick={onCancel}
@@ -399,14 +390,6 @@ export function ProviderPreFlightModal({
           {err && (
             <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
               {err}
-            </p>
-          )}
-
-          {usingGenericFlyer && (
-            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Using the standard Olera {pdfAudience === "student" ? "student flyer" : "provider brochure"} —
-              no campus-specific {pdfAudience === "student" ? "flyer" : "brochure"} is configured for {campusName}.
-              Launch is fine; add a campus config or upload a custom PDF later to personalize it.
             </p>
           )}
 

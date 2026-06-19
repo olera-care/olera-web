@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import PostJobComingSoonModal from "@/components/medjobs/PostJobComingSoonModal";
+import JobPostingBuilder from "@/components/medjobs/JobPostingBuilder";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { StudentMetadata } from "@/lib/types";
 
@@ -24,9 +24,7 @@ interface CandidateData {
 /**
  * ContactSection — the provider-facing CTA on a candidate detail page.
  *
- * The action is unified to "Post a Job" (coming soon) across every provider
- * state — anonymous, guest, not-eligible, eligible, sample, or real candidate —
- * until the real post-job flow ships (see PostJobComingSoonModal's HANDOFF).
+ * The action is "Post a Job" which opens the full JobPostingBuilder modal.
  * The only other state is a student/caregiver previewing their own profile.
  */
 export default function ContactSection({
@@ -99,9 +97,26 @@ export default function ContactSection({
     );
   }
 
-  // ── Everyone else (provider-facing) → Post a Job (coming soon) ──
+  const providerProfile = profiles.find(
+    (p) => p.type === "organization" || p.type === "caregiver",
+  );
+
+  // ── Everyone else (provider-facing) → Post a Job ──
   const postJobModal = showPostJob ? (
-    <PostJobComingSoonModal onClose={() => setShowPostJob(false)} />
+    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/40 p-4 overflow-y-auto" onClick={() => setShowPostJob(false)}>
+      <div className="w-full max-w-xl my-8 rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <JobPostingBuilder
+          onClose={() => setShowPostJob(false)}
+          provider={providerProfile ? {
+            name: providerProfile.display_name ?? "",
+            location: null,
+            category: null,
+            description: null,
+            profileSlug: providerProfile.slug ?? null,
+          } : null}
+        />
+      </div>
+    </div>
   ) : null;
   const cta = (
     <button

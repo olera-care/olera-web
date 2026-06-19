@@ -145,7 +145,7 @@ const BENEFITS_ENRICHMENT_STEP_LABELS: Record<number, string> = {
   3: "Payment",
 };
 
-type EnrichmentSource = "all" | "provider" | "benefits";
+type EnrichmentSource = "provider" | "benefits";
 
 // Helper to format relative time
 function timeAgo(isoDate: string | undefined): string {
@@ -394,7 +394,8 @@ export default function AdminCareSeekersPage() {
   const [enrichmentExpanded, setEnrichmentExpanded] = useState(false);
   const [enrichmentByVariantExpanded, setEnrichmentByVariantExpanded] = useState(false);
   const [enrichmentWeeklyExpanded, setEnrichmentWeeklyExpanded] = useState(false);
-  const [enrichmentSource, setEnrichmentSource] = useState<EnrichmentSource>("all");
+  // Default to provider CTA enrichment funnel (6 steps)
+  const [enrichmentSource, setEnrichmentSource] = useState<EnrichmentSource>("provider");
   const enrichmentFetchedAt = useRef<number>(0);
 
   function showToast(message: string, type: "success" | "error" = "success") {
@@ -541,7 +542,7 @@ export default function AdminCareSeekersPage() {
         const resolved = resolveRange(dateRange);
         if (resolved.from) params.set("from_date", resolved.from);
         if (resolved.to) params.set("to_date", resolved.to);
-        if (enrichmentSource !== "all") params.set("source", enrichmentSource);
+        params.set("source", enrichmentSource);
 
         const res = await fetch(`/api/admin/analytics/enrichment-funnel?${params}`);
         if (res.ok) {
@@ -871,7 +872,6 @@ export default function AdminCareSeekersPage() {
             onClick={(e) => e.stopPropagation()}
             className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-white text-gray-600 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400"
           >
-            <option value="all">All Sources</option>
             <option value="provider">Provider CTA</option>
             <option value="benefits">Benefits CTA</option>
           </select>

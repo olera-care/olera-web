@@ -114,6 +114,12 @@ export function MedJobsTabPage({
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
   const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
+  // Instant-render seeds: the list row's display data, passed so a drawer opens
+  // with its title (and, for candidates, full content) immediately instead of a
+  // blank spinner while the detail hydrates.
+  const [openOutreachName, setOpenOutreachName] = useState<string | undefined>(undefined);
+  const [openProviderName, setOpenProviderName] = useState<string | undefined>(undefined);
+  const [openCandidateSeed, setOpenCandidateSeed] = useState<CandidateRow | undefined>(undefined);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   useEffect(() => {
@@ -298,7 +304,10 @@ export function MedJobsTabPage({
         tab={slotTab}
         row={row}
         recentlyMoved={isRecent(row.id)}
-        onOpenDrawer={() => setOpenOutreachId(row.id)}
+        onOpenDrawer={() => {
+          setOpenOutreachName(row.organization_name || undefined);
+          setOpenOutreachId(row.id);
+        }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
           const label = STOP_OUTREACH_LABELS[reason];
@@ -356,7 +365,10 @@ export function MedJobsTabPage({
           <li key={r.id}>
             <ClientCard
               row={r}
-              onManage={() => setOpenProviderId(r.id)}
+              onManage={() => {
+                setOpenProviderName(r.display_name || undefined);
+                setOpenProviderId(r.id);
+              }}
               overflowMenu={
                 <CardOverflowMenu
                   items={[
@@ -669,7 +681,10 @@ export function MedJobsTabPage({
               <li key={r.id}>
                 <CandidateCard
                   row={r}
-                  onOpen={() => setOpenCandidateId(r.id)}
+                  onOpen={() => {
+                    setOpenCandidateSeed(r);
+                    setOpenCandidateId(r.id);
+                  }}
                   overflowMenu={
                     <CardOverflowMenu
                       items={[
@@ -719,6 +734,7 @@ export function MedJobsTabPage({
       {openOutreachId && (
         <Drawer
           outreachId={openOutreachId}
+          seedName={openOutreachName}
           onClose={() => {
             // Silent refresh on close so the mark_read fired during the
             // drawer's lifetime is reflected (bolding clears + fractions
@@ -737,6 +753,7 @@ export function MedJobsTabPage({
       {openProviderId && (
         <Drawer
           providerId={openProviderId}
+          seedName={openProviderName}
           onClose={() => {
             setOpenProviderId(null);
             void silentRefresh();
@@ -746,6 +763,7 @@ export function MedJobsTabPage({
       {openCandidateId && (
         <Drawer
           candidateId={openCandidateId}
+          candidateSeed={openCandidateSeed}
           onClose={() => {
             setOpenCandidateId(null);
             void silentRefresh();

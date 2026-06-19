@@ -96,7 +96,7 @@ The exact column split (what stays on the spine vs. moves to extension tables) i
 **Locked decisions (TJ, 2026-06-17):**
 1. **Parity-first.** Keep today's either/or resolution (a provider resolves to its directory row OR its account row, not merged). The directory+account *merge* is Step 2's first task, once the link is enforced. Step 1 changes no resolution behavior.
 2. **Reads only.** Writes (admin edits, claim flow) stay where they are; consolidated in a later sub-step.
-3. **Lint guard ships with Step 1.** `no-restricted-syntax` banning `.from("olera-providers")` and `.from("business_profiles")` outside `lib/providers/`. Flipped on after migration; makes the wrong-table bug impossible to reintroduce.
+3. **Lint guard is the migration's endgame — NOT a Step 1 PR.** `no-restricted-syntax` banning `.from("olera-providers")` and `.from("business_profiles")` outside `lib/providers/`. **Correction (2026-06-19):** the original framing ("flip on in PR #4") was mis-scoped. An audit at staging `5a37c594` found **823 direct refs across ~230 files** still outside `lib/providers/` — admin, medjobs, connections, claim, portal, and every family/student/caregiver `business_profiles` flow. A blanket guard cannot flip until coverage is near-complete; doing it now would error the whole build and block every commit. The guard is a true capstone, gated on the scope decision below (Q6) and the later steps. A path-scoped guard over only the ~handful of already-migrated files was considered and rejected as false comfort (it protects files that are already safe and catches none of the real risk in new code).
 
 **Module shape:**
 - `lib/providers/types.ts` — `ProviderView` (unified type: provenance `source: 'directory' | 'account'`, canonical id/slug, claim/verification status, merged google/cms/trust fields).
@@ -104,11 +104,13 @@ The exact column split (what stays on the spine vs. moves to extension tables) i
 - `lib/providers/resolve.server.ts` — `resolveProvider(slugOrId, client)` returning a discriminated result `{ kind: 'active', provider } | { kind: 'redirect', to } | { kind: 'gone' } | { kind: 'not-found' }`; `getProvidersByIds(ids, client)` batched for lists; folds in `resolveCanonicalProviderId`.
 - **Takes the caller's Supabase client** (anon vs service-role vs server) rather than picking its own, so RLS visibility never silently changes.
 
-**Rollout (each a small, behavior-identical PR, stop-anywhere-safe):**
-1. **PR #1:** build the module + convert `app/provider/[slug]/page.tsx` (hardest case, proves the API; preserve the SEO-loadbearing deleted-redirect/410 logic exactly). ✅ **BUILT 2026-06-17, tsc clean, uncommitted.** Module: `lib/providers/{types,adapters,resolve.server,index}.ts` (`resolveProvider`, `resolveProviderForMeta`, `getClaimedAccount`). Page −165 net lines; all reads routed through the front door; only the view-tracking *write* (line ~481) deliberately left (reads-only boundary). `getProvidersByIds` deferred to PR #2's first consumer.
-2. **PR #2:** read-heavy API routes — `info`, `organization-search`, `admin/directory` (+export), `leads`/`questions` joins.
-3. **PR #3:** crons (`weekly-provider-digest`, `family-nudges`, `aggregate-provider-views`, `google-reviews`) + `sitemap.ts`.
-4. **PR #4:** stragglers (connections read, `inbox`, `WelcomeClient`) + flip on the eslint guard.
+**Rollout (each a small, behavior-identical PR, stop-anywhere-safe). Status as of 2026-06-19:**
+1. **PR #1 (provider detail page):** ✅ **MERGED #1100.** Module `lib/providers/{types,adapters,resolve.server,index}.ts` (`resolveProvider`, `resolveProviderForMeta`, `getClaimedAccount`). Page −165 net lines; reads routed through the front door; view-tracking write left (reads-only boundary).
+2. **PR #2 (read-heavy routes):** ✅ **MERGED #1113 (search + `admin/leads` email-fallback) + #1116 (`admin/directory` count/list/export).** `searchProviders`, `getProviderEmailsByIds`, `countDirectory`/`listDirectory`/`exportDirectoryRows`.
+3. **PR #3 (sitemap + crons):** ✅ **MERGED #1121 (sitemap), #1123 (Crons A: aggregate-views + google-reviews — incl. the first provider-table *write* `updateProviderGoogleReviews`), #1132 (Crons B: weekly-provider-digest, 9 readers), #1133 (Crons C: family-nudges — readers + `updateFamilyMetadata`).** Crons B validated live via a `dry_run=true&all_days=true` send.
+4. **PR #4 — REFRAMED 2026-06-19. The guard does NOT flip here.** What's left is genuinely large (823 refs / ~230 files, see decision 3 above), not "3 stragglers." The original PR #4 line assumed near-total coverage that doesn't exist. **Decision: pause the per-PR cadence here.** The front door now covers the surfaces where the wrong-table bug actually bit (provider resolution + the email crons); that win is banked. The remaining sweep + the guard are gated on Q6 below. The named read stragglers (connections read, `inbox`, `WelcomeClient`) roll into whatever scope Q6 sets, not a standalone PR.
+
+**Known issue surfaced during Crons C (filed, not fixed):** `getTopProviders` in `family-nudges` selects a nonexistent `olera-providers.metadata` column → provider recommendations in family-nudge emails are silently always empty. Preserved verbatim for parity. Web App board task `3845903a-0ffe-81d8-bcd1-e00d65a225c9` (P2, Backend).
 
 **Watch items:** behavioral parity on the deleted-provider 410/redirect dance (snapshot first); anon-vs-service-role client per call site; N+1 in list surfaces (batch `getProvidersByIds`); a few client-side reads (`WelcomeClient`, `inbox`) cleanest routed through a thin API rather than shipping the module to the browser.
 
@@ -140,7 +142,8 @@ The exact column split (what stays on the spine vs. moves to extension tables) i
 | Q2 | Keep TEXT `provider_id` or migrate to UUID? | OPEN (step 4) |
 | Q3 | Do `caregivers` and `students` merge? | OPEN (step 3) |
 | Q4 | Is iOS actually decoupled before step 4? | OPEN — TJ to confirm (blocks step 4, not 1–2) |
-| Q5 | How far do we take it — through step 5 or stop at a checkpoint? | OPEN — target step 5, reassess at each gate |
+| Q5 | How far do we take it — through step 5 or stop at a checkpoint? | OPEN — **checkpoint hit 2026-06-19.** Front door covers provider-resolution + crons; per-PR cadence paused pending Q6. |
+| Q6 | Should `lib/providers/` own **all** `business_profiles` access, or only the provider/directory slice? | **OPEN — load-bearing, blocks the guard + the remaining ~823-ref sweep.** Most of the 823 are family/student/caregiver/account reads, not provider reads; forcing them behind a door named `lib/providers` is questionable. The answer is the difference between ~800 files left and ~80. Decide before any further migration or guard work. TJ's call. |
 
 *Append decisions here as we make them. This log is the memory of why the schema looks the way it does.*
 

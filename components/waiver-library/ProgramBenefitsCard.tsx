@@ -15,6 +15,14 @@
  *   - matchesCareNeed             (filter the state's programs for the email)
  *   - trackBenefitsEvent          (funnel analytics, tagged variant="program_card")
  *
+ * Post-email enrichment (3 questions):
+ *   - After email submission, we show 3 optional enrichment questions to
+ *     improve profile completeness from ~21% to ~55%:
+ *     1. Who needs care? (Self, Parent, Spouse, Other)
+ *     2. How soon? (ASAP, Within a month, In a few months, Just researching)
+ *     3. How will you pay? (Medicare, Medicaid, Private insurance, etc.)
+ *   - User can answer any/all or skip to see the success card
+ *
  * Value-first display:
  *   - savingsRange present (~26% of programs) → lead with "Up to $X/mo"
  *   - empty (~74%)                            → eligibility-first "Could you qualify?"
@@ -24,12 +32,19 @@
  * landing on this program IS the care signal. One field, one tap.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { ArrowRight, CheckCircle, ShieldCheck, Spinner } from "@phosphor-icons/react";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
 import { useAuth } from "@/components/auth/AuthProvider";
+import {
+  trackBenefitsEnrichmentStarted,
+  trackBenefitsEnrichmentStepCompleted,
+  trackBenefitsEnrichmentStepSkipped,
+  trackBenefitsEnrichmentCompleted,
+  type BenefitsEnrichmentStep,
+} from "@/lib/analytics/benefits-enrichment-tracking";
 
 /** Lightweight program shape returned by /api/benefits/programs. */
 export interface BenefitsProgram {
@@ -82,6 +97,31 @@ function topSavingsLabel(range?: string): string | null {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+type CardState = "capture" | "enrichment_1" | "enrichment_2" | "enrichment_3" | "success";
+
+const RECIPIENT_OPTIONS: { label: string; value: string }[] = [
+  { label: "Myself", value: "self" },
+  { label: "My parent", value: "parent" },
+  { label: "My spouse", value: "spouse" },
+  { label: "Someone else", value: "other" },
+];
+
+const TIMELINE_OPTIONS: { label: string; value: string }[] = [
+  { label: "As soon as possible", value: "asap" },
+  { label: "Within a month", value: "within_month" },
+  { label: "In a few months", value: "few_months" },
+  { label: "Just researching", value: "researching" },
+];
+
+const PAYMENT_OPTIONS: { label: string; value: string }[] = [
+  { label: "Medicare", value: "medicare" },
+  { label: "Medicaid", value: "medicaid" },
+  { label: "Private insurance", value: "private_insurance" },
+  { label: "Private pay", value: "private_pay" },
+  { label: "Veterans benefits", value: "veterans_benefits" },
+  { label: "Long-term care insurance", value: "long_term_care_insurance" },
+];
+
 export default function ProgramBenefitsCard({
   programId,
   programName,
@@ -99,14 +139,25 @@ export default function ProgramBenefitsCard({
   const { user } = useAuth();
   const authedEmail = user?.email ?? null;
 
+  const [cardState, setCardState] = useState<CardState>("capture");
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
   const [resultCount, setResultCount] = useState(0);
   const [resultToken, setResultToken] = useState<string | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
+
+  // Enrichment data
+  const [recipient, setRecipient] = useState<string | null>(null);
+  const [timeline, setTimeline] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [completedSteps, setCompletedSteps] = useState<BenefitsEnrichmentStep[]>([]);
+
+  // Track enrichment start only once
+  const hasTrackedEnrichmentStart = useRef(false);
 
   const entrySource = `/benefits/${stateId}/${programId}`;
+  const ctaSurface = variant === "bare" ? "mobile" : "desktop";
   const shortLabel = programShortName || programName;
   const savings = topSavingsLabel(savingsRange);
 
@@ -189,8 +240,10 @@ export default function ProgramBenefitsCard({
       }
       setResultCount(typeof data.matchCount === "number" ? data.matchCount : matched.length);
       setResultToken(typeof data.token === "string" ? data.token : null);
+      setProfileId(typeof data.profileId === "string" ? data.profileId : null);
       setSaving(false);
-      setSubmitted(true);
+      // Transition to enrichment flow
+      setCardState("enrichment_1");
     } catch {
       setError("Network error. Please try again.");
       setSaving(false);
@@ -217,8 +270,122 @@ export default function ProgramBenefitsCard({
       ? ""
       : "rounded-2xl border border-gray-200/70 bg-white p-5 shadow-sm shadow-gray-900/[0.03]";
 
+  // Track enrichment started when entering enrichment flow
+  useEffect(() => {
+    if (cardState === "enrichment_1" && !hasTrackedEnrichmentStart.current && profileId) {
+      hasTrackedEnrichmentStart.current = true;
+      trackBenefitsEnrichmentStarted({
+        programId,
+        stateCode,
+        profileId,
+        ctaSurface,
+      });
+    }
+  }, [cardState, profileId, programId, stateCode, ctaSurface]);
+
+  // Save enrichment data to the profile
+  // Note: finalPayment is passed directly to avoid stale closure issue
+  // (React state updates are async, so paymentMethod may not be updated yet when called from selectPayment)
+  const saveEnrichmentData = useCallback(async (
+    finalCompletedSteps: BenefitsEnrichmentStep[],
+    finalPayment?: string
+  ) => {
+    if (!profileId) return;
+
+    const payment = finalPayment ?? paymentMethod;
+
+    // Track completion
+    trackBenefitsEnrichmentCompleted(
+      { programId, stateCode, profileId, ctaSurface },
+      finalCompletedSteps
+    );
+
+    // Only call API if we have data to save
+    if (recipient || timeline || payment) {
+      try {
+        await fetch("/api/benefits/update-enrichment", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profileId,
+            token: resultToken,
+            recipient,
+            timeline,
+            paymentMethod: payment,
+            sessionId,
+            completedSteps: finalCompletedSteps,
+          }),
+        });
+      } catch {
+        // Silent fail — enrichment is best-effort
+      }
+    }
+
+    setCardState("success");
+  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId, programId, stateCode, ctaSurface]);
+
+  // Step 1: Select recipient
+  const selectRecipient = useCallback((val: string) => {
+    setRecipient(val);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 1];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(1, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    setTimeout(() => setCardState("enrichment_2"), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface]);
+
+  // Step 2: Select timeline
+  const selectTimeline = useCallback((val: string) => {
+    setTimeline(val);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 2];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(2, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    setTimeout(() => setCardState("enrichment_3"), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface]);
+
+  // Step 3: Select payment method
+  const selectPayment = useCallback((val: string) => {
+    setPaymentMethod(val);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 3];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(3, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    // Pass val directly to avoid stale closure (state won't be updated yet)
+    setTimeout(() => saveEnrichmentData(newCompleted, val), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
+
+  // Skip current step
+  const handleSkip = useCallback(() => {
+    const stepMap: Record<string, BenefitsEnrichmentStep> = {
+      enrichment_1: 1,
+      enrichment_2: 2,
+      enrichment_3: 3,
+    };
+    const currentStep = stepMap[cardState];
+    if (currentStep) {
+      trackBenefitsEnrichmentStepSkipped(
+        currentStep,
+        { programId, stateCode, profileId: profileId || undefined, ctaSurface },
+        completedSteps
+      );
+    }
+
+    switch (cardState) {
+      case "enrichment_1":
+        setTimeout(() => setCardState("enrichment_2"), 150);
+        break;
+      case "enrichment_2":
+        setTimeout(() => setCardState("enrichment_3"), 150);
+        break;
+      case "enrichment_3":
+        saveEnrichmentData(completedSteps);
+        break;
+    }
+  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
+
+  // Current step number for progress dots (1-3)
+  const currentStepNumber = cardState === "enrichment_1" ? 1 : cardState === "enrichment_2" ? 2 : 3;
+
   // ─── Success state ─────────────────────────────────────────────────────
-  if (submitted) {
+  if (cardState === "success") {
     return (
       <div className={shell}>
         <div className="flex items-center gap-2 mb-2">
@@ -248,6 +415,146 @@ export default function ProgramBenefitsCard({
             See your matches
             <ArrowRight className="h-4 w-4" weight="bold" />
           </a>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Enrichment states ─────────────────────────────────────────────────
+  if (cardState.startsWith("enrichment_")) {
+    return (
+      <div className={shell}>
+        {/* Success banner */}
+        <div className="mb-4 bg-emerald-50/70 rounded-xl px-4 py-3 border border-emerald-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-gray-900 truncate">
+                Sent to your inbox
+              </p>
+              <p className="text-[12px] text-gray-600 truncate">
+                {resultCount} {stateName} {resultCount === 1 ? "program" : "programs"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress dots */}
+        <div className="flex items-center justify-center gap-1.5 mb-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`rounded-full transition-all duration-300 ${
+                i <= currentStepNumber
+                  ? "bg-gray-900 w-6 h-1.5"
+                  : "bg-gray-200 w-1.5 h-1.5"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Step 1: Who needs care? */}
+        {cardState === "enrichment_1" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Who needs care?
+            </h3>
+            <div className="space-y-2 mb-4">
+              {RECIPIENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => selectRecipient(opt.value)}
+                  className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                    recipient === opt.value
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: How soon? */}
+        {cardState === "enrichment_2" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              How soon do you need care?
+            </h3>
+            <div className="space-y-2 mb-4">
+              {TIMELINE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => selectTimeline(opt.value)}
+                  className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                    timeline === opt.value
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+
+        {/* Step 3: How will you pay? */}
+        {cardState === "enrichment_3" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              How will you pay for care?
+            </h3>
+            <div className="space-y-2 mb-4">
+              {PAYMENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => selectPayment(opt.value)}
+                  className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                    paymentMethod === opt.value
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
         )}
       </div>
     );

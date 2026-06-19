@@ -40,6 +40,7 @@ export type SectionId =
   | "why"
   | "scenarios"
   | "background"
+  | "certifications"
   | "skills"
   | "resume";
 
@@ -88,9 +89,12 @@ export function getSectionCompleteness(
   const verificationDone = verificationItems.filter((i) => i.done).length;
   const verificationPercent = Math.round((verificationDone / verificationItems.length) * 100);
 
-  // 3. Semester Schedule
+  // 3. Weekly Availability
+  const hasAvailabilitySchedule = meta.availability_schedule
+    ? Object.values(meta.availability_schedule).some((slots) => Array.isArray(slots) && slots.length > 0)
+    : false;
   const scheduleItems = [
-    { key: "schedule", label: "Class schedule", done: !!meta.course_schedule_grid },
+    { key: "schedule", label: "Weekly availability", done: hasAvailabilitySchedule || !!meta.course_schedule_grid },
   ];
   const scheduleDone = scheduleItems.filter((i) => i.done).length;
   const schedulePercent = Math.round((scheduleDone / scheduleItems.length) * 100);
@@ -123,16 +127,21 @@ export function getSectionCompleteness(
   const scenariosDone = scenarioItems.filter((i) => i.done).length;
   const scenariosPercent = Math.round((scenariosDone / scenarioItems.length) * 100);
 
-  // 7. Background & Experience
+  // 7. Experience Timeline
   const backgroundItems = [
-    { key: "experience", label: "Experience level", done: meta.years_caregiving != null },
-    { key: "care_types", label: "Care types", done: (meta.care_experience_types?.length ?? 0) > 0 },
-    { key: "languages", label: "Languages", done: (meta.languages?.length ?? 0) > 0 },
+    { key: "experience_entries", label: "Experience timeline", done: (meta.experience_entries?.length ?? 0) > 0 },
   ];
   const backgroundDone = backgroundItems.filter((i) => i.done).length;
   const backgroundPercent = Math.round((backgroundDone / backgroundItems.length) * 100);
 
-  // 7b. Skills
+  // 7b. Certifications (own section, optional but tracked)
+  const certItems = [
+    { key: "certifications", label: "Certifications", done: (meta.certifications?.length ?? 0) > 0 },
+  ];
+  const certsDone = certItems.filter((i) => i.done).length;
+  const certsPercent = Math.round((certsDone / certItems.length) * 100);
+
+  // 7c. Skills
   const skillsItems = [
     { key: "skills", label: "Skills", done: (meta.skills?.length ?? 0) >= 1 },
   ];
@@ -148,11 +157,12 @@ export function getSectionCompleteness(
 
   return [
     { id: "overview", label: "Profile Overview", percent: overviewPercent, done: overviewPercent === 100, items: overviewItems },
-    { id: "schedule", label: "Semester Schedule", percent: schedulePercent, done: schedulePercent === 100, items: scheduleItems },
+    { id: "schedule", label: "Weekly Availability", percent: schedulePercent, done: schedulePercent === 100, items: scheduleItems },
     { id: "availability", label: "Availability & Commitment", percent: availabilityPercent, done: availabilityPercent === 100, items: availabilityItems },
     { id: "why", label: "Why I Want to Be a Caregiver", percent: whyPercent, done: whyPercent === 100, items: whyItems },
     { id: "scenarios", label: "Screening Questions", percent: scenariosPercent, done: scenariosPercent === 100, items: scenarioItems },
-    { id: "background", label: "Background & Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
+    { id: "background", label: "Experience", percent: backgroundPercent, done: backgroundPercent === 100, items: backgroundItems },
+    { id: "certifications", label: "Certifications", percent: certsPercent, done: certsPercent === 100, items: certItems },
     { id: "skills", label: "Skills", percent: skillsPercent, done: skillsPercent === 100, items: skillsItems },
     { id: "resume", label: "Resume & LinkedIn", percent: resumePercent, done: resumePercent === 100, items: resumeItems },
     { id: "verification", label: "Verification", percent: verificationPercent, done: verificationPercent === 100, items: verificationItems },

@@ -8,6 +8,7 @@ export type CaregiverSectionId =
   | "why"
   | "scenarios"
   | "background"
+  | "certifications"
   | "skills"
   | "resume";
 
@@ -44,6 +45,7 @@ export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
   "why",
   "scenarios",
   "background",
+  "certifications",
   "skills",
   "resume",
 ];
@@ -52,11 +54,12 @@ export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
 export const SECTION_LABELS: Record<CaregiverSectionId, string> = {
   overview: "Profile overview",
   verification: "Verification",
-  schedule: "Semester schedule",
+  schedule: "Weekly availability",
   availability: "Availability & commitment",
   why: "Why I want to be a caregiver",
   scenarios: "Screening questions",
-  background: "Experience & background",
+  background: "Experience",
+  certifications: "Certifications",
   skills: "Skills",
   resume: "Resume & LinkedIn",
 };

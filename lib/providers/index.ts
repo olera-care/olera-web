@@ -17,6 +17,9 @@
  *  - Crons A (aggregate-views + google-reviews): `getProviderDimensionsByIdentifiers`
  *    + `getClaimedProviderSlugs` / `getProvidersForReviewRefresh` /
  *    `updateProviderGoogleReviews` (first provider-table WRITE behind the door).
+ *  - Crons B (weekly-provider-digest): the 9 `digest.server` readers.
+ *  - Crons C (family-nudges): `fetchFamilyProfilesPage` + provider-rec readers
+ *    + `updateFamilyMetadata` (FAMILY-row metadata writes behind the door).
  */
 export type { ProviderView, ProviderSource, ResolveResult } from "./types";
 export { directoryRowToProvider, accountRowToProvider } from "./adapters";
@@ -69,6 +72,16 @@ export type {
   DigestBusinessProfile,
   DigestIosProvider,
 } from "./digest.server";
+export {
+  fetchFamilyProfilesPage,
+  countActiveProvidersInArea,
+  countRecentProvidersInArea,
+  getTopRatedProvidersByCityState,
+  getTopRatedProvidersByState,
+  getBusinessProfileNameSlug,
+  updateFamilyMetadata,
+} from "./nudges.server";
+export type { FamilyNudgeRow, NudgeProviderRow } from "./nudges.server";
 
 // The canonical-id resolver already lived here; re-export so the front door is
 // the one import site for provider identity too.

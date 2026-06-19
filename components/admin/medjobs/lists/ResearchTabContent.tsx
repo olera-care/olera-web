@@ -67,10 +67,9 @@ export function ResearchTabContent({
 }) {
   const router = useRouter();
   const [researchCampus, setResearchCampus] = useState<ResearchCampusCard | null>(null);
-  // Established render order + per-card element cache for the provider
-  // section (see providerItems below). Declared here so the hooks run
-  // unconditionally, before the empty-state early return.
-  const orderRef = useRef<string[]>([]);
+  // Per-card element cache for the provider section (see providerItems
+  // below). Declared here so the hook runs unconditionally, before the
+  // empty-state early return.
   const nodeCacheRef = useRef<Map<string, { src: unknown; node: ReactNode }>>(
     new Map(),
   );
@@ -243,40 +242,32 @@ export function ResearchTabContent({
       nextCache.set(key, { src, node });
       return node;
     };
-    const items = new Map<string, { key: string; sortKey: string; node: ReactNode }>();
-    for (const row of providerRows) {
-      const key = row.row_key ?? row.id;
-      items.set(key, {
-        key,
-        sortKey: row.created_at,
-        node: cachedNode(key, row, () => renderRow(row)),
-      });
-    }
-    for (const p of providerProspects) {
-      items.set(p.id, {
+    // Order by created_at desc (id tiebreak). created_at is stable across
+    // refreshes (catchment uses an epoch sentinel for null, never new Date),
+    // and a materialized row inherits the provider's created_at — the SAME
+    // value its virtual prospect card used — so materializing a prospect
+    // leaves the card exactly where it was instead of moving it. The earlier
+    // frozen-order ref appended the materialized row's new key to the bottom,
+    // which is what made a freshly-clicked prospect jump to the end of the
+    // list. The per-card node cache (above) is what keeps re-renders cheap;
+    // sorting by a stable key is what keeps positions correct.
+    const sorted = [
+      ...providerRows.map((row) => {
+        const key = row.row_key ?? row.id;
+        return { key, sortKey: row.created_at, node: cachedNode(key, row, () => renderRow(row)) };
+      }),
+      ...providerProspects.map((p) => ({
         key: p.id,
         sortKey: p.created_at,
         node: cachedNode(p.id, p, () => renderVirtualProspect(p)),
-      });
-    }
-    nodeCacheRef.current = nextCache;
-    const established = orderRef.current.filter((k) => items.has(k));
-    const establishedKeys = new Set(established);
-    const incoming = [...items.values()]
-      .filter((it) => !establishedKeys.has(it.key))
-      .sort((a, b) => {
-        const byDate = b.sortKey.localeCompare(a.sortKey);
-        return byDate !== 0 ? byDate : a.key.localeCompare(b.key);
-      })
-      .map((it) => it.key);
-    const order = [...established, ...incoming];
-    orderRef.current = order;
-    providerItems = order.map((k) => {
-      const it = items.get(k)!;
-      return { key: it.key, node: it.node };
+      })),
+    ].sort((a, b) => {
+      const byDate = b.sortKey.localeCompare(a.sortKey);
+      return byDate !== 0 ? byDate : a.key.localeCompare(b.key);
     });
+    nodeCacheRef.current = nextCache;
+    providerItems = sorted.map((it) => ({ key: it.key, node: it.node }));
   } else {
-    orderRef.current = [];
     nodeCacheRef.current = new Map();
   }
 

@@ -440,8 +440,23 @@ export function MedJobsTabPage({
         });
         const body = await res.json();
         if (!res.ok) throw new Error(body.error || "Failed to materialize");
-        await silentRefresh();
+        // Open the drawer IMMEDIATELY — do not await a full refetch first
+        // (that 6-endpoint refresh, incl. the catchment scan, is what made
+        // clicking a prospect slow to open). Refresh the list in the
+        // background; the materialized row inherits the prospect's created_at
+        // so it lands in the same spot the virtual card occupied (no jump).
+        // Once it arrives, mark it read so its bold border clears.
+        setOpenOutreachName(p.provider_name || undefined);
         setOpenOutreachId(body.id);
+        void silentRefresh().then(() => {
+          setRows((prev) =>
+            prev.map((r) =>
+              r.id === body.id && r.viewed_at == null
+                ? { ...r, viewed_at: new Date().toISOString() }
+                : r,
+            ),
+          );
+        });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to start outreach");
       }
@@ -543,7 +558,7 @@ export function MedJobsTabPage({
           title="Branch build marker"
           className="rounded-full bg-fuchsia-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white"
         >
-          dejank build · pass-3 debug
+          dejank build · pass-4 debug
         </span>
       </header>
 

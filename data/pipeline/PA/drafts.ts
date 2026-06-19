@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-06-19T09:00:09.034Z
+ * Last updated: 2026-06-19T09:41:54.992Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -53,8 +53,7 @@ export const drafts: PipelineStateDrafts = {
             "primary home under equity limit",
             "certain personal items"
           ],
-          "homeEquityCap": 752000,
-          "note": "To qualify, your loved one's \"countable\" assets must generally be under $8,000 for an individual (if their monthly income is $2,982 or less). If their income is higher, the asset limit is $2,400."
+          "homeEquityCap": 752000
         },
         "functionalRequirement": "Must need nursing facility level of care (assessment of whether your loved one needs daily help with Activities of Daily Living like bathing, dressing, eating, or transferring)",
         "otherRequirements": [
@@ -147,7 +146,8 @@ export const drafts: PipelineStateDrafts = {
         "CHC is mandatory managed care, it replaces prior waiver programs like Aging and Attendant Care waivers",
         "Even if your loved one is dual eligible, they still need to meet functional eligibility requirements through the FED assessment",
         "LIFE program is an alternative for ages 55+ in served areas, you can opt out of CHC to choose LIFE instead",
-        "Income and asset limits are reviewed strictly by the County Assistance Office using standard Medicaid rules"
+        "Income and asset limits are reviewed strictly by the County Assistance Office using standard Medicaid rules",
+        "To qualify, your loved one's \"countable\" assets must generally be under $8,000 for an individual (if their monthly income is $2,982 or less). If their income is higher, the asset limit is $2,400."
       ],
       "relatedPrograms": [
         "LIFE (Living Independence for the Elderly)",

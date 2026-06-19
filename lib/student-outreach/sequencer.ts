@@ -367,8 +367,8 @@ function defaultCallScriptForDay(type: CadenceKey, day: number): string {
     return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed you about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose would love to talk it through with you. Is there a good time for a quick Zoom this week or next?"`;
   }
   if (type === "dept_head") {
-    // Day 6 call, paired with the follow-up email. Formal, meeting-led.
-    return `"Hello, this is {admin_first_name}, a research assistant in Dr. Logan DuBose's office at Olera. Dr. DuBose runs a paid Student Caregiver Program that gives pre-health students near {campus_name} paid healthcare experience for med, PA, and nursing applications. He'd value a short Zoom to introduce it — would you be open to that, or is there a better email or time to connect?"`;
+    // Day 6 call, paired with the follow-up email. Formal, Zoom-led.
+    return `"Hello, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed you about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose would value a short Zoom to talk it through. Is there a good time this week or next?"`;
   }
   return `"Hi {recipient_name}, this is {admin_first_name} from Dr. Logan DuBose's office at Olera, following up on our note to {organization_name} about Olera's Student Caregiver Program for pre-health students near {campus_name}. Is there a better person or email I should send the program details to?"`;
 }

@@ -462,6 +462,16 @@ export interface StudentMetadata {
   care_experience_types?: string[];  // "dementia", "post_surgical", "mobility", etc.
   languages?: string[];
 
+  // Experience timeline (resume-style entries)
+  experience_entries?: Array<{
+    id: string;           // unique id for React keys
+    title: string;        // role / job title
+    description: string;  // one-liner about the role
+    start_date: string;   // "YYYY-MM" format
+    end_date?: string;    // "YYYY-MM" or omitted for "Present"
+    tag: "paid" | "volunteer" | "family" | "clinical" | "internship" | "other";
+  }>;
+
   // Availability
   availability_type?: "part_time" | "full_time" | "flexible" | "summer_only" | "weekends";
   hours_per_week?: number;
@@ -499,10 +509,13 @@ export interface StudentMetadata {
   why_caregiving?: string;
   personal_statement?: string;
 
-  // Course Schedule
+  // Course Schedule (legacy grid)
   course_schedule_description?: string;
   course_schedule_grid?: string;      // JSON serialized ScheduleGrid (day-slot toggles)
   course_schedule_semester?: string;  // e.g. "Fall 2026"
+
+  // Weekly availability — precise time ranges per day
+  availability_schedule?: Record<string, Array<{ start: string; end: string }>>; // day → [{start: "09:00", end: "14:00"}]
 
   // Availability & Commitment
   commitment_statement?: string;        // Required free-text on commitment to shifts

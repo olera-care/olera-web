@@ -249,15 +249,16 @@ function StakeholderDrawer({
     return () => { cancelled = true; };
   }, [outreachId]);
 
-  // v9.0 Phase 4: mark the row read on drawer mount. Fire-and-forget;
-  // a failed mark_read shouldn't disrupt the drawer experience. The
-  // server is idempotent (only updates if viewed_at IS NULL) so this
-  // is safe to call on every mount.
+  // Mark the row read on drawer mount — persist only, fire-and-forget.
+  // The server is idempotent (updates only if viewed_at IS NULL), so this
+  // is safe on every mount.
   //
-  // v9.0 Phase 7 Commit K: after mark_read lands, fire the global
-  // refresh so the In Basket hero (Queued counts) + sidebar
-  // fractions reflect the new read state in real time without
-  // waiting for the next user action.
+  // Deliberately does NOT call refreshMedJobs(). That global refresh
+  // refetched the entire In Basket (6 endpoints, incl. a 75K-row catchment
+  // scan) and re-sorted the list every time you merely opened a card —
+  // the cause of both the slow drawer and the silent reorder. The opening
+  // surface (MedJobsTabPage) now applies read state optimistically in
+  // place; the hero/sidebar reconcile on the next genuine refresh.
   useEffect(() => {
     void (async () => {
       try {
@@ -266,7 +267,6 @@ function StakeholderDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "mark_read" }),
         });
-        refreshMedJobs();
       } catch {
         /* non-critical */
       }

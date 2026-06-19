@@ -332,6 +332,33 @@ export function MedJobsTabPage({
     [toast, markMoved],
   );
 
+  // Optimistic local read. Opening a card un-bolds it IN PLACE and
+  // decrements the tab's unread count without any network round-trip or
+  // list refetch. The drawer still persists viewed_at server-side
+  // (fire-and-forget); the next genuine refresh reconciles. This is the
+  // fix for the open-a-card-reloads-and-reorders-everything problem:
+  // viewing is no longer a mutation of the list's identity or order, so
+  // it can't reorder or jank. A real refresh only happens on an actual
+  // action (onAction → silentRefresh), not on mere viewing.
+  const markRowReadLocally = useCallback(
+    (row: TabRow) => {
+      if (row.viewed_at != null) return; // already read — nothing to do
+      const id = row.id;
+      const patch = (list: TabRow[]) =>
+        list.map((r) =>
+          r.id === id && r.viewed_at == null
+            ? { ...r, viewed_at: new Date().toISOString() }
+            : r,
+        );
+      setRows((prev) => patch(prev));
+      setPartnerRows((prev) => patch(prev));
+      setTabUnreadCounts((prev) =>
+        prev ? { ...prev, [tab]: Math.max(0, (prev[tab] ?? 0) - 1) } : prev,
+      );
+    },
+    [tab],
+  );
+
   const renderRow = useCallback(
     // slotTab selects the card's action-slots (buildRowSlots). Audience tabs
     // pass an explicit underlying key per section ("prospects" for the
@@ -345,6 +372,7 @@ export function MedJobsTabPage({
         onOpenDrawer={() => {
           setOpenOutreachName(row.organization_name || undefined);
           setOpenOutreachId(row.id);
+          markRowReadLocally(row);
         }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
@@ -369,7 +397,7 @@ export function MedJobsTabPage({
         }}
       />
     ),
-    [tab, callAction, isRecent],
+    [tab, callAction, isRecent, markRowReadLocally],
   );
 
   // Shared prospect-research handlers — used by the Prospects tab and the
@@ -774,11 +802,11 @@ export function MedJobsTabPage({
           outreachId={openOutreachId}
           seedName={openOutreachName}
           onClose={() => {
-            // Silent refresh on close so the mark_read fired during the
-            // drawer's lifetime is reflected (bolding clears + fractions
-            // update) WITHOUT flashing the list skeleton.
+            // No refetch on close. Read state was already applied
+            // optimistically on open (markRowReadLocally), and any real
+            // action inside the drawer refreshed via onAction. Closing a
+            // drawer you only viewed must not reload + re-sort the list.
             setOpenOutreachId(null);
-            void silentRefresh();
           }}
           onAction={handleDrawerAction}
         />

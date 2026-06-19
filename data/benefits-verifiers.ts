@@ -61,6 +61,7 @@ export const STATE_REVIEWED_AT: Record<string, string> = {
   fl: "2026-06-06",
   ca: "2026-05-20",
   tx: "2026-05-21",
+  pa: "2026-06-17",
 };
 
 export function getStateReviewedAt(stateAbbrev: string): string | undefined {

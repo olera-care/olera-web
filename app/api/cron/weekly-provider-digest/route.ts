@@ -5,6 +5,17 @@ import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileComple
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
+import {
+  scanProvidersForPrewarm,
+  getProvidersByPlaceIds,
+  getActiveFamilySeekers,
+  getClaimedProvidersInBox,
+  getBusinessProfilesBySlugs,
+  getBusinessProfilesBySourceIds,
+  getIosProvidersBySlugs,
+  getIosProvidersByIds,
+  getProviderPlaceIdBySourceId,
+} from "@/lib/providers";
 import { getRow, isFresh, normalizeKey, type DiagRow } from "@/lib/market-diagnostic/cache";
 import { resolveSelfRank, type RankedEntry } from "@/lib/market-diagnostic/self-rank";
 import { normCareType } from "@/lib/market-diagnostic/resolve";
@@ -359,19 +370,11 @@ export async function GET(request: NextRequest) {
       // hook to whichever local providers resolve as send-worthy.
       const prewarmScanPage = Math.floor(now.getTime() / DAY_MS) % MARKET_PREWARM_SCAN_PAGES;
       const prewarmScanFrom = prewarmScanPage * MARKET_PREWARM_SCAN_LIMIT;
-      const { data: warmCandidates, error: warmCandidateErr } = await db
-        .from("olera-providers")
-        .select("provider_id, city, state, provider_category")
-        .not("email", "is", null)
-        .not("place_id", "is", null)
-        .not("city", "is", null)
-        .not("state", "is", null)
-        .or("deleted.is.null,deleted.eq.false")
-        .order("provider_id", { ascending: true })
-        .range(prewarmScanFrom, prewarmScanFrom + MARKET_PREWARM_SCAN_LIMIT - 1);
-      if (warmCandidateErr) {
-        console.error("[weekly-provider-digest] market prewarm candidate query failed:", warmCandidateErr);
-      }
+      const warmCandidates = await scanProvidersForPrewarm(
+        db,
+        prewarmScanFrom,
+        MARKET_PREWARM_SCAN_LIMIT,
+      );
       const seenPrewarmKeys = new Set<string>();
       for (const p of (warmCandidates ?? []) as Array<{
         provider_id: string;
@@ -411,16 +414,8 @@ export async function GET(request: NextRequest) {
       const placeIdList = [...placeRank.keys()];
       for (let i = 0; i < placeIdList.length; i += RANK_CHUNK) {
         const chunk = placeIdList.slice(i, i + RANK_CHUNK);
-        const { data: provs, error: provErr } = await db
-          .from("olera-providers")
-          .select("provider_id, slug, place_id, email")
-          .in("place_id", chunk)
-          .not("deleted", "is", true);
-        if (provErr) {
-          console.error("[weekly-provider-digest] rank-eligible provider query failed:", provErr);
-          continue;
-        }
-        for (const p of (provs ?? []) as Array<{ provider_id: string; slug: string | null; place_id: string | null; email: string | null }>) {
+        const provs = await getProvidersByPlaceIds(db, chunk);
+        for (const p of provs) {
           if (!p.email || !p.place_id) continue;
           const snapshot = placeRank.get(p.place_id);
           if (!snapshot) continue;
@@ -459,17 +454,8 @@ export async function GET(request: NextRequest) {
     type NearbySeeker = { lat: number; lng: number; town: string | null; careNeed: string | null; timeline: string | null };
     const seekers: NearbySeeker[] = [];
     {
-      const { data: seekerRows, error: seekerErr } = await db
-        .from("business_profiles")
-        .select("city, lat, lng, care_types, metadata")
-        .eq("type", "family")
-        .eq("is_active", true)
-        .not("metadata->care_post", "is", null);
-      if (seekerErr) console.error("[weekly-provider-digest] seeker query failed:", seekerErr);
-      for (const r of (seekerRows ?? []) as Array<{
-        city: string | null; lat: number | null; lng: number | null;
-        care_types: string[] | null; metadata: Record<string, unknown> | null;
-      }>) {
+      const seekerRows = await getActiveFamilySeekers(db);
+      for (const r of seekerRows) {
         if (r.lat == null || r.lng == null) continue;
         const m = (r.metadata ?? {}) as { care_post?: { status?: string }; care_needs?: string[]; timeline?: string };
         if (m.care_post?.status !== "active") continue;
@@ -489,17 +475,13 @@ export async function GET(request: NextRequest) {
       await Promise.all(
         seekers.map(async (s) => {
           const lngDelta = LAT_DELTA / Math.max(Math.cos((s.lat * Math.PI) / 180), 0.2);
-          const { data: near } = await db
-            .from("business_profiles")
-            .select("slug, lat, lng")
-            .in("type", ["organization", "caregiver"])
-            .eq("is_active", true)
-            .not("account_id", "is", null)
-            .gte("lat", s.lat - LAT_DELTA)
-            .lte("lat", s.lat + LAT_DELTA)
-            .gte("lng", s.lng - lngDelta)
-            .lte("lng", s.lng + lngDelta);
-          for (const p of (near ?? []) as Array<{ slug: string | null; lat: number | null; lng: number | null }>) {
+          const near = await getClaimedProvidersInBox(db, {
+            latMin: s.lat - LAT_DELTA,
+            latMax: s.lat + LAT_DELTA,
+            lngMin: s.lng - lngDelta,
+            lngMax: s.lng + lngDelta,
+          });
+          for (const p of near) {
             if (!p.slug || p.lat == null || p.lng == null) continue;
             if (haversineMiles(s.lat, s.lng, p.lat, p.lng) > 50) continue;
             nearSeekerSlugs.add(p.slug);
@@ -585,12 +567,8 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < providerIds.length; i += chunkSize) {
       const chunk = providerIds.slice(i, i + chunkSize);
 
-      const { data: bySlug } = await db
-        .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, lat, lng, category, metadata, account_id, claim_state")
-        .in("slug", chunk)
-        .in("type", ["organization", "caregiver"]);
-      for (const b of (bySlug ?? []) as BP[]) {
+      const bySlug = await getBusinessProfilesBySlugs(db, chunk);
+      for (const b of bySlug) {
         bps.push(b);
         if (b.slug) bpByKey.set(b.slug, b);
       }
@@ -598,12 +576,8 @@ export async function GET(request: NextRequest) {
       const stillMissing = chunk.filter((id) => !bpByKey.has(id));
       if (stillMissing.length === 0) continue;
 
-      const { data: bySourceId } = await db
-        .from("business_profiles")
-        .select("id, slug, source_provider_id, display_name, email, city, state, lat, lng, category, metadata, account_id, claim_state")
-        .in("source_provider_id", stillMissing)
-        .in("type", ["organization", "caregiver"]);
-      for (const b of (bySourceId ?? []) as BP[]) {
+      const bySourceId = await getBusinessProfilesBySourceIds(db, stillMissing);
+      for (const b of bySourceId) {
         bps.push(b);
         if (b.source_provider_id) bpByKey.set(b.source_provider_id, b);
       }
@@ -622,29 +596,13 @@ export async function GET(request: NextRequest) {
     // applied in the send loop via unsubscribedEmails. Errors here are
     // surfaced explicitly -- a bad column silently empties the result set,
     // which is exactly how the missing-metadata bug shipped once.
-    type IosProvider = {
-      provider_id: string;
-      slug: string | null;
-      email: string | null;
-      provider_name: string | null;
-      city: string | null;
-      state: string | null;
-    };
-    const iosSelect = "provider_id, slug, email, provider_name, city, state";
     const unresolved = providerIds.filter((id) => !bpByKey.has(id));
     if (unresolved.length > 0) {
       for (let i = 0; i < unresolved.length; i += chunkSize) {
         const chunk = unresolved.slice(i, i + chunkSize);
 
-        const { data: bySlugIos, error: bySlugErr } = await db
-          .from("olera-providers")
-          .select(iosSelect)
-          .in("slug", chunk)
-          .not("deleted", "is", true);
-        if (bySlugErr) {
-          console.error("[weekly-provider-digest] olera-providers by-slug query failed:", bySlugErr);
-        }
-        for (const ip of (bySlugIos ?? []) as IosProvider[]) {
+        const bySlugIos = await getIosProvidersBySlugs(db, chunk);
+        for (const ip of bySlugIos) {
           if (!ip.slug) continue;
           bpByKey.set(ip.slug, {
             id: ip.provider_id,
@@ -666,15 +624,8 @@ export async function GET(request: NextRequest) {
         const stillUnresolved = chunk.filter((id) => !bpByKey.has(id));
         if (stillUnresolved.length === 0) continue;
 
-        const { data: byIdIos, error: byIdErr } = await db
-          .from("olera-providers")
-          .select(iosSelect)
-          .in("provider_id", stillUnresolved)
-          .not("deleted", "is", true);
-        if (byIdErr) {
-          console.error("[weekly-provider-digest] olera-providers by-id query failed:", byIdErr);
-        }
-        for (const ip of (byIdIos ?? []) as IosProvider[]) {
+        const byIdIos = await getIosProvidersByIds(db, stillUnresolved);
+        for (const ip of byIdIos) {
           // Use the legacy alphanumeric ID as the URL slug when olera-providers.slug
           // is null. The /provider/[slug]/onboard route resolves both formats, so
           // the answer link works either way.
@@ -1345,12 +1296,7 @@ async function resolveProviderMarketRank(
   let placeId =
     (bp.metadata as { google_metadata?: { place_id?: string } } | null)?.google_metadata?.place_id ?? null;
   if (!placeId && bp.source_provider_id) {
-    const { data } = await db
-      .from("olera-providers")
-      .select("place_id")
-      .eq("provider_id", bp.source_provider_id)
-      .maybeSingle();
-    placeId = (data as { place_id?: string | null } | null)?.place_id ?? null;
+    placeId = await getProviderPlaceIdBySourceId(db, bp.source_provider_id);
   }
   if (!placeId) return { rank: null, referralTargets: [], totalReferralSources: 0, warmTarget: null }; // no key to match — skip, don't warm
 

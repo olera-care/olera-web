@@ -133,6 +133,91 @@ export async function getProviderEmailsByIds(
   return out;
 }
 
+export interface ProviderDimensions {
+  city: string | null;
+  state: string | null;
+  category: string | null;
+}
+
+function chunkIds<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+/**
+ * Resolve city/state/category for a set of provider URL identifiers.
+ *
+ * A `/provider/[slug]` identifier resolves against `olera-providers.slug`
+ * (modern), then `olera-providers.provider_id` (legacy alphanumeric IDs), then
+ * `business_profiles.slug` (claimed) — all three, in that order, so legacy URLs
+ * aren't dropped. Chunked to keep the `.in()` filter under URL-length limits.
+ * Relocated from the aggregate-provider-views cron's `fetchProviderDimensions`.
+ */
+export async function getProviderDimensionsByIdentifiers(
+  ids: string[],
+  db: SupabaseClient,
+): Promise<Map<string, ProviderDimensions>> {
+  const result = new Map<string, ProviderDimensions>();
+  if (ids.length === 0) return result;
+
+  for (const chunk of chunkIds(ids, 200)) {
+    // 1. olera-providers by slug (most common — modern providers).
+    const { data: oleraBySlug } = await db
+      .from("olera-providers")
+      .select("slug, city, state, provider_category")
+      .in("slug", chunk);
+    for (const row of oleraBySlug ?? []) {
+      if (row.slug && !result.has(row.slug)) {
+        result.set(row.slug, {
+          city: row.city ?? null,
+          state: row.state ?? null,
+          category: row.provider_category ?? null,
+        });
+      }
+    }
+
+    // 2. Legacy fallback: olera-providers by provider_id (URLs that use the
+    // alphanumeric ID instead of a slug).
+    let missing = chunk.filter((id) => !result.has(id));
+    if (missing.length > 0) {
+      const { data: oleraById } = await db
+        .from("olera-providers")
+        .select("provider_id, city, state, provider_category")
+        .in("provider_id", missing);
+      for (const row of oleraById ?? []) {
+        if (row.provider_id && !result.has(row.provider_id)) {
+          result.set(row.provider_id, {
+            city: row.city ?? null,
+            state: row.state ?? null,
+            category: row.provider_category ?? null,
+          });
+        }
+      }
+      missing = chunk.filter((id) => !result.has(id));
+    }
+
+    // 3. business_profiles by slug (claimed providers without olera-providers row).
+    if (missing.length > 0) {
+      const { data: bps } = await db
+        .from("business_profiles")
+        .select("slug, city, state, category")
+        .in("slug", missing);
+      for (const bp of bps ?? []) {
+        if (bp.slug && !result.has(bp.slug)) {
+          result.set(bp.slug, {
+            city: bp.city ?? null,
+            state: bp.state ?? null,
+            category: bp.category ?? null,
+          });
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
 /**
  * The claimed-account fields a directory provider needs to know its real claim
  * state (the directory row always reads "unclaimed"). `metadata` is left as

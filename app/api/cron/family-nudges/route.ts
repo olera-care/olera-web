@@ -22,6 +22,15 @@ import {
   inactivityReengagementEmail,
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
+import {
+  fetchFamilyProfilesPage,
+  countActiveProvidersInArea,
+  countRecentProvidersInArea,
+  getTopRatedProvidersByCityState,
+  getTopRatedProvidersByState,
+  getBusinessProfileNameSlug,
+  updateFamilyMetadata,
+} from "@/lib/providers";
 import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/types";
 
 /**
@@ -137,13 +146,12 @@ async function fetchAllFamilies(db: DB, cutoffTime: string): Promise<FamilyRow[]
   let hasMore = true;
 
   while (hasMore) {
-    const { data, error } = await db
-      .from("business_profiles")
-      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id, claim_token")
-      .eq("type", "family")
-      .lte("created_at", cutoffTime)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
+    const { data, error } = await fetchFamilyProfilesPage(
+      db,
+      cutoffTime,
+      offset,
+      PAGE_SIZE,
+    );
 
     if (error) {
       console.error("[cron/family-nudges] fetchAllFamilies error:", error);
@@ -184,19 +192,7 @@ async function countProvidersInArea(
     .map((ct) => CARE_TYPE_TO_CATEGORY[ct])
     .filter(Boolean);
 
-  let query = db
-    .from("olera-providers")
-    .select("provider_id", { count: "exact", head: true })
-    .eq("state", state)
-    .ilike("city", city)
-    .or("deleted.is.null,deleted.eq.false");
-
-  if (categories.length > 0) {
-    query = query.in("provider_category", categories);
-  }
-
-  const { count } = await query;
-  const result = count ?? 0;
+  const result = await countActiveProvidersInArea(db, state, city, categories);
   providerCountCache.set(key, result);
   return result;
 }
@@ -216,46 +212,17 @@ async function getTopProviders(
     .filter(Boolean);
 
   // Try city + state first
-  let query = db
-    .from("olera-providers")
-    .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data, metadata")
-    .eq("state", state)
-    .ilike("city", city)
-    .or("deleted.is.null,deleted.eq.false")
-    .not("google_rating", "is", null)
-    .gte("google_rating", 3.5)
-    .order("google_rating", { ascending: false, nullsFirst: false })
-    .limit(limit);
-
-  if (categories.length > 0) {
-    query = query.in("provider_category", categories);
-  }
-
-  let { data: providers } = await query;
+  let providers = await getTopRatedProvidersByCityState(db, state, city, categories, limit);
 
   // Fall back to state-only if not enough results
-  if (!providers || providers.length < 2) {
-    let stateQuery = db
-      .from("olera-providers")
-      .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data, metadata")
-      .eq("state", state)
-      .or("deleted.is.null,deleted.eq.false")
-      .not("google_rating", "is", null)
-      .gte("google_rating", 4.0)
-      .order("google_rating", { ascending: false, nullsFirst: false })
-      .limit(limit);
-
-    if (categories.length > 0) {
-      stateQuery = (stateQuery as any).in("provider_category", categories);
-    }
-
-    const { data: stateProviders } = await stateQuery;
-    if (stateProviders && stateProviders.length > (providers?.length ?? 0)) {
+  if (providers.length < 2) {
+    const stateProviders = await getTopRatedProvidersByState(db, state, categories, limit);
+    if (stateProviders.length > providers.length) {
       providers = stateProviders;
     }
   }
 
-  const results: ProviderRec[] = (providers || []).map((p) => {
+  const results: ProviderRec[] = providers.map((p) => {
     const grd = p.google_reviews_data as {
       rating?: number;
       review_count?: number;
@@ -263,7 +230,7 @@ async function getTopProviders(
     } | null;
 
     // Extract price range from metadata if available
-    const meta = (p as Record<string, unknown>).metadata as Record<string, unknown> | null;
+    const meta = p.metadata as Record<string, unknown> | null;
     let priceRange: string | null = null;
     if (meta?.price_range) {
       priceRange = meta.price_range as string;
@@ -310,20 +277,7 @@ async function countNewProvidersInArea(
     .map((ct) => CARE_TYPE_TO_CATEGORY[ct])
     .filter(Boolean);
 
-  let query = db
-    .from("olera-providers")
-    .select("provider_id", { count: "exact", head: true })
-    .eq("state", state)
-    .ilike("city", city)
-    .or("deleted.is.null,deleted.eq.false")
-    .gte("created_at", thirtyDaysAgo);
-
-  if (categories.length > 0) {
-    query = query.in("provider_category", categories);
-  }
-
-  const { count } = await query;
-  const result = count ?? 0;
+  const result = await countRecentProvidersInArea(db, state, city, categories, thirtyDaysAgo);
   newProviderCountCache.set(key, result);
   return result;
 }
@@ -747,15 +701,11 @@ export async function GET(request: NextRequest) {
           });
 
           // Update metadata with timestamp and increment count
-          await db.from("business_profiles")
-            .update({
-              metadata: {
-                ...meta,
-                monthly_recommendations_sent_at: new Date().toISOString(),
-                monthly_recommendations_count: recCount + 1,
-              },
-            })
-            .eq("id", family.id);
+          await updateFamilyMetadata(db, family.id, {
+            ...meta,
+            monthly_recommendations_sent_at: new Date().toISOString(),
+            monthly_recommendations_count: recCount + 1,
+          });
         }
 
         counts.monthlyRecommendations++;
@@ -821,15 +771,11 @@ export async function GET(request: NextRequest) {
           });
 
           // Set celebration flag (one-time only)
-          await db.from("business_profiles")
-            .update({
-              metadata: {
-                ...meta,
-                completion_celebrated_at: new Date().toISOString(),
-                profile_completeness: completeness.percentage,
-              },
-            })
-            .eq("id", family.id);
+          await updateFamilyMetadata(db, family.id, {
+            ...meta,
+            completion_celebrated_at: new Date().toISOString(),
+            profile_completeness: completeness.percentage,
+          });
         }
 
         counts.completionCelebrations++;
@@ -1025,18 +971,14 @@ export async function GET(request: NextRequest) {
               last_nudge_at: new Date().toISOString(),
               phase: nudgeNumber >= COMPLETION_ACTIVE_COUNT ? "maintenance" : "active",
             };
-            await db.from("business_profiles")
-              .update({
-                metadata: {
-                  ...meta,
-                  completion_sequence: newSeq,
-                  // Also set legacy flag for backward compat
-                  profile_incomplete_reminder_sent: true,
-                  // Store calculated completeness for accurate display in Find Families
-                  profile_completeness: completeness.percentage,
-                },
-              })
-              .eq("id", family.id);
+            await updateFamilyMetadata(db, family.id, {
+              ...meta,
+              completion_sequence: newSeq,
+              // Also set legacy flag for backward compat
+              profile_incomplete_reminder_sent: true,
+              // Store calculated completeness for accurate display in Find Families
+              profile_completeness: completeness.percentage,
+            });
           }
           continue;
         }
@@ -1210,18 +1152,14 @@ export async function GET(request: NextRequest) {
               last_nudge_at: new Date().toISOString(),
               phase: nudgeNumber >= PUBLISH_ACTIVE_COUNT ? "maintenance" : "active",
             };
-            await db.from("business_profiles")
-              .update({
-                metadata: {
-                  ...meta,
-                  publish_sequence: newSeq,
-                  // Also set legacy flag for backward compat
-                  go_live_reminder_sent: true,
-                  // Store calculated completeness for accurate display in Find Families
-                  profile_completeness: completeness.percentage,
-                },
-              })
-              .eq("id", family.id);
+            await updateFamilyMetadata(db, family.id, {
+              ...meta,
+              publish_sequence: newSeq,
+              // Also set legacy flag for backward compat
+              go_live_reminder_sent: true,
+              // Store calculated completeness for accurate display in Find Families
+              profile_completeness: completeness.percentage,
+            });
           }
           continue;
         }
@@ -1246,11 +1184,7 @@ export async function GET(request: NextRequest) {
         let providerSlug = "";
 
         if (connData.firstToProfileId) {
-          const { data: providerBp } = await db
-            .from("business_profiles")
-            .select("display_name, slug")
-            .eq("id", connData.firstToProfileId)
-            .single();
+          const providerBp = await getBusinessProfileNameSlug(db, connData.firstToProfileId);
           if (providerBp?.slug) {
             providerName = providerBp.display_name || "your provider";
             providerSlug = providerBp.slug;
@@ -1279,9 +1213,7 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: pcfLogId ?? undefined,
           });
-          await db.from("business_profiles")
-            .update({ metadata: { ...meta, post_connection_followup_sent: true } })
-            .eq("id", family.id);
+          await updateFamilyMetadata(db, family.id, { ...meta, post_connection_followup_sent: true });
         }
         counts.postConnectionFollowup++;
         continue;
@@ -1399,15 +1331,11 @@ export async function GET(request: NextRequest) {
         });
 
         // Update metadata
-        await db.from("business_profiles")
-          .update({
-            metadata: {
-              ...meta,
-              reengagement_sent_at: new Date().toISOString(),
-              reengagement_count: reengageCount + 1,
-            },
-          })
-          .eq("id", family.id);
+        await updateFamilyMetadata(db, family.id, {
+          ...meta,
+          reengagement_sent_at: new Date().toISOString(),
+          reengagement_count: reengageCount + 1,
+        });
       }
 
       counts.reengagementEmails++;

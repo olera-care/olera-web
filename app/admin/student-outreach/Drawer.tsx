@@ -1024,8 +1024,6 @@ function ResearchModePanel({
     [primaryContact?.title, primaryContact?.first_name, primaryContact?.last_name]
       .filter(Boolean)
       .join(" ") || null;
-  const havePrograms = ctx.outreach.programs.length > 0;
-  const haveDept = type === "dept_head" ? Boolean(ctx.outreach.department) : true;
   const eligibleEmail = ctx.contacts.filter(
     (c) => c.status === "active" && c.email,
   ).length;
@@ -1038,10 +1036,14 @@ function ResearchModePanel({
   const hasOfficeEmail = Boolean(officeEmail) || members.some((m) => m?.email) || eligibleEmail > 0;
 
   const isProspect = status === "prospect";
+  // c1: non-office partner prospects (dept_head, student_org) launch on a
+  // contact alone — programs/department are no longer a gate (they don't
+  // personalize the partner emails), so the drawer skips straight to the
+  // email-sequence review like advising offices do.
   const ready = isOffice
     ? hasOfficeEmail
     : isProspect
-      ? haveContact && havePrograms && haveDept
+      ? haveContact
       : eligibleEmail > 0;
 
   // v8.10.11: orientation copy trimmed — the section h3 ("RESEARCH")
@@ -1101,7 +1103,7 @@ function ResearchModePanel({
       <>Check the info, then launch outreach.</>
     )
   ) : isProspect ? (
-    <>Add a contact and pick programs below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
+    <>Add a contact below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
   ) : (
     <>Check the info, call to confirm, then launch outreach.</>
   );
@@ -1111,8 +1113,6 @@ function ResearchModePanel({
     : isProspect
       ? [
           { done: haveContact, label: "At least one active contact added" },
-          { done: havePrograms, label: "Programs selected" },
-          ...(type === "dept_head" ? [{ done: haveDept, label: "Department selected" }] : []),
         ]
       : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
 
@@ -1122,7 +1122,7 @@ function ResearchModePanel({
   if (!isOffice && isProspect) {
     const label = ready
       ? "✓ Research complete — review email sequence"
-      : "Add a contact + programs to continue";
+      : "Add a contact to continue";
     cta = (
       <div className="space-y-2">
         {/* Dept heads: recommended (non-blocking) intro call when a phone

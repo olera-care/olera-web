@@ -27,7 +27,6 @@ import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
-import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import StyledSelect from "@/components/ui/Select";
 import {
   KIND_LABELS,
@@ -510,7 +509,8 @@ function ProviderDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: "client", id: providerId, action: "read" }),
         });
-        refreshMedJobs();
+        // No refreshMedJobs: the opening surface applies read optimistically
+        // in place (setEntityRead). This effect only persists.
       } catch {
         /* non-critical */
       }
@@ -803,7 +803,8 @@ function CandidateDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: "candidate", id: candidateId, action: "read" }),
         });
-        refreshMedJobs();
+        // No refreshMedJobs: the opening surface applies read optimistically
+        // in place (setEntityRead). This effect only persists.
       } catch {
         /* non-critical */
       }

@@ -282,23 +282,39 @@ export function MedJobsTabPage({
     [silentRefresh],
   );
 
-  // v9.0 Phase 7 Commit O: shared mark-as-unread helper for entity-task
-  // entities. POSTs to the unified mark-entity-read endpoint with
-  // action='unread' so the entity's viewed_at clears, surfacing it as
-  // unread again across the In Basket + sidebar.
-  const markEntityUnread = useCallback(
-    async (kind: "client" | "candidate" | "site", id: string) => {
-      try {
-        await fetch("/api/admin/medjobs/mark-entity-read", {
+  // Optimistic read/unread for ENTITY rows (clients / candidates —
+  // business_profiles.metadata.admin_viewed_at, surfaced as row.unread).
+  // Flips the local unread flag + adjusts the tab count with no refetch
+  // and no refreshMedJobs. persist=false on drawer-open (the drawer
+  // persists on mount); persist=true for the card overflow (no drawer).
+  // Twin of setStakeholderRead below — same model for every card type.
+  const setEntityRead = useCallback(
+    (
+      kind: "client" | "candidate",
+      row: ClientRow | CandidateRow,
+      read: boolean,
+      persist: boolean,
+    ) => {
+      const wasUnread = row.unread === true;
+      if (read === !wasUnread) return; // already in the target state
+      const id = row.id;
+      if (kind === "client") {
+        setClientRows((prev) => prev.map((r) => (r.id === id ? { ...r, unread: !read } : r)));
+      } else {
+        setCandidateRows((prev) => prev.map((r) => (r.id === id ? { ...r, unread: !read } : r)));
+      }
+      setTabUnreadCounts((prev) =>
+        prev ? { ...prev, [tab]: Math.max(0, (prev[tab] ?? 0) + (read ? -1 : 1)) } : prev,
+      );
+      if (persist) {
+        void fetch("/api/admin/medjobs/mark-entity-read", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind, id, action: "unread" }),
-        });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to mark unread");
+          body: JSON.stringify({ kind, id, action: read ? "read" : "unread" }),
+        }).catch(() => {});
       }
     },
-    [],
+    [tab],
   );
 
   const toast = useToast();
@@ -332,29 +348,34 @@ export function MedJobsTabPage({
     [toast, markMoved],
   );
 
-  // Optimistic local read. Opening a card un-bolds it IN PLACE and
-  // decrements the tab's unread count without any network round-trip or
-  // list refetch. The drawer still persists viewed_at server-side
-  // (fire-and-forget); the next genuine refresh reconciles. This is the
-  // fix for the open-a-card-reloads-and-reorders-everything problem:
-  // viewing is no longer a mutation of the list's identity or order, so
-  // it can't reorder or jank. A real refresh only happens on an actual
-  // action (onAction → silentRefresh), not on mere viewing.
-  const markRowReadLocally = useCallback(
-    (row: TabRow) => {
-      if (row.viewed_at != null) return; // already read — nothing to do
+  // Optimistic read/unread for STAKEHOLDER rows (student_outreach
+  // .viewed_at). Flips the bold border IN PLACE and adjusts the tab's
+  // unread count with no network round-trip, no refetch, no reorder —
+  // identically in both directions. NEVER calls refreshMedJobs: a local
+  // read/unread change must not reload or reorder the In Basket.
+  // persist=false on drawer-open (the drawer persists mark_read on mount);
+  // persist=true for the card overflow Mark-as-unread (no drawer). Entity
+  // rows use setEntityRead above.
+  const setStakeholderRead = useCallback(
+    (row: TabRow, read: boolean, persist: boolean) => {
+      const wasUnread = row.viewed_at == null;
+      if (read === !wasUnread) return; // already in the target state
       const id = row.id;
+      const viewed_at = read ? new Date().toISOString() : null;
       const patch = (list: TabRow[]) =>
-        list.map((r) =>
-          r.id === id && r.viewed_at == null
-            ? { ...r, viewed_at: new Date().toISOString() }
-            : r,
-        );
+        list.map((r) => (r.id === id ? { ...r, viewed_at } : r));
       setRows((prev) => patch(prev));
       setPartnerRows((prev) => patch(prev));
       setTabUnreadCounts((prev) =>
-        prev ? { ...prev, [tab]: Math.max(0, (prev[tab] ?? 0) - 1) } : prev,
+        prev ? { ...prev, [tab]: Math.max(0, (prev[tab] ?? 0) + (read ? -1 : 1)) } : prev,
       );
+      if (persist) {
+        void fetch(`/api/admin/student-outreach/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: read ? "mark_read" : "mark_unread" }),
+        }).catch(() => {});
+      }
     },
     [tab],
   );
@@ -372,7 +393,7 @@ export function MedJobsTabPage({
         onOpenDrawer={() => {
           setOpenOutreachName(row.organization_name || undefined);
           setOpenOutreachId(row.id);
-          markRowReadLocally(row);
+          setStakeholderRead(row, true, false); // drawer persists mark_read
         }}
         onStopOutreach={async (reason) => {
           const action = STOP_OUTREACH_ACTIONS[reason];
@@ -381,10 +402,7 @@ export function MedJobsTabPage({
           try { await callAction(row.id, action); }
           catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
         }}
-        onMarkUnread={async () => {
-          try { await callAction(row.id, "mark_unread"); }
-          catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
-        }}
+        onMarkUnread={async () => setStakeholderRead(row, false, true)}
         onOpenDirectory={
           row.kind === "provider" && row.provider_slug
             ? () => {
@@ -397,7 +415,7 @@ export function MedJobsTabPage({
         }}
       />
     ),
-    [tab, callAction, isRecent, markRowReadLocally],
+    [tab, callAction, isRecent, setStakeholderRead],
   );
 
   // Shared prospect-research handlers — used by the Prospects tab and the
@@ -432,6 +450,7 @@ export function MedJobsTabPage({
             <ClientCard
               row={r}
               onManage={() => {
+                setEntityRead("client", r, true, false); // drawer persists read
                 setOpenProviderName(r.display_name || undefined);
                 setOpenProviderId(r.id);
               }}
@@ -440,10 +459,7 @@ export function MedJobsTabPage({
                   items={[
                     {
                       label: "Mark as unread",
-                      onClick: async () => {
-                        await markEntityUnread("client", r.id);
-                        refreshMedJobs();
-                      },
+                      onClick: () => setEntityRead("client", r, false, true),
                     },
                   ]}
                 />
@@ -453,7 +469,7 @@ export function MedJobsTabPage({
         ))}
       </ul>
     ),
-    [markEntityUnread],
+    [setEntityRead],
   );
 
   // Always show the four core operational tabs (Prospects · Calls · Emails ·
@@ -748,6 +764,7 @@ export function MedJobsTabPage({
                 <CandidateCard
                   row={r}
                   onOpen={() => {
+                    setEntityRead("candidate", r, true, false); // drawer persists read
                     setOpenCandidateSeed(r);
                     setOpenCandidateId(r.id);
                   }}
@@ -756,10 +773,7 @@ export function MedJobsTabPage({
                       items={[
                         {
                           label: "Mark as unread",
-                          onClick: async () => {
-                            await markEntityUnread("candidate", r.id);
-                            refreshMedJobs();
-                          },
+                          onClick: () => setEntityRead("candidate", r, false, true),
                         },
                         {
                           label: "Open profile editor",

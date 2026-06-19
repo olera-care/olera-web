@@ -349,11 +349,11 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, I work with Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. He started a paid caregiving program that places pre-health students with older adults in the community, so they earn the hands-on experience and references that med, PA, and nursing programs ask for.`,
+          `I'm Graize, research assistant to Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. He runs the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}), which places pre-health students in paid caregiver roles with older adults. They earn supervised hands-on hours, a recommendation letter, and a credential that strengthens their med, PA, and nursing applications, all around their classes.`,
           ``,
-          `I'm writing because you're one of the people ${PLACEHOLDER.campus} pre-health students turn to for exactly this. If it looks worthwhile, the simplest way to help is to pass the flyer and application link to your students, both here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
+          `You're one of the people ${PLACEHOLDER.campus} pre-health students turn to for exactly this, so the simplest way to help is to pass that flyer and application link along to your students.`,
           ``,
-          `Dr. DuBose would also love to meet you and talk about how he can support your office. If you're open to it, reply with a couple of times that work this week or next and I'll set it up.`,
+          `Dr. DuBose would also love to meet and hear how he can support your office. If you're open to it, just reply with a couple of times that work this week or next.`,
           ``,
           `Thank you for looking out for your students.`,
         ].join("\n"),
@@ -451,9 +451,7 @@ export function advisorBumpEmail(_ctx: TemplateContext): EmailDraft {
     body: [
       `Hi ${PLACEHOLDER.salutation},`,
       ``,
-      `Wanted to make sure this reached you. We have a paid caregiving program that gives ${PLACEHOLDER.campus} pre-health students real hands-on experience and references for med, PA, and nursing school. If it could help your students, the flyer and application link are here to pass along: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
-      ``,
-      `Dr. DuBose would also love to meet and learn how he can support your office, so reply with a few times that work and I'll set it up.`,
+      `Following up in case my last note got buried. If the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}) could help your pre-health students, that flyer and application link are yours to share. And Dr. DuBose is glad to meet whenever it's useful, so just reply with a couple of times that work.`,
     ].join("\n"),
   };
 }
@@ -678,7 +676,7 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `Thanks for the call today. As promised, this is Graize, Dr. DuBose's research assistant, sending over more on the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PLACEHOLDER.programUrl}).`,
+      `Thanks for the call today. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. As promised, here's more on the [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PLACEHOLDER.programUrl}).`,
       ``,
       `Here are the highlights:`,
       ``,

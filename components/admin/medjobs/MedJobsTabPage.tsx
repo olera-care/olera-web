@@ -18,7 +18,7 @@
  * tab. URL-driven via ?tab= so deep links land correctly.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/admin/Toast";
@@ -105,7 +105,11 @@ export function MedJobsTabPage({
   // narrowed to entities with pending operational work.
   const [clientRows, setClientRows] = useState<ClientRow[]>([]);
   const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  // viewLoading drives the list SKELETON — set only on a genuine view change
+  // (first mount / tab switch). Silent refreshes (drawer close, row actions,
+  // the global refresh signal, filter/search) update data in place and never
+  // toggle it, so the list doesn't flash.
+  const [viewLoading, setViewLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openOutreachId, setOpenOutreachId] = useState<string | null>(null);
   const [openProviderId, setOpenProviderId] = useState<string | null>(null);
@@ -117,13 +121,18 @@ export function MedJobsTabPage({
     return () => clearTimeout(t);
   }, [search]);
 
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Audience queues compose existing queue views: their primary rows are
-      // the prospecting side (tab=prospects), with the active-entity side
-      // pulled in via side-fetches below. Other tabs query their own key.
+  // Core fetch. `skeleton` true → show the list skeleton (view changes only);
+  // false → silent in-place refresh (data swaps when ready, no flash). All the
+  // tab's sources are fetched in PARALLEL and committed in one atomic state
+  // update (React batches post-await setState), so no waterfall and no
+  // intermediate empty/stale render. The queue is critical (failure → error
+  // state); side-fetches are best-effort (failure → that section degrades to
+  // empty, never rejects the batch).
+  const fetchData = useCallback(
+    async (skeleton: boolean) => {
+      if (skeleton) setViewLoading(true);
+      setError(null);
+
       const queueTab: TabKey =
         tab === "providers" || tab === "partner_book" ? "prospects" : tab;
       const queueParams = new URLSearchParams();
@@ -132,122 +141,101 @@ export function MedJobsTabPage({
       queueParams.set("tab", queueTab);
       if (debouncedSearch) queueParams.set("search", debouncedSearch);
 
-      const res = await fetch(`/api/admin/student-outreach/queue?${queueParams}`);
-      if (!res.ok) throw new Error((await res.json()).error || "Failed to load");
-      const data = await res.json();
-      setCampuses(data.campuses ?? []);
-      setRows(data.rows ?? []);
-      setTabCounts(data.tab_counts ?? null);
-      setTabUnreadCounts(data.tab_unread_counts ?? null);
-      setResearchCampuses(data.research_campuses ?? []);
-
-      // Per-tab side fetches.
-      // Provider prospects (virtual catchment rows) feed the Prospects tab and
-      // the Providers audience tab's prospecting section.
-      if (tab === "prospects" || tab === "providers") {
-        const p = new URLSearchParams();
-        if (campusSlug) p.set("campus", campusSlug);
-        const r = await fetch(`/api/admin/medjobs/provider-prospects?${p}`);
-        if (r.ok) {
-          const d = await r.json();
-          setProviderProspects(d.rows ?? []);
-        } else {
-          setProviderProspects([]);
+      // Best-effort JSON fetch — swallows its own errors so one failing
+      // side-fetch can't reject the Promise.all and blank the whole list.
+      const sideJson = async (url: string): Promise<{ rows?: unknown[] } | null> => {
+        try {
+          const r = await fetch(url);
+          return r.ok ? await r.json() : null;
+        } catch {
+          return null;
         }
-      } else {
-        setProviderProspects([]);
-      }
+      };
 
-      // Active partners (kind != provider, status active_partner, pending task)
-      // feed the Partners audience tab's active section. Pulled from the queue
-      // with tab=partners so they hydrate as full TabRows (same RowCard +
-      // drawer path as the prospecting section).
-      if (tab === "partner_book") {
-        const p = new URLSearchParams();
-        if (campusSlug) p.set("campus", campusSlug);
-        if (typeFilter !== "all") p.set("type", typeFilter);
-        p.set("tab", "partners");
-        if (debouncedSearch) p.set("search", debouncedSearch);
-        const r = await fetch(`/api/admin/student-outreach/queue?${p}`);
-        if (r.ok) {
-          const d = await r.json();
-          setPartnerRows(d.rows ?? []);
-        } else {
-          setPartnerRows([]);
+      const wantProviderProspects = tab === "prospects" || tab === "providers";
+      const wantPartners = tab === "partner_book";
+      const wantSites = tab === "sites";
+      const wantClients = tab === "clients" || tab === "providers";
+      const wantCandidates = tab === "candidates";
+
+      const ppParams = new URLSearchParams();
+      if (campusSlug) ppParams.set("campus", campusSlug);
+
+      const partnerParams = new URLSearchParams();
+      if (campusSlug) partnerParams.set("campus", campusSlug);
+      if (typeFilter !== "all") partnerParams.set("type", typeFilter);
+      partnerParams.set("tab", "partners");
+      if (debouncedSearch) partnerParams.set("search", debouncedSearch);
+
+      try {
+        const [queueRes, pp, partners, sites, clients, candidates] = await Promise.all([
+          fetch(`/api/admin/student-outreach/queue?${queueParams}`),
+          wantProviderProspects ? sideJson(`/api/admin/medjobs/provider-prospects?${ppParams}`) : Promise.resolve(null),
+          wantPartners ? sideJson(`/api/admin/student-outreach/queue?${partnerParams}`) : Promise.resolve(null),
+          wantSites ? sideJson(`/api/admin/medjobs/campuses`) : Promise.resolve(null),
+          wantClients ? sideJson(`/api/admin/medjobs/clients?with_pending_task=true`) : Promise.resolve(null),
+          wantCandidates ? sideJson(`/api/admin/student-outreach/candidates?with_pending_task=true`) : Promise.resolve(null),
+        ]);
+
+        // Queue is the critical source — failure surfaces the error state.
+        if (!queueRes.ok) {
+          throw new Error(
+            ((await queueRes.json().catch(() => ({}))) as { error?: string }).error ||
+              "Failed to load",
+          );
         }
-      } else {
-        setPartnerRows([]);
-      }
+        const data = await queueRes.json();
 
-      if (tab === "sites") {
-        const r = await fetch(`/api/admin/medjobs/campuses`);
-        if (r.ok) {
-          const d = await r.json();
-          // v9.0 Phase 7 Commit N: In Basket Sites tab surfaces sites
-          // v9.0 Phase 7 Commit P: In Basket Sites tab content =
-          // sites with pending site_tasks only (matches the queue
-          // counts.sites + sidebar Sites fraction). Research-needed
-          // sites are still surfaced when admin manually queues a
-          // site_task on them; the auto-prompting model is deferred
-          // to a follow-up auto-queue trigger.
-          const all = (d.rows ?? []) as CampusRow[];
-          setCampusBanners(all.filter((c) => c.has_pending_task === true));
-        } else {
-          setCampusBanners([]);
-        }
-      } else {
-        setCampusBanners([]);
-      }
-
-      // v9.0 Phase 7 Commit N: side-fetch entity rows for the
-      // task-driven In Basket tabs (clients / candidates). The queue
-      // endpoint can't hydrate them — clients are business_profiles
-      // and candidates are student business_profiles, not
-      // student_outreach rows. The dedicated entity endpoints accept
-      // ?with_pending_task=true to narrow the result to the In Basket
-      // subset.
-      // Active clients feed the Clients tab and the Providers audience tab's
-      // active section.
-      if (tab === "clients" || tab === "providers") {
-        const r = await fetch(
-          `/api/admin/medjobs/clients?with_pending_task=true`,
+        // Atomic commit — one batched render, no intermediate empty/stale paint.
+        setCampuses(data.campuses ?? []);
+        setRows(data.rows ?? []);
+        setTabCounts(data.tab_counts ?? null);
+        setTabUnreadCounts(data.tab_unread_counts ?? null);
+        setResearchCampuses(data.research_campuses ?? []);
+        setProviderProspects(wantProviderProspects ? ((pp?.rows ?? []) as ProviderProspectRow[]) : []);
+        setPartnerRows(wantPartners ? ((partners?.rows ?? []) as TabRow[]) : []);
+        // Sites tab content = sites with a pending site_task only (matches the
+        // queue counts.sites + sidebar Sites fraction).
+        setCampusBanners(
+          wantSites ? ((sites?.rows ?? []) as CampusRow[]).filter((c) => c.has_pending_task === true) : [],
         );
-        if (r.ok) {
-          const d = await r.json();
-          setClientRows((d.rows ?? []) as ClientRow[]);
-        } else {
-          setClientRows([]);
+        setClientRows(wantClients ? ((clients?.rows ?? []) as ClientRow[]) : []);
+        setCandidateRows(wantCandidates ? ((candidates?.rows ?? []) as CandidateRow[]) : []);
+      } catch (e) {
+        // Only a view-load surfaces the error (it owns the screen). A silent
+        // refresh that blips keeps the current list on screen rather than
+        // blanking it to an error message.
+        if (skeleton) {
+          setError(e instanceof Error ? e.message : "Failed to load");
+        } else if (process.env.NODE_ENV !== "production") {
+          console.warn("[MedJobsTabPage] silent refresh failed:", e);
         }
-      } else {
-        setClientRows([]);
+      } finally {
+        if (skeleton) setViewLoading(false);
       }
+    },
+    [campusSlug, typeFilter, tab, debouncedSearch],
+  );
 
-      if (tab === "candidates") {
-        const r = await fetch(
-          `/api/admin/student-outreach/candidates?with_pending_task=true`,
-        );
-        if (r.ok) {
-          const d = await r.json();
-          setCandidateRows((d.rows ?? []) as CandidateRow[]);
-        } else {
-          setCandidateRows([]);
-        }
-      } else {
-        setCandidateRows([]);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
-  }, [campusSlug, typeFilter, tab, debouncedSearch]);
+  // Silent refresh — data updates in place with no skeleton. Used by row
+  // actions, drawer close, modal saves, and the global refresh signal.
+  const silentRefresh = useCallback(() => fetchData(false), [fetchData]);
 
-  useEffect(() => { refetch(); }, [refetch]);
-  useMedJobsRefresh(refetch);
+  // View-change driver: skeleton ONLY on first mount or a tab switch. A
+  // filter/campus/search change keeps the current list and updates in place
+  // (no skeleton flicker while typing or filtering).
+  const prevTabRef = useRef<TabKey | null>(null);
+  useEffect(() => {
+    const isViewChange = prevTabRef.current === null || prevTabRef.current !== tab;
+    prevTabRef.current = tab;
+    void fetchData(isViewChange);
+  }, [fetchData, tab]);
+
+  useMedJobsRefresh(silentRefresh);
 
   const handleDrawerAction = useCallback(
-    async (_refreshed: DrawerContext | null) => { await refetch(); },
-    [refetch],
+    async (_refreshed: DrawerContext | null) => { await silentRefresh(); },
+    [silentRefresh],
   );
 
   // v9.0 Phase 7 Commit O: shared mark-as-unread helper for entity-task
@@ -290,12 +278,14 @@ export function MedJobsTabPage({
         // tab can highlight it.
         markMoved(outreachId);
       }
-      await refetch();
-      // v9.0 Phase 7 Commit K: fan-out so the sidebar fractions +
-      // hero counts update live alongside this page's refetch.
+      // Single refresh path: refreshMedJobs() fans out to every registered
+      // listener — including THIS page's silentRefresh — so the list updates
+      // in place once (no skeleton) alongside the hero + sidebar. (Previously
+      // this also called refetch() directly, double-refetching the list.)
       refreshMedJobs();
     },
-    [refetch, refreshMedJobs, toast, markMoved],
+    // refreshMedJobs is a stable module-level import — not a reactive dep.
+    [toast, markMoved],
   );
 
   const renderRow = useCallback(
@@ -348,13 +338,13 @@ export function MedJobsTabPage({
         });
         const body = await res.json();
         if (!res.ok) throw new Error(body.error || "Failed to materialize");
-        await refetch();
+        await silentRefresh();
         setOpenOutreachId(body.id);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to start outreach");
       }
     },
-    [refetch],
+    [silentRefresh],
   );
 
   // Client list renderer — shared by the Clients tab and the Providers
@@ -374,7 +364,6 @@ export function MedJobsTabPage({
                       label: "Mark as unread",
                       onClick: async () => {
                         await markEntityUnread("client", r.id);
-                        await refetch();
                         refreshMedJobs();
                       },
                     },
@@ -386,7 +375,7 @@ export function MedJobsTabPage({
         ))}
       </ul>
     ),
-    [markEntityUnread, refetch],
+    [markEntityUnread],
   );
 
   // Always show the four core operational tabs (Prospects · Calls · Emails ·
@@ -535,14 +524,12 @@ export function MedJobsTabPage({
         </div>
       )}
 
-      {/* Per-tab list rendering. Each tab is a workflow category;
-          smart-hide already removed empty ones from the bar.
-          v9.0 Phase 7 Commit M: only show "Loading…" on the first
-          fetch (rows.length === 0). Background refetches keep the
-          existing list visible so the page doesn't flash on every
-          drawer open / action. */}
-      {loading && rows.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-400">Loading…</p>
+      {/* Per-tab list rendering. The skeleton shows ONLY on a view change
+          (first mount / tab switch); silent refreshes (drawer close, row
+          actions, filter/search, the global signal) keep the current list
+          on screen and swap data in place, so the page never flashes. */}
+      {viewLoading ? (
+        <ListSkeleton />
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : isInboxEmpty ? (
@@ -690,7 +677,6 @@ export function MedJobsTabPage({
                           label: "Mark as unread",
                           onClick: async () => {
                             await markEntityUnread("candidate", r.id);
-                            await refetch();
                             refreshMedJobs();
                           },
                         },
@@ -734,28 +720,26 @@ export function MedJobsTabPage({
         <Drawer
           outreachId={openOutreachId}
           onClose={() => {
-            // v9.0 Phase 7 Commit J: refetch on close so the
-            // mark_read fired during the drawer's lifetime is
-            // reflected in the list — bolding clears + tab fractions
-            // update without admin needing to take an explicit
-            // action.
+            // Silent refresh on close so the mark_read fired during the
+            // drawer's lifetime is reflected (bolding clears + fractions
+            // update) WITHOUT flashing the list skeleton.
             setOpenOutreachId(null);
-            void refetch();
+            void silentRefresh();
           }}
           onAction={handleDrawerAction}
         />
       )}
 
       {/* v9.0 Phase 7 Commit N: entity drawers for the In Basket
-          Clients / Candidates / Sites tabs. Each closes back to a
-          refetch so the EntityStepBoard's task completions reflect
-          immediately in the In Basket. */}
+          Clients / Candidates / Sites tabs. Each closes back to a silent
+          refresh so the EntityStepBoard's task completions reflect
+          immediately in the In Basket without a skeleton flash. */}
       {openProviderId && (
         <Drawer
           providerId={openProviderId}
           onClose={() => {
             setOpenProviderId(null);
-            void refetch();
+            void silentRefresh();
           }}
         />
       )}
@@ -764,7 +748,7 @@ export function MedJobsTabPage({
           candidateId={openCandidateId}
           onClose={() => {
             setOpenCandidateId(null);
-            void refetch();
+            void silentRefresh();
           }}
         />
       )}
@@ -775,11 +759,28 @@ export function MedJobsTabPage({
           onClose={() => setBulkResearchCampus(null)}
           onSaved={async () => {
             setBulkResearchCampus(null);
-            await refetch();
+            await silentRefresh();
           }}
         />
       )}
     </div>
+  );
+}
+
+
+// List skeleton — shown on a view change (first mount / tab switch). Reserves
+// row-height layout so the real content swaps in without a shift, and avoids
+// the "blank → spinner → content" flash.
+function ListSkeleton() {
+  return (
+    <ul className="space-y-2" aria-hidden>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <li
+          key={i}
+          className="h-[72px] animate-pulse rounded-xl border border-gray-100 bg-gray-50"
+        />
+      ))}
+    </ul>
   );
 }
 

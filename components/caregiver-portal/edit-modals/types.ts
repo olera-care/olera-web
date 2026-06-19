@@ -8,6 +8,7 @@ export type CaregiverSectionId =
   | "why"
   | "scenarios"
   | "background"
+  | "skills"
   | "resume";
 
 export interface StudentProfile {
@@ -43,6 +44,7 @@ export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
   "why",
   "scenarios",
   "background",
+  "skills",
   "resume",
 ];
 
@@ -55,5 +57,6 @@ export const SECTION_LABELS: Record<CaregiverSectionId, string> = {
   why: "Why I want to be a caregiver",
   scenarios: "Screening questions",
   background: "Experience & background",
+  skills: "Skills",
   resume: "Resume & LinkedIn",
 };

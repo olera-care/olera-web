@@ -25,12 +25,14 @@ import EditWhyModal from "@/components/caregiver-portal/edit-modals/EditWhyModal
 import EditScenarioModal from "@/components/caregiver-portal/edit-modals/EditScenarioModal";
 import EditBackgroundModal from "@/components/caregiver-portal/edit-modals/EditBackgroundModal";
 import EditResumeModal from "@/components/caregiver-portal/edit-modals/EditResumeModal";
+import EditSkillsModal from "@/components/caregiver-portal/edit-modals/EditSkillsModal";
 import {
   ScheduleCard,
   AvailabilityCard,
   WhyCard,
   ScenariosCard,
   BackgroundCard,
+  SkillsCard,
   ResumeCard,
 } from "@/components/caregiver-portal/cards";
 import GoLiveCelebrationModal from "@/components/caregiver-portal/GoLiveCelebrationModal";
@@ -1394,6 +1396,7 @@ function StudentPortalContent({
             <WhyCard meta={meta} onEdit={() => setEditingSection("why")} />
             <ScenariosCard meta={meta} onEdit={() => setEditingSection("scenarios")} />
             <BackgroundCard meta={meta} onEdit={() => setEditingSection("background")} />
+            <SkillsCard meta={meta} onEdit={() => setEditingSection("skills")} />
             <ResumeCard meta={meta} onEdit={() => setEditingSection("resume")} />
 
             {/* Verification Card — Final step to go live */}
@@ -1663,6 +1666,7 @@ function StudentPortalContent({
       {editingSection === "why" && <EditWhyModal {...modalProps} />}
       {editingSection === "scenarios" && <EditScenarioModal {...modalProps} />}
       {editingSection === "background" && <EditBackgroundModal {...modalProps} />}
+      {editingSection === "skills" && <EditSkillsModal {...modalProps} />}
       {editingSection === "resume" && <EditResumeModal {...modalProps} />}
 
       {/* Celebration Modal - shown when profile goes live */}

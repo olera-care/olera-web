@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPosting, updatePosting } from "@/lib/medjobs/job-postings";
 import type { JobPosting } from "@/lib/medjobs/job-postings";
+import { SKILLS } from "@/lib/medjobs/skills";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Data
@@ -47,25 +48,7 @@ const CERTIFICATIONS = [
   "Fall prevention training",
 ];
 
-const SKILLS = [
-  "Vital signs monitoring",
-  "Nutrition and diet awareness",
-  "Medication management familiarity",
-  "Mobility and transfer assistance",
-  "Fall risk management",
-  "ADL support",
-  "Dementia and memory care",
-  "Alzheimer\u2019s care",
-  "Post-operative recovery support",
-  "Hospice and palliative support",
-  "Infection control basics",
-  "Care documentation",
-  "HIPAA awareness",
-  "CNA experience",
-  "EMT experience",
-  "Psychology",
-  "Gerontology coursework",
-];
+// SKILLS imported from @/lib/medjobs/skills
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ChipPicker — reusable search-and-select with removable chips

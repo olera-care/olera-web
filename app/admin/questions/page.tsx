@@ -191,6 +191,8 @@ export default function AdminQuestionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
   const [archiveReason, setArchiveReason] = useState("");
+  const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
+  const [archiveProviderReason, setArchiveProviderReason] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -345,6 +347,30 @@ export default function AdminQuestionsPage() {
       await fetchQuestions();
     } catch {
       setError("Failed to archive question");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Archive the whole PROVIDER: clears their existing questions from the queue
+  // and auto-archives any future ones (ends the QA treadmill). Q&A-scoped — does
+  // not touch the provider's other emails / lead routing.
+  const handleArchiveProvider = async (providerId: string, reason: string) => {
+    setActionLoading(`provider:${providerId}`);
+    try {
+      const res = await fetch("/api/admin/questions/archive-provider", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, reason: reason || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setArchiveProviderTarget(null);
+      setArchiveProviderReason("");
+      showToast(data.message || "Provider archived");
+      await fetchQuestions();
+    } catch {
+      showToast("Failed to archive provider", "error");
     } finally {
       setActionLoading(null);
     }
@@ -544,6 +570,13 @@ export default function AdminQuestionsPage() {
                           Archive
                         </button>
                         <button
+                          onClick={() => { setArchiveProviderTarget({ providerId: q.provider_id, providerName: providerLabel }); setArchiveProviderReason(""); }}
+                          disabled={actionLoading === `provider:${q.provider_id}`}
+                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-amber-700 transition-all duration-200 disabled:opacity-40"
+                        >
+                          Archive provider
+                        </button>
+                        <button
                           onClick={() => handleRemove(q.id)}
                           disabled={actionLoading === q.id}
                           className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-red-500 transition-all duration-200 disabled:opacity-40"
@@ -678,6 +711,47 @@ export default function AdminQuestionsPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
               >
                 {actionLoading === archiveTarget ? "Archiving..." : "Archive"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive provider dialog */}
+      {archiveProviderTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Archive provider
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Archive <span className="font-medium text-gray-900">{archiveProviderTarget.providerName}</span> from
+              the Questions queue. This clears their current questions and
+              auto-archives any future ones — so they stop showing up here. Their
+              other emails and lead routing are unaffected. Reversible.
+            </p>
+            <textarea
+              value={archiveProviderReason}
+              onChange={(e) => setArchiveProviderReason(e.target.value)}
+              placeholder="Reason (optional, e.g. out of business / unreachable)..."
+              className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+              rows={3}
+              autoFocus
+            />
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => { setArchiveProviderTarget(null); setArchiveProviderReason(""); }}
+                disabled={actionLoading === `provider:${archiveProviderTarget.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleArchiveProvider(archiveProviderTarget.providerId, archiveProviderReason.trim())}
+                disabled={actionLoading === `provider:${archiveProviderTarget.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading === `provider:${archiveProviderTarget.providerId}` ? "Archiving..." : "Archive provider"}
               </button>
             </div>
           </div>

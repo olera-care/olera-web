@@ -34,7 +34,7 @@ interface BusinessProfileRow {
   slug: string;
   metadata: {
     google_metadata?: {
-      google_place_id?: string;
+      place_id?: string;
     };
   } | null;
 }

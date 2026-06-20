@@ -19,12 +19,12 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
  *
  * Paced two ways: a per-provider question cap (perProvider) so no single
  * provider gets blasted, and a wall-clock deadline per invocation (mirrors the
- * cron pattern) with an `offset` cursor so a big backlog drains across a few
- * browser hits instead of one long request.
+ * cron pattern). No offset cursor — a successful flush stamps email_sent_at, so
+ * flushed providers drop out of the freshly-queried backlog; if a run hits the
+ * deadline, just re-run the same URL and it picks up the remainder.
  *
  * GET / POST (admin auth, browser-triggerable):
  *   ?dryRun=1        count the target providers/questions, send nothing
- *   ?offset=N        start cursor into the stable provider list (default 0)
  *   ?perProvider=N   max questions per provider this run (default 100)
  *   ?onlyDeliverable=0  also attempt providers whose on-file email isn't a
  *                       known-deliverable role address (default 1 = skip them,
@@ -46,12 +46,11 @@ type Resolved = {
 
 async function handle(params: {
   dryRun: boolean;
-  offset: number;
   perProvider: number;
   onlyDeliverable: boolean;
   adminUserId: string;
 }) {
-  const { dryRun, offset, perProvider, onlyDeliverable } = params;
+  const { dryRun, perProvider, onlyDeliverable } = params;
   const db = getServiceClient();
 
   // 1) Distinct providers with pending, never-emailed questions (the backlog).
@@ -93,7 +92,13 @@ async function handle(params: {
   // 3) Resolve email/name for the providers we're about to process. Batch the
   // lookups (slug / source_provider_id on business_profiles; provider_id / slug
   // on olera-providers) instead of per-provider round trips.
-  const slice = providerIds.slice(offset);
+  //
+  // No offset cursor: a successful flush stamps email_sent_at, so flushed
+  // providers fall OUT of this (freshly-queried) backlog on the next call. The
+  // list shrinks as we go, so we always process from the start — a plain re-run
+  // continues where the last one stopped. An index cursor would skip providers
+  // here precisely because the list it indexes into keeps shrinking.
+  const slice = providerIds;
   const resolveBatch = async (ids: string[]): Promise<Map<string, Resolved>> => {
     const map = new Map<string, Resolved>();
     if (ids.length === 0) return map;
@@ -154,7 +159,6 @@ async function handle(params: {
     return NextResponse.json({
       dryRun: true,
       totalProvidersWithBacklog: totalProviders,
-      fromOffset: offset,
       targetProviders,
       targetQuestionsCapped: targetQuestions,
       perProvider,
@@ -168,15 +172,19 @@ async function handle(params: {
   let questionEmailsSent = 0;
   let leadEmailsSent = 0;
   let providersFlushed = 0;
-  let cursor = offset;
+  let scanned = 0;
+  let hitDeadline = false;
   const RESOLVE_CHUNK = 150;
 
   outer: for (let i = 0; i < slice.length; i += RESOLVE_CHUNK) {
     const chunk = slice.slice(i, i + RESOLVE_CHUNK);
     const resolved = await resolveBatch(chunk);
     for (const id of chunk) {
-      if (Date.now() > deadline) break outer;
-      cursor++;
+      if (Date.now() > deadline) {
+        hitDeadline = true;
+        break outer;
+      }
+      scanned++;
       const r = resolved.get(id);
       const email = r?.email?.toLowerCase();
       if (!email) continue;
@@ -204,14 +212,15 @@ async function handle(params: {
     }
   }
 
-  const done = cursor >= totalProviders;
+  // Done when we walked the whole current backlog without hitting the deadline.
+  const done = !hitDeadline;
 
   await logAuditAction({
     adminUserId: params.adminUserId,
     action: "flush_deferred_backlog",
     targetType: "email",
-    targetId: `offset:${offset}`,
-    details: { offset, nextOffset: cursor, providersFlushed, questionEmailsSent, leadEmailsSent, perProvider, onlyDeliverable, done },
+    targetId: `flush:${totalProviders}`,
+    details: { scanned, totalProviders, providersFlushed, questionEmailsSent, leadEmailsSent, perProvider, onlyDeliverable, done },
   });
 
   return NextResponse.json({
@@ -219,13 +228,12 @@ async function handle(params: {
     providersFlushed,
     questionEmailsSent,
     leadEmailsSent,
-    fromOffset: offset,
-    nextOffset: cursor,
+    providersScanned: scanned,
     totalProvidersWithBacklog: totalProviders,
     done,
     message: done
       ? `Backlog drained. Sent ${questionEmailsSent} question + ${leadEmailsSent} lead notification(s) across ${providersFlushed} provider(s).`
-      : `Sent ${questionEmailsSent} question + ${leadEmailsSent} lead notification(s) across ${providersFlushed} provider(s). More remain — re-run with ?offset=${cursor} to continue.`,
+      : `Sent ${questionEmailsSent} question + ${leadEmailsSent} lead notification(s) across ${providersFlushed} provider(s). Hit the time limit — re-run the same URL (no offset) to continue.`,
   });
 }
 
@@ -238,14 +246,12 @@ async function authed() {
 }
 
 function parseParams(sp: URLSearchParams, adminUserId: string) {
-  const offset = Math.max(0, parseInt(sp.get("offset") || "0", 10) || 0);
   const perProvider = (() => {
     const n = parseInt(sp.get("perProvider") || "", 10);
     return Number.isFinite(n) && n > 0 ? n : DEFAULT_PER_PROVIDER;
   })();
   return {
     dryRun: sp.get("dryRun") === "1" || sp.get("dryRun") === "true",
-    offset,
     perProvider,
     onlyDeliverable: sp.get("onlyDeliverable") !== "0",
     adminUserId,
@@ -269,7 +275,7 @@ export async function POST(request: NextRequest) {
     if (a.error) return a.error;
     const body = await request.json().catch(() => ({}));
     const sp = new URLSearchParams();
-    for (const k of ["dryRun", "offset", "perProvider", "onlyDeliverable"]) {
+    for (const k of ["dryRun", "perProvider", "onlyDeliverable"]) {
       if (body[k] != null) sp.set(k, String(body[k]));
     }
     return await handle(parseParams(sp, a.adminUserId));

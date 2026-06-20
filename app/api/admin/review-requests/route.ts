@@ -189,8 +189,8 @@ export async function GET(req: NextRequest) {
         const stats = providerStats.get(profile.id);
         if (!stats) return null;
 
-        const googleMetadata = profile.metadata?.google_metadata;
-        const hasGooglePlaceId = !!(googleMetadata?.google_place_id);
+        const googleMetadata = profile.metadata?.google_metadata as { place_id?: string } | undefined;
+        const hasGooglePlaceId = !!(googleMetadata?.place_id);
 
         return {
           id: profile.id,

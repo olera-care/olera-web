@@ -5,7 +5,7 @@ import DateRangePopover, { type DateRangeValue, resolveRange } from "@/component
 
 // ── Types ──
 
-type MainTab = "all" | "flagged" | "removed";
+type MainTab = "all" | "flagged" | "removed" | "providers";
 
 interface AdminReview {
   id: string;
@@ -132,6 +132,7 @@ export default function AdminReviewsPage() {
     { label: "All Reviews", value: "all" },
     { label: "Flagged", value: "flagged", badge: flaggedCount },
     { label: "Removed", value: "removed", badge: removedCount > 0 ? removedCount : undefined },
+    { label: "Providers Requesting", value: "providers", badge: stats?.providers_requesting || undefined },
   ];
 
   return (
@@ -241,6 +242,14 @@ export default function AdminReviewsPage() {
           onStatsChange={onStatsChange}
           dateRange={dateRange}
           key={`removed-${statsVersion}`}
+        />
+      )}
+      {mainTab === "providers" && (
+        <ProvidersRequestingTab
+          search={search}
+          dateRange={dateRange}
+          onStatsChange={onStatsChange}
+          key={`providers-${statsVersion}`}
         />
       )}
     </div>
@@ -1147,6 +1156,247 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
                 {actionLoading === pendingDelete.id ? "Deleting..." : "Delete"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Providers Requesting Tab ──
+
+interface ProviderEngagement {
+  id: string;
+  display_name: string;
+  slug: string;
+  requests_sent: number;
+  requests_this_month: number;
+  olera_reviews_count: number;
+  google_connected: boolean;
+  last_request_at: string | null;
+}
+
+interface ProvidersRequestingTabProps {
+  search: string;
+  dateRange: DateRangeValue;
+  onStatsChange: () => void;
+}
+
+const PAGE_SIZE = 20;
+
+function ProvidersRequestingTab({ search, dateRange, onStatsChange }: ProvidersRequestingTabProps) {
+  const [providers, setProviders] = useState<ProviderEngagement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchProviders = useCallback(async (loadMore = false) => {
+    if (loadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setProviders([]);
+    }
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      params.set("limit", String(PAGE_SIZE));
+      if (loadMore) params.set("offset", String(providers.length));
+
+      const res = await fetch(`/api/admin/review-requests?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        const newProviders = data.providers ?? [];
+        if (loadMore) {
+          setProviders(prev => [...prev, ...newProviders]);
+        } else {
+          setProviders(newProviders);
+        }
+        setTotal(data.total ?? 0);
+        setHasMore(newProviders.length === PAGE_SIZE);
+      } else {
+        setError("Failed to load providers. Please try again.");
+      }
+    } catch {
+      setError("Failed to load providers. Please check your connection.");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [debouncedSearch, dateRange, providers.length]);
+
+  useEffect(() => {
+    fetchProviders(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, dateRange]);
+
+  const handleDelete = useCallback(async (providerId: string, providerName: string) => {
+    if (!confirm(`Delete all review request records for "${providerName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeleting(providerId);
+    try {
+      const res = await fetch("/api/admin/review-requests", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId }),
+      });
+
+      if (res.ok) {
+        // Remove from local state
+        setProviders(prev => prev.filter(p => p.id !== providerId));
+        setTotal(prev => prev - 1);
+        // Refresh stats cards at top of page
+        onStatsChange();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete records");
+      }
+    } catch {
+      setError("Failed to delete records. Please try again.");
+    } finally {
+      setDeleting(null);
+    }
+  }, [onStatsChange]);
+
+  return (
+    <div>
+      <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3 mb-6">
+        <p className="text-sm text-violet-800">
+          <strong>Provider review request activity</strong> — See which providers are requesting reviews
+          and track their cumulative request counts and received reviews.
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-lg text-gray-500">Loading...</div>
+        </div>
+      ) : providers.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-gray-500">
+            {search ? "No providers found matching your search." : "No providers have requested reviews yet."}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Total Requests Sent</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">This Month</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Guest Reviews</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Google Connected</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Request</th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {providers.map((provider) => (
+                  <tr key={provider.id} className="group hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <a
+                        href={`/provider/${provider.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-primary-600 hover:underline"
+                      >
+                        {provider.display_name}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {provider.requests_sent}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600">
+                        {provider.requests_this_month}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={[
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        provider.olera_reviews_count > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600",
+                      ].join(" ")}>
+                        {provider.olera_reviews_count}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {provider.google_connected ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                          Connected
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                      {provider.last_request_at
+                        ? new Date(provider.last_request_at).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDelete(provider.id, provider.display_name)}
+                        disabled={deleting === provider.id}
+                        className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                        title="Delete review request records"
+                      >
+                        {deleting === provider.id ? (
+                          <span className="text-xs">Deleting...</span>
+                        ) : (
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Load more / pagination info */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {providers.length} of {total} providers
+            </p>
+            {hasMore && (
+              <button
+                onClick={() => fetchProviders(true)}
+                disabled={loadingMore}
+                className="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            )}
           </div>
         </div>
       )}

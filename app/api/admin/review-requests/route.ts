@@ -34,7 +34,7 @@ interface BusinessProfileRow {
   slug: string;
   metadata: {
     google_metadata?: {
-      google_place_id?: string;
+      place_id?: string;
     };
   } | null;
 }
@@ -52,20 +52,31 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const search = searchParams.get("search") || "";
   const period = searchParams.get("period") || "all";
+  const fromDate = searchParams.get("from_date");
+  const toDate = searchParams.get("to_date");
   const limit = parseInt(searchParams.get("limit") || "100", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
   const db = getServiceClient();
 
-  // Calculate date filter based on period
-  let dateFilter: string | null = null;
+  // Calculate date filter - prefer from_date/to_date over period
+  let dateFilterStart: string | null = null;
+  let dateFilterEnd: string | null = null;
   const now = new Date();
-  if (period === "7d") {
-    dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (period === "30d") {
-    dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (period === "90d") {
-    dateFilter = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+  if (fromDate || toDate) {
+    // Use explicit date range if provided
+    dateFilterStart = fromDate || null;
+    dateFilterEnd = toDate || null;
+  } else if (period !== "all") {
+    // Fall back to period-based filter
+    if (period === "7d") {
+      dateFilterStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (period === "30d") {
+      dateFilterStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (period === "90d") {
+      dateFilterStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    }
   }
 
   // Get this month's start date for "this month" calculations
@@ -78,8 +89,11 @@ export async function GET(req: NextRequest) {
       .select("provider_id, created_at, metadata")
       .eq("email_type", "review_request");
 
-    if (dateFilter) {
-      emailQuery = (emailQuery as any).gte("created_at", dateFilter);
+    if (dateFilterStart) {
+      emailQuery = (emailQuery as any).gte("created_at", dateFilterStart);
+    }
+    if (dateFilterEnd) {
+      emailQuery = (emailQuery as any).lte("created_at", dateFilterEnd);
     }
 
     const { data: emailLogs, error: emailError } = await emailQuery;
@@ -189,8 +203,8 @@ export async function GET(req: NextRequest) {
         const stats = providerStats.get(profile.id);
         if (!stats) return null;
 
-        const googleMetadata = profile.metadata?.google_metadata;
-        const hasGooglePlaceId = !!(googleMetadata?.google_place_id);
+        const googleMetadata = profile.metadata?.google_metadata as { place_id?: string } | undefined;
+        const hasGooglePlaceId = !!(googleMetadata?.place_id);
 
         return {
           id: profile.id,
@@ -206,12 +220,19 @@ export async function GET(req: NextRequest) {
       .filter((p): p is ProviderEngagement => p !== null)
       .sort((a, b) => b.requests_sent - a.requests_sent);
 
-    // Calculate summary stats
+    // Calculate summary stats ONLY from providers that still exist
+    // (providerEngagement is already filtered to existing profiles)
     let totalRequests = 0;
     let requestsThisMonth = 0;
     const byMethod = { email: 0, link: 0, sms: 0 };
 
-    for (const stats of providerStats.values()) {
+    // Get the set of provider IDs that actually exist
+    const existingProviderIds = new Set(providerEngagement.map(p => p.id));
+
+    for (const [providerId, stats] of providerStats.entries()) {
+      // Only count stats from providers that still exist
+      if (!existingProviderIds.has(providerId)) continue;
+
       totalRequests += stats.requests_sent;
       requestsThisMonth += stats.requests_this_month;
       byMethod.email += stats.by_method.email;
@@ -225,7 +246,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       summary: {
         total_requests: totalRequests,
-        total_providers: providerStats.size,
+        total_providers: existingProviderIds.size,
         requests_this_month: requestsThisMonth,
         by_method: byMethod,
       },
@@ -234,6 +255,55 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("Review requests admin error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/review-requests
+ *
+ * Deletes all review request email_log entries for a specific provider.
+ * Used to clean up test account data.
+ */
+export async function DELETE(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const { providerId } = body as { providerId?: string };
+
+    if (!providerId) {
+      return NextResponse.json({ error: "providerId is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Delete all review request email_log entries for this provider
+    const { error: deleteError, count } = await db
+      .from("email_log")
+      .delete()
+      .eq("provider_id", providerId)
+      .eq("email_type", "review_request");
+
+    if (deleteError) {
+      console.error("Failed to delete review requests:", deleteError);
+      return NextResponse.json({ error: "Failed to delete records" }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      deleted: count ?? 0,
+      message: `Deleted ${count ?? 0} review request records for provider ${providerId}`
+    });
+  } catch (err) {
+    console.error("Delete review requests error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

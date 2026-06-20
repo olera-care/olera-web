@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-06-20 — Ticket 2: provider-level archive for Questions queue + `/test-instructions` command (PR #1154 merged→staging; PR #1155 open)
+
+**Trigger:** The email-hygiene thread's original ask ("Ticket 2"). The QA team (Graize/Cess) kept re-clearing new questions for providers they'd decided to stop working — a treadmill. Per-question archive existed; provider-level did not, and the submission path only skipped the *email* for `admin_archived` providers (still inserted a `pending` row), so the queue refilled.
+
+**Shipped — #1154 (merged to staging, QA'd, NOT yet on main):**
+- New `archived_question_providers` table (migration 114), keyed by literal `provider_id` — covers olera-providers-only providers (no metadata column). **Q&A-scoped:** does NOT touch `admin_archived`, so nudges/leads/connections untouched. Reversible.
+- `app/api/admin/questions/archive-provider/route.ts` (POST+GET): resolves id variants, upserts suppression rows, bulk-archives existing open questions (metadata merged, not clobbered), audit-logs; `?unarchive=1` reverses.
+- `app/api/questions/route.ts`: pre-insert suppression lookup → archived providers' new questions land `status=archived, is_public=false`, no email/needs-email flag. **Fails open** if table absent.
+- `app/admin/questions/page.tsx`: per-provider "Archive provider" action + confirmation modal.
+
+**Shipped — #1155 (open):** `/test-instructions` command — manual-QA-checklist generator, the human-facing complement to `/pre-test`. Lives BOTH global (`~/.claude/skills/test-instructions/SKILL.md`) and in-repo (`.claude/commands/test-instructions.md`, team-shared).
+
+**Validation:** tsc 0; live service-role probe of the new table (SELECT/UPSERT/maybeSingle/DELETE) passed; migration 029 confirms `archived` in the status CHECK; **migration 114 applied to the shared Supabase**. End-to-end QA on staging: bulk-clear verified via UI + DB (3 sample questions → archived); suppression row armed. Sample data seeded then fully cleaned up.
+
+**Decisions:** Q&A-scoped archive (not full `admin_archived`) — chosen for blast radius (QA clearing their queue must not sever a live provider's lead pipeline) and because olera-providers has no metadata column to hang a flag on. `/test-instructions` placed globally AND in-repo per TJ. Two intentional non-bugs: archived providers' askers still get the "submitted" confirmation; internal Slack "question asked" alert still fires (only the provider *email* is suppressed).
+
+**Next up:**
+- Merge #1155 to staging (awaiting TJ go).
+- `/promote-to-main` to ship #1154 (+#1155 if merged) to production (awaiting TJ go).
+- **Step 2 — lane split** (`PROVIDER_NOTIFY_FROM`): verify the cousin domain is a separate Resend reputation unit before flipping it on. The weekly-digest carve-out in the send gate depends on this staying OFF until verified — do not remove that carve-out first.
+
 ### 2026-06-18 — De-"host" copy + MedJobs admin reorg + flyer floor (branch `claude/keen-mendel-6i8iW`)
 
 **Trigger:** Logan — (1) "host" was vestigial internship language; students are now in a regular paid placement where the family/agency is the employer. (2) Simplify the MedJobs admin sidebar and split the dual-purpose Prospects surface by audience. (3) The "no student flyer configured" launch blocker.

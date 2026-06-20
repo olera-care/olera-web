@@ -1190,6 +1190,7 @@ function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabPro
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -1241,6 +1242,34 @@ function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabPro
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, dateRange]);
 
+  const handleDelete = useCallback(async (providerId: string, providerName: string) => {
+    if (!confirm(`Delete all review request records for "${providerName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeleting(providerId);
+    try {
+      const res = await fetch("/api/admin/review-requests", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId }),
+      });
+
+      if (res.ok) {
+        // Remove from local state
+        setProviders(prev => prev.filter(p => p.id !== providerId));
+        setTotal(prev => prev - 1);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete records");
+      }
+    } catch {
+      setError("Failed to delete records. Please try again.");
+    } finally {
+      setDeleting(null);
+    }
+  }, []);
+
   return (
     <div>
       <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3 mb-6">
@@ -1278,11 +1307,12 @@ function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabPro
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Guest Reviews</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Google Connected</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Request</th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {providers.map((provider) => (
-                  <tr key={provider.id} className="hover:bg-gray-50">
+                  <tr key={provider.id} className="group hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <a
                         href={`/provider/${provider.slug}`}
@@ -1326,6 +1356,22 @@ function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabPro
                       {provider.last_request_at
                         ? new Date(provider.last_request_at).toLocaleDateString()
                         : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDelete(provider.id, provider.display_name)}
+                        disabled={deleting === provider.id}
+                        className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                        title="Delete review request records"
+                      >
+                        {deleting === provider.id ? (
+                          <span className="text-xs">Deleting...</span>
+                        ) : (
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -220,12 +220,19 @@ export async function GET(req: NextRequest) {
       .filter((p): p is ProviderEngagement => p !== null)
       .sort((a, b) => b.requests_sent - a.requests_sent);
 
-    // Calculate summary stats
+    // Calculate summary stats ONLY from providers that still exist
+    // (providerEngagement is already filtered to existing profiles)
     let totalRequests = 0;
     let requestsThisMonth = 0;
     const byMethod = { email: 0, link: 0, sms: 0 };
 
-    for (const stats of providerStats.values()) {
+    // Get the set of provider IDs that actually exist
+    const existingProviderIds = new Set(providerEngagement.map(p => p.id));
+
+    for (const [providerId, stats] of providerStats.entries()) {
+      // Only count stats from providers that still exist
+      if (!existingProviderIds.has(providerId)) continue;
+
       totalRequests += stats.requests_sent;
       requestsThisMonth += stats.requests_this_month;
       byMethod.email += stats.by_method.email;
@@ -239,7 +246,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       summary: {
         total_requests: totalRequests,
-        total_providers: providerStats.size,
+        total_providers: existingProviderIds.size,
         requests_this_month: requestsThisMonth,
         by_method: byMethod,
       },
@@ -248,6 +255,55 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("Review requests admin error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/review-requests
+ *
+ * Deletes all review request email_log entries for a specific provider.
+ * Used to clean up test account data.
+ */
+export async function DELETE(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const { providerId } = body as { providerId?: string };
+
+    if (!providerId) {
+      return NextResponse.json({ error: "providerId is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Delete all review request email_log entries for this provider
+    const { error: deleteError, count } = await db
+      .from("email_log")
+      .delete()
+      .eq("provider_id", providerId)
+      .eq("email_type", "review_request");
+
+    if (deleteError) {
+      console.error("Failed to delete review requests:", deleteError);
+      return NextResponse.json({ error: "Failed to delete records" }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      deleted: count ?? 0,
+      message: `Deleted ${count ?? 0} review request records for provider ${providerId}`
+    });
+  } catch (err) {
+    console.error("Delete review requests error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

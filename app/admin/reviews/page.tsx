@@ -247,6 +247,7 @@ export default function AdminReviewsPage() {
       {mainTab === "providers" && (
         <ProvidersRequestingTab
           search={search}
+          dateRange={dateRange}
           key={`providers-${statsVersion}`}
         />
       )}
@@ -1176,31 +1177,54 @@ interface ProviderEngagement {
 
 interface ProvidersRequestingTabProps {
   search: string;
+  dateRange: DateRangeValue;
 }
 
-function ProvidersRequestingTab({ search }: ProvidersRequestingTabProps) {
+const PAGE_SIZE = 20;
+
+function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabProps) {
   const [providers, setProviders] = useState<ProviderEngagement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchProviders = useCallback(async () => {
-    setLoading(true);
+  const fetchProviders = useCallback(async (loadMore = false) => {
+    if (loadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setProviders([]);
+    }
     setError(null);
+
     try {
       const params = new URLSearchParams();
-      params.set("period", "all");
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
       if (debouncedSearch) params.set("search", debouncedSearch);
+      params.set("limit", String(PAGE_SIZE));
+      if (loadMore) params.set("offset", String(providers.length));
 
       const res = await fetch(`/api/admin/review-requests?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setProviders(data.providers ?? []);
+        const newProviders = data.providers ?? [];
+        if (loadMore) {
+          setProviders(prev => [...prev, ...newProviders]);
+        } else {
+          setProviders(newProviders);
+        }
+        setTotal(data.total ?? 0);
+        setHasMore(newProviders.length === PAGE_SIZE);
       } else {
         setError("Failed to load providers. Please try again.");
       }
@@ -1208,12 +1232,14 @@ function ProvidersRequestingTab({ search }: ProvidersRequestingTabProps) {
       setError("Failed to load providers. Please check your connection.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, dateRange, providers.length]);
 
   useEffect(() => {
-    fetchProviders();
-  }, [fetchProviders]);
+    fetchProviders(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, dateRange]);
 
   return (
     <div>
@@ -1305,6 +1331,22 @@ function ProvidersRequestingTab({ search }: ProvidersRequestingTabProps) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Load more / pagination info */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {providers.length} of {total} providers
+            </p>
+            {hasMore && (
+              <button
+                onClick={() => fetchProviders(true)}
+                disabled={loadingMore}
+                className="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ import DateRangePopover, { type DateRangeValue, resolveRange } from "@/component
 
 // ── Types ──
 
-type MainTab = "all" | "flagged" | "removed";
+type MainTab = "all" | "flagged" | "removed" | "providers";
 
 interface AdminReview {
   id: string;
@@ -132,6 +132,7 @@ export default function AdminReviewsPage() {
     { label: "All Reviews", value: "all" },
     { label: "Flagged", value: "flagged", badge: flaggedCount },
     { label: "Removed", value: "removed", badge: removedCount > 0 ? removedCount : undefined },
+    { label: "Providers Requesting", value: "providers", badge: stats?.providers_requesting || undefined },
   ];
 
   return (
@@ -241,6 +242,12 @@ export default function AdminReviewsPage() {
           onStatsChange={onStatsChange}
           dateRange={dateRange}
           key={`removed-${statsVersion}`}
+        />
+      )}
+      {mainTab === "providers" && (
+        <ProvidersRequestingTab
+          search={search}
+          key={`providers-${statsVersion}`}
         />
       )}
     </div>
@@ -1147,6 +1154,155 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
                 {actionLoading === pendingDelete.id ? "Deleting..." : "Delete"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Providers Requesting Tab ──
+
+interface ProviderEngagement {
+  id: string;
+  display_name: string;
+  slug: string;
+  requests_sent: number;
+  requests_this_month: number;
+  olera_reviews_count: number;
+  google_connected: boolean;
+  last_request_at: string | null;
+}
+
+interface ProvidersRequestingTabProps {
+  search: string;
+}
+
+function ProvidersRequestingTab({ search }: ProvidersRequestingTabProps) {
+  const [providers, setProviders] = useState<ProviderEngagement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchProviders = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      params.set("period", "all");
+      if (debouncedSearch) params.set("search", debouncedSearch);
+
+      const res = await fetch(`/api/admin/review-requests?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProviders(data.providers ?? []);
+      } else {
+        setError("Failed to load providers. Please try again.");
+      }
+    } catch {
+      setError("Failed to load providers. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    fetchProviders();
+  }, [fetchProviders]);
+
+  return (
+    <div>
+      <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3 mb-6">
+        <p className="text-sm text-violet-800">
+          <strong>Provider review request activity</strong> — See which providers are requesting reviews
+          and track their cumulative request counts and received reviews.
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-lg text-gray-500">Loading...</div>
+        </div>
+      ) : providers.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-gray-500">No providers have requested reviews yet.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Total Requests Sent</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">This Month</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Guest Reviews</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Google Connected</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Request</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {providers.map((provider) => (
+                  <tr key={provider.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <a
+                        href={`/provider/${provider.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-primary-600 hover:underline"
+                      >
+                        {provider.display_name}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {provider.requests_sent}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600">
+                        {provider.requests_this_month}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={[
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        provider.olera_reviews_count > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600",
+                      ].join(" ")}>
+                        {provider.olera_reviews_count}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {provider.google_connected ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                          Connected
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                      {provider.last_request_at
+                        ? new Date(provider.last_request_at).toLocaleDateString()
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

@@ -124,7 +124,11 @@ async function handle(params: {
         if (bp.slug) map.set(bp.slug, entry);
         if (bp.source_provider_id) map.set(bp.source_provider_id, entry);
       }
-      const unresolved = chunk.filter((id) => !map.has(id));
+      // Fall through to olera-providers for any id we still lack a usable EMAIL
+      // for — not just ids missing entirely. A business_profile can exist with a
+      // null email while the deliverable address lives on the olera-providers
+      // row; keying off map.has() alone silently skips those providers.
+      const unresolved = chunk.filter((id) => !map.get(id)?.email);
       if (unresolved.length) {
         const uIn = `(${unresolved.map((id) => `"${id}"`).join(",")})`;
         const { data: ops } = await db
@@ -133,15 +137,20 @@ async function handle(params: {
           .or(`provider_id.in.${uIn},slug.in.${uIn}`)
           .not("deleted", "is", true);
         for (const op of ops ?? []) {
+          // Preserve a business_profile link (profileId) that only lacked an
+          // email; otherwise stand up a fresh olera-providers entry.
+          const prior = map.get(op.provider_id) ?? map.get(op.slug);
           const entry: Resolved = {
             email: op.email,
-            name: op.provider_name,
-            profileId: null,
-            sourceProviderId: op.provider_id,
-            bpSlug: op.slug,
+            name: prior?.name ?? op.provider_name,
+            profileId: prior?.profileId ?? null,
+            sourceProviderId: prior?.sourceProviderId ?? op.provider_id,
+            bpSlug: prior?.bpSlug ?? op.slug,
           };
-          if (op.provider_id) map.set(op.provider_id, entry);
-          if (op.slug) map.set(op.slug, entry);
+          // Only fill entries still missing an email — never clobber a
+          // business_profile that already resolved to a real address.
+          if (op.provider_id && !map.get(op.provider_id)?.email) map.set(op.provider_id, entry);
+          if (op.slug && !map.get(op.slug)?.email) map.set(op.slug, entry);
         }
       }
     }

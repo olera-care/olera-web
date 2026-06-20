@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
-import { verifyAndCache } from "@/lib/email-verification";
+import { verifyAndCache, effectiveStatus } from "@/lib/email-verification";
 import { markEmailTrusted } from "@/lib/email";
 
 /**
@@ -46,7 +46,11 @@ export async function POST(request: NextRequest) {
     // save or send; tell the operator to find another, or force through.
     // Fails OPEN: a verification error returns 'unknown' and we proceed.
     if (!force) {
-      const verdict = await verifyAndCache(email);
+      const raw = await verifyAndCache(email);
+      // Apply the same role-address reclassification the send gate uses, so the
+      // operator isn't falsely warned that a deliverable role inbox (info@,
+      // admissions@) is undeliverable. role_based → valid; role_based_catch_all → risky.
+      const verdict = { ...raw, status: effectiveStatus(raw.status, raw.subStatus) };
       if (verdict.status === "invalid") {
         return NextResponse.json(
           {

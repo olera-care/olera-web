@@ -38,6 +38,40 @@ function normalizeEmail(email: string): string {
 }
 
 /**
+ * ZeroBounce sub_status values for ROLE addresses (info@, admissions@, sales@…).
+ * ZeroBounce returns these under status='do_not_mail' — a *marketing* policy
+ * recommendation ("don't bulk-mail role inboxes"), NOT an undeliverable verdict.
+ * Our normalizer collapses do_not_mail → 'invalid', so these deliverable role
+ * inboxes were being hard-blocked (the 76% false-positive rate behind the
+ * stuck-question backlog). effectiveStatus() reverses that for send decisions.
+ *   - role_based           → a clean role inbox: deliverable → treat as 'valid'
+ *   - role_based_catch_all → role inbox AT a catch-all domain: the inbox can't
+ *                            be confirmed (~15% bounce) → treat as 'risky', so
+ *                            the cold-lane catch-all guard still protects it.
+ */
+const ROLE_BASED_SUBSTATUS = "role_based";
+const ROLE_BASED_CATCH_ALL_SUBSTATUS = "role_based_catch_all";
+
+/**
+ * Reinterpret a raw (provider-reported) verdict into the EFFECTIVE verdict we
+ * act on at send time. This is policy, deliberately kept OUT of the cache and
+ * the normalizer: the cache stores what ZeroBounce said; callers decide what to
+ * do about it. Only the two role sub-statuses above are reclassified — every
+ * other 'invalid' (mailbox_not_found, abuse, spamtrap, manual do-not-contact…)
+ * passes through unchanged and stays suppressed. See plans/email-hygiene-rework-plan.md.
+ */
+export function effectiveStatus(
+  status: VerificationStatus,
+  subStatus: string | null,
+): VerificationStatus {
+  if (status === "invalid") {
+    if (subStatus === ROLE_BASED_SUBSTATUS) return "valid";
+    if (subStatus === ROLE_BASED_CATCH_ALL_SUBSTATUS) return "risky";
+  }
+  return status;
+}
+
+/**
  * Map a ZeroBounce `status` to our normalized verdict.
  * Definitely-bad outcomes (mailbox not found, spamtrap, abuse, do-not-mail)
  * collapse to 'invalid'. 'catch-all' is 'risky' — deliverable often enough
@@ -120,17 +154,21 @@ export async function getZeroBounceCredits(): Promise<number | null> {
 /** Read a cached verdict. Returns null if none, the table is missing, or on error. */
 export async function getCachedVerification(
   email: string
-): Promise<{ status: VerificationStatus; checkedAt: string } | null> {
+): Promise<{ status: VerificationStatus; subStatus: string | null; checkedAt: string } | null> {
   try {
     const db = getServiceDb();
     if (!db) return null;
     const { data } = await db
       .from("email_verifications")
-      .select("status, checked_at")
+      .select("status, sub_status, checked_at")
       .eq("email", normalizeEmail(email))
       .maybeSingle();
     if (!data) return null;
-    return { status: data.status as VerificationStatus, checkedAt: data.checked_at };
+    return {
+      status: data.status as VerificationStatus,
+      subStatus: (data.sub_status as string | null) ?? null,
+      checkedAt: data.checked_at,
+    };
   } catch {
     return null;
   }
@@ -169,7 +207,9 @@ export async function verifyAndCache(
   if (cached) {
     const ageMs = Date.now() - new Date(cached.checkedAt).getTime();
     if (ageMs < maxAgeDays * 86400000) {
-      return { email: normalized, status: cached.status, subStatus: null, provider: "cache" };
+      // Carry sub_status through on a cache hit — the send gate needs it to apply
+      // effectiveStatus() (role-address reclassification). Was previously dropped.
+      return { email: normalized, status: cached.status, subStatus: cached.subStatus, provider: "cache" };
     }
   }
   const result = await verifyEmailAddress(normalized);

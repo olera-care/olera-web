@@ -99,43 +99,50 @@ async function handle(params: {
   // continues where the last one stopped. An index cursor would skip providers
   // here precisely because the list it indexes into keeps shrinking.
   const slice = providerIds;
+  // Chunk size for the .in() lookups. A PostgREST .or(...in.(...)) filter rides
+  // in the URL/query string, so a few hundred ids silently overflows the server
+  // limit and returns ZERO rows with no error. Keep each query small.
+  const RESOLVE_CHUNK = 80;
   const resolveBatch = async (ids: string[]): Promise<Map<string, Resolved>> => {
     const map = new Map<string, Resolved>();
-    if (ids.length === 0) return map;
-    const inList = `(${ids.map((i) => `"${i}"`).join(",")})`;
-    const { data: bps } = await db
-      .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug")
-      .or(`slug.in.${inList},source_provider_id.in.${inList}`);
-    for (const bp of bps ?? []) {
-      const entry: Resolved = {
-        email: bp.email,
-        name: bp.display_name,
-        profileId: bp.id,
-        sourceProviderId: bp.source_provider_id,
-        bpSlug: bp.slug,
-      };
-      if (bp.slug) map.set(bp.slug, entry);
-      if (bp.source_provider_id) map.set(bp.source_provider_id, entry);
-    }
-    const unresolved = ids.filter((i) => !map.has(i));
-    if (unresolved.length) {
-      const uIn = `(${unresolved.map((i) => `"${i}"`).join(",")})`;
-      const { data: ops } = await db
-        .from("olera-providers")
-        .select("provider_id, slug, provider_name, email")
-        .or(`provider_id.in.${uIn},slug.in.${uIn}`)
-        .not("deleted", "is", true);
-      for (const op of ops ?? []) {
+    for (let i = 0; i < ids.length; i += RESOLVE_CHUNK) {
+      const chunk = ids.slice(i, i + RESOLVE_CHUNK);
+      if (chunk.length === 0) continue;
+      const inList = `(${chunk.map((id) => `"${id}"`).join(",")})`;
+      const { data: bps } = await db
+        .from("business_profiles")
+        .select("id, display_name, email, source_provider_id, slug")
+        .or(`slug.in.${inList},source_provider_id.in.${inList}`);
+      for (const bp of bps ?? []) {
         const entry: Resolved = {
-          email: op.email,
-          name: op.provider_name,
-          profileId: null,
-          sourceProviderId: op.provider_id,
-          bpSlug: op.slug,
+          email: bp.email,
+          name: bp.display_name,
+          profileId: bp.id,
+          sourceProviderId: bp.source_provider_id,
+          bpSlug: bp.slug,
         };
-        if (op.provider_id) map.set(op.provider_id, entry);
-        if (op.slug) map.set(op.slug, entry);
+        if (bp.slug) map.set(bp.slug, entry);
+        if (bp.source_provider_id) map.set(bp.source_provider_id, entry);
+      }
+      const unresolved = chunk.filter((id) => !map.has(id));
+      if (unresolved.length) {
+        const uIn = `(${unresolved.map((id) => `"${id}"`).join(",")})`;
+        const { data: ops } = await db
+          .from("olera-providers")
+          .select("provider_id, slug, provider_name, email")
+          .or(`provider_id.in.${uIn},slug.in.${uIn}`)
+          .not("deleted", "is", true);
+        for (const op of ops ?? []) {
+          const entry: Resolved = {
+            email: op.email,
+            name: op.provider_name,
+            profileId: null,
+            sourceProviderId: op.provider_id,
+            bpSlug: op.slug,
+          };
+          if (op.provider_id) map.set(op.provider_id, entry);
+          if (op.slug) map.set(op.slug, entry);
+        }
       }
     }
     return map;
@@ -166,49 +173,46 @@ async function handle(params: {
     });
   }
 
-  // 4) Flush, bounded by the wall-clock deadline. Resolve in sub-batches so a
-  // huge backlog doesn't fetch everything up front.
+  // 4) Flush, bounded by the wall-clock deadline. resolveBatch chunks its DB
+  // lookups internally, so resolving the whole backlog up front is cheap and
+  // safe; the per-provider sends are what the deadline guards.
+  const resolved = await resolveBatch(slice);
   const deadline = Date.now() + DEADLINE_MS;
   let questionEmailsSent = 0;
   let leadEmailsSent = 0;
   let providersFlushed = 0;
   let scanned = 0;
   let hitDeadline = false;
-  const RESOLVE_CHUNK = 150;
 
-  outer: for (let i = 0; i < slice.length; i += RESOLVE_CHUNK) {
-    const chunk = slice.slice(i, i + RESOLVE_CHUNK);
-    const resolved = await resolveBatch(chunk);
-    for (const id of chunk) {
-      if (Date.now() > deadline) {
-        hitDeadline = true;
-        break outer;
-      }
-      scanned++;
-      const r = resolved.get(id);
-      const email = r?.email?.toLowerCase();
-      if (!email) continue;
-      if (deliverable && !deliverable.has(email)) continue;
+  for (const id of slice) {
+    if (Date.now() > deadline) {
+      hitDeadline = true;
+      break;
+    }
+    scanned++;
+    const r = resolved.get(id);
+    const email = r?.email?.toLowerCase();
+    if (!email) continue;
+    if (deliverable && !deliverable.has(email)) continue;
 
-      const variantSet = new Set<string>();
-      if (r!.sourceProviderId && r!.sourceProviderId !== id) variantSet.add(r!.sourceProviderId);
-      if (r!.bpSlug && r!.bpSlug !== id) variantSet.add(r!.bpSlug);
+    const variantSet = new Set<string>();
+    if (r!.sourceProviderId && r!.sourceProviderId !== id) variantSet.add(r!.sourceProviderId);
+    if (r!.bpSlug && r!.bpSlug !== id) variantSet.add(r!.bpSlug);
 
-      try {
-        const res = await sendDeferredNotificationsForProvider({
-          profileId: r!.profileId || "",
-          email: r!.email!,
-          providerName: r!.name || id,
-          providerSlug: id,
-          additionalSlugVariants: Array.from(variantSet),
-          maxQuestions: perProvider,
-        });
-        questionEmailsSent += res.questionEmailsSent;
-        leadEmailsSent += res.leadEmailsSent;
-        if (res.questionEmailsSent > 0 || res.leadEmailsSent > 0) providersFlushed++;
-      } catch (err) {
-        console.error(`[flush-backlog] provider ${id} failed:`, err);
-      }
+    try {
+      const res = await sendDeferredNotificationsForProvider({
+        profileId: r!.profileId || "",
+        email: r!.email!,
+        providerName: r!.name || id,
+        providerSlug: id,
+        additionalSlugVariants: Array.from(variantSet),
+        maxQuestions: perProvider,
+      });
+      questionEmailsSent += res.questionEmailsSent;
+      leadEmailsSent += res.leadEmailsSent;
+      if (res.questionEmailsSent > 0 || res.leadEmailsSent > 0) providersFlushed++;
+    } catch (err) {
+      console.error(`[flush-backlog] provider ${id} failed:`, err);
     }
   }
 

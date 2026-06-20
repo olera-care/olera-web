@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
-import { verifyAndCache } from "@/lib/email-verification";
+import { verifyAndCache, effectiveStatus } from "@/lib/email-verification";
+import { markEmailTrusted } from "@/lib/email";
 
 /**
  * POST /api/admin/questions/add-email
@@ -45,7 +46,11 @@ export async function POST(request: NextRequest) {
     // save or send; tell the operator to find another, or force through.
     // Fails OPEN: a verification error returns 'unknown' and we proceed.
     if (!force) {
-      const verdict = await verifyAndCache(email);
+      const raw = await verifyAndCache(email);
+      // Apply the same role-address reclassification the send gate uses, so the
+      // operator isn't falsely warned that a deliverable role inbox (info@,
+      // admissions@) is undeliverable. role_based → valid; role_based_catch_all → risky.
+      const verdict = { ...raw, status: effectiveStatus(raw.status, raw.subStatus) };
       if (verdict.status === "invalid") {
         return NextResponse.json(
           {
@@ -197,6 +202,15 @@ export async function POST(request: NextRequest) {
       variantSet.add(provider.slug);
     }
     const additionalSlugVariants = Array.from(variantSet);
+
+    // When an operator forces past the deliverability warning, they're asserting
+    // human knowledge that the inbox is real (they fetched it, called, etc.).
+    // Trust it so the deferred send below — and all future sends — bypass
+    // suppression. Without this, a prior bounce on this address would still skip
+    // the send here, which is the "override just retries and rejects" bug.
+    if (force && effectiveEmail) {
+      await markEmailTrusted(effectiveEmail, { reason: "admin", note: "force-added via Questions tab", createdBy: adminUser.id });
+    }
 
     // Send deferred notifications using the unified function
     // Note: For questions-only providers (no business_profile), we still try to send

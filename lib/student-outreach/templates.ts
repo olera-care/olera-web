@@ -81,11 +81,6 @@ export const CALENDLY_URL =
  */
 export const PROGRAM_URL = "https://olera.care/medjobs/providers";
 
-/** Partner-facing program page (advisors / dept heads / student orgs). Lands at
- *  the "For advisors, faculty & student orgs" section, which carries the flyer,
- *  application link, sample agreement, and Dr. DuBose's calendar. */
-export const PARTNER_PROGRAM_URL = "https://olera.care/medjobs#help";
-
 /**
  * Canonical program name. Single source of truth so the framing never drifts
  * back to "internship".
@@ -127,8 +122,10 @@ const PLACEHOLDER = {
 /** Canonical program name (no university name baked in — see programName). */
 const PROGRAM_NAME = programName();
 
-/** Uniform subject for every activation-cadence email (provider + partner). */
-const ACTIVATION_SUBJECT = "Follow up - Olera's Student Caregiver Program";
+/** Uniform subject for every activation-cadence email (provider + partner).
+ *  Matches the cold-cadence follow-up subject so the warm emails thread with
+ *  what the recipient already received. */
+const ACTIVATION_SUBJECT = `Follow Up: Student Caregiver Program for ${PLACEHOLDER.campus} students`;
 
 // Subjects for the cold cadences. Intro touches use the base; every follow-up
 // prefixes "Follow Up:". {campus_name} substitutes at send time.
@@ -149,6 +146,16 @@ const FAMILIES_ADVISORS_URL = "https://olera.care/medjobs/families#help"; // adv
  */
 function programLink(landingUrl: string): string {
   return `[Student Caregiver Program for ${PLACEHOLDER.campus} students](${landingUrl}) ([flyer](${PLACEHOLDER.programPdf}))`;
+}
+
+/**
+ * Audience-aware program landing page for a partner stakeholder, so activation
+ * emails point to the same page the recipient saw in the cold cadence: student
+ * orgs land on the families page, advisors + dept heads on the "For advisors,
+ * faculty & student orgs" section.
+ */
+function partnerLandingUrl(type: StakeholderType): string {
+  return type === "student_org" ? FAMILIES_URL : FAMILIES_ADVISORS_URL;
 }
 
 /**
@@ -680,7 +687,7 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `Thanks for the call today. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric physician and NIH-funded researcher at Olera. As promised, here's more on the ${programLink(CANDIDATES_URL)}.`,
+      `Thanks for the call today. This is Graize, research assistant to Dr. Logan DuBose. As promised, here's more on the ${programLink(CANDIDATES_URL)}.`,
       ``,
       `Here are the highlights:`,
       ``,
@@ -690,7 +697,7 @@ export function providerIntroEmail(
       `• Many stay on for future semesters, or go full-time over winter and summer breaks or during gap years before grad school.`,
       `• It's a win-win-win: you need staff, students need experience, and clients need caregivers.`,
       ``,
-      `If you're interested, just reply "Interested" and Dr. DuBose or I will follow up with next steps.`,
+      `If you're interested in working with ${PLACEHOLDER.campus} students, let me know and Dr. DuBose or I will follow up with next steps.`,
       ``,
       `Thank you for your service to the community. Have a great day!`,
     ].join("\n"),
@@ -778,9 +785,9 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
           `• Endorse the program to your faculty and students`,
           `• Allow us to email your professors so they can share it with their students`,
           `• Host a short class visit or talk`,
-          `• Share the [flyer and application link](${PARTNER_PROGRAM_URL}) directly`,
+          `• Share the ${programLink(FAMILIES_ADVISORS_URL)} directly`,
           ``,
-          `Are you available for a brief meeting with Dr. DuBose? On the call he can share more about the program and discuss the right approach for your department.`,
+          `Would a short meeting with Dr. DuBose help? He can share more and talk through the right approach for your department. Just reply with a couple of times that work this week or next and I'll set it up.`,
           ``,
           `Thank you for your time.`,
         ].join("\n"),
@@ -795,11 +802,11 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
           `Thanks for getting back to me. Here are the easiest ways to help:`,
           ``,
           `• Post the application link in your group chat or on social`,
-          `• Email it to your listserv (the [flyer and link are here](${PARTNER_PROGRAM_URL}))`,
+          `• Email it to your listserv (the ${programLink(FAMILIES_URL)})`,
           `• Do this again each term as new members join`,
           `• Have Dr. DuBose speak at one of your meetings`,
           ``,
-          `Are you available for a time to meet with Dr. DuBose to speak about the program? He can share more details and discuss the best approach to share the program with your members.`,
+          `Want to set up a time for Dr. DuBose to meet your group? He can share more and talk through the best way to get it in front of your members. Just reply with a few times that work and I'll set it up.`,
           ``,
           `Thanks for your time.`,
         ].join("\n"),
@@ -813,7 +820,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         ``,
         `Thanks for getting back to me. Here are the ways advisors can help:`,
         ``,
-        `• Share the [flyer and application link](${PARTNER_PROGRAM_URL}) with your students`,
+        `• Share the ${programLink(FAMILIES_ADVISORS_URL)} with your students`,
         `• Mention it to students looking for clinical hours`,
         `• Include it in a newsletter or your advising listserv`,
         `• Point us toward a job board where we could post it`,
@@ -830,9 +837,9 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Great to hear from you. The next step is a quick eligibility check to review the partner terms and begin your hiring process with selected students on the job board [here](${PLACEHOLDER.welcomeUrl}). Whenever you find a good fit, you can confirm and begin onboarding.`,
+      `Great to hear from you. The next step is a quick eligibility check to review the terms and start hiring student caregivers from your job board: [start your eligibility check](${PLACEHOLDER.welcomeUrl}). Once you see a good fit, you can confirm and begin onboarding.`,
       ``,
-      `Dr. DuBose is [happy to meet with you](${PLACEHOLDER.calendlyUrl}) if you have any questions about using the platform. Thank you and have a nice day.`,
+      `If any questions come up about using the platform, Dr. DuBose is [glad to walk through it with you](${PLACEHOLDER.calendlyUrl}). Thank you, and have a great day.`,
     ].join("\n"),
   };
 }
@@ -846,7 +853,7 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `Just making sure this reached you. The flyer and application link to share with your students are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
+        `Just making sure this reached you. Here's the program to share with your students: ${programLink(partnerLandingUrl(ctx.stakeholder_type))}.`,
         ``,
         `And Dr. DuBose would love to meet whenever it's useful, just reply with a couple of times that work and I'll set it up.`,
       ].join("\n"),
@@ -873,7 +880,7 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `No rush at all. Whenever you're ready, the flyer and application link to share with your students are here: [Student Caregiver Program for ${PLACEHOLDER.campus} students](${PARTNER_PROGRAM_URL}).`,
+        `No rush at all. Whenever you're ready, here's the program to share with your students: ${programLink(partnerLandingUrl(ctx.stakeholder_type))}.`,
         ``,
         `And Dr. DuBose is glad to meet whenever it helps, just reply with a few times that work.`,
       ].join("\n"),

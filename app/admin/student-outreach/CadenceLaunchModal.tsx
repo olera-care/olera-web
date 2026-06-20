@@ -113,7 +113,7 @@ export function CadenceLaunchModal({
 
   // Call steps — editable (calls are CRM tasks; edits take effect).
   const [callCards, setCallCards] = useState<CallCard[]>(() => {
-    const byDay = new Map(defaultCallScriptsFor(cadenceKey).map((s) => [s.day, s.script]));
+    const byDay = new Map(defaultCallScriptsFor(cadenceKey, isPartner).map((s) => [s.day, s.script]));
     const result: CallCard[] = [];
     for (const d of days) {
       if (!d.steps.some((s) => s.channel === "phone")) continue;

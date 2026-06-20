@@ -315,12 +315,15 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
  * PreFlight modal seeds these for admin edit; tasks carry the
  * resolved script through to log time.
  */
-export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
+export function defaultCallScriptsFor(
+  type: CadenceKey,
+  isPartner = false,
+): CallScript[] {
   const days = OUTREACH_DAYS_BY_TYPE[type];
   const result: CallScript[] = [];
   for (const day of days) {
     if (!day.steps.some((s) => s.channel === "phone")) continue;
-    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day) });
+    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day, isPartner) });
   }
   return result;
 }
@@ -338,11 +341,16 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 // {organization_name}, {admin_first_name}) and per-task at queue
 // time ({recipient_name}). Stakeholder paths fall through to the
 // generic line at the bottom — admin can edit in PreFlight.
-function defaultCallScriptForDay(type: CadenceKey, day: number): string {
+function defaultCallScriptForDay(type: CadenceKey, day: number, isPartner = false): string {
   if (type === "activation") {
-    // Activation cadence has a single check-in call. Reference the eligibility
-    // check we already sent and offer the meeting as the easy alternative.
-    // Warm contact + no university name needed, so the plain brand is fine.
+    // Activation cadence has a single check-in call. Reference what we already
+    // sent and offer the meeting as the easy alternative. Warm contact + no
+    // university name needed, so the plain brand is fine. Partners (advisors,
+    // dept heads, student orgs) share the flyer rather than hire students, so
+    // their script references the flyer, not the eligibility check.
+    if (isPartner) {
+      return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over the flyer and a few easy ways to share the Student Caregiver Program with your students, and wanted to check in. Any questions, or would it help to grab a few minutes with Dr. DuBose to talk through the best approach?"`;
+    }
     return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over the eligibility check to get set up to hire student caregivers through Olera's Student Caregiver Program, and wanted to check in. Any questions, or would it be easier to grab a few minutes with Dr. DuBose to walk through it?"`;
   }
   if (type === "provider") {

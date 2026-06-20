@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
-import { isUndeliverable, verifyAndCache } from "./email-verification";
+import { isUndeliverable, verifyAndCache, effectiveStatus } from "./email-verification";
 import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge } from "./email-governance";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
@@ -431,7 +431,19 @@ export async function sendEmail(
       // caches it, and returns it. This closes the gap where a freshly-added
       // address would send blind on its first auto-notification and bounce.
       // Fails OPEN: a verification error → 'unknown' → not suppressed → still sent.
-      const status = (await verifyAndCache(soleRecipient)).status;
+      const verdict = await verifyAndCache(soleRecipient);
+      // Reclassify ZeroBounce's over-aggressive role-address flag: a deliverable
+      // role inbox (info@, admissions@) reported as 'do_not_mail'/invalid becomes
+      // sendable, while role-at-catch-all becomes 'risky' (still cold-suppressed).
+      // EXCEPTION: the bulk weekly digest keeps the raw verdict so it doesn't
+      // expand its cohort onto olera.care before the cold-lane split
+      // (PROVIDER_NOTIFY_FROM) is live — the loosening guardrail in
+      // plans/email-hygiene-rework-plan.md. All other cold types (question_received,
+      // connection_request, provider_reach_out…) get the corrected verdict.
+      const status =
+        emailType === "weekly_analytics_digest"
+          ? verdict.status
+          : effectiveStatus(verdict.status, verdict.subStatus);
       if (status === "invalid") {
         suppressReason = "verified undeliverable";
       } else if (status === "risky" && isColdLane) {

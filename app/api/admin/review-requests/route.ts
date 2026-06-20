@@ -52,20 +52,31 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const search = searchParams.get("search") || "";
   const period = searchParams.get("period") || "all";
+  const fromDate = searchParams.get("from_date");
+  const toDate = searchParams.get("to_date");
   const limit = parseInt(searchParams.get("limit") || "100", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
   const db = getServiceClient();
 
-  // Calculate date filter based on period
-  let dateFilter: string | null = null;
+  // Calculate date filter - prefer from_date/to_date over period
+  let dateFilterStart: string | null = null;
+  let dateFilterEnd: string | null = null;
   const now = new Date();
-  if (period === "7d") {
-    dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (period === "30d") {
-    dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (period === "90d") {
-    dateFilter = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+  if (fromDate || toDate) {
+    // Use explicit date range if provided
+    dateFilterStart = fromDate || null;
+    dateFilterEnd = toDate || null;
+  } else if (period !== "all") {
+    // Fall back to period-based filter
+    if (period === "7d") {
+      dateFilterStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (period === "30d") {
+      dateFilterStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (period === "90d") {
+      dateFilterStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    }
   }
 
   // Get this month's start date for "this month" calculations
@@ -78,8 +89,11 @@ export async function GET(req: NextRequest) {
       .select("provider_id, created_at, metadata")
       .eq("email_type", "review_request");
 
-    if (dateFilter) {
-      emailQuery = (emailQuery as any).gte("created_at", dateFilter);
+    if (dateFilterStart) {
+      emailQuery = (emailQuery as any).gte("created_at", dateFilterStart);
+    }
+    if (dateFilterEnd) {
+      emailQuery = (emailQuery as any).lte("created_at", dateFilterEnd);
     }
 
     const { data: emailLogs, error: emailError } = await emailQuery;

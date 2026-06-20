@@ -123,6 +123,17 @@ export async function POST(request: NextRequest) {
       askerUserId = null;
     }
 
+    // Q&A-scoped provider archive: if this provider was archived from the admin
+    // Questions queue, auto-archive the incoming question so it never enters the
+    // queue (and skip the provider notification below). Keyed by the literal
+    // provider_id submitted — see migration 114_archived_question_providers.sql.
+    const { data: qSuppression } = await db
+      .from("archived_question_providers")
+      .select("provider_id")
+      .eq("provider_id", provider_id)
+      .maybeSingle();
+    const providerQuestionsArchived = !!qSuppression;
+
     const { data: newQuestion, error } = await db
       .from("provider_questions")
       .insert({
@@ -131,8 +142,8 @@ export async function POST(request: NextRequest) {
         asker_name: askerName,
         asker_email: askerEmail,
         asker_user_id: askerUserId,
-        status: "pending",
-        is_public: true,
+        status: providerQuestionsArchived ? "archived" : "pending",
+        is_public: !providerQuestionsArchived,
       })
       .select("id, question, asker_name, status, created_at")
       .single();
@@ -298,8 +309,9 @@ export async function POST(request: NextRequest) {
       const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
 
       // 1. Email the provider about the new question (if they have an email)
-      // Skip if provider is admin-archived (no emails sent to them)
-      const isProviderArchived = resolvedProvider?.metadata?.admin_archived === true;
+      // Skip if provider is admin-archived OR Q&A-archived (no emails sent).
+      const isProviderArchived =
+        resolvedProvider?.metadata?.admin_archived === true || providerQuestionsArchived;
       if (pEmail && !isProviderArchived) {
         const providerSlug = resolvedProvider?.slug || provider_id;
         let providerUrl: string;
@@ -350,8 +362,10 @@ export async function POST(request: NextRequest) {
             .update({ metadata: { needs_provider_email: true, email_dead: true } })
             .eq("id", newQuestion.id);
         }
-      } else if (newQuestion?.id) {
-        // No provider email — flag for admin "Needs Email" tab
+      } else if (newQuestion?.id && !providerQuestionsArchived) {
+        // No provider email — flag for admin "Needs Email" tab. Skipped for
+        // Q&A-archived providers: their questions are intentionally out of the
+        // queue and must not surface in "Needs Email".
         await db
           .from("provider_questions")
           .update({ metadata: { needs_provider_email: true } })

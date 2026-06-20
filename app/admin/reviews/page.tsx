@@ -1236,7 +1236,9 @@ function ProvidersRequestingTab({ search }: ProvidersRequestingTabProps) {
         </div>
       ) : providers.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500">No providers have requested reviews yet.</p>
+          <p className="text-gray-500">
+            {search ? "No providers found matching your search." : "No providers have requested reviews yet."}
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

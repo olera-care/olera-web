@@ -248,6 +248,7 @@ export default function AdminReviewsPage() {
         <ProvidersRequestingTab
           search={search}
           dateRange={dateRange}
+          onStatsChange={onStatsChange}
           key={`providers-${statsVersion}`}
         />
       )}
@@ -1178,11 +1179,12 @@ interface ProviderEngagement {
 interface ProvidersRequestingTabProps {
   search: string;
   dateRange: DateRangeValue;
+  onStatsChange: () => void;
 }
 
 const PAGE_SIZE = 20;
 
-function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabProps) {
+function ProvidersRequestingTab({ search, dateRange, onStatsChange }: ProvidersRequestingTabProps) {
   const [providers, setProviders] = useState<ProviderEngagement[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -1259,6 +1261,8 @@ function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabPro
         // Remove from local state
         setProviders(prev => prev.filter(p => p.id !== providerId));
         setTotal(prev => prev - 1);
+        // Refresh stats cards at top of page
+        onStatsChange();
       } else {
         const data = await res.json();
         setError(data.error || "Failed to delete records");
@@ -1268,7 +1272,7 @@ function ProvidersRequestingTab({ search, dateRange }: ProvidersRequestingTabPro
     } finally {
       setDeleting(null);
     }
-  }, []);
+  }, [onStatsChange]);
 
   return (
     <div>

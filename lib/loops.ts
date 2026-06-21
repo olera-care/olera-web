@@ -1,6 +1,25 @@
 const LOOPS_API_URL = "https://app.loops.so/api/v1/events/send";
 const MAX_STRING_LENGTH = 490;
 
+/**
+ * Loops is RETIRED as of 2026-06-20 — OFF by default (this flag defaults false).
+ *
+ * Resend (lib/email.ts) is the system of record for all transactional + lifecycle
+ * email. It already covers every active Loops trigger — new_message, new_lead,
+ * new_review, welcome, the full verification_* suite, review_request — PLUS the
+ * dormant/re-engagement nurtures that Loops' own lifecycle groups sat empty for.
+ * The live Loops workflows were stale duplicates: they double-sent on
+ * oleracare.com (a complaint/AUP-bounce surface) and posed opt-in ToS exposure on
+ * a platform we hadn't edited in months.
+ *
+ * This neuters both senders at the source — no events/contacts are pushed to
+ * Loops — while leaving every call site intact. Re-enabling is a single env flip
+ * (LOOPS_ENABLED=true) or a revert of this commit; zero behavioral risk, since the
+ * senders already fail soft and every caller is fire-and-forget. With this off the
+ * LOOPS_API_KEY_* env vars are moot (left in place for an easy re-enable).
+ */
+const LOOPS_ENABLED = process.env.LOOPS_ENABLED === "true";
+
 type LoopsAudience = "seeker" | "provider";
 
 interface SendLoopsEventOptions {
@@ -89,6 +108,7 @@ async function sendToLoops(
 export async function sendLoopsEvent(
   options: SendLoopsEventOptions
 ): Promise<{ success: boolean; error?: string }> {
+  if (!LOOPS_ENABLED) return { success: false, error: "Loops disabled (retired in favor of Resend)" };
   const apiKey = getApiKey(options.audience);
   if (!apiKey) {
     const envVar = options.audience === "provider"
@@ -108,6 +128,7 @@ export async function sendLoopsEvent(
 export async function sendLoopsEventBoth(
   options: Omit<SendLoopsEventOptions, "audience">
 ): Promise<{ success: boolean; error?: string }> {
+  if (!LOOPS_ENABLED) return { success: false, error: "Loops disabled (retired in favor of Resend)" };
   const seekerKey = getApiKey("seeker");
   const providerKey = getApiKey("provider");
 

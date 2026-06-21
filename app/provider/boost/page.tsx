@@ -256,7 +256,7 @@ export default function ProviderBoostPage() {
     return (
       <Shell>
         <div className="mt-2">
-          <CampaignInMotion request={openRequest} delivered={state.delivered} />
+          <CampaignInMotion request={openRequest} campaignStats={state.campaignStats} />
         </div>
       </Shell>
     );
@@ -303,10 +303,10 @@ export default function ProviderBoostPage() {
 
 function CampaignInMotion({
   request,
-  delivered,
+  campaignStats,
 }: {
   request: BoostRequest;
-  delivered: number;
+  campaignStats: { visitors: number; leads: number; since: string } | null;
 }) {
   const label: Record<string, string> = {
     requested: "Launch plan received",
@@ -314,7 +314,6 @@ function CampaignInMotion({
     live: "Your campaign is live",
   };
   const isLive = request.status === "live";
-  const showDelivered = isLive && delivered > 0;
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
@@ -328,33 +327,16 @@ function CampaignInMotion({
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
         {isLive
-          ? "Families we send arrive on your dashboard as they come in."
+          ? "Here’s how your campaign is performing — and families arrive on your dashboard as they come in."
           : "We’ll send over the launch plan before anything goes live, confirm the details, then families arrive on your dashboard as they come in."}
       </p>
 
       {/* The campaign they committed to — week, channel, budget. */}
       <CampaignFacts request={request} />
 
-      {/* When live, real delivered families are THE focal point. */}
-      {showDelivered && (
-        <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-6 py-6">
-          <div className="flex items-baseline gap-3">
-            <span className="text-5xl font-display font-bold text-gray-900 tabular-nums leading-none">
-              {delivered}
-            </span>
-            <span className="text-gray-600">
-              {delivered === 1 ? "family" : "families"} reached out so far
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 mt-3">
-            From your managed ad campaign. Find them on your{" "}
-            <Link href="/provider/connections" className="text-primary-600 font-medium hover:underline">
-              leads
-            </Link>
-            .
-          </p>
-        </div>
-      )}
+      {/* When live, real performance — visitors + leads on their page since
+          launch — is THE focal point (replaces the old benefits-only counter). */}
+      {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
 
       <Link
         href="/provider"
@@ -365,6 +347,62 @@ function CampaignInMotion({
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
         </svg>
       </Link>
+    </div>
+  );
+}
+
+/** Live campaign performance — the real story: who visited, who converted.
+ *  Visitors + leads on the provider's page since launch (see getCampaignStats),
+ *  conversion = leads/visitors. "—" until there's traffic, so day-one shows an
+ *  honest empty state rather than a fake 0%. */
+function CampaignPerformance({
+  stats,
+}: {
+  stats: { visitors: number; leads: number; since: string };
+}) {
+  // Cap at 100% — a lead can exist without a matching deduped page_view session
+  // (bot-filtered load, tracker race, cross-session convert), which would
+  // otherwise render a trust-eroding ">100%" to the provider.
+  const conversion =
+    stats.visitors > 0
+      ? Math.min(100, Math.round((stats.leads / stats.visitors) * 100))
+      : null;
+  const cells: { label: string; value: string }[] = [
+    { label: "Visitors", value: stats.visitors.toLocaleString() },
+    { label: "Leads", value: stats.leads.toLocaleString() },
+    { label: "Conversion", value: conversion === null ? "—" : `${conversion}%` },
+  ];
+  return (
+    <div className="mt-8">
+      <dl className="flex flex-col divide-y divide-gray-100 overflow-hidden rounded-2xl border border-primary-100/70 bg-primary-50/40 sm:flex-row sm:divide-x sm:divide-y-0 sm:divide-gray-100">
+        {cells.map((c) => (
+          <div key={c.label} className="flex-1 px-5 py-5">
+            <dd className="text-4xl font-display font-bold text-gray-900 tabular-nums leading-none">
+              {c.value}
+            </dd>
+            <dt className="mt-2 text-xs uppercase tracking-wide text-gray-500">
+              {c.label}
+            </dt>
+          </div>
+        ))}
+      </dl>
+      <p className="text-sm text-gray-500 mt-3">
+        Since your campaign launched.{" "}
+        {stats.leads > 0 ? (
+          <>
+            Find your leads on your{" "}
+            <Link
+              href="/provider/connections"
+              className="text-primary-600 font-medium hover:underline"
+            >
+              leads page
+            </Link>
+            .
+          </>
+        ) : (
+          <>Visitors and leads will appear here as families arrive.</>
+        )}
+      </p>
     </div>
   );
 }

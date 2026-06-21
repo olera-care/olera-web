@@ -7,6 +7,47 @@
 
 ## Current Focus
 
+### 2026-06-21 — Franchil managed-ads activation: real campaign performance to provider + admin (branch `smart-hopper`, PR #1161 → staging)
+
+First real provider through Find Families → Managed Ads (Franchil LLC, Killeen TX) needed her ads live by 6/22 + a self-serve view of visits + conversions. Deep investigation reframed the whole problem before any code.
+
+**Key findings (the "aha"s):**
+- **Attribution was wired to the wrong event.** The Ad Boost "delivered" count reads `benefits_completed` (UTM-tagged) — but the live provider page rarely shows the benefits flow. The page runs TWO live A/B systems: intake variant (`empathic` 60% benefits / `outreach` 20% / `qa_email_capture` 20%) + CTA variant (`legacy` 100%). The **real conversion is the legacy CTA** (`lead_received` / `connection_sent`), which carries **no UTM** and was never counted. Admin CTA funnel confirms it: legacy CTA 3936 impressions → 81–88 leads/wk (~2%). So `delivered` would show "0 forever" while real leads arrive.
+- **The $422 in Google Ads is historical/paused, not live spend** (account banner: "none of your ads are running"). No live waste — wire + optimize before re-enabling.
+- **Lead delivery to Hilda verified GREEN:** awaited email (ZeroBounce `valid`), SMS, unconditional `/provider/connections` visibility, full contact (she's verified). Not suppressed; `leads_unsubscribed` unset.
+
+**Built (PR #1161, code-clean tsc, validated vs real data — 8 page-views→5 deduped sessions):**
+- `getCampaignStats()` in `lib/ad-boost/delivered.server.ts` — real **Visitors** (session-deduped `page_view`) + **Leads** (`lead_received`) on the provider's page since launch. Reads `provider_activity`; **does NOT touch `/api/connections/request`** (the critical leads route).
+- Provider self-serve panel: `CampaignInMotion` (`/provider/boost`) now shows Visitors / Leads / Conversion (capped 100%, honest empty state).
+- Admin parity: "What the provider sees" panel on `/admin/ad-boost/[id]` — identical numbers via the same reader.
+- Single-provider attribution by approximation (her ~0 organic baseline) — no UTM refactor needed for one provider; that's the multi-provider Phase 2.
+
+**Ops done:** Franchil campaign row flipped `status=live`, `campaign_tag=franchil-killeen-jun26`, `channel=google`. Ad-ops package handed to TJ (UTM URL `…/provider/franchil-llc-killeen-tx-o4iq?utm_source=olera_managed&utm_campaign=franchil-killeen-jun26`, Killeen-radius keywords, copy). Decision: **$50 intro on Google Search only** (skip Meta at this budget).
+
+**Decisions:** measure-then-optimize (no bespoke landing page); attribution fix is the real lever, arm-pinning + UTM-threading deferred to Phase 2 (touches the critical leads route — not under a deadline); concierge-manual ad setup stays (no Google/Meta API).
+
+**Next up:** (1) Merge #1161 → staging → QA on `staging-olera2-web.vercel.app` → promote to main (panel is NOT live in prod until deployed; only the DB row is flipped). (2) TJ enables the Google campaign at the tagged URL. (3) Phase 2: thread UTM into `connection_sent`/`question_asked` + extend `delivered.server.ts` to count `connection_sent` (clean multi-provider attribution); backfill Franchil's null `lat/lng` (breaks organic Find Families matching). (4) Conversion-rate-as-expectation in the budget step (~2% impression→lead, cold-traffic caveat). Notion handoff: `Managed Ads — Franchil campaign activation` (needs rewrite with corrected CTA-not-benefits architecture).
+
+### 2026-06-21 — Email arc wrap-up: Ticket 2 promoted, Loops retired, architecture documented (all in prod)
+
+Closed the email/Questions arc end-to-end. Everything below is **in production**.
+
+**Shipped to prod:**
+- **Ticket 2 promoted** (#1154 → #1157) — provider-level "Archive provider" on `/admin/questions` is live.
+- **Loops RETIRED** (#1158 → #1159) — `LOOPS_ENABLED` flag in `lib/loops.ts` defaults off; app pushes no events/contacts to Loops. TJ paused all Loops campaigns dashboard-side same day. Resend is now the single email system. Kills double-sends + `oleracare.com` complaint/ToS exposure.
+- **`/test-instructions`** (#1155) + scratchpad (#1156) promoted.
+
+**Investigation (no code, informed decisions):**
+- **"Separate Resend accounts?" → NO.** Only benefit is suspension blast-radius isolation, already mitigated: verification holds rates, true cold is off Resend (Smartlead), cockpit surfaces trouble at half the limit. Confirmed via Resend dashboard: ONE account ("olera Pro"), two verified root domains (`olera.care` + `oleracare.com`).
+- **Loops audit:** every active Loops trigger had a Resend twin already sending; Loops' own lifecycle groups (Onboarding/Retention/Reengagement) were empty. Loops was stale duplicates → safe to retire.
+- **Deliverability instrumentation is LIVE** (the May "0%/blind" note was stale): Resend webhook → `email_events` → `/admin/automations` cockpit vs `lib/email-thresholds.ts`. 30-day: **bounce 1.99%, complaint 0.0433%** — under hard lines, near yellow.
+
+**Decisions:** Loops retired (not just paused — code-gated too); no separate Resend account; role-address `effectiveStatus` handling documented as canonical.
+
+**Comms + docs:** Slack note to #ai-product-development (Graize/Cess/Esther) with the go-forward rule (Archive=disinterest, not REMOVE; email issues = add/override real address). Notion handoff fully rewritten as the journey record + role-email reference. New memory `project_email_architecture.md` (current canonical) + reframed `project_email_deliverability.md` as history.
+
+**Open tail (small):** (1) Step 2 lane split — `PROVIDER_NOTIFY_FROM`/`oleracare.com` already live but same Resend account (no account isolation); weekly-digest carve-out in `lib/email.ts` is load-bearing, don't remove. (2) `new_verification (import)` Loops campaign (~5,331 cold sends) now dark — move to Smartlead if it's a recurring funnel. (3) optional flush-endpoint throttle (~4/sec).
+
 ### 2026-06-20 — Ticket 2: provider-level archive for Questions queue + `/test-instructions` command (PR #1154 merged→staging; PR #1155 open)
 
 **Trigger:** The email-hygiene thread's original ask ("Ticket 2"). The QA team (Graize/Cess) kept re-clearing new questions for providers they'd decided to stop working — a treadmill. Per-question archive existed; provider-level did not, and the submission path only skipped the *email* for `admin_archived` providers (still inserted a `pending` row), so the queue refilled.

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { countDeliveredByCampaign, listLeadsByCampaign } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, listLeadsByCampaign, getCampaignStats } from "@/lib/ad-boost/delivered.server";
 
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
@@ -53,9 +53,27 @@ export async function GET(request: NextRequest) {
       countDeliveredByCampaign(db, [tag]),
       listLeadsByCampaign(db, tag),
     ]);
+
+    // Parity with the provider's own /provider/boost live view: the SAME real
+    // visitors + leads numbers Hilda sees, computed from the same reader, so the
+    // admin queue mirrors the provider's signed-in view (not the legacy
+    // benefits-only `delivered` count). Null until the campaign is live.
+    let campaignStats: { visitors: number; leads: number; since: string } | null = null;
+    if (row.status === "live") {
+      const since = new Date(
+        row.requested_setup_week || row.created_at,
+      ).toISOString();
+      const stats = await getCampaignStats(db, {
+        providerIdVariants: [row.provider_slug, row.provider_id],
+        since,
+      });
+      campaignStats = { ...stats, since };
+    }
+
     return NextResponse.json({
       request: { ...row, delivered: delivered[tag] ?? 0 },
       leads,
+      campaignStats,
     });
   }
 

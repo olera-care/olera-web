@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-06-21 — Email arc wrap-up: Ticket 2 promoted, Loops retired, architecture documented (all in prod)
+
+Closed the email/Questions arc end-to-end. Everything below is **in production**.
+
+**Shipped to prod:**
+- **Ticket 2 promoted** (#1154 → #1157) — provider-level "Archive provider" on `/admin/questions` is live.
+- **Loops RETIRED** (#1158 → #1159) — `LOOPS_ENABLED` flag in `lib/loops.ts` defaults off; app pushes no events/contacts to Loops. TJ paused all Loops campaigns dashboard-side same day. Resend is now the single email system. Kills double-sends + `oleracare.com` complaint/ToS exposure.
+- **`/test-instructions`** (#1155) + scratchpad (#1156) promoted.
+
+**Investigation (no code, informed decisions):**
+- **"Separate Resend accounts?" → NO.** Only benefit is suspension blast-radius isolation, already mitigated: verification holds rates, true cold is off Resend (Smartlead), cockpit surfaces trouble at half the limit. Confirmed via Resend dashboard: ONE account ("olera Pro"), two verified root domains (`olera.care` + `oleracare.com`).
+- **Loops audit:** every active Loops trigger had a Resend twin already sending; Loops' own lifecycle groups (Onboarding/Retention/Reengagement) were empty. Loops was stale duplicates → safe to retire.
+- **Deliverability instrumentation is LIVE** (the May "0%/blind" note was stale): Resend webhook → `email_events` → `/admin/automations` cockpit vs `lib/email-thresholds.ts`. 30-day: **bounce 1.99%, complaint 0.0433%** — under hard lines, near yellow.
+
+**Decisions:** Loops retired (not just paused — code-gated too); no separate Resend account; role-address `effectiveStatus` handling documented as canonical.
+
+**Comms + docs:** Slack note to #ai-product-development (Graize/Cess/Esther) with the go-forward rule (Archive=disinterest, not REMOVE; email issues = add/override real address). Notion handoff fully rewritten as the journey record + role-email reference. New memory `project_email_architecture.md` (current canonical) + reframed `project_email_deliverability.md` as history.
+
+**Open tail (small):** (1) Step 2 lane split — `PROVIDER_NOTIFY_FROM`/`oleracare.com` already live but same Resend account (no account isolation); weekly-digest carve-out in `lib/email.ts` is load-bearing, don't remove. (2) `new_verification (import)` Loops campaign (~5,331 cold sends) now dark — move to Smartlead if it's a recurring funnel. (3) optional flush-endpoint throttle (~4/sec).
+
 ### 2026-06-20 — Ticket 2: provider-level archive for Questions queue + `/test-instructions` command (PR #1154 merged→staging; PR #1155 open)
 
 **Trigger:** The email-hygiene thread's original ask ("Ticket 2"). The QA team (Graize/Cess) kept re-clearing new questions for providers they'd decided to stop working — a treadmill. Per-question archive existed; provider-level did not, and the submission path only skipped the *email* for `admin_archived` providers (still inserted a `pending` row), so the queue refilled.

@@ -46,8 +46,12 @@ export interface BoostStateResponse {
     windowDays: number;
   };
   request: BoostRequest | null;
-  /** Families delivered so far by this provider's campaign. */
+  /** Families delivered so far by this provider's campaign (UTM-tagged benefits
+   *  conversions). Legacy ROI signal — see campaignStats for real performance. */
   delivered: number;
+  /** Real campaign performance: visitors + leads on the provider's page since
+   *  launch. Null until the campaign is live. `since` is an ISO timestamp. */
+  campaignStats: { visitors: number; leads: number; since: string } | null;
 }
 
 const TTL_MS = 60_000;

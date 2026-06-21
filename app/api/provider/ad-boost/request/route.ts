@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
-import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, getCampaignStats } from "@/lib/ad-boost/delivered.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
 
@@ -96,6 +96,23 @@ export async function GET() {
     delivered = counts[tag] ?? 0;
   }
 
+  // Real campaign performance for the live panel: visitors + leads on this
+  // provider's page since launch. Only meaningful once the campaign is live and
+  // actually driving traffic; pre-live it's null and the UI shows a "numbers
+  // arrive once live" state. Launch anchor = the requested setup week (when the
+  // ads start), falling back to created_at for older rows with no week.
+  let campaignStats: { visitors: number; leads: number; since: string } | null = null;
+  if (latest && latest.status === "live") {
+    const since = new Date(
+      latest.requested_setup_week || latest.created_at,
+    ).toISOString();
+    const stats = await getCampaignStats(db, {
+      providerIdVariants: [elig.slug, elig.profileId],
+      since,
+    });
+    campaignStats = { ...stats, since };
+  }
+
   return NextResponse.json({
     eligibility: elig.eligibility,
     provider: {
@@ -108,6 +125,7 @@ export async function GET() {
     demand,
     request: latest ?? null,
     delivered,
+    campaignStats,
   });
 }
 

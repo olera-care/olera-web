@@ -38,6 +38,71 @@ export async function countDeliveredByCampaign(
   return result;
 }
 
+/**
+ * Real campaign performance for the provider-facing live panel: how many people
+ * visited this provider's page and how many converted into leads since the
+ * campaign launched.
+ *
+ * This is deliberately DIFFERENT from countDeliveredByCampaign. That counts
+ * `benefits_completed` conversions tagged with the campaign UTM — a side funnel
+ * the live provider page mostly doesn't even surface, so for most campaigns it
+ * reads ~0 while real inquiries arrive through the page's primary CTA. This
+ * instead reads the page's actual traffic + conversion from provider_activity:
+ *   visitors = session-deduped `page_view` events
+ *   leads    = `lead_received` events (the CTA inquiry — the true conversion)
+ *
+ * Single-provider attribution by approximation: a managed campaign points only
+ * at this provider's page, and a provider's organic baseline is typically ~zero,
+ * so "traffic on the page since launch" ≈ campaign performance. Clean
+ * per-campaign UTM attribution (for many providers running at once) is a
+ * separate, later piece; this is the honest number for a single live campaign.
+ *
+ * `since` is an ISO timestamp (the campaign's launch anchor). provider_activity
+ * keys on the URL slug, so pass the provider's slug (plus profile id as a
+ * defensive fallback for legacy rows) as `providerIdVariants`.
+ */
+export interface CampaignStats {
+  visitors: number;
+  leads: number;
+}
+
+export async function getCampaignStats(
+  db: ReturnType<typeof getServiceClient>,
+  options: { providerIdVariants: string[]; since: string },
+): Promise<CampaignStats> {
+  const variants = options.providerIdVariants.filter(
+    (v): v is string => typeof v === "string" && v.length > 0,
+  );
+  if (variants.length === 0) return { visitors: 0, leads: 0 };
+
+  const { data, error } = await db
+    .from("provider_activity")
+    .select("event_type, metadata")
+    .in("provider_id", variants)
+    .in("event_type", ["page_view", "lead_received"])
+    .gte("created_at", options.since)
+    .limit(50000);
+
+  if (error || !data) return { visitors: 0, leads: 0 };
+
+  // Visitors = distinct session_id across page_view (mirrors the dedup the
+  // analytics endpoint + nightly rollup use). Leads = lead_received count.
+  const sessions = new Set<string>();
+  let leads = 0;
+  for (const row of data as Array<{
+    event_type: string;
+    metadata: Record<string, unknown> | null;
+  }>) {
+    if (row.event_type === "lead_received") {
+      leads += 1;
+    } else if (row.event_type === "page_view") {
+      const sid = row.metadata?.session_id;
+      if (typeof sid === "string" && sid.length > 0) sessions.add(sid);
+    }
+  }
+  return { visitors: sessions.size, leads };
+}
+
 // UI care-need bucket → human label (mirror of CARE_NEED_LABELS in
 // app/api/benefits/save-results). Kept tiny + local to avoid coupling.
 const CARE_NEED_LABELS: Record<string, string> = {

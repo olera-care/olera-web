@@ -14,6 +14,11 @@ import {
   fmtDateOnly,
 } from "@/components/admin/AdBoostShared";
 
+/** The exact numbers the provider sees on their own /provider/boost live view
+ *  (mirrored here for admin parity). Real visitors + leads on their page since
+ *  launch — same shape the boost-state API returns. */
+type ProviderViewStats = { visitors: number; leads: number; since: string };
+
 export default function AdBoostDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -21,6 +26,7 @@ export default function AdBoostDetailPage() {
 
   const [request, setRequest] = useState<CampaignRequest | null>(null);
   const [leads, setLeads] = useState<CampaignLead[]>([]);
+  const [campaignStats, setCampaignStats] = useState<ProviderViewStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -34,6 +40,7 @@ export default function AdBoostDetailPage() {
       const json = await res.json();
       setRequest(json.request as CampaignRequest);
       setLeads((json.leads as CampaignLead[]) ?? []);
+      setCampaignStats((json.campaignStats as ProviderViewStats | null) ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -62,6 +69,7 @@ export default function AdBoostDetailPage() {
         <Detail
           request={request}
           leads={leads}
+          campaignStats={campaignStats}
           onChanged={load}
           onDeleted={() => router.push("/admin/ad-boost")}
         />
@@ -73,11 +81,13 @@ export default function AdBoostDetailPage() {
 function Detail({
   request,
   leads,
+  campaignStats,
   onChanged,
   onDeleted,
 }: {
   request: CampaignRequest;
   leads: CampaignLead[];
+  campaignStats: ProviderViewStats | null;
   onChanged: () => void;
   onDeleted: () => void;
 }) {
@@ -361,7 +371,37 @@ function Detail({
         </div>
       </section>
 
-      {/* Performance */}
+      {/* What the provider sees — exact parity with their /provider/boost live
+          view. Same visitors/leads/conversion numbers Hilda sees signed in, so
+          the admin queue mirrors the provider's experience. */}
+      <section className="rounded-xl border border-primary-100 bg-primary-50/40 p-5 mb-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-1">What the provider sees</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Identical to their signed-in <span className="font-medium">/provider/boost</span> view.
+        </p>
+        {request.status !== "live" ? (
+          <p className="text-xs text-gray-400">
+            The provider sees these once the campaign status is <span className="font-medium">live</span>.
+          </p>
+        ) : campaignStats ? (
+          <div className="grid grid-cols-3 gap-3">
+            <Stat value={campaignStats.visitors.toLocaleString()} label="Visitors" />
+            <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
+            <Stat
+              value={
+                campaignStats.visitors > 0
+                  ? `${Math.min(100, Math.round((campaignStats.leads / campaignStats.visitors) * 100))}%`
+                  : "—"
+              }
+              label="Conversion"
+            />
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400">No data yet.</p>
+        )}
+      </section>
+
+      {/* Performance (admin-only: manual spend + cost-per analysis) */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Performance</h2>
 

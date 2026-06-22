@@ -107,6 +107,8 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // C1: kept/verified counts per subtype, for the tab progress badges.
+  const [counts, setCounts] = useState<Record<string, { kept: number; verified: number }>>({});
 
   // Remember the active subtype so reopening lands on it.
   useEffect(() => {
@@ -138,6 +140,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         // off on for this subtype.
         setSuggested(loaded.suggested ?? []);
         setStep(((loaded.last_step as Step) ?? "links"));
+        if (d.summary) setCounts(d.summary as Record<string, { kept: number; verified: number }>);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Load failed");
       } finally {
@@ -512,22 +515,39 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     <div className="flex-1">
       <h2 className="text-lg font-semibold text-gray-900">Research · {universityName}</h2>
       <div className="mt-1 flex items-center gap-2">
-        {SUBTYPES.map((s) => (
-          <button
-            key={s.key}
-            onClick={() => {
-              autoPass.current = false;
-              autoSuggested.current = false;
-              setStep("links");
-              setSubtype(s.key);
-            }}
-            className={`rounded-full px-2.5 py-0.5 text-xs ${
-              subtype === s.key ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
+        {SUBTYPES.map((s) => {
+          // Live counts for the active tab (from local ws); server summary for
+          // the rest. Shows ✓verified, else ·kept, so progress across all three
+          // types is visible in one sitting.
+          const c =
+            s.key === subtype
+              ? { kept: ws.links.length, verified: ws.offices.filter((o) => o.verified).length }
+              : counts[s.key];
+          const badge = c
+            ? c.verified > 0
+              ? ` ✓${c.verified}`
+              : c.kept > 0
+                ? ` ·${c.kept}`
+                : ""
+            : "";
+          return (
+            <button
+              key={s.key}
+              onClick={() => {
+                autoPass.current = false;
+                autoSuggested.current = false;
+                setStep("links");
+                setSubtype(s.key);
+              }}
+              className={`rounded-full px-2.5 py-0.5 text-xs ${
+                subtype === s.key ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {s.label}
+              {badge}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -666,24 +686,34 @@ function LinksStep({
         )}
       </section>
       <section>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Predefined searches — check off as you run them</p>
-        <div className="space-y-1.5">
-          {ws.searches.map((s: SearchState) => (
-            <div key={s.key} className="flex items-center justify-between gap-2">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" checked={s.ran} onChange={() => onToggleSearch(s.key)} />{s.label}
-              </label>
-              <a href={s.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary-600 hover:underline">open ↗</a>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Predefined searches — opening one checks it off</p>
+        {/* C3: add-a-link box sits above the searches. */}
+        <div className="mb-3 rounded-md border border-gray-200 bg-gray-50 p-3">
           <p className="mb-1 text-[11px] font-medium text-gray-700">Add a link you found by hand</p>
           <div className="flex flex-wrap gap-2">
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="min-w-[200px] flex-1 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional)" className="w-40 rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
             <button onClick={() => { if (onAddManual(url, title)) { setUrl(""); setTitle(""); } }} className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">Add</button>
           </div>
+        </div>
+        <div className="space-y-1.5">
+          {ws.searches.map((s: SearchState) => (
+            <div key={s.key} className="flex items-center justify-between gap-2">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={s.ran} onChange={() => onToggleSearch(s.key)} />{s.label}
+              </label>
+              {/* C2: opening the search auto-checks it (only if not already on). */}
+              <a
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => { if (!s.ran) onToggleSearch(s.key); }}
+                className="shrink-0 text-xs text-primary-600 hover:underline"
+              >
+                open ↗
+              </a>
+            </div>
+          ))}
         </div>
       </section>
       <section>

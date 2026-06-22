@@ -173,12 +173,12 @@ export function predefinedSearches(subtype: PartnerSubtype, uni: string): Search
     ];
   }
   return [
-    { key: "org_dir", label: `Google: ${uni} student organizations directory pre-health`, url: g(`${uni} student organizations directory pre-health`), ran: false },
-    { key: "org_premed", label: `Google: ${uni} pre-med society OR AMSA chapter contact`, url: g(`${uni} pre-med society OR AMSA chapter contact`), ran: false },
-    { key: "org_prenursing_pa", label: `Google: ${uni} pre-nursing OR pre-PA OR pre-dental club contact`, url: g(`${uni} pre-nursing OR pre-PA OR pre-dental club contact`), ran: false },
-    { key: "org_hosa", label: `Google: ${uni} HOSA OR public health student club`, url: g(`${uni} HOSA OR public health student club`), ran: false },
-    { key: "org_identity", label: `Google: ${uni} MAPS OR SNMA OR minority pre-health organization`, url: g(`${uni} MAPS OR SNMA OR minority pre-health organization`), ran: false },
-    { key: "org_ig", label: `Google: ${uni} pre-health club Instagram`, url: g(`${uni} pre-health club Instagram`), ran: false },
+    { key: "org_premed", label: `Google: pre-medical student organizations ${uni}`, url: g(`pre-medical student organizations ${uni}`), ran: false },
+    { key: "org_prenursing", label: `Google: pre-nursing student organizations ${uni}`, url: g(`pre-nursing student organizations ${uni}`), ran: false },
+    { key: "org_prepa", label: `Google: pre-PA student organizations ${uni}`, url: g(`pre-PA student organizations ${uni}`), ran: false },
+    { key: "org_prept", label: `Google: pre-PT student organizations ${uni}`, url: g(`pre-PT student organizations ${uni}`), ran: false },
+    { key: "org_pubh", label: `Google: public health student organizations ${uni}`, url: g(`public health student organizations ${uni}`), ran: false },
+    { key: "org_geriatrics", label: `Google: geriatrics student organizations ${uni}`, url: g(`geriatrics student organizations ${uni}`), ran: false },
   ];
 }
 

@@ -43,7 +43,14 @@ export async function GET(request: NextRequest) {
   const pr = ((campus as { partner_research?: unknown }).partner_research ?? {}) as Record<string, unknown>;
   const workspace = readWorkspace(pr, subtype);
   const audit = (pr.audit ?? {}) as Record<string, unknown>;
-  return NextResponse.json({ workspace, audit: audit[subtype] ?? null });
+  // C1: per-subtype progress so the workspace tabs can show counts for all
+  // three types at once (kept links + verified offices).
+  const summary: Record<string, { kept: number; verified: number }> = {};
+  for (const st of ["advisor", "student_org", "dept_head"] as PartnerSubtype[]) {
+    const w = readWorkspace(pr, st);
+    summary[st] = { kept: w.links.length, verified: w.offices.filter((o) => o.verified).length };
+  }
+  return NextResponse.json({ workspace, audit: audit[subtype] ?? null, summary });
 }
 
 export async function PATCH(request: NextRequest) {

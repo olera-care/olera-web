@@ -13,6 +13,11 @@ interface ReviewsContext {
   targetRank?: number;
 }
 
+interface TopCompetitor {
+  name: string;
+  reviews: number;
+}
+
 interface ReviewsTabProps {
   reviewsContext: ReviewsContext | null;
   providerSlug?: string;
@@ -20,17 +25,11 @@ interface ReviewsTabProps {
   hasGooglePlaceId: boolean;
   city?: string;
   providerReviewCount: number | null;
+  topCompetitor?: TopCompetitor | null;
 }
 
 // Removed "Hi, " since the email template already adds "Hi {name},"
 const DEFAULT_MESSAGE = "We'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
-
-// Milestone tiers for achievable progress
-const MILESTONES = [1, 5, 10, 25, 50, 100, 250, 500];
-
-function getNextMilestone(currentReviews: number): number {
-  return MILESTONES.find(m => m > currentReviews) || currentReviews + 100;
-}
 
 function isValidEmail(str: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
@@ -47,6 +46,7 @@ export default function ReviewsTab({
   hasGooglePlaceId,
   city,
   providerReviewCount,
+  topCompetitor,
 }: ReviewsTabProps) {
   // Form state
   const [clientName, setClientName] = useState("");
@@ -208,29 +208,26 @@ export default function ReviewsTab({
 
   // Effective review count: Google reviews take precedence, fall back to Olera reviews
   const effectiveReviewCount = providerReviewCount ?? oleraReviewCount;
-
-  // Determine headline - actionable next step
   const currentReviews = effectiveReviewCount ?? 0;
   const isLoading = isLoadingOleraCount && !hasGooglePlaceId;
 
-  let actionLine = "";
-
+  // Build the competitive context subtitle
+  let subtitle = "";
   if (isLoading) {
-    actionLine = "";
+    subtitle = "Checking your reviews...";
   } else if (reviewsContext?.isFirst) {
     // Provider is #1
-    actionLine = `You lead ${city || "your market"}.`;
-  } else if (reviewsContext && !reviewsContext.isFirst && reviewsContext.reviewsNeeded && reviewsContext.reviewsNeeded <= 15) {
-    // Close to next competitor - show competitor name
-    actionLine = `${reviewsContext.reviewsNeeded} more to pass ${reviewsContext.nextCompetitor}.`;
-  } else if (currentReviews === 0) {
-    // Zero reviews - first milestone
-    actionLine = "Get your first review.";
+    subtitle = `You have ${currentReviews} reviews. You lead ${city || "your market"}.`;
+  } else if (topCompetitor && topCompetitor.reviews > 0) {
+    // Show competitive context
+    const reviewWord = currentReviews === 1 ? "review" : "reviews";
+    subtitle = `You have ${currentReviews} ${reviewWord}. The top provider in ${city || "your market"} has ${topCompetitor.reviews}.`;
   } else {
-    // Use milestone system
-    const nextMilestone = getNextMilestone(currentReviews);
-    const toMilestone = nextMilestone - currentReviews;
-    actionLine = `${toMilestone} more to hit ${nextMilestone}.`;
+    // No competitor data - just show their count
+    const reviewWord = currentReviews === 1 ? "review" : "reviews";
+    subtitle = currentReviews === 0
+      ? "You have no reviews yet."
+      : `You have ${currentReviews} ${reviewWord}.`;
   }
 
   return (
@@ -254,17 +251,15 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Label */}
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-3">
-        Your move this week
-      </p>
+      {/* Headline - direct call to action */}
+      <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-2">
+        Ask a happy client for a review.
+      </h2>
 
-      {/* Headline - actionable next step */}
-      {actionLine && (
-        <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-6">
-          {actionLine}
-        </h2>
-      )}
+      {/* Subtitle - competitive context */}
+      <p className="text-sm text-stone-500 text-center mb-6">
+        {subtitle}
+      </p>
 
       {/* Error message */}
       {errorMessage && (

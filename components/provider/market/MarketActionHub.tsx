@@ -111,6 +111,7 @@ export default function MarketActionHub({
               hasGooglePlaceId={!!providerPlaceId}
               city={data.meta.city}
               providerReviewCount={providerReviewCount ?? null}
+              topCompetitor={data.competitorLandscape?.leaders?.[0] ?? null}
             />
           )}
 

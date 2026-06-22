@@ -47,6 +47,7 @@ import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal"
 import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
+import { ProviderMakeClient } from "@/components/admin/medjobs/ProviderMakeClient";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
@@ -233,6 +234,34 @@ function InOutreachBody({
         (t.payload as Record<string, unknown> | null)?.cadence === "activation",
     )
     .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  // Cold-cadence call (not an activation call) — its script seeds the
+  // "Call to confirm" modal when we're awaiting an outreach reply.
+  const nextColdCall = ctx.pending_tasks
+    .filter(
+      (t) =>
+        t.task_type === "outreach_followup_call" &&
+        (t.payload as Record<string, unknown> | null)?.cadence !== "activation",
+    )
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+
+  // "Call to confirm": let the admin proactively call an awaiting-reply row and
+  // log the outcome against the right script, without waiting for a call to be
+  // due. Script + outcome set follow the cadence we're awaiting.
+  const [showConfirmCall, setShowConfirmCall] = useState(false);
+  const confirmCallTask = activationRunning ? nextActivationCall : nextColdCall;
+  const confirmScript =
+    typeof confirmCallTask?.payload?.script === "string"
+      ? (confirmCallTask.payload.script as string)
+      : null;
+  const confirmDay =
+    typeof confirmCallTask?.payload?.day === "number"
+      ? (confirmCallTask.payload.day as number)
+      : null;
+  const confirmScriptLabel = activationRunning
+    ? "Activation call script"
+    : confirmDay != null
+      ? `Day ${confirmDay} script`
+      : "Call script";
 
   const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
   const subline = activationRunning
@@ -271,13 +300,34 @@ function InOutreachBody({
         source="reply"
         trailing={
           <>
+            <button
+              onClick={() => setShowConfirmCall(true)}
+              title="Call this row now and log the outcome against the call script."
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              ☎ Call to confirm
+            </button>
             <BookMeetingLink ctx={ctx} inline />
-            {isPartnerRow(ctx) && (
+            {isPartnerRow(ctx) ? (
               <PartnerActivate ctx={ctx} action={action} setError={setError} />
+            ) : (
+              <ProviderMakeClient ctx={ctx} action={action} setError={setError} />
             )}
           </>
         }
       />
+      {showConfirmCall && (
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={confirmScript}
+          scriptLabel={confirmScriptLabel}
+          mode={activationRunning ? "activation" : "outreach"}
+          source="reply"
+          onClose={() => setShowConfirmCall(false)}
+          setError={setError}
+        />
+      )}
     </>
   );
 }

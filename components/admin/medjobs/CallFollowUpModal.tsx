@@ -18,6 +18,7 @@ import {
   type OutcomeChoice,
 } from "@/components/admin/medjobs/CallOutcomeModal";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import type { DrawerContext } from "@/lib/student-outreach/types";
@@ -27,40 +28,87 @@ type ActionFn = (
   payload?: Record<string, unknown>,
 ) => Promise<DrawerContext>;
 
-const OUTCOMES: OutcomeChoice[] = [
-  {
-    key: "interested",
-    label: "Interested",
-    blurb: "They want to move forward. Launches the activation sequence.",
-    tone: "happy",
-  },
-  {
-    key: "meeting_booked",
-    label: "📅 Meeting booked",
-    blurb: "Opens the Calendly booking page and marks a meeting scheduled.",
-    tone: "happy",
-  },
-  {
-    key: "no_answer",
-    label: "No answer",
-    blurb: "Marks this call done; the next cadence call stays scheduled.",
-    tone: "neutral",
-  },
-  {
-    key: "voicemail",
-    label: "Voicemail",
-    blurb: "Left a message; the next cadence call stays scheduled.",
-    tone: "neutral",
-  },
-  {
-    key: "not_interested",
-    label: "Not interested",
-    blurb: "Closes the row and cancels remaining outreach.",
-    tone: "close",
-  },
-];
+/** Whether the row is a stakeholder (advisor / dept head / student org) that
+ *  converts to a Partner, vs a provider that converts to a Client. */
+function isPartnerRow(ctx: DrawerContext): boolean {
+  return ctx.outreach.kind != null && ctx.outreach.kind !== "provider";
+}
+
+/**
+ * Outcomes are state- and row-kind-aware:
+ *  - "outreach" mode (cold cadence or a row awaiting reply to it): the positive
+ *    lead is "Interested", which launches the activation cadence.
+ *  - "activation" mode (warm cadence already running): "Interested" is moot, so
+ *    the positive lead is "Confirmed / spoke", which just logs the call and
+ *    lets the activation cadence keep running.
+ * Both modes offer the row-appropriate conversion (Make partner / Make client)
+ * and the standard meeting / no-answer / voicemail / not-interested outcomes.
+ */
+function outcomesFor(
+  mode: "outreach" | "activation",
+  partner: boolean,
+): OutcomeChoice[] {
+  const lead: OutcomeChoice =
+    mode === "activation"
+      ? {
+          key: "confirmed",
+          label: "Confirmed / spoke",
+          blurb: "Logs the call. The activation cadence keeps running.",
+          tone: "happy",
+        }
+      : {
+          key: "interested",
+          label: "Interested",
+          blurb: "They want to move forward. Launches the activation sequence.",
+          tone: "happy",
+        };
+  const convert: OutcomeChoice = partner
+    ? {
+        key: "convert_to_partner",
+        label: "★ Make partner",
+        blurb:
+          "They committed to share the program with students. Marks them a Partner and stops outreach.",
+        tone: "happy",
+      }
+    : {
+        key: "convert_to_client",
+        label: "★ Make client",
+        blurb:
+          "They're ready to interview and hire. Marks them a Client and stops outreach.",
+        tone: "happy",
+      };
+  return [
+    lead,
+    {
+      key: "meeting_booked",
+      label: "📅 Meeting booked",
+      blurb: "Opens the Calendly booking page and marks a meeting scheduled.",
+      tone: "happy",
+    },
+    convert,
+    {
+      key: "no_answer",
+      label: "No answer",
+      blurb: "Marks this call done; the next cadence call stays scheduled.",
+      tone: "neutral",
+    },
+    {
+      key: "voicemail",
+      label: "Voicemail",
+      blurb: "Left a message; the next cadence call stays scheduled.",
+      tone: "neutral",
+    },
+    {
+      key: "not_interested",
+      label: "Not interested",
+      blurb: "Closes the row and cancels remaining outreach.",
+      tone: "close",
+    },
+  ];
+}
 
 const OUTCOME_ACTION: Record<string, string> = {
+  confirmed: "logged",
   no_answer: "no_answer",
   voicemail: "voicemail",
   not_interested: "connected_not_interested",
@@ -72,6 +120,7 @@ export function CallFollowUpModal({
   script,
   scriptLabel,
   source = "phone",
+  mode = "outreach",
   taskId,
   cadenceDay,
   onClose,
@@ -82,6 +131,10 @@ export function CallFollowUpModal({
   script: string | null;
   scriptLabel: string;
   source?: "reply" | "phone" | "meeting";
+  /** "activation" when the row is awaiting reply to a running activation
+   *  cadence — swaps "Interested" for "Confirmed / spoke". Defaults to the
+   *  cold-outreach outcome set. */
+  mode?: "outreach" | "activation";
   /** When opened from a specific timeline call-task row, scopes the log to
    *  that task instead of the most-overdue auto-pick. */
   taskId?: string | null;
@@ -90,6 +143,7 @@ export function CallFollowUpModal({
   setError: (m: string | null) => void;
 }) {
   const [showLaunch, setShowLaunch] = useState(false);
+  const [showMarkPartner, setShowMarkPartner] = useState(false);
 
   const primary =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
@@ -136,6 +190,30 @@ export function CallFollowUpModal({
       onClose();
       return;
     }
+    if (outcomeKey === "convert_to_client") {
+      // Provider conversion: backend logs the call + runs handleMakeClient
+      // (writes interview_terms_accepted_at, transitions to active_partner,
+      // unlocks Partner Prospects, cancels remaining tasks).
+      await action("log_call_outcome", {
+        outcome: "convert_to_client",
+        notes,
+        ...taskScope,
+      });
+      onClose();
+      return;
+    }
+    if (outcomeKey === "convert_to_partner") {
+      // Stakeholder conversion: log the call now, then chain into
+      // MarkPartnerModal to capture distribution evidence and issue
+      // mark_partner (which transitions to active_partner + cancels tasks).
+      await action("log_call_outcome", {
+        outcome: "convert_to_partner",
+        notes,
+        ...taskScope,
+      });
+      setShowMarkPartner(true);
+      return;
+    }
     await action("log_call_outcome", {
       outcome: outcomeKey ? OUTCOME_ACTION[outcomeKey] ?? "logged" : "logged",
       notes,
@@ -180,6 +258,27 @@ export function CallFollowUpModal({
     );
   }
 
+  if (showMarkPartner) {
+    return (
+      <MarkPartnerModal
+        organizationName={ctx.outreach.organization_name}
+        onCancel={onClose}
+        onConfirm={async (payload) => {
+          try {
+            await action("mark_partner", {
+              evidence: payload.evidence,
+              evidence_notes: payload.evidence_notes,
+            });
+            onClose();
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Failed to mark partner");
+            throw e;
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <CallOutcomeModal
       title="Log call"
@@ -191,7 +290,7 @@ export function CallFollowUpModal({
       }
       scriptLabel={scriptLabel}
       script={script}
-      outcomes={OUTCOMES}
+      outcomes={outcomesFor(mode, isPartnerRow(ctx))}
       allowNotesOnly
       onCancel={onClose}
       onSubmit={dispatch}

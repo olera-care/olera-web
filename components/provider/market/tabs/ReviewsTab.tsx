@@ -273,8 +273,8 @@ export default function ReviewsTab({
     }
   } else if (topCompetitor) {
     // Provider not ranked yet, but show market context
-    headline = `#1 in ${city || "your market"} has ${topCompetitor.reviews} reviews.`;
-    subline = "Start collecting reviews to compete.";
+    headline = "Families are choosing providers with more reviews.";
+    subline = `Each happy client you add climbs you toward ${topCompetitor.name}.`;
   } else {
     // Fallback (shouldn't happen if market data loaded)
     headline = "Build your reputation";
@@ -283,14 +283,16 @@ export default function ReviewsTab({
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8">
-      {/* Header */}
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-2">
+      {/* Label - separate from headline stack */}
+      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-5">
         Your move this week
       </p>
-      <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-2">
+
+      {/* Headline + Subline - tight stack */}
+      <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-1">
         {headline}
       </h2>
-      <p className="text-sm text-stone-500 text-center mb-6">
+      <p className="text-[15px] text-stone-500 text-center mb-8">
         {subline}
       </p>
 

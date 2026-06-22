@@ -167,8 +167,8 @@ export default function ReferralsTab({
           {hasNoTargets
             ? "We're mapping referral sources in your area. Check back soon."
             : stats.referring > 0
-              ? `${stats.referring} ${stats.referring === 1 ? "is" : "are"} now referring you.`
-              : "Check back as we find more sources in your area."}
+              ? `${stats.referring} ${stats.referring === 1 ? "is" : "are"} now referring you. Nice work.`
+              : "You've covered your local sources. Focus on the ones that responded."}
         </p>
       </div>
     );

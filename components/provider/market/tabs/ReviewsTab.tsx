@@ -218,69 +218,64 @@ export default function ReviewsTab({
   const effectiveReviewCount = providerReviewCount ?? oleraReviewCount;
 
   // Find the next competitor to beat based on provider's current reviews
+  // Works for ALL providers including those with 0 reviews
   const findNextTarget = () => {
-    if (effectiveReviewCount === null || leaders.length === 0) return null;
+    if (leaders.length === 0) return null;
+    const currentReviews = effectiveReviewCount ?? 0;
     // Find the lowest-ranked leader the provider can realistically pass
     const sortedByReviews = [...leaders].sort((a, b) => a.reviews - b.reviews);
-    const nextTarget = sortedByReviews.find(l => l.reviews > effectiveReviewCount);
-    if (!nextTarget) return null;
+    const nextTarget = sortedByReviews.find(l => l.reviews > currentReviews);
+    // If no one ahead, target the leader to defend against
+    const target = nextTarget || sortedByReviews[sortedByReviews.length - 1];
+    if (!target) return null;
     return {
-      name: nextTarget.name,
-      reviews: nextTarget.reviews,
-      needed: nextTarget.reviews - effectiveReviewCount + 1,
+      name: target.name,
+      reviews: target.reviews,
+      needed: Math.max(1, target.reviews - currentReviews + 1),
     };
   };
 
   // For unranked providers: find the next competitor to beat
   const nextTarget = !reviewsContext ? findNextTarget() : null;
 
-  // Determine headline - punchy, two-part structure, no subline needed
+  // For ranked providers: get the competitor they're chasing
+  const rankedTarget = reviewsContext && !reviewsContext.isFirst && reviewsContext.nextCompetitor
+    ? { name: reviewsContext.nextCompetitor, reviews: reviewsContext.nextCompetitorReviews || 0 }
+    : null;
+
+  // Determine headline - punchy, competitor-focused, drives FOMO
   let headline = "";
 
   if (reviewsContext) {
     // Provider is ranked in the market (has Place ID match)
     if (reviewsContext.isFirst) {
-      // #1 position
+      // #1 position - celebrate but show who's chasing
       const secondPlace = leaders[1];
       const lead = secondPlace ? reviewsContext.reviews - secondPlace.reviews : null;
-      headline = lead && lead > 0
-        ? `You're #1. ${lead} ahead of #2.`
-        : `You're #1 in ${city || "your market"}.`;
-    } else if (reviewsContext.reviewsNeeded && reviewsContext.targetRank) {
-      // Ranked but not #1
-      headline = `You're #${reviewsContext.rank}. ${reviewsContext.reviewsNeeded} to reach #${reviewsContext.targetRank}.`;
+      if (lead && lead > 0 && secondPlace) {
+        headline = `You're #1 in ${city || "your market"}.`;
+      } else {
+        headline = `You're #1 in ${city || "your market"}.`;
+      }
+    } else if (reviewsContext.reviewsNeeded && rankedTarget) {
+      // Ranked but not #1 - show gap to next competitor by NAME
+      headline = `${reviewsContext.reviewsNeeded} reviews to pass ${rankedTarget.name}.`;
     }
-  } else if (effectiveReviewCount !== null && leaders.length > 0) {
-    // Provider has review count (Google or Olera) but not ranked - show dynamic goal
-    if (effectiveReviewCount === 0) {
-      // No reviews yet
-      headline = topCompetitor
-        ? `No reviews yet. #1 has ${topCompetitor.reviews}.`
-        : "No reviews yet. Send your first.";
-    } else if (nextTarget) {
-      // Has some reviews, show next target
-      headline = `${effectiveReviewCount} review${effectiveReviewCount === 1 ? "" : "s"}. ${nextTarget.needed} to pass ${nextTarget.name}.`;
-    } else if (top10Threshold !== null && effectiveReviewCount >= top10Threshold) {
-      // Already competitive
-      headline = `${effectiveReviewCount} reviews. You're in the top 10.`;
-    } else {
-      // Below threshold
-      const gap = top10Threshold !== null ? top10Threshold - effectiveReviewCount : null;
-      headline = gap !== null
-        ? `${effectiveReviewCount} review${effectiveReviewCount === 1 ? "" : "s"}. ${gap} to crack the top 10.`
-        : `${effectiveReviewCount} review${effectiveReviewCount === 1 ? "" : "s"}. Keep building.`;
+  } else if (leaders.length > 0) {
+    // Provider not ranked - show gap to competitor
+    const currentReviews = effectiveReviewCount ?? 0;
+    if (nextTarget) {
+      if (currentReviews === 0) {
+        headline = `${nextTarget.name} leads with ${nextTarget.reviews} reviews.`;
+      } else {
+        headline = `${nextTarget.needed} reviews to pass ${nextTarget.name}.`;
+      }
+    } else if (topCompetitor) {
+      headline = `${topCompetitor.name} leads with ${topCompetitor.reviews} reviews.`;
     }
   } else if (isLoadingOleraCount && !hasGooglePlaceId) {
-    // Loading Olera review count - show neutral loading state
     headline = "Checking your reviews...";
-  } else if (top10Threshold !== null) {
-    // No review count, but we know the market threshold
-    headline = `Not ranked yet. Top 10 have ${top10Threshold}+.`;
-  } else if (topCompetitor) {
-    // Fallback to top competitor
-    headline = `Not ranked. ${topCompetitor.name} leads with ${topCompetitor.reviews}.`;
   } else {
-    // Ultimate fallback
     headline = "Start collecting reviews.";
   }
 
@@ -315,40 +310,54 @@ export default function ReviewsTab({
         {headline}
       </h2>
 
-      {/* Progress bar for RANKED providers (not #1) */}
-      {reviewsContext && !reviewsContext.isFirst && reviewsContext.reviewsNeeded && reviewsContext.targetRank && (
+      {/* Progress bar for RANKED providers (not #1) - shows competitor NAME */}
+      {reviewsContext && !reviewsContext.isFirst && reviewsContext.reviewsNeeded && rankedTarget && (
         <div className="mb-6">
           <div className="flex items-center justify-center gap-3">
-            <span className="text-sm font-semibold text-stone-600 tabular-nums">#{reviewsContext.rank}</span>
-            <div className="w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
+            <div className="flex flex-col items-end">
+              <span className="text-sm font-semibold text-stone-600">You</span>
+              <span className="text-[10px] text-stone-400">{reviewsContext.reviews} reviews</span>
+            </div>
+            <div className="w-32 sm:w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
               <div
                 className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.max(10, Math.min(90, 100 - (reviewsContext.reviewsNeeded * 15)))}%`
+                  width: `${Math.max(5, Math.min(95, (reviewsContext.reviews / rankedTarget.reviews) * 100))}%`
                 }}
               />
             </div>
-            <span className="text-sm font-semibold text-[#199087] tabular-nums">#{reviewsContext.targetRank}</span>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-[#199087] truncate max-w-[100px] sm:max-w-[140px]" title={rankedTarget.name}>
+                {rankedTarget.name}
+              </span>
+              <span className="text-[10px] text-stone-400">{rankedTarget.reviews} reviews</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Progress bar for UNRANKED providers with a target */}
-      {!reviewsContext && nextTarget && effectiveReviewCount !== null && effectiveReviewCount > 0 && (
+      {/* Progress bar for ALL UNRANKED providers - including 0 reviews */}
+      {!reviewsContext && nextTarget && (
         <div className="mb-6">
           <div className="flex items-center justify-center gap-3">
-            <span className="text-sm font-semibold text-stone-600">You</span>
-            <div className="w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
+            <div className="flex flex-col items-end">
+              <span className="text-sm font-semibold text-stone-600">You</span>
+              <span className="text-[10px] text-stone-400">{effectiveReviewCount ?? 0} reviews</span>
+            </div>
+            <div className="w-32 sm:w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
               <div
                 className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.max(10, Math.min(90, (effectiveReviewCount / nextTarget.reviews) * 100))}%`
+                  width: `${Math.max(5, Math.min(95, ((effectiveReviewCount ?? 0) / nextTarget.reviews) * 100))}%`
                 }}
               />
             </div>
-            <span className="text-sm font-semibold text-[#199087] truncate max-w-[120px]" title={nextTarget.name}>
-              {nextTarget.name}
-            </span>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-[#199087] truncate max-w-[100px] sm:max-w-[140px]" title={nextTarget.name}>
+                {nextTarget.name}
+              </span>
+              <span className="text-[10px] text-stone-400">{nextTarget.reviews} reviews</span>
+            </div>
           </div>
         </div>
       )}

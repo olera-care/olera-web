@@ -3,6 +3,66 @@
 **Branch:** `mighty-carson` · **Date:** 2026-06-22 · status: building
 Companion to `plans/provider-comms-gate.md` (the provider-side precedent this mirrors).
 
+## Strategy v2 — compare-led flywheel (locked 2026-06-22 with TJ)
+
+Supersedes the v1 ladder's **priority and framing** (the machinery in Parts 1–2 below is
+unchanged; what changes is rung order + copy). v1 optimized *our* funnel
+(connect / complete / publish). v2 optimizes the *family's* job-to-be-done.
+
+**The flywheel — three reinforcing forces, not competing priorities:**
+
+> **Complete → Compare → Benefits → (loop back to Complete)**
+
+- **Completion = the FUEL.** Budget, timeline, care needs, location. The more we have, the
+  better the options we show *and* the more relevant the benefits. It earns its keep — but it
+  is **never a naked ask**. Always "give us one more detail so we can show you better matches."
+  Same action, opposite framing. (This is why the v1 dry-run's 208 completion nudges weren't
+  wrong in *volume* — they were wrong in *framing* and *sequence*.)
+- **Compare options = the HERO (priority #1).** What families actually want: real choices and
+  a feeling of control. Delivered **unilaterally** — we have 21k providers, so we can always
+  show options whether or not any single provider responds. This is the spine.
+- **Benefits = the CLOSER (priority #2).** "You like that one? Here's how to afford it." Our
+  strongest organic asset (Logan's VA/BCBS articles top the site), untested as outbound,
+  highest-upside lever. Strong — but **do not over-index**; it rides alongside compare, never
+  leads.
+- **Priority order: Compare (1) > Benefits (2) > Complete (3, woven into the other two).**
+
+**Allocation by moment (lead with compare, completion as value-exchange, benefits alongside):**
+
+| Moment | Lead with | Completion woven in as | Benefits |
+|---|---|---|---|
+| Inquiry sent (0–2d) | "While you wait, compare 2–3 similar options" | "add your budget for sharper matches" | soft intro |
+| Quiet (2–3d) | Self-report + alternates to compare | — | "how to pay for these" |
+| Provider responded | "Compare them vs 2 others + how to choose" | "care needs sharpen the comparison" | how to afford |
+| Provider silent | Alternates to compare | profile refines who we show | benefits |
+| Stuck | "Unlock better matches" (completion as the lever) | explicit value exchange | benefits deep-dive |
+| Dormant | low-freq: new options near you | — | benefits drip |
+
+**Responsiveness = INTERNAL RANKING SIGNAL ONLY — never a customer-facing claim.** We rank
+responsive-first silently (better odds). We do **NOT** promise response times: first-hand
+evidence is that times are long, and implying "they'll call you back" sets a trap and burns
+trust. Compare cards lead with attributes we can stand behind — care types, price signal,
+distance, reviews/capacity. Honest pitch = "more options to consider," not "these will respond."
+
+**Compare destination = existing browse, pre-filtered** (care type + city + responsive-first
+ranking). No dedicated side-by-side build on spec. **WATCH-ITEM:** the pre-filled browse must
+genuinely satisfy the click intent — validate on ship ("feel it"), upgrade to a real compare
+view only if the click data demands it.
+
+**Concierge = flag, don't build.** No automated "concierge" emails — we can't promise human
+follow-through at our size. The system MAY emit an internal signal for high-intent-stuck
+families (provider silent + alternates tried + still no connection) so a human can jump in
+when capacity allows. An ops decision, not an email tier.
+
+**Cadence = ship now, iterate in days.** No multi-week measurement gate (explicitly rejected).
+Design from first principles, ship the principled v1, instrument concurrently, react fast as
+the self-report + click data lands.
+
+**CODE STATUS:** the built coordinator (Part 2) still uses the v1 ladder (connection-logistics
+priority/copy). **Re-shaping pass pending** — re-order rungs to compare-led, re-frame all copy
+(completion as value-exchange, drop every response-time claim), point compare CTAs at
+pre-filtered browse. Deferred by TJ: strategy captured first, code re-shape is a separate pass.
+
 ## Why
 
 Family (care-seeker) email is sent by **7 independent crons** with no global coordination.

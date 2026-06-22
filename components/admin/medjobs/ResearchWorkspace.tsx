@@ -366,6 +366,21 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     void readLinks(true);
   }, [step, loading, readLinks]);
 
+  // Task 3: auto-run "Suggest links" the first time the Find-offices (links)
+  // step opens for a subtype with nothing kept yet AND no saved suggestions —
+  // rec (b): keep suggesting an untouched type until a link is kept. The saved-
+  // suggestions check (Task 4) means we show persisted suggestions rather than
+  // regenerate. Re-armed on subtype switch (see the subtype buttons). Mirrors
+  // the auto-extract pattern above.
+  const autoSuggested = useRef(false);
+  useEffect(() => {
+    if (step !== "links") return;
+    if (loading || busy || autoSuggested.current) return;
+    if (ws.links.length > 0 || suggested.length > 0) return;
+    autoSuggested.current = true;
+    void suggestLinks();
+  }, [step, loading, busy, ws.links.length, suggested.length, suggestLinks]);
+
   const parseOfficePage = async (urlStr: string, text: string) => {
     setReading(true);
     setError(null);
@@ -502,6 +517,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
             key={s.key}
             onClick={() => {
               autoPass.current = false;
+              autoSuggested.current = false;
               setStep("links");
               setSubtype(s.key);
             }}

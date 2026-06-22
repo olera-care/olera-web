@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 interface ReviewsContext {
   isFirst: boolean;
@@ -164,31 +163,6 @@ export default function ReviewsTab({
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const [dividerLinkCopied, setDividerLinkCopied] = useState(false);
-
-  const handleCopyLink = async () => {
-    if (!providerSlug) return;
-    const reviewLink = `${window.location.origin}/review/${providerSlug}`;
-
-    try {
-      await navigator.clipboard.writeText(reviewLink);
-      setDividerLinkCopied(true);
-      setTimeout(() => setDividerLinkCopied(false), 2000);
-    } catch {
-      // Fallback
-      const textArea = document.createElement("textarea");
-      textArea.value = reviewLink;
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setDividerLinkCopied(true);
-      setTimeout(() => setDividerLinkCopied(false), 2000);
     }
   };
 
@@ -382,38 +356,6 @@ export default function ReviewsTab({
         </button>
       </form>
 
-      {/* Divider with "or" */}
-      <div className="flex items-center justify-center gap-3 my-6">
-        <div className="w-8 h-px bg-stone-200" />
-        <button
-          type="button"
-          onClick={handleCopyLink}
-          className={`text-sm font-medium transition-colors ${
-            dividerLinkCopied
-              ? "text-emerald-600"
-              : "text-[#199087] hover:text-[#147a72]"
-          }`}
-        >
-          {dividerLinkCopied ? "Link copied ✓" : "or copy a link to share yourself"}
-        </button>
-        <div className="w-8 h-px bg-stone-200" />
-      </div>
-
-      {/* Preview link */}
-      {providerSlug && (
-        <div className="text-center">
-          <Link
-            href={`/review/${providerSlug}`}
-            target="_blank"
-            className="text-sm text-stone-500 hover:text-stone-700 font-medium transition-colors inline-flex items-center gap-1"
-          >
-            Preview the message
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-          </Link>
-        </div>
-      )}
 
       {/* Footer */}
       <div className="mt-6 pt-2">

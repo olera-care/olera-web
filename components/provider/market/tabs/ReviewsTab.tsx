@@ -43,6 +43,7 @@ export default function ReviewsTab({
   const [linkCopied, setLinkCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [thisWeekCount, setThisWeekCount] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Fetch this week's review request count
   useEffect(() => {
@@ -356,6 +357,43 @@ export default function ReviewsTab({
         </button>
       </form>
 
+      {/* Preview toggle */}
+      <div className="mt-5 text-center">
+        <button
+          type="button"
+          onClick={() => setShowPreview(!showPreview)}
+          className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+        >
+          <svg
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${showPreview ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+          Preview the message
+        </button>
+      </div>
+
+      {/* Email preview */}
+      {showPreview && (
+        <div className="mt-4 p-4 bg-stone-50 rounded-xl text-left">
+          <p className="text-xs text-stone-400 uppercase tracking-wider mb-3">What they&apos;ll receive</p>
+          <div className="bg-white rounded-lg border border-stone-200 p-4 shadow-sm">
+            <p className="text-sm text-stone-700 mb-3">
+              Hi <span className="font-medium">{clientName.trim() || "Client"}</span>,
+            </p>
+            <div className="border-l-2 border-[#199087] pl-3 py-1 mb-4">
+              <p className="text-sm text-stone-600 italic">{DEFAULT_MESSAGE}</p>
+            </div>
+            <div className="inline-block px-4 py-2 bg-[#199087] text-white text-sm font-medium rounded-lg">
+              Write a review
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="mt-6 pt-2">

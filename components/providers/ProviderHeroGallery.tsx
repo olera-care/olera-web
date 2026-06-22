@@ -127,10 +127,10 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
         />
       )}
 
-      {/* Overlay layers: the held (previous) real image stays at full opacity
-          until the incoming one finishes loading, then they crossfade. The stock
-          fallback only ever shows before the first real image loads — never
-          between two real photos, so there's no stock-image flash on navigation. */}
+      {/* Real-photo layers over the neutral container. The held (previous) image
+          stays at full opacity until the incoming one finishes loading, then they
+          crossfade — so the first photo fades in cleanly on load and navigation
+          never cuts to a blank frame. */}
       {layerSrcs.map((src) => {
         const isCurrent = src === currentSrc;
         const visible = isCurrent ? currentLoaded : !currentLoaded;

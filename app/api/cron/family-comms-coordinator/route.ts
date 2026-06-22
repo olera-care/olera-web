@@ -263,36 +263,23 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Resolve family email (auth fallback) — required for every send below.
-      let familyEmail = fp.email?.trim() || undefined;
-      let authEmail = familyEmail;
-      if (fp.account_id) {
-        const { data: acct } = await db.from("accounts").select("user_id").eq("id", fp.account_id).single();
-        if (acct?.user_id) {
-          const {
-            data: { user: authUser },
-          } = await db.auth.admin.getUserById(acct.user_id);
-          if (authUser?.email) {
-            authEmail = authUser.email;
-            if (!familyEmail) familyEmail = authEmail;
-          }
-        }
-      }
-      if (!familyEmail) {
-        counts.skipped++;
-        counts.stops.no_email++;
-        continue;
-      }
-      const recipient = familyEmail;
-      const authEmailFinal = authEmail || familyEmail;
+      // Email resolution is LAZY: rung eligibility never needs the email, and most families
+      // match no rung on a given day. The expensive auth-admin fallback runs only AFTER a rung
+      // is picked (and is skipped entirely in dry-run). recipient/authEmailFinal are assigned in
+      // the send path below; the buildHtml closures read them at invocation time, after assignment.
+      const directEmail = fp.email?.trim() || undefined;
+      let recipient = directEmail || "";
+      let authEmailFinal = directEmail || "";
       const familyName = fp.display_name || "";
       const ageMs = (c: ConnRow) => now - new Date(c.created_at).getTime();
       const providerRespondedAnywhere = fam.inquiries.some(providerRespondedIn);
       const familyEngagedAnywhere = fam.inquiries.some((c) => familySentMessage(c, fam.familyId));
 
       // Rung-6 inputs, computed here in the narrowed (fp-defined) outer scope so the nested
-      // pickRung() closure can reference them without re-deref'ing the optional fp.
-      const completeness = calculateFamilyCompleteness(fp, recipient);
+      // pickRung() closure can reference them without re-deref'ing the optional fp. Completeness
+      // uses the direct profile email (the auth-fallback only affects deliverability, not the
+      // completeness threshold meaningfully).
+      const completeness = calculateFamilyCompleteness(fp, directEmail || "");
       const isComplete = completeness.percentage >= 60;
       const isPublished = (familyMeta.care_post as { status?: string } | undefined)?.status === "active";
       const familyCity = fp.city || "your area";
@@ -583,6 +570,31 @@ export async function GET(request: NextRequest) {
         bump(plan.rung);
         counts.sent++;
         continue;
+      }
+
+      // A rung matched — NOW resolve the deliverable email (direct, then auth-admin fallback).
+      {
+        let familyEmail = directEmail;
+        let authEmail = directEmail;
+        if (fp.account_id) {
+          const { data: acct } = await db.from("accounts").select("user_id").eq("id", fp.account_id).single();
+          if (acct?.user_id) {
+            const {
+              data: { user: authUser },
+            } = await db.auth.admin.getUserById(acct.user_id);
+            if (authUser?.email) {
+              authEmail = authUser.email;
+              if (!familyEmail) familyEmail = authEmail;
+            }
+          }
+        }
+        if (!familyEmail) {
+          counts.skipped++;
+          counts.stops.no_email++;
+          continue;
+        }
+        recipient = familyEmail;
+        authEmailFinal = authEmail || familyEmail;
       }
 
       // Reserve → build → send → stamp.

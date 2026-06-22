@@ -77,12 +77,11 @@ export default function ReferralsTab({
   const stats = useMemo(() => {
     let worked = 0;
     let referring = 0;
-    let total = 0;
+    const total = targets.length;
     for (const t of targets) {
       const s = outreachStatus[t.id] || "to_contact";
-      if (s === "dismissed") continue;
-      total++;
-      if (s === "contacted" || s === "responded" || s === "referring") worked++;
+      // Count all evaluated sources as "worked" (including dismissed)
+      if (s === "contacted" || s === "responded" || s === "referring" || s === "dismissed") worked++;
       if (s === "referring") referring++;
     }
     return { worked, referring, total };
@@ -368,14 +367,14 @@ export default function ReferralsTab({
 
       {/* Progress footer - no border line */}
       <div className="mt-6 pt-4">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-1.5 rounded-full bg-stone-100 overflow-hidden">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <div className="w-full sm:flex-1 h-1.5 rounded-full bg-stone-100 overflow-hidden">
             <div
               className="h-full bg-[#199087] rounded-full transition-all duration-500"
               style={{ width: `${stats.total ? (stats.worked / stats.total) * 100 : 0}%` }}
             />
           </div>
-          <p className="text-xs text-stone-400 shrink-0">
+          <p className="text-xs text-stone-400 sm:shrink-0">
             {stats.worked === 0
               ? `${stats.total} sources to work`
               : `${stats.worked} of ${stats.total} worked`}

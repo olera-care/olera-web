@@ -53,9 +53,6 @@ export default function ReviewsTab({
   const [contactInfo, setContactInfo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [successType, setSuccessType] = useState<"email" | "link">("email");
-  const [successLink, setSuccessLink] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [thisWeekCount, setThisWeekCount] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -93,55 +90,12 @@ export default function ReviewsTab({
     e.preventDefault();
     if (!clientName.trim() || !contactInfo.trim() || isSubmitting) return;
 
-    const isEmail = isValidEmail(contactInfo.trim());
-
-    // For non-email (phone), we'll generate a link for manual sharing
-    if (!isEmail) {
-      // Generate link and show it for manual sharing
-      const reviewLink = providerSlug
-        ? `${window.location.origin}/review/${providerSlug}?name=${encodeURIComponent(clientName.trim())}`
-        : null;
-
-      if (!reviewLink) {
-        setErrorMessage("Unable to generate review link");
-        return;
-      }
-
-      setIsSubmitting(true);
-      setErrorMessage(null);
-
-      try {
-        // Log the link share for tracking
-        const res = await fetch("/api/review-requests", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            clients: [{ name: clientName.trim(), email: null }],
-            message: null,
-            delivery_method: "link",
-          }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to create request");
-        }
-
-        setSuccessType("link");
-        setSuccessLink(reviewLink);
-        setLinkCopied(false);
-        setShowSuccess(true);
-        setClientName("");
-        setContactInfo("");
-      } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
-      } finally {
-        setIsSubmitting(false);
-      }
+    // Validate email
+    if (!isValidEmail(contactInfo.trim())) {
+      setErrorMessage("Please enter a valid email address");
       return;
     }
 
-    // Email flow
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -170,8 +124,6 @@ export default function ReviewsTab({
         throw new Error(failedResults[0]?.error || "Failed to send email");
       }
 
-      setSuccessType("email");
-      setSuccessLink(null);
       setShowSuccess(true);
       setClientName("");
       setContactInfo("");
@@ -179,26 +131,6 @@ export default function ReviewsTab({
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // Handle copy from success state
-  const handleCopySuccessLink = async () => {
-    if (!successLink) return;
-
-    try {
-      await navigator.clipboard.writeText(successLink);
-      setLinkCopied(true);
-    } catch {
-      const textArea = document.createElement("textarea");
-      textArea.value = successLink;
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setLinkCopied(true);
     }
   };
 
@@ -211,47 +143,13 @@ export default function ReviewsTab({
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-2">
-          {successType === "email" ? "Request sent!" : "Link ready!"}
-        </h3>
+        <h3 className="text-lg font-semibold text-stone-900 mb-2">Request sent!</h3>
         <p className="text-sm text-stone-500 mb-5">
-          {successType === "email"
-            ? "They'll receive your review request shortly."
-            : "Share this link via text, WhatsApp, or in person."}
+          They&apos;ll receive your review request shortly.
         </p>
-
-        {/* Show copyable link for link success type */}
-        {successType === "link" && successLink && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 max-w-sm mx-auto">
-              <input
-                type="text"
-                readOnly
-                value={successLink}
-                className="flex-1 px-3 py-2 text-xs text-stone-600 bg-stone-50 border border-stone-200 rounded-lg truncate"
-              />
-              <button
-                type="button"
-                onClick={handleCopySuccessLink}
-                className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 ${
-                  linkCopied
-                    ? "text-emerald-600 bg-emerald-50 border border-emerald-200"
-                    : "text-[#199087] bg-[#199087]/10 border border-[#199087]/20 hover:bg-[#199087]/20"
-                }`}
-              >
-                {linkCopied ? "Copied ✓" : "Copy"}
-              </button>
-            </div>
-          </div>
-        )}
-
         <button
           type="button"
-          onClick={() => {
-            setShowSuccess(false);
-            setSuccessLink(null);
-            setLinkCopied(false);
-          }}
+          onClick={() => setShowSuccess(false)}
           className="text-sm text-[#199087] hover:text-[#147a72] font-medium transition-colors"
         >
           Send another request
@@ -390,10 +288,10 @@ export default function ReviewsTab({
             className="flex-1 px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"
           />
           <input
-            type="text"
+            type="email"
             value={contactInfo}
             onChange={(e) => setContactInfo(e.target.value)}
-            placeholder="Phone or email"
+            placeholder="Email"
             required
             autoComplete="off"
             className="flex-1 px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"

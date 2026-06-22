@@ -177,20 +177,26 @@ export default function ReviewsTab({
     };
   };
 
-  // Determine headline based on context - ALWAYS show competitive framing
+  // Determine headline based on context - position-focused, personal
   let headline = "";
   let subline = "";
 
   if (reviewsContext) {
     // Provider is ranked in the market (has Place ID match)
     if (reviewsContext.isFirst) {
-      headline = "You're #1 in your market.";
-      subline = "Keep building your lead with more reviews.";
+      // #1 position
+      const secondPlace = leaders[1];
+      const lead = secondPlace ? reviewsContext.reviews - secondPlace.reviews : null;
+      headline = `You're #1 in ${city || "your market"}.`;
+      subline = lead && lead > 0
+        ? `${lead} review${lead === 1 ? "" : "s"} ahead of #2.`
+        : "Stay ahead. Keep collecting.";
     } else if (reviewsContext.reviewsNeeded && reviewsContext.targetRank) {
-      headline = `${reviewsContext.reviewsNeeded} review${reviewsContext.reviewsNeeded === 1 ? "" : "s"} from #${reviewsContext.targetRank}.`;
+      // Ranked but not #1
+      headline = `You're #${reviewsContext.rank} in ${city || "your market"}.`;
       subline = reviewsContext.nextCompetitor
-        ? `Beat ${reviewsContext.nextCompetitor} to climb the ladder.`
-        : "Each review moves you up the ranking.";
+        ? `${reviewsContext.reviewsNeeded} to pass ${reviewsContext.nextCompetitor}.`
+        : `${reviewsContext.reviewsNeeded} to reach #${reviewsContext.targetRank}.`;
     }
   } else if (providerReviewCount !== null && leaders.length > 0) {
     // Provider has review count but not ranked - show dynamic goal
@@ -198,36 +204,38 @@ export default function ReviewsTab({
 
     if (providerReviewCount === 0) {
       // No reviews yet
-      headline = top10Threshold !== null
-        ? `Top 10 in ${city || "your market"} have ${top10Threshold}+ reviews.`
-        : "Families are choosing providers with more reviews.";
-      subline = "Send your first request to start competing.";
+      headline = "You have no reviews yet.";
+      subline = topCompetitor
+        ? `#1 has ${topCompetitor.reviews}. Start with one.`
+        : "Send your first request.";
     } else if (nextTarget) {
       // Has some reviews, show next target
-      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}. Just ${nextTarget.needed} more to pass ${nextTarget.name}.`;
-      subline = "Each happy client moves you up.";
+      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
+      subline = `${nextTarget.needed} to pass ${nextTarget.name}.`;
     } else if (top10Threshold !== null && providerReviewCount >= top10Threshold) {
       // Already competitive
       headline = `You have ${providerReviewCount} reviews.`;
-      subline = "You're competitive. Keep building your lead.";
+      subline = "You're in the top 10. Keep the lead.";
     } else {
+      // Below threshold
+      const gap = top10Threshold !== null ? top10Threshold - providerReviewCount : null;
       headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
-      subline = top10Threshold !== null
-        ? `${top10Threshold - providerReviewCount} more to crack the top 10.`
-        : "Each review helps families find you.";
+      subline = gap !== null
+        ? `${gap} more to crack the top 10.`
+        : "Keep building to compete.";
     }
   } else if (top10Threshold !== null) {
     // No review count, but we know the market threshold
-    headline = `Top 10 in ${city || "your market"} have ${top10Threshold}+ reviews.`;
-    subline = "Start building yours to compete.";
+    headline = "You're not ranked yet.";
+    subline = `Top 10 in ${city || "your market"} have ${top10Threshold}+.`;
   } else if (topCompetitor) {
     // Fallback to top competitor
-    headline = "Families are choosing providers with more reviews.";
-    subline = `Each happy client you add climbs you toward ${topCompetitor.name}.`;
+    headline = "You're not ranked yet.";
+    subline = `${topCompetitor.name} leads with ${topCompetitor.reviews}.`;
   } else {
     // Ultimate fallback
-    headline = "Build your reputation";
-    subline = "Reviews help families find and trust you.";
+    headline = "Start collecting reviews.";
+    subline = "Families choose providers they trust.";
   }
 
   return (

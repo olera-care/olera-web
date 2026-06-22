@@ -42,10 +42,12 @@ import {
 } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
-import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
+import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
+import { ProviderMakeClient } from "@/components/admin/medjobs/ProviderMakeClient";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
@@ -232,6 +234,34 @@ function InOutreachBody({
         (t.payload as Record<string, unknown> | null)?.cadence === "activation",
     )
     .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  // Cold-cadence call (not an activation call) — its script seeds the
+  // "Call to confirm" modal when we're awaiting an outreach reply.
+  const nextColdCall = ctx.pending_tasks
+    .filter(
+      (t) =>
+        t.task_type === "outreach_followup_call" &&
+        (t.payload as Record<string, unknown> | null)?.cadence !== "activation",
+    )
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+
+  // "Call to confirm": let the admin proactively call an awaiting-reply row and
+  // log the outcome against the right script, without waiting for a call to be
+  // due. Script + outcome set follow the cadence we're awaiting.
+  const [showConfirmCall, setShowConfirmCall] = useState(false);
+  const confirmCallTask = activationRunning ? nextActivationCall : nextColdCall;
+  const confirmScript =
+    typeof confirmCallTask?.payload?.script === "string"
+      ? (confirmCallTask.payload.script as string)
+      : null;
+  const confirmDay =
+    typeof confirmCallTask?.payload?.day === "number"
+      ? (confirmCallTask.payload.day as number)
+      : null;
+  const confirmScriptLabel = activationRunning
+    ? "Activation call script"
+    : confirmDay != null
+      ? `Day ${confirmDay} script`
+      : "Call script";
 
   const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
   const subline = activationRunning
@@ -270,13 +300,34 @@ function InOutreachBody({
         source="reply"
         trailing={
           <>
+            <button
+              onClick={() => setShowConfirmCall(true)}
+              title="Call this row now and log the outcome against the call script."
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              ☎ Call to confirm
+            </button>
             <BookMeetingLink ctx={ctx} inline />
-            {isPartnerRow(ctx) && (
+            {isPartnerRow(ctx) ? (
               <PartnerActivate ctx={ctx} action={action} setError={setError} />
+            ) : (
+              <ProviderMakeClient ctx={ctx} action={action} setError={setError} />
             )}
           </>
         }
       />
+      {showConfirmCall && (
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={confirmScript}
+          scriptLabel={confirmScriptLabel}
+          mode={activationRunning ? "activation" : "outreach"}
+          source="reply"
+          onClose={() => setShowConfirmCall(false)}
+          setError={setError}
+        />
+      )}
     </>
   );
 }
@@ -335,9 +386,12 @@ function CallDueBody({
   action: ActionFn;
   setError: (m: string | null) => void;
 }) {
-  const [reaching, setReaching] = useState(false);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+
   const primaryContact =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ?? null;
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
   const contactName = primaryContact
     ? [primaryContact.title, primaryContact.first_name, primaryContact.last_name]
         .filter(Boolean)
@@ -357,20 +411,6 @@ function CallDueBody({
       ? (nextCallTask.payload.day as number)
       : null;
 
-  // Couldn't reach → clears this call off the queue (reuses the existing
-  // no_answer outcome). The next cadence call, if any, stays scheduled.
-  const couldntReach = async () => {
-    setReaching(true);
-    setError(null);
-    try {
-      await action("log_call_outcome", { outcome: "no_answer" });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setReaching(false);
-    }
-  };
-
   return (
     <>
       <div className="flex items-center gap-2">
@@ -378,8 +418,9 @@ function CallDueBody({
           Call
         </span>
       </div>
+      <p className="mt-2 text-sm font-medium text-gray-900">Next step: call to follow up</p>
       {primaryContact?.phone && (
-        <p className="mt-2 text-sm">
+        <p className="mt-1 text-sm">
           <a
             href={`tel:${primaryContact.phone}`}
             className="font-semibold text-primary-700 hover:underline"
@@ -391,40 +432,24 @@ function CallDueBody({
           )}
         </p>
       )}
-      {callScript && (
-        <details className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-          <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            {callDay != null ? `Day ${callDay} script` : "Suggested script"}
-          </summary>
-          <pre className="mt-2 whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
-            {callScript}
-          </pre>
-        </details>
-      )}
-      <ActivationActions
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        source="phone"
-        trailing={
-          <>
-            <BookMeetingLink ctx={ctx} inline />
-            {isPartnerRow(ctx) && (
-              <PartnerActivate ctx={ctx} action={action} setError={setError} />
-            )}
-          </>
-        }
-      />
-      <div className="mt-2">
+      <div className="mt-3">
         <button
-          onClick={couldntReach}
-          disabled={reaching}
-          title="No answer / voicemail — clears this call; the next one stays scheduled."
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          onClick={() => setShowFollowUp(true)}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          {reaching ? "Saving…" : "Couldn't reach"}
+          ☎ Call to follow up
         </button>
       </div>
+      {showFollowUp && (
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={callScript}
+          scriptLabel={callDay != null ? `Day ${callDay} script` : "Call script"}
+          onClose={() => setShowFollowUp(false)}
+          setError={setError}
+        />
+      )}
     </>
   );
 }
@@ -668,37 +693,6 @@ function ReplyPreview({
       )}
     </div>
   );
-}
-
-/**
- * Build THIS provider's personalized Calendly link — the same
- * `utm_content=<outreach_id>` the outreach emails carry. When an admin books on
- * the provider's behalf (a reply came in with times, or they're on a call),
- * using this link instead of a generic one means the resulting Calendly booking
- * auto-files to THIS exact row in the webhook — no orphaned/unmatched meetings.
- * Prefills the invitee name + email when known so there's nothing to retype.
- */
-function bookingUrlFor(ctx: DrawerContext): string {
-  const dm = ctx.outreach.research_data?.decision_maker;
-  const gc = ctx.outreach.research_data?.general_contact;
-  const primary =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
-    ctx.contacts.find((c) => c.status === "active") ??
-    null;
-  const email =
-    (dm && !dm.unavailable && dm.email ? dm.email : null) ??
-    primary?.email ??
-    gc?.email ??
-    null;
-  const name = primary
-    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() ||
-      primary.name
-    : dm?.name ?? null;
-  const params = new URLSearchParams();
-  params.set("utm_content", ctx.outreach.id);
-  if (name) params.set("name", name);
-  if (email) params.set("email", email);
-  return `${CALENDLY_URL}?${params.toString()}`;
 }
 
 /** "Book a meeting" — opens this provider's tagged Calendly link in a new tab.

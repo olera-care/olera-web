@@ -328,8 +328,7 @@ function composeFooterText(): string {
     ``,
     `Graize Belandres`,
     `Research Assistant to Dr. Logan DuBose`,
-    `${PROGRAM_URL}`,
-    `graize@olera.care`,
+    `Program flyer: ${PROGRAM_URL}`,
     ``,
     `---`,
     `Message Approved by Dr. Logan DuBose, MD/MBA`,
@@ -339,7 +338,7 @@ function composeFooterText(): string {
     `Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program`,
     `Texas A&M College of Medicine, Class of 2022`,
     `General Practitioner, Fredericksburg Christian Health Clinic, Virginia`,
-    `Director, Olera Student Caregiver Program (${PROGRAM_URL})`,
+    `Director, Student Caregiver Program (${PROGRAM_URL})`,
     `Schedule a meeting: ${CALENDLY_URL}`,
     ``,
     `Reply STOP if you would like us to stop reaching out.`,
@@ -366,7 +365,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -398,8 +397,7 @@ function grazieSignatureHtml(): string {
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
       <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
-      <p style="margin:0 0 2px;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
-      <p style="margin:0;"><a href="mailto:graize@olera.care" style="color:#059669;">graize@olera.care</a></p>
+      <p style="margin:0;"><a href="${PROGRAM_URL}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>
 </table>`;

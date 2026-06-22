@@ -49,7 +49,7 @@ import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
-import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
@@ -1287,7 +1287,7 @@ function DecisionMakerSection({
 /**
  * v9.x Phase 2b: Pre-Flight status indicator inside the Research Card.
  * Read-only — the actual unlock happens in the Pre-Flight call modal
- * (CallForEmailModal) via log_research_call(verified) or
+ * (PreFlightCallModal) via log_research_call(verified) or
  * override_pre_flight. This section just mirrors the derived state
  * so admin can see at a glance whether Launch will fire.
  */
@@ -1346,7 +1346,7 @@ export function VerificationSection({ state }: { state: VerificationState }) {
  * Card. Owns the three operational affordances:
  *
  *   - Visit Website        → opens provider site (research entry point)
- *   - Call to Confirm      → opens CallForEmailModal (pre-flight outcome)
+ *   - Call to Confirm      → opens PreFlightCallModal (pre-flight outcome)
  *   - Launch Outreach      → opens ProviderPreFlightModal (cadence)
  *
  * Modals live inside this component so the Research Card is self-
@@ -1508,7 +1508,7 @@ function ResearchActionFooter({
         />
       )}
       {showCallForEmail && (
-        <CallForEmailModal
+        <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus?.name ?? null}
           phone={generalContactPhone}

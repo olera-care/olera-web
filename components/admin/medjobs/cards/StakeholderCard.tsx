@@ -170,7 +170,10 @@ export function StakeholderCard({
   // card emerald so admin SEES where the work landed. Transitions
   // fade as the recentlyMoved flag clears.
   const movedBg = recentlyMoved ? "bg-primary-50" : "bg-white";
-  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-colors duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
+  // Transition ONLY the background (the recently-moved emerald flash fades
+  // gently). The unread border must flip instantly — animating it over
+  // 500ms is what made un-bolding a read card visibly "drag".
+  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-[background-color] duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
   // Subtitle label: kind label (Provider / Advisor / etc.) — fallback
   // to the legacy stakeholder_type lookup if kind is missing on older
   // rows that haven't been hydrated yet.

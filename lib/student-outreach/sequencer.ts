@@ -315,12 +315,15 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
  * PreFlight modal seeds these for admin edit; tasks carry the
  * resolved script through to log time.
  */
-export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
+export function defaultCallScriptsFor(
+  type: CadenceKey,
+  isPartner = false,
+): CallScript[] {
   const days = OUTREACH_DAYS_BY_TYPE[type];
   const result: CallScript[] = [];
   for (const day of days) {
     if (!day.steps.some((s) => s.channel === "phone")) continue;
-    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day) });
+    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day, isPartner) });
   }
   return result;
 }
@@ -338,42 +341,45 @@ export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
 // {organization_name}, {admin_first_name}) and per-task at queue
 // time ({recipient_name}). Stakeholder paths fall through to the
 // generic line at the bottom — admin can edit in PreFlight.
-function defaultCallScriptForDay(type: CadenceKey, day: number): string {
+function defaultCallScriptForDay(type: CadenceKey, day: number, isPartner = false): string {
   if (type === "activation") {
-    // Activation cadence has a single check-in call. Reference the eligibility
-    // check we already sent and offer the meeting as the easy alternative.
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the eligibility check to get set up to hire student caregivers through Olera's {campus_name} Student Caregiver Program and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through it?"`;
+    // Activation cadence has a single check-in call. Reference what we already
+    // sent and offer the meeting as the easy alternative. Warm contact + no
+    // university name needed, so the plain brand is fine. Partners (advisors,
+    // dept heads, student orgs) share the flyer rather than hire students, so
+    // their script references the flyer; providers reference interviewing and
+    // hiring pre-screened students.
+    if (isPartner) {
+      return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over the flyer and a few easy ways to share the Student Caregiver Program with your students, and wanted to check in. Any questions, or would it help to grab a few minutes with Dr. DuBose to talk through the best approach?"`;
+    }
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over some details on the Student Caregiver Program. It lets you interview and hire pre-screened student caregivers near you, with no cost to review and interview. I wanted to check in: any questions, or would it help to set up a few minutes with Dr. DuBose to talk through the specifics?"`;
   }
   if (type === "provider") {
     if (day === 3) {
-      // Day 3 call, paired with the Day 3 follow-up email. Confirm the email
-      // reached the right person, gauge employer interest, and ask for the
-      // caregiver-hiring contact. The eligibility check is the easy next step.
-      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed {organization_name} about Olera's {campus_name} Student Caregiver Program, which places pre-nursing and pre-medical students in caregiver roles at home care agencies near campus. I wanted to make sure it reached the right person and see if you'd consider hiring a student caregiver. Could you point me to whoever handles caregiver hiring, or a better email for the eligibility details?"`;
+      // Day 3 call, paired with the Day 3 follow-up email. Reference Monday's
+      // email (the open-rate lever — they expect it), confirm it reached the
+      // right person, and ask for the caregiver-hiring contact.
+      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office at Olera. We emailed {organization_name} earlier this week about our Student Caregiver Program for pre-health students near {campus_name}, and I wanted to make sure it reached the right person. Could you point me to whoever handles caregiver hiring, or a better email for the details?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure it reached the right person at {organization_name}. If you're open to hiring a student caregiver this fall, the eligibility check takes about a minute and I'm happy to send the link, or set up a quick call with Dr. DuBose."`;
+      return `"Hi, this is {admin_first_name} from Dr. DuBose's office, circling back on the Student Caregiver Program we emailed about earlier this week. I just wanted to make sure it reached the right person, and see if I can answer any questions."`;
     }
   }
   if (type === "student_org") {
-    // Day 6 org call (phone permitting), paired with the follow-up email. Lead
-    // with the opportunity for their members + the easy share + the speaker.
-    return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. We sent your org a paid caregiving program for pre-health students, paid healthcare experience that counts toward med, PA, and nursing applications. It is easy to share with your members, and Dr. DuBose would be glad to speak at a meeting. Wanted to see if your members might be interested."`;
+    // Day 6 org call (phone permitting), paired with the follow-up email.
+    // Reference the email, gauge interest, offer Dr. DuBose at a meeting.
+    return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed your org about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose would love to share it with your members and is glad to speak at a meeting. Would your members be interested?"`;
   }
   if (type === "advisor") {
     // Day 6 intro call, paired with the program-info email that goes out the
-    // same day. Introduce, signal the info is coming, and tee up the meeting.
-    // Not a pitch; references the email we're about to send (the one place a
-    // call may reference an email).
-    return `"Hi, this is {admin_first_name}, I work with Dr. Logan DuBose at Olera. Dr. DuBose runs a paid caregiving program that gives your pre-health students paid healthcare experience and a credential for their applications. I wanted to introduce it and see if Dr. DuBose could connect with you. What's the best email, and is there a good time to talk?"`;
+    // same day. Reference the email, gauge interest, and tee up a Zoom.
+    return `"Hi, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed you about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose would love to talk it through with you. Is there a good time for a quick Zoom this week or next?"`;
   }
   if (type === "dept_head") {
-    // Day 6 call, paired with the follow-up email. Introduce, the program for
-    // their pre-health students, and Dr. DuBose's offer to connect on a short
-    // Zoom. Formal, not a pitch.
-    return `"Hello, this is {admin_first_name}, a research assistant working with Dr. Logan DuBose at Olera. Dr. DuBose runs a paid caregiving program that gives your pre-health students paid healthcare experience for med, PA, and nursing applications. He would value a short Zoom to introduce it and see if we could collaborate. I wanted to see if you might be interested, or if there is a good time to connect."`;
+    // Day 6 call, paired with the follow-up email. Formal, Zoom-led.
+    return `"Hello, this is {admin_first_name}, research assistant to Dr. Logan DuBose at Olera. We emailed you about the Student Caregiver Program for {campus_name} students, which places pre-health students in paid caregiver roles with older adults for the hands-on hours and recommendation letters that strengthen their applications. Dr. DuBose and I would appreciate the chance to send over some information, and possibly to meet and talk about how we might share our flyer with your faculty and students. Is there a good time this week or next?"`;
   }
-  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and ask whether there's a better person to forward the program details to.`;
+  return `"Hi {recipient_name}, this is {admin_first_name} from Dr. Logan DuBose's office at Olera, following up on our note to {organization_name} about Olera's Student Caregiver Program for pre-health students near {campus_name}. Is there a better person or email I should send the program details to?"`;
 }
 
 /**
@@ -392,7 +398,7 @@ export function defaultCallTipsForDay(type: CadenceKey, day: number): string[] {
         "If a receptionist answers, ask for whoever handles caregiver hiring or staffing.",
         "Confirm the best email if you reach a new contact.",
         "The eligibility check is the easy next step; offer to send the link.",
-        "Leave a voicemail if unavailable. Reference today's email from Graize and the {campus_name} Student Caregiver Program.",
+        "Leave a voicemail if unavailable. Reference today's email and Olera's Student Caregiver Program for students near {campus_name}.",
       ];
     }
     if (day === 5) {

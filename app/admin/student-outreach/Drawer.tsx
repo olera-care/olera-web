@@ -20,14 +20,16 @@ import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
-import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
-import { DeptHeadIntroCallModal } from "@/components/admin/medjobs/DeptHeadIntroCallModal";
+import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
+import {
+  CallOutcomeModal,
+  type OutcomeChoice,
+} from "@/components/admin/medjobs/CallOutcomeModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
-import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import StyledSelect from "@/components/ui/Select";
 import {
   KIND_LABELS,
@@ -74,6 +76,30 @@ interface DrawerProps {
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
+
+// Dept-head pre-launch intro call — a recommended, non-gating courtesy call.
+// All three outcomes log a research call (no stage change); the email sequence
+// still launches explicitly afterward.
+const INTRO_CALL_OUTCOMES: OutcomeChoice[] = [
+  {
+    key: "connected",
+    label: "Reached them",
+    blurb: "Spoke with the department head (or their office). Introduced ourselves + Dr. DuBose.",
+    tone: "happy",
+  },
+  {
+    key: "voicemail",
+    label: "Left a voicemail",
+    blurb: "Left a brief professional message that information is on the way.",
+    tone: "neutral",
+  },
+  {
+    key: "no_answer",
+    label: "No answer",
+    blurb: "Nobody picked up. Launch anyway — the intro email still goes out.",
+    tone: "neutral",
+  },
+];
 
 // v8.10.37: terminal closed statuses — Step Board hides for these so the
 // drawer doesn't invite adding workflow steps to a closed/DNC stakeholder.
@@ -249,15 +275,16 @@ function StakeholderDrawer({
     return () => { cancelled = true; };
   }, [outreachId]);
 
-  // v9.0 Phase 4: mark the row read on drawer mount. Fire-and-forget;
-  // a failed mark_read shouldn't disrupt the drawer experience. The
-  // server is idempotent (only updates if viewed_at IS NULL) so this
-  // is safe to call on every mount.
+  // Mark the row read on drawer mount — persist only, fire-and-forget.
+  // The server is idempotent (updates only if viewed_at IS NULL), so this
+  // is safe on every mount.
   //
-  // v9.0 Phase 7 Commit K: after mark_read lands, fire the global
-  // refresh so the In Basket hero (Queued counts) + sidebar
-  // fractions reflect the new read state in real time without
-  // waiting for the next user action.
+  // Deliberately does NOT call refreshMedJobs(). That global refresh
+  // refetched the entire In Basket (6 endpoints, incl. a 75K-row catchment
+  // scan) and re-sorted the list every time you merely opened a card —
+  // the cause of both the slow drawer and the silent reorder. The opening
+  // surface (MedJobsTabPage) now applies read state optimistically in
+  // place; the hero/sidebar reconcile on the next genuine refresh.
   useEffect(() => {
     void (async () => {
       try {
@@ -266,7 +293,6 @@ function StakeholderDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "mark_read" }),
         });
-        refreshMedJobs();
       } catch {
         /* non-critical */
       }
@@ -510,7 +536,8 @@ function ProviderDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: "client", id: providerId, action: "read" }),
         });
-        refreshMedJobs();
+        // No refreshMedJobs: the opening surface applies read optimistically
+        // in place (setEntityRead). This effect only persists.
       } catch {
         /* non-critical */
       }
@@ -803,7 +830,8 @@ function CandidateDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: "candidate", id: candidateId, action: "read" }),
         });
-        refreshMedJobs();
+        // No refreshMedJobs: the opening surface applies read optimistically
+        // in place (setEntityRead). This effect only persists.
       } catch {
         /* non-critical */
       }
@@ -1088,7 +1116,7 @@ function ResearchModePanel({
   // Office prospects mirror provider Pre-Flight EXACTLY: outreach is gated on a
   // logged confirmation call. The launcher stays disabled until a "Confirmed"
   // call outcome is logged (or Pre-Flight is overridden) — same verification
-  // state, same modal (CallForEmailModal) as providers.
+  // state, same modal (PreFlightCallModal) as providers.
   const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
   const verificationState = getVerificationState(ctx.touchpoints, overridden);
   const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
@@ -1248,7 +1276,7 @@ function ResearchModePanel({
         research={{ orientation, checklist, cta }}
       />
       {showCallConfirm && (
-        <CallForEmailModal
+        <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           phone={officePhone}
@@ -1259,15 +1287,36 @@ function ResearchModePanel({
         />
       )}
       {showIntroCall && (
-        <DeptHeadIntroCallModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={deptHeadContactName}
-          campusName={ctx.campus.name}
-          phone={deptHeadPhone}
-          action={action}
+        <CallOutcomeModal
+          title="Intro call (recommended)"
+          subtitle={
+            <>
+              {ctx.outreach.organization_name}
+              {deptHeadContactName ? ` · ${deptHeadContactName}` : ""}
+              {deptHeadPhone ? ` · ${deptHeadPhone}` : ""}
+            </>
+          }
+          scriptLabel="Suggested script"
+          script={`"Hello, this is [your name], research assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${
+            ctx.campus.name?.trim() || "your campus"
+          } students, which places pre-health students in paid caregiver roles with older adults. Before I send any details, are you the right person in the department to talk with, or is there a better contact?"`}
+          outcomes={INTRO_CALL_OUTCOMES}
           onCancel={() => setShowIntroCall(false)}
-          onDone={() => setShowIntroCall(false)}
-          setError={setError}
+          onSubmit={async (outcomeKey, notes) => {
+            setError(null);
+            try {
+              // log_research_call records the call without advancing the stage —
+              // the row still launches via the email sequence afterward.
+              await action("log_research_call", {
+                outcome: outcomeKey ?? "connected",
+                notes,
+              });
+              setShowIntroCall(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to log the intro call");
+              throw e;
+            }
+          }}
         />
       )}
       {showPreFlight && isOffice && (

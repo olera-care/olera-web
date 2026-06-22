@@ -85,11 +85,6 @@ export interface FacultyAdvisor {
   source_url?: string | null;
 }
 
-export interface SocialLink {
-  platform: string;
-  url: string;
-}
-
 /** One AI-suggested candidate. Shape is a superset across subtypes; the widget
  *  renders the fields relevant to the chosen subtype. Everything is unverified. */
 export interface PartnerCandidate {
@@ -111,7 +106,6 @@ export interface PartnerCandidate {
   org_email?: string | null;
   website?: string | null;
   directory_url?: string | null;
-  socials?: SocialLink[];
   officers?: OrgOfficer[];
   faculty_advisor?: FacultyAdvisor | null;
 }
@@ -143,9 +137,6 @@ export interface ExtractedOffice {
   email: string | null;
   phone: string | null;
   website: string | null;
-  /** Social channels (Instagram / Discord / GroupMe …) — populated for student
-   *  orgs; empty for advising offices / departments. */
-  socials?: SocialLink[];
   ask_for: string[];
   advisors: ExtractedAdvisor[];
   source_url: string | null;
@@ -719,7 +710,7 @@ function parseDeptHeads(raw: Record<string, unknown> | null, sourceUrl: string):
 // ── Student-organization (club) extraction ───────────────────────────────
 // Clubs are office-shaped (a parent with a roster) so they reuse the {offices}
 // JSON shape + parseOffices, but the framing + emphasis differ: capture the
-// club's contact + SOCIALS, and treat the faculty advisor / officers as the
+// club's contact, and treat the faculty advisor / officers as the
 // roster (advisors with their own contact; everyone else as ask_for).
 
 function orgRules(): string[] {

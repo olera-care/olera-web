@@ -10,7 +10,7 @@
  * [subtype] (no student_outreach rows until Generate).
  */
 
-import type { PartnerSubtype, SocialLink } from "@/lib/medjobs/partner-sourcing";
+import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
 
 /** Required type tag on every office prospect. Orgs only — individuals (advisor
  *  / professor) are latched under an org and derive their kind from it. */
@@ -57,10 +57,6 @@ export interface WorkspaceOffice {
    *  personalize the office email ("ask for X"), NOT prospects. */
   ask_for: string[];
   notes?: string | null;
-  /** Social channels (Instagram / Discord / GroupMe …) the AI surfaced. Carried
-   *  through to research_data.socials at Generate; shown read-only in the drawer.
-   *  Especially relevant for student orgs whose primary reach is social. */
-  socials?: SocialLink[];
   /** Kept links that support this office record. */
   source_link_ids: string[];
   verified?: boolean;

@@ -257,9 +257,6 @@ async function createOfficeRow(
         // website stored where the drawer reads it (general_contact) + top-level.
         general_contact: { email: office.email ?? null, phone: office.phone ?? null, website: office.website ?? null },
         website: office.website ?? null,
-        // Social channels (Instagram / Discord / GroupMe …) — read-only context
-        // in the drawer; student orgs often reach members via social, not email.
-        socials: office.socials ?? [],
         ask_for: office.ask_for ?? [],
         research_links: sources,
         office_members: advisors.map((a) => ({

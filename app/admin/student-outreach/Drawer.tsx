@@ -1384,34 +1384,6 @@ function ResearchModePanel({
 // own the actual buttons; the drawer just describes and offers a few
 // always-visible CTAs (Mark Partner, Log meeting outcome).
 
-/** Read-only social channels (Instagram / Discord / GroupMe …) the AI surfaced
- *  for an organization. Stored on research_data.socials at generation time;
- *  shown as small links since student orgs often reach members via social. */
-function OrgSocials({ ctx }: { ctx: DrawerContext }) {
-  const socials =
-    ((ctx.outreach.research_data as { socials?: Array<{ platform?: string | null; url?: string | null }> } | null)
-      ?.socials ?? []).filter((s) => s?.url);
-  if (socials.length === 0) return null;
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-        Socials
-      </span>
-      {socials.map((s, i) => (
-        <a
-          key={i}
-          href={s.url ?? "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium text-primary-600 hover:underline"
-        >
-          {s.platform || "link"} ↗
-        </a>
-      ))}
-    </div>
-  );
-}
-
 function ResearchSection({
   ctx,
   action,
@@ -1590,11 +1562,6 @@ function ResearchSection({
             <Field label="General phone" value={officePhone} onChange={setOfficePhone} onBlur={saveOfficeContact} />
           </div>
         )}
-
-        {/* Social channels the AI surfaced (Instagram / Discord / GroupMe …) —
-            read-only; useful context for student orgs whose primary reach is
-            social, not email. */}
-        {isOffice && <OrgSocials ctx={ctx} />}
 
         {showDepartment && (
           <>

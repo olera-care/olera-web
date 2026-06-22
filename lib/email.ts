@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
 import { isUndeliverable, verifyAndCache, effectiveStatus } from "./email-verification";
-import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge } from "./email-governance";
+import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge, FAMILY_NUDGE_EMAIL_TYPES, FAMILY_NUDGE_WEEKLY_CAP, isGovernedFamilyNudge } from "./email-governance";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
@@ -505,6 +505,37 @@ export async function sendEmail(
           updateEmailLog(existingLogId, { status: "failed", errorMessage: "nudge_cap" });
         }
         return { success: true, skipped: true, skipReason: "nudge_cap", emailLogId: existingLogId ?? undefined };
+      }
+    }
+  }
+
+  // Family-comms frequency gate: the family-side mirror of the provider gate above. The 7 family
+  // crons (outcome-check, provider-silent, never-engaged, day-10-awaiting, family-nudges,
+  // matches-family-nudge, lead-family-nudge) had no global coordination — same firehose risk.
+  // Families have no stable providerId, so the cap is keyed on the recipient email + recipient_type.
+  // Transactional/real-time family mail isn't a governed family nudge, so it's never gated here.
+  // Counts only status='sent' family-nudge rows in the rolling window. Fails OPEN on any query
+  // error. See lib/email-governance.ts + plans/family-comms-system.md.
+  if (recipientType === "family" && recipient && isGovernedFamilyNudge(emailType)) {
+    const db = getServiceDb();
+    if (db) {
+      const windowStart = new Date(Date.now() - NUDGE_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      const { count, error: capErr } = await db
+        .from("email_log")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient", recipient)
+        .eq("recipient_type", "family")
+        .eq("status", "sent")
+        .in("email_type", [...FAMILY_NUDGE_EMAIL_TYPES])
+        .gte("created_at", windowStart);
+      if (!capErr && typeof count === "number" && count >= FAMILY_NUDGE_WEEKLY_CAP) {
+        console.log(
+          `[email] Family nudge cap reached for ${recipient} (${count} in ${NUDGE_WINDOW_DAYS}d) — skipping ${emailType}`,
+        );
+        if (existingLogId) {
+          updateEmailLog(existingLogId, { status: "failed", errorMessage: "family_nudge_cap" });
+        }
+        return { success: true, skipped: true, skipReason: "family_nudge_cap", emailLogId: existingLogId ?? undefined };
       }
     }
   }

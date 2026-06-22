@@ -598,6 +598,16 @@ export async function GET(request: NextRequest) {
       const email = family.email || (family.account_id ? accountEmailMap[family.account_id] : null);
       if (!email) { counts.skipped++; continue; }
 
+      // Subordinate to the Family Comms Coordinator: if the coordinator already sent this
+      // family a governed email this cycle, stand down (it wins every collision). The
+      // coordinator owns the help-cascade rungs; family-nudges is the demoted publish/
+      // completion machine and should never pile on. See plans/family-comms-system.md.
+      const lastCoordEmailAt = (meta as Record<string, unknown>).last_coordinator_email_at as string | undefined;
+      if (lastCoordEmailAt && Date.now() - new Date(lastCoordEmailAt).getTime() < 20 * 60 * 60 * 1000) {
+        counts.skipped++;
+        continue;
+      }
+
       // Calculate profile completeness using the same function as lead-family-nudge
       const completeness = calculateFamilyCompleteness(family, email);
       const readyToPublish = completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;  // ≥60% can publish

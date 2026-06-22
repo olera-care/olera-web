@@ -158,11 +158,6 @@ export default function AdsTab({
   // No campaign yet (or ended/cancelled) - show the pitch
   return (
     <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8">
-      {/* Label */}
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-3">
-        Your move this week
-      </p>
-
       {/* Headline */}
       <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
         Put your page in front of local families.

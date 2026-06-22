@@ -251,11 +251,6 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Label */}
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-3">
-        Your move this week
-      </p>
-
       {/* Headline - direct call to action */}
       <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
         Ask a happy client for a review.

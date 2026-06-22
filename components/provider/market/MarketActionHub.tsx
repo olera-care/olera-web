@@ -81,7 +81,7 @@ export default function MarketActionHub({
         {/* Header */}
         <div className="text-center mb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#199087]">
-            Your Market · {data.meta.city}
+            This week · {data.meta.city}
           </p>
         </div>
 

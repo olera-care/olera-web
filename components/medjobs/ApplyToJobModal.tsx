@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 
 interface ApplyToJobModalProps {
@@ -103,10 +104,17 @@ export default function ApplyToJobModal({
           </p>
 
           <div className="relative z-10 space-y-3">
+            <Link
+              href="/medjobs/inbox"
+              onClick={() => { onApplied(); }}
+              className="block w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg text-sm text-center"
+            >
+              Go to Inbox
+            </Link>
             <button
               type="button"
               onClick={() => { onApplied(); onClose(); }}
-              className="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg text-sm"
+              className="w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-sm"
             >
               Keep browsing jobs
             </button>

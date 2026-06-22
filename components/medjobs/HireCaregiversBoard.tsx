@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
-import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
+import { SAMPLE_CANDIDATES, isSampleSlug } from "@/lib/medjobs/demo-candidate";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import JobPostingBuilder from "@/components/medjobs/JobPostingBuilder";
 import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
@@ -98,6 +98,7 @@ export default function HireCaregiversBoard() {
   const [inviteFlowSent, setInviteFlowSent] = useState(false);
   /** Confirmation checkbox — provider confirms the right job is attached. */
   const [inviteConfirmed, setInviteConfirmed] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState("");
 
   const hasPostings = postings.length > 0;
 
@@ -214,9 +215,11 @@ export default function HireCaregiversBoard() {
 
   /** Open the invite flow modal for a candidate (from card or detail panel). */
   const handleStartInvite = useCallback((candidate: CandidateData) => {
+    const firstName = candidate.display_name.split(" ")[0];
     setInviteFlowCandidate(candidate);
     setInviteFlowSent(false);
     setInviteConfirmed(false);
+    setInviteMessage(`Hey ${firstName}, we thought you'd be great for this role. Check it out and apply if you think it's a fit!`);
     // If a job is selected in the dropdown, pre-fill it
     if (selectedJob) {
       setInviteFlowPosting(selectedJob);
@@ -225,31 +228,117 @@ export default function HireCaregiversBoard() {
     }
   }, [selectedJob]);
 
-  /** Confirm and send the invite. */
-  const handleConfirmInvite = useCallback(() => {
-    if (!inviteFlowCandidate || !inviteFlowPosting) return;
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
+  /** Confirm and send the invite — creates a real connection via API (skips API for demo candidates). */
+  const handleConfirmInvite = useCallback(async () => {
+    if (!inviteFlowCandidate || !inviteFlowPosting || inviteSending) return;
+    setInviteSending(true);
+    setInviteError(null);
+
+    const isSample = isSampleSlug(inviteFlowCandidate.slug);
+
+    // Real candidates: create a connection via API
+    if (!isSample) {
+      try {
+        const res = await fetch("/api/medjobs/invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentProfileId: inviteFlowCandidate.id,
+            message: inviteMessage.trim() || undefined,
+            posting: {
+              id: inviteFlowPosting.id,
+              title: inviteFlowPosting.title,
+              hoursPerWeek: inviteFlowPosting.hoursPerWeek,
+              payMin: inviteFlowPosting.payMin,
+              payMax: inviteFlowPosting.payMax,
+            },
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          // 409 = already invited, treat as success
+          if (res.status !== 409) {
+            console.error("[invite] API error:", res.status, data.error);
+            setInviteError(data.error || "Something went wrong. Please try again.");
+            setInviteSending(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("[invite] unexpected error:", err);
+        setInviteError("Network error. Please try again.");
+        setInviteSending(false);
+        return;
+      }
+    }
+
+    // Update localStorage so card badges stay in sync (both real and demo)
     const cid = inviteFlowCandidate.id;
     if (!inviteFlowPosting.invited.includes(cid)) {
       updatePosting(inviteFlowPosting.id, {
         invited: [...inviteFlowPosting.invited, cid],
       });
     }
+
+    // For demo candidates, also save a demo conversation so the inbox can display it
+    if (isSample && providerProfile) {
+      try {
+        const demoKey = `medjobs_demo_conversations_${providerProfile.id}`;
+        const existing = JSON.parse(localStorage.getItem(demoKey) || "[]");
+        const dedupId = `demo-${inviteFlowPosting.id}-${cid}`;
+        if (!existing.some((c: { id: string }) => c.id === dedupId)) {
+          existing.push({
+            id: dedupId,
+            type: "invitation",
+            status: "pending",
+            from_profile_id: providerProfile.id,
+            to_profile_id: cid,
+            message: inviteMessage.trim() || `You're invited to apply for ${inviteFlowPosting.title}`,
+            metadata: {
+              job_posting: {
+                title: inviteFlowPosting.title,
+                hoursPerWeek: inviteFlowPosting.hoursPerWeek,
+                payMin: inviteFlowPosting.payMin,
+                payMax: inviteFlowPosting.payMax,
+              },
+              posting_id: inviteFlowPosting.id,
+              thread: [
+                {
+                  from_profile_id: providerProfile.id,
+                  text: inviteMessage.trim() || `You're invited to apply for ${inviteFlowPosting.title}`,
+                  created_at: new Date().toISOString(),
+                  type: "system",
+                },
+              ],
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            candidate_name: inviteFlowCandidate.display_name,
+            candidate_image: inviteFlowCandidate.image_url || null,
+          });
+          localStorage.setItem(demoKey, JSON.stringify(existing));
+        }
+      } catch {}
+    }
+
     setQuickInvitedIds((prev) => new Set(prev).add(cid));
     setInviteFlowSent(true);
     refreshPostings();
-    // Auto-close after a brief delay
-    setTimeout(() => {
-      setInviteFlowCandidate(null);
-      setInviteFlowPosting(null);
-      setInviteFlowSent(false);
-    }, 1500);
-  }, [inviteFlowCandidate, inviteFlowPosting, refreshPostings]);
+    setInviteSending(false);
+  }, [inviteFlowCandidate, inviteFlowPosting, inviteSending, refreshPostings]);
 
   const closeInviteFlow = useCallback(() => {
     setInviteFlowCandidate(null);
     setInviteFlowPosting(null);
     setInviteFlowSent(false);
     setInviteConfirmed(false);
+    setInviteSending(false);
+    setInviteError(null);
+    setInviteMessage("");
   }, []);
 
   return (
@@ -547,10 +636,27 @@ export default function HireCaregiversBoard() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-sm font-semibold text-gray-900">Invite sent!</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {inviteFlowCandidate.display_name.split(" ")[0]} will see this in their inbox.
+                <p className="text-lg font-semibold text-gray-900">
+                  Congrats, you invited {inviteFlowCandidate.display_name.split(" ")[0]}!
                 </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  They&rsquo;ll get an email and can reply in their inbox.
+                </p>
+                <div className="flex items-center justify-center gap-3 mt-5">
+                  <Link
+                    href="/medjobs/inbox"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm"
+                  >
+                    Go to Inbox
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={closeInviteFlow}
+                    className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                  >
+                    Keep Browsing
+                  </button>
+                </div>
               </div>
             ) : !inviteFlowPosting ? (
               /* ── Step 1: pick a posting ── */
@@ -601,11 +707,15 @@ export default function HireCaregiversBoard() {
                   </p>
                 </div>
                 <div className="px-5 py-5 space-y-4">
-                  {/* Message preview */}
-                  <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4">
-                    <p className="text-sm text-gray-800 leading-relaxed">
-                      &ldquo;Hey {inviteFlowCandidate.display_name.split(" ")[0]}, we thought you&rsquo;d be great for this role. Check it out and apply if you think it&rsquo;s a fit!&rdquo;
-                    </p>
+                  {/* Editable message */}
+                  <div className="rounded-xl border border-gray-200 bg-gray-50/60 overflow-hidden">
+                    <textarea
+                      value={inviteMessage}
+                      onChange={(e) => setInviteMessage(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 text-sm text-gray-800 leading-relaxed bg-transparent resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset rounded-xl placeholder:text-gray-400"
+                      placeholder={`Write a message to ${inviteFlowCandidate.display_name.split(" ")[0]}...`}
+                    />
                   </div>
 
                   {/* Attached posting card */}
@@ -641,6 +751,11 @@ export default function HireCaregiversBoard() {
                     This message will be sent to {inviteFlowCandidate.display_name.split(" ")[0]}&rsquo;s inbox.
                   </p>
                 </div>
+                {inviteError && (
+                  <div className="mx-5 mb-0 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
+                    <p className="text-xs text-red-600">{inviteError}</p>
+                  </div>
+                )}
                 <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
                   <button
                     type="button"
@@ -652,13 +767,17 @@ export default function HireCaregiversBoard() {
                   <button
                     type="button"
                     onClick={handleConfirmInvite}
-                    disabled={!inviteConfirmed}
+                    disabled={!inviteConfirmed || inviteSending}
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-xl text-sm font-semibold text-white transition-colors shadow-sm"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                    </svg>
-                    Send Invite
+                    {inviteSending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                      </svg>
+                    )}
+                    {inviteSending ? "Sending…" : "Send Invite"}
                   </button>
                 </div>
               </div>

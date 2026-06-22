@@ -183,7 +183,7 @@ function JobCard({
   onLeave: () => void;
 }) {
   const jobTitle = generateJobTitle(provider);
-  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+  const location = provider.address || "";
   const heroImage = provider.image || provider.fallbackImage;
   const categories = getJobCategories(provider);
 
@@ -368,7 +368,7 @@ function generateRoleBlurb(
   pay: string,
 ): string {
   const name = provider.name;
-  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+  const location = provider.address || "";
   const cat = (provider.primaryCategory || "").toLowerCase();
 
   // Pick a natural opener based on care type
@@ -415,7 +415,7 @@ function JobDetailPanel({
   onClose: () => void;
 }) {
   const jobTitle = generateJobTitle(provider);
-  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+  const location = provider.address || "";
   const heroImage = provider.image || provider.fallbackImage;
   const categories = getJobCategories(provider);
   const certifications = getJobCertifications(provider);

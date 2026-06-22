@@ -15,6 +15,7 @@ import {
   type StakeholderType,
   type Status,
 } from "@/lib/student-outreach/types";
+import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 
 interface CampusResponse {
   campus: Campus;
@@ -38,23 +39,52 @@ export default function CampusDetailPage({
   const [openId, setOpenId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
+  // Provider PROSPECTS are virtual (live catchment), not saved rows — fetched
+  // separately, like the In-Basket Providers tab, so the page shows prospects
+  // alongside already-contacted providers.
+  const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
 
   const refetch = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/student-outreach/campuses/${slug}`);
+      const [res, ppRes] = await Promise.all([
+        fetch(`/api/admin/student-outreach/campuses/${slug}`),
+        fetch(`/api/admin/medjobs/provider-prospects?campus=${slug}`),
+      ]);
       // Guard against empty/non-JSON bodies (e.g. a 500) so we surface a real
       // message instead of "Unexpected end of JSON input".
       const d = await res.json().catch(() => null);
       if (!res.ok) throw new Error(d?.error ?? `Load failed (${res.status})`);
       if (!d) throw new Error("Load failed");
       setData(d);
+      const pp = await ppRes.json().catch(() => null);
+      setProviderProspects((pp?.rows ?? []) as ProviderProspectRow[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed");
     } finally {
       setLoading(false);
     }
   }, [slug]);
+
+  // Materialize a virtual prospect into a row, then open its drawer.
+  const startProviderOutreach = useCallback(
+    async (p: ProviderProspectRow) => {
+      try {
+        const res = await fetch("/api/admin/medjobs/provider-prospects/materialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ provider_id: p.provider_id, campus_id: p.campus_id }),
+        });
+        const body = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(body?.error || "Failed to materialize");
+        setOpenId(body.id);
+        void refetch();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to open prospect");
+      }
+    },
+    [refetch],
+  );
 
   useEffect(() => { refetch(); }, [refetch]);
 
@@ -105,15 +135,33 @@ export default function CampusDetailPage({
       </div>
 
       <div className="space-y-6">
-        {(data.providers ?? []).length > 0 && (
+        {((data.providers ?? []).length > 0 || providerProspects.length > 0) && (
           <section>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Providers ({data.providers.length})
+              Providers ({(data.providers?.length ?? 0) + providerProspects.length})
             </h2>
             <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
-              {data.providers.map((r) => (
+              {(data.providers ?? []).map((r) => (
                 <li key={r.id}>
                   <RowButton row={r} onClick={() => setOpenId(r.id)} />
+                </li>
+              ))}
+              {providerProspects.map((p) => (
+                <li key={p.id}>
+                  <button
+                    onClick={() => startProviderOutreach(p)}
+                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-900">{p.provider_name}</p>
+                      <p className="truncate text-xs text-gray-500">
+                        {[p.city, p.state].filter(Boolean).join(", ") || "—"}
+                      </p>
+                    </div>
+                    <span className="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                      Prospect
+                    </span>
+                  </button>
                 </li>
               ))}
             </ul>

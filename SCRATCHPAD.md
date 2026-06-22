@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-06-22 — Franchil Google Ads account cleanup + keyword fix (no code; concierge walkthrough in Google Ads UI)
+
+TJ shared the Google Ads dashboard ("the interface is a mess") for the live Franchil campaign. Translated the cluttered account into plain English and walked him click-by-click through three fixes. **All done in the Google Ads UI — no repo changes.**
+
+**Diagnosis (the account was confusing for real reasons):**
+- **Date-filter trap:** dashboard was pinned to **Nov 15 – Dec 12, 2025** — ~6 months *before* Franchil launched (flight Jun 22 → Jul 5, 2026). So Franchil showed 0/$0 not because it was dead but because the window predated it. The "440 clicks / $0.96 CPC" headline = stale account totals from that dead window.
+- **Franchil is approved & live:** status **"Eligible (Limited)"** — passed policy review (no longer "under review"), valid "Ad group 1", $50 total cap, Search-only all correct. The "Limited" qualifier was **"Missing enough relevant keywords."**
+- **Account clutter:** 10 campaigns total — 5 Removed (dead), 2 Paused, + **two old Display campaigns still LIVE at ~$10/day combined** ("Website traffic-Display-[May 2]" $9 + "April 2023" $1) quietly spending on non-Franchil. The "1 campaign with no ad groups" warning was NOT Franchil.
+
+**Fixes TJ executed (guided):**
+1. **Date range** → changed off the Nov–Dec 2025 window so live data is visible.
+2. **Paused the two old Display campaigns** → stops ~$10/day leak on unrelated old campaigns.
+3. **Added 15 keywords** to Franchil (8 → 21 total). Pasted phrase-match list (Killeen + Harker Heights + Copperas Cove + service terms + "near me"). Google policy-flagged 2 health-condition terms (`dementia care at home`, `alzheimer's home care`) under "Health in personalized advertising" — dropped them rather than request exception. Result: 3 already **Eligible** (`home care killeen`, `in home care killeen tx`, `home health aide killeen`), ~6 Pending/Under review (clears in hours), many **"Low search volume"** (dormant, not errors — Killeen is just a small market; they auto-activate if volume appears). "Missing relevant keywords" throttle should clear.
+
+**Key insight surfaced:** in a market this small, reach is carried by a **handful of broad eligible terms**, not the geo long-tail (most hyper-specific phrases are low-volume/dormant). Fine for a $50 test. **Watch:** if the campaign under-spends by Jul 5, the lever is flipping 1–2 eligible keywords to **broad match** — don't do it preemptively.
+
+**Next up (unchanged + 1 new):**
+- **#4 Google conversion tracking** — still NOT set up (account-wide "Conversion tracking setup is incomplete" banner). This is the Google-side mirror of last session's app-side attribution work; without it Maximize-clicks optimizes for clicks not leads, and Google sees zero conversions. Bigger lift (wire a Google conversion action to fire on `connection_sent`/`lead_received`). Deferred — TJ to decide whether to do now or after a few days of run data.
+- Phase 2 (from 6/21): multi-provider UTM attribution on `connection_sent`, backfill Franchil null lat/lng, conversion-rate estimate in budget step.
+
 ### 2026-06-21 — Franchil managed-ads activation: real campaign performance to provider + admin (branch `smart-hopper`, PRs #1161/#1163 → SHIPPED TO PROD)
 
 > **UPDATE (PM):** Shipped to prod (#1161 → staging, #1163 staging→main, main `f5a85d05`). **Google Search campaign published live** with TJ (click-by-click): Search-only (Display + partners off), $50 total-budget cap, Killeen 20mi, EN+ES, 8 phrase-match keywords + 9 negatives, tagged Final URL, Maximize-clicks $2.50 cap — now in Google policy review. Tracking is wired end-to-end (provider `/provider/boost` panel + admin `/admin/ad-boost` parity). **Phase 2 queued as 3 Web App board tasks:** (1) clean multi-provider UTM attribution on `connection_sent` [P2], (2) backfill Franchil null lat/lng [P2], (3) conversion-rate estimate in budget step [P3]. Only open item: ads flip from "under review" → "Eligible" (Google's call). Comms: team update posted to #ai-product-development (high-level, no jargon — "first managed-ads campaign, $50 start, trackable"); campaign-live email to Hilda drafted in Notion (under the handoff page) with the `olera.care/provider/boost` link + honest "$50 = a window not a faucet" framing — TJ to verify the boost panel renders for her, then send.

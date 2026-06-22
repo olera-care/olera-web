@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-06-22 — `/test-instructions` command + durable Codex skill (branch `codex/add-test-instructions-command`, PR #1169 → staging)
+
+**Trigger:** TJ created a Claude slash command called `test-instructions` and asked to copy it into this repo, then clarified that it needs to keep working across future Codex sessions instead of only in the current local worktree.
+
+**Built:** copied `.claude/commands/test-instructions.md` verbatim from the Claude worktrees; added `.agents/skills/test-instructions/SKILL.md` as the repo-local Codex wrapper; added an `AGENTS.md` trigger line so future repo sessions route manual QA requests to the skill.
+
+**Durability fix:** also installed a user-level fallback at `/Users/tfalohun/.agents/skills/test-instructions/` with a bundled `command.md`, so `/test-instructions` works even before PR #1169 is merged. The repo command remains canonical once merged.
+
+**Validation:** copied command hash matches the Claude source; staged diff contains only `AGENTS.md`, the repo skill wrapper, and the command file. Vercel for PR #1169 is green. Manual use was exercised by producing test instructions for the Benefits noindex PR #1166.
+
+**NEXT:** merge PR #1169 to staging so the repo-local command/skill is available to future worktrees without relying on the user-level fallback.
+
 ### 2026-06-22 — Franchil Google Ads account cleanup + keyword fix (no code; concierge walkthrough in Google Ads UI)
 
 TJ shared the Google Ads dashboard ("the interface is a mess") for the live Franchil campaign. Translated the cluttered account into plain English and walked him click-by-click through three fixes. **All done in the Google Ads UI — no repo changes.**

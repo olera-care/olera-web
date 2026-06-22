@@ -1176,13 +1176,9 @@ function ResearchModePanel({
       <>Check the info, call to confirm, then launch outreach.</>
     );
 
-  const checklist = isOffice
-    ? [] // offices: the buttons (Call to Confirm → Launch) carry the workflow; no checklist line
-    : isProspect
-      ? [
-          { done: haveContact, label: "At least one active contact added" },
-        ]
-      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
+  // Less is more: no readiness checklist on any stakeholder pre-flight. The
+  // disabled-until-ready CTA (and its tooltip) already communicate what's needed.
+  const checklist: Array<{ done: boolean; label: string }> = [];
 
   // CTA: offices show Pre-Flight (Verification + Call to Confirm + Launch) at
   // any research status; non-office prospects keep the Research-complete step.
@@ -1451,9 +1447,9 @@ function ResearchSection({
       : "",
   );
 
-  const [programs, setPrograms] = useState<string[]>(ctx.outreach.programs);
-
-  const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
+  // Programs are no longer edited in the pre-flight (UI removed — less is more);
+  // the saved value is preserved on the row and still sent on save.
+  const [programs] = useState<string[]>(ctx.outreach.programs);
 
   // v8.7: for single-contact types (dept_head / professor) we render the
   // primary contact inline here instead of a separate Contacts section.
@@ -1641,26 +1637,6 @@ function ResearchSection({
           </>
         )}
 
-        {/* Programs — not shown for advising offices. */}
-        {isOffice ? null : singleProgram(type) ? (
-          <Select
-            label="Program"
-            value={programs[0] ?? ""}
-            onChange={(v) => { const next = v ? [v] : []; setPrograms(next); saveOutreach({ programs: next }); }}
-            options={programOptions.map((p) => ({ value: p, label: p }))}
-          />
-        ) : (
-          <MultiToggle
-            label="Programs"
-            values={programs}
-            options={programOptions}
-            onToggle={(v) => {
-              const next = programs.includes(v) ? programs.filter((p) => p !== v) : [...programs, v];
-              setPrograms(next);
-              saveOutreach({ programs: next });
-            }}
-          />
-        )}
 
         {/* Named contacts — the SAME shared component the Provider drawer uses
             for Decision makers. Advising offices have "Advisors"; student

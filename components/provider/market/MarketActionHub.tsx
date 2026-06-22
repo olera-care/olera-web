@@ -107,6 +107,7 @@ export default function MarketActionHub({
             <ReviewsTab
               reviewsContext={reviewsContext}
               providerSlug={providerSlug}
+              providerName={providerName}
               hasGooglePlaceId={!!providerPlaceId}
               city={data.meta.city}
               topCompetitor={data.competitorLandscape?.leaders?.[0] ?? null}

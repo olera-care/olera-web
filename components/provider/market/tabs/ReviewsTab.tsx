@@ -22,6 +22,7 @@ interface Leader {
 interface ReviewsTabProps {
   reviewsContext: ReviewsContext | null;
   providerSlug?: string;
+  providerName?: string;
   hasGooglePlaceId: boolean;
   city?: string;
   topCompetitor?: Leader | null;
@@ -29,7 +30,8 @@ interface ReviewsTabProps {
   providerReviewCount: number | null;
 }
 
-const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
+// Removed "Hi, " since the email template already adds "Hi {name},"
+const DEFAULT_MESSAGE = "We'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
 
 function isValidEmail(str: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
@@ -42,6 +44,7 @@ function isValidEmail(str: string): boolean {
 export default function ReviewsTab({
   reviewsContext,
   providerSlug,
+  providerName,
   hasGooglePlaceId,
   city,
   topCompetitor,
@@ -57,6 +60,12 @@ export default function ReviewsTab({
   const [thisWeekCount, setThisWeekCount] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [reviewsGained, setReviewsGained] = useState<number | null>(null);
+  // Editable message state
+  const [customMessage, setCustomMessage] = useState(DEFAULT_MESSAGE);
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  // Olera review count (for providers without Google)
+  const [oleraReviewCount, setOleraReviewCount] = useState<number | null>(null);
+  const [isLoadingOleraCount, setIsLoadingOleraCount] = useState(false);
 
   // Fetch this week's review request count
   useEffect(() => {
@@ -79,27 +88,59 @@ export default function ReviewsTab({
     fetchThisWeekCount();
   }, [showSuccess]); // Refetch after successful submission
 
+  // Fetch Olera review count for providers without Google
+  useEffect(() => {
+    if (hasGooglePlaceId || !providerSlug) return;
+
+    let cancelled = false;
+    setIsLoadingOleraCount(true);
+
+    async function fetchOleraReviewCount() {
+      try {
+        const res = await fetch(`/api/provider/${providerSlug}/olera-reviews`);
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          const reviews = data.reviews || [];
+          setOleraReviewCount(reviews.length);
+        }
+      } catch {
+        // Ignore errors, just don't show the count
+      } finally {
+        if (!cancelled) setIsLoadingOleraCount(false);
+      }
+    }
+    fetchOleraReviewCount();
+
+    return () => { cancelled = true; };
+  }, [hasGooglePlaceId, providerSlug]);
+
   // Detect if provider gained reviews since last visit
   useEffect(() => {
-    if (!providerSlug || providerReviewCount === null) return;
+    // Use Google count if available, otherwise Olera count
+    const currentCount = providerReviewCount ?? oleraReviewCount;
+    if (!providerSlug || currentCount === null) return;
 
     let dismissTimer: ReturnType<typeof setTimeout> | undefined;
 
     try {
-      const storageKey = `olera_reviews_${providerSlug}`;
+      // Use different storage keys for Google vs Olera to avoid conflicts
+      const storageKey = providerReviewCount !== null
+        ? `olera_reviews_google_${providerSlug}`
+        : `olera_reviews_olera_${providerSlug}`;
       const stored = localStorage.getItem(storageKey);
 
       if (stored) {
         const previousCount = parseInt(stored, 10);
-        if (providerReviewCount > previousCount) {
-          setReviewsGained(providerReviewCount - previousCount);
+        if (currentCount > previousCount) {
+          setReviewsGained(currentCount - previousCount);
           // Auto-dismiss after 5 seconds
           dismissTimer = setTimeout(() => setReviewsGained(null), 5000);
         }
       }
 
       // Update stored count
-      localStorage.setItem(storageKey, providerReviewCount.toString());
+      localStorage.setItem(storageKey, currentCount.toString());
     } catch {
       // localStorage unavailable (Safari private mode, etc.) - skip silently
     }
@@ -107,7 +148,7 @@ export default function ReviewsTab({
     return () => {
       if (dismissTimer) clearTimeout(dismissTimer);
     };
-  }, [providerSlug, providerReviewCount]);
+  }, [providerSlug, providerReviewCount, oleraReviewCount]);
 
   // Auto-dismiss success after 4 seconds
   useEffect(() => {
@@ -139,7 +180,7 @@ export default function ReviewsTab({
             name: clientName.trim(),
             email: contactInfo.trim(),
           }],
-          message: DEFAULT_MESSAGE,
+          message: customMessage,
           delivery_method: "email",
         }),
       });
@@ -194,17 +235,20 @@ export default function ReviewsTab({
     ? leaders[Math.min(leaders.length - 1, 9)]?.reviews ?? 0
     : null;
 
+  // Effective review count: Google reviews take precedence, fall back to Olera reviews
+  const effectiveReviewCount = providerReviewCount ?? oleraReviewCount;
+
   // Find the next competitor to beat based on provider's current reviews
   const findNextTarget = () => {
-    if (providerReviewCount === null || leaders.length === 0) return null;
+    if (effectiveReviewCount === null || leaders.length === 0) return null;
     // Find the lowest-ranked leader the provider can realistically pass
     const sortedByReviews = [...leaders].sort((a, b) => a.reviews - b.reviews);
-    const nextTarget = sortedByReviews.find(l => l.reviews > providerReviewCount);
+    const nextTarget = sortedByReviews.find(l => l.reviews > effectiveReviewCount);
     if (!nextTarget) return null;
     return {
       name: nextTarget.name,
       reviews: nextTarget.reviews,
-      needed: nextTarget.reviews - providerReviewCount + 1,
+      needed: nextTarget.reviews - effectiveReviewCount + 1,
     };
   };
 
@@ -232,38 +276,42 @@ export default function ReviewsTab({
         ? `${reviewsContext.reviewsNeeded} more to pass ${reviewsContext.nextCompetitor}.`
         : `${reviewsContext.reviewsNeeded} more to reach #${reviewsContext.targetRank}.`;
     }
-  } else if (providerReviewCount !== null && leaders.length > 0) {
-    // Provider has review count but not ranked - show dynamic goal
-    if (providerReviewCount === 0) {
+  } else if (effectiveReviewCount !== null && leaders.length > 0) {
+    // Provider has review count (Google or Olera) but not ranked - show dynamic goal
+    if (effectiveReviewCount === 0) {
       // No reviews yet
       headline = "You have no reviews yet.";
       subline = topCompetitor
-        ? `#1 has ${topCompetitor.reviews}. Start with one.`
+        ? `#1 has ${topCompetitor.reviews} reviews. Start with one.`
         : "Send your first request.";
     } else if (nextTarget) {
       // Has some reviews, show next target
-      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
+      headline = `You have ${effectiveReviewCount} review${effectiveReviewCount === 1 ? "" : "s"}.`;
       subline = `${nextTarget.needed} more to pass ${nextTarget.name}.`;
-    } else if (top10Threshold !== null && providerReviewCount >= top10Threshold) {
+    } else if (top10Threshold !== null && effectiveReviewCount >= top10Threshold) {
       // Already competitive
-      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
+      headline = `You have ${effectiveReviewCount} review${effectiveReviewCount === 1 ? "" : "s"}.`;
       subline = "You're in the top 10. Keep the lead.";
     } else {
       // Below threshold
-      const gap = top10Threshold !== null ? top10Threshold - providerReviewCount : null;
-      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
+      const gap = top10Threshold !== null ? top10Threshold - effectiveReviewCount : null;
+      headline = `You have ${effectiveReviewCount} review${effectiveReviewCount === 1 ? "" : "s"}.`;
       subline = gap !== null
-        ? `${gap} more to crack the top 10.`
+        ? `${gap} more reviews to crack the top 10.`
         : "Keep building to compete.";
     }
+  } else if (isLoadingOleraCount && !hasGooglePlaceId) {
+    // Loading Olera review count - show neutral loading state
+    headline = "Checking your reviews...";
+    subline = "One moment.";
   } else if (top10Threshold !== null) {
     // No review count, but we know the market threshold
     headline = "You're not ranked yet.";
-    subline = `Top 10 in ${city || "your market"} have ${top10Threshold}+.`;
+    subline = `Top 10 in ${city || "your market"} have ${top10Threshold}+ reviews.`;
   } else if (topCompetitor) {
     // Fallback to top competitor
     headline = "You're not ranked yet.";
-    subline = `${topCompetitor.name} leads with ${topCompetitor.reviews}.`;
+    subline = `${topCompetitor.name} leads with ${topCompetitor.reviews} reviews.`;
   } else {
     // Ultimate fallback
     headline = "Start collecting reviews.";
@@ -341,7 +389,7 @@ export default function ReviewsTab({
       )}
 
       {/* Progress bar for UNRANKED providers with a target */}
-      {!reviewsContext && nextTarget && providerReviewCount !== null && providerReviewCount > 0 && (
+      {!reviewsContext && nextTarget && effectiveReviewCount !== null && effectiveReviewCount > 0 && (
         <div className="mb-8">
           <div className="flex items-center justify-center gap-3">
             <span className="text-sm font-semibold text-stone-600 tabular-nums">You</span>
@@ -350,7 +398,7 @@ export default function ReviewsTab({
               <div
                 className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.max(10, Math.min(90, (providerReviewCount / nextTarget.reviews) * 100))}%`
+                  width: `${Math.max(10, Math.min(90, (effectiveReviewCount / nextTarget.reviews) * 100))}%`
                 }}
               />
             </div>
@@ -400,7 +448,7 @@ export default function ReviewsTab({
         {/* Full-width button below inputs */}
         <button
           type="submit"
-          disabled={!clientName.trim() || !isValidEmail(contactInfo.trim()) || isSubmitting}
+          disabled={!clientName.trim() || !isValidEmail(contactInfo.trim()) || !customMessage.trim() || isSubmitting}
           className="w-full mt-3 px-6 py-3 rounded-xl bg-[#199087] text-white text-[15px] font-medium hover:bg-[#147a72] disabled:bg-stone-200 disabled:text-stone-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_12px_rgba(25,144,135,0.35)] disabled:shadow-none"
         >
           {isSubmitting ? (
@@ -436,20 +484,77 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Email preview */}
+      {/* Email preview - matches actual email structure */}
       {showPreview && isValidEmail(contactInfo.trim()) && (
         <div className="mt-4 p-4 bg-stone-50 rounded-xl text-left">
-          <p className="text-xs text-stone-400 uppercase tracking-wider mb-3">What they&apos;ll receive</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-stone-400 uppercase tracking-wider">What they&apos;ll receive</p>
+            {!isEditingMessage && (
+              <button
+                type="button"
+                onClick={() => setIsEditingMessage(true)}
+                className="text-xs text-[#199087] hover:text-[#147a72] font-medium transition-colors"
+              >
+                Edit message
+              </button>
+            )}
+          </div>
           <div className="bg-white rounded-lg border border-stone-200 p-4 shadow-sm">
+            {/* Email headline */}
+            <p className="text-base font-semibold text-stone-900 mb-3">
+              {providerName || "Your provider"} would love your feedback
+            </p>
+            {/* Greeting */}
             <p className="text-sm text-stone-700 mb-3">
               Hi <span className="font-medium">{clientName.trim() || "Client"}</span>,
             </p>
-            <div className="border-l-2 border-[#199087] pl-3 py-1 mb-4">
-              <p className="text-sm text-stone-600 italic">{DEFAULT_MESSAGE}</p>
-            </div>
+            {/* Message - editable or static */}
+            {isEditingMessage ? (
+              <div className="mb-4">
+                <textarea
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 text-sm text-stone-700 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] resize-none"
+                  placeholder="Write your personalized message..."
+                />
+                <div className="flex items-center justify-end gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomMessage(DEFAULT_MESSAGE);
+                      setIsEditingMessage(false);
+                    }}
+                    className="text-xs text-stone-500 hover:text-stone-700 transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingMessage(false)}
+                    className="text-xs text-[#199087] hover:text-[#147a72] font-medium transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-l-2 border-[#199087] pl-3 py-1 mb-3">
+                <p className="text-sm text-stone-600">{customMessage}</p>
+              </div>
+            )}
+            {/* Additional text from email template */}
+            <p className="text-sm text-stone-500 mb-4">
+              Sharing your experience helps other families find quality care — and only takes a couple of minutes.
+            </p>
+            {/* Button preview */}
             <div className="inline-block px-4 py-2 bg-[#199087] text-white text-sm font-medium rounded-lg">
               Write a review
             </div>
+            {/* Footer note */}
+            <p className="text-[11px] text-stone-400 mt-4 pt-3 border-t border-stone-100">
+              This email was sent on behalf of {providerName || "your provider"} via Olera.
+            </p>
           </div>
         </div>
       )}

@@ -36,22 +36,60 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
   const [currentIndex, setCurrentIndex] = useState(0);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [fallbackFailed, setFallbackFailed] = useState(false);
-  const [anyRealImageLoaded, setAnyRealImageLoaded] = useState(false);
+  // Track which real-image URLs have finished loading, and which one is currently
+  // held on screen, so navigation crossfades real→real instead of flashing the
+  // stock fallback through during the incoming image's load.
+  const [loadedSrcs, setLoadedSrcs] = useState<Set<string>>(new Set());
+  const [displayedSrc, setDisplayedSrc] = useState<string | null>(null);
   // Track hover/touch state for showing arrows on mobile
   const [showArrows, setShowArrows] = useState(false);
   const hideArrowsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const validImages = images.filter((_, i) => !failedImages.has(i));
   const safeIndex = Math.min(currentIndex, Math.max(0, validImages.length - 1));
-  const showFallback = !!fallbackImage && !fallbackFailed;
   const showRealImage = validImages.length > 0;
-  const showGradient = !showFallback && !showRealImage;
+  // The stock photo is a TRUE fallback, not a load placeholder: it only shows
+  // when there are no usable real photos (none provided, or all failed). When
+  // real photos exist, the first one fades in over the neutral container instead
+  // of flashing the stock image on initial page load.
+  const showFallback = !showRealImage && !!fallbackImage && !fallbackFailed;
+  const showGradient = !showRealImage && !showFallback;
+  const currentSrc = showRealImage ? validImages[safeIndex] : null;
+  const currentLoaded = currentSrc != null && loadedSrcs.has(currentSrc);
+  const anyRealImageLoaded = loadedSrcs.size > 0;
   // Carousel UI only appears once a real image has actually rendered, so users
   // never see the counter cycle "1/6 → 1/5 → ..." during the onError cascade.
   const showCarouselUI = anyRealImageLoaded && validImages.length > 1;
 
-  const goNext = () => setCurrentIndex((i) => (i + 1) % validImages.length);
-  const goPrev = () => setCurrentIndex((i) => (i - 1 + validImages.length) % validImages.length);
+  // Layers to mount over the neutral container:
+  //  • the held (previous) photo — visible only while the incoming one loads
+  //  • the current photo — visible once loaded
+  //  • the adjacent photos — invisible, preloaded after the current loads so
+  //    tapping next/prev is an instant network-free crossfade (the snappy bit)
+  const len = validImages.length;
+  const layers: { src: string; visible: boolean }[] = [];
+  const seen = new Set<string>();
+  const addLayer = (src: string | null, visible: boolean) => {
+    if (!src || seen.has(src)) return;
+    seen.add(src);
+    layers.push({ src, visible });
+  };
+  if (displayedSrc !== currentSrc) addLayer(displayedSrc, !currentLoaded);
+  addLayer(currentSrc, currentLoaded);
+  if (currentLoaded && len > 1) {
+    addLayer(validImages[(safeIndex + 1) % len], false);
+    addLayer(validImages[(safeIndex - 1 + len) % len], false);
+  }
+
+  // Before switching index, pin the current real image as the held layer so it
+  // stays on screen during the next image's load. Only pin a loaded src — a still-
+  // loading one would itself be transparent and let the fallback flash through.
+  const navigate = (nextIndex: number) => {
+    setDisplayedSrc((prev) => (currentLoaded ? currentSrc : prev));
+    setCurrentIndex(nextIndex);
+  };
+  const goNext = () => navigate((safeIndex + 1) % validImages.length);
+  const goPrev = () => navigate((safeIndex - 1 + validImages.length) % validImages.length);
 
   // Show arrows on touch/click, hide after 2 seconds of inactivity
   const handleGalleryInteraction = () => {
@@ -89,8 +127,8 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
       onClick={handleGalleryInteraction}
       onTouchStart={handleGalleryInteraction}
     >
-      {/* Base layer: stock photo. Stays visible until a real image loads on top
-          (or stays forever if all real images fail). */}
+      {/* Stock photo — only rendered when there are no usable real photos
+          (none provided, or all failed). Never a load placeholder. */}
       {showFallback && (
         <Image
           src={fallbackImage}
@@ -103,24 +141,33 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
         />
       )}
 
-      {/* Overlay: real image at currentIndex. While loading it's transparent,
-          so the base fallback shows through — no flash, no jank. */}
-      {showRealImage && (
-        <Image
-          key={validImages[safeIndex]}
-          src={validImages[safeIndex]}
-          alt={`${providerName} — photo ${safeIndex + 1}`}
-          fill
-          sizes="(max-width: 768px) 100vw, 448px"
-          priority
-          className="object-cover"
-          onLoad={() => setAnyRealImageLoaded(true)}
-          onError={() => {
-            const origIndex = images.indexOf(validImages[safeIndex]);
-            setFailedImages((prev) => new Set(prev).add(origIndex));
-          }}
-        />
-      )}
+      {/* Real-photo layers over the neutral container. The held (previous) image
+          stays at full opacity until the incoming one finishes loading, then they
+          crossfade — so the first photo fades in cleanly on load and navigation
+          never cuts to a blank frame. */}
+      {layers.map(({ src, visible }) => {
+        const isCurrent = src === currentSrc;
+        return (
+          <Image
+            key={src}
+            src={src}
+            alt={isCurrent ? `${providerName} — photo ${safeIndex + 1}` : providerName}
+            fill
+            sizes="(max-width: 768px) 100vw, 448px"
+            priority={isCurrent}
+            className={`object-cover transition-opacity duration-200 ease-out ${
+              visible ? "opacity-100" : "opacity-0"
+            }`}
+            onLoad={() =>
+              setLoadedSrcs((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
+            }
+            onError={() => {
+              const origIndex = images.indexOf(src);
+              if (origIndex >= 0) setFailedImages((prev) => new Set(prev).add(origIndex));
+            }}
+          />
+        );
+      })}
 
       {showCarouselUI && (
         <>

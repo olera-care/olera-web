@@ -105,8 +105,8 @@ export default function CampusDetailPage({
     <div>
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <Link href="/admin/student-outreach/campuses" className="text-xs text-gray-500 hover:underline">
-            ← All campuses
+          <Link href="/admin/medjobs/sites" className="text-xs text-gray-500 hover:underline">
+            ← All sites
           </Link>
           <h1 className="mt-1 text-2xl font-semibold text-gray-900">{data.campus.name}</h1>
           <p className="mt-1 text-sm text-gray-500">

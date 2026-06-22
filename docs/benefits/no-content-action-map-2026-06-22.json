@@ -1,0 +1,3897 @@
+{
+  "generatedAt": "2026-06-22T09:50:15.301Z",
+  "source": "/private/tmp/benefits-no-content-pages-2026-06-22.json",
+  "definition": "Legacy /benefits/{state}/{program} URLs that resolve publicly but lack rich V3 body content. Actions are review recommendations, not automatic redirects.",
+  "policy": "Render if reached, noindex/follow until the page receives rich content or a human-approved canonical/redirect decision.",
+  "counts": {
+    "duplicate-or-alias-review": 19,
+    "needs-draft": 249,
+    "redirect-canonicalize-review": 26
+  },
+  "byState": {
+    "AK": {
+      "stateName": "Alaska",
+      "total": 7,
+      "actions": {
+        "duplicate-or-alias-review": 1,
+        "needs-draft": 5,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "AL": {
+      "stateName": "Alabama",
+      "total": 1,
+      "actions": {
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "AR": {
+      "stateName": "Arkansas",
+      "total": 5,
+      "actions": {
+        "needs-draft": 5
+      }
+    },
+    "AZ": {
+      "stateName": "Arizona",
+      "total": 6,
+      "actions": {
+        "needs-draft": 4,
+        "duplicate-or-alias-review": 1,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "CA": {
+      "stateName": "California",
+      "total": 5,
+      "actions": {
+        "needs-draft": 5
+      }
+    },
+    "CO": {
+      "stateName": "Colorado",
+      "total": 9,
+      "actions": {
+        "needs-draft": 6,
+        "redirect-canonicalize-review": 3
+      }
+    },
+    "CT": {
+      "stateName": "Connecticut",
+      "total": 9,
+      "actions": {
+        "needs-draft": 8,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "DE": {
+      "stateName": "Delaware",
+      "total": 4,
+      "actions": {
+        "needs-draft": 3,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "FL": {
+      "stateName": "Florida",
+      "total": 4,
+      "actions": {
+        "duplicate-or-alias-review": 1,
+        "needs-draft": 3
+      }
+    },
+    "GA": {
+      "stateName": "Georgia",
+      "total": 7,
+      "actions": {
+        "needs-draft": 6,
+        "duplicate-or-alias-review": 1
+      }
+    },
+    "HI": {
+      "stateName": "Hawaii",
+      "total": 3,
+      "actions": {
+        "needs-draft": 3
+      }
+    },
+    "IA": {
+      "stateName": "Iowa",
+      "total": 2,
+      "actions": {
+        "needs-draft": 2
+      }
+    },
+    "ID": {
+      "stateName": "Idaho",
+      "total": 3,
+      "actions": {
+        "needs-draft": 2,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "IL": {
+      "stateName": "Illinois",
+      "total": 9,
+      "actions": {
+        "needs-draft": 7,
+        "duplicate-or-alias-review": 2
+      }
+    },
+    "IN": {
+      "stateName": "Indiana",
+      "total": 3,
+      "actions": {
+        "needs-draft": 3
+      }
+    },
+    "KS": {
+      "stateName": "Kansas",
+      "total": 6,
+      "actions": {
+        "needs-draft": 5,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "KY": {
+      "stateName": "Kentucky",
+      "total": 4,
+      "actions": {
+        "needs-draft": 4
+      }
+    },
+    "LA": {
+      "stateName": "Louisiana",
+      "total": 7,
+      "actions": {
+        "needs-draft": 6,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "MA": {
+      "stateName": "Massachusetts",
+      "total": 10,
+      "actions": {
+        "needs-draft": 10
+      }
+    },
+    "MD": {
+      "stateName": "Maryland",
+      "total": 5,
+      "actions": {
+        "needs-draft": 5
+      }
+    },
+    "ME": {
+      "stateName": "Maine",
+      "total": 8,
+      "actions": {
+        "needs-draft": 8
+      }
+    },
+    "MI": {
+      "stateName": "Michigan",
+      "total": 12,
+      "actions": {
+        "needs-draft": 12
+      }
+    },
+    "MN": {
+      "stateName": "Minnesota",
+      "total": 7,
+      "actions": {
+        "needs-draft": 6,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "MO": {
+      "stateName": "Missouri",
+      "total": 3,
+      "actions": {
+        "needs-draft": 3
+      }
+    },
+    "MS": {
+      "stateName": "Mississippi",
+      "total": 3,
+      "actions": {
+        "needs-draft": 1,
+        "duplicate-or-alias-review": 2
+      }
+    },
+    "MT": {
+      "stateName": "Montana",
+      "total": 1,
+      "actions": {
+        "needs-draft": 1
+      }
+    },
+    "NC": {
+      "stateName": "North Carolina",
+      "total": 8,
+      "actions": {
+        "needs-draft": 6,
+        "duplicate-or-alias-review": 1,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "ND": {
+      "stateName": "North Dakota",
+      "total": 10,
+      "actions": {
+        "needs-draft": 10
+      }
+    },
+    "NE": {
+      "stateName": "Nebraska",
+      "total": 4,
+      "actions": {
+        "duplicate-or-alias-review": 2,
+        "needs-draft": 2
+      }
+    },
+    "NH": {
+      "stateName": "New Hampshire",
+      "total": 5,
+      "actions": {
+        "needs-draft": 3,
+        "duplicate-or-alias-review": 1,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "NJ": {
+      "stateName": "New Jersey",
+      "total": 12,
+      "actions": {
+        "needs-draft": 12
+      }
+    },
+    "NM": {
+      "stateName": "New Mexico",
+      "total": 10,
+      "actions": {
+        "needs-draft": 9,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "NV": {
+      "stateName": "Nevada",
+      "total": 3,
+      "actions": {
+        "needs-draft": 2,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "NY": {
+      "stateName": "New York",
+      "total": 6,
+      "actions": {
+        "duplicate-or-alias-review": 1,
+        "needs-draft": 5
+      }
+    },
+    "OH": {
+      "stateName": "Ohio",
+      "total": 4,
+      "actions": {
+        "needs-draft": 3,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "OK": {
+      "stateName": "Oklahoma",
+      "total": 5,
+      "actions": {
+        "needs-draft": 4,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "OR": {
+      "stateName": "Oregon",
+      "total": 1,
+      "actions": {
+        "needs-draft": 1
+      }
+    },
+    "PA": {
+      "stateName": "Pennsylvania",
+      "total": 8,
+      "actions": {
+        "needs-draft": 7,
+        "duplicate-or-alias-review": 1
+      }
+    },
+    "RI": {
+      "stateName": "Rhode Island",
+      "total": 8,
+      "actions": {
+        "needs-draft": 7,
+        "duplicate-or-alias-review": 1
+      }
+    },
+    "SC": {
+      "stateName": "South Carolina",
+      "total": 6,
+      "actions": {
+        "needs-draft": 6
+      }
+    },
+    "SD": {
+      "stateName": "South Dakota",
+      "total": 5,
+      "actions": {
+        "needs-draft": 3,
+        "redirect-canonicalize-review": 2
+      }
+    },
+    "TN": {
+      "stateName": "Tennessee",
+      "total": 6,
+      "actions": {
+        "needs-draft": 3,
+        "redirect-canonicalize-review": 1,
+        "duplicate-or-alias-review": 2
+      }
+    },
+    "UT": {
+      "stateName": "Utah",
+      "total": 4,
+      "actions": {
+        "needs-draft": 4
+      }
+    },
+    "VA": {
+      "stateName": "Virginia",
+      "total": 10,
+      "actions": {
+        "needs-draft": 10
+      }
+    },
+    "VT": {
+      "stateName": "Vermont",
+      "total": 8,
+      "actions": {
+        "needs-draft": 4,
+        "duplicate-or-alias-review": 1,
+        "redirect-canonicalize-review": 3
+      }
+    },
+    "WA": {
+      "stateName": "Washington",
+      "total": 4,
+      "actions": {
+        "needs-draft": 3,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "WI": {
+      "stateName": "Wisconsin",
+      "total": 11,
+      "actions": {
+        "needs-draft": 11
+      }
+    },
+    "WV": {
+      "stateName": "West Virginia",
+      "total": 4,
+      "actions": {
+        "needs-draft": 2,
+        "duplicate-or-alias-review": 1,
+        "redirect-canonicalize-review": 1
+      }
+    },
+    "WY": {
+      "stateName": "Wyoming",
+      "total": 9,
+      "actions": {
+        "needs-draft": 9
+      }
+    }
+  },
+  "rows": [
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "alaska-legal-services-corporation-senior-legal-hotline",
+      "name": "Alaska Legal Services Corporation Senior Legal Hotline",
+      "url": "https://olera.care/benefits/alaska/alaska-legal-services-corporation-senior-legal-hotline",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "legal-services-senior-hotline",
+        "name": "Alaska Legal Services Corporation (ALSC) Senior Legal Hotline",
+        "url": "https://olera.care/benefits/alaska/legal-services-senior-hotline",
+        "score": 0.8,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "alaska-senior-medicare-advisory-network",
+      "name": "Alaska Senior Medicare Advisory Network",
+      "url": "https://olera.care/benefits/alaska/alaska-senior-medicare-advisory-network",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "alaska-snap-food-stamps",
+      "name": "Alaska SNAP (Food Stamps)",
+      "url": "https://olera.care/benefits/alaska/alaska-snap-food-stamps",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "alaskans-living-independently-waiver-ali",
+      "name": "Alaskans Living Independently Waiver (ALI)",
+      "url": "https://olera.care/benefits/alaska/alaskans-living-independently-waiver-ali",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "home-delivered-meals-seniorcare",
+      "name": "Home-Delivered Meals (SeniorCare)",
+      "url": "https://olera.care/benefits/alaska/home-delivered-meals-seniorcare",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "medicaid-for-aged-disabled",
+      "name": "Medicaid for Aged/Disabled",
+      "url": "https://olera.care/benefits/alaska/medicaid-for-aged-disabled",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "medicaid-seniors-disabled",
+        "name": "Medicaid for Seniors/Disabled",
+        "url": "https://olera.care/benefits/alaska/medicaid-seniors-disabled",
+        "score": 0.633,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "slug": "alaska",
+      "id": "senior-property-tax-exemption",
+      "name": "Senior Property Tax Exemption",
+      "url": "https://olera.care/benefits/alaska/senior-property-tax-exemption",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AL",
+      "stateName": "Alabama",
+      "slug": "alabama",
+      "id": "alabama-medicaid-for-aged-disabled",
+      "name": "Alabama Medicaid for Aged/Disabled",
+      "url": "https://olera.care/benefits/alabama/alabama-medicaid-for-aged-disabled",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "medicaid-elderly-disabled-waiver",
+        "name": "Alabama Medicaid Elderly and Disabled Waiver",
+        "url": "https://olera.care/benefits/alabama/medicaid-elderly-disabled-waiver",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "AR",
+      "stateName": "Arkansas",
+      "slug": "arkansas",
+      "id": "area-agency-on-aging-legal-services",
+      "name": "Area Agency on Aging Legal Services",
+      "url": "https://olera.care/benefits/arkansas/area-agency-on-aging-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AR",
+      "stateName": "Arkansas",
+      "slug": "arkansas",
+      "id": "ark-choices-program-waiver",
+      "name": "ARK Choices Program Waiver",
+      "url": "https://olera.care/benefits/arkansas/ark-choices-program-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AR",
+      "stateName": "Arkansas",
+      "slug": "arkansas",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/arkansas/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AR",
+      "stateName": "Arkansas",
+      "slug": "arkansas",
+      "id": "regular-medicaid-aged-blind-and-disabled-aabd",
+      "name": "Regular Medicaid / Aged Blind and Disabled (AABD)",
+      "url": "https://olera.care/benefits/arkansas/regular-medicaid-aged-blind-and-disabled-aabd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AR",
+      "stateName": "Arkansas",
+      "slug": "arkansas",
+      "id": "senior-health-insurance-information-program-shiip",
+      "name": "Senior Health Insurance Information Program (SHIIP)",
+      "url": "https://olera.care/benefits/arkansas/senior-health-insurance-information-program-shiip",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "slug": "arizona",
+      "id": "aged-blind-and-disabled-abd-medicaid",
+      "name": "Aged, Blind, and Disabled (ABD) Medicaid",
+      "url": "https://olera.care/benefits/arizona/aged-blind-and-disabled-abd-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "slug": "arizona",
+      "id": "arizona-family-caregiver-support-program",
+      "name": "Arizona Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/arizona/arizona-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "slug": "arizona",
+      "id": "arizona-senior-legal-helpline",
+      "name": "Arizona Senior Legal Helpline",
+      "url": "https://olera.care/benefits/arizona/arizona-senior-legal-helpline",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "slug": "arizona",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/arizona/home-delivered-meals",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "congregate-home-delivered-meals",
+        "name": "Congregate and Home-Delivered Meals",
+        "url": "https://olera.care/benefits/arizona/congregate-home-delivered-meals",
+        "score": 0.86,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "slug": "arizona",
+      "id": "nutrition-assistance-program",
+      "name": "Nutrition Assistance Program",
+      "url": "https://olera.care/benefits/arizona/nutrition-assistance-program",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "Nutrition Assistance (NA) / SNAP in Arizona",
+        "url": "https://olera.care/benefits/arizona/snap-food-benefits",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "slug": "arizona",
+      "id": "senior-property-valuation-protection-option",
+      "name": "Senior Property Valuation Protection Option",
+      "url": "https://olera.care/benefits/arizona/senior-property-valuation-protection-option",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CA",
+      "stateName": "California",
+      "slug": "california",
+      "id": "250-california-working-disabled-program",
+      "name": "250% California Working Disabled Program",
+      "url": "https://olera.care/benefits/california/250-california-working-disabled-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CA",
+      "stateName": "California",
+      "slug": "california",
+      "id": "california-assisted-living-waiver-alw",
+      "name": "California Assisted Living Waiver (ALW)",
+      "url": "https://olera.care/benefits/california/california-assisted-living-waiver-alw",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CA",
+      "stateName": "California",
+      "slug": "california",
+      "id": "california-home-delivered-meals",
+      "name": "California Home-Delivered Meals",
+      "url": "https://olera.care/benefits/california/california-home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CA",
+      "stateName": "California",
+      "slug": "california",
+      "id": "california-pace-programs",
+      "name": "California PACE Programs",
+      "url": "https://olera.care/benefits/california/california-pace-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CA",
+      "stateName": "California",
+      "slug": "california",
+      "id": "medi-cal-for-aged-and-disabled",
+      "name": "Medi-Cal for Aged and Disabled",
+      "url": "https://olera.care/benefits/california/medi-cal-for-aged-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "colorado-energy-assistance-program-leap",
+      "name": "Colorado Energy Assistance Program (LEAP)",
+      "url": "https://olera.care/benefits/colorado/colorado-energy-assistance-program-leap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "colorado-legal-services-for-seniors",
+      "name": "Colorado Legal Services for Seniors",
+      "url": "https://olera.care/benefits/colorado/colorado-legal-services-for-seniors",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "legal-aid-seniors",
+        "name": "Colorado Legal Services (Legal Aid for Seniors)",
+        "url": "https://olera.care/benefits/colorado/legal-aid-seniors",
+        "score": 0.667,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "colorado-snap-supplemental-nutrition-assistance-program",
+      "name": "Colorado SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/colorado/colorado-snap-supplemental-nutrition-assistance-program",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "Supplemental Nutrition Assistance Program (SNAP)",
+        "url": "https://olera.care/benefits/colorado/snap-food-benefits",
+        "score": 0.571,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "elderly-blind-and-disabled-ebd-waiver",
+      "name": "Elderly, Blind, and Disabled (EBD) Waiver",
+      "url": "https://olera.care/benefits/colorado/elderly-blind-and-disabled-ebd-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/colorado/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "health-first-colorado-medicaid-for-aged-blind-and-disabled",
+      "name": "Health First Colorado (Medicaid) for Aged, Blind, and Disabled",
+      "url": "https://olera.care/benefits/colorado/health-first-colorado-medicaid-for-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/colorado/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "medicare-buy-in-programs-qmb-slmb-qi",
+      "name": "Medicare Buy-In Programs (QMB, SLMB, QI)",
+      "url": "https://olera.care/benefits/colorado/medicare-buy-in-programs-qmb-slmb-qi",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "medicare-savings-programs",
+        "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
+        "url": "https://olera.care/benefits/colorado/medicare-savings-programs",
+        "score": 0.556,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "slug": "colorado",
+      "id": "senior-property-tax-exemption-ptex",
+      "name": "Senior Property Tax Exemption (PTEX)",
+      "url": "https://olera.care/benefits/colorado/senior-property-tax-exemption-ptex",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "connecticut-home-delivered-meals-program",
+      "name": "Connecticut Home-Delivered Meals Program",
+      "url": "https://olera.care/benefits/connecticut/connecticut-home-delivered-meals-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "connecticut-pace-program",
+      "name": "Connecticut PACE Program",
+      "url": "https://olera.care/benefits/connecticut/connecticut-pace-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "connecticut-property-tax-relief-for-seniors",
+      "name": "Connecticut Property Tax Relief for Seniors",
+      "url": "https://olera.care/benefits/connecticut/connecticut-property-tax-relief-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "connecticut-state-ssi-supplement",
+      "name": "Connecticut State SSI Supplement",
+      "url": "https://olera.care/benefits/connecticut/connecticut-state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "connpace-connecticut-pharmaceutical-assistance",
+      "name": "ConnPace (Connecticut Pharmaceutical Assistance)",
+      "url": "https://olera.care/benefits/connecticut/connpace-connecticut-pharmaceutical-assistance",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "husky-c-aged-blind-and-disabled-medicaid",
+      "name": "HUSKY C (Aged, Blind, and Disabled Medicaid)",
+      "url": "https://olera.care/benefits/connecticut/husky-c-aged-blind-and-disabled-medicaid",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "husky-health-medicaid-seniors",
+        "name": "HUSKY Health (Medicaid for seniors/disabled)",
+        "url": "https://olera.care/benefits/connecticut/husky-health-medicaid-seniors",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "medicare-savings-program-qmb-slmb-qi",
+      "name": "Medicare Savings Program (QMB/SLMB/QI)",
+      "url": "https://olera.care/benefits/connecticut/medicare-savings-program-qmb-slmb-qi",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "national-family-caregiver-support-program-connecticut",
+      "name": "National Family Caregiver Support Program (Connecticut)",
+      "url": "https://olera.care/benefits/connecticut/national-family-caregiver-support-program-connecticut",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "slug": "connecticut",
+      "id": "senior-legal-services-elder-law-hotlines",
+      "name": "Senior Legal Services (Elder Law Hotlines)",
+      "url": "https://olera.care/benefits/connecticut/senior-legal-services-elder-law-hotlines",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "DE",
+      "stateName": "Delaware",
+      "slug": "delaware",
+      "id": "delaware-legal-help-link-for-seniors",
+      "name": "Delaware Legal Help Link for Seniors",
+      "url": "https://olera.care/benefits/delaware/delaware-legal-help-link-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "DE",
+      "stateName": "Delaware",
+      "slug": "delaware",
+      "id": "delaware-ship-medicare-counseling",
+      "name": "Delaware SHIP Medicare Counseling",
+      "url": "https://olera.care/benefits/delaware/delaware-ship-medicare-counseling",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "senior-medicare-patrol",
+        "name": "Delaware Senior Medicare Patrol (SMP/SHIP)",
+        "url": "https://olera.care/benefits/delaware/senior-medicare-patrol",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "DE",
+      "stateName": "Delaware",
+      "slug": "delaware",
+      "id": "national-family-caregiver-support-program-delaware",
+      "name": "National Family Caregiver Support Program - Delaware",
+      "url": "https://olera.care/benefits/delaware/national-family-caregiver-support-program-delaware",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "DE",
+      "stateName": "Delaware",
+      "slug": "delaware",
+      "id": "regular-medicaid-aged-blind-and-disabled",
+      "name": "Regular Medicaid / Aged Blind and Disabled",
+      "url": "https://olera.care/benefits/delaware/regular-medicaid-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "FL",
+      "stateName": "Florida",
+      "slug": "florida",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/florida/home-delivered-meals",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "home-delivered-meals-on-wheels",
+        "name": "Home Delivered Meals (Meals on Wheels)",
+        "url": "https://olera.care/benefits/florida/home-delivered-meals-on-wheels",
+        "score": 0.86,
+        "contentStatus": "approved"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "FL",
+      "stateName": "Florida",
+      "slug": "florida",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/florida/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "FL",
+      "stateName": "Florida",
+      "slug": "florida",
+      "id": "medicaid-for-aged-and-disabled-meds-ad",
+      "name": "Medicaid for Aged and Disabled (MEDS-AD)",
+      "url": "https://olera.care/benefits/florida/medicaid-for-aged-and-disabled-meds-ad",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "FL",
+      "stateName": "Florida",
+      "slug": "florida",
+      "id": "national-family-caregiver-support-program",
+      "name": "National Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/florida/national-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "aged-blind-and-disabled-medicaid-abd",
+      "name": "Aged, Blind and Disabled Medicaid (ABD)",
+      "url": "https://olera.care/benefits/georgia/aged-blind-and-disabled-medicaid-abd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "elderly-and-disabled-waiver-program-edwp",
+      "name": "Elderly and Disabled Waiver Program (EDWP)",
+      "url": "https://olera.care/benefits/georgia/elderly-and-disabled-waiver-program-edwp",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "georgia-family-caregiver-support-program",
+      "name": "Georgia Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/georgia/georgia-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "georgia-legal-services-program-senior-services",
+      "name": "Georgia Legal Services Program - Senior Services",
+      "url": "https://olera.care/benefits/georgia/georgia-legal-services-program-senior-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "georgia-long-term-care-ombudsman-program",
+      "name": "Georgia Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/georgia/georgia-long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "georgia-senior-medicare-patrol-gsmp",
+      "name": "Georgia Senior Medicare Patrol (GSMP)",
+      "url": "https://olera.care/benefits/georgia/georgia-senior-medicare-patrol-gsmp",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "slug": "georgia",
+      "id": "home-delivered-meals-georgia-elderly-nutrition-program",
+      "name": "Home-Delivered Meals (Georgia Elderly Nutrition Program)",
+      "url": "https://olera.care/benefits/georgia/home-delivered-meals-georgia-elderly-nutrition-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "home-delivered-meals",
+        "name": "Home-Delivered Meals",
+        "url": "https://olera.care/benefits/georgia/home-delivered-meals",
+        "score": 0.82,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "HI",
+      "stateName": "Hawaii",
+      "slug": "hawaii",
+      "id": "aged-blind-and-disabled-abd-medicaid",
+      "name": "Aged, Blind, and Disabled (ABD) Medicaid",
+      "url": "https://olera.care/benefits/hawaii/aged-blind-and-disabled-abd-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "HI",
+      "stateName": "Hawaii",
+      "slug": "hawaii",
+      "id": "assistance-to-the-aged-blind-and-disabled-aabd",
+      "name": "Assistance to the Aged, Blind and Disabled (AABD)",
+      "url": "https://olera.care/benefits/hawaii/assistance-to-the-aged-blind-and-disabled-aabd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "HI",
+      "stateName": "Hawaii",
+      "slug": "hawaii",
+      "id": "home-and-community-based-services-hcbs-waiver",
+      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "url": "https://olera.care/benefits/hawaii/home-and-community-based-services-hcbs-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IA",
+      "stateName": "Iowa",
+      "slug": "iowa",
+      "id": "aged-blind-and-disabled-abd-medicaid",
+      "name": "Aged, Blind, and Disabled (ABD) Medicaid",
+      "url": "https://olera.care/benefits/iowa/aged-blind-and-disabled-abd-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IA",
+      "stateName": "Iowa",
+      "slug": "iowa",
+      "id": "nursing-home-medicaid",
+      "name": "Nursing Home Medicaid",
+      "url": "https://olera.care/benefits/iowa/nursing-home-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ID",
+      "stateName": "Idaho",
+      "slug": "idaho",
+      "id": "idaho-legal-aid-services",
+      "name": "Idaho Legal Aid Services",
+      "url": "https://olera.care/benefits/idaho/idaho-legal-aid-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ID",
+      "stateName": "Idaho",
+      "slug": "idaho",
+      "id": "idaho-senior-health-insurance-assistance-program-ship",
+      "name": "Idaho Senior Health Insurance Assistance Program (SHIP)",
+      "url": "https://olera.care/benefits/idaho/idaho-senior-health-insurance-assistance-program-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ID",
+      "stateName": "Idaho",
+      "slug": "idaho",
+      "id": "medicaid-for-aged-disabled",
+      "name": "Medicaid for Aged/Disabled",
+      "url": "https://olera.care/benefits/idaho/medicaid-for-aged-disabled",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "medicaid-abd-program",
+        "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
+        "url": "https://olera.care/benefits/idaho/medicaid-abd-program",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "aid-to-the-aged-blind-and-disabled-aabd-cash-assistance",
+      "name": "Aid to the Aged, Blind, and Disabled (AABD) Cash Assistance",
+      "url": "https://olera.care/benefits/illinois/aid-to-the-aged-blind-and-disabled-aabd-cash-assistance",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "aid-to-the-aged-blind-and-disabled-aabd-medicaid",
+      "name": "Aid to the Aged, Blind, and Disabled (AABD) Medicaid",
+      "url": "https://olera.care/benefits/illinois/aid-to-the-aged-blind-and-disabled-aabd-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/illinois/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "hcbs-medicaid-waiver-programs",
+      "name": "HCBS Medicaid Waiver Programs",
+      "url": "https://olera.care/benefits/illinois/hcbs-medicaid-waiver-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "liheap-low-income-home-energy-assistance-program",
+      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
+      "url": "https://olera.care/benefits/illinois/liheap-low-income-home-energy-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/illinois/long-term-care-ombudsman-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "long-term-care-ombudsman",
+        "name": "Illinois Long-Term Care Ombudsman Program (LTCOP)",
+        "url": "https://olera.care/benefits/illinois/long-term-care-ombudsman",
+        "score": 0.86,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "senior-citizens-property-tax-freeze",
+      "name": "Senior Citizens Property Tax Freeze",
+      "url": "https://olera.care/benefits/illinois/senior-citizens-property-tax-freeze",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "senior-legal-hotline",
+      "name": "Senior Legal Hotline",
+      "url": "https://olera.care/benefits/illinois/senior-legal-hotline",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "slug": "illinois",
+      "id": "snap-supplemental-nutrition-assistance-program",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/illinois/snap-supplemental-nutrition-assistance-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "Supplemental Nutrition Assistance Program (SNAP)",
+        "url": "https://olera.care/benefits/illinois/snap-food-benefits",
+        "score": 0.82,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "IN",
+      "stateName": "Indiana",
+      "slug": "indiana",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/indiana/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IN",
+      "stateName": "Indiana",
+      "slug": "indiana",
+      "id": "indiana-energy-assistance-program-ieap",
+      "name": "Indiana Energy Assistance Program (IEAP)",
+      "url": "https://olera.care/benefits/indiana/indiana-energy-assistance-program-ieap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "IN",
+      "stateName": "Indiana",
+      "slug": "indiana",
+      "id": "national-family-caregiver-support-program-nfcsp",
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "url": "https://olera.care/benefits/indiana/national-family-caregiver-support-program-nfcsp",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "slug": "kansas",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/kansas/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "slug": "kansas",
+      "id": "home-and-community-based-services-for-the-frail-elderly-waiv",
+      "name": "Home and Community Based Services for the Frail Elderly Waiver",
+      "url": "https://olera.care/benefits/kansas/home-and-community-based-services-for-the-frail-elderly-waiv",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "kancare-frail-elderly-waiver",
+        "name": "KanCare Frail Elderly Waiver (FE Waiver)",
+        "url": "https://olera.care/benefits/kansas/kancare-frail-elderly-waiver",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "slug": "kansas",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/kansas/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "slug": "kansas",
+      "id": "kancare-medicare-buy-in-programs",
+      "name": "KanCare Medicare Buy-In Programs",
+      "url": "https://olera.care/benefits/kansas/kancare-medicare-buy-in-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "slug": "kansas",
+      "id": "kansas-food-assistance-program",
+      "name": "Kansas Food Assistance Program",
+      "url": "https://olera.care/benefits/kansas/kansas-food-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "slug": "kansas",
+      "id": "legal-assistance-for-older-kansans",
+      "name": "Legal Assistance for Older Kansans",
+      "url": "https://olera.care/benefits/kansas/legal-assistance-for-older-kansans",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KY",
+      "stateName": "Kentucky",
+      "slug": "kentucky",
+      "id": "aged-blind-and-disabled-abd-medicaid",
+      "name": "Aged, Blind, and Disabled (ABD) Medicaid",
+      "url": "https://olera.care/benefits/kentucky/aged-blind-and-disabled-abd-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KY",
+      "stateName": "Kentucky",
+      "slug": "kentucky",
+      "id": "area-agency-on-aging-legal-services",
+      "name": "Area Agency on Aging Legal Services",
+      "url": "https://olera.care/benefits/kentucky/area-agency-on-aging-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KY",
+      "stateName": "Kentucky",
+      "slug": "kentucky",
+      "id": "home-delivered-meals-dail",
+      "name": "Home-Delivered Meals (DAIL)",
+      "url": "https://olera.care/benefits/kentucky/home-delivered-meals-dail",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "KY",
+      "stateName": "Kentucky",
+      "slug": "kentucky",
+      "id": "ky-property-tax-homestead-exemption",
+      "name": "KY Property Tax Homestead Exemption",
+      "url": "https://olera.care/benefits/kentucky/ky-property-tax-homestead-exemption",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/louisiana/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "home-delivered-meals-nutrition-program",
+      "name": "Home-Delivered Meals (Nutrition Program)",
+      "url": "https://olera.care/benefits/louisiana/home-delivered-meals-nutrition-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "liheap-low-income-home-energy-assistance-program",
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "url": "https://olera.care/benefits/louisiana/liheap-low-income-home-energy-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/louisiana/long-term-care-ombudsman-program",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "medicaid-long-term-care",
+        "name": "Louisiana Medicaid Long-Term Care Services",
+        "url": "https://olera.care/benefits/louisiana/medicaid-long-term-care",
+        "score": 0.57,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "louisiana-legal-services",
+      "name": "Louisiana Legal Services",
+      "url": "https://olera.care/benefits/louisiana/louisiana-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "louisiana-senior-health-insurance-information-program-la-shi",
+      "name": "Louisiana Senior Health Insurance Information Program (LA SHIP)",
+      "url": "https://olera.care/benefits/louisiana/louisiana-senior-health-insurance-information-program-la-shi",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "slug": "louisiana",
+      "id": "national-family-caregiver-support-program",
+      "name": "National Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/louisiana/national-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "clause-41c-senior-circuit-breaker-tax-credit",
+      "name": "Clause 41C Senior Circuit Breaker Tax Credit",
+      "url": "https://olera.care/benefits/massachusetts/clause-41c-senior-circuit-breaker-tax-credit",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/massachusetts/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "home-delivered-meals-via-elder-affairs-nutrition-program",
+      "name": "Home-Delivered Meals via Elder Affairs Nutrition Program",
+      "url": "https://olera.care/benefits/massachusetts/home-delivered-meals-via-elder-affairs-nutrition-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "legal-services-for-elders-via-elder-law-projects",
+      "name": "Legal Services for Elders via Elder Law Projects",
+      "url": "https://olera.care/benefits/massachusetts/legal-services-for-elders-via-elder-law-projects",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "liheap-low-income-home-energy-assistance-program",
+      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
+      "url": "https://olera.care/benefits/massachusetts/liheap-low-income-home-energy-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "masshealth-buy-in-qmb-slmb-qi",
+      "name": "MassHealth Buy-In (QMB/SLMB/QI)",
+      "url": "https://olera.care/benefits/massachusetts/masshealth-buy-in-qmb-slmb-qi",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "masshealth-senior-pharmacy-program-spap",
+      "name": "MassHealth Senior Pharmacy Program (SPAP)",
+      "url": "https://olera.care/benefits/massachusetts/masshealth-senior-pharmacy-program-spap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "masshealth-standard-aged-blind-and-disabled-medicaid",
+      "name": "MassHealth Standard (Aged, Blind, and Disabled Medicaid)",
+      "url": "https://olera.care/benefits/massachusetts/masshealth-standard-aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "ship-state-health-insurance-assistance-program",
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "url": "https://olera.care/benefits/massachusetts/ship-state-health-insurance-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "slug": "massachusetts",
+      "id": "state-supplement-to-ssi",
+      "name": "State Supplement to SSI",
+      "url": "https://olera.care/benefits/massachusetts/state-supplement-to-ssi",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MD",
+      "stateName": "Maryland",
+      "slug": "maryland",
+      "id": "maryland-eid-program-employed-individuals-with-disabilities",
+      "name": "Maryland EID Program - Employed Individuals with Disabilities",
+      "url": "https://olera.care/benefits/maryland/maryland-eid-program-employed-individuals-with-disabilities",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MD",
+      "stateName": "Maryland",
+      "slug": "maryland",
+      "id": "maryland-hcbs-waivers-medicaid-waiver-programs",
+      "name": "Maryland HCBS Waivers - Medicaid Waiver Programs",
+      "url": "https://olera.care/benefits/maryland/maryland-hcbs-waivers-medicaid-waiver-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MD",
+      "stateName": "Maryland",
+      "slug": "maryland",
+      "id": "maryland-medical-assistance-medically-needy-pathway",
+      "name": "Maryland Medical Assistance - Medically Needy Pathway",
+      "url": "https://olera.care/benefits/maryland/maryland-medical-assistance-medically-needy-pathway",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MD",
+      "stateName": "Maryland",
+      "slug": "maryland",
+      "id": "maryland-medical-assistance-nursing-home-medicaid",
+      "name": "Maryland Medical Assistance - Nursing Home Medicaid",
+      "url": "https://olera.care/benefits/maryland/maryland-medical-assistance-nursing-home-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MD",
+      "stateName": "Maryland",
+      "slug": "maryland",
+      "id": "maryland-medical-assistance-regular-medicaid-abd",
+      "name": "Maryland Medical Assistance - Regular Medicaid/ABD",
+      "url": "https://olera.care/benefits/maryland/maryland-medical-assistance-regular-medicaid-abd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "legal-services-for-maine-s-elders",
+      "name": "Legal Services for Maine's Elders",
+      "url": "https://olera.care/benefits/maine/legal-services-for-maine-s-elders",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "maine-family-caregiver-support-program",
+      "name": "Maine Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/maine/maine-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "maine-long-term-care-ombudsman-program",
+      "name": "Maine Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/maine/maine-long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "maine-property-tax-stabilization-for-seniors",
+      "name": "Maine Property Tax Stabilization for Seniors",
+      "url": "https://olera.care/benefits/maine/maine-property-tax-stabilization-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "maine-state-ssi-supplement",
+      "name": "Maine State SSI Supplement",
+      "url": "https://olera.care/benefits/maine/maine-state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "mainecare-aged-blind-and-disabled",
+      "name": "MaineCare Aged, Blind, and Disabled",
+      "url": "https://olera.care/benefits/maine/mainecare-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "mainecare-elderly-and-adults-with-disabilities-waiver",
+      "name": "MaineCare Elderly and Adults with Disabilities Waiver",
+      "url": "https://olera.care/benefits/maine/mainecare-elderly-and-adults-with-disabilities-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "slug": "maine",
+      "id": "mainecare-medicare-savings-programs",
+      "name": "MaineCare Medicare Savings Programs",
+      "url": "https://olera.care/benefits/maine/mainecare-medicare-savings-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "area-agency-on-aging-legal-services",
+      "name": "Area Agency on Aging Legal Services",
+      "url": "https://olera.care/benefits/michigan/area-agency-on-aging-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/michigan/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "food-assistance-program",
+      "name": "Food Assistance Program",
+      "url": "https://olera.care/benefits/michigan/food-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/michigan/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/michigan/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "medicaid-for-aged-and-disabled",
+      "name": "Medicaid for Aged and Disabled",
+      "url": "https://olera.care/benefits/michigan/medicaid-for-aged-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "medicare-savings-program",
+      "name": "Medicare Savings Program",
+      "url": "https://olera.care/benefits/michigan/medicare-savings-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "michigan-pace",
+      "name": "Michigan PACE",
+      "url": "https://olera.care/benefits/michigan/michigan-pace",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "michigan-ship",
+      "name": "Michigan SHIP",
+      "url": "https://olera.care/benefits/michigan/michigan-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "property-tax-credit-for-seniors",
+      "name": "Property Tax Credit for Seniors",
+      "url": "https://olera.care/benefits/michigan/property-tax-credit-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "state-emergency-relief",
+      "name": "State Emergency Relief",
+      "url": "https://olera.care/benefits/michigan/state-emergency-relief",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "slug": "michigan",
+      "id": "state-ssi-supplement",
+      "name": "State SSI Supplement",
+      "url": "https://olera.care/benefits/michigan/state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/minnesota/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "low-income-home-energy-assistance-program-liheap",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "url": "https://olera.care/benefits/minnesota/low-income-home-energy-assistance-program-liheap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "minnesota-property-tax-refund-ptf-for-seniors",
+      "name": "Minnesota Property Tax Refund (PTF) for Seniors",
+      "url": "https://olera.care/benefits/minnesota/minnesota-property-tax-refund-ptf-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "minnesota-supplemental-aid-msa",
+      "name": "Minnesota Supplemental Aid (MSA)",
+      "url": "https://olera.care/benefits/minnesota/minnesota-supplemental-aid-msa",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "url": "https://olera.care/benefits/minnesota/program-of-all-inclusive-care-for-the-elderly-pace",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "senior-legal-helpline",
+      "name": "Senior Legal Helpline",
+      "url": "https://olera.care/benefits/minnesota/senior-legal-helpline",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "slug": "minnesota",
+      "id": "senior-nutrition-home-delivered-meals",
+      "name": "Senior Nutrition Home-Delivered Meals",
+      "url": "https://olera.care/benefits/minnesota/senior-nutrition-home-delivered-meals",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "senior-nutrition-meals-on-wheels",
+        "name": "Senior Nutrition Program (Meals on Wheels)",
+        "url": "https://olera.care/benefits/minnesota/senior-nutrition-meals-on-wheels",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "MO",
+      "stateName": "Missouri",
+      "slug": "missouri",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/missouri/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MO",
+      "stateName": "Missouri",
+      "slug": "missouri",
+      "id": "missouri-legal-services-for-seniors",
+      "name": "Missouri Legal Services for Seniors",
+      "url": "https://olera.care/benefits/missouri/missouri-legal-services-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MO",
+      "stateName": "Missouri",
+      "slug": "missouri",
+      "id": "senior-home-delivered-meals",
+      "name": "Senior Home-Delivered Meals",
+      "url": "https://olera.care/benefits/missouri/senior-home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MS",
+      "stateName": "Mississippi",
+      "slug": "mississippi",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/mississippi/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "MS",
+      "stateName": "Mississippi",
+      "slug": "mississippi",
+      "id": "mississippi-ship-state-health-insurance-assistance-program",
+      "name": "Mississippi SHIP (State Health Insurance Assistance Program)",
+      "url": "https://olera.care/benefits/mississippi/mississippi-ship-state-health-insurance-assistance-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "ship-medicare-counseling",
+        "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
+        "url": "https://olera.care/benefits/mississippi/ship-medicare-counseling",
+        "score": 1,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "MS",
+      "stateName": "Mississippi",
+      "slug": "mississippi",
+      "id": "snap-supplemental-nutrition-assistance-program",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/mississippi/snap-supplemental-nutrition-assistance-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "SNAP (Supplemental Nutrition Assistance Program) in Mississippi",
+        "url": "https://olera.care/benefits/mississippi/snap-food-benefits",
+        "score": 0.86,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "MT",
+      "stateName": "Montana",
+      "slug": "montana",
+      "id": "montana-medicaid-for-workers-with-disabilities",
+      "name": "Montana Medicaid for Workers with Disabilities",
+      "url": "https://olera.care/benefits/montana/montana-medicaid-for-workers-with-disabilities",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "circuit-breaker-property-tax-deferral",
+      "name": "Circuit Breaker Property Tax Deferral",
+      "url": "https://olera.care/benefits/north-carolina/circuit-breaker-property-tax-deferral",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "community-alternatives-program-for-disabled-adults-cap-da",
+      "name": "Community Alternatives Program for Disabled Adults (CAP/DA)",
+      "url": "https://olera.care/benefits/north-carolina/community-alternatives-program-for-disabled-adults-cap-da",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "legal-aid-of-north-carolina-senior-legal-services",
+      "name": "Legal Aid of North Carolina Senior Legal Services",
+      "url": "https://olera.care/benefits/north-carolina/legal-aid-of-north-carolina-senior-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/north-carolina/long-term-care-ombudsman-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "long-term-care-ombudsman",
+        "name": "NC Long-Term Care Ombudsman Program",
+        "url": "https://olera.care/benefits/north-carolina/long-term-care-ombudsman",
+        "score": 0.86,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "low-income-energy-assistance-program-lieap",
+      "name": "Low-Income Energy Assistance Program (LIEAP)",
+      "url": "https://olera.care/benefits/north-carolina/low-income-energy-assistance-program-lieap",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "liheap-energy-assistance",
+        "name": "NC Low-Income Energy Assistance Program (LIHEAP)",
+        "url": "https://olera.care/benefits/north-carolina/liheap-energy-assistance",
+        "score": 0.667,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "regular-medicaid-aged-blind-and-disabled",
+      "name": "Regular Medicaid / Aged Blind and Disabled",
+      "url": "https://olera.care/benefits/north-carolina/regular-medicaid-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "senior-health-insurance-information-program-shiip",
+      "name": "Senior Health Insurance Information Program (SHIIP)",
+      "url": "https://olera.care/benefits/north-carolina/senior-health-insurance-information-program-shiip",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "slug": "north-carolina",
+      "id": "special-assistance-state-ssi-supplement",
+      "name": "Special Assistance (State SSI Supplement)",
+      "url": "https://olera.care/benefits/north-carolina/special-assistance-state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "aged-blind-and-disabled-abd-medicaid",
+      "name": "Aged, Blind and Disabled (ABD) Medicaid",
+      "url": "https://olera.care/benefits/north-dakota/aged-blind-and-disabled-abd-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "home-and-community-based-services-hcbs-waiver",
+      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "url": "https://olera.care/benefits/north-dakota/home-and-community-based-services-hcbs-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "legal-services-of-north-dakota-senior-legal-helpline",
+      "name": "Legal Services of North Dakota - Senior Legal Helpline",
+      "url": "https://olera.care/benefits/north-dakota/legal-services-of-north-dakota-senior-legal-helpline",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "liheap-low-income-home-energy-assistance-program",
+      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
+      "url": "https://olera.care/benefits/north-dakota/liheap-low-income-home-energy-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/north-dakota/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "medicare-savings-programs",
+      "name": "Medicare Savings Programs",
+      "url": "https://olera.care/benefits/north-dakota/medicare-savings-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "national-family-caregiver-support-program",
+      "name": "National Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/north-dakota/national-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "senior-dining-services-home-delivered-meals",
+      "name": "Senior Dining Services (Home-Delivered Meals)",
+      "url": "https://olera.care/benefits/north-dakota/senior-dining-services-home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "senior-medicare-patrol-smp",
+      "name": "Senior Medicare Patrol (SMP)",
+      "url": "https://olera.care/benefits/north-dakota/senior-medicare-patrol-smp",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "slug": "north-dakota",
+      "id": "snap-supplemental-nutrition-assistance-program",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/north-dakota/snap-supplemental-nutrition-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NE",
+      "stateName": "Nebraska",
+      "slug": "nebraska",
+      "id": "nebraska-aged-and-disabled-waiver-hcbs",
+      "name": "Nebraska Aged and Disabled Waiver HCBS",
+      "url": "https://olera.care/benefits/nebraska/nebraska-aged-and-disabled-waiver-hcbs",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "aged-disabled-waiver",
+        "name": "Aged and Disabled Waiver",
+        "url": "https://olera.care/benefits/nebraska/aged-disabled-waiver",
+        "score": 0.82,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "NE",
+      "stateName": "Nebraska",
+      "slug": "nebraska",
+      "id": "nebraska-family-caregiver-support-program",
+      "name": "Nebraska Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/nebraska/nebraska-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NE",
+      "stateName": "Nebraska",
+      "slug": "nebraska",
+      "id": "nebraska-legal-aid-for-seniors",
+      "name": "Nebraska Legal Aid for Seniors",
+      "url": "https://olera.care/benefits/nebraska/nebraska-legal-aid-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NE",
+      "stateName": "Nebraska",
+      "slug": "nebraska",
+      "id": "nebraska-medicaid-aged-and-disabled-waiver",
+      "name": "Nebraska Medicaid Aged and Disabled Waiver",
+      "url": "https://olera.care/benefits/nebraska/nebraska-medicaid-aged-and-disabled-waiver",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "aged-disabled-waiver",
+        "name": "Aged and Disabled Waiver",
+        "url": "https://olera.care/benefits/nebraska/aged-disabled-waiver",
+        "score": 0.82,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "slug": "new-hampshire",
+      "id": "elderly-exemption-property-tax-credit",
+      "name": "Elderly Exemption Property Tax Credit",
+      "url": "https://olera.care/benefits/new-hampshire/elderly-exemption-property-tax-credit",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "slug": "new-hampshire",
+      "id": "home-delivered-meals",
+      "name": "Home Delivered Meals",
+      "url": "https://olera.care/benefits/new-hampshire/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "slug": "new-hampshire",
+      "id": "medicare-savings-program",
+      "name": "Medicare Savings Program",
+      "url": "https://olera.care/benefits/new-hampshire/medicare-savings-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "medicare-savings-programs",
+        "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+        "url": "https://olera.care/benefits/new-hampshire/medicare-savings-programs",
+        "score": 0.86,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "slug": "new-hampshire",
+      "id": "shine",
+      "name": "SHINE",
+      "url": "https://olera.care/benefits/new-hampshire/shine",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "slug": "new-hampshire",
+      "id": "snap-nutrition-assistance",
+      "name": "SNAP Nutrition Assistance",
+      "url": "https://olera.care/benefits/new-hampshire/snap-nutrition-assistance",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "SNAP (Supplemental Nutrition Assistance Program)",
+        "url": "https://olera.care/benefits/new-hampshire/snap-food-benefits",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-family-caregiver-support-program",
+      "name": "New Jersey Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-home-delivered-meals",
+      "name": "New Jersey Home Delivered Meals",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-long-term-care-ombudsman-program",
+      "name": "New Jersey Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-pace-program-of-all-inclusive-care-for-the-elderl",
+      "name": "New Jersey PACE (Program of All-Inclusive Care for the Elderly)",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-pace-program-of-all-inclusive-care-for-the-elderl",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-senior-legal-services",
+      "name": "New Jersey Senior Legal Services",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-senior-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-ship-state-health-insurance-assistance-program",
+      "name": "New Jersey SHIP (State Health Insurance Assistance Program)",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-ship-state-health-insurance-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "new-jersey-ssi-state-supplement",
+      "name": "New Jersey SSI State Supplement",
+      "url": "https://olera.care/benefits/new-jersey/new-jersey-ssi-state-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "nj-familycare-aged-blind-disabled-abd-programs",
+      "name": "NJ FamilyCare Aged, Blind, Disabled (ABD) Programs",
+      "url": "https://olera.care/benefits/new-jersey/nj-familycare-aged-blind-disabled-abd-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "nj-familycare-managed-long-term-services-and-supports-mltss-",
+      "name": "NJ FamilyCare Managed Long Term Services and Supports (MLTSS) Waiver",
+      "url": "https://olera.care/benefits/new-jersey/nj-familycare-managed-long-term-services-and-supports-mltss-",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "nj-familycare-medicare-savings-programs",
+      "name": "NJ FamilyCare Medicare Savings Programs",
+      "url": "https://olera.care/benefits/new-jersey/nj-familycare-medicare-savings-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "nj-liheap-low-income-home-energy-assistance-program",
+      "name": "NJ LIHEAP (Low Income Home Energy Assistance Program)",
+      "url": "https://olera.care/benefits/new-jersey/nj-liheap-low-income-home-energy-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "slug": "new-jersey",
+      "id": "nj-snap-supplemental-nutrition-assistance-program",
+      "name": "NJ SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/new-jersey/nj-snap-supplemental-nutrition-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "centennial-care-aged-blind-and-disabled",
+      "name": "Centennial Care Aged, Blind, and Disabled",
+      "url": "https://olera.care/benefits/new-mexico/centennial-care-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "centennial-care-home-and-community-based-services-waiver",
+      "name": "Centennial Care Home and Community Based Services Waiver",
+      "url": "https://olera.care/benefits/new-mexico/centennial-care-home-and-community-based-services-waiver",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "centennial-care-community-benefit",
+        "name": "Centennial Care Community Benefit Program",
+        "url": "https://olera.care/benefits/new-mexico/centennial-care-community-benefit",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "low-income-home-energy-assistance-program-liheap",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "url": "https://olera.care/benefits/new-mexico/low-income-home-energy-assistance-program-liheap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "new-mexico-family-caregiver-support-program",
+      "name": "New Mexico Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/new-mexico/new-mexico-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "new-mexico-home-delivered-meals",
+      "name": "New Mexico Home-Delivered Meals",
+      "url": "https://olera.care/benefits/new-mexico/new-mexico-home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "new-mexico-legal-aid-senior-services",
+      "name": "New Mexico Legal Aid Senior Services",
+      "url": "https://olera.care/benefits/new-mexico/new-mexico-legal-aid-senior-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "new-mexico-long-term-care-ombudsman-program",
+      "name": "New Mexico Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/new-mexico/new-mexico-long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "new-mexico-senior-health-insurance-assistance-program-ship",
+      "name": "New Mexico Senior Health Insurance Assistance Program (SHIP)",
+      "url": "https://olera.care/benefits/new-mexico/new-mexico-senior-health-insurance-assistance-program-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "qualified-medicare-beneficiary-qmb",
+      "name": "Qualified Medicare Beneficiary (QMB)",
+      "url": "https://olera.care/benefits/new-mexico/qualified-medicare-beneficiary-qmb",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "slug": "new-mexico",
+      "id": "snap-supplemental-nutrition-assistance-program",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/new-mexico/snap-supplemental-nutrition-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NV",
+      "stateName": "Nevada",
+      "slug": "nevada",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/nevada/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NV",
+      "stateName": "Nevada",
+      "slug": "nevada",
+      "id": "medical-assistance-to-the-aged-blind-and-disabled-maabd",
+      "name": "Medical Assistance to the Aged, Blind, and Disabled (MAABD)",
+      "url": "https://olera.care/benefits/nevada/medical-assistance-to-the-aged-blind-and-disabled-maabd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NV",
+      "stateName": "Nevada",
+      "slug": "nevada",
+      "id": "nevada-legal-services-for-seniors",
+      "name": "Nevada Legal Services for Seniors",
+      "url": "https://olera.care/benefits/nevada/nevada-legal-services-for-seniors",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "senior-rx-program",
+        "name": "Nevada Senior Rx Program",
+        "url": "https://olera.care/benefits/nevada/senior-rx-program",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "slug": "new-york",
+      "id": "caregiver-resource-center",
+      "name": "Caregiver Resource Center",
+      "url": "https://olera.care/benefits/new-york/caregiver-resource-center",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "nyfsc-respite-care",
+        "name": "Respite Care Program (NYFSC) / Caregiver Resource Centers",
+        "url": "https://olera.care/benefits/new-york/nyfsc-respite-care",
+        "score": 0.86,
+        "contentStatus": "approved"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "slug": "new-york",
+      "id": "elderly-pharmaceutical-insurance-coverage-epic",
+      "name": "Elderly Pharmaceutical Insurance Coverage (EPIC)",
+      "url": "https://olera.care/benefits/new-york/elderly-pharmaceutical-insurance-coverage-epic",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "slug": "new-york",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/new-york/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "slug": "new-york",
+      "id": "medicaid-for-aged-blind-and-disabled",
+      "name": "Medicaid for Aged, Blind and Disabled",
+      "url": "https://olera.care/benefits/new-york/medicaid-for-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "slug": "new-york",
+      "id": "older-americans-act-nutrition-program-meals-on-wheels",
+      "name": "Older Americans Act Nutrition Program (Meals on Wheels)",
+      "url": "https://olera.care/benefits/new-york/older-americans-act-nutrition-program-meals-on-wheels",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "slug": "new-york",
+      "id": "property-tax-relief-for-seniors",
+      "name": "Property Tax Relief for Seniors",
+      "url": "https://olera.care/benefits/new-york/property-tax-relief-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OH",
+      "stateName": "Ohio",
+      "slug": "ohio",
+      "id": "homestead-exemption",
+      "name": "Homestead Exemption",
+      "url": "https://olera.care/benefits/ohio/homestead-exemption",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OH",
+      "stateName": "Ohio",
+      "slug": "ohio",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/ohio/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OH",
+      "stateName": "Ohio",
+      "slug": "ohio",
+      "id": "medicare-premium-assistance-programs",
+      "name": "Medicare Premium Assistance Programs",
+      "url": "https://olera.care/benefits/ohio/medicare-premium-assistance-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OH",
+      "stateName": "Ohio",
+      "slug": "ohio",
+      "id": "ohio-legal-services-for-seniors",
+      "name": "Ohio Legal Services for Seniors",
+      "url": "https://olera.care/benefits/ohio/ohio-legal-services-for-seniors",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "legal-assistance-seniors",
+        "name": "Legal Assistance for Seniors (via Ohio Legal Services)",
+        "url": "https://olera.care/benefits/ohio/legal-assistance-seniors",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "slug": "oklahoma",
+      "id": "commodity-supplemental-food-program-csfp-and-home-delivered-",
+      "name": "Commodity Supplemental Food Program (CSFP) and Home-Delivered Meals",
+      "url": "https://olera.care/benefits/oklahoma/commodity-supplemental-food-program-csfp-and-home-delivered-",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "slug": "oklahoma",
+      "id": "legal-aid-services-of-oklahoma-senior-legal-hotline",
+      "name": "Legal Aid Services of Oklahoma - Senior Legal Hotline",
+      "url": "https://olera.care/benefits/oklahoma/legal-aid-services-of-oklahoma-senior-legal-hotline",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "legal-assistance-seniors",
+        "name": "Legal Assistance for Seniors (Legal Aid Services of Oklahoma)",
+        "url": "https://olera.care/benefits/oklahoma/legal-assistance-seniors",
+        "score": 0.6,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "slug": "oklahoma",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/oklahoma/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "slug": "oklahoma",
+      "id": "national-family-caregiver-support-program",
+      "name": "National Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/oklahoma/national-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "slug": "oklahoma",
+      "id": "oklahoma-senior-health-insurance-assistance-program-ship",
+      "name": "Oklahoma Senior Health Insurance Assistance Program (SHIP)",
+      "url": "https://olera.care/benefits/oklahoma/oklahoma-senior-health-insurance-assistance-program-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "OR",
+      "stateName": "Oregon",
+      "slug": "oregon",
+      "id": "oregon-medicaid-aged-and-physically-disabled-apd-waiver",
+      "name": "Oregon Medicaid - Aged and Physically Disabled (APD) Waiver",
+      "url": "https://olera.care/benefits/oregon/oregon-medicaid-aged-and-physically-disabled-apd-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/pennsylvania/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "liheap",
+      "name": "LIHEAP",
+      "url": "https://olera.care/benefits/pennsylvania/liheap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "medicare-savings-programs",
+      "name": "Medicare Savings Programs",
+      "url": "https://olera.care/benefits/pennsylvania/medicare-savings-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "pennsylvania-legal-aid-network-senior-legal-services",
+      "name": "Pennsylvania Legal Aid Network - Senior Legal Services",
+      "url": "https://olera.care/benefits/pennsylvania/pennsylvania-legal-aid-network-senior-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "pennsylvania-ship",
+      "name": "Pennsylvania SHIP",
+      "url": "https://olera.care/benefits/pennsylvania/pennsylvania-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "property-tax-rent-rebate-program",
+      "name": "Property Tax/Rent Rebate Program",
+      "url": "https://olera.care/benefits/pennsylvania/property-tax-rent-rebate-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "snap",
+      "name": "SNAP",
+      "url": "https://olera.care/benefits/pennsylvania/snap",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "SNAP (Supplemental Nutrition Assistance Program)",
+        "url": "https://olera.care/benefits/pennsylvania/snap-food-benefits",
+        "score": 0.86,
+        "contentStatus": "approved"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "slug": "pennsylvania",
+      "id": "state-ssi-supplement",
+      "name": "State SSI Supplement",
+      "url": "https://olera.care/benefits/pennsylvania/state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "long-term-services-and-supports-ltss-waiver",
+      "name": "Long Term Services and Supports (LTSS) Waiver",
+      "url": "https://olera.care/benefits/rhode-island/long-term-services-and-supports-ltss-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "meals-on-wheels-rhode-island",
+      "name": "Meals on Wheels Rhode Island",
+      "url": "https://olera.care/benefits/rhode-island/meals-on-wheels-rhode-island",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "meals-on-wheels",
+        "name": "Meals on Wheels of Rhode Island",
+        "url": "https://olera.care/benefits/rhode-island/meals-on-wheels",
+        "score": 1,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "medicaid-for-elders-and-adults-with-disabilities-ead",
+      "name": "Medicaid for Elders and Adults with Disabilities (EAD)",
+      "url": "https://olera.care/benefits/rhode-island/medicaid-for-elders-and-adults-with-disabilities-ead",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "rhode-island-family-caregiver-support-program",
+      "name": "Rhode Island Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/rhode-island/rhode-island-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "rhode-island-legal-services-senior-law-project",
+      "name": "Rhode Island Legal Services Senior Law Project",
+      "url": "https://olera.care/benefits/rhode-island/rhode-island-legal-services-senior-law-project",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "rhode-island-property-tax-relief-for-seniors",
+      "name": "Rhode Island Property Tax Relief for Seniors",
+      "url": "https://olera.care/benefits/rhode-island/rhode-island-property-tax-relief-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "rhode-island-snap",
+      "name": "Rhode Island SNAP",
+      "url": "https://olera.care/benefits/rhode-island/rhode-island-snap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "slug": "rhode-island",
+      "id": "rhode-island-state-ssi-supplement",
+      "name": "Rhode Island State SSI Supplement",
+      "url": "https://olera.care/benefits/rhode-island/rhode-island-state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "slug": "south-carolina",
+      "id": "family-caregiver-support-program",
+      "name": "Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/south-carolina/family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "slug": "south-carolina",
+      "id": "healthy-connections-aged-blind-or-disabled-abd",
+      "name": "Healthy Connections Aged, Blind or Disabled (ABD)",
+      "url": "https://olera.care/benefits/south-carolina/healthy-connections-aged-blind-or-disabled-abd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "slug": "south-carolina",
+      "id": "home-delivered-meals-sc-department-on-aging",
+      "name": "Home Delivered Meals (SC Department on Aging)",
+      "url": "https://olera.care/benefits/south-carolina/home-delivered-meals-sc-department-on-aging",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "slug": "south-carolina",
+      "id": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "url": "https://olera.care/benefits/south-carolina/program-of-all-inclusive-care-for-the-elderly-pace",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "slug": "south-carolina",
+      "id": "south-carolina-legal-services-senior-legal-services",
+      "name": "South Carolina Legal Services Senior Legal Services",
+      "url": "https://olera.care/benefits/south-carolina/south-carolina-legal-services-senior-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "slug": "south-carolina",
+      "id": "south-carolina-ship",
+      "name": "South Carolina SHIP",
+      "url": "https://olera.care/benefits/south-carolina/south-carolina-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SD",
+      "stateName": "South Dakota",
+      "slug": "south-dakota",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/south-dakota/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SD",
+      "stateName": "South Dakota",
+      "slug": "south-dakota",
+      "id": "low-income-home-energy-assistance-program-liheap",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "url": "https://olera.care/benefits/south-dakota/low-income-home-energy-assistance-program-liheap",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "lieap-energy-assistance",
+        "name": "Low Income Energy Assistance Program (LIEAP)",
+        "url": "https://olera.care/benefits/south-dakota/lieap-energy-assistance",
+        "score": 0.571,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "SD",
+      "stateName": "South Dakota",
+      "slug": "south-dakota",
+      "id": "regular-medicaid-aged-blind-and-disabled",
+      "name": "Regular Medicaid / Aged, Blind, and Disabled",
+      "url": "https://olera.care/benefits/south-dakota/regular-medicaid-aged-blind-and-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "SD",
+      "stateName": "South Dakota",
+      "slug": "south-dakota",
+      "id": "senior-legal-services",
+      "name": "Senior Legal Services",
+      "url": "https://olera.care/benefits/south-dakota/senior-legal-services",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "legal-aid-seniors",
+        "name": "Legal Aid for Seniors",
+        "url": "https://olera.care/benefits/south-dakota/legal-aid-seniors",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "SD",
+      "stateName": "South Dakota",
+      "slug": "south-dakota",
+      "id": "south-dakota-senior-health-insurance-assistance-program-ship",
+      "name": "South Dakota Senior Health Insurance Assistance Program (SHIP)",
+      "url": "https://olera.care/benefits/south-dakota/south-dakota-senior-health-insurance-assistance-program-ship",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "slug": "tennessee",
+      "id": "tenncare-choices-hcbs-waiver",
+      "name": "TennCare CHOICES HCBS Waiver",
+      "url": "https://olera.care/benefits/tennessee/tenncare-choices-hcbs-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "slug": "tennessee",
+      "id": "tenncare-choices-in-long-term-services-and-supports",
+      "name": "TennCare CHOICES in Long-Term Services and Supports",
+      "url": "https://olera.care/benefits/tennessee/tenncare-choices-in-long-term-services-and-supports",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "slug": "tennessee",
+      "id": "tennessee-home-delivered-meals",
+      "name": "Tennessee Home-Delivered Meals",
+      "url": "https://olera.care/benefits/tennessee/tennessee-home-delivered-meals",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "meals-on-wheels",
+        "name": "Tennessee Meals on Wheels",
+        "url": "https://olera.care/benefits/tennessee/meals-on-wheels",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "slug": "tennessee",
+      "id": "tennessee-liheap-low-income-home-energy-assistance-program",
+      "name": "Tennessee LIHEAP (Low Income Home Energy Assistance Program)",
+      "url": "https://olera.care/benefits/tennessee/tennessee-liheap-low-income-home-energy-assistance-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "liheap-energy-assistance",
+        "name": "Tennessee LIHEAP",
+        "url": "https://olera.care/benefits/tennessee/liheap-energy-assistance",
+        "score": 0.82,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "slug": "tennessee",
+      "id": "tennessee-senior-legal-services",
+      "name": "Tennessee Senior Legal Services",
+      "url": "https://olera.care/benefits/tennessee/tennessee-senior-legal-services",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "slug": "tennessee",
+      "id": "tennessee-snap-supplemental-nutrition-assistance-program",
+      "name": "Tennessee SNAP (Supplemental Nutrition Assistance Program)",
+      "url": "https://olera.care/benefits/tennessee/tennessee-snap-supplemental-nutrition-assistance-program",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "snap-food-benefits",
+        "name": "Tennessee SNAP",
+        "url": "https://olera.care/benefits/tennessee/snap-food-benefits",
+        "score": 0.82,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "UT",
+      "stateName": "Utah",
+      "slug": "utah",
+      "id": "medicaid-expansion",
+      "name": "Medicaid Expansion",
+      "url": "https://olera.care/benefits/utah/medicaid-expansion",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "UT",
+      "stateName": "Utah",
+      "slug": "utah",
+      "id": "medicaid-for-aged-blind-or-disabled",
+      "name": "Medicaid for Aged, Blind or Disabled",
+      "url": "https://olera.care/benefits/utah/medicaid-for-aged-blind-or-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "UT",
+      "stateName": "Utah",
+      "slug": "utah",
+      "id": "new-choices-waiver",
+      "name": "New Choices Waiver",
+      "url": "https://olera.care/benefits/utah/new-choices-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "UT",
+      "stateName": "Utah",
+      "slug": "utah",
+      "id": "physical-disabilities-waiver",
+      "name": "Physical Disabilities Waiver",
+      "url": "https://olera.care/benefits/utah/physical-disabilities-waiver",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "low-income-home-energy-assistance-program-liheap",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "url": "https://olera.care/benefits/virginia/low-income-home-energy-assistance-program-liheap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "medicaid-for-aged-blind-or-disabled-abd",
+      "name": "Medicaid for Aged, Blind, or Disabled (ABD)",
+      "url": "https://olera.care/benefits/virginia/medicaid-for-aged-blind-or-disabled-abd",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "medicare-savings-programs-qmb-slmb-qi",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "url": "https://olera.care/benefits/virginia/medicare-savings-programs-qmb-slmb-qi",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "program-of-all-inclusive-care-for-the-elderly-pace",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "url": "https://olera.care/benefits/virginia/program-of-all-inclusive-care-for-the-elderly-pace",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "supplemental-nutrition-assistance-program-snap",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "url": "https://olera.care/benefits/virginia/supplemental-nutrition-assistance-program-snap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "virginia-family-caregiver-support-program",
+      "name": "Virginia Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/virginia/virginia-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "virginia-home-delivered-meals-program",
+      "name": "Virginia Home-Delivered Meals Program",
+      "url": "https://olera.care/benefits/virginia/virginia-home-delivered-meals-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "virginia-long-term-care-ombudsman-program",
+      "name": "Virginia Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/virginia/virginia-long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "virginia-property-tax-exemption-for-elderly-disabled",
+      "name": "Virginia Property Tax Exemption for Elderly/Disabled",
+      "url": "https://olera.care/benefits/virginia/virginia-property-tax-exemption-for-elderly-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "slug": "virginia",
+      "id": "virginia-senior-citizens-law-project",
+      "name": "Virginia Senior Citizens Law Project",
+      "url": "https://olera.care/benefits/virginia/virginia-senior-citizens-law-project",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "3squares-vermont-snap",
+      "name": "3Squares Vermont (SNAP)",
+      "url": "https://olera.care/benefits/vermont/3squares-vermont-snap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "choices-for-care-hcbs-waiver",
+      "name": "Choices for Care HCBS Waiver",
+      "url": "https://olera.care/benefits/vermont/choices-for-care-hcbs-waiver",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "choices-for-care-waiver",
+        "name": "Choices for Care (CFC) Waiver",
+        "url": "https://olera.care/benefits/vermont/choices-for-care-waiver",
+        "score": 0.712,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "general-assistance-fuel",
+      "name": "General Assistance Fuel",
+      "url": "https://olera.care/benefits/vermont/general-assistance-fuel",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "fuel-assistance-heating-help",
+        "name": "Fuel Assistance Program",
+        "url": "https://olera.care/benefits/vermont/fuel-assistance-heating-help",
+        "score": 0.667,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/vermont/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "legal-services-for-older-vermonters",
+      "name": "Legal Services for Older Vermonters",
+      "url": "https://olera.care/benefits/vermont/legal-services-for-older-vermonters",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "3squaresvt-older-vermonters",
+        "name": "3SquaresVT for Older Vermonters",
+        "url": "https://olera.care/benefits/vermont/3squaresvt-older-vermonters",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "medicaid-for-the-aged-blind-and-disabled-mabd",
+      "name": "Medicaid for the Aged, Blind and Disabled (MABD)",
+      "url": "https://olera.care/benefits/vermont/medicaid-for-the-aged-blind-and-disabled-mabd",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "medicaid-abd",
+        "name": "Medicaid for Aged, Blind, and Disabled (ABD)",
+        "url": "https://olera.care/benefits/vermont/medicaid-abd",
+        "score": 0.667,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "property-tax-adjustment-renter-property-tax-credit",
+      "name": "Property Tax Adjustment (Renter/Property Tax Credit)",
+      "url": "https://olera.care/benefits/vermont/property-tax-adjustment-renter-property-tax-credit",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "slug": "vermont",
+      "id": "state-ssi-supplement-essential-person-benefit",
+      "name": "State SSI Supplement (Essential Person Benefit)",
+      "url": "https://olera.care/benefits/vermont/state-ssi-supplement-essential-person-benefit",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WA",
+      "stateName": "Washington",
+      "slug": "washington",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/washington/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WA",
+      "stateName": "Washington",
+      "slug": "washington",
+      "id": "senior-legal-services",
+      "name": "Senior Legal Services",
+      "url": "https://olera.care/benefits/washington/senior-legal-services",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "legal-aid-seniors",
+        "name": "Legal Aid for Seniors",
+        "url": "https://olera.care/benefits/washington/legal-aid-seniors",
+        "score": 0.5,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "WA",
+      "stateName": "Washington",
+      "slug": "washington",
+      "id": "tailored-supports-for-older-adults",
+      "name": "Tailored Supports for Older Adults",
+      "url": "https://olera.care/benefits/washington/tailored-supports-for-older-adults",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WA",
+      "stateName": "Washington",
+      "slug": "washington",
+      "id": "washington-state-health-insurance-assistance-program",
+      "name": "Washington State Health Insurance Assistance Program",
+      "url": "https://olera.care/benefits/washington/washington-state-health-insurance-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "foodshare",
+      "name": "FoodShare",
+      "url": "https://olera.care/benefits/wisconsin/foodshare",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "medicaid-for-the-elderly-blind-or-disabled",
+      "name": "Medicaid for the Elderly, Blind, or Disabled",
+      "url": "https://olera.care/benefits/wisconsin/medicaid-for-the-elderly-blind-or-disabled",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "medicare-savings-programs",
+      "name": "Medicare Savings Programs",
+      "url": "https://olera.care/benefits/wisconsin/medicare-savings-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-home-delivered-meals",
+      "name": "Wisconsin Home Delivered Meals",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-home-energy-assistance-program-wheap",
+      "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-home-energy-assistance-program-wheap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-judicare-legal-services-for-seniors",
+      "name": "Wisconsin Judicare Legal Services for Seniors",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-judicare-legal-services-for-seniors",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-long-term-care-ombudsman-program",
+      "name": "Wisconsin Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-pace-program",
+      "name": "Wisconsin PACE Program",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-pace-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-property-tax-relief-circuit-breaker-credit",
+      "name": "Wisconsin Property Tax Relief (Circuit Breaker Credit)",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-property-tax-relief-circuit-breaker-credit",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-ship-senior-health-insurance-assistance-program",
+      "name": "Wisconsin SHIP (Senior Health Insurance Assistance Program)",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-ship-senior-health-insurance-assistance-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "slug": "wisconsin",
+      "id": "wisconsin-state-ssi-supplement",
+      "name": "Wisconsin State SSI Supplement",
+      "url": "https://olera.care/benefits/wisconsin/wisconsin-state-ssi-supplement",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WV",
+      "stateName": "West Virginia",
+      "slug": "west-virginia",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/west-virginia/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WV",
+      "stateName": "West Virginia",
+      "slug": "west-virginia",
+      "id": "home-delivered-meals",
+      "name": "Home Delivered Meals",
+      "url": "https://olera.care/benefits/west-virginia/home-delivered-meals",
+      "action": "duplicate-or-alias-review",
+      "candidate": {
+        "id": "meals-on-wheels-home-delivered",
+        "name": "Meals on Wheels (Home Delivered Meals)",
+        "url": "https://olera.care/benefits/west-virginia/meals-on-wheels-home-delivered",
+        "score": 0.86,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Strong same-state pipeline match; review whether this legacy URL should canonicalize/redirect instead of receiving separate content."
+    },
+    {
+      "state": "WV",
+      "stateName": "West Virginia",
+      "slug": "west-virginia",
+      "id": "low-income-energy-assistance-program-lieap",
+      "name": "Low-Income Energy Assistance Program (LIEAP)",
+      "url": "https://olera.care/benefits/west-virginia/low-income-energy-assistance-program-lieap",
+      "action": "redirect-canonicalize-review",
+      "candidate": {
+        "id": "liheap-energy-assistance",
+        "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "url": "https://olera.care/benefits/west-virginia/liheap-energy-assistance",
+        "score": 0.667,
+        "contentStatus": "pipeline-draft"
+      },
+      "rationale": "Possible related pipeline page; review manually before redirecting because this may be a distinct program."
+    },
+    {
+      "state": "WV",
+      "stateName": "West Virginia",
+      "slug": "west-virginia",
+      "id": "west-virginia-senior-medicare-patrol-smp",
+      "name": "West Virginia Senior Medicare Patrol (SMP)",
+      "url": "https://olera.care/benefits/west-virginia/west-virginia-senior-medicare-patrol-smp",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "aged-blind-and-disabled-medicaid",
+      "name": "Aged, Blind, and Disabled Medicaid",
+      "url": "https://olera.care/benefits/wyoming/aged-blind-and-disabled-medicaid",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "community-choice-waiver-ccw",
+      "name": "Community Choice Waiver (CCW)",
+      "url": "https://olera.care/benefits/wyoming/community-choice-waiver-ccw",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "url": "https://olera.care/benefits/wyoming/home-delivered-meals",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "long-term-care-ombudsman-program",
+      "name": "Long-Term Care Ombudsman Program",
+      "url": "https://olera.care/benefits/wyoming/long-term-care-ombudsman-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "medicare-savings-programs",
+      "name": "Medicare Savings Programs",
+      "url": "https://olera.care/benefits/wyoming/medicare-savings-programs",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "national-family-caregiver-support-program",
+      "name": "National Family Caregiver Support Program",
+      "url": "https://olera.care/benefits/wyoming/national-family-caregiver-support-program",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "senior-health-insurance-information-program-shiip",
+      "name": "Senior Health Insurance Information Program (SHIIP)",
+      "url": "https://olera.care/benefits/wyoming/senior-health-insurance-information-program-shiip",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "supplemental-nutrition-assistance-program-snap",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "url": "https://olera.care/benefits/wyoming/supplemental-nutrition-assistance-program-snap",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "slug": "wyoming",
+      "id": "wyoming-legal-services-for-the-elderly",
+      "name": "Wyoming Legal Services for the Elderly",
+      "url": "https://olera.care/benefits/wyoming/wyoming-legal-services-for-the-elderly",
+      "action": "needs-draft",
+      "candidate": null,
+      "rationale": "No strong same-state pipeline match found; likely needs a real pipeline draft or a program-specific review."
+    }
+  ]
+}

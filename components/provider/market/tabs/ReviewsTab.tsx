@@ -35,6 +35,13 @@ interface ReviewsTabProps {
 // Removed "Hi, " since the email template already adds "Hi {name},"
 const DEFAULT_MESSAGE = "We'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
 
+// Milestone tiers for achievable progress
+const MILESTONES = [1, 5, 10, 25, 50, 100, 250, 500];
+
+function getNextMilestone(currentReviews: number): number {
+  return MILESTONES.find(m => m > currentReviews) || currentReviews + 100;
+}
+
 function isValidEmail(str: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
@@ -212,65 +219,40 @@ export default function ReviewsTab({
     }
   };
 
-  // Calculate top 10 threshold (minimum reviews to be in top 10)
-  const top10Threshold = leaders.length > 0
-    ? leaders[Math.min(leaders.length - 1, 9)]?.reviews ?? 0
-    : null;
-
   // Effective review count: Google reviews take precedence, fall back to Olera reviews
   const effectiveReviewCount = providerReviewCount ?? oleraReviewCount;
 
-  // Find the next competitor to beat based on provider's current reviews
-  // Works for ALL providers including those with 0 reviews
-  const findNextTarget = () => {
-    if (leaders.length === 0) return null;
-    const currentReviews = effectiveReviewCount ?? 0;
-    // Find the lowest-ranked leader the provider can realistically pass
-    const sortedByReviews = [...leaders].sort((a, b) => a.reviews - b.reviews);
-    const nextTarget = sortedByReviews.find(l => l.reviews > currentReviews);
-    // If no one ahead, target the leader to defend against
-    const target = nextTarget || sortedByReviews[sortedByReviews.length - 1];
-    if (!target) return null;
-    return {
-      name: target.name,
-      reviews: target.reviews,
-      needed: Math.max(1, target.reviews - currentReviews + 1),
-    };
-  };
+  // Determine headline - two lines: count + action
+  const currentReviews = effectiveReviewCount ?? 0;
+  const isLoading = isLoadingOleraCount && !hasGooglePlaceId;
 
-  // For unranked providers: find the next competitor to beat
-  const nextTarget = !reviewsContext ? findNextTarget() : null;
-
-  // For ranked providers: get the competitor they're chasing
-  const rankedTarget = reviewsContext && !reviewsContext.isFirst && reviewsContext.nextCompetitor
-    ? { name: reviewsContext.nextCompetitor, reviews: reviewsContext.nextCompetitorReviews || 0 }
-    : null;
-
-  // Determine headline - punchy, action-focused
-  let headline = "";
-
-  if (reviewsContext) {
-    // Provider is ranked in the market (has Place ID match)
-    if (reviewsContext.isFirst) {
-      headline = `You're #1 in ${city || "your market"}.`;
-    } else if (reviewsContext.reviewsNeeded) {
-      headline = `${reviewsContext.reviewsNeeded} reviews to move up.`;
-    }
-  } else if (leaders.length > 0) {
-    // Provider not ranked - show gap
-    const currentReviews = effectiveReviewCount ?? 0;
-    if (topCompetitor) {
-      const gap = topCompetitor.reviews - currentReviews + 1;
-      if (currentReviews === 0) {
-        headline = `${gap} reviews to lead ${city || "your market"}.`;
-      } else {
-        headline = `${gap} reviews to take the lead.`;
-      }
-    }
-  } else if (isLoadingOleraCount && !hasGooglePlaceId) {
-    headline = "Checking your reviews...";
+  // Line 1: Current review count (or loading state)
+  let countLine = "";
+  if (isLoading) {
+    countLine = "Checking...";
   } else {
-    headline = "Start collecting reviews.";
+    countLine = currentReviews === 1 ? "1 review" : `${currentReviews} reviews`;
+  }
+
+  // Line 2: Actionable next step
+  let actionLine = "";
+
+  if (isLoading) {
+    actionLine = "";
+  } else if (reviewsContext?.isFirst) {
+    // Provider is #1
+    actionLine = `You lead ${city || "your market"}.`;
+  } else if (reviewsContext && !reviewsContext.isFirst && reviewsContext.reviewsNeeded && reviewsContext.reviewsNeeded <= 15) {
+    // Close to next competitor - show competitor name
+    actionLine = `${reviewsContext.reviewsNeeded} more to pass ${reviewsContext.nextCompetitor}.`;
+  } else if (currentReviews === 0) {
+    // Zero reviews - first milestone
+    actionLine = "Get your first review.";
+  } else {
+    // Use milestone system
+    const nextMilestone = getNextMilestone(currentReviews);
+    const toMilestone = nextMilestone - currentReviews;
+    actionLine = `${toMilestone} more to hit ${nextMilestone}.`;
   }
 
   return (
@@ -318,15 +300,19 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Label */}
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-3">
-        Your move this week
-      </p>
-
-      {/* Punchy headline - the main focus */}
-      <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-6">
-        {headline}
-      </h2>
+      {/* Two-line headline: count + action */}
+      <div className="text-center mb-6">
+        {/* Line 1: Current review count */}
+        <p className="text-sm font-medium text-stone-500 mb-1">
+          {countLine}
+        </p>
+        {/* Line 2: Actionable next step */}
+        {actionLine && (
+          <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900">
+            {actionLine}
+          </h2>
+        )}
+      </div>
 
       {/* Error message */}
       {errorMessage && (

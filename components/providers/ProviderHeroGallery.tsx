@@ -61,11 +61,25 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
   // never see the counter cycle "1/6 → 1/5 → ..." during the onError cascade.
   const showCarouselUI = anyRealImageLoaded && validImages.length > 1;
 
-  // Layers rendered on top of the fallback: the previously-held real image (kept
-  // visible until the incoming one loads) plus the current target. Two at most.
-  const layerSrcs: string[] = [];
-  if (displayedSrc && displayedSrc !== currentSrc) layerSrcs.push(displayedSrc);
-  if (currentSrc) layerSrcs.push(currentSrc);
+  // Layers to mount over the neutral container:
+  //  • the held (previous) photo — visible only while the incoming one loads
+  //  • the current photo — visible once loaded
+  //  • the adjacent photos — invisible, preloaded after the current loads so
+  //    tapping next/prev is an instant network-free crossfade (the snappy bit)
+  const len = validImages.length;
+  const layers: { src: string; visible: boolean }[] = [];
+  const seen = new Set<string>();
+  const addLayer = (src: string | null, visible: boolean) => {
+    if (!src || seen.has(src)) return;
+    seen.add(src);
+    layers.push({ src, visible });
+  };
+  if (displayedSrc !== currentSrc) addLayer(displayedSrc, !currentLoaded);
+  addLayer(currentSrc, currentLoaded);
+  if (currentLoaded && len > 1) {
+    addLayer(validImages[(safeIndex + 1) % len], false);
+    addLayer(validImages[(safeIndex - 1 + len) % len], false);
+  }
 
   // Before switching index, pin the current real image as the held layer so it
   // stays on screen during the next image's load. Only pin a loaded src — a still-
@@ -131,9 +145,8 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
           stays at full opacity until the incoming one finishes loading, then they
           crossfade — so the first photo fades in cleanly on load and navigation
           never cuts to a blank frame. */}
-      {layerSrcs.map((src) => {
+      {layers.map(({ src, visible }) => {
         const isCurrent = src === currentSrc;
-        const visible = isCurrent ? currentLoaded : !currentLoaded;
         return (
           <Image
             key={src}
@@ -141,8 +154,8 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
             alt={isCurrent ? `${providerName} — photo ${safeIndex + 1}` : providerName}
             fill
             sizes="(max-width: 768px) 100vw, 448px"
-            priority
-            className={`object-cover transition-opacity duration-300 ease-out ${
+            priority={isCurrent}
+            className={`object-cover transition-opacity duration-200 ease-out ${
               visible ? "opacity-100" : "opacity-0"
             }`}
             onLoad={() =>

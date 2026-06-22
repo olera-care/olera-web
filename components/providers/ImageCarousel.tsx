@@ -22,11 +22,23 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
   const currentSrc = images[current];
   const currentLoaded = loadedSrcs.has(currentSrc);
 
-  // Layers on screen: the previously-held image (kept visible until the incoming
-  // one loads) plus the current target. Two at most.
-  const layerSrcs: string[] = [];
-  if (displayedSrc && displayedSrc !== currentSrc) layerSrcs.push(displayedSrc);
-  layerSrcs.push(currentSrc);
+  // Layers to mount: the held (previous) image while the incoming one loads, the
+  // current image, and the adjacent images — preloaded after the current loads so
+  // tapping next/prev is an instant network-free crossfade (the snappy bit).
+  const len = images.length;
+  const layers: { src: string; visible: boolean }[] = [];
+  const seen = new Set<string>();
+  const addLayer = (src: string | null, visible: boolean) => {
+    if (!src || seen.has(src)) return;
+    seen.add(src);
+    layers.push({ src, visible });
+  };
+  if (displayedSrc !== currentSrc) addLayer(displayedSrc, !currentLoaded);
+  addLayer(currentSrc, currentLoaded);
+  if (currentLoaded && len > 1) {
+    addLayer(images[(current + 1) % len], false);
+    addLayer(images[(current - 1 + len) % len], false);
+  }
 
   // Pin the current (already-loaded) image as the held layer before switching, so
   // it stays on screen during the next image's load. Don't pin an unloaded src.
@@ -83,19 +95,19 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
           className="w-full h-full cursor-pointer"
           aria-label="View all photos"
         >
-          {layerSrcs.map((src) => {
+          {layers.map(({ src, visible }) => {
             const isCurrent = src === currentSrc;
-            const visible = isCurrent ? currentLoaded : !currentLoaded;
             return (
               <Image
                 key={src}
                 src={src}
                 alt={`${alt} - Image ${current + 1}`}
                 fill
-                className={`object-cover transition-opacity duration-300 ease-out ${
+                className={`object-cover transition-opacity duration-200 ease-out ${
                   visible ? "opacity-100" : "opacity-0"
                 }`}
                 sizes="(max-width: 768px) 100vw, 50vw"
+                priority={isCurrent}
                 onLoad={() =>
                   setLoadedSrcs((p) => (p.has(src) ? p : new Set(p).add(src)))
                 }

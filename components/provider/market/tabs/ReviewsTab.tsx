@@ -329,8 +329,9 @@ export default function ReviewsTab({
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit}>
+        {/* Desktop: inputs + button inline */}
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={clientName}
@@ -338,7 +339,7 @@ export default function ReviewsTab({
             placeholder="Client name"
             required
             autoComplete="off"
-            className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"
+            className="flex-1 px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"
           />
           <input
             type="text"
@@ -347,30 +348,38 @@ export default function ReviewsTab({
             placeholder="Phone or email"
             required
             autoComplete="off"
-            className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"
+            className="flex-1 px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"
           />
+          {/* Desktop: compact icon button */}
+          <button
+            type="submit"
+            disabled={!clientName.trim() || !contactInfo.trim() || isSubmitting}
+            className="hidden sm:flex w-12 h-12 shrink-0 items-center justify-center rounded-xl bg-[#199087] text-white hover:bg-[#147a72] disabled:bg-stone-200 disabled:text-stone-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_12px_rgba(25,144,135,0.35)] disabled:shadow-none"
+          >
+            {isSubmitting ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            )}
+          </button>
         </div>
-
+        {/* Mobile: full-width button below */}
         <button
           type="submit"
           disabled={!clientName.trim() || !contactInfo.trim() || isSubmitting}
-          className="w-full sm:w-auto sm:float-right px-6 py-3 rounded-xl bg-[#199087] text-white text-[15px] font-medium hover:bg-[#147a72] disabled:bg-stone-200 disabled:text-stone-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_12px_rgba(25,144,135,0.35)] disabled:shadow-none"
+          className="sm:hidden w-full mt-3 px-6 py-3 rounded-xl bg-[#199087] text-white text-[15px] font-medium hover:bg-[#147a72] disabled:bg-stone-200 disabled:text-stone-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_12px_rgba(25,144,135,0.35)] disabled:shadow-none"
         >
           {isSubmitting ? (
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center justify-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Sending...
             </span>
           ) : (
-            <span className="inline-flex items-center gap-2">
-              Send request
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </span>
+            "Send request"
           )}
         </button>
-        <div className="clear-both" />
       </form>
 
       {/* Divider with "or" */}

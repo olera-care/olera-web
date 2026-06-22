@@ -255,90 +255,119 @@ export default function ReferralsTab({
         </div>
       )}
 
-      {/* Call button OR Tracking options */}
-      {!showTracking ? (
-        <div className="space-y-3">
-          {currentTarget.phone ? (
-            <a
-              href={`tel:${currentTarget.phone}`}
-              onClick={handleCallClick}
-              className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-medium py-3.5 rounded-xl transition-colors"
-            >
-              Call {currentTarget.phone}
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
-          ) : (
-            <>
-              {/* No phone number - provide lookup + manual tracking options */}
-              <a
-                href={`https://www.google.com/search?q=${encodeURIComponent(currentTarget.name + " " + (city || ""))}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-medium py-3.5 rounded-xl transition-colors"
-              >
-                Look up contact info
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-              </a>
-              <button
-                type="button"
-                onClick={handleCallClick}
-                className="w-full text-sm text-stone-500 hover:text-stone-700 transition-colors py-2"
-              >
-                I already reached out — track it
-              </button>
-            </>
+      {/* Call button + Tracking options */}
+      {currentTarget.phone ? (
+        <div className="space-y-4">
+          {/* Call button - always visible */}
+          <a
+            href={`tel:${currentTarget.phone}`}
+            onClick={handleCallClick}
+            className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-medium py-3.5 rounded-xl transition-colors"
+          >
+            Call {currentTarget.phone}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+
+          {/* Tracking options - shown after first call click */}
+          {showTracking && (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-stone-700 text-center">
+                How did the call go?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateStatus("contacted")}
+                  disabled={saving}
+                  className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                >
+                  Left a message
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateStatus("responded")}
+                  disabled={saving}
+                  className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                >
+                  Spoke with them
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateStatus("referring")}
+                  disabled={saving}
+                  className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                >
+                  They&apos;ll refer me
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateStatus("dismissed")}
+                  disabled={saving}
+                  className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-500 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                >
+                  Not a fit
+                </button>
+              </div>
+            </div>
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-stone-700 text-center">
-            How did the call go?
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => updateStatus("contacted")}
-              disabled={saving}
-              className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
-            >
-              Left a message
-            </button>
-            <button
-              type="button"
-              onClick={() => updateStatus("responded")}
-              disabled={saving}
-              className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
-            >
-              Spoke with them
-            </button>
-            <button
-              type="button"
-              onClick={() => updateStatus("referring")}
-              disabled={saving}
-              className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
-            >
-              They&apos;ll refer me
-            </button>
-            <button
-              type="button"
-              onClick={() => updateStatus("dismissed")}
-              disabled={saving}
-              className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-500 hover:bg-stone-50 transition-colors disabled:opacity-50"
-            >
-              Not a fit
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowTracking(false)}
-            className="w-full text-sm text-stone-400 hover:text-stone-600 transition-colors py-2"
+        <div className="space-y-4">
+          {/* No phone number - provide lookup */}
+          <a
+            href={`https://www.google.com/search?q=${encodeURIComponent(currentTarget.name + " " + (city || ""))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-medium py-3.5 rounded-xl transition-colors"
           >
-            Cancel
-          </button>
+            Look up contact info
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </a>
+
+          {/* Tracking options for no-phone targets */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-stone-700 text-center">
+              Already reached out?
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => updateStatus("contacted")}
+                disabled={saving}
+                className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                Left a message
+              </button>
+              <button
+                type="button"
+                onClick={() => updateStatus("responded")}
+                disabled={saving}
+                className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                Spoke with them
+              </button>
+              <button
+                type="button"
+                onClick={() => updateStatus("referring")}
+                disabled={saving}
+                className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                They&apos;ll refer me
+              </button>
+              <button
+                type="button"
+                onClick={() => updateStatus("dismissed")}
+                disabled={saving}
+                className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-500 hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                Not a fit
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

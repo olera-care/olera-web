@@ -59,6 +59,7 @@ const FAMILY_EVENT_TYPES = [
   "outreach_request_submitted",
   "qa_email_capture_impression",
   "question_email_enriched",
+  "connection_outcome_reported", // Family one-click self-report: did the provider respond? (migration 115)
 ] as const;
 
 // Anonymous events are care-seeker-driven but lack a known profile_id.

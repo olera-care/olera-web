@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
         no_email: 0,
         no_responsive_providers: 0,
         send_failed: 0,
+        outcome_connected: 0,
       },
       dry_run: dryRun,
     };
@@ -166,6 +167,19 @@ export async function GET(request: NextRequest) {
       if (alreadySent) {
         counts.skipped++;
         counts.skipReasons.already_sent++;
+        continue;
+      }
+
+      // Suppress if the family already self-reported (outcome-check) that the
+      // provider DID get back to them. Telling them "the provider's been silent"
+      // would directly contradict their own answer and erode trust.
+      const familySaidConnected = (allFamilyConnections || []).some((conn) => {
+        const m = (conn.metadata || {}) as Record<string, unknown>;
+        return (m.outcome as { value?: string } | undefined)?.value === "yes";
+      });
+      if (familySaidConnected) {
+        counts.skipped++;
+        counts.skipReasons.outcome_connected++;
         continue;
       }
 

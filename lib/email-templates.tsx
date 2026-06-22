@@ -964,6 +964,63 @@ export function unreadReminderEmail(opts: {
 }
 
 /** Email to family when provider is silent for ~4 days OR actively declines - offer alternative providers */
+/**
+ * Outcome-check email — the dating-app "Did you meet this person?" pattern.
+ *
+ * Sent ~48-72h after a family sends an inquiry. The real outcome (did the
+ * provider call/email them back?) happens off-platform and is invisible to us,
+ * so we just ask. The answer is our ground-truth connection signal AND the
+ * trigger for the help cascade: a "no"/"not yet" routes the family to the
+ * landing page's alternative-provider + benefits mini-cascade.
+ *
+ * Buttons point at the public, no-login /connection-outcome page keyed by the
+ * connection id. The page records the answer via a client-side POST (so email
+ * scanners, which issue GETs and don't run JS, can't false-trigger an outcome).
+ */
+export function connectionOutcomeCheckEmail(opts: {
+  familyName: string;
+  providerName: string;
+  yesUrl: string;
+  notYetUrl: string;
+  noUrl: string;
+  unsubscribeUrl?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const provider = escapeHtml(opts.providerName);
+
+  // Local button variants so "Yes" reads as the affirmative/primary action and
+  // the other two are calmer, equal-weight neutrals (no false urgency).
+  const primaryBtn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
+  const neutralBtn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border:1px solid #d1d5db;border-radius:8px;">${label}</a>`;
+
+  const footer = opts.unsubscribeUrl
+    ? `<p style="font-size:12px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">You're getting this because you reached out to a provider on Olera. <a href="${opts.unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a> from care-search updates.</p>`
+    : "";
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      A couple of days ago you reached out to <strong>${provider}</strong> through Olera.
+      Quick check-in — <strong>did they get back to you?</strong>
+    </p>
+    <div style="margin:0 0 12px;">${primaryBtn("Yes, we connected", opts.yesUrl)}</div>
+    <div style="margin:0 0 12px;">${neutralBtn("Not yet", opts.notYetUrl)}</div>
+    <div style="margin:0 0 24px;">${neutralBtn("No, I haven't heard back", opts.noUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">
+      One tap is all it takes — it helps us make sure you actually get the care you're looking for.
+      If a provider's gone quiet, we'll show you others nearby who are ready to help.
+    </p>
+    ${footer}
+  `,
+    `Did ${opts.providerName} get back to you? One tap to let us know.`,
+  );
+}
+
 export function providerSilentEmail(opts: {
   familyName: string;
   providerName: string;

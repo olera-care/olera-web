@@ -121,7 +121,7 @@ export default function Navbar() {
 
   // Provider detail page detection — has its own mobile nav (MobileProviderTopNav)
   // Pattern: /provider/[slug] where slug is not a known portal route
-  const providerPortalRoutes = ["connections", "inbox", "onboarding", "profile", "reviews", "matches", "pro", "qna", "account", "medjobs", "caregivers", "welcome"];
+  const providerPortalRoutes = ["connections", "inbox", "onboarding", "profile", "reviews", "matches", "market", "boost", "pro", "qna", "account", "medjobs", "caregivers", "welcome"];
   const isProviderDetailPage = (() => {
     if (!pathname.startsWith("/provider/")) return false;
     const segments = pathname.split("/").filter(Boolean);

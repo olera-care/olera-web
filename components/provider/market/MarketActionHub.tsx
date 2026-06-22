@@ -113,6 +113,7 @@ export default function MarketActionHub({
               topCompetitor={data.competitorLandscape?.leaders?.[0] ?? null}
               leaders={data.competitorLandscape?.leaders ?? []}
               providerReviewCount={providerReviewCount ?? null}
+              onSeeAll={() => setIsMarketExpanded(true)}
             />
           )}
 

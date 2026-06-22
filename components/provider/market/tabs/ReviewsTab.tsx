@@ -28,6 +28,8 @@ interface ReviewsTabProps {
   topCompetitor?: Leader | null;
   leaders?: Leader[];
   providerReviewCount: number | null;
+  /** Callback to expand the full market analysis section */
+  onSeeAll?: () => void;
 }
 
 // Removed "Hi, " since the email template already adds "Hi {name},"
@@ -50,6 +52,7 @@ export default function ReviewsTab({
   topCompetitor,
   leaders = [],
   providerReviewCount,
+  onSeeAll,
 }: ReviewsTabProps) {
   // Form state
   const [clientName, setClientName] = useState("");
@@ -243,35 +246,26 @@ export default function ReviewsTab({
     ? { name: reviewsContext.nextCompetitor, reviews: reviewsContext.nextCompetitorReviews || 0 }
     : null;
 
-  // Determine headline - punchy, competitor-focused, drives FOMO
+  // Determine headline - punchy, action-focused
   let headline = "";
 
   if (reviewsContext) {
     // Provider is ranked in the market (has Place ID match)
     if (reviewsContext.isFirst) {
-      // #1 position - celebrate but show who's chasing
-      const secondPlace = leaders[1];
-      const lead = secondPlace ? reviewsContext.reviews - secondPlace.reviews : null;
-      if (lead && lead > 0 && secondPlace) {
-        headline = `You're #1 in ${city || "your market"}.`;
-      } else {
-        headline = `You're #1 in ${city || "your market"}.`;
-      }
-    } else if (reviewsContext.reviewsNeeded && rankedTarget) {
-      // Ranked but not #1 - show gap to next competitor by NAME
-      headline = `${reviewsContext.reviewsNeeded} reviews to pass ${rankedTarget.name}.`;
+      headline = `You're #1 in ${city || "your market"}.`;
+    } else if (reviewsContext.reviewsNeeded) {
+      headline = `${reviewsContext.reviewsNeeded} reviews to move up.`;
     }
   } else if (leaders.length > 0) {
-    // Provider not ranked - show gap to competitor
+    // Provider not ranked - show gap
     const currentReviews = effectiveReviewCount ?? 0;
-    if (nextTarget) {
+    if (topCompetitor) {
+      const gap = topCompetitor.reviews - currentReviews + 1;
       if (currentReviews === 0) {
-        headline = `${nextTarget.name} leads with ${nextTarget.reviews} reviews.`;
+        headline = `${gap} reviews to lead ${city || "your market"}.`;
       } else {
-        headline = `${nextTarget.needed} reviews to pass ${nextTarget.name}.`;
+        headline = `${gap} reviews to take the lead.`;
       }
-    } else if (topCompetitor) {
-      headline = `${topCompetitor.name} leads with ${topCompetitor.reviews} reviews.`;
     }
   } else if (isLoadingOleraCount && !hasGooglePlaceId) {
     headline = "Checking your reviews...";
@@ -310,54 +304,31 @@ export default function ReviewsTab({
         {headline}
       </h2>
 
-      {/* Progress bar for RANKED providers (not #1) - shows competitor NAME */}
-      {reviewsContext && !reviewsContext.isFirst && reviewsContext.reviewsNeeded && rankedTarget && (
-        <div className="mb-6">
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex flex-col items-end">
-              <span className="text-sm font-semibold text-stone-600">You</span>
-              <span className="text-[10px] text-stone-400">{reviewsContext.reviews} reviews</span>
+      {/* Compact market teaser - shows leader, links to full analysis */}
+      {topCompetitor && (
+        <div className="mb-6 px-4 py-3 bg-stone-50 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mb-0.5">
+                Top in {city || "your market"}
+              </p>
+              <p className="text-sm text-stone-700">
+                <span className="font-semibold">{topCompetitor.name}</span>
+                <span className="text-stone-400 ml-1.5">· {topCompetitor.reviews} reviews</span>
+              </p>
             </div>
-            <div className="w-32 sm:w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
-              <div
-                className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
-                style={{
-                  width: `${Math.max(5, Math.min(95, (reviewsContext.reviews / rankedTarget.reviews) * 100))}%`
-                }}
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-[#199087] truncate max-w-[100px] sm:max-w-[140px]" title={rankedTarget.name}>
-                {rankedTarget.name}
-              </span>
-              <span className="text-[10px] text-stone-400">{rankedTarget.reviews} reviews</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Progress bar for ALL UNRANKED providers - including 0 reviews */}
-      {!reviewsContext && nextTarget && (
-        <div className="mb-6">
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex flex-col items-end">
-              <span className="text-sm font-semibold text-stone-600">You</span>
-              <span className="text-[10px] text-stone-400">{effectiveReviewCount ?? 0} reviews</span>
-            </div>
-            <div className="w-32 sm:w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
-              <div
-                className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
-                style={{
-                  width: `${Math.max(5, Math.min(95, ((effectiveReviewCount ?? 0) / nextTarget.reviews) * 100))}%`
-                }}
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-[#199087] truncate max-w-[100px] sm:max-w-[140px]" title={nextTarget.name}>
-                {nextTarget.name}
-              </span>
-              <span className="text-[10px] text-stone-400">{nextTarget.reviews} reviews</span>
-            </div>
+            {onSeeAll && (
+              <button
+                type="button"
+                onClick={onSeeAll}
+                className="text-xs font-medium text-[#199087] hover:text-[#147a72] transition-colors flex items-center gap-1"
+              >
+                See all
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       )}

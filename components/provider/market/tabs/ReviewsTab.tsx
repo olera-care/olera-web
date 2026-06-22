@@ -257,7 +257,7 @@ export default function ReviewsTab({
       </p>
 
       {/* Headline - direct call to action */}
-      <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-2">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
         Ask a happy client for a review.
       </h2>
 

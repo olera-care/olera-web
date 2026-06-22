@@ -62,7 +62,7 @@ export default function AdsTab({
           <span className="text-sm font-semibold text-emerald-700">Your campaign is live</span>
         </div>
 
-        <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-6">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-6">
           Families are finding you.
         </h2>
 
@@ -104,7 +104,7 @@ export default function AdsTab({
           </span>
         </div>
 
-        <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-2">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
           We&apos;re on it.
         </h2>
 
@@ -134,7 +134,7 @@ export default function AdsTab({
           <span className="text-sm font-semibold text-amber-700">Queued</span>
         </div>
 
-        <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-2">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
           Your launch plan is queued.
         </h2>
 
@@ -164,7 +164,7 @@ export default function AdsTab({
       </p>
 
       {/* Headline */}
-      <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-2">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
         Put your page in front of local families.
       </h2>
 

@@ -21,7 +21,9 @@ import {
   addLeads,
   attachEmailAccounts,
   createCampaign,
+  getLeadByEmail,
   listEmailAccounts,
+  pauseLeadInCampaign,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
@@ -1260,5 +1262,67 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
 
   result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
   result.ok = result.errors.length === 0;
+  return result;
+}
+
+// ── Stop drips on conversion ─────────────────────────────────────────────
+
+export interface PauseDripsResult {
+  /** Lead/campaign pairs successfully paused. */
+  paused: number;
+  /** Pairs we attempted (campaign_id × email). */
+  attempted: number;
+  errors: string[];
+}
+
+/**
+ * Pause a contact's drip across one or more Smartlead campaigns on conversion.
+ *
+ * When a row converts to Client / Partner we cancel the CRM tasks, but the cold
+ * + activation EMAILS drip from Smartlead campaigns, which only auto-pause on a
+ * detected reply. A conversion made on a call (no reply) would otherwise keep
+ * emailing a now-converted contact. This resolves each email to its Smartlead
+ * lead id once, then pauses that lead in each campaign it might still be in.
+ *
+ * Best-effort by design: never throws, and is inert when SMARTLEAD_API_KEY is
+ * unset (the underlying calls return ok:false). The caller does not fail the
+ * conversion on a pause error.
+ */
+export async function pauseLeadDrips(
+  targets: Array<{ campaignId: number; email: string }>,
+): Promise<PauseDripsResult> {
+  const result: PauseDripsResult = { paused: 0, attempted: 0, errors: [] };
+
+  // Dedup (campaign, email) pairs and resolve each email → lead id once.
+  const seen = new Set<string>();
+  const leadIdByEmail = new Map<string, number | null>();
+
+  for (const { campaignId, email } of targets) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!campaignId || !normalizedEmail) continue;
+    const key = `${campaignId}::${normalizedEmail}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.attempted += 1;
+
+    let leadId = leadIdByEmail.get(normalizedEmail);
+    if (leadId === undefined) {
+      const lookup = await getLeadByEmail(normalizedEmail);
+      leadId = lookup.ok ? (lookup.data?.id ?? null) : null;
+      if (!lookup.ok) {
+        result.errors.push(`lookup ${normalizedEmail}: ${lookup.error}`);
+      }
+      leadIdByEmail.set(normalizedEmail, leadId);
+    }
+    if (leadId == null) continue; // not found / not configured — skip quietly
+
+    const paused = await pauseLeadInCampaign(campaignId, leadId);
+    if (paused.ok) {
+      result.paused += 1;
+    } else {
+      result.errors.push(`pause ${normalizedEmail}@${campaignId}: ${paused.error}`);
+    }
+  }
+
   return result;
 }

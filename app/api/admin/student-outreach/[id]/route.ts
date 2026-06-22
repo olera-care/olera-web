@@ -33,6 +33,7 @@ import {
   buildSmartleadPreview,
   enrollRowIntoCampusCampaign,
   enrollActivationLead,
+  pauseLeadDrips,
   type BridgeRow,
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
@@ -922,6 +923,52 @@ async function transitionStage(
   }
 }
 
+/**
+ * Pause the row's cold + activation Smartlead email drips on conversion.
+ *
+ * Cancelling CRM tasks stops the call cadence, but the cold + activation EMAILS
+ * drip from Smartlead campaigns, which only auto-pause on a detected reply. A
+ * conversion made on a call (no reply) would otherwise keep emailing a now-
+ * converted Client/Partner. Best-effort: a Smartlead error must never undo the
+ * conversion the caller already recorded; inert when SMARTLEAD_API_KEY is unset.
+ * Deliberately skips the partner-WELCOME campaign — that nurture is the intended
+ * post-conversion drip.
+ */
+async function stopRowSmartleadDrips(db: DB, row: OutreachRow, userId: string) {
+  const cold = row.research_data?.smartlead;
+  const activation = row.research_data?.smartlead_activation;
+  const targets: Array<{ campaignId: number; email: string }> = [];
+  const add = (cid: number | undefined, email: string | null | undefined) => {
+    if (typeof cid === "number" && email) targets.push({ campaignId: cid, email });
+  };
+  add(cold?.campaign_id, cold?.lead_email);
+  add(activation?.campaign_id, activation?.lead_email);
+  // The engaged contact (activation lead) may also still sit in the cold
+  // campaign — pause them there too (pauseLeadDrips dedups + skips misses).
+  add(cold?.campaign_id, activation?.lead_email);
+  if (targets.length === 0) return;
+
+  try {
+    const res = await pauseLeadDrips(targets);
+    if (res.paused > 0 || res.errors.length > 0) {
+      await insertTouchpoint(db, row.id, "note_added", userId, {
+        channel: "system",
+        payload: {
+          reason: "smartlead_drips_paused",
+          paused: res.paused,
+          attempted: res.attempted,
+          ...(res.errors.length ? { errors: res.errors } : {}),
+        },
+      });
+    }
+  } catch (e) {
+    console.error(
+      "[stopRowSmartleadDrips] threw:",
+      e instanceof Error ? e.message : e,
+    );
+  }
+}
+
 // ── Field-update handlers ───────────────────────────────────────────────
 
 async function handleUpdateResearch(
@@ -1405,6 +1452,8 @@ async function handleMarkPartner(
         userId,
       );
     }
+    // Stop any cold + activation email drips now that they're a partner.
+    await stopRowSmartleadDrips(db, row, userId);
     return;
   }
 
@@ -1454,6 +1503,11 @@ async function handleMarkPartner(
       userId,
     );
   }
+
+  // Stop the cold + activation EMAIL drips (Smartlead-side) so a converted
+  // Partner stops getting outreach emails even when they converted on a call.
+  // The partner-WELCOME campaign enrolled above is intentionally left running.
+  await stopRowSmartleadDrips(db, row, userId);
 }
 
 async function handleReopen(db: DB, row: OutreachRow, userId: string) {
@@ -3772,6 +3826,11 @@ async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
     })
     .eq("outreach_id", row.id)
     .eq("status", "pending");
+
+  // Stop the cold + activation EMAIL drips too (Smartlead-side, not just CRM
+  // tasks) so a converted Client stops getting outreach emails even when the
+  // conversion came from a call rather than an email reply.
+  await stopRowSmartleadDrips(db, row, userId);
 }
 
 async function handleSnooze(

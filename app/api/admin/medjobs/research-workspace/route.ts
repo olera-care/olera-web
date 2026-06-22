@@ -88,7 +88,24 @@ export async function PATCH(request: NextRequest) {
   const patch: Partial<WorkspaceState> = {};
   if (Array.isArray(links)) patch.links = links;
   if (Array.isArray(searches)) patch.searches = searches;
-  if (Array.isArray(offices)) patch.offices = offices;
+  if (Array.isArray(offices)) {
+    // outreach_id / generated_at are SERVER-OWNED (set by /generate). Preserve
+    // them from the DB by office id so a client autosave can never erase the
+    // "made" stamp — the root-cause fix for the dedup race.
+    const existing = readWorkspace(
+      (campus as { partner_research?: unknown }).partner_research,
+      subtype,
+    );
+    const stampById = new Map(
+      existing.offices.map((o) => [o.id, { outreach_id: o.outreach_id ?? null, generated_at: o.generated_at ?? null }]),
+    );
+    patch.offices = offices.map((o) => {
+      const s = stampById.get(o.id);
+      return s && s.outreach_id
+        ? { ...o, outreach_id: s.outreach_id, generated_at: s.generated_at }
+        : o;
+    });
+  }
   if (Array.isArray(advisors)) patch.advisors = advisors;
   if (Array.isArray(suggested)) patch.suggested = suggested;
   if (typeof last_step === "string") patch.last_step = last_step;

@@ -22,6 +22,7 @@ import { PARTNER_SUBTYPES, type PartnerSubtype } from "@/lib/medjobs/partner-sou
 import {
   readWorkspace,
   writeWorkspace,
+  normOffice,
   type OfficeTag,
   type WorkspaceAdvisor,
   type WorkspaceOffice,
@@ -98,14 +99,37 @@ export async function POST(request: NextRequest) {
   const officeById = new Map(ws.offices.map((o) => [o.id, o]));
   const linkById = new Map(ws.links.map((l) => [l.id, l]));
 
+  // Existence guard (root-cause dedup): any prospect already created for this
+  // campus, keyed by stakeholder_type + normalized name. Independent of the
+  // workspace stamp, so duplicates are structurally impossible even if a stamp
+  // were ever lost.
+  const { data: existingRows } = await db
+    .from("student_outreach")
+    .select("id, organization_name, stakeholder_type")
+    .eq("campus_id", campusId);
+  const existingByKey = new Map(
+    ((existingRows ?? []) as Array<{ id: string; organization_name: string | null; stakeholder_type: string | null }>).map(
+      (r) => [`${r.stakeholder_type ?? ""}::${normOffice(r.organization_name ?? "")}`, r.id],
+    ),
+  );
+
   let created = 0;
   const ids: string[] = [];
 
   for (const sel of selections) {
     const office = officeById.get(sel.office_id);
     if (!office) continue;
-    if (office.outreach_id) continue; // already a prospect — dedup (return-user safety)
+    if (office.outreach_id) continue; // already a prospect (stamp) — dedup
     if (!office.email && !office.call_only && !office.phone) continue; // not reachable
+
+    // Existence guard: a matching prospect already exists for this campus → lock
+    // the office to it instead of creating a duplicate.
+    const existingId = existingByKey.get(`${TAG_TO_TYPE[office.tag]}::${normOffice(office.name)}`);
+    if (existingId) {
+      office.outreach_id = existingId;
+      office.generated_at = office.generated_at ?? new Date().toISOString();
+      continue;
+    }
 
     const advisors = ws.advisors.filter((a) => a.office_id === office.id);
     const sources = office.source_link_ids

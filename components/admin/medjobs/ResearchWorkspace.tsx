@@ -705,7 +705,27 @@ function LinksStep({
         )}
       </section>
       <section>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Predefined searches — opening one checks it off</p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Predefined searches — opening one checks it off</p>
+          {ws.searches.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                // Open every search in its own tab and check them all off, so
+                // the admin can review them one at a time. Browsers control tab
+                // focus; re-focusing the opener is best-effort.
+                for (const s of ws.searches) {
+                  window.open(s.url, "_blank", "noopener,noreferrer");
+                  if (!s.ran) onToggleSearch(s.key);
+                }
+                try { window.focus(); } catch { /* best-effort */ }
+              }}
+              className="shrink-0 rounded-md border border-primary-200 bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-700 hover:bg-primary-100"
+            >
+              ↗ Open all ({ws.searches.length})
+            </button>
+          )}
+        </div>
         {/* C3: add-a-link box sits above the searches. */}
         <div className="mb-3 rounded-md border border-gray-200 bg-gray-50 p-3">
           <p className="mb-1 text-[11px] font-medium text-gray-700">Add a link you found by hand</p>

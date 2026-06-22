@@ -42,7 +42,7 @@
  * to pull from its existing surface.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
 import type { VerificationState } from "@/lib/student-outreach/verification-state";
 import type { CadenceKey } from "@/lib/student-outreach/cadence";
@@ -704,6 +704,49 @@ function GeneralContactSection({
       setFinding(null);
     }
   };
+
+  // Task 2: auto-run "Fill from Website" the FIRST time a provider prospect
+  // drawer opens — saves a click and overlaps the lookup with the admin's
+  // reading. Fires once ever: gated on (a) provider rows, (b) nothing filled
+  // yet, and (c) no prior auto-fill marker. The marker (research_data
+  // .provider_autofill_at, written via the merge-any update_research action)
+  // guarantees an empty result never re-fires on a later open. The button
+  // stays for manual re-runs.
+  const autoFillRan = useRef(false);
+  useEffect(() => {
+    if (autoFillRan.current) return;
+    if (!editable || ctx.outreach.kind !== "provider") return;
+    const hasContactData = Boolean(
+      overrides.email ||
+        overrides.phone ||
+        overrides.contact_form_url ||
+        overrides.fax ||
+        overrides.street ||
+        overrides.city ||
+        overrides.state ||
+        overrides.zip,
+    );
+    const alreadyAutoFilled = Boolean(
+      (ctx.outreach.research_data as { provider_autofill_at?: string } | null)
+        ?.provider_autofill_at,
+    );
+    if (hasContactData || alreadyAutoFilled) return;
+    autoFillRan.current = true;
+    void (async () => {
+      await findContact("all");
+      try {
+        await action("update_research", {
+          research: { provider_autofill_at: new Date().toISOString() },
+        });
+      } catch {
+        /* marker is best-effort; the ref still prevents a re-run this session */
+      }
+    })();
+    // Mount-once: the ref guard makes re-runs inert, so deps are intentionally
+    // limited to the open identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ctx.outreach.id]);
+
   const websiteHref = website
     ? website.startsWith("http")
       ? website

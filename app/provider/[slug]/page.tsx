@@ -6,7 +6,8 @@ import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsDat
 import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
 import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
-import { buildOpportunity } from "@/lib/medjobs/opportunity";
+import { buildOpportunity, readOpportunityProfile } from "@/lib/medjobs/opportunity";
+import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -1079,9 +1080,14 @@ export default async function ProviderPage({
 
               {/* ── About this opportunity (student context only) ── */}
               {isStudentContext && (() => {
+                const oppMeta = (profile as { metadata?: Record<string, unknown> }).metadata ?? null;
+                const oppProfile = readOpportunityProfile(oppMeta);
+                const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as { coverage_buckets?: string[] } | null;
                 const opp = buildOpportunity({
                   careText: categoryLabel ?? profile.category,
                   isClaimed: providerSource === "bp",
+                  coverageBuckets: demand?.coverage_buckets,
+                  profile: oppProfile,
                 });
                 return (
                   <div className="py-8 border-b border-gray-200">
@@ -1101,6 +1107,16 @@ export default async function ProviderPage({
                         <p className="text-sm text-gray-700">{opp.pay}</p>
                       </div>
                     </div>
+                    {(opp.certifications || opp.skills) && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Who we&apos;re looking for</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {[...(opp.certifications ?? []), ...(opp.skills ?? [])].map((r) => (
+                            <span key={r} className="inline-block rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <p className="mt-4 text-sm font-medium text-emerald-700">
                       Counts toward your 120 patient-care hours.
                     </p>

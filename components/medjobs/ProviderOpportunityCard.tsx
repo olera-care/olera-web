@@ -9,6 +9,13 @@ import {
 } from "@/lib/medjobs/opportunity";
 import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
 
+const HOURS_TAG: Record<string, string> = {
+  "0_10": "Up to 10 hrs/wk",
+  "10_20": "10–20 hrs/wk",
+  "20_30": "20–30 hrs/wk",
+  "30_plus": "30+ hrs/wk",
+};
+
 /**
  * ProviderOpportunityCard — the unified provider profile header.
  *
@@ -40,7 +47,7 @@ export default function ProviderOpportunityCard({
   const tags = [
     ...(profile.certifications ?? []),
     ...(profile.skills ?? []),
-    ...(profile.hours_per_week ? [profile.hours_per_week.replace("_", "–").replace("plus", "+") + " hrs/wk"] : []),
+    ...(profile.hours_per_week ? [HOURS_TAG[profile.hours_per_week] ?? `${profile.hours_per_week} hrs/wk`] : []),
     ...(profile.pay_min && profile.pay_max ? [`$${profile.pay_min}–$${profile.pay_max}/hr`] : []),
   ];
 

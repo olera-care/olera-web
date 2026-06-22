@@ -158,7 +158,7 @@ function ProviderCaregiversContent() {
           loading={loading || authLoading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
-          accessTier={accessInfo.tier}
+          accessTier={MEDJOBS_INTERVIEW_OPEN_LOOP ? undefined : accessInfo.tier}
           initialSelectedId={newInterviewId ?? undefined}
           isVerified={isVerified}
           onVerifyClick={openVerificationModal}

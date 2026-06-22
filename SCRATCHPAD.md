@@ -17,6 +17,8 @@
 
 **Validation:** `npx --no-install tsc --noEmit` passed. Targeted audit: 294 legacy detail pages fail the rich-content gate and will be noindexed if reached; 234 legacy pages pass; 636 current sitemap pipeline program pages pass; 0 current sitemap pipeline program pages fail. Florida MEDS-AD = not indexable; Florida SMMC-LTC = indexable.
 
+**Pre-test:** tightened `structuredEligibility` detection so an empty shell object cannot count as rich content. Re-ran tsc and the corpus audit; counts unchanged.
+
 **NEXT:** QA preview page source/meta for `/benefits/florida/medicaid-for-aged-and-disabled-meds-ad` and `/senior-benefits/florida/medicaid-for-aged-and-disabled-meds-ad` should show `noindex,follow`; `/benefits/florida/smmc-ltc-hcbs-waivers` should remain indexable. Content follow-up remains to write/review drafts for the 294 gaps from the Notion inventory.
 
 ### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)

@@ -13,9 +13,29 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
   const [current, setCurrent] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  // Track loaded image URLs and the one currently held on screen so navigation
+  // crossfades photo→photo instead of cutting to a blank frame while the incoming
+  // image decodes.
+  const [loadedSrcs, setLoadedSrcs] = useState<Set<string>>(new Set());
+  const [displayedSrc, setDisplayedSrc] = useState<string | null>(null);
 
-  const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
-  const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
+  const currentSrc = images[current];
+  const currentLoaded = loadedSrcs.has(currentSrc);
+
+  // Layers on screen: the previously-held image (kept visible until the incoming
+  // one loads) plus the current target. Two at most.
+  const layerSrcs: string[] = [];
+  if (displayedSrc && displayedSrc !== currentSrc) layerSrcs.push(displayedSrc);
+  layerSrcs.push(currentSrc);
+
+  // Pin the current (already-loaded) image as the held layer before switching, so
+  // it stays on screen during the next image's load. Don't pin an unloaded src.
+  const navigate = (nextIndex: number) => {
+    setDisplayedSrc((p) => (currentLoaded ? currentSrc : p));
+    setCurrent(nextIndex);
+  };
+  const prev = () => navigate(current === 0 ? images.length - 1 : current - 1);
+  const next = () => navigate(current === images.length - 1 ? 0 : current + 1);
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index);
@@ -55,20 +75,33 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
   return (
     <>
       <div className={`group/carousel relative rounded-xl overflow-hidden bg-gray-900 ${className || "h-[400px]"}`}>
-        {/* Main image — clickable to open lightbox */}
+        {/* Main image — clickable to open lightbox. Two-layer crossfade: the held
+            image stays visible until the incoming one finishes loading. */}
         <button
           type="button"
           onClick={() => openLightbox(current)}
           className="w-full h-full cursor-pointer"
           aria-label="View all photos"
         >
-          <Image
-            src={images[current]}
-            alt={`${alt} - Image ${current + 1}`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
+          {layerSrcs.map((src) => {
+            const isCurrent = src === currentSrc;
+            const visible = isCurrent ? currentLoaded : !currentLoaded;
+            return (
+              <Image
+                key={src}
+                src={src}
+                alt={`${alt} - Image ${current + 1}`}
+                fill
+                className={`object-cover transition-opacity duration-300 ease-out ${
+                  visible ? "opacity-100" : "opacity-0"
+                }`}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                onLoad={() =>
+                  setLoadedSrcs((p) => (p.has(src) ? p : new Set(p).add(src)))
+                }
+              />
+            );
+          })}
         </button>
 
         {/* Navigation arrows */}

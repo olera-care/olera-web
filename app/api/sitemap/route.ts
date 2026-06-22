@@ -8,6 +8,7 @@ import {
 import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { allEpisodes } from "@/lib/aging-in-america-data";
+import { shouldIndexBenefitsProgram } from "@/lib/benefits/program-content-quality";
 
 export const dynamic = "force-dynamic";
 
@@ -155,6 +156,7 @@ export async function GET(request: Request) {
           entries.push(xmlEntry(`${SITE_URL}/benefits/${slug}`, 0.5, "monthly"));
         }
         for (const draft of drafts.programs ?? []) {
+          if (!shouldIndexBenefitsProgram(draft)) continue;
           entries.push(xmlEntry(`${SITE_URL}/benefits/${slug}/${draft.id}`, 0.4, "monthly"));
         }
       }

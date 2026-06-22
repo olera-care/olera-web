@@ -21,7 +21,9 @@ import {
   addLeads,
   attachEmailAccounts,
   createCampaign,
+  getLeadByEmail,
   listEmailAccounts,
+  pauseLeadInCampaign,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
@@ -547,11 +549,11 @@ const GRAZIE_PHOTO_URL =
  * Structure: Best, → Graize block → divider → "Message Approved" → Logan
  * block. Matches the Resend ordering.
  */
-function composeSmartleadFooterHtml(): string {
+function composeSmartleadFooterHtml(flyerUrl: string): string {
   return [
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
-    grazieSignatureHtml(),
+    grazieSignatureHtml(flyerUrl),
     `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
     `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
     loganSignatureHtml(),
@@ -571,7 +573,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}?utm_content={{outreach_id}}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -580,7 +582,7 @@ function loganSignatureHtml(): string {
 </table>`;
 }
 
-function grazieSignatureHtml(): string {
+function grazieSignatureHtml(flyerUrl: string): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:6px;">
   <tr>
@@ -590,7 +592,7 @@ function grazieSignatureHtml(): string {
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
       <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
-      <p style="margin:0;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
+      <p style="margin:0;"><a href="${flyerUrl}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>
 </table>`;
@@ -645,7 +647,8 @@ function toSmartleadHtml(
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));
-  return bodyHtml + composeSmartleadFooterHtml();
+  // Signature "Program flyer" link uses the same audience-aware PDF URL.
+  return bodyHtml + composeSmartleadFooterHtml(pdfUrl);
 }
 
 // ── Server-side preview rendering (no network) ───────────────────────────
@@ -1259,5 +1262,67 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
 
   result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
   result.ok = result.errors.length === 0;
+  return result;
+}
+
+// ── Stop drips on conversion ─────────────────────────────────────────────
+
+export interface PauseDripsResult {
+  /** Lead/campaign pairs successfully paused. */
+  paused: number;
+  /** Pairs we attempted (campaign_id × email). */
+  attempted: number;
+  errors: string[];
+}
+
+/**
+ * Pause a contact's drip across one or more Smartlead campaigns on conversion.
+ *
+ * When a row converts to Client / Partner we cancel the CRM tasks, but the cold
+ * + activation EMAILS drip from Smartlead campaigns, which only auto-pause on a
+ * detected reply. A conversion made on a call (no reply) would otherwise keep
+ * emailing a now-converted contact. This resolves each email to its Smartlead
+ * lead id once, then pauses that lead in each campaign it might still be in.
+ *
+ * Best-effort by design: never throws, and is inert when SMARTLEAD_API_KEY is
+ * unset (the underlying calls return ok:false). The caller does not fail the
+ * conversion on a pause error.
+ */
+export async function pauseLeadDrips(
+  targets: Array<{ campaignId: number; email: string }>,
+): Promise<PauseDripsResult> {
+  const result: PauseDripsResult = { paused: 0, attempted: 0, errors: [] };
+
+  // Dedup (campaign, email) pairs and resolve each email → lead id once.
+  const seen = new Set<string>();
+  const leadIdByEmail = new Map<string, number | null>();
+
+  for (const { campaignId, email } of targets) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!campaignId || !normalizedEmail) continue;
+    const key = `${campaignId}::${normalizedEmail}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.attempted += 1;
+
+    let leadId = leadIdByEmail.get(normalizedEmail);
+    if (leadId === undefined) {
+      const lookup = await getLeadByEmail(normalizedEmail);
+      leadId = lookup.ok ? (lookup.data?.id ?? null) : null;
+      if (!lookup.ok) {
+        result.errors.push(`lookup ${normalizedEmail}: ${lookup.error}`);
+      }
+      leadIdByEmail.set(normalizedEmail, leadId);
+    }
+    if (leadId == null) continue; // not found / not configured — skip quietly
+
+    const paused = await pauseLeadInCampaign(campaignId, leadId);
+    if (paused.ok) {
+      result.paused += 1;
+    } else {
+      result.errors.push(`pause ${normalizedEmail}@${campaignId}: ${paused.error}`);
+    }
+  }
+
   return result;
 }

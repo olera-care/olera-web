@@ -22,6 +22,7 @@ import {
 } from "@/lib/student-outreach/cadence";
 import { defaultCallScriptsFor, type CallScript } from "@/lib/student-outreach/sequencer";
 import { getTemplate, substituteVars, firstNameOf } from "@/lib/student-outreach/templates";
+import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 import type { StakeholderType } from "@/lib/student-outreach/types";
@@ -112,7 +113,7 @@ export function CadenceLaunchModal({
 
   // Call steps — editable (calls are CRM tasks; edits take effect).
   const [callCards, setCallCards] = useState<CallCard[]>(() => {
-    const byDay = new Map(defaultCallScriptsFor(cadenceKey).map((s) => [s.day, s.script]));
+    const byDay = new Map(defaultCallScriptsFor(cadenceKey, isPartner).map((s) => [s.day, s.script]));
     const result: CallCard[] = [];
     for (const d of days) {
       if (!d.steps.some((s) => s.channel === "phone")) continue;
@@ -122,7 +123,6 @@ export function CadenceLaunchModal({
   });
 
   const [openEmail, setOpenEmail] = useState<number | null>(0);
-  const [openCall, setOpenCall] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -141,9 +141,6 @@ export function CadenceLaunchModal({
     }),
     [recipientName, organizationName, campusName],
   );
-
-  const updateCall = (idx: number, patch: Partial<CallCard>) =>
-    setCallCards((cur) => cur.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
   const submit = async () => {
     setErr(null);
@@ -225,42 +222,18 @@ export function CadenceLaunchModal({
             );
           })}
 
-          {/* Call steps — editable script */}
-          {callCards.map((c, idx) => {
-            const isOpen = openCall === idx;
+          {/* Call steps — read-only script (design C) */}
+          {callCards.map((c) => {
             const scriptPreview = substituteVars(c.script, previewVars).replace(
               /\{recipient_name\}/g,
               firstNameOf(recipientName),
             );
             return (
-              <div key={`c-${c.day}`} className="rounded-md border border-gray-200 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setOpenCall(isOpen ? null : idx)}
-                  className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-gray-50"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      ☎ Day {c.day} · {stripDayPrefix(c.title)}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs text-gray-500">Call script (editable)</p>
-                  </div>
-                  <span className="text-xs text-gray-400">{isOpen ? "▾" : "▸"}</span>
-                </button>
-                {isOpen && (
-                  <div className="space-y-2 border-t border-gray-100 px-3 pb-3 pt-2">
-                    <textarea
-                      value={c.script}
-                      onChange={(e) => updateCall(idx, { script: e.target.value })}
-                      rows={5}
-                      className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-gray-400 focus:outline-none"
-                    />
-                    <div className="rounded-md border border-gray-100 bg-gray-50 p-2 text-xs text-gray-700">
-                      {scriptPreview}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <CallScriptBlock
+                key={`c-${c.day}`}
+                label={`☎ Day ${c.day} · ${stripDayPrefix(c.title)}`}
+                script={scriptPreview}
+              />
             );
           })}
 

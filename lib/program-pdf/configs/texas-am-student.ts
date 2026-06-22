@@ -32,7 +32,7 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     source: "flyer",
     siteUrl: "https://olera.care",
   }),
-  universityTagLine: "Paid Student Caregiver Program",
+  universityTagLine: "For pre-health students",
   subtitle: "A paid Student Caregiver Program for pre-nursing and pre-medical students",
   documentSubject: "Student Caregiver Program flyer",
   sectionHeaders: {

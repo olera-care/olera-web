@@ -68,7 +68,10 @@ export function MedjobsCard({
   // toggling the rule changes border color only, no width / layout
   // shift.
   const borderClass = unread ? "border-gray-900" : "border-gray-200";
-  const baseClass = `rounded-lg border ${borderClass} bg-white px-4 py-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
+  // Transition only the background (hover), never the border — the unread
+  // bold border must flip instantly, matching StakeholderCard. Animating it
+  // made marking read/unread visibly lag.
+  const baseClass = `rounded-lg border ${borderClass} bg-white px-4 py-3 transition-[background-color] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
   const interactiveClass =
     onClick || href ? `${baseClass} cursor-pointer hover:bg-gray-50` : baseClass;
   const titleWeight = unread ? "font-semibold" : "font-medium";

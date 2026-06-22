@@ -630,7 +630,6 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               <Button size="sm" onClick={continueToNext}>Continue to {nextSubtype.label} →</Button>
             )}
             <Button size="sm" variant="secondary" onClick={seeProspects}>See prospects</Button>
-            <button onClick={() => setDone(null)} className="text-xs text-gray-500 hover:underline">Keep researching</button>
           </div>
         </div>
       ) : loading ? (

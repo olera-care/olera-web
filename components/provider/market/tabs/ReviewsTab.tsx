@@ -374,8 +374,8 @@ export default function ReviewsTab({
       </form>
 
       {/* Divider with "or" */}
-      <div className="flex items-center gap-4 my-6">
-        <div className="flex-1 h-px bg-stone-200" />
+      <div className="flex items-center justify-center gap-3 my-6">
+        <div className="w-8 h-px bg-stone-200" />
         <button
           type="button"
           onClick={handleCopyLink}
@@ -387,7 +387,7 @@ export default function ReviewsTab({
         >
           {dividerLinkCopied ? "Link copied ✓" : "or copy a link to share yourself"}
         </button>
-        <div className="flex-1 h-px bg-stone-200" />
+        <div className="w-8 h-px bg-stone-200" />
       </div>
 
       {/* Preview link */}
@@ -407,7 +407,7 @@ export default function ReviewsTab({
       )}
 
       {/* Footer */}
-      <div className="mt-6 pt-5 border-t border-stone-100">
+      <div className="mt-6 pt-2">
         <p className="text-xs text-stone-400 text-center flex items-center justify-center gap-1.5 flex-wrap">
           {hasGooglePlaceId ? (
             <>

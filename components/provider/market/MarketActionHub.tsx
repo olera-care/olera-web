@@ -135,7 +135,7 @@ export default function MarketActionHub({
         </div>
 
         {/* Collapsible trigger */}
-        <div className="border-t border-stone-200/80 pt-4">
+        <div className="pt-4">
           <button
             type="button"
             onClick={() => setIsMarketExpanded(!isMarketExpanded)}

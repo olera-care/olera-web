@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -93,7 +93,7 @@ function EmptyDetail() {
 /* ════════════════════════════════════════════════════════
    Main two-panel workspace
    ════════════════════════════════════════════════════════ */
-export default function JobsWorkspacePage() {
+function JobsWorkspaceInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { profiles } = useAuth();
@@ -624,5 +624,13 @@ function JobDetailPanel({
         </div>
       )}
     </div>
+  );
+}
+
+export default function JobsWorkspacePage() {
+  return (
+    <Suspense>
+      <JobsWorkspaceInner />
+    </Suspense>
   );
 }

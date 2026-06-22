@@ -371,6 +371,23 @@ export default function ReferralsTab({
         </div>
       )}
 
+      {/* Progress footer - no border line */}
+      <div className="mt-6 pt-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-1.5 rounded-full bg-stone-100 overflow-hidden">
+            <div
+              className="h-full bg-[#199087] rounded-full transition-all duration-500"
+              style={{ width: `${stats.total ? (stats.worked / stats.total) * 100 : 0}%` }}
+            />
+          </div>
+          <p className="text-xs text-stone-400 shrink-0">
+            {stats.worked === 0
+              ? `${stats.total} sources to work`
+              : `${stats.worked} of ${stats.total} worked`}
+            {stats.referring > 0 && ` · ${stats.referring} referring`}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

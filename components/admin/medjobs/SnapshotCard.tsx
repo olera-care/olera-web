@@ -558,6 +558,13 @@ function GeneralContactSection({
     set(true);
     setTimeout(() => set(false), 1200);
   };
+  // Persist a discovered website as the source of record — only when none is
+  // already on file (the route only discovers in that case anyway).
+  const applyWebsite = async (value: string | null) => {
+    if (!value || (website ?? "").trim()) return;
+    setWebsite(value);
+    await saveField("website", value);
+  };
   // blanksOnly (auto-fill): never overwrite a value already on file (e.g. the
   // directory's email/phone) — only populate empty fields.
   const applyEmail = async (value: string | null, blanksOnly = false) => {
@@ -659,6 +666,7 @@ function GeneralContactSection({
       });
       const data = (await res.json()) as {
         value?: string | null;
+        website?: { value: string | null };
         email?: { value: string | null };
         contactForm?: { value: string | null };
         phone?: { value: string | null };
@@ -678,6 +686,7 @@ function GeneralContactSection({
       };
       if (!res.ok) throw new Error(data.error || "Lookup failed");
       if (mode === "all") {
+        await applyWebsite(data.website?.value ?? null);
         await applyEmail(data.email?.value ?? null, fillBlanksOnly);
         await applyForm(data.contactForm?.value ?? null, fillBlanksOnly);
         await applyPhone(data.phone?.value ?? null, fillBlanksOnly);
@@ -735,19 +744,15 @@ function GeneralContactSection({
   // marker is the only "once" guard.
   const canAutoFill =
     editable && ctx.outreach.kind === "provider" && !alreadyAutoFilled;
-  // A website (or directory link) the enrichment can actually scrape. If absent,
-  // we don't stamp "done" so the run can retry once a website exists.
-  const hasScrapeSource = Boolean(
-    (website ?? "").trim() ||
-      (ctx.outreach.research_data as { olera_provider_id?: string } | null)?.olera_provider_id,
-  );
   const autoFillRan = useRef(false);
   useEffect(() => {
     if (autoFillRan.current || !canAutoFill) return;
     autoFillRan.current = true;
     void (async () => {
-      await findContact("all", true); // blanks-only: enrich, never overwrite
-      if (!hasScrapeSource) return; // no site to read → allow a retry later
+      // The route discovers a website (Google Places) when none is on file, so
+      // this pre-fills on EVERY first open — source link or not. Blanks-only, so
+      // existing values are never overwritten. Stamp "done" once afterward.
+      await findContact("all", true);
       try {
         await action("update_research", {
           research: { provider_autofill_at: new Date().toISOString() },
@@ -789,6 +794,17 @@ function GeneralContactSection({
           General Contact
         </p>
         <div className="flex items-center gap-2">
+          {websiteHref && (
+            <a
+              href={websiteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open the website / research source"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+            >
+              🌐 source ↗
+            </a>
+          )}
           {showAutofill && (
             <button
               type="button"
@@ -1107,17 +1123,8 @@ function BusinessNameSection({
           Business Name
         </p>
         <span className="flex items-center gap-2">
-          {sourceUrl && (
-            <a
-              href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
-              title="Open the website / research source"
-            >
-              🌐 source ↗
-            </a>
-          )}
+          {/* The source link moved to the General Contact row (next to Fill
+              from Website). */}
           {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
         </span>
       </div>
@@ -2199,7 +2206,7 @@ export function ContactFormBanner({
         <p className="font-semibold text-gray-700">How to submit:</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-4">
           <li>Contact forms come in different shapes — use the best available fields and your judgment.</li>
-          <li>Email field → use <span className="font-mono">graize@olera.care</span>.</li>
+          <li>Email field → use <span className="font-mono">support@olera.care</span>.</li>
           <li>Phone field → use Olera&apos;s outreach phone number.</li>
           <li>Family / client-lead forms → still submit the message if it&apos;s the only contact path; the goal is reaching the agency through every available channel.</li>
           <li>Paste the message above, submit the form, then log the outcome below.</li>

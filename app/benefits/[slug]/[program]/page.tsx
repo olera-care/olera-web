@@ -6,6 +6,7 @@ import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
 import { getRelatedArticles } from "@/lib/content";
 import { getDisplayName } from "@/lib/program-name";
 import { getEnrichedProgram } from "@/lib/program-data";
+import { hasRichProgramContent } from "@/lib/benefits/program-content-quality";
 
 interface Props {
   params: Promise<{ slug: string; program: string }>;
@@ -153,11 +154,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const displayName = getDisplayName(program, state);
   const title = `${displayName} | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in ${state.name}.`;
+  const isIndexable = hasRichProgramContent(program);
 
   return {
     title,
     description,
     alternates: { canonical: `/benefits/${slug}/${programId}` },
+    ...(!isIndexable && {
+      robots: {
+        index: false,
+        follow: true,
+        googleBot: {
+          index: false,
+          follow: true,
+        },
+      },
+    }),
     openGraph: {
       title,
       description,

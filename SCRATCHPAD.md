@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-06-22 — Thin Senior Benefits program pages: noindex fallback (branch `codex/benefits-thin-page-noindex`)
+
+**Trigger:** TJ found an indexed-looking `/benefits/florida/medicaid-for-aged-and-disabled-meds-ad` page that rendered only a hero/skeleton, with no program body content. Investigation showed the page was not a misplaced rich page; MEDS-AD exists only as legacy scaffold data, while the rich related Florida page is SMMC-LTC, not an exact substitute.
+
+**Decision:** protect SEO growth without broadly noindexing Benefits. Keep real pipeline/rich pages indexable; add `noindex,follow` only when a routable legacy fallback program lacks rich V3 body content. Same guard applies to both `/benefits/[slug]/[program]` and legacy `/senior-benefits/[state]/[benefit]` detail pages, since both can expose the same thin records.
+
+**Built:** `lib/benefits/program-content-quality.ts` centralizes the rich-content gate (`intro`, eligibility, guide, docs, contacts, FAQs, sections, source URL). Both program metadata generators now use it to add robots only for thin pages.
+
+**Validation:** `npx --no-install tsc --noEmit` passed. Targeted audit: 294 legacy detail pages fail the rich-content gate and will be noindexed if reached; 234 legacy pages pass; 636 current sitemap pipeline program pages pass; 0 current sitemap pipeline program pages fail. Florida MEDS-AD = not indexable; Florida SMMC-LTC = indexable.
+
+**NEXT:** QA preview page source/meta for `/benefits/florida/medicaid-for-aged-and-disabled-meds-ad` and `/senior-benefits/florida/medicaid-for-aged-and-disabled-meds-ad` should show `noindex,follow`; `/benefits/florida/smmc-ltc-hcbs-waivers` should remain indexable. Content follow-up remains to write/review drafts for the 294 gaps from the Notion inventory.
+
 ### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)
 
 **Trigger:** TJ wanted to move providers from impressions to real managed-ads signups, then previewed the copy and asked for a sharper testable path. Later asked to adopt the richer design critique slash-command wrapper from the staging repo.

@@ -66,6 +66,11 @@ export interface WorkspaceOffice {
   verified?: boolean;
   /** No email found — kept as a phone "call" lead, out of the email funnel. */
   call_only?: boolean;
+  /** Set once this office has been materialized into a prospect
+   *  (student_outreach row). Locks it from re-generation so a returning user
+   *  can't create duplicate prospects, and drives the "✓ In In-Basket" badge. */
+  outreach_id?: string | null;
+  generated_at?: string | null;
   // ── Department-head (person-shaped) fields ──────────────────────────────
   // For the dept_head subtype the "office" IS a department and the prospect is
   // ONE person (the chair). `name` is the department; these carry the chair,

@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
   for (const sel of selections) {
     const office = officeById.get(sel.office_id);
     if (!office) continue;
+    if (office.outreach_id) continue; // already a prospect — dedup (return-user safety)
     if (!office.email && !office.call_only && !office.phone) continue; // not reachable
 
     const advisors = ws.advisors.filter((a) => a.office_id === office.id);
@@ -114,6 +115,10 @@ export async function POST(request: NextRequest) {
 
     const rowId = await createOfficeRow(db, { campusId, office, advisors, sources, userId: user.id });
     if (!rowId) continue;
+    // Stamp the office (mutates the ws.offices object via the Map ref) so it's
+    // locked from re-generation and shows "✓ In In-Basket" on return.
+    office.outreach_id = rowId;
+    office.generated_at = new Date().toISOString();
     ids.push(rowId);
     created += 1;
 
@@ -180,14 +185,17 @@ export async function POST(request: NextRequest) {
   const nextPr = writeWorkspace(
     (campus as { partner_research?: unknown }).partner_research,
     subtype,
-    { generated_at: new Date().toISOString() },
+    // Persist the stamped offices (not just the timestamp) so the locks survive.
+    { offices: ws.offices, generated_at: new Date().toISOString() },
   );
   await db
     .from("student_outreach_campuses")
     .update({ partner_research: nextPr, updated_at: new Date().toISOString() })
     .eq("id", campusId);
 
-  return NextResponse.json({ ok: true, created, ids });
+  // Return the updated offices so the client can sync the stamps before its
+  // next autosave (otherwise stale offices would clobber the locks).
+  return NextResponse.json({ ok: true, created, ids, offices: ws.offices });
 }
 
 async function createOfficeRow(

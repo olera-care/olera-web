@@ -463,7 +463,8 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     setGenSel((cur) => {
       const next = { ...cur };
       for (const o of verifiedOffices) {
-        if (!next[o.id]) next[o.id] = { include: true, advisors: new Set() };
+        // Already-generated offices default to UNchecked (locked); new ones checked.
+        if (!next[o.id]) next[o.id] = { include: !o.outreach_id, advisors: new Set() };
       }
       return next;
     });
@@ -475,7 +476,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     try {
       await save();
       const offices = verifiedOffices
-        .filter((o) => genSel[o.id]?.include)
+        .filter((o) => !o.outreach_id && genSel[o.id]?.include)
         .map((o) => ({ office_id: o.id, advisor_ids: [...(genSel[o.id]?.advisors ?? new Set<string>())] }));
       if (offices.length === 0) {
         setError("Select at least one office.");
@@ -494,7 +495,14 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ partner_audit: { subtype, steps: { generated: true }, complete: true } }),
       });
-      setWs((w) => ({ ...w, generated_at: new Date().toISOString() }));
+      // Sync the server's stamped offices so the locks stick (and the next
+      // autosave doesn't overwrite them with stale, un-stamped offices).
+      const updatedOffices = d?.offices as WorkspaceOffice[] | undefined;
+      setWs((w) => ({
+        ...w,
+        offices: updatedOffices ?? w.offices,
+        generated_at: new Date().toISOString(),
+      }));
       onChanged();
       setDone({ created: (d?.created as number) ?? offices.length });
     } catch (e) {
@@ -829,6 +837,7 @@ function OfficesStep({
                     : o.name || "(unnamed office)"}
                 </span>
                 <span className="shrink-0 text-[11px] text-gray-500">{o.email || (o.call_only ? "☎ call-only" : "")}</span>
+                {o.outreach_id && <span className="shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">In In-Basket</span>}
               </span>
               <button onClick={() => setExpanded((s) => new Set(s).add(o.id))} className="shrink-0 text-xs text-primary-600 hover:underline">edit</button>
             </div>
@@ -1120,7 +1129,7 @@ function GenerateStep({
       return { ...s, [oid]: { ...cur, advisors } };
     });
 
-  const count = offices.filter((o) => genSel[o.id]?.include).length;
+  const count = offices.filter((o) => !o.outreach_id && genSel[o.id]?.include).length;
   const input = "rounded border border-gray-200 bg-white px-2 py-1 text-sm focus:border-gray-400 focus:outline-none";
 
   return (
@@ -1128,7 +1137,7 @@ function GenerateStep({
       <p className="text-sm text-gray-600">These offices become prospects in your In-Basket. Edit anything, then generate.</p>
 
       {ws.generated_at && (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">✓ Prospects generated. Generating again creates additional rows.</p>
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">✓ Already-generated prospects are locked below (✓ In In-Basket). Generating again only creates the new ones.</p>
       )}
 
       {offices.length === 0 && (
@@ -1140,13 +1149,20 @@ function GenerateStep({
       {offices.map((o) => {
         const advisors = ws.advisors.filter((a) => a.office_id === o.id);
         const callOnly = !o.email;
+        const isGenerated = !!o.outreach_id;
         return (
-          <div key={o.id} className="rounded-lg border border-gray-200 p-3">
+          <div key={o.id} className={`rounded-lg border border-gray-200 p-3 ${isGenerated ? "bg-emerald-50/30" : ""}`}>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={genSel[o.id]?.include ?? true} onChange={() => toggleInclude(o.id)} />
+              <input
+                type="checkbox"
+                checked={isGenerated ? true : (genSel[o.id]?.include ?? true)}
+                disabled={isGenerated}
+                onChange={() => toggleInclude(o.id)}
+              />
               <span className="font-medium text-gray-900">{o.name || "(unnamed office)"}</span>
               <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600">{tagLabel(o.tag)}</span>
-              {callOnly && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-700">☎ Call-only</span>}
+              {isGenerated && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">✓ In In-Basket</span>}
+              {!isGenerated && callOnly && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-700">☎ Call-only</span>}
             </label>
             <div className="mt-1 grid grid-cols-1 gap-2 pl-6 sm:grid-cols-2">
               <input value={o.email ?? ""} onChange={(e) => onPatchOffice(o.id, { email: e.target.value })} placeholder="✉ Office email" className={input} />

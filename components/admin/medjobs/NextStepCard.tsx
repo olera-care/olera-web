@@ -41,6 +41,7 @@ import {
   formatRelative,
 } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
@@ -61,12 +62,17 @@ export interface NextStepCardProps {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
+  /** Which In Basket tab the drawer was opened from. Drives the
+   *  awaiting-reply call affordance: Emails ("replies") shows a small link;
+   *  Calls + every other tab show a prominent far-left button. */
+  activeTab?: TabKey;
 }
 
 export function NextStepCard({
   ctx,
   action: rawAction,
   setError,
+  activeTab,
 }: NextStepCardProps) {
   // E1 + E2: wrap the action dispatcher so successful Log operations
   // (a) surface a toast naming the consequence and (b) mark the row
@@ -129,6 +135,7 @@ export function NextStepCard({
             action={action}
             setError={setError}
             stageLabel={display.label}
+            activeTab={activeTab}
           />
         </div>
       </div>
@@ -144,18 +151,20 @@ function StageBody({
   action,
   setError,
   stageLabel,
+  activeTab,
 }: {
   stage: Stage;
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
   stageLabel: string;
+  activeTab?: TabKey;
 }) {
   switch (stage) {
     case "prospect":
       return <ProspectBody ctx={ctx} />;
     case "in_outreach":
-      return <InOutreachBody ctx={ctx} action={action} setError={setError} />;
+      return <InOutreachBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />;
     case "call_due":
       return <CallDueBody ctx={ctx} action={action} setError={setError} />;
     case "meeting_set":
@@ -203,10 +212,12 @@ function InOutreachBody({
   ctx,
   action,
   setError,
+  activeTab,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (m: string | null) => void;
+  activeTab?: TabKey;
 }) {
   // What's queued next, for the awaiting-reply subline.
   const nextEmail = ctx.pending_tasks
@@ -274,10 +285,19 @@ function InOutreachBody({
         ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
         : "Outreach in flight";
 
+  // Call affordance: row-kind-aware label, tab-aware placement. On the Emails
+  // tab ("replies") email reply is the focus, so calling is a small link next
+  // to Smartlead; on Calls + every other tab it's the prominent far-left
+  // next-step button.
+  const isEmailsTab = activeTab === "replies";
+  const callLabel = isPartnerRow(ctx) ? "Call contact" : "Call provider";
+  const callTitle = "Call this contact now and log the outcome against the call script.";
+
   return (
     <>
       {/* Headline on the left; the manual-reply Smartlead escape hatch pinned
-          to the card's top-right corner. */}
+          to the card's top-right corner. On the Emails tab a small call link
+          sits just left of it. */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {latestReply ? (
@@ -289,8 +309,25 @@ function InOutreachBody({
             </>
           )}
         </div>
-        <span className="shrink-0">
-          <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
+        <span className="flex shrink-0 items-center gap-2">
+          {isEmailsTab && (
+            <>
+              <button
+                onClick={() => setShowConfirmCall(true)}
+                title={callTitle}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+              >
+                ☎ {callLabel}
+              </button>
+              <span className="text-gray-300" aria-hidden>
+                ·
+              </span>
+            </>
+          )}
+          <SmartleadInboxLink
+            linkage={linkageFromResearchData(ctx.outreach.research_data)}
+            label="Smartlead"
+          />
         </span>
       </div>
       <ActivationActions
@@ -298,15 +335,19 @@ function InOutreachBody({
         action={action}
         setError={setError}
         source="reply"
-        trailing={
-          <>
+        leading={
+          !isEmailsTab ? (
             <button
               onClick={() => setShowConfirmCall(true)}
-              title="Call this row now and log the outcome against the call script."
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              title={callTitle}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
             >
-              ☎ Call to confirm
+              ☎ {callLabel}
             </button>
+          ) : null
+        }
+        trailing={
+          <>
             <BookMeetingLink ctx={ctx} inline />
             {isPartnerRow(ctx) ? (
               <PartnerActivate ctx={ctx} action={action} setError={setError} />
@@ -730,12 +771,17 @@ function ActivationActions({
   action,
   setError,
   source,
+  leading,
   trailing,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (m: string | null) => void;
   source: "reply" | "phone" | "meeting";
+  /** Buttons rendered at the FAR LEFT of the action row, before Interested /
+   *  Not interested — used for the prominent "Call provider/contact" next-step
+   *  button on the Calls (and non-Email) tabs. */
+  leading?: React.ReactNode;
   /** Extra buttons (Book a meeting / Make a partner) rendered in the SAME
    *  horizontal row as Interested / Not interested, so the whole face shows
    *  one row of actions rather than a 2x2 stack. */
@@ -794,14 +840,18 @@ function ActivationActions({
   };
 
   if (isRunning) {
-    return trailing ? (
-      <div className="mt-3 flex flex-wrap items-center gap-2">{trailing}</div>
+    return leading || trailing ? (
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {leading}
+        {trailing}
+      </div>
     ) : null;
   }
 
   return (
     <>
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {leading}
         <button
           onClick={() => setShowLaunch(true)}
           title="Send the activation link + meeting option and start the follow-up cadence."

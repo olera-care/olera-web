@@ -41,6 +41,7 @@ import {
   type Status,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { cleanOrgName } from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
@@ -73,6 +74,9 @@ interface DrawerProps {
    *  subset of the list row, so passing it renders the drawer instantly with
    *  no fetch (avoids the fetch-all-then-find). */
   candidateSeed?: CandidateDrawerData;
+  /** Which In Basket tab the drawer was opened from — threaded to NextStepCard
+   *  so the awaiting-reply call affordance adapts (Emails → link, else button). */
+  activeTab?: TabKey;
 }
 
 type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
@@ -157,6 +161,7 @@ export function Drawer(props: DrawerProps) {
       outreachId={props.outreachId}
       onClose={props.onClose}
       onAction={props.onAction ?? (() => {})}
+      activeTab={props.activeTab}
     />
   );
 }
@@ -246,11 +251,13 @@ function StakeholderDrawer({
   onClose,
   onAction,
   seedName,
+  activeTab,
 }: {
   outreachId: string;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
   seedName?: string;
+  activeTab?: TabKey;
 }) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -444,7 +451,7 @@ function StakeholderDrawer({
             setError={setError}
           />
         ) : (
-          <DrawerBody ctx={ctx} action={action} setError={setError} />
+          <DrawerBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
         )
       ) : null}
     </DrawerShell>
@@ -937,10 +944,12 @@ function DrawerBody({
   ctx,
   action,
   setError,
+  activeTab,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
+  activeTab?: TabKey;
 }) {
   // v8.10.4: research stages are a different mode entirely. The research
   // form IS the next step, so it leads the drawer (no NextStepPanel),
@@ -977,7 +986,7 @@ function DrawerBody({
         // is absent from the Partner drawer between this commit and
         // the timeline; pending email/call tasks remain visible via
         // History in More Details.
-        <NextStepCard ctx={ctx} action={action} setError={setError} />
+        <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
       )}
 
       {/* Zone 4 · OutreachTimeline — the chronological surface. Past

@@ -839,6 +839,7 @@ export function MedJobsTabPage({
         <Drawer
           outreachId={openOutreachId}
           seedName={openOutreachName}
+          activeTab={tab}
           onClose={() => {
             // No refetch on close. Read state was already applied
             // optimistically on open (markRowReadLocally), and any real

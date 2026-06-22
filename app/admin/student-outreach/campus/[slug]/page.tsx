@@ -19,6 +19,7 @@ import {
 interface CampusResponse {
   campus: Campus;
   stakeholders_by_type: Record<StakeholderType, OutreachRow[]>;
+  providers: OutreachRow[];
   total: number;
   status_summary: Partial<Record<Status, number>>;
 }
@@ -42,8 +43,11 @@ export default function CampusDetailPage({
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/student-outreach/campuses/${slug}`);
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error ?? "Load failed");
+      // Guard against empty/non-JSON bodies (e.g. a 500) so we surface a real
+      // message instead of "Unexpected end of JSON input".
+      const d = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(d?.error ?? `Load failed (${res.status})`);
+      if (!d) throw new Error("Load failed");
       setData(d);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed");
@@ -101,6 +105,20 @@ export default function CampusDetailPage({
       </div>
 
       <div className="space-y-6">
+        {(data.providers ?? []).length > 0 && (
+          <section>
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Providers ({data.providers.length})
+            </h2>
+            <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
+              {data.providers.map((r) => (
+                <li key={r.id}>
+                  <RowButton row={r} onClick={() => setOpenId(r.id)} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {TYPE_ORDER.map((type) => {
           const rows: OutreachRow[] = data.stakeholders_by_type[type] ?? [];
           if (rows.length === 0) return null;

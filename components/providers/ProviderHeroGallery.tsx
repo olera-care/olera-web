@@ -47,9 +47,13 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
 
   const validImages = images.filter((_, i) => !failedImages.has(i));
   const safeIndex = Math.min(currentIndex, Math.max(0, validImages.length - 1));
-  const showFallback = !!fallbackImage && !fallbackFailed;
   const showRealImage = validImages.length > 0;
-  const showGradient = !showFallback && !showRealImage;
+  // The stock photo is a TRUE fallback, not a load placeholder: it only shows
+  // when there are no usable real photos (none provided, or all failed). When
+  // real photos exist, the first one fades in over the neutral container instead
+  // of flashing the stock image on initial page load.
+  const showFallback = !showRealImage && !!fallbackImage && !fallbackFailed;
+  const showGradient = !showRealImage && !showFallback;
   const currentSrc = showRealImage ? validImages[safeIndex] : null;
   const currentLoaded = currentSrc != null && loadedSrcs.has(currentSrc);
   const anyRealImageLoaded = loadedSrcs.size > 0;
@@ -109,8 +113,8 @@ export default function ProviderHeroGallery({ images, providerName, category, fa
       onClick={handleGalleryInteraction}
       onTouchStart={handleGalleryInteraction}
     >
-      {/* Base layer: stock photo. Stays visible until a real image loads on top
-          (or stays forever if all real images fail). */}
+      {/* Stock photo — only rendered when there are no usable real photos
+          (none provided, or all failed). Never a load placeholder. */}
       {showFallback && (
         <Image
           src={fallbackImage}

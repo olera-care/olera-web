@@ -4,8 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import TermsModal from "@/components/medjobs/TermsModal";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
 import type { StudentMetadata } from "@/lib/types";
 
 const DUBOSE_AVATAR = "/images/for-providers/team/logan.jpg";
@@ -42,6 +42,14 @@ export default function ContactSection({
 }) {
   const { profiles } = useAuth();
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const providerProfile = profiles.find(
+    (p) => p.type === "organization" || p.type === "caregiver",
+  );
+  const termsAcceptedInitial = !!(
+    (providerProfile?.metadata as Record<string, unknown> | undefined)?.["interview_terms_accepted_at"]
+  );
+  const [termsAccepted, setTermsAccepted] = useState(termsAcceptedInitial);
 
   const firstName = candidate.displayName.split(" ")[0];
 
@@ -100,10 +108,12 @@ export default function ContactSection({
     );
   }
 
-  // ── Everyone else (provider-facing) → Schedule an interview ──
-  // Sample profiles have no real student behind them: there's nobody to
-  // interview yet, so the action is to review the program terms (the demo-era
-  // priming step). Real candidates open the interview scheduler directly.
+  // ── Everyone else (provider-facing) → the staged CTA ladder ──
+  // Terms first (the one real commitment, recorded as the scheduling gate +
+  // CRM Client flag). Once agreed: a real candidate → schedule; a sample → a
+  // standing "we'll notify you" since there's no real student to book yet.
+  const ctaClass =
+    "flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors";
   const scheduleModal = showSchedule && !isSample ? (
     <ScheduleInterviewModal
       studentProfileId={candidate.id}
@@ -112,30 +122,49 @@ export default function ContactSection({
       onScheduled={() => setShowSchedule(false)}
     />
   ) : null;
-  const cta = isSample ? (
-    <a
-      href={EMPLOYER_AGREEMENT_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-    >
-      Review Terms &amp; Conditions →
-    </a>
-  ) : (
-    <button
-      type="button"
-      onClick={() => setShowSchedule(true)}
-      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-    >
-      Schedule interview →
-    </button>
+  const termsModal = showTerms ? (
+    <TermsModal
+      profileId={providerProfile?.id}
+      onClose={() => setShowTerms(false)}
+      onAgreed={() => {
+        setTermsAccepted(true);
+        setShowTerms(false);
+      }}
+    />
+  ) : null;
+  const modals = (
+    <>
+      {scheduleModal}
+      {termsModal}
+    </>
   );
+
+  let cta: React.ReactNode;
+  if (!termsAccepted) {
+    cta = (
+      <button type="button" onClick={() => setShowTerms(true)} className={ctaClass}>
+        Review Terms &amp; Conditions →
+      </button>
+    );
+  } else if (isSample) {
+    cta = (
+      <div className="w-full rounded-xl bg-gray-100 px-4 py-2.5 text-center text-sm font-medium text-gray-500">
+        We&apos;ll notify you when your first student is ready
+      </div>
+    );
+  } else {
+    cta = (
+      <button type="button" onClick={() => setShowSchedule(true)} className={ctaClass}>
+        Schedule interview →
+      </button>
+    );
+  }
 
   if (variant === "sticky") {
     return (
       <>
         <div className={stickyWrap} style={stickyStyle}>{cta}</div>
-        {scheduleModal}
+        {modals}
       </>
     );
   }
@@ -157,7 +186,7 @@ export default function ContactSection({
         </div>
         {cta}
       </div>
-      {scheduleModal}
+      {modals}
     </>
   );
 }

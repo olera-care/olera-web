@@ -525,6 +525,25 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     router.push(`/admin/student-outreach/campus/${campusSlug}`);
   }, [onClose, router, campusSlug]);
 
+  // Generate-done navigation (Item 6): advance to the next partner type, or jump
+  // to the In-Basket Partners tab to see the created prospects.
+  const nextSubtype = (() => {
+    const i = SUBTYPES.findIndex((s) => s.key === subtype);
+    return i >= 0 && i < SUBTYPES.length - 1 ? SUBTYPES[i + 1] : null;
+  })();
+  const continueToNext = () => {
+    if (!nextSubtype) return;
+    autoPass.current = false;
+    autoSuggested.current = false;
+    setDone(null);
+    setStep("links");
+    setSubtype(nextSubtype.key);
+  };
+  const seeProspects = () => {
+    onClose();
+    router.push("/admin/medjobs/in-basket?tab=partner_book");
+  };
+
   const stepIndex = STEPS.findIndex((s) => s.key === step);
 
   const header = (
@@ -607,7 +626,10 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
                 : `confirm each ${partnerNoun(subtype).one} by a quick call, then launch outreach.`}
           </p>
           <div className="mt-5 flex items-center justify-center gap-2">
-            <Button size="sm" onClick={finish}>View {universityName} prospects →</Button>
+            {nextSubtype && (
+              <Button size="sm" onClick={continueToNext}>Continue to {nextSubtype.label} →</Button>
+            )}
+            <Button size="sm" variant="secondary" onClick={seeProspects}>See prospects</Button>
             <button onClick={() => setDone(null)} className="text-xs text-gray-500 hover:underline">Keep researching</button>
           </div>
         </div>

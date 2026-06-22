@@ -347,11 +347,12 @@ function defaultCallScriptForDay(type: CadenceKey, day: number, isPartner = fals
     // sent and offer the meeting as the easy alternative. Warm contact + no
     // university name needed, so the plain brand is fine. Partners (advisors,
     // dept heads, student orgs) share the flyer rather than hire students, so
-    // their script references the flyer, not the eligibility check.
+    // their script references the flyer; providers reference interviewing and
+    // hiring pre-screened students.
     if (isPartner) {
       return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over the flyer and a few easy ways to share the Student Caregiver Program with your students, and wanted to check in. Any questions, or would it help to grab a few minutes with Dr. DuBose to talk through the best approach?"`;
     }
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over the eligibility check to get set up to hire student caregivers through Olera's Student Caregiver Program, and wanted to check in. Any questions, or would it be easier to grab a few minutes with Dr. DuBose to walk through it?"`;
+    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. Logan DuBose's office at Olera. I sent over some details on the Student Caregiver Program. It lets you interview and hire pre-screened student caregivers near you, with no cost to review and interview. I wanted to check in: any questions, or would it help to set up a few minutes with Dr. DuBose to talk through the specifics?"`;
   }
   if (type === "provider") {
     if (day === 3) {

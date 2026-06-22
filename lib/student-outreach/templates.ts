@@ -837,9 +837,17 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Great to hear from you. The next step is a quick eligibility check to review the terms and start hiring student caregivers from your job board: [start your eligibility check](${PLACEHOLDER.welcomeUrl}). Once you see a good fit, you can confirm and begin onboarding.`,
+      `Thanks for getting back to me. Here's a quick overview, and the full details are here: ${programLink(CANDIDATES_URL)}.`,
       ``,
-      `If any questions come up about using the platform, Dr. DuBose is [glad to walk through it with you](${PLACEHOLDER.calendlyUrl}). Thank you, and have a great day.`,
+      `A few things worth knowing up front:`,
+      ``,
+      `• Pre-screened students, ready to interview. Every candidate is a ${PLACEHOLDER.campus}-area health or pre-health student.`,
+      `• We surface students looking for caregiving hours near ${PLACEHOLDER.campus}; you just interview and choose to hire.`,
+      `• No cost to review and interview candidates. If you hire, we have simple terms and no long-term commitment.`,
+      ``,
+      `The best way to know if it's a fit is to meet the students yourself. Whenever you're ready, you can [start interviewing candidates near ${PLACEHOLDER.campus}](${PLACEHOLDER.welcomeUrl}). If it's easier to talk through specifics first, let me know and I'll arrange a call with Dr. DuBose. And of course, you can always reply here with any questions.`,
+      ``,
+      `Thanks again, and talk soon.`,
     ].join("\n"),
   };
 }
@@ -864,9 +872,9 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Just making sure this didn't get buried. Whenever you're ready, the eligibility check takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
+      `Following up. Whenever you're ready, the best way to see if it's a fit is to meet the students yourself. You can [start interviewing candidates near ${PLACEHOLDER.campus}](${PLACEHOLDER.welcomeUrl}) anytime.`,
       ``,
-      `Prefer to talk first? Here's Dr. DuBose's calendar: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
+      `And if it's easier to talk through specifics first, just let me know and I'll set up a quick call with Dr. DuBose, or reply here with any questions.`,
     ].join("\n"),
   };
 }
@@ -891,9 +899,11 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `No rush at all. Whenever you're ready, your eligibility check to hire ${PLACEHOLDER.campus} student caregivers is here and takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
+      `Following up. You can review the program information [here](${CANDIDATES_URL}).`,
       ``,
-      `And Dr. DuBose's calendar is here if it's easier to talk first: [grab a time](${PLACEHOLDER.calendlyUrl}).`,
+      `The best way to see if it's a good fit is to meet a student yourself on a video interview, and there's no cost or commitment to do so. Whenever you're ready, you can [meet a student on a video interview](${PLACEHOLDER.welcomeUrl}).`,
+      ``,
+      `If you'd like to talk through specifics first, just let me know and I'll arrange a time with Dr. DuBose, and you can always reply here with any questions.`,
     ].join("\n"),
   };
 }

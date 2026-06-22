@@ -294,44 +294,39 @@ export default function ReviewsTab({
         </div>
       )}
 
+      {/* Compact market teaser - subtle, before the main action */}
+      {topCompetitor && (
+        <div className="flex items-center justify-between text-xs text-stone-400 mb-6">
+          <p>
+            <span className="uppercase tracking-wider">Top in {city || "your market"}</span>
+            <span className="mx-1.5">·</span>
+            <span className="text-stone-600">{topCompetitor.name}</span>
+            <span className="ml-1">({topCompetitor.reviews})</span>
+          </p>
+          {onSeeAll && (
+            <button
+              type="button"
+              onClick={onSeeAll}
+              className="text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-0.5"
+            >
+              See all
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Label */}
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-4">
+      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-3">
         Your move this week
       </p>
 
-      {/* Punchy headline - does all the heavy lifting */}
+      {/* Punchy headline - the main focus */}
       <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-6">
         {headline}
       </h2>
-
-      {/* Compact market teaser - shows leader, links to full analysis */}
-      {topCompetitor && (
-        <div className="mb-6 px-4 py-3 bg-stone-50 rounded-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mb-0.5">
-                Top in {city || "your market"}
-              </p>
-              <p className="text-sm text-stone-700">
-                <span className="font-semibold">{topCompetitor.name}</span>
-                <span className="text-stone-400 ml-1.5">· {topCompetitor.reviews} reviews</span>
-              </p>
-            </div>
-            {onSeeAll && (
-              <button
-                type="button"
-                onClick={onSeeAll}
-                className="text-xs font-medium text-[#199087] hover:text-[#147a72] transition-colors flex items-center gap-1"
-              >
-                See all
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Error message */}
       {errorMessage && (
@@ -480,13 +475,13 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Footer - momentum counter + Google status */}
-      <div className="mt-6 pt-4 border-t border-stone-100">
-        <div className="flex items-center justify-center gap-4 text-xs text-stone-400">
-          {/* Momentum counter */}
-          {((thisWeekCount !== null && thisWeekCount > 0) || justSent) && (
+      {/* Footer - stacked: momentum counter, then Google status */}
+      <div className="mt-6 space-y-3">
+        {/* Momentum counter - own line */}
+        {((thisWeekCount !== null && thisWeekCount > 0) || justSent) && (
+          <div className="flex justify-center">
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all duration-300 ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all duration-300 ${
                 justSent ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"
               }`}
             >
@@ -506,15 +501,11 @@ export default function ReviewsTab({
                 </>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Separator dot when both are shown */}
-          {((thisWeekCount !== null && thisWeekCount > 0) || justSent) && (
-            <span className="text-stone-300">·</span>
-          )}
-
-          {/* Google status */}
-          <div className="flex items-center gap-1.5">
+        {/* Google status - last thing */}
+        <div className="flex items-center justify-center gap-1.5 text-xs text-stone-400">
             {hasGooglePlaceId ? (
               <>
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
@@ -553,7 +544,6 @@ export default function ReviewsTab({
               </>
             )}
           </div>
-        </div>
       </div>
     </div>
   );

@@ -306,7 +306,7 @@ export default function ReviewsTab({
       subline = "Send your first request to start competing.";
     } else if (nextTarget) {
       // Has some reviews, show next target
-      headline = `You have ${providerReviewCount}. Just ${nextTarget.needed} more to pass ${nextTarget.name}.`;
+      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}. Just ${nextTarget.needed} more to pass ${nextTarget.name}.`;
       subline = "Each happy client moves you up.";
     } else if (top10Threshold !== null && providerReviewCount >= top10Threshold) {
       // Already competitive

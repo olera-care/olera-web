@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import JobPostingBuilder from "@/components/medjobs/JobPostingBuilder";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
 import type { StudentMetadata } from "@/lib/types";
 
 const DUBOSE_AVATAR = "/images/for-providers/team/logan.jpg";
@@ -24,8 +25,10 @@ interface CandidateData {
 /**
  * ContactSection — the provider-facing CTA on a candidate detail page.
  *
- * The action is "Post a Job" which opens the full JobPostingBuilder modal.
- * The only other state is a student/caregiver previewing their own profile.
+ * The action is "Schedule interview" (opens ScheduleInterviewModal) for a real
+ * candidate, or "Review Terms & Conditions" for a sample/demo profile (no real
+ * student to interview yet). The only other state is a student/caregiver
+ * previewing their own profile.
  */
 export default function ContactSection({
   candidate,
@@ -38,7 +41,7 @@ export default function ContactSection({
   isSample?: boolean;
 }) {
   const { profiles } = useAuth();
-  const [showPostJob, setShowPostJob] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
 
   const firstName = candidate.displayName.split(" ")[0];
 
@@ -97,34 +100,34 @@ export default function ContactSection({
     );
   }
 
-  const providerProfile = profiles.find(
-    (p) => p.type === "organization" || p.type === "caregiver",
-  );
-
-  // ── Everyone else (provider-facing) → Post a Job ──
-  const postJobModal = showPostJob ? (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/40 p-4 overflow-y-auto" onClick={() => setShowPostJob(false)}>
-      <div className="w-full max-w-xl my-8 rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <JobPostingBuilder
-          onClose={() => setShowPostJob(false)}
-          provider={providerProfile ? {
-            name: providerProfile.display_name ?? "",
-            location: null,
-            category: null,
-            description: null,
-            profileSlug: providerProfile.slug ?? null,
-          } : null}
-        />
-      </div>
-    </div>
+  // ── Everyone else (provider-facing) → Schedule an interview ──
+  // Sample profiles have no real student behind them: there's nobody to
+  // interview yet, so the action is to review the program terms (the demo-era
+  // priming step). Real candidates open the interview scheduler directly.
+  const scheduleModal = showSchedule && !isSample ? (
+    <ScheduleInterviewModal
+      studentProfileId={candidate.id}
+      otherName={candidate.displayName}
+      onClose={() => setShowSchedule(false)}
+      onScheduled={() => setShowSchedule(false)}
+    />
   ) : null;
-  const cta = (
-    <button
-      type="button"
-      onClick={() => setShowPostJob(true)}
+  const cta = isSample ? (
+    <a
+      href={EMPLOYER_AGREEMENT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
       className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
     >
-      Post a Job →
+      Review Terms &amp; Conditions →
+    </a>
+  ) : (
+    <button
+      type="button"
+      onClick={() => setShowSchedule(true)}
+      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
+    >
+      Schedule interview →
     </button>
   );
 
@@ -132,7 +135,7 @@ export default function ContactSection({
     return (
       <>
         <div className={stickyWrap} style={stickyStyle}>{cta}</div>
-        {postJobModal}
+        {scheduleModal}
       </>
     );
   }
@@ -146,16 +149,15 @@ export default function ContactSection({
               Want to hire {isSample ? "a caregiver like this" : firstName}?
             </p>
             <p className="mt-1 text-sm text-gray-600 leading-relaxed">
-              Post a job to start interviewing student caregivers.
-            </p>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Tell us the shifts you need covered and we&apos;ll match you.
+              {isSample
+                ? "Review the program terms, then schedule interviews once your first students are ready."
+                : "Schedule an interview to meet this student caregiver."}
             </p>
           </div>
         </div>
         {cta}
       </div>
-      {postJobModal}
+      {scheduleModal}
     </>
   );
 }

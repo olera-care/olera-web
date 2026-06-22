@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, redirect } from "next/navigation";
+import { MEDJOBS_MARKETPLACE_V2_HIDDEN } from "@/lib/medjobs/flags";
 import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -1968,6 +1969,9 @@ function MedJobsInboxContent() {
 /* ─── Page Export ────────────────────────────────────────── */
 
 export default function MedJobsInboxPage() {
+  // MVP: the marketplace inbox (Gen 2) is hidden; interview status lives on the
+  // interview calendar. Flip the env flag to restore it.
+  if (MEDJOBS_MARKETPLACE_V2_HIDDEN) redirect("/portal/medjobs/interviews");
   return (
     <Suspense
       fallback={

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, redirect } from "next/navigation";
+import { MEDJOBS_MARKETPLACE_V2_HIDDEN } from "@/lib/medjobs/flags";
 import Link from "next/link";
 import Image from "next/image";
 import { getPostings, updatePosting, deletePosting, setStoragePrefix, HOURS_LABELS } from "@/lib/medjobs/job-postings";
@@ -628,6 +629,9 @@ function JobDetailPanel({
 }
 
 export default function JobsWorkspacePage() {
+  // MVP: the post-a-job workspace (Gen 2) is hidden; providers browse + schedule
+  // interviews from /medjobs/candidates. Flip the env flag to restore it.
+  if (MEDJOBS_MARKETPLACE_V2_HIDDEN) redirect("/medjobs/candidates");
   return (
     <Suspense>
       <JobsWorkspaceInner />

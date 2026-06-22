@@ -26,6 +26,7 @@ import {
 } from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
+import { nextBusinessDayET } from "./business-day";
 import type { Contact, StakeholderType } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -254,7 +255,8 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
             );
             tasks.push({
               task_type: "outreach_followup_call",
-              due_at: dueAt,
+              // Calls only land on a business day (ET); emails keep their raw date.
+              due_at: nextBusinessDayET(dueAt),
               payload: {
                 day: day.day,
                 label: step.label ?? "Follow-up call",
@@ -297,7 +299,8 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
         if (input.has_phone === false) continue;
         tasks.push({
           task_type: "outreach_followup_call",
-          due_at: dueAt,
+          // Calls only land on a business day (ET); emails keep their raw date.
+          due_at: nextBusinessDayET(dueAt),
           payload: {
             day: day.day,
             label: step.label ?? "Follow-up call",

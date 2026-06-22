@@ -37,6 +37,7 @@ import {
   type BridgeRow,
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
+import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
 import {
   deriveRepliesState,
   deriveStateFromTouchpoints,
@@ -2249,7 +2250,10 @@ async function handleLaunchActivation(
         return {
           outreach_id: row.id,
           task_type: "outreach_followup_call" as const,
-          due_at: new Date(now + day.day * 86_400_000).toISOString(),
+          // Calls only land on a business day (ET): roll weekends/holidays forward.
+          due_at: nextBusinessDayET(
+            new Date(now + day.day * 86_400_000),
+          ).toISOString(),
           payload: {
             cadence: "activation",
             day: day.day,

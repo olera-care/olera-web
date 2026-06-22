@@ -712,25 +712,31 @@ function GeneralContactSection({
   // .provider_autofill_at, written via the merge-any update_research action)
   // guarantees an empty result never re-fires on a later open. The button
   // stays for manual re-runs.
+  const hasContactData = Boolean(
+    overrides.email ||
+      overrides.phone ||
+      overrides.contact_form_url ||
+      overrides.fax ||
+      overrides.street ||
+      overrides.city ||
+      overrides.state ||
+      overrides.zip,
+  );
+  const alreadyAutoFilled = Boolean(
+    (ctx.outreach.research_data as { provider_autofill_at?: string } | null)
+      ?.provider_autofill_at,
+  );
+  // Single boolean the effect watches — so it fires the moment all conditions
+  // are true (e.g. once `editable` / status settles), not just on first mount.
+  // The ref keeps it to exactly one run.
+  const canAutoFill =
+    editable &&
+    ctx.outreach.kind === "provider" &&
+    !hasContactData &&
+    !alreadyAutoFilled;
   const autoFillRan = useRef(false);
   useEffect(() => {
-    if (autoFillRan.current) return;
-    if (!editable || ctx.outreach.kind !== "provider") return;
-    const hasContactData = Boolean(
-      overrides.email ||
-        overrides.phone ||
-        overrides.contact_form_url ||
-        overrides.fax ||
-        overrides.street ||
-        overrides.city ||
-        overrides.state ||
-        overrides.zip,
-    );
-    const alreadyAutoFilled = Boolean(
-      (ctx.outreach.research_data as { provider_autofill_at?: string } | null)
-        ?.provider_autofill_at,
-    );
-    if (hasContactData || alreadyAutoFilled) return;
+    if (autoFillRan.current || !canAutoFill) return;
     autoFillRan.current = true;
     void (async () => {
       await findContact("all");
@@ -742,10 +748,10 @@ function GeneralContactSection({
         /* marker is best-effort; the ref still prevents a re-run this session */
       }
     })();
-    // Mount-once: the ref guard makes re-runs inert, so deps are intentionally
-    // limited to the open identity.
+    // findContact/action are stable for our purposes; the ref guard makes any
+    // re-run inert, so we only need to react to canAutoFill flipping true.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ctx.outreach.id]);
+  }, [canAutoFill]);
 
   const websiteHref = website
     ? website.startsWith("http")

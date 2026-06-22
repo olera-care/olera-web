@@ -13,10 +13,18 @@ interface ReviewsContext {
   targetRank?: number;
 }
 
+interface TopCompetitor {
+  name: string;
+  reviews: number;
+  rating: number | null;
+}
+
 interface ReviewsTabProps {
   reviewsContext: ReviewsContext | null;
   providerSlug?: string;
   hasGooglePlaceId: boolean;
+  city?: string;
+  topCompetitor?: TopCompetitor | null;
 }
 
 const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
@@ -33,6 +41,8 @@ export default function ReviewsTab({
   reviewsContext,
   providerSlug,
   hasGooglePlaceId,
+  city,
+  topCompetitor,
 }: ReviewsTabProps) {
   // Form state
   const [clientName, setClientName] = useState("");
@@ -246,20 +256,29 @@ export default function ReviewsTab({
     );
   }
 
-  // Determine headline based on context
-  let headline = "Get more reviews";
-  let subline = "Each happy client you add helps families find you.";
+  // Determine headline based on context - ALWAYS show competitive framing
+  let headline = "";
+  let subline = "";
 
   if (reviewsContext) {
+    // Provider is ranked in the market
     if (reviewsContext.isFirst) {
       headline = "You're #1 in your market.";
       subline = "Keep building your lead with more reviews.";
     } else if (reviewsContext.reviewsNeeded && reviewsContext.targetRank) {
       headline = `${reviewsContext.reviewsNeeded} review${reviewsContext.reviewsNeeded === 1 ? "" : "s"} from #${reviewsContext.targetRank}.`;
       subline = reviewsContext.nextCompetitor
-        ? `Each happy client you add climbs you toward ${reviewsContext.nextCompetitor}.`
-        : "Each happy client you add improves your ranking.";
+        ? `Beat ${reviewsContext.nextCompetitor} to climb the ladder.`
+        : "Each review moves you up the ranking.";
     }
+  } else if (topCompetitor) {
+    // Provider not ranked yet, but show market context
+    headline = `#1 in ${city || "your market"} has ${topCompetitor.reviews} reviews.`;
+    subline = "Start collecting reviews to compete.";
+  } else {
+    // Fallback (shouldn't happen if market data loaded)
+    headline = "Build your reputation";
+    subline = "Reviews help families find and trust you.";
   }
 
   return (

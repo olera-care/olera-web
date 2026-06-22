@@ -53,6 +53,14 @@ function stepLabel(key: Step, subtype: PartnerSubtype): string {
   return STEPS.find((s) => s.key === key)?.label ?? key;
 }
 
+/** Context-aware noun for the prospecting unit. Only advisors have "offices";
+ *  student orgs are "organizations", departments are "departments". */
+function partnerNoun(subtype: PartnerSubtype): { one: string; many: string } {
+  if (subtype === "student_org") return { one: "organization", many: "organizations" };
+  if (subtype === "dept_head") return { one: "department", many: "departments" };
+  return { one: "advising office", many: "advising offices" };
+}
+
 const SUBTYPES: { key: PartnerSubtype; label: string }[] = [
   { key: "advisor", label: "Advising" },
   { key: "student_org", label: "Student orgs" },
@@ -401,7 +409,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       const d = await res.json().catch(() => null);
       if (!res.ok) throw new Error(bodyError(d, "Couldn't read that text"));
       const offices = (d?.offices ?? []) as ExtractedOffice[];
-      if (offices.length === 0) throw new Error("No office found in that text.");
+      if (offices.length === 0) throw new Error(`No ${partnerNoun(subtype).one} found in that text.`);
       mergeExtracted(offices, linkId);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't read that text");
@@ -588,7 +596,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         <div className="py-16 text-center">
           <p className="text-4xl">✓</p>
           <p className="mt-3 text-lg font-semibold text-gray-900">
-            {done.created} {subtype === "dept_head" ? "chair" : subtype === "student_org" ? "organization" : "office"} prospect{done.created === 1 ? "" : "s"} created
+            {done.created} {done.created === 1 ? partnerNoun(subtype).one : partnerNoun(subtype).many} created
           </p>
           <p className="mt-1 text-sm text-gray-500">
             They&apos;re in your In-Basket for {universityName}. Next:{" "}
@@ -596,7 +604,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               ? "an optional intro call, then launch outreach."
               : subtype === "student_org"
                 ? "review each org, then launch outreach."
-                : "confirm each office by a quick call, then launch outreach."}
+                : `confirm each ${partnerNoun(subtype).one} by a quick call, then launch outreach.`}
           </p>
           <div className="mt-5 flex items-center justify-center gap-2">
             <Button size="sm" onClick={finish}>View {universityName} prospects →</Button>
@@ -608,7 +616,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
       ) : (
         <div className="pb-6">
           {step === "links" && (
-            <LinksStep ws={ws} suggested={suggested} busy={busy} onSuggest={suggestLinks} onKeep={keepLink} onRemove={removeLink} onAddManual={addManualLink} onToggleSearch={toggleSearch} onNext={() => setStep("offices")} />
+            <LinksStep ws={ws} subtype={subtype} suggested={suggested} busy={busy} onSuggest={suggestLinks} onKeep={keepLink} onRemove={removeLink} onAddManual={addManualLink} onToggleSearch={toggleSearch} onNext={() => setStep("offices")} />
           )}
           {step === "offices" && (
             <OfficesStep
@@ -629,7 +637,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
             />
           )}
           {step === "generate" && (
-            <GenerateStep ws={ws} offices={verifiedOffices} genSel={genSel} setGenSel={setGenSel} busy={busy} onPatchOffice={patchOffice} onGenerate={generate} onBack={() => setStep("offices")} />
+            <GenerateStep ws={ws} subtype={subtype} offices={verifiedOffices} genSel={genSel} setGenSel={setGenSel} busy={busy} onPatchOffice={patchOffice} onGenerate={generate} onBack={() => setStep("offices")} />
           )}
         </div>
       )}
@@ -642,6 +650,7 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
 // ───────────────────────────────────────────────────────────────────────────
 function LinksStep({
   ws,
+  subtype,
   suggested,
   busy,
   onSuggest,
@@ -652,6 +661,7 @@ function LinksStep({
   onNext,
 }: {
   ws: WorkspaceState;
+  subtype: PartnerSubtype;
   suggested: WorkspaceLink[];
   busy: boolean;
   onSuggest: () => void;
@@ -661,6 +671,7 @@ function LinksStep({
   onToggleSearch: (key: string) => void;
   onNext: () => void;
 }) {
+  const noun = partnerNoun(subtype);
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   return (
@@ -675,7 +686,7 @@ function LinksStep({
           <Button size="sm" variant="ghost" onClick={onSuggest} loading={busy}>✦ Suggest links</Button>
         </div>
         {suggested.length === 0 ? (
-          <p className="text-xs text-gray-400">Click “Suggest links” for the best office/contact pages, then keep them.</p>
+          <p className="text-xs text-gray-400">Click “Suggest links” for the best {noun.one}/contact pages, then keep them.</p>
         ) : (
           <ul className="space-y-1.5">
             {suggested.map((l) => (
@@ -743,7 +754,7 @@ function LinksStep({
         )}
       </section>
       <div className="flex justify-end">
-        <Button size="sm" onClick={onNext} disabled={ws.links.length === 0}>Next: Verify offices →</Button>
+        <Button size="sm" onClick={onNext} disabled={ws.links.length === 0}>Next: {stepLabel("offices", subtype)} →</Button>
       </div>
     </div>
   );
@@ -806,7 +817,7 @@ function OfficesStep({
             </>
           ) : (
             <>
-              The office is the prospect. Confirm each office’s <b>email</b> and <b>tag</b> — that’s all outreach needs.
+              The {partnerNoun(subtype).one} is the prospect. Confirm each one’s <b>email</b> and <b>tag</b> — that’s all outreach needs.
               Advisors are optional and only when they have their own contact.
             </>
           )}
@@ -820,7 +831,7 @@ function OfficesStep({
             ? "No chairs found yet. Re-read links, paste a department page, or add one by hand."
             : isOrg
               ? "No organizations found yet. Re-read links, paste a club / directory page, or add one by hand."
-              : "No offices found yet. Re-read links, paste an office page, or add one by hand."}
+              : `No ${partnerNoun(subtype).many} found yet. Re-read links, paste a page, or add one by hand.`}
         </p>
       )}
 
@@ -1100,6 +1111,7 @@ function PasteOfficePage({ reading, onParse, isDeptHead, isOrg }: { reading: boo
 // ───────────────────────────────────────────────────────────────────────────
 function GenerateStep({
   ws,
+  subtype,
   offices,
   genSel,
   setGenSel,
@@ -1109,6 +1121,7 @@ function GenerateStep({
   onBack,
 }: {
   ws: WorkspaceState;
+  subtype: PartnerSubtype;
   offices: WorkspaceOffice[];
   genSel: Record<string, { include: boolean; advisors: Set<string> }>;
   setGenSel: (fn: (s: Record<string, { include: boolean; advisors: Set<string> }>) => Record<string, { include: boolean; advisors: Set<string> }>) => void;
@@ -1117,6 +1130,7 @@ function GenerateStep({
   onGenerate: () => void;
   onBack: () => void;
 }) {
+  const noun = partnerNoun(subtype);
   const tagLabel = (t: OfficeTag) => OFFICE_TAGS.find((x) => x.key === t)?.label ?? t;
   const toggleInclude = (id: string) =>
     setGenSel((s) => ({ ...s, [id]: { include: !(s[id]?.include ?? true), advisors: s[id]?.advisors ?? new Set() } }));
@@ -1134,7 +1148,7 @@ function GenerateStep({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600">These offices become prospects in your In-Basket. Edit anything, then generate.</p>
+      <p className="text-sm text-gray-600">These {noun.many} become prospects in your In-Basket. Edit anything, then generate.</p>
 
       {ws.generated_at && (
         <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">✓ Already-generated prospects are locked below (✓ In In-Basket). Generating again only creates the new ones.</p>
@@ -1142,7 +1156,7 @@ function GenerateStep({
 
       {offices.length === 0 && (
         <p className="rounded-md border border-dashed border-gray-200 py-8 text-center text-sm text-gray-400">
-          No verified offices yet. <button onClick={onBack} className="text-primary-600 hover:underline">Back to Verify offices</button>.
+          No verified {noun.many} yet. <button onClick={onBack} className="text-primary-600 hover:underline">Back to {stepLabel("offices", subtype)}</button>.
         </p>
       )}
 
@@ -1179,9 +1193,9 @@ function GenerateStep({
       })}
 
       <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-        <button onClick={onBack} className="text-xs text-gray-500 hover:underline">← Back to Verify offices</button>
+        <button onClick={onBack} className="text-xs text-gray-500 hover:underline">← Back to {stepLabel("offices", subtype)}</button>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">{count} office{count === 1 ? "" : "s"} → In-Basket</span>
+          <span className="text-xs text-gray-500">{count} new {count === 1 ? noun.one : noun.many} → In-Basket</span>
           <Button size="sm" onClick={onGenerate} loading={busy} disabled={count === 0}>Generate {count} → In-Basket</Button>
         </div>
       </div>

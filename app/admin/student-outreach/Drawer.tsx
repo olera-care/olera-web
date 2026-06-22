@@ -15,7 +15,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
@@ -1353,15 +1352,27 @@ function ResearchModePanel({
         />
       )}
       {showPreFlight && !isOffice && (
-        <PreFlightReviewModal
-          stakeholderType={type}
+        // Non-office stakeholders (dept head, professor) now use the SAME
+        // per-recipient pre-flight as offices, so the launch payload carries
+        // recipients + call_scripts and the cadence's phone-day CALL tasks
+        // actually queue (previously this path sent email snapshots only — the
+        // root cause of dept heads getting no call card). Recipients come from
+        // the named contact(s); no synthetic general recipient.
+        <ProviderPreFlightModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
           contacts={ctx.contacts}
+          generalContact={{ email: null, phone: null }}
+          smartleadPreview={ctx.smartlead_preview}
+          cadenceKey={type}
+          pdfAudience="student"
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (snapshots) => {
+          onSubmit={async (payload) => {
             try {
-              await action("schedule_sequence", { email_snapshots: snapshots });
+              await action("schedule_sequence", payload);
               setShowPreFlight(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Schedule failed");

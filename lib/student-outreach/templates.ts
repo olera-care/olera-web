@@ -671,9 +671,9 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician and National Institute on Aging (NIA) researcher. I'm reaching out about [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}): a program that places **pre-nursing and pre-medical students in caregiver roles at home care agencies near campus.** I came across ${PLACEHOLDER.orgName} while researching nearby home care agencies, and I'd like to invite you to learn about the program and check your eligibility to hire local student caregivers.`,
+      `I'm Graize Belandres, research assistant to Dr. Logan DuBose, a geriatric-focused physician and National Institute on Aging (NIA) researcher. I'm reaching out about [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}): a program that places **pre-nursing and pre-medical students in caregiver roles at home care agencies near campus.** I came across ${PLACEHOLDER.orgName} while researching nearby home care agencies, and I'd like to invite you to learn about the program and tell us about your hiring needs.`,
       ``,
-      `We think it's a win-win-win for home care agencies, ${PLACEHOLDER.campus} pre-health students, and the clients you serve. You need reliable staff, students need hands-on experience to get into grad school, and clients need quality caregivers. This program delivers all three.`,
+      `We think it's a win-win-win for providers, students, and the clients. You need staff, students need experience, clients need caregivers. This program delivers all three.`,
       ``,
       `Here is what it looks like:`,
       ``,
@@ -682,9 +682,9 @@ export function providerIntroEmail(
       `• Students work mainly for the experience and a recommendation letter, and their pay expectations sit at the lower end of your usual rates.`,
       `• Many students stay on for future semesters, or go full-time over winter and summer breaks or during gap years before grad school.`,
       ``,
-      `The eligibility check takes about a minute: [check your eligibility to hire student caregivers](${PLACEHOLDER.welcomeUrl}).`,
+      `Getting started takes about a minute: [tell us about your hiring needs](${PLACEHOLDER.welcomeUrl}).`,
       ``,
-      `There is no commitment to check your eligibility. The commitment begins only once you are fully set up and you and a student caregiver agree it's a good fit.`,
+      `There is no commitment to get started. The commitment begins only once you are fully set up and you and a student caregiver agree it's a good fit.`,
       ``,
       `We hope you'll consider learning about the program and hiring a student caregiver. If you are interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps (set-up call, program costs, onboarding).`,
       ``,
@@ -714,9 +714,9 @@ export function providerFollowupEmail(
       ``,
       `Following up in case my last note got buried. I'm Graize, research assistant to Dr. Logan DuBose, a geriatric-focused physician and NIA researcher. We run [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}), which places pre-nursing and pre-medical students in caregiver roles at home care agencies near campus.`,
       ``,
-      `It's a win-win-win: you get reliable, vetted caregivers who pledge their availability for the full semester, the students get hands-on experience and a recommendation letter, and your clients get quality care. Many students stay on for future semesters or go full-time over breaks.`,
+      `It's a win-win-win for providers, students, and the clients: you get vetted caregivers who pledge their availability for the full semester, students get experience and a recommendation letter, and your clients get care. Many students stay on for future semesters or go full-time over breaks.`,
       ``,
-      `The eligibility check takes about a minute: [check your eligibility to hire student caregivers](${PLACEHOLDER.welcomeUrl}). There's no commitment to check. If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps.`,
+      `Getting started takes about a minute: [tell us about your hiring needs](${PLACEHOLDER.welcomeUrl}). There's no commitment. If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps.`,
     ].join("\n"),
   };
 }
@@ -741,7 +741,7 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Circling back one last time on [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}). If hiring a vetted pre-health student caregiver would help ${PLACEHOLDER.orgName}, the eligibility check takes about a minute: [check your eligibility to hire student caregivers](${PLACEHOLDER.welcomeUrl}). There's no commitment until you're set up and you and a student caregiver agree it's a good fit.`,
+      `Circling back one last time on [${PROGRAM_NAME}](${PLACEHOLDER.programUrl}). If hiring a vetted pre-health student caregiver would help ${PLACEHOLDER.orgName}, the first step takes about a minute: [tell us about your hiring needs](${PLACEHOLDER.welcomeUrl}). There's no commitment until you're set up and you and a student caregiver agree it's a good fit.`,
       ``,
       `If you're interested and eligible, just reply "interested and eligible" and Dr. DuBose or I will follow up with next steps. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick redirect would help.`,
       ``,
@@ -775,16 +775,16 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `Thank you for getting back to me. Here are the ways department leaders usually help, whichever fit:`,
+          `Thank you for getting back to me. Here are the ways department leaders can help:`,
           ``,
           `• Endorse the program to your faculty and students`,
           `• Allow us to email your professors so they can share it with their students`,
           `• Host a short class visit or talk`,
           `• Share the [flyer and application link](${PARTNER_PROGRAM_URL}) directly`,
           ``,
-          `The best next step is a brief meeting so Dr. DuBose can share more and find the right approach for your department. Reply with a few times that work this week or next and I'll arrange it.`,
+          `Are you available for a brief meeting with Dr. DuBose? On the call he can share more about the program and discuss the right approach for your department.`,
           ``,
-          `With appreciation for your time.`,
+          `Thank you for your time.`,
         ].join("\n"),
       };
     }
@@ -794,16 +794,16 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `Thanks for getting back to me. Here are the easiest ways to help your members:`,
+          `Thanks for getting back to me. Here are the easiest ways to help:`,
           ``,
           `• Post the application link in your group chat or on social`,
           `• Email it to your listserv (the [flyer and link are here](${PARTNER_PROGRAM_URL}))`,
           `• Do this again each term as new members join`,
           `• Have Dr. DuBose speak at one of your meetings`,
           ``,
-          `The best next step is setting a time for Dr. DuBose to speak or just say hello. Reply with a couple of dates that work and I'll line it up.`,
+          `Are you available for a time to meet with Dr. DuBose to speak about the program? He can share more details and discuss the best approach to share the program with your members.`,
           ``,
-          `Thanks for looking out for your members.`,
+          `Thanks for your time.`,
         ].join("\n"),
       };
     }
@@ -813,7 +813,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `Thanks for getting back to me, I'm glad this could help your students. Here are the ways advisors usually help, whatever's easiest for you:`,
+        `Thanks for getting back to me. Here are the ways advisors can help:`,
         ``,
         `• Share the [flyer and application link](${PARTNER_PROGRAM_URL}) with your students`,
         `• Mention it to students looking for clinical hours`,
@@ -821,9 +821,9 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         `• Point us toward a job board where we could post it`,
         `• Keep us in mind for relevant campus events`,
         ``,
-        `The best next step is a quick chat so Dr. DuBose can learn how your office works and make this easy for you. Reply with a couple of times that suit you this week or next and I'll set it up.`,
+        `Can we set up a time to meet with Dr. DuBose and learn how your office works? Please kindly let me know a good time for you this week or next and I'll set it up.`,
         ``,
-        `Thank you for helping your students.`,
+        `Thank you in advance for your time.`,
       ].join("\n"),
     };
   }
@@ -832,11 +832,9 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Great to hear from you. The next step is a quick eligibility check to confirm you meet the home care agency requirements and review the partner terms. It takes about a minute: [check your eligibility](${PLACEHOLDER.welcomeUrl}).`,
+      `Great to hear from you. The next step is a quick eligibility check to review the partner terms and begin your hiring process with selected students on the job board [here](${PLACEHOLDER.welcomeUrl}). Whenever you find a good fit, you can confirm and begin onboarding.`,
       ``,
-      `Once you're through, you can review potential student matches and meet them in online interviews, with no commitment until you find a good fit.`,
-      ``,
-      `If you'd rather talk it through first, [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}), or just reply with a couple of windows that work and I'll set it up.`,
+      `Dr. DuBose is [happy to meet with you](${PLACEHOLDER.calendlyUrl}) if you have any questions about using the platform. Thank you and have a nice day.`,
     ].join("\n"),
   };
 }

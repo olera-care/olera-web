@@ -23,12 +23,15 @@ interface ReferralsTabProps {
   targets: BdTarget[];
   providerName?: string;
   city?: string;
+  /** Called when outreach status is updated, so parent can sync other components */
+  onStatusUpdate?: () => void;
 }
 
 export default function ReferralsTab({
   targets,
   providerName,
   city,
+  onStatusUpdate,
 }: ReferralsTabProps) {
   const [outreachStatus, setOutreachStatus] = useState<Record<string, OutreachStatus>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -108,6 +111,9 @@ export default function ReferralsTab({
       // Revert if server rejected the update
       if (!res.ok) {
         setOutreachStatus((prev) => ({ ...prev, [currentTarget.id]: "to_contact" }));
+      } else {
+        // Notify parent so other components can sync
+        onStatusUpdate?.();
       }
     } catch {
       // Revert on network error
@@ -313,9 +319,9 @@ export default function ReferralsTab({
               type="button"
               onClick={() => updateStatus("referring")}
               disabled={saving}
-              className="py-3 px-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+              className="py-3 px-4 rounded-xl border border-stone-200 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-50"
             >
-              They&apos;ll refer me ★
+              They&apos;ll refer me
             </button>
             <button
               type="button"
@@ -336,23 +342,6 @@ export default function ReferralsTab({
         </div>
       )}
 
-      {/* Progress footer */}
-      <div className="mt-6 pt-4 border-t border-stone-100">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-1.5 rounded-full bg-stone-100 overflow-hidden">
-            <div
-              className="h-full bg-[#199087] rounded-full transition-all duration-500"
-              style={{ width: `${stats.total ? (stats.worked / stats.total) * 100 : 0}%` }}
-            />
-          </div>
-          <p className="text-xs text-stone-400 shrink-0">
-            {stats.worked === 0
-              ? `${stats.total} sources to work`
-              : `${stats.worked} of ${stats.total} worked`}
-            {stats.referring > 0 && ` · ${stats.referring} referring`}
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

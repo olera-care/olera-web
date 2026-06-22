@@ -34,6 +34,8 @@ export default function MarketActionHub({
 }: MarketActionHubProps) {
   const [activeTab, setActiveTab] = useState<Tab>("reviews");
   const [isMarketExpanded, setIsMarketExpanded] = useState(false);
+  // Incremented when outreach status changes, triggers refetch in expanded section
+  const [outreachRefetchKey, setOutreachRefetchKey] = useState(0);
 
   // Calculate reviews needed to beat next competitor
   const reviewsContext = useMemo(() => {
@@ -122,6 +124,7 @@ export default function MarketActionHub({
               targets={data.referralGraph?.prioritizedTargets ?? []}
               providerName={providerName}
               city={data.meta.city}
+              onStatusUpdate={() => setOutreachRefetchKey((k) => k + 1)}
             />
           )}
 
@@ -164,6 +167,7 @@ export default function MarketActionHub({
             providerName={providerName}
             providerSlug={providerSlug}
             self={self}
+            outreachRefetchKey={outreachRefetchKey}
           />
         </div>
       )}

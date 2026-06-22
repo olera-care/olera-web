@@ -195,8 +195,8 @@ export default function ReviewsTab({
       // Ranked but not #1
       headline = `You're #${reviewsContext.rank} in ${city || "your market"}.`;
       subline = reviewsContext.nextCompetitor
-        ? `${reviewsContext.reviewsNeeded} to pass ${reviewsContext.nextCompetitor}.`
-        : `${reviewsContext.reviewsNeeded} to reach #${reviewsContext.targetRank}.`;
+        ? `${reviewsContext.reviewsNeeded} more to pass ${reviewsContext.nextCompetitor}.`
+        : `${reviewsContext.reviewsNeeded} more to reach #${reviewsContext.targetRank}.`;
     }
   } else if (providerReviewCount !== null && leaders.length > 0) {
     // Provider has review count but not ranked - show dynamic goal
@@ -211,10 +211,10 @@ export default function ReviewsTab({
     } else if (nextTarget) {
       // Has some reviews, show next target
       headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
-      subline = `${nextTarget.needed} to pass ${nextTarget.name}.`;
+      subline = `${nextTarget.needed} more to pass ${nextTarget.name}.`;
     } else if (top10Threshold !== null && providerReviewCount >= top10Threshold) {
       // Already competitive
-      headline = `You have ${providerReviewCount} reviews.`;
+      headline = `You have ${providerReviewCount} review${providerReviewCount === 1 ? "" : "s"}.`;
       subline = "You're in the top 10. Keep the lead.";
     } else {
       // Below threshold

@@ -56,6 +56,7 @@ export default function ReviewsTab({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [thisWeekCount, setThisWeekCount] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [reviewsGained, setReviewsGained] = useState<number | null>(null);
 
   // Fetch this week's review request count
   useEffect(() => {
@@ -77,6 +78,36 @@ export default function ReviewsTab({
     }
     fetchThisWeekCount();
   }, [showSuccess]); // Refetch after successful submission
+
+  // Detect if provider gained reviews since last visit
+  useEffect(() => {
+    if (!providerSlug || providerReviewCount === null) return;
+
+    let dismissTimer: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      const storageKey = `olera_reviews_${providerSlug}`;
+      const stored = localStorage.getItem(storageKey);
+
+      if (stored) {
+        const previousCount = parseInt(stored, 10);
+        if (providerReviewCount > previousCount) {
+          setReviewsGained(providerReviewCount - previousCount);
+          // Auto-dismiss after 5 seconds
+          dismissTimer = setTimeout(() => setReviewsGained(null), 5000);
+        }
+      }
+
+      // Update stored count
+      localStorage.setItem(storageKey, providerReviewCount.toString());
+    } catch {
+      // localStorage unavailable (Safari private mode, etc.) - skip silently
+    }
+
+    return () => {
+      if (dismissTimer) clearTimeout(dismissTimer);
+    };
+  }, [providerSlug, providerReviewCount]);
 
   // Auto-dismiss success after 4 seconds
   useEffect(() => {
@@ -177,6 +208,9 @@ export default function ReviewsTab({
     };
   };
 
+  // For unranked providers: find the next competitor to beat
+  const nextTarget = !reviewsContext ? findNextTarget() : null;
+
   // Determine headline based on context - position-focused, personal
   let headline = "";
   let subline = "";
@@ -200,8 +234,6 @@ export default function ReviewsTab({
     }
   } else if (providerReviewCount !== null && leaders.length > 0) {
     // Provider has review count but not ranked - show dynamic goal
-    const nextTarget = findNextTarget();
-
     if (providerReviewCount === 0) {
       // No reviews yet
       headline = "You have no reviews yet.";
@@ -240,6 +272,39 @@ export default function ReviewsTab({
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8">
+      {/* Celebration banner - shows when reviews gained since last visit */}
+      {reviewsGained !== null && (
+        <div className="mb-5 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-xl shadow-sm shadow-emerald-100">
+          <span className="text-lg animate-bounce" style={{ animationDuration: "1s" }}>🎉</span>
+          <span className="text-sm font-semibold text-emerald-700">
+            You gained {reviewsGained} review{reviewsGained === 1 ? "" : "s"}!
+          </span>
+          <button
+            type="button"
+            onClick={() => setReviewsGained(null)}
+            className="ml-1 text-emerald-400 hover:text-emerald-600 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Momentum counter - prominent when there's activity */}
+      {thisWeekCount !== null && thisWeekCount > 0 && (
+        <div className="flex items-center justify-center gap-2 mb-5">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 rounded-full">
+            <svg className="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+            </svg>
+            <span className="text-xs font-medium text-stone-600">
+              {thisWeekCount} request{thisWeekCount === 1 ? "" : "s"} sent this week
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Label - separate from headline stack */}
       <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-5">
         Your move this week
@@ -253,22 +318,49 @@ export default function ReviewsTab({
         {subline}
       </p>
 
-      {/* Progress indicator (if not #1) */}
+      {/* Progress bar for RANKED providers (not #1) */}
       {reviewsContext && !reviewsContext.isFirst && reviewsContext.reviewsNeeded && reviewsContext.targetRank && (
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-sm font-medium text-stone-500">#{reviewsContext.rank}</span>
-          {Array.from({ length: Math.min(reviewsContext.reviewsNeeded, 4) }).map((_, i) => (
-            <div
-              key={i}
-              className="w-8 h-8 rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center"
-            >
-              <span className="text-stone-400 text-lg">+</span>
+        <div className="mb-8">
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-sm font-semibold text-stone-600 tabular-nums">#{reviewsContext.rank}</span>
+            <div className="w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
+              {/* Progress fill - calculate based on reviews needed (fewer needed = more progress) */}
+              <div
+                className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.max(10, Math.min(90, 100 - (reviewsContext.reviewsNeeded * 15)))}%`
+                }}
+              />
             </div>
-          ))}
-          {reviewsContext.reviewsNeeded > 4 && (
-            <span className="text-xs text-stone-400">+{reviewsContext.reviewsNeeded - 4} more</span>
-          )}
-          <span className="text-sm font-medium text-[#199087]">#{reviewsContext.targetRank}</span>
+            <span className="text-sm font-semibold text-[#199087] tabular-nums">#{reviewsContext.targetRank}</span>
+          </div>
+          <p className="text-xs text-stone-400 text-center mt-2">
+            {reviewsContext.reviewsNeeded} review{reviewsContext.reviewsNeeded === 1 ? "" : "s"} to go
+          </p>
+        </div>
+      )}
+
+      {/* Progress bar for UNRANKED providers with a target */}
+      {!reviewsContext && nextTarget && providerReviewCount !== null && providerReviewCount > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-sm font-semibold text-stone-600 tabular-nums">You</span>
+            <div className="w-40 h-2 bg-stone-200 rounded-full overflow-hidden relative">
+              {/* Progress fill - your reviews / target reviews */}
+              <div
+                className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#199087] to-emerald-400 rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.max(10, Math.min(90, (providerReviewCount / nextTarget.reviews) * 100))}%`
+                }}
+              />
+            </div>
+            <span className="text-sm font-semibold text-[#199087] truncate max-w-[80px]" title={nextTarget.name}>
+              {nextTarget.name.split(" ")[0]}
+            </span>
+          </div>
+          <p className="text-xs text-stone-400 text-center mt-2">
+            {nextTarget.needed} review{nextTarget.needed === 1 ? "" : "s"} to pass them
+          </p>
         </div>
       )}
 
@@ -402,14 +494,6 @@ export default function ReviewsTab({
                   <div className="absolute top-full right-3 border-4 border-transparent border-t-stone-900" />
                 </div>
               </div>
-            </>
-          )}
-          {thisWeekCount !== null && thisWeekCount > 0 && (
-            <>
-              <span className="text-stone-300 mx-1">·</span>
-              we send it and follow up
-              <span className="text-stone-300 mx-1">·</span>
-              <span className="font-medium text-stone-500">{thisWeekCount} this week</span>
             </>
           )}
         </p>

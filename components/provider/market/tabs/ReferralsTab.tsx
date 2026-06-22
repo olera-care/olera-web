@@ -219,7 +219,7 @@ export default function ReferralsTab({
 
         {/* Guidance integrated into card */}
         {guidance && (
-          <div className="mt-4 pt-4 border-t border-stone-200/70">
+          <div className="mt-4">
             <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-1">
               Ask for
             </p>

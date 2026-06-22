@@ -558,7 +558,10 @@ function GeneralContactSection({
     set(true);
     setTimeout(() => set(false), 1200);
   };
-  const applyEmail = async (value: string | null) => {
+  // blanksOnly (auto-fill): never overwrite a value already on file (e.g. the
+  // directory's email/phone) — only populate empty fields.
+  const applyEmail = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (email ?? "").trim()) return;
     if (value) {
       setEmail(value);
       setNoteFor("email", null);
@@ -568,7 +571,8 @@ function GeneralContactSection({
       setNoteFor("email", { kind: "miss", text: "No email on the site." });
     }
   };
-  const applyForm = async (value: string | null) => {
+  const applyForm = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (contactFormUrl ?? "").trim()) return;
     if (value) {
       setContactFormUrl(value);
       setNoteFor("contact_form", null);
@@ -578,7 +582,8 @@ function GeneralContactSection({
       setNoteFor("contact_form", { kind: "miss", text: "No contact form on the site." });
     }
   };
-  const applyPhone = async (value: string | null) => {
+  const applyPhone = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (phone ?? "").trim()) return;
     if (value) {
       setPhone(value);
       setNoteFor("phone", null);
@@ -588,7 +593,8 @@ function GeneralContactSection({
       setNoteFor("phone", { kind: "miss", text: "No phone on the site." });
     }
   };
-  const applyFax = async (value: string | null) => {
+  const applyFax = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (fax ?? "").trim()) return;
     if (value) {
       setFax(value);
       setNoteFor("fax", null);
@@ -600,30 +606,34 @@ function GeneralContactSection({
   };
   // Address is multi-part: each component saves independently so admin can
   // edit any incorrect part without re-typing the rest. A hit means at
-  // least one part came back; we apply whatever we have.
-  const applyAddress = async (parts: {
-    street: string | null;
-    city: string | null;
-    state: string | null;
-    zip: string | null;
-  }) => {
+  // least one part came back; we apply whatever we have (blanks-only skips
+  // any part already filled).
+  const applyAddress = async (
+    parts: {
+      street: string | null;
+      city: string | null;
+      state: string | null;
+      zip: string | null;
+    },
+    blanksOnly = false,
+  ) => {
     const { street: s, city: c, state: st, zip: z } = parts;
     if (s || c || st || z) {
       setNoteFor("address", null);
       flash("address");
-      if (s) {
+      if (s && !(blanksOnly && (street ?? "").trim())) {
         setStreet(s);
         await saveField("street", s);
       }
-      if (c) {
+      if (c && !(blanksOnly && (city ?? "").trim())) {
         setCity(c);
         await saveField("city", c);
       }
-      if (st) {
+      if (st && !(blanksOnly && (stateField ?? "").trim())) {
         setStateField(st);
         await saveField("state", st);
       }
-      if (z) {
+      if (z && !(blanksOnly && (zip ?? "").trim())) {
         setZip(z);
         await saveField("zip", z);
       }
@@ -631,7 +641,7 @@ function GeneralContactSection({
       setNoteFor("address", { kind: "miss", text: "No address on the site." });
     }
   };
-  const findContact = async (mode: FindMode) => {
+  const findContact = async (mode: FindMode, fillBlanksOnly = false) => {
     setFinding(mode);
     // Clear stale notes for any field this lookup will touch.
     const touched: FindField[] =
@@ -668,16 +678,19 @@ function GeneralContactSection({
       };
       if (!res.ok) throw new Error(data.error || "Lookup failed");
       if (mode === "all") {
-        await applyEmail(data.email?.value ?? null);
-        await applyForm(data.contactForm?.value ?? null);
-        await applyPhone(data.phone?.value ?? null);
-        await applyFax(data.fax?.value ?? null);
-        await applyAddress({
-          street: data.address?.street ?? null,
-          city: data.address?.city ?? null,
-          state: data.address?.state ?? null,
-          zip: data.address?.zip ?? null,
-        });
+        await applyEmail(data.email?.value ?? null, fillBlanksOnly);
+        await applyForm(data.contactForm?.value ?? null, fillBlanksOnly);
+        await applyPhone(data.phone?.value ?? null, fillBlanksOnly);
+        await applyFax(data.fax?.value ?? null, fillBlanksOnly);
+        await applyAddress(
+          {
+            street: data.address?.street ?? null,
+            city: data.address?.city ?? null,
+            state: data.address?.state ?? null,
+            zip: data.address?.zip ?? null,
+          },
+          fillBlanksOnly,
+        );
       } else if (mode === "both") {
         await applyEmail(data.email?.value ?? null);
         await applyForm(data.contactForm?.value ?? null);
@@ -712,34 +725,29 @@ function GeneralContactSection({
   // .provider_autofill_at, written via the merge-any update_research action)
   // guarantees an empty result never re-fires on a later open. The button
   // stays for manual re-runs.
-  const hasContactData = Boolean(
-    overrides.email ||
-      overrides.phone ||
-      overrides.contact_form_url ||
-      overrides.fax ||
-      overrides.street ||
-      overrides.city ||
-      overrides.state ||
-      overrides.zip,
-  );
   const alreadyAutoFilled = Boolean(
     (ctx.outreach.research_data as { provider_autofill_at?: string } | null)
       ?.provider_autofill_at,
   );
-  // Single boolean the effect watches — so it fires the moment all conditions
-  // are true (e.g. once `editable` / status settles), not just on first mount.
-  // The ref keeps it to exactly one run.
+  // Run on first open even when the directory already gave us email/phone — the
+  // enrichment fills the GAPS (contact form, fax, address, a missing email)
+  // from the website, blanks-only, so directory data is never overwritten. The
+  // marker is the only "once" guard.
   const canAutoFill =
-    editable &&
-    ctx.outreach.kind === "provider" &&
-    !hasContactData &&
-    !alreadyAutoFilled;
+    editable && ctx.outreach.kind === "provider" && !alreadyAutoFilled;
+  // A website (or directory link) the enrichment can actually scrape. If absent,
+  // we don't stamp "done" so the run can retry once a website exists.
+  const hasScrapeSource = Boolean(
+    (website ?? "").trim() ||
+      (ctx.outreach.research_data as { olera_provider_id?: string } | null)?.olera_provider_id,
+  );
   const autoFillRan = useRef(false);
   useEffect(() => {
     if (autoFillRan.current || !canAutoFill) return;
     autoFillRan.current = true;
     void (async () => {
-      await findContact("all");
+      await findContact("all", true); // blanks-only: enrich, never overwrite
+      if (!hasScrapeSource) return; // no site to read → allow a retry later
       try {
         await action("update_research", {
           research: { provider_autofill_at: new Date().toISOString() },

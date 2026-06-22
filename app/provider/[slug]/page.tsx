@@ -1080,7 +1080,7 @@ export default async function ProviderPage({
 
               {/* ── About this opportunity (student context only) ── */}
               {isStudentContext && (() => {
-                const oppMeta = (profile as { metadata?: Record<string, unknown> }).metadata ?? null;
+                const oppMeta = (profile.metadata ?? null) as unknown as Record<string, unknown> | null;
                 const oppProfile = readOpportunityProfile(oppMeta);
                 const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as { coverage_buckets?: string[] } | null;
                 const opp = buildOpportunity({

@@ -61,7 +61,7 @@ export default function IdealCaregiverModal({
   /** Optional explicit provider profile id; server falls back to the account's. */
   profileId?: string;
   onClose: () => void;
-  onSaved: () => void | Promise<void>;
+  onSaved: (saved: OpportunityProfile) => void | Promise<void>;
 }) {
   const [certs, setCerts] = useState<string[]>(initial?.certifications ?? []);
   const [skills, setSkills] = useState<string[]>(initial?.skills ?? []);
@@ -94,7 +94,7 @@ export default function IdealCaregiverModal({
         const b = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(b.error || "Could not save");
       }
-      await onSaved();
+      await onSaved(opportunity);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save");
       setSaving(false);

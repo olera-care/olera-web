@@ -477,31 +477,24 @@ export default function ReviewsTab({
 
       {/* Footer - stacked: momentum counter, then Google status */}
       <div className="mt-6 space-y-3">
-        {/* Momentum counter - own line */}
+        {/* Momentum counter - plain text on its own line */}
         {((thisWeekCount !== null && thisWeekCount > 0) || justSent) && (
-          <div className="flex justify-center">
-            <div
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all duration-300 ${
-                justSent ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"
-              }`}
-            >
-              {justSent ? (
-                <>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                  <span className="font-medium">Sent! {thisWeekCount} this week</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                  </svg>
-                  <span>{thisWeekCount} sent this week</span>
-                </>
-              )}
-            </div>
-          </div>
+          <p
+            className={`text-center text-xs transition-all duration-300 ${
+              justSent ? "text-emerald-600" : "text-stone-400"
+            }`}
+          >
+            {justSent ? (
+              <span className="inline-flex items-center justify-center gap-1.5">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                <span className="font-medium">Sent! {thisWeekCount} this week</span>
+              </span>
+            ) : (
+              <span>{thisWeekCount} sent this week</span>
+            )}
+          </p>
         )}
 
         {/* Google status - last thing */}

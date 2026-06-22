@@ -55,7 +55,7 @@ export default function ReviewsTab({
   const [clientName, setClientName] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [justSent, setJustSent] = useState(false); // Brief inline success animation
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [thisWeekCount, setThisWeekCount] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -67,7 +67,7 @@ export default function ReviewsTab({
   const [oleraReviewCount, setOleraReviewCount] = useState<number | null>(null);
   const [isLoadingOleraCount, setIsLoadingOleraCount] = useState(false);
 
-  // Fetch this week's review request count
+  // Fetch this week's review request count on mount
   useEffect(() => {
     async function fetchThisWeekCount() {
       try {
@@ -86,7 +86,7 @@ export default function ReviewsTab({
       }
     }
     fetchThisWeekCount();
-  }, [showSuccess]); // Refetch after successful submission
+  }, []); // Only on mount - we optimistically update the counter on send
 
   // Fetch Olera review count for providers without Google
   useEffect(() => {
@@ -150,13 +150,13 @@ export default function ReviewsTab({
     };
   }, [providerSlug, providerReviewCount, oleraReviewCount]);
 
-  // Auto-dismiss success after 4 seconds
+  // Auto-dismiss inline success indicator after 3 seconds
   useEffect(() => {
-    if (showSuccess) {
-      const timer = setTimeout(() => setShowSuccess(false), 4000);
+    if (justSent) {
+      const timer = setTimeout(() => setJustSent(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [showSuccess]);
+  }, [justSent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,39 +196,18 @@ export default function ReviewsTab({
         throw new Error(failedResults[0]?.error || "Failed to send email");
       }
 
-      setShowSuccess(true);
+      // Optimistically increment counter and show inline success
+      setThisWeekCount((prev) => (prev ?? 0) + 1);
+      setJustSent(true);
       setClientName("");
       setContactInfo("");
+      setShowPreview(false);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Success state
-  if (showSuccess) {
-    return (
-      <div className="bg-white rounded-2xl border border-stone-200/80 p-8 text-center">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/25">
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-2">Request sent!</h3>
-        <p className="text-sm text-stone-500 mb-5">
-          They&apos;ll receive your review request shortly.
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowSuccess(false)}
-          className="text-sm text-[#199087] hover:text-[#147a72] font-medium transition-colors"
-        >
-          Send another request
-        </button>
-      </div>
-    );
-  }
 
   // Calculate top 10 threshold (minimum reviews to be in top 10)
   const top10Threshold = leaders.length > 0
@@ -339,16 +318,35 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Momentum counter - prominent when there's activity */}
-      {thisWeekCount !== null && thisWeekCount > 0 && (
+      {/* Momentum counter - shows success state or ongoing activity */}
+      {((thisWeekCount !== null && thisWeekCount > 0) || justSent) && (
         <div className="flex items-center justify-center gap-2 mb-5">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 rounded-full">
-            <svg className="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-            </svg>
-            <span className="text-xs font-medium text-stone-600">
-              {thisWeekCount} request{thisWeekCount === 1 ? "" : "s"} sent this week
-            </span>
+          <div
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300 ${
+              justSent
+                ? "bg-emerald-100 ring-2 ring-emerald-400/50 scale-105"
+                : "bg-stone-100"
+            }`}
+          >
+            {justSent ? (
+              <>
+                <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                <span className="text-xs font-semibold text-emerald-700">
+                  Sent! {thisWeekCount} request{thisWeekCount === 1 ? "" : "s"} this week
+                </span>
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+                <span className="text-xs font-medium text-stone-600">
+                  {thisWeekCount} request{thisWeekCount === 1 ? "" : "s"} sent this week
+                </span>
+              </>
+            )}
           </div>
         </div>
       )}

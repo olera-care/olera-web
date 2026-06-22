@@ -8,6 +8,7 @@ import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
+import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -145,11 +146,13 @@ export async function POST(request: NextRequest) {
         .eq("id", callerProvider.id)
         .single();
       const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
-      if (!isMedjobsEligible(providerMeta)) {
+      // MVP open-loop bypasses the eligibility gate (screener) so the scheduling
+      // loop runs without friction; otherwise eligibility is required.
+      if (!MEDJOBS_INTERVIEW_OPEN_LOOP && !isMedjobsEligible(providerMeta)) {
         return NextResponse.json({ error: "eligibility_required" }, { status: 402 });
       }
 
-      // Eligible providers notify the student immediately (no verification hold).
+      // Notify the student immediately — no pending-verification hold (MVP).
       isPendingVerification = false;
 
       const { data: target } = await admin
@@ -408,8 +411,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Interview pending provider verification" }, { status: 403 });
     }
 
-    // Paywall gate: if a provider is confirming an inbound interview, check their tier
-    if (status === "confirmed") {
+    // Paywall gate: if a provider is confirming an inbound interview, check their
+    // tier. MVP "open the loop" (MEDJOBS_INTERVIEW_OPEN_LOOP) bypasses this so the
+    // scheduling loop runs end-to-end with no payment — the gate is Terms
+    // acceptance, not a paid tier. Flip the env flag to restore the paywall.
+    if (status === "confirmed" && !MEDJOBS_INTERVIEW_OPEN_LOOP) {
       const isProviderConfirming =
         userProfileIds.includes(interview.provider_profile_id) &&
         interview.proposed_by !== interview.provider_profile_id;

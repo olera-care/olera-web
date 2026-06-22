@@ -9,6 +9,7 @@ import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import { getAccessTier } from "@/lib/medjobs-access";
+import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { Interview } from "@/lib/types";
 
 type InterviewWithProfiles = Interview & {
@@ -43,9 +44,12 @@ function ProviderCaregiversContent() {
   const providerMeta = (activeProfile?.metadata ?? {}) as Record<string, unknown>;
   const accessInfo = getAccessTier(!!activeProfile, providerMeta);
 
-  // Verification state
+  // Verification state. MVP open-loop drops the pending-verification hold so a
+  // provider can confirm interviews immediately (the gate is Terms, not
+  // verification). Flip MEDJOBS_INTERVIEW_OPEN_LOOP to restore the hold.
   const verificationState = activeProfile?.verification_state as string | null;
   const isVerified =
+    MEDJOBS_INTERVIEW_OPEN_LOOP ||
     verificationState === "verified" ||
     verificationState === "not_required";
 

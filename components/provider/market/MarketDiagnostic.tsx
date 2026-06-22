@@ -79,8 +79,8 @@ function HeroStat({ value, label }: { value: number | string; label: string }) {
  * Presentational: receives a precomputed analysis snapshot. No data fetching here.
  */
 export default function MarketDiagnostic({
-  data, showHeader = true, interactive = false, providerName, providerSlug, self,
-}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string; providerSlug?: string; self?: SelfRank | null }) {
+  data, showHeader = true, interactive = false, providerName, providerSlug, self, outreachRefetchKey,
+}: { data: MarketDiagnosticData; showHeader?: boolean; interactive?: boolean; providerName?: string; providerSlug?: string; self?: SelfRank | null; outreachRefetchKey?: number }) {
   const a = data;
   const dem = a.demand.demographics;
   const totalSeniors = dem.totals?.seniors65plus ?? 0;
@@ -229,7 +229,7 @@ export default function MarketDiagnostic({
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-3">
           {interactive ? "Your call sheet — work it" : "Start here — prioritized targets"}
         </div>
-        <ReferralTargets targets={ref.prioritizedTargets} interactive={interactive} providerName={providerName} city={a.meta.city} />
+        <ReferralTargets targets={ref.prioritizedTargets} interactive={interactive} providerName={providerName} city={a.meta.city} refetchKey={outreachRefetchKey} />
       </Section>
 
       {/* ── Where to focus — the ZIPs (tactical, absorbs income) ── */}

@@ -199,7 +199,7 @@ export default function ReferralsTab({
           : "One call can open a steady stream of referrals."}
       </p>
 
-      {/* Provider card */}
+      {/* Provider card with integrated guidance */}
       <div className="bg-stone-50 rounded-xl p-4 mb-6">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-lg bg-[#199087]/10 flex items-center justify-center shrink-0">
@@ -216,44 +216,44 @@ export default function ReferralsTab({
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Ask for + Script */}
-      {guidance && (
-        <div className="mb-6">
-          <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-1">
-            Ask for
-          </p>
-          <p className="text-sm font-medium text-stone-900 mb-3">
-            {guidance.askFor}
-          </p>
+        {/* Guidance integrated into card */}
+        {guidance && (
+          <div className="mt-4 pt-4 border-t border-stone-200/70">
+            <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-1">
+              Ask for
+            </p>
+            <p className="text-sm font-medium text-stone-900 mb-3">
+              {guidance.askFor}
+            </p>
 
-          <button
-            type="button"
-            onClick={() => setShowScript(!showScript)}
-            className="text-sm text-[#199087] hover:text-[#147a72] transition-colors flex items-center gap-1"
-          >
-            {showScript ? "Hide script" : "We wrote your script"}
-            <svg
-              className={`w-3.5 h-3.5 transition-transform ${showScript ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
+            <button
+              type="button"
+              onClick={() => setShowScript(!showScript)}
+              className="text-sm text-[#199087] hover:text-[#147a72] transition-colors flex items-center gap-1"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
+              {showScript ? "Hide script" : "We wrote your script"}
+              <svg
+                className={`w-3.5 h-3.5 transition-transform ${showScript ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
 
-          {showScript && (
-            <div className="mt-4 bg-stone-50 rounded-xl p-4">
-              <p className="text-sm text-stone-700 leading-relaxed italic">
-                &ldquo;{guidance.opener}&rdquo;
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+            {showScript && (
+              <div className="mt-3 bg-white rounded-lg p-3 border border-stone-200/50">
+                <p className="text-sm text-stone-700 leading-relaxed italic">
+                  &ldquo;{guidance.opener}&rdquo;
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Call button + Tracking options */}
       {currentTarget.phone ? (

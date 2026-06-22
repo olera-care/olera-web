@@ -13,23 +13,13 @@ interface ReviewsContext {
   targetRank?: number;
 }
 
-interface Leader {
-  name: string;
-  reviews: number;
-  rating: number | null;
-}
-
 interface ReviewsTabProps {
   reviewsContext: ReviewsContext | null;
   providerSlug?: string;
   providerName?: string;
   hasGooglePlaceId: boolean;
   city?: string;
-  topCompetitor?: Leader | null;
-  leaders?: Leader[];
   providerReviewCount: number | null;
-  /** Callback to expand the full market analysis section */
-  onSeeAll?: () => void;
 }
 
 // Removed "Hi, " since the email template already adds "Hi {name},"
@@ -56,10 +46,7 @@ export default function ReviewsTab({
   providerName,
   hasGooglePlaceId,
   city,
-  topCompetitor,
-  leaders = [],
   providerReviewCount,
-  onSeeAll,
 }: ReviewsTabProps) {
   // Form state
   const [clientName, setClientName] = useState("");
@@ -222,19 +209,10 @@ export default function ReviewsTab({
   // Effective review count: Google reviews take precedence, fall back to Olera reviews
   const effectiveReviewCount = providerReviewCount ?? oleraReviewCount;
 
-  // Determine headline - two lines: count + action
+  // Determine headline - actionable next step
   const currentReviews = effectiveReviewCount ?? 0;
   const isLoading = isLoadingOleraCount && !hasGooglePlaceId;
 
-  // Line 1: Current review count (or loading state)
-  let countLine = "";
-  if (isLoading) {
-    countLine = "Checking...";
-  } else {
-    countLine = currentReviews === 1 ? "1 review" : `${currentReviews} reviews`;
-  }
-
-  // Line 2: Actionable next step
   let actionLine = "";
 
   if (isLoading) {
@@ -276,43 +254,17 @@ export default function ReviewsTab({
         </div>
       )}
 
-      {/* Compact market teaser - subtle, before the main action */}
-      {topCompetitor && (
-        <div className="flex items-center justify-between text-xs text-stone-400 mb-6">
-          <p>
-            <span className="uppercase tracking-wider">Top in {city || "your market"}</span>
-            <span className="mx-1.5">·</span>
-            <span className="text-stone-600">{topCompetitor.name}</span>
-            <span className="ml-1">({topCompetitor.reviews})</span>
-          </p>
-          {onSeeAll && (
-            <button
-              type="button"
-              onClick={onSeeAll}
-              className="text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-0.5"
-            >
-              See all
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          )}
-        </div>
-      )}
+      {/* Label */}
+      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider text-center mb-3">
+        Your move this week
+      </p>
 
-      {/* Two-line headline: count + action */}
-      <div className="text-center mb-6">
-        {/* Line 1: Current review count */}
-        <p className="text-sm font-medium text-stone-500 mb-1">
-          {countLine}
-        </p>
-        {/* Line 2: Actionable next step */}
-        {actionLine && (
-          <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900">
-            {actionLine}
-          </h2>
-        )}
-      </div>
+      {/* Headline - actionable next step */}
+      {actionLine && (
+        <h2 className="font-display text-2xl sm:text-[1.75rem] leading-tight text-stone-900 text-center mb-6">
+          {actionLine}
+        </h2>
+      )}
 
       {/* Error message */}
       {errorMessage && (

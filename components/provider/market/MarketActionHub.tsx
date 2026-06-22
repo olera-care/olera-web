@@ -110,10 +110,7 @@ export default function MarketActionHub({
               providerName={providerName}
               hasGooglePlaceId={!!providerPlaceId}
               city={data.meta.city}
-              topCompetitor={data.competitorLandscape?.leaders?.[0] ?? null}
-              leaders={data.competitorLandscape?.leaders ?? []}
               providerReviewCount={providerReviewCount ?? null}
-              onSeeAll={() => setIsMarketExpanded(true)}
             />
           )}
 

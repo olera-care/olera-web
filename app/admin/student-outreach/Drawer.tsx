@@ -1167,17 +1167,14 @@ function ResearchModePanel({
   const requiresCall = isOffice && Boolean(officePhone);
   const officeCanLaunch = hasOfficeEmail && (requiresCall ? verificationState.can_launch : true);
 
-  const orientation = isOffice ? (
-    requiresCall ? (
-      <>Check the info, call to confirm, then launch outreach.</>
-    ) : (
+  // Unified orientation across all stakeholder types (no per-type drift). Only
+  // the phoneless-office case drops the "call to confirm" clause.
+  const orientation =
+    isOffice && !requiresCall ? (
       <>Check the info, then launch outreach.</>
-    )
-  ) : isProspect ? (
-    <>Add a contact below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
-  ) : (
-    <>Check the info, call to confirm, then launch outreach.</>
-  );
+    ) : (
+      <>Check the info, call to confirm, then launch outreach.</>
+    );
 
   const checklist = isOffice
     ? [] // offices: the buttons (Call to Confirm → Launch) carry the workflow; no checklist line
@@ -1191,20 +1188,18 @@ function ResearchModePanel({
   // any research status; non-office prospects keep the Research-complete step.
   let cta: React.ReactNode;
   if (!isOffice && isProspect) {
-    const label = ready
-      ? "✓ Research complete — review email sequence"
-      : "Add a contact to continue";
+    // Same row layout + labels as the office path: an optional Call to Confirm
+    // (recommended, non-blocking for dept heads) + a primary "Launch outreach"
+    // that records research-complete and opens the per-recipient review. No
+    // visual drift from the office flow.
     cta = (
-      <div className="space-y-2">
-        {/* Dept heads: recommended (non-blocking) intro call when a phone
-            exists. Sits above Launch — placing the courtesy call before the
-            email — but never gates it. */}
+      <div className="flex flex-wrap items-center gap-2">
         {type === "dept_head" && deptHeadPhone && (
           <button
             onClick={() => setShowIntroCall(true)}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
           >
-            📞 Intro call (recommended) — {deptHeadPhone}
+            📞 Call to Confirm
           </button>
         )}
         <button
@@ -1217,11 +1212,10 @@ function ResearchModePanel({
             }
           }}
           disabled={!ready}
-          className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-            ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-          }`}
+          title={ready ? "Review recipients and launch outreach." : "Add a contact first."}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {label}
+          Launch outreach →
         </button>
       </div>
     );
@@ -1263,15 +1257,16 @@ function ResearchModePanel({
     );
   } else {
     cta = (
-      <button
-        onClick={() => setShowPreFlight(true)}
-        disabled={!ready}
-        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-        }`}
-      >
-        {ready ? "Start email sequence →" : "Add a contact with email to continue"}
-      </button>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowPreFlight(true)}
+          disabled={!ready}
+          title={ready ? "Review recipients and launch outreach." : "Add a contact with email first."}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Launch outreach →
+        </button>
+      </div>
     );
   }
 

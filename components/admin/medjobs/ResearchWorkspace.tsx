@@ -69,6 +69,22 @@ function bodyError(body: unknown, fallback: string): string {
   return fallback;
 }
 
+const LAST_SUBTYPE_KEY = (slug: string) => `medjobs.research.lastSubtype.${slug}`;
+const VALID_SUBTYPES = new Set<PartnerSubtype>(["advisor", "student_org", "dept_head"]);
+function readLastSubtype(slug: string): PartnerSubtype {
+  if (typeof window === "undefined") return "advisor";
+  const v = window.localStorage.getItem(LAST_SUBTYPE_KEY(slug));
+  return v && VALID_SUBTYPES.has(v as PartnerSubtype) ? (v as PartnerSubtype) : "advisor";
+}
+function writeLastSubtype(slug: string, subtype: PartnerSubtype) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_SUBTYPE_KEY(slug), subtype);
+  } catch {
+    /* storage may be unavailable (private mode) — resume is best-effort */
+  }
+}
+
 interface Props {
   campusSlug: string;
   universityName: string;
@@ -79,13 +95,23 @@ interface Props {
 export function ResearchWorkspace({ campusSlug, universityName, onClose, onChanged }: Props) {
   const router = useRouter();
   const [done, setDone] = useState<{ created: number } | null>(null);
-  const [subtype, setSubtype] = useState<PartnerSubtype>("advisor");
+  // Resume the last partner type the admin worked on this campus (Task 4).
+  // Lightweight per-browser memory — the per-subtype work itself is in the DB.
+  const [subtype, setSubtype] = useState<PartnerSubtype>(() =>
+    readLastSubtype(campusSlug),
+  );
   const [step, setStep] = useState<Step>("links");
   const [ws, setWs] = useState<WorkspaceState>(emptyWorkspace());
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Remember the active subtype so reopening lands on it.
+  useEffect(() => {
+    writeLastSubtype(campusSlug, subtype);
+  }, [campusSlug, subtype]);
 
   const [suggested, setSuggested] = useState<WorkspaceLink[]>([]);
   const [reading, setReading] = useState(false);
@@ -108,6 +134,10 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         const loaded = (d.workspace ?? emptyWorkspace()) as WorkspaceState;
         loaded.searches = mergeSearches(loaded.searches ?? [], predefinedSearches(subtype, universityName));
         setWs(loaded);
+        // Task 4: restore the un-kept suggestions and the step the admin left
+        // off on for this subtype.
+        setSuggested(loaded.suggested ?? []);
+        setStep(((loaded.last_step as Step) ?? "links"));
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Load failed");
       } finally {
@@ -122,8 +152,13 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
   // ── persistence ───────────────────────────────────────────────────────
   const wsRef = useRef(ws);
   wsRef.current = ws;
+  // Refs so save() can include the un-kept suggestions + current step without
+  // being recreated on every keystroke (mirrors the wsRef pattern).
+  const suggestedRef = useRef<WorkspaceLink[]>([]);
+  const stepRef = useRef<Step>("links");
   const save = useCallback(async () => {
     const cur = wsRef.current;
+    setSaving(true);
     try {
       const res = await fetch("/api/admin/medjobs/research-workspace", {
         method: "PATCH",
@@ -131,15 +166,29 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
         body: JSON.stringify({
           campus_slug: campusSlug,
           subtype,
-          workspace: { links: cur.links, searches: cur.searches, offices: cur.offices, advisors: cur.advisors },
+          workspace: {
+            links: cur.links,
+            searches: cur.searches,
+            offices: cur.offices,
+            advisors: cur.advisors,
+            suggested: suggestedRef.current,
+            last_step: stepRef.current,
+          },
         }),
       });
       if (!res.ok) throw new Error(bodyError(await res.json().catch(() => null), "Save failed"));
       setSavedAt(new Date().toLocaleTimeString());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
     }
   }, [campusSlug, subtype]);
+
+  // Keep the save() refs current so an autosave captures the latest
+  // suggestions + step without recreating the callback each keystroke.
+  suggestedRef.current = suggested;
+  stepRef.current = step;
 
   const didLoad = useRef(false);
   useEffect(() => {
@@ -153,7 +202,9 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
     }
     const t = setTimeout(() => void save(), 800);
     return () => clearTimeout(t);
-  }, [ws, loading, save]);
+    // suggested + step are included so keeping/discarding a suggestion and
+    // moving between steps both persist (Task 4).
+  }, [ws, suggested, step, loading, save]);
 
   // ── step 1: links ─────────────────────────────────────────────────────
   const suggestLinks = useCallback(async () => {
@@ -481,7 +532,9 @@ export function ResearchWorkspace({ campusSlug, universityName, onClose, onChang
               {stepLabel(s.key, subtype)}
             </button>
           ))}
-          <span className="ml-auto shrink-0 text-[11px] text-gray-400">{savedAt ? `Saved ${savedAt}` : "Autosaves"}</span>
+          <span className="ml-auto shrink-0 text-[11px] text-gray-400">
+            {saving ? "Saving…" : savedAt ? `Saved ${savedAt}` : "Autosaves"}
+          </span>
         </div>
       </div>
 

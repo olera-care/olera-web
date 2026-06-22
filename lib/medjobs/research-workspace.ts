@@ -89,10 +89,17 @@ export interface WorkspaceState {
   offices: WorkspaceOffice[];
   advisors: WorkspaceAdvisor[];
   generated_at: string | null;
+  /** Un-kept AI link suggestions, persisted so a mid-triage break doesn't lose
+   *  them (Task 4). Cleared as the admin keeps/discards each. */
+  suggested?: WorkspaceLink[];
+  /** Last step the admin was on for this subtype, so reopening resumes there
+   *  instead of snapping back to "links". Stored as a plain string (the Step
+   *  union lives in the workspace component). */
+  last_step?: string;
 }
 
 export function emptyWorkspace(): WorkspaceState {
-  return { links: [], searches: [], offices: [], advisors: [], generated_at: null };
+  return { links: [], searches: [], offices: [], advisors: [], generated_at: null, suggested: [] };
 }
 
 export function wsId(): string {
@@ -123,6 +130,8 @@ export function readWorkspace(partnerResearch: unknown, subtype: PartnerSubtype)
     offices: Array.isArray(cur.offices) ? (cur.offices as WorkspaceOffice[]) : [],
     advisors: Array.isArray(cur.advisors) ? (cur.advisors as WorkspaceAdvisor[]) : [],
     generated_at: typeof cur.generated_at === "string" ? cur.generated_at : null,
+    suggested: Array.isArray(cur.suggested) ? (cur.suggested as WorkspaceLink[]) : [],
+    last_step: typeof cur.last_step === "string" ? cur.last_step : undefined,
   };
 }
 

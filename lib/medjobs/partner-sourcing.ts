@@ -243,8 +243,8 @@ function sourceMapPrompt(ctx: UniversityContext, subtype: PartnerSubtype): strin
  * Student-organization source map (Stage 1). Goal: a COMPREHENSIVE list of
  * pages to reach pre-health CLUBS — and a representative's contact. Unlike
  * advisor/dept_head sourcing, the richest sources are often OFF the .edu domain
- * (the campus engagement platform, Instagram, Linktree), so we ASK for those
- * and the domain filter is relaxed for this subtype (see buildSourceMap).
+ * (the campus engagement platform), so the domain filter is relaxed for this
+ * subtype (see buildSourceMap). MVP focuses on email + phone only.
  */
 function studentOrgSourceMapPrompt(ctx: UniversityContext, where: string): string {
   const loc = [ctx.city, ctx.state].filter(Boolean).join(", ");
@@ -261,26 +261,23 @@ function studentOrgSourceMapPrompt(ctx: UniversityContext, where: string): strin
     ` 1. The university's STUDENT-ORG DIRECTORY / engagement platform listing (Engage /`,
     `    CampusGroups / Presence / Anthology — often <school>.campuslabs.com or a`,
     `    "getinvolved"/"orgs" subsite) where each club shows a contact email + officers`,
-    ` 2. A club's own page, Linktree, or Instagram that shows a contact email or DM handle`,
+    ` 2. A club's own page that shows a contact email or phone`,
     ` 3. A department or pre-health office page that lists affiliated student clubs`,
     ``,
-    `Prefer pages that show a CONTACT — an org email, a named officer, a faculty advisor,`,
-    `or a social handle (Instagram / Discord / GroupMe / Slack). AVOID dead/expired club`,
-    `pages, generic news/events, and one-off flyers. If a directory listing exists,`,
-    `include it — it is the single richest source.`,
+    `Prefer pages that show a CONTACT — an org email, a phone, a named officer, or a`,
+    `faculty advisor. AVOID dead/expired club pages, generic news/events, and one-off`,
+    `flyers. If a directory listing exists, include it — it is the single richest source.`,
     ``,
     `Every club MUST be a ${ctx.university}${loc ? ` (${loc})` : ""} student organization —`,
-    `NOT another school's club, and NOT a different campus of the same system. The PAGE`,
-    `itself may live on the university site OR on the club's own social / Linktree /`,
-    `engagement-platform page — that is expected and welcome.`,
+    `NOT another school's club, and NOT a different campus of the same system.`,
     ``,
     `Be comprehensive: 6-12 links across the different pre-health club types. For each,`,
-    `"why" = which club it reveals, "likely" = e.g. "org email + Instagram".`,
+    `"why" = which club it reveals, "likely" = e.g. "org email".`,
     ``,
     `Return ONLY valid JSON shaped exactly:`,
     `{"domain":"<this university's primary website domain>",`,
     ` "sources":[{"title":"...","url":"https://...","tier":"primary|secondary|worth_a_look","why":"...","likely":"..."}]}`,
-    `"primary" = a directory or club page that shows a contact email or social handle.`,
+    `"primary" = a directory or club page that shows a contact email or phone.`,
   ].join("\n");
 }
 
@@ -376,7 +373,7 @@ export async function buildSourceMap(
   const sources: SourceLink[] = [];
   const seen = new Set<string>();
   // Student orgs are frequently reachable only off the .edu domain (the campus
-  // engagement platform, Instagram, Linktree), so the strict same-domain filter
+  // engagement platform), so the strict same-domain filter
   // would drop the richest sources. Keep the filter for advisor/dept_head only.
   const enforceDomain = subtype !== "student_org";
   for (const raw of arr(out?.sources)) {
@@ -451,26 +448,15 @@ function extractPrompt(
     `Find pre-health / pre-med / pre-nursing / allied-health STUDENT ORGANIZATIONS at ${where}.`,
     sourceHint,
     `For each organization return: name (org name), org_email, website, directory_url, source_url,`,
-    `confidence (high/medium/low), notes, socials (array of {platform, url} for Instagram/Discord/GroupMe/etc),`,
+    `confidence (high/medium/low), notes,`,
     `officers (array of {name, role, email, source_url} — e.g. President, Vice President, Recruitment Chair),`,
     `and faculty_advisor ({name, email, profile_url, source_url}).`,
     `ALWAYS attempt to find the faculty advisor for each org even when officers are found — the faculty`,
     `advisor is the most valuable long-term contact (year-to-year continuity).`,
     ``,
     `Return ONLY valid JSON shaped exactly:`,
-    `{"candidates":[{"name":"...","org_email":"...","website":"...","directory_url":"...","source_url":"...","confidence":"...","notes":"...","socials":[{"platform":"...","url":"..."}],"officers":[{"name":"...","role":"...","email":"...","source_url":"..."}],"faculty_advisor":{"name":"...","email":"...","profile_url":"...","source_url":"..."}}]}`,
+    `{"candidates":[{"name":"...","org_email":"...","website":"...","directory_url":"...","source_url":"...","confidence":"...","notes":"...","officers":[{"name":"...","role":"...","email":"...","source_url":"..."}],"faculty_advisor":{"name":"...","email":"...","profile_url":"...","source_url":"..."}}]}`,
   ].join("\n");
-}
-
-function parseSocials(v: unknown): SocialLink[] {
-  const out: SocialLink[] = [];
-  for (const raw of arr(v)) {
-    const o = raw as Record<string, unknown>;
-    const u = url(o.url) ?? str(o.url);
-    const platform = str(o.platform);
-    if (u && platform) out.push({ platform, url: u });
-  }
-  return out;
 }
 
 function parseOfficers(v: unknown): OrgOfficer[] {
@@ -542,7 +528,6 @@ function parseCandidates(raw: Record<string, unknown> | null, subtype: PartnerSu
         source_url: url(o.source_url),
         confidence: confidence(o.confidence),
         notes: str(o.notes),
-        socials: parseSocials(o.socials),
         officers,
         faculty_advisor: facultyAdvisor,
       });
@@ -628,7 +613,6 @@ function parseOffices(raw: Record<string, unknown> | null, sourceUrl: string): E
       email: str(o.email),
       phone: str(o.phone),
       website: url(o.website),
-      socials: parseSocials(o.socials),
       ask_for: parseAskFor(o.ask_for),
       advisors: parseAdvisors(o.advisors),
       source_url: url(o.source_url) ?? sourceUrl,
@@ -656,9 +640,6 @@ function officeSchema(sourceUrl: string): string {
     ` - "ask_for": up to 3 names clearly tied to this office and relevant to`,
     `   pre-health (e.g. "An-Janet Smith — Pre-Health Advisor") who DON'T have`,
     `   their own contact — for email personalization only. [] if none.`,
-    ` - "socials": for a student organization, an array of {platform,url} for any`,
-    `   Instagram / Discord / GroupMe / Slack / LinkedIn shown on the page; []`,
-    `   for advising offices / departments.`,
     ` - "source_url": "${sourceUrl}"`,
   ].join("\n");
 }
@@ -725,7 +706,6 @@ function parseDeptHeads(raw: Record<string, unknown> | null, sourceUrl: string):
       email: str(o.email),
       phone: str(o.phone),
       website: url(o.website),
-      socials: [],
       ask_for: [],
       advisors: [],
       source_url: url(o.source_url) ?? sourceUrl,
@@ -745,8 +725,6 @@ function parseDeptHeads(raw: Record<string, unknown> | null, sourceUrl: string):
 function orgRules(): string[] {
   return [
     `- The student ORGANIZATION (club) is the target — capture a way to reach a rep.`,
-    `- Clubs are often reachable ONLY via social, so ALWAYS capture social channels`,
-    `  (Instagram / Discord / GroupMe / Slack / LinkedIn / Linktree) when shown.`,
     `- Use ONLY what is literally present; NEVER invent or construct an email/phone`,
     `  (no "first.last@domain"); if a field is absent use null.`,
     `- A person becomes an "advisor" ONLY with their own email/phone; otherwise at`,
@@ -764,9 +742,7 @@ function orgSchema(sourceUrl: string): string {
     ` - "email": the club's contact email (a shared club address OR a named officer's`,
     `   email), or null if none is shown`,
     ` - "phone": a phone if shown, or null`,
-    ` - "website": the club page / Linktree URL, or null`,
-    ` - "socials": array of {platform,url} for any Instagram / Discord / GroupMe /`,
-    `   Slack / LinkedIn / Linktree shown; [] if none`,
+    ` - "website": the club page URL, or null`,
     ` - "advisors": the FACULTY ADVISOR + any officer (President, VP, Recruitment`,
     `   Chair) who has their OWN email/phone → [{ "name","role","email","phone" }]; []`,
     `   if nobody qualifies`,
@@ -789,7 +765,7 @@ export async function extractFromUrl(
     const prompt = [
       `Read the web page at ${pageUrl} (University: ${ctx.university}).`,
       `Identify the pre-health STUDENT ORGANIZATION(s) (student-run clubs) on the page`,
-      `and capture each club's contact + social channels.`,
+      `and capture each club's contact.`,
       ``,
       ...orgRules(),
       `- If you cannot actually read the page, return {"offices":[]} — never guess.`,
@@ -848,8 +824,7 @@ export async function extractFromText(
   if (subtype === "student_org") {
     const prompt = [
       `Below is text copied from a ${ctx.university} web page. Identify the pre-health`,
-      `STUDENT ORGANIZATION(s) (clubs) it describes and capture each club's contact +`,
-      `social channels.`,
+      `STUDENT ORGANIZATION(s) (clubs) it describes and capture each club's contact.`,
       ``,
       ...orgRules(),
       ``,
@@ -965,7 +940,6 @@ export function stakeholderBodyFromCandidate(
         org_email: c.org_email ?? null,
         website: c.website ?? null,
         directory_url: c.directory_url ?? null,
-        socials: c.socials ?? [],
         officers: c.officers ?? [],
         faculty_advisor: c.faculty_advisor ?? null,
       },

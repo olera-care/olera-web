@@ -67,6 +67,7 @@ export default function EditOverviewModal({
 
   const [displayName, setDisplayName] = useState(profile.display_name || "");
   const [university, setUniversity] = useState(meta.university || "");
+  const [major, setMajor] = useState(meta.major || "");
   const [city, setCity] = useState(profile.city || "");
   const [state, setState] = useState(profile.state || "");
   const [photoUrl, setPhotoUrl] = useState(profile.image_url || "");
@@ -130,6 +131,7 @@ export default function EditOverviewModal({
   const hasChanges =
     displayName !== (profile.display_name || "") ||
     university !== (meta.university || "") ||
+    major !== (meta.major || "") ||
     city !== (profile.city || "") ||
     state !== (profile.state || "") ||
     photoUrl !== (profile.image_url || "");
@@ -213,6 +215,7 @@ export default function EditOverviewModal({
         },
         metadataFields: {
           university: university.trim() || null,
+          major: major.trim() || null,
         },
       });
       onSaved();
@@ -473,6 +476,20 @@ export default function EditOverviewModal({
                 <span>{city}, {state}</span>
               </div>
             )}
+          </div>
+
+          {/* Major / Program of Study */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Major / Program of study
+            </label>
+            <input
+              type="text"
+              value={major}
+              onChange={(e) => setMajor(e.target.value)}
+              placeholder="e.g. Pre-Nursing, Biology, Health Sciences"
+              className="w-full bg-white border border-gray-200 focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all"
+            />
           </div>
         </div>
 

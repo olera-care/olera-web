@@ -45,7 +45,7 @@ export function useUnreadInboxCount(profileIds: string[]): number {
 
         // Fetch connections with their metadata (includes read_by)
         // Match inbox query: fetch both outbound and inbound, active statuses only
-        const [outbound, inbound, matchesOutbound, matchesInbound] = await Promise.all([
+        const [outbound, inbound, matchesOutbound, matchesInbound, invitesOutbound, invitesInbound] = await Promise.all([
           supabase
             .from("connections")
             .select("id, metadata, from_profile_id, to_profile_id")
@@ -71,6 +71,19 @@ export function useUnreadInboxCount(profileIds: string[]): number {
             .in("to_profile_id", profileIdList)
             .eq("type", "request")
             .eq("status", "accepted"),
+          // MedJobs invitations (provider↔student)
+          supabase
+            .from("connections")
+            .select("id, metadata, from_profile_id, to_profile_id")
+            .in("from_profile_id", profileIdList)
+            .eq("type", "invitation")
+            .in("status", ["pending", "accepted"]),
+          supabase
+            .from("connections")
+            .select("id, metadata, from_profile_id, to_profile_id")
+            .in("to_profile_id", profileIdList)
+            .eq("type", "invitation")
+            .in("status", ["pending", "accepted"]),
         ]);
 
         // Merge, deduplicate, and filter out hidden and archived connections
@@ -87,6 +100,8 @@ export function useUnreadInboxCount(profileIds: string[]): number {
           ...(inbound.data || []),
           ...(matchesOutbound.data || []),
           ...(matchesInbound.data || []),
+          ...(invitesOutbound.data || []),
+          ...(invitesInbound.data || []),
         ];
 
         for (const conn of allConns) {

@@ -432,3 +432,80 @@ export function providerSubscriptionConfirmationEmail({
     </p>
   `, "Your MedJobs Pro subscription is now active");
 }
+
+// ── Invitation Templates ──────────────────────────────────────────
+
+/**
+ * Sent to the student when a provider invites them to apply for a job posting.
+ */
+export function invitationReceivedEmail({
+  studentName,
+  providerName,
+  jobTitle,
+  hoursLabel,
+  payRange,
+}: {
+  studentName: string;
+  providerName: string;
+  jobTitle: string;
+  hoursLabel: string;
+  payRange: string;
+}): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+  const safeJobTitle = escapeHtml(jobTitle);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">You've been invited to apply!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeStudentName}, <strong>${safeProviderName}</strong> thinks you'd be a great fit for a role and wants you to check it out.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;width:100%;margin:0 0 16px;">
+      <tr><td style="padding:16px;">
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 4px;">${safeJobTitle}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(hoursLabel)} &middot; ${escapeHtml(payRange)}</p>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Invitation", `${BASE_URL}/medjobs/jobs`)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${safeProviderName} invited you to apply for ${safeJobTitle}`);
+}
+
+/**
+ * Confirmation sent to the provider after they invite a student.
+ */
+export function invitationSentEmail({
+  providerName,
+  studentName,
+  jobTitle,
+}: {
+  providerName: string;
+  studentName: string;
+  jobTitle: string;
+}): string {
+  const safeProviderName = escapeHtml(firstName(providerName, "there"));
+  const safeStudentName = escapeHtml(studentName);
+  const safeJobTitle = escapeHtml(jobTitle);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Invite Sent!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProviderName}, your invitation to <strong>${safeStudentName}</strong> for
+      <strong>${safeJobTitle}</strong> has been sent. They'll get an email with the details.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      If they're interested, they'll apply and show up in your hiring dashboard.
+      You can also message them directly from your inbox.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Browse More Candidates", `${BASE_URL}/medjobs/candidates`)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your invite to ${safeStudentName} was sent`);
+}

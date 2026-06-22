@@ -17,11 +17,14 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 export default function YourMarketPage() {
   const providerProfile = useProviderProfile();
 
-  const providerPlaceId = useMemo(() => {
+  const { providerPlaceId, providerReviewCount } = useMemo(() => {
     const meta = providerProfile?.metadata as
-      | { google_metadata?: { place_id?: string } }
+      | { google_metadata?: { place_id?: string; review_count?: number } }
       | undefined;
-    return meta?.google_metadata?.place_id || undefined;
+    return {
+      providerPlaceId: meta?.google_metadata?.place_id || undefined,
+      providerReviewCount: meta?.google_metadata?.review_count ?? null,
+    };
   }, [providerProfile]);
 
   // The layout gates auth + redirects providerless accounts to /portal, so a
@@ -46,6 +49,7 @@ export default function YourMarketPage() {
       providerSlug={providerProfile.slug}
       providerPlaceId={providerPlaceId}
       providerSourceId={providerProfile.source_provider_id || undefined}
+      providerReviewCount={providerReviewCount}
     />
   );
 }

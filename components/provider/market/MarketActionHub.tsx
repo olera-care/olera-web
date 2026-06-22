@@ -14,6 +14,7 @@ interface MarketActionHubProps {
   providerName?: string;
   providerSlug?: string;
   providerPlaceId?: string;
+  providerReviewCount?: number | null;
 }
 
 /**
@@ -27,6 +28,7 @@ export default function MarketActionHub({
   providerName,
   providerSlug,
   providerPlaceId,
+  providerReviewCount,
 }: MarketActionHubProps) {
   const [activeTab, setActiveTab] = useState<Tab>("reviews");
   const [isMarketExpanded, setIsMarketExpanded] = useState(false);
@@ -108,6 +110,8 @@ export default function MarketActionHub({
               hasGooglePlaceId={!!providerPlaceId}
               city={data.meta.city}
               topCompetitor={data.competitorLandscape?.leaders?.[0] ?? null}
+              leaders={data.competitorLandscape?.leaders ?? []}
+              providerReviewCount={providerReviewCount ?? null}
             />
           )}
 

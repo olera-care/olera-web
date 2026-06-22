@@ -281,6 +281,10 @@ export default function ScheduleInterviewModal({
         setShowUpgradeModal(true);
         return;
       }
+      if (data.error === "terms_required") {
+        setError("Please accept the placement terms before scheduling.");
+        return;
+      }
       if (!res.ok) { setError(data.error || "Failed to schedule."); return; }
       // If interview is pending verification, notify parent so it can show appropriate CTA
       if (data.isPendingVerification && onScheduledUnverified) {

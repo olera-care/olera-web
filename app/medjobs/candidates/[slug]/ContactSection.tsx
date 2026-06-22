@@ -40,7 +40,7 @@ export default function ContactSection({
   /** Sample profile — no live student behind it. */
   isSample?: boolean;
 }) {
-  const { profiles } = useAuth();
+  const { profiles, refreshAccountData } = useAuth();
   const [showSchedule, setShowSchedule] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const providerProfile = profiles.find(
@@ -129,6 +129,9 @@ export default function ContactSection({
       onAgreed={() => {
         setTermsAccepted(true);
         setShowTerms(false);
+        // Refresh auth so the persisted interview_terms_accepted_at is reflected
+        // on revisit (avoids a redundant re-accept on the next page load).
+        void refreshAccountData();
       }}
     />
   ) : null;

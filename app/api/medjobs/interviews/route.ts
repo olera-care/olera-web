@@ -152,6 +152,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "eligibility_required" }, { status: 402 });
       }
 
+      // Terms gate (the real MVP gate): a provider must have accepted the
+      // placement Terms before inviting a student. The UI ladder collects this
+      // first; enforcing it server-side closes the direct-API hole. 403 so the
+      // client doesn't mistake it for the (removed) paywall 402.
+      if (!providerMeta["interview_terms_accepted_at"]) {
+        return NextResponse.json({ error: "terms_required" }, { status: 403 });
+      }
+
       // Notify the student immediately — no pending-verification hold (MVP).
       isPendingVerification = false;
 

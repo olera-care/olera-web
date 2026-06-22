@@ -232,9 +232,7 @@ function JobCard({
         <p className="text-sm text-gray-500 mt-0.5">{location}</p>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5">
           <span className="text-sm font-semibold text-gray-900">
-            {provider.priceRange && provider.priceRange !== "Contact for pricing"
-              ? provider.priceRange
-              : "$14\u2013$22/hr"}
+            {resolvePay(provider)}
           </span>
           <span className="text-gray-300">&middot;</span>
           {categories.map((ct) => (
@@ -353,6 +351,41 @@ function getHoursPerWeek(provider: FamilyCard): string {
   return options[hash % options.length];
 }
 
+// ── Persisted-opportunity overrides ──────────────────────────────────────
+// When a claimed provider has filled in "Your ideal caregiver", prefer those
+// real values over the deterministic synthesis above. Anything left blank
+// keeps the synthesized fallback so cards never look empty.
+const OPP_HOURS_LABEL: Record<string, string> = {
+  "0_10": "Up to 10",
+  "10_20": "10–20",
+  "20_30": "20–30",
+  "30_plus": "30+",
+};
+function resolvePay(provider: FamilyCard): string {
+  const o = provider.opportunity;
+  if (o?.pay_min && o?.pay_max) return `$${o.pay_min}–$${o.pay_max}/hr`;
+  return provider.priceRange && provider.priceRange !== "Contact for pricing"
+    ? provider.priceRange
+    : "$14–$22/hr";
+}
+function resolveHours(provider: FamilyCard): string {
+  const h = provider.opportunity?.hours_per_week;
+  return h ? OPP_HOURS_LABEL[h] ?? getHoursPerWeek(provider) : getHoursPerWeek(provider);
+}
+function resolveCerts(provider: FamilyCard): string[] {
+  const c = provider.opportunity?.certifications;
+  return c && c.length ? c : getJobCertifications(provider);
+}
+function resolveSkills(provider: FamilyCard): string[] {
+  const s = provider.opportunity?.skills;
+  return s && s.length ? s : getJobSkills(provider);
+}
+function resolveCommitment(provider: FamilyCard): string {
+  const c = provider.opportunity?.commitment;
+  if (c) return c === "multiple_terms" ? "Multiple terms" : "One term";
+  return getCommitment(provider);
+}
+
 /** Derive positions needed */
 function getPositionsNeeded(provider: FamilyCard): number {
   const hash = simpleHash(provider.id || provider.name);
@@ -418,14 +451,12 @@ function JobDetailPanel({
   const location = provider.address || "";
   const heroImage = provider.image || provider.fallbackImage;
   const categories = getJobCategories(provider);
-  const certifications = getJobCertifications(provider);
-  const skills = getJobSkills(provider);
-  const commitment = getCommitment(provider);
-  const hoursPerWeek = getHoursPerWeek(provider);
+  const certifications = resolveCerts(provider);
+  const skills = resolveSkills(provider);
+  const commitment = resolveCommitment(provider);
+  const hoursPerWeek = resolveHours(provider);
   const positions = getPositionsNeeded(provider);
-  const payRange = provider.priceRange && provider.priceRange !== "Contact for pricing"
-    ? provider.priceRange
-    : "$14–$22/hr";
+  const payRange = resolvePay(provider);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/40 p-4 sm:p-8 overflow-y-auto" onClick={onClose}>

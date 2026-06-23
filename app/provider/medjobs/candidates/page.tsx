@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import HireCaregiversBoard from "@/components/medjobs/HireCaregiversBoard";
-import { MEDJOBS_MARKETPLACE_V2_HIDDEN } from "@/lib/medjobs/flags";
 
 export const metadata: Metadata = {
   title: "Hire Caregivers | Olera",
 };
 
 /**
- * The signed-in provider's "Hire caregivers" board (Gen 2). For the interview-
- * scheduling MVP this is consolidated into the public Hire Caregivers board
- * (/medjobs/candidates), which a signed-in provider already gets the board view
- * of. When the marketplace-v2 flag is on (MVP default), redirect there; flip the
- * env var to restore this board.
+ * The signed-in provider's "Hire Caregivers" board — the map-based mirror of the
+ * student Find Jobs board: catchment students on a map + "Schedule interview."
+ * This is the canonical signed-in provider surface. The post-a-job (Gen-2)
+ * machinery has been stripped from the board; the marketplace-v2 flag still
+ * hides post-a-job + inbox elsewhere.
  */
 export default function ProviderHireCaregiversPage() {
-  if (MEDJOBS_MARKETPLACE_V2_HIDDEN) redirect("/medjobs/candidates");
   return (
     <main className="min-h-screen bg-white">
       <HireCaregiversBoard />

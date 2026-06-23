@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
-import type { JobPosting } from "@/lib/medjobs/job-postings";
 import {
   getTrackLabel,
   formatHoursPerWeek,
@@ -12,34 +11,19 @@ import {
 
 /**
  * CandidateDetailPanel — inline profile preview that replaces the map
- * on the Hire Caregivers board when a candidate card is clicked.
- *
- * Two modes based on whether the provider has any job postings:
- * - Zero postings: CTA nudges them to create one first.
- * - Has postings: real invite button lets them pick a posting to invite to.
+ * on the Hire Caregivers board when a candidate card is clicked. The single
+ * action is "Schedule interview" (the interview-scheduling MVP); the old
+ * post-a-job / invite-to-posting machinery has been removed.
  */
 export default function CandidateDetailPanel({
   candidate,
   onClose,
-  hasPostings,
-  postings,
-  selectedJob,
-  onPostJob,
-  onCreateFirst,
-  onInvite,
+  onSchedule,
 }: {
   candidate: CandidateData;
   onClose: () => void;
-  hasPostings: boolean;
-  postings: JobPosting[];
-  /** The job selected in the filter dropdown — invite goes directly to it. */
-  selectedJob?: JobPosting | null;
-  /** Opens the create-a-job modal (provider already has postings, wants another). */
-  onPostJob?: () => void;
-  /** Opens the create-a-job modal when this is the provider's first posting. */
-  onCreateFirst?: () => void;
-  /** Opens the board-level invite flow modal for this candidate. */
-  onInvite?: () => void;
+  /** Open the schedule-interview flow for this candidate. */
+  onSchedule: () => void;
 }) {
   const meta = candidate.metadata;
   const firstName = candidate.display_name.split(" ")[0];
@@ -48,8 +32,6 @@ export default function CandidateDetailPanel({
   const durationLabel = formatDuration(meta);
   const availabilityLabel = formatAvailability(meta);
   const isDemo = candidate.slug.startsWith("sample-");
-
-  const isInvitedToAny = postings.some((p) => p.invited.includes(candidate.id));
 
   return (
     <div className="flex flex-col h-full">
@@ -107,18 +89,16 @@ export default function CandidateDetailPanel({
                     .join(" · ")}
                 </p>
               </div>
-              {hasPostings && (
-                <button
-                  type="button"
-                  onClick={onInvite}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                  </svg>
-                  {isInvitedToAny ? "Invite Again" : "Invite to Apply"}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={onSchedule}
+                className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                Schedule interview
+              </button>
             </div>
             {isDemo && (
               <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-semibold text-primary-700 mt-1.5">
@@ -133,23 +113,6 @@ export default function CandidateDetailPanel({
             )}
           </div>
         </div>
-
-        {/* ── CTA: depends on whether the provider has postings ── */}
-        {!hasPostings ? (
-          /* Zero postings → nudge to create first */
-          <button
-            type="button"
-            onClick={onCreateFirst}
-            className="w-full rounded-xl border border-primary-100 bg-primary-50/30 px-4 py-3 text-left hover:bg-primary-50/50 transition-colors group"
-          >
-            <p className="text-sm text-gray-700">
-              Want to hire {isDemo ? "a caregiver like this" : firstName}?{" "}
-              <span className="font-semibold text-primary-700 group-hover:text-primary-800">
-                Create a job posting first &rarr;
-              </span>
-            </p>
-          </button>
-        ) : null}
 
         {/* Availability */}
         {(hoursLabel || durationLabel || availabilityLabel) && (

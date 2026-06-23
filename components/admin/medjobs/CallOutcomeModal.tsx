@@ -25,13 +25,21 @@ export interface OutcomeChoice {
 interface Props {
   title: string;
   subtitle?: ReactNode;
-  scriptLabel: string;
+  scriptLabel?: string;
   /** The day's call script. Null hides the block (e.g. no script on file). */
-  script: string | null;
+  script?: string | null;
+  /** Custom block rendered above the outcome cards INSTEAD of the call script
+   *  (e.g. the email reply box or meeting details box). When provided, `script`
+   *  is ignored. Lets the email + meeting outcome modals reuse this same shell
+   *  with the channel-appropriate context up top. */
+  topBlock?: ReactNode;
   outcomes: OutcomeChoice[];
   /** Config B: a note alone can satisfy + resolve the call (no outcome needed). */
   allowNotesOnly?: boolean;
   notesPlaceholder?: string;
+  /** Footer submit copy. Defaults to the call-flow "Log call" / "Logging…". */
+  submitLabel?: string;
+  savingLabel?: string;
   onCancel: () => void;
   /** Dispatch happens in the parent. outcomeKey is null when logging a
    *  note-only resolve (allowNotesOnly). */
@@ -41,11 +49,14 @@ interface Props {
 export function CallOutcomeModal({
   title,
   subtitle,
-  scriptLabel,
-  script,
+  scriptLabel = "Call script",
+  script = null,
+  topBlock,
   outcomes,
   allowNotesOnly = false,
   notesPlaceholder = "Context for this call — what was said, the next step.",
+  submitLabel = "Log call",
+  savingLabel = "Logging…",
   onCancel,
   onSubmit,
 }: Props) {
@@ -89,12 +100,12 @@ export function CallOutcomeModal({
             disabled={saving || !canSubmit}
             className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
           >
-            {saving ? "Logging…" : "Log call"}
+            {saving ? savingLabel : submitLabel}
           </button>
         </>
       }
     >
-      {script && <CallScriptBlock label={scriptLabel} script={script} />}
+      {topBlock ?? (script && <CallScriptBlock label={scriptLabel} script={script} />)}
 
       <div className="space-y-1.5">
         {outcomes.map((opt) => (

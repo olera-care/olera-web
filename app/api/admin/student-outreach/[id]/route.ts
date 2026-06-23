@@ -760,6 +760,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
       campus: { name: campusName, city: campusCity, slug: (campus as { slug?: string | null } | null)?.slug ?? null },
       campaignName: `MedJobs — ${campusName} — ${yyyymm}`,
       cadenceKey,
+      stakeholderType: row.stakeholder_type ?? null,
     });
   }
 

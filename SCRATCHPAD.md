@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-06-22 — Family Comms Intelligence System: BUILT (v1) + strategy evolved to v2 compare-led flywheel (branch `mighty-carson`, draft PR #1165, NOT live, re-shape pending)
+
+Switched from provider engagement (handed to Esther) to the care-seeker/family side. Esther's "Family Re-engagement: The Intentionality Gap" doc + deep code review + live data pull.
+
+**Diagnosis (live data, 90d):** acquisition booming (738 families, 409 new/30d, 544 inbound inquiries) but the marketplace is one-sided — provider responsiveness is the constraint we can't control or even see (provider opens lead in-app ~20%, in-app responds ~3%, all connections stuck `status='pending'` forever; Find Families "Path B" ~14 reach-outs/quarter = effectively dead). The whole family nudge machine optimizes the wrong verb (publish→get-discovered), a near-dead path.
+
+**Reframe (TJ):** north star isn't binary "connection" — it's "family meaningfully helped." Build an inquiry-triggered HELP CASCADE: connection-first, help-always; assume providers often won't respond; when quiet → other providers → benefits → Olera direct help → never a dead end. Retention = accepted 2nd north star. Headline: replace passive verb ("publish your listing") with active ("we'll introduce you to 3 providers"). Self-report = dating-app "Did you meet?" pattern = ground-truth sensor AND cascade trigger.
+
+**ARCHITECTURE DECISION (the pivot):** don't ship family emails as independent crons. Build a **Family Comms Intelligence System** modeled on the provider weekly-digest. Key realization: registry + withCronRun + email_log/email_events measurement + `/admin/automations` cockpit ALREADY exist and already include families. Only 2 layers missing: (a) **governance cap** for families (extend `sendEmail` chokepoint to `recipientType==='family'` + `FAMILY_NUDGE_EMAIL_TYPES`, transactional exempt, ~3/7d tunable), (b) **Family Comms Coordinator** = one daily cron, pure priority ladder, ONE governed msg/family/cycle, subsumes the 6 family crons as rungs. Ladder = demote-publish + cascade: STOP-if-engaged > outcome-check(self-report) > provider-silent-alternatives > never-engaged > awaiting-match > benefits-intent > completion/publish(lowest).
+
+**BUILT this session on `mighty-carson` (draft PR #1165, type-clean, dry-run-validated, NOTHING LIVE):**
+- **Family governance cap** — `lib/email-governance.ts` (`FAMILY_NUDGE_EMAIL_TYPES` + `FAMILY_NUDGE_WEEKLY_CAP=3` + `isGovernedFamilyNudge`) + `lib/email.ts` sibling gate keyed on recipient email + `recipient_type='family'`, transactional exempt, fail-open, no schema change.
+- **Family Comms Coordinator** — `app/api/cron/family-comms-coordinator/route.ts`: one daily cron, 6-rung ladder, ONE governed email/family/cycle, global stops (unsubscribed / self-reported-yes / active thread). `?dry_run` validated on **515 live families in 5.6s** — sane distribution (lead_complete 208, lead_publish 45, never_engaged 8, outcome_check 6, provider_silent 1, pending_reach_out 1, day_10 **0**; no_rung 227, no_email 0). Lazy email resolution (auth fallback only for matched families).
+- **Plumbing:** `family-nudges` subordinated (stands down 20h after a coordinator send); `findAlternativeProviders` extracted to `lib/family-comms/alternatives.ts`; registered in `registry.ts` + `vercel.json`. Self-report element (prior session) folds in as a rung.
+- Spec: `plans/family-comms-system.md`.
+
+**STRATEGY v2 — compare-led flywheel (locked with TJ this session; supersedes the v1 ladder's priority + copy):** the flywheel = **Complete → Compare → Benefits → loop**. Compare options = HERO (#1, delivered unilaterally via 21k providers). Benefits = CLOSER (#2, don't over-index). Completion = FUEL (#3) but NEVER a naked ask — always "give one detail → better matches" (same action, opposite framing; this is why the dry-run's 208 completion picks were wrong in FRAMING not volume). **Responsiveness = INTERNAL ranking signal ONLY, never a response-time promise** (times are long; promising burns trust — cards compare on care type/price/distance/reviews). Compare destination = existing browse pre-filtered (WATCH: must satisfy click intent on ship). Concierge = flag-don't-build. Cadence = ship now + iterate in days, NO multi-week gate.
+
+**Next up (clean stopping point — pause OK):** the coordinator code still encodes the **v1 ladder**, so the #1 next move is the **compare-led re-shape pass (PLAN WITH TJ before code)** — re-order rungs compare-led, re-frame all copy (completion as value-exchange, strip every response-time claim), point compare CTAs at pre-filtered browse. THEN apply migration 115, THEN plan the cron cutover (pause the 6 originals in `cron_config`, revertible). Notion handoff: "Family Comms System — Handoff (2026-06-22)" (has paste-to-resume block). Memory: `project_family_help_cascade` (has full v2).
+
 ### 2026-06-22 — `/test-instructions` command + durable Codex skill (branch `codex/add-test-instructions-command`, PR #1169 → staging)
 
 **Trigger:** TJ created a Claude slash command called `test-instructions` and asked to copy it into this repo, then clarified that it needs to keep working across future Codex sessions instead of only in the current local worktree.

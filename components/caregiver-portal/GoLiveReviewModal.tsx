@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
-import { saveStudentProfile } from "./edit-modals/save-profile";
 import type { CompletenessSection } from "@/lib/medjobs-completeness";
 
 interface GoLiveReviewModalProps {
@@ -44,11 +43,11 @@ export default function GoLiveReviewModal({
     setError(null);
 
     try {
-      await saveStudentProfile({
-        profileId,
-        topLevelFields: { is_active: true },
-        metadataFields: { application_completed: true },
-      });
+      const res = await fetch("/api/medjobs/go-live", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Something went wrong");
+      }
       setShowSuccess(true);
       // Notify parent after a brief moment
       setTimeout(() => {

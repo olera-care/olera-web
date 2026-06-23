@@ -62,21 +62,11 @@ function outcomesFor(
           blurb: "They want to move forward. Launches the activation sequence.",
           tone: "happy",
         };
-  const convert: OutcomeChoice = partner
-    ? {
-        key: "convert_to_partner",
-        label: "★ Make partner",
-        blurb:
-          "They committed to share the program with students. Marks them a Partner and stops outreach.",
-        tone: "happy",
-      }
-    : {
-        key: "convert_to_client",
-        label: "★ Make client",
-        blurb:
-          "They're ready to interview and hire. Marks them a Client and stops outreach.",
-        tone: "happy",
-      };
+  // Provider conversion is SELF-SERVE ONLY now (they accept the pilot terms
+  // themselves via /api/medjobs/pilot/activate). Admins no longer convert a
+  // provider from a call — so the "Make client" outcome is offered only for
+  // stakeholder rows (→ Partner). A provider call logs the call; the provider
+  // converts on their own from the candidate board / magic-link landing.
   return [
     lead,
     {
@@ -85,7 +75,17 @@ function outcomesFor(
       blurb: "Opens the Calendly booking page and marks a meeting scheduled.",
       tone: "happy",
     },
-    convert,
+    ...(partner
+      ? [
+          {
+            key: "convert_to_partner",
+            label: "★ Make partner",
+            blurb:
+              "They committed to share the program with students. Marks them a Partner and stops outreach.",
+            tone: "happy" as const,
+          },
+        ]
+      : []),
     {
       key: "no_answer",
       label: "No answer",
@@ -187,18 +187,6 @@ export function CallFollowUpModal({
     if (outcomeKey === "meeting_booked") {
       await action("mark_meeting_scheduled", { notes });
       window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer");
-      onClose();
-      return;
-    }
-    if (outcomeKey === "convert_to_client") {
-      // Provider conversion: backend logs the call + runs handleMakeClient
-      // (writes interview_terms_accepted_at, transitions to active_partner,
-      // unlocks Partner Prospects, cancels remaining tasks).
-      await action("log_call_outcome", {
-        outcome: "convert_to_client",
-        notes,
-        ...taskScope,
-      });
       onClose();
       return;
     }

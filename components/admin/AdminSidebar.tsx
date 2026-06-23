@@ -111,14 +111,14 @@ const STAKEHOLDERS_KEY = "stakeholders";
 // (territories that generate operational work), not itself an
 // operational queue. The In Basket + the queue items above surface the
 // actual triage work; Sites is the directory of activated territories.
-// v11: the MedJobs sidebar collapses to three entries. In Basket is the daily
-// work queue; Stats is the analytic hub that links out to the full list pages
+// v11: the MedJobs sidebar collapses to three entries. Sites is the territory
+// anchor (where a prospecting pass starts), then the In Basket daily work
+// queue, then Stats — the analytic hub that links out to the full list pages
 // (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates, and Logs
-// — whose routes still exist, just no longer in the sidebar); Sites is the
-// territory anchor. Sites sits above Stats per design.
+// — whose routes still exist, just no longer in the sidebar).
 const medjobsItems: NavItem[] = [
-  { label: "In Basket", href: "/admin/medjobs/in-basket" },
   { label: "Sites",     href: "/admin/medjobs/sites" },
+  { label: "In Basket", href: "/admin/medjobs/in-basket" },
   { label: "Stats",     href: "/admin/medjobs/stats" },
 ];
 

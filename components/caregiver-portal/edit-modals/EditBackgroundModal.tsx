@@ -1,34 +1,49 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import { saveStudentProfile } from "./save-profile";
 import type { BaseEditModalProps } from "./types";
 
-const EXPERIENCE_OPTIONS = [
-  { value: "0", label: "No experience yet", description: "Eager to learn and start my caregiving journey" },
-  { value: "family", label: "Family caregiver", description: "Experience caring for family or friends" },
-  { value: "1", label: "1–2 years", description: "Paid or volunteer caregiving experience" },
-  { value: "3", label: "3+ years", description: "Extensive professional experience" },
-];
+const ENTRY_TAGS = [
+  { value: "paid", label: "Paid" },
+  { value: "volunteer", label: "Volunteer" },
+  { value: "family", label: "Family" },
+  { value: "clinical", label: "Clinical" },
+  { value: "internship", label: "Internship" },
+  { value: "other", label: "Other" },
+] as const;
 
-const CERTIFICATION_OPTIONS = ["CNA", "BLS", "CPR / First Aid", "HHA", "Medication Aide", "Phlebotomy"];
+type EntryTag = (typeof ENTRY_TAGS)[number]["value"];
 
-const CARE_TYPE_OPTIONS = [
-  "Dementia / Alzheimer's",
-  "Post-Surgical Care",
-  "Mobility Assistance",
-  "Medication Management",
-  "Personal Care",
-  "Companionship",
-  "Meal Preparation",
-  "Hospice / End-of-Life",
-  "Family member care",
-];
+interface ExperienceEntry {
+  id: string;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date?: string;
+  tag: EntryTag;
+}
 
-const LANGUAGE_OPTIONS = ["English", "Spanish", "Mandarin", "Vietnamese", "Hindi", "Tagalog", "Arabic", "Korean", "French", "Other"];
+function generateId(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
 
-type Step = 1 | 2 | 3 | 4;
+function formatMonth(ym: string): string {
+  const [year, month] = ym.split("-");
+  if (!month) return year;
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+const TAG_STYLES: Record<string, string> = {
+  paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  volunteer: "bg-blue-50 text-blue-700 border-blue-200",
+  family: "bg-amber-50 text-amber-700 border-amber-200",
+  clinical: "bg-purple-50 text-purple-700 border-purple-200",
+  internship: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  other: "bg-gray-50 text-gray-600 border-gray-200",
+};
 
 export default function EditBackgroundModal({
   profile,
@@ -41,358 +56,100 @@ export default function EditBackgroundModal({
 }: BaseEditModalProps) {
   const meta = profile.metadata;
 
-  // Track mounted state
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
+    return () => { isMountedRef.current = false; };
   }, []);
 
-  // Wizard state
-  const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Form state
-  const [yearsExperience, setYearsExperience] = useState<string>(
-    meta.years_caregiving != null ? String(meta.years_caregiving) : ""
+  const [entries, setEntries] = useState<ExperienceEntry[]>(
+    (meta.experience_entries || []).map((e) => ({ ...e, id: e.id || generateId() }))
   );
-  const [certifications, setCertifications] = useState<string[]>(meta.certifications || []);
-  const [careTypes, setCareTypes] = useState<string[]>(meta.care_experience_types || []);
-  const [languages, setLanguages] = useState<string[]>(meta.languages || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const stepLabels: Record<Step, string> = {
-    1: "Experience",
-    2: "Certifications",
-    3: "Care Types",
-    4: "Languages",
-  };
+  // Add-entry form state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newStartDate, setNewStartDate] = useState("");
+  const [newEndDate, setNewEndDate] = useState("");
+  const [newIsCurrent, setNewIsCurrent] = useState(false);
+  const [newTag, setNewTag] = useState<EntryTag>("paid");
 
-  const originalYears = meta.years_caregiving != null ? String(meta.years_caregiving) : "";
-  const hasChanges =
-    yearsExperience !== originalYears ||
-    JSON.stringify(certifications) !== JSON.stringify(meta.certifications || []) ||
-    JSON.stringify(careTypes) !== JSON.stringify(meta.care_experience_types || []) ||
-    JSON.stringify(languages) !== JSON.stringify(meta.languages || []);
+  const hasChanges = JSON.stringify(entries) !== JSON.stringify(meta.experience_entries || []);
 
-  // Navigate with animation
-  const navigateToStep = useCallback((step: Step) => {
-    if (step === currentStep || isTransitioning) return;
-    setSlideDirection(step > currentStep ? "right" : "left");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      if (isMountedRef.current) {
-        setCurrentStep(step);
-        setIsTransitioning(false);
-      }
-    }, 150);
-  }, [currentStep, isTransitioning]);
+  function addEntry() {
+    if (!newTitle.trim() || !newStartDate) return;
+    const entry: ExperienceEntry = {
+      id: generateId(),
+      title: newTitle.trim(),
+      description: newDescription.trim(),
+      start_date: newStartDate,
+      end_date: newIsCurrent ? undefined : newEndDate || undefined,
+      tag: newTag,
+    };
+    setEntries((prev) => [entry, ...prev]);
+    setNewTitle("");
+    setNewDescription("");
+    setNewStartDate("");
+    setNewEndDate("");
+    setNewIsCurrent(false);
+    setNewTag("paid");
+    setShowAddForm(false);
+  }
 
-  const toggleArrayItem = (
-    current: string[],
-    setter: (val: string[]) => void,
-    item: string
-  ) => {
-    if (current.includes(item)) {
-      setter(current.filter((i) => i !== item));
-    } else {
-      setter([...current, item]);
-    }
-  };
+  function removeEntry(id: string) {
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+  }
 
   async function handleSave() {
     setSaving(true);
     setError(null);
-
     try {
       await saveStudentProfile({
         profileId: profile.id,
-        metadataFields: {
-          years_caregiving: yearsExperience === "family" ? 0 : yearsExperience ? Number(yearsExperience) : null,
-          certifications,
-          care_experience_types: careTypes,
-          languages,
-        },
+        metadataFields: { experience_entries: entries },
       });
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      if (isMountedRef.current) {
-        setSaving(false);
-      }
+      if (isMountedRef.current) setSaving(false);
     }
   }
 
-  function handleContinue() {
-    setError(null);
-    if (currentStep < 4) {
-      navigateToStep((currentStep + 1) as Step);
-    } else {
-      handleSave();
-    }
-  }
+  const sortedEntries = [...entries].sort((a, b) => (b.start_date > a.start_date ? 1 : -1));
 
-  function handleBack() {
-    if (currentStep === 1) {
-      if (guidedMode && onGuidedBack) {
-        onGuidedBack();
-      } else {
-        onClose();
-      }
-    } else {
-      navigateToStep((currentStep - 1) as Step);
-    }
-  }
-
-  // Check if current step has content
-  const isCurrentStepComplete = () => {
-    switch (currentStep) {
-      case 1: return !!yearsExperience;
-      case 2: return certifications.length > 0;
-      case 3: return careTypes.length > 0;
-      case 4: return languages.length > 0;
-    }
-  };
-
-  const getButtonText = () => {
-    if (currentStep === 4) {
-      return saving ? "Saving..." : guidedMode ? "Save & Next" : "Done";
-    }
-    if (isCurrentStepComplete()) {
-      return "Continue";
-    }
-    return "Skip for now";
-  };
-
-  const getBackButtonText = () => {
-    if (currentStep === 1) {
-      return guidedMode && onGuidedBack ? "Back" : "Cancel";
-    }
-    return "Back";
-  };
-
-  // Render step content
-  const renderStepContent = () => {
-    const transitionClass = isTransitioning
-      ? slideDirection === "right"
-        ? "opacity-0 translate-x-4"
-        : "opacity-0 -translate-x-4"
-      : "opacity-100 translate-x-0";
-
-    return (
-      <div className={`transition-all duration-150 ease-out ${transitionClass}`}>
-        {/* Step 1: Experience Level */}
-        {currentStep === 1 && (
-          <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Your experience level</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              How much caregiving experience do you have? All levels welcome.
-            </p>
-
-            <div className="max-w-sm mx-auto space-y-3">
-              {EXPERIENCE_OPTIONS.map((opt) => {
-                const isSelected = yearsExperience === opt.value ||
-                  (opt.value === "family" && yearsExperience === "0" && meta.years_caregiving === 0);
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setYearsExperience(opt.value)}
-                    className={`w-full flex flex-col items-start px-5 py-4 rounded-2xl text-left transition-all ${
-                      isSelected
-                        ? "bg-primary-50 border-2 border-primary-600 shadow-sm"
-                        : "bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>
-                      {opt.label}
-                    </span>
-                    <span className={`text-xs mt-0.5 ${isSelected ? "text-primary-600" : "text-gray-500"}`}>
-                      {opt.description}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Certifications */}
-        {currentStep === 2 && (
-          <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Any certifications?</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Select all that apply. No certifications? No problem — you can skip this.
-            </p>
-
-            <div className="max-w-md mx-auto flex flex-wrap justify-center gap-2">
-              {CERTIFICATION_OPTIONS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => toggleArrayItem(certifications, setCertifications, c)}
-                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    certifications.includes(c)
-                      ? "bg-primary-600 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-
-            {certifications.length > 0 && (
-              <p className="text-xs text-primary-600 mt-6">
-                {certifications.length} selected
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Step 3: Care Types */}
-        {currentStep === 3 && (
-          <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Types of care you can provide</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Select all areas where you have experience or are willing to learn.
-            </p>
-
-            <div className="max-w-lg mx-auto flex flex-wrap justify-center gap-2">
-              {CARE_TYPE_OPTIONS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => toggleArrayItem(careTypes, setCareTypes, c)}
-                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    careTypes.includes(c)
-                      ? "bg-primary-600 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-
-            {careTypes.length > 0 && (
-              <p className="text-xs text-primary-600 mt-6">
-                {careTypes.length} selected
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Step 4: Languages */}
-        {currentStep === 4 && (
-          <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
-              <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-              </svg>
-            </div>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Languages you speak</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Being bilingual is a huge plus for many families.
-            </p>
-
-            <div className="max-w-md mx-auto flex flex-wrap justify-center gap-2">
-              {LANGUAGE_OPTIONS.map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => toggleArrayItem(languages, setLanguages, l)}
-                  className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    languages.includes(l)
-                      ? "bg-primary-600 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-
-            {languages.length > 0 && (
-              <p className="text-xs text-primary-600 mt-6">
-                {languages.length} selected
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Footer component
   const footerContent = (
     <div className="pt-4 border-t border-gray-100">
-      {/* Guided mode progress bar */}
       {guidedMode && guidedStep && guidedTotal && (
         <div className="flex gap-0.5 px-1 mb-4">
           {Array.from({ length: guidedTotal }, (_, i) => (
-            <div
-              key={i}
-              className={`flex-1 h-[3px] rounded-full transition-colors duration-300 ${
-                i + 1 <= guidedStep ? "bg-primary-600" : "bg-gray-100"
-              }`}
-            />
+            <div key={i} className={`flex-1 h-[3px] rounded-full transition-colors duration-300 ${i + 1 <= guidedStep ? "bg-primary-600" : "bg-gray-100"}`} />
           ))}
         </div>
       )}
-
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={handleBack}
-          disabled={isTransitioning || saving}
+          onClick={guidedMode && onGuidedBack ? onGuidedBack : onClose}
+          disabled={saving}
           className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
         >
-          {getBackButtonText()}
+          {guidedMode && onGuidedBack ? "Back" : "Cancel"}
         </button>
 
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          {guidedMode && guidedStep && guidedTotal ? (
-            <span>Step {guidedStep} of {guidedTotal}</span>
-          ) : (
-            <>
-              <span className="text-gray-500 font-medium">{stepLabels[currentStep]}</span>
-              <span>·</span>
-              <span>Step {currentStep} of 4</span>
-            </>
-          )}
-        </div>
+        {guidedMode && guidedStep && guidedTotal && (
+          <span className="text-xs text-gray-400">Step {guidedStep} of {guidedTotal}</span>
+        )}
 
         <button
           type="button"
-          onClick={handleContinue}
-          disabled={saving || isTransitioning}
+          onClick={handleSave}
+          disabled={saving || (!hasChanges && !guidedMode)}
           className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-            isCurrentStepComplete()
+            entries.length > 0
               ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
@@ -402,29 +159,168 @@ export default function EditBackgroundModal({
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Saving...
             </span>
-          ) : (
-            getButtonText()
-          )}
+          ) : guidedMode ? "Save & Next" : "Done"}
         </button>
       </div>
     </div>
   );
 
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title=""
-      size="2xl"
-      footer={footerContent}
-    >
+    <Modal isOpen onClose={onClose} title="" size="2xl" footer={footerContent}>
       <div className="px-2">
-        {/* Step Content */}
-        <div className="min-h-[360px] flex items-start justify-center pt-4">
-          {renderStepContent()}
+        <div className="min-h-[360px] pt-4">
+          <div className="w-full max-w-md mx-auto">
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
+                <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Experience timeline</h3>
+              <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                Add your caregiving roles — paid, volunteer, family, or clinical.
+              </p>
+            </div>
+
+            {/* Existing entries */}
+            {sortedEntries.length > 0 && (
+              <div className="relative pl-4 border-l-2 border-gray-200 space-y-3 mb-4">
+                {sortedEntries.map((entry) => {
+                  const tagLabel = ENTRY_TAGS.find((t) => t.value === entry.tag)?.label || entry.tag;
+                  const tagClass = TAG_STYLES[entry.tag] || TAG_STYLES.other;
+                  return (
+                    <div key={entry.id} className="relative group">
+                      <div className="absolute -left-[calc(1rem+5px)] top-1.5 w-2 h-2 rounded-full bg-primary-500" />
+                      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="text-sm font-medium text-gray-900 truncate">{entry.title}</p>
+                              <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${tagClass}`}>
+                                {tagLabel}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              {formatMonth(entry.start_date)} – {entry.end_date ? formatMonth(entry.end_date) : "Present"}
+                            </p>
+                            {entry.description && <p className="text-xs text-gray-500 mt-1">{entry.description}</p>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeEntry(entry.id)}
+                            className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                            aria-label="Remove entry"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add entry form */}
+            {showAddForm ? (
+              <div className="border border-primary-200 bg-primary-50/30 rounded-2xl p-4 space-y-3">
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Role or title (e.g. Caregiver at Sunrise)"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-300"
+                />
+                <input
+                  type="text"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="Brief description (optional)"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-300"
+                />
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Start</label>
+                    <input
+                      type="month"
+                      value={newStartDate}
+                      onChange={(e) => setNewStartDate(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-300"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">End</label>
+                    {newIsCurrent ? (
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-400">Present</div>
+                    ) : (
+                      <input
+                        type="month"
+                        value={newEndDate}
+                        onChange={(e) => setNewEndDate(e.target.value)}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-300"
+                      />
+                    )}
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newIsCurrent}
+                    onChange={(e) => setNewIsCurrent(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-600">I currently do this</span>
+                </label>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Type</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ENTRY_TAGS.map((t) => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => setNewTag(t.value)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          newTag === t.value
+                            ? "bg-primary-600 text-white shadow-sm"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button type="button" onClick={() => setShowAddForm(false)} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addEntry}
+                    disabled={!newTitle.trim() || !newStartDate}
+                    className="px-4 py-2 text-sm font-semibold bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAddForm(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add experience
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="mx-auto max-w-md mt-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
             <p className="text-sm text-red-600 text-center" role="alert">{error}</p>

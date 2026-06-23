@@ -11,8 +11,13 @@ interface SaveProfileArgs {
 }
 
 /**
- * Save profile changes to Supabase.
- * Merges metadata fields with existing metadata to preserve unrelated fields.
+ * Save profile changes to the provider's business_profiles row — the one record.
+ * Merges metadata with existing metadata to preserve unrelated fields.
+ *
+ * The business_profile is the canonical, fully-hydrated provider record (the
+ * directory row is copied into it at claim time), so ALL edits — for both
+ * account-first and claimed-from-directory providers — write here, and both the
+ * portal and the public page read here. No directory round-trip.
  */
 export async function saveProfile({
   profileId,
@@ -23,20 +28,19 @@ export async function saveProfile({
   const supabase = createClient();
 
   const update: Record<string, unknown> = { ...topLevelFields };
-
   if (Object.keys(metadataFields).length > 0) {
     update.metadata = {
       ...existingMetadata,
       ...metadataFields,
     };
   }
-
-  const { error } = await supabase
-    .from("business_profiles")
-    .update(update)
-    .eq("id", profileId);
-
-  if (error) {
-    throw new Error(error.message);
+  if (Object.keys(update).length > 0) {
+    const { error } = await supabase
+      .from("business_profiles")
+      .update(update)
+      .eq("id", profileId);
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 }

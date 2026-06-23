@@ -121,12 +121,12 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(20000),
 
-      // Reviews from the Olera reviews table (published only).
+      // Reviews from the Olera reviews table (non-flagged only).
       db
-        .from("reviews")
-        .select("id, rating, comment, reviewer_name, created_at, provider_reply, replied_at")
-        .in("provider_id", providerIdVariants)
-        .eq("status", "published")
+        .from("olera_reviews")
+        .select("id, rating, review_text, reviewer_name, created_at, flagged")
+        .eq("provider_slug", profile.slug)
+        .eq("flagged", false)
         .order("created_at", { ascending: false })
         .limit(100),
 
@@ -239,11 +239,10 @@ export async function GET(request: NextRequest) {
     const oleraReviews = (oleraReviewsRes.data ?? []) as Array<{
       id: string;
       rating: number;
-      comment: string | null;
+      review_text: string | null;
       reviewer_name: string | null;
       created_at: string;
-      provider_reply: string | null;
-      replied_at: string | null;
+      flagged: boolean;
     }>;
 
     interface GoogleReviewSummary {
@@ -374,7 +373,7 @@ export async function GET(request: NextRequest) {
         kind: "review",
         timestamp: r.created_at,
         title: `${r.reviewer_name ?? "A family"} left a ${r.rating}★ review`,
-        detail: r.comment ? (r.comment.length > 100 ? r.comment.slice(0, 100) + "…" : r.comment) : undefined,
+        detail: r.review_text ? (r.review_text.length > 100 ? r.review_text.slice(0, 100) + "…" : r.review_text) : undefined,
         actionHref: `/provider/reviews`,
         actorName: r.reviewer_name ?? undefined,
       });

@@ -100,8 +100,14 @@ export default function StudentProviderCTA({
       ? "rounded-2xl border border-primary-200 bg-white p-5 shadow-sm"
       : "fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white p-3 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] md:hidden";
 
-  // Gate: student must be live before requesting.
+  // Gate: student must be live before requesting. A provider can't meaningfully
+  // interview an empty profile, so we keep the completion requirement — but make
+  // it encouraging (show progress) rather than a flat block.
   const needsApplication = studentProfile?.id && isLive === false;
+  const completeness = Math.max(
+    0,
+    Math.min(100, Number((studentProfile?.metadata as Record<string, unknown> | undefined)?.profile_completeness ?? 0)),
+  );
 
   return (
     <>
@@ -125,14 +131,20 @@ export default function StudentProviderCTA({
           </p>
         ) : needsApplication ? (
           <div className={surface === "mobile" ? "" : "mt-3"}>
+            <p className="text-sm font-medium text-gray-900">
+              Your profile is {completeness}% complete
+            </p>
+            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${completeness}%` }} />
+            </div>
             <Link
               href="/portal/medjobs"
-              className="block w-full rounded-xl bg-primary-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-700"
+              className="mt-3 block w-full rounded-xl bg-primary-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-700"
             >
-              Complete your application first →
+              Finish your profile to unlock interviews →
             </Link>
             <p className="mt-1.5 text-center text-xs text-gray-500">
-              So {providerName} sees who you are before your interview.
+              Providers need to see who you are before they can interview you.
             </p>
           </div>
         ) : (

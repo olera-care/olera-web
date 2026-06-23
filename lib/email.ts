@@ -38,6 +38,12 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   "provider_reach_out",
   "new_review",
   "new_candidate_alert",
+  // MedJobs provider-acquisition notifications (cold/mixed catchment audience):
+  // a student requested an interview with an unclaimed provider, and the
+  // catchment-wide "candidate ready" alert. Both reach scraped directory
+  // addresses, so they ring-fence to the isolated domain like other cold mail.
+  "medjobs_student_interest",
+  "medjobs_candidate_ready",
 ]);
 
 /**

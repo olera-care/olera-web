@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import PostJobComingSoonModal from "@/components/medjobs/PostJobComingSoonModal";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import TermsModal from "@/components/medjobs/TermsModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { StudentMetadata } from "@/lib/types";
 
@@ -24,10 +25,10 @@ interface CandidateData {
 /**
  * ContactSection — the provider-facing CTA on a candidate detail page.
  *
- * The action is unified to "Post a Job" (coming soon) across every provider
- * state — anonymous, guest, not-eligible, eligible, sample, or real candidate —
- * until the real post-job flow ships (see PostJobComingSoonModal's HANDOFF).
- * The only other state is a student/caregiver previewing their own profile.
+ * The action is "Schedule interview" (opens ScheduleInterviewModal) for a real
+ * candidate, or "Review Terms & Conditions" for a sample/demo profile (no real
+ * student to interview yet). The only other state is a student/caregiver
+ * previewing their own profile.
  */
 export default function ContactSection({
   candidate,
@@ -39,8 +40,21 @@ export default function ContactSection({
   /** Sample profile — no live student behind it. */
   isSample?: boolean;
 }) {
-  const { profiles } = useAuth();
-  const [showPostJob, setShowPostJob] = useState(false);
+  const { profiles, refreshAccountData } = useAuth();
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const providerProfile = profiles.find(
+    (p) => p.type === "organization" || p.type === "caregiver",
+  );
+  // Derive terms-accepted from the live profile metadata every render (not a
+  // one-time useState seed) so it stays correct across candidate pages once the
+  // provider has agreed anywhere. `agreedLocally` covers the same-page moment
+  // right after agreeing, before the auth refresh propagates.
+  const termsAcceptedFromMeta = !!(
+    (providerProfile?.metadata as Record<string, unknown> | undefined)?.["interview_terms_accepted_at"]
+  );
+  const [agreedLocally, setAgreedLocally] = useState(false);
+  const termsAccepted = agreedLocally || termsAcceptedFromMeta;
 
   const firstName = candidate.displayName.split(" ")[0];
 
@@ -99,25 +113,81 @@ export default function ContactSection({
     );
   }
 
-  // ── Everyone else (provider-facing) → Post a Job (coming soon) ──
-  const postJobModal = showPostJob ? (
-    <PostJobComingSoonModal onClose={() => setShowPostJob(false)} />
+  // ── Everyone else (provider-facing) → the staged CTA ladder ──
+  // Terms first (the one real commitment, recorded as the scheduling gate +
+  // CRM Client flag). Once agreed: a real candidate → schedule; a sample → a
+  // standing "we'll notify you" since there's no real student to book yet.
+  const ctaClass =
+    "flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors";
+  const scheduleModal = showSchedule && !isSample ? (
+    <ScheduleInterviewModal
+      studentProfileId={candidate.id}
+      otherName={candidate.displayName}
+      onClose={() => setShowSchedule(false)}
+      onScheduled={() => setShowSchedule(false)}
+    />
   ) : null;
-  const cta = (
-    <button
-      type="button"
-      onClick={() => setShowPostJob(true)}
-      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-    >
-      Post a Job →
-    </button>
+  const termsModal = showTerms ? (
+    <TermsModal
+      profileId={providerProfile?.id}
+      onClose={() => setShowTerms(false)}
+      onAgreed={() => {
+        setAgreedLocally(true);
+        setShowTerms(false);
+        // Refresh auth so the persisted interview_terms_accepted_at is reflected
+        // on revisit (avoids a redundant re-accept on the next page load).
+        void refreshAccountData();
+      }}
+    />
+  ) : null;
+  const modals = (
+    <>
+      {scheduleModal}
+      {termsModal}
+    </>
   );
+
+  let cta: React.ReactNode;
+  if (!providerProfile) {
+    // No provider account yet (anon visitor, a cold provider arriving from a
+    // "candidate ready" email, or a signed-in non-provider) — for BOTH real and
+    // demo candidates: funnel through the hiring-needs screener, which
+    // establishes the provider account before scheduling (submitting here would
+    // 401). Same entry point as a real candidate's anon path.
+    cta = (
+      <Link href="/medjobs/candidates?activate=1" className={ctaClass}>
+        Schedule an interview →
+      </Link>
+    );
+  } else if (!isSample) {
+    // Real candidate, signed-in provider: schedule directly — the Terms opt-in
+    // lives in the modal.
+    cta = (
+      <button type="button" onClick={() => setShowSchedule(true)} className={ctaClass}>
+        Schedule interview →
+      </button>
+    );
+  } else if (termsAccepted) {
+    // Sample candidate, terms agreed: primed + waiting for real supply.
+    cta = (
+      <div className="w-full rounded-xl bg-gray-100 px-4 py-2.5 text-center text-sm font-medium text-gray-500">
+        We&apos;ll notify you when we have a candidate near you.
+      </div>
+    );
+  } else {
+    // Sample candidate: review + agree to terms while waiting.
+    cta = (
+      <button type="button" onClick={() => setShowTerms(true)} className={ctaClass}>
+        Review Terms &amp; Conditions →
+      </button>
+    );
+  }
 
   if (variant === "sticky") {
     return (
       <>
         <div className={stickyWrap} style={stickyStyle}>{cta}</div>
-        {postJobModal}
+        {modals}
       </>
     );
   }
@@ -131,16 +201,15 @@ export default function ContactSection({
               Want to hire {isSample ? "a caregiver like this" : firstName}?
             </p>
             <p className="mt-1 text-sm text-gray-600 leading-relaxed">
-              Post a job to start interviewing student caregivers.
-            </p>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Tell us the shifts you need covered and we&apos;ll match you.
+              {isSample
+                ? "Review the program terms, then schedule interviews once your first students are ready."
+                : "Schedule an interview to meet this student caregiver."}
             </p>
           </div>
         </div>
         {cta}
       </div>
-      {postJobModal}
+      {modals}
     </>
   );
 }

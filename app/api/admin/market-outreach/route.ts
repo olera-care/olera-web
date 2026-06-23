@@ -350,3 +350,63 @@ export async function GET() {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/admin/market-outreach
+ * Removes all outreach data for a provider (for cleaning up test accounts).
+ * Body: { profile_id: string }
+ */
+export async function DELETE(request: Request) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const body = await request.json();
+    const profileId = body.profile_id;
+
+    if (!profileId || typeof profileId !== "string") {
+      return NextResponse.json({ error: "profile_id is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Delete outreach records for this provider
+    const { error: outreachError } = await db
+      .from("market_referral_outreach")
+      .delete()
+      .eq("provider_id", profileId);
+
+    if (outreachError) {
+      console.error("Failed to delete outreach records:", outreachError);
+      return NextResponse.json({ error: "Failed to delete outreach records" }, { status: 500 });
+    }
+
+    // Delete activity events for this provider (optional but cleans up fully)
+    // Activity rows may have profile_id or provider_id set, need to check both
+    const [{ error: activityError1 }, { error: activityError2 }] = await Promise.all([
+      db
+        .from("provider_activity")
+        .delete()
+        .eq("profile_id", profileId)
+        .in("event_type", [VIEW_EVENT, ACTION_EVENT]),
+      db
+        .from("provider_activity")
+        .delete()
+        .eq("provider_id", profileId)
+        .in("event_type", [VIEW_EVENT, ACTION_EVENT]),
+    ]);
+
+    if (activityError1 || activityError2) {
+      console.error("Failed to delete activity records:", activityError1 ?? activityError2);
+      // Don't fail the whole request - outreach was already deleted
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Admin market outreach delete error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

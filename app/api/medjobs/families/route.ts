@@ -26,8 +26,14 @@ import {
   type Provider,
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
+import { readOpportunityProfile, type OpportunityProfile } from "@/lib/medjobs/opportunity";
 
-export type FamilyCard = ProviderCardData & { isProgram: boolean; createdAt?: string | null };
+export type FamilyCard = ProviderCardData & {
+  isProgram: boolean;
+  createdAt?: string | null;
+  /** Persisted "Your ideal caregiver" fields, when the claimed provider set them. */
+  opportunity?: OpportunityProfile;
+};
 
 const PAGE_SIZE = 12;
 
@@ -69,6 +75,7 @@ function getCatchmentCards(campus: string): Promise<FamilyCard[]> {
         const card = businessProfileToCardFormat(row) as FamilyCard;
         card.isProgram = true;
         card.createdAt = row.created_at ?? null;
+        card.opportunity = readOpportunityProfile(row.metadata as unknown as Record<string, unknown> | null);
         programCards.push(card);
         if (card.slug) programSlugs.add(card.slug);
         const src = (row.metadata as Record<string, unknown> | null)?.source_provider_id;

@@ -7,6 +7,7 @@ import {
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
+import { shouldIndexBenefitsProgram } from "@/lib/benefits/program-content-quality";
 import {
   countActiveProviders,
   getActiveProviderGeoByCategory,
@@ -122,6 +123,7 @@ export default async function sitemap({
           // would emit 404s for any state whose legacy IDs don't match pipeline IDs.
           const drafts = pipelineDrafts[state.abbreviation]?.programs || [];
           for (const draft of drafts) {
+            if (!shouldIndexBenefitsProgram(draft)) continue;
             const programUrl = `/benefits/${state.id}/${draft.id}`;
             entries.push({
               url: `${SITE_URL}${programUrl}`,

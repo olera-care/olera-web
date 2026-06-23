@@ -31,8 +31,8 @@ const POP_CSS = "@keyframes mroPop{0%{transform:scale(1)}40%{transform:scale(1.0
  * via /api/provider/market-outreach.
  */
 export default function ReferralTargets({
-  targets, interactive = false, providerName, city,
-}: { targets: BdTarget[]; interactive?: boolean; providerName?: string; city?: string }) {
+  targets, interactive = false, providerName, city, refetchKey,
+}: { targets: BdTarget[]; interactive?: boolean; providerName?: string; city?: string; refetchKey?: number }) {
   const [status, setStatus] = useState<Record<string, string>>({});
   const [celebrating, setCelebrating] = useState<Record<string, boolean>>({});
   const [showAll, setShowAll] = useState(false);
@@ -53,7 +53,7 @@ export default function ReferralTargets({
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [interactive]);
+  }, [interactive, refetchKey]);
 
   const update = (t: BdTarget, value: string) => {
     const prev = status[keyOf(t)] || "to_contact";

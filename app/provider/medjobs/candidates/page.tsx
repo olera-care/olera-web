@@ -6,10 +6,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * The signed-in provider's "Hire caregivers" board — candidate tiles + a
- * campus map, filtered by university and availability. Gated by the provider
- * layout (HUB_ROUTES includes /provider/medjobs). The public marketing +
- * preview surface is /medjobs/candidates.
+ * The signed-in provider's "Hire Caregivers" board — the map-based mirror of the
+ * student Find Jobs board: catchment students on a map + "Schedule interview."
+ * This is the canonical signed-in provider surface. The post-a-job (Gen-2)
+ * machinery has been stripped from the board; the marketplace-v2 flag still
+ * hides post-a-job + inbox elsewhere.
  */
 export default function ProviderHireCaregiversPage() {
   return (

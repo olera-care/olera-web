@@ -22,6 +22,7 @@ import { PARTNER_SUBTYPES, type PartnerSubtype } from "@/lib/medjobs/partner-sou
 import {
   readWorkspace,
   writeWorkspace,
+  normOffice,
   type OfficeTag,
   type WorkspaceAdvisor,
   type WorkspaceOffice,
@@ -98,13 +99,37 @@ export async function POST(request: NextRequest) {
   const officeById = new Map(ws.offices.map((o) => [o.id, o]));
   const linkById = new Map(ws.links.map((l) => [l.id, l]));
 
+  // Existence guard (root-cause dedup): any prospect already created for this
+  // campus, keyed by stakeholder_type + normalized name. Independent of the
+  // workspace stamp, so duplicates are structurally impossible even if a stamp
+  // were ever lost.
+  const { data: existingRows } = await db
+    .from("student_outreach")
+    .select("id, organization_name, stakeholder_type")
+    .eq("campus_id", campusId);
+  const existingByKey = new Map(
+    ((existingRows ?? []) as Array<{ id: string; organization_name: string | null; stakeholder_type: string | null }>).map(
+      (r) => [`${r.stakeholder_type ?? ""}::${normOffice(r.organization_name ?? "")}`, r.id],
+    ),
+  );
+
   let created = 0;
   const ids: string[] = [];
 
   for (const sel of selections) {
     const office = officeById.get(sel.office_id);
     if (!office) continue;
+    if (office.outreach_id) continue; // already a prospect (stamp) — dedup
     if (!office.email && !office.call_only && !office.phone) continue; // not reachable
+
+    // Existence guard: a matching prospect already exists for this campus → lock
+    // the office to it instead of creating a duplicate.
+    const existingId = existingByKey.get(`${TAG_TO_TYPE[office.tag]}::${normOffice(office.name)}`);
+    if (existingId) {
+      office.outreach_id = existingId;
+      office.generated_at = office.generated_at ?? new Date().toISOString();
+      continue;
+    }
 
     const advisors = ws.advisors.filter((a) => a.office_id === office.id);
     const sources = office.source_link_ids
@@ -114,6 +139,10 @@ export async function POST(request: NextRequest) {
 
     const rowId = await createOfficeRow(db, { campusId, office, advisors, sources, userId: user.id });
     if (!rowId) continue;
+    // Stamp the office (mutates the ws.offices object via the Map ref) so it's
+    // locked from re-generation and shows "✓ In In-Basket" on return.
+    office.outreach_id = rowId;
+    office.generated_at = new Date().toISOString();
     ids.push(rowId);
     created += 1;
 
@@ -180,14 +209,17 @@ export async function POST(request: NextRequest) {
   const nextPr = writeWorkspace(
     (campus as { partner_research?: unknown }).partner_research,
     subtype,
-    { generated_at: new Date().toISOString() },
+    // Persist the stamped offices (not just the timestamp) so the locks survive.
+    { offices: ws.offices, generated_at: new Date().toISOString() },
   );
   await db
     .from("student_outreach_campuses")
     .update({ partner_research: nextPr, updated_at: new Date().toISOString() })
     .eq("id", campusId);
 
-  return NextResponse.json({ ok: true, created, ids });
+  // Return the updated offices so the client can sync the stamps before its
+  // next autosave (otherwise stale offices would clobber the locks).
+  return NextResponse.json({ ok: true, created, ids, offices: ws.offices });
 }
 
 async function createOfficeRow(
@@ -225,9 +257,6 @@ async function createOfficeRow(
         // website stored where the drawer reads it (general_contact) + top-level.
         general_contact: { email: office.email ?? null, phone: office.phone ?? null, website: office.website ?? null },
         website: office.website ?? null,
-        // Social channels (Instagram / Discord / GroupMe …) — read-only context
-        // in the drawer; student orgs often reach members via social, not email.
-        socials: office.socials ?? [],
         ask_for: office.ask_for ?? [],
         research_links: sources,
         office_members: advisors.map((a) => ({

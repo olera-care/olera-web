@@ -8,6 +8,7 @@ import UpgradeModal from "@/components/medjobs/UpgradeModal";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import { getAccessTier } from "@/lib/medjobs-access";
+import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { Interview } from "@/lib/types";
 
 type InterviewWithProfiles = Interview & {
@@ -42,9 +43,12 @@ function ProviderCaregiversContent() {
   const providerMeta = (activeProfile?.metadata ?? {}) as Record<string, unknown>;
   const accessInfo = getAccessTier(!!activeProfile, providerMeta);
 
-  // Verification state
+  // Verification state. MVP open-loop drops the pending-verification hold so a
+  // provider can confirm interviews immediately (the gate is Terms, not
+  // verification). Flip MEDJOBS_INTERVIEW_OPEN_LOOP to restore the hold.
   const verificationState = activeProfile?.verification_state as string | null;
   const isVerified =
+    MEDJOBS_INTERVIEW_OPEN_LOOP ||
     verificationState === "verified" ||
     verificationState === "not_required";
 
@@ -112,13 +116,13 @@ function ProviderCaregiversContent() {
     router.replace("/provider/caregivers", { scroll: false });
   }, [interviews, newInterviewId, router]);
 
-  const updateStatus = async (interviewId: string, status: string) => {
+  const updateStatus = async (interviewId: string, status: string, newTime?: string) => {
     setActionLoading(interviewId);
     try {
       const res = await fetch("/api/medjobs/interviews", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interviewId, status }),
+        body: JSON.stringify({ interviewId, status, newTime }),
       });
       if (res.status === 402) {
         setShowUpgradeModal(true);
@@ -143,7 +147,7 @@ function ProviderCaregiversContent() {
           loading={loading || authLoading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}
-          accessTier={accessInfo.tier}
+          accessTier={MEDJOBS_INTERVIEW_OPEN_LOOP ? undefined : accessInfo.tier}
           initialSelectedId={newInterviewId ?? undefined}
           isVerified={isVerified}
           onVerifyClick={openVerificationModal}

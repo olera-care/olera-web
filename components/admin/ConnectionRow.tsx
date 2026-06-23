@@ -312,7 +312,7 @@ function EngagementBadges({
   // Build badges with specific labels for what the provider did
   const adminVerifiedLabel = adminOverride
     ? adminOverride.status === "not_interested"
-      ? "Not interested (admin)"
+      ? `Not interested: ${adminOverride.reason || "admin"}`
       : `Admin verified: ${adminOverride.status === "viewed" ? "Viewed" : "Connected"}`
     : "";
 
@@ -2098,6 +2098,36 @@ export default function ConnectionRow({
                       {!c.isProviderArchived && c.archivedAt && (
                         <p className="text-xs text-amber-600 mt-2">
                           Archived {daysAgo(c.archivedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin marked not interested - show reason and notes */}
+              {c.adminOverride?.status === "not_interested" && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">✋</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-orange-900 mb-1">
+                        Marked Not Interested
+                      </h3>
+                      <p className="text-sm text-orange-800">
+                        <span className="font-medium">Reason:</span> {c.adminOverride.reason}
+                      </p>
+                      {c.adminOverride.notes && (
+                        <p className="text-sm text-orange-800 mt-1">
+                          <span className="font-medium">Notes:</span> {c.adminOverride.notes}
+                        </p>
+                      )}
+                      {c.adminOverride.marked_by_email && (
+                        <p className="text-xs text-orange-600 mt-2">
+                          Marked by {c.adminOverride.marked_by_email}
+                          {c.adminOverride.marked_at && (
+                            <> · {daysAgo(c.adminOverride.marked_at)}</>
+                          )}
                         </p>
                       )}
                     </div>

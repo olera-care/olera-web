@@ -63,6 +63,8 @@ export default function ReviewsTab({
   // Olera review count (for providers without Google)
   const [oleraReviewCount, setOleraReviewCount] = useState<number | null>(null);
   const [isLoadingOleraCount, setIsLoadingOleraCount] = useState(false);
+  // "No email" signal feedback
+  const [noEmailClicked, setNoEmailClicked] = useState(false);
 
   // Fetch this week's review request count on mount
   useEffect(() => {
@@ -154,6 +156,36 @@ export default function ReviewsTab({
       return () => clearTimeout(timer);
     }
   }, [justSent]);
+
+  // Auto-dismiss "no email" feedback after 3 seconds
+  useEffect(() => {
+    if (noEmailClicked) {
+      const timer = setTimeout(() => setNoEmailClicked(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [noEmailClicked]);
+
+  // Handle "I only have their phone number" click
+  const handleNoEmailClick = () => {
+    if (!providerSlug || noEmailClicked) return;
+
+    // Fire the tracking event
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor: "provider",
+        provider_id: providerSlug,
+        event_type: "review_no_email_signal",
+        metadata: { source: "reviews_tab" },
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Non-critical - fire and forget
+    });
+
+    setNoEmailClicked(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,6 +325,22 @@ export default function ReviewsTab({
             autoComplete="off"
             className="flex-1 px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-900 text-[15px] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200"
           />
+        </div>
+        {/* No email link */}
+        <div className="mt-1.5 text-right">
+          {noEmailClicked ? (
+            <span className="text-xs text-emerald-600 font-medium">
+              Got it — SMS is coming soon
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleNoEmailClick}
+              className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors"
+            >
+              I only have their phone number
+            </button>
+          )}
         </div>
         {/* Full-width button below inputs */}
         <button

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
+import DrDuBoseWelcome from "@/components/medjobs/DrDuBoseWelcome";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
@@ -90,6 +91,8 @@ function CandidateBrowseInner() {
   const [geoState, setGeoState] = useState<string | null>(null);
   const [availabilityFilter, setAvailabilityFilter] = useState("");
   const [showScreener, setShowScreener] = useState(false);
+  const [highlightFirst, setHighlightFirst] = useState(false);
+  const firstCardRef = useRef<HTMLDivElement>(null);
 
   const initedRef = useRef(false);
   const geoTriedRef = useRef(false);
@@ -234,6 +237,11 @@ function CandidateBrowseInner() {
   const pageCards = topCards.slice((page - 1) * GRID_PAGE, page * GRID_PAGE);
 
   const onCheckEligibility = useCallback(() => setShowScreener(true), []);
+  const onReviewCandidates = useCallback(() => {
+    firstCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightFirst(true);
+    window.setTimeout(() => setHighlightFirst(false), 2200);
+  }, []);
 
   // After the needs quiz, land the provider on the Hire Caregivers board (their
   // map-based workspace), where the welcome banner picks up the next step. The
@@ -271,7 +279,9 @@ function CandidateBrowseInner() {
     <main className="min-h-screen bg-white">
       <RefreshAfterCheckout />
 
-      {/* Hero — two-column, campus-aware */}
+      {/* Hero — anonymous visitors only; signed-in providers get the welcome
+          banner inside the content area below. */}
+      {!hasProviderProfile && (
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-primary-50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 md:pt-12 md:pb-12">
@@ -349,8 +359,15 @@ function CandidateBrowseInner() {
           </div>
         </div>
       </section>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        {hasProviderProfile && (
+          <DrDuBoseWelcome
+            campusName={selectedUniversityName}
+            onReviewCandidates={onReviewCandidates}
+          />
+        )}
         {claimConflict && (
           <div className="mb-6 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4">
             <h2 className="font-serif text-lg text-gray-900">
@@ -418,7 +435,15 @@ function CandidateBrowseInner() {
           ) : expanded ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pageCards.map(cardEl)}
+                {pageCards.map((c, i) => (
+                  <div
+                    key={c.id}
+                    ref={i === 0 ? firstCardRef : undefined}
+                    className={i === 0 && highlightFirst ? "rounded-2xl ring-2 ring-primary-500 ring-offset-2 transition" : undefined}
+                  >
+                    {cardEl(c)}
+                  </div>
+                ))}
               </div>
               {totalPages > 1 && (
                 <div className="mt-8">
@@ -445,8 +470,12 @@ function CandidateBrowseInner() {
                 </>
               )}
               <div ref={carouselRef} className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {carouselCards.map((c) => (
-                  <div key={c.id} className="w-72 shrink-0 snap-start">{cardEl(c)}</div>
+                {carouselCards.map((c, i) => (
+                  <div
+                    key={c.id}
+                    ref={i === 0 ? firstCardRef : undefined}
+                    className={`w-72 shrink-0 snap-start${i === 0 && highlightFirst ? " rounded-2xl ring-2 ring-primary-500 ring-offset-2" : ""}`}
+                  >{cardEl(c)}</div>
                 ))}
               </div>
             </div>

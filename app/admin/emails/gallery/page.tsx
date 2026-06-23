@@ -164,7 +164,8 @@ export default function EmailGalleryPage() {
                         </a>
                       </div>
                       <div className="overflow-x-auto rounded-lg bg-gray-100 p-3">
-                        <PreviewFrame id={v.id} width={width} />
+                        {/* key on width → remount on toggle so onLoad re-fits height to the reflowed email */}
+                        <PreviewFrame key={`${v.id}-${width}`} id={v.id} width={width} />
                       </div>
                     </div>
                   ))}

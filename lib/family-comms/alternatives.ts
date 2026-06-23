@@ -173,7 +173,15 @@ export async function findAlternativeProviders(
       reviewCount: null,
     };
     const pLat = typeof p.lat === "number" ? p.lat : null;
+    // Distance only when it's plausibly "nearby" — beyond ~75mi it's not a useful
+    // proximity signal (e.g. a family arranging out-of-state care) and would read as
+    // "835 mi away" under a "providers near you" framing. Omit it; rating carries.
     const pLng = typeof p.lng === "number" ? p.lng : null;
+    let distanceMi: number | null = null;
+    if (hasFamilyCoords && pLat !== null && pLng !== null) {
+      const d = haversineMi(familyLat as number, familyLng as number, pLat, pLng);
+      if (d <= 75) distanceMi = d;
+    }
     return {
       name: p.display_name as string,
       slug: p.slug as string,
@@ -182,10 +190,7 @@ export async function findAlternativeProviders(
       imageUrl: realImg || categoryStockImage((p.care_types as string[])?.[0], i),
       rating: rt.rating,
       reviewCount: rt.reviewCount,
-      distanceMi:
-        hasFamilyCoords && pLat !== null && pLng !== null
-          ? haversineMi(familyLat as number, familyLng as number, pLat, pLng)
-          : null,
+      distanceMi,
     };
   });
 }

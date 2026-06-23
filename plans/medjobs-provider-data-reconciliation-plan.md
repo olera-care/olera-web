@@ -15,18 +15,22 @@ claim path resolves to it — never a disconnected copy.**
 > - **Chunk 3 — DONE.** 3a backend never overwrites a claimed listing + P1-A
 >   push for unowned; 3b pre-flight read-only lock + Edit override + tag. tsc
 >   clean, committed.
-> - **Chunk 4 — NOT STARTED (needs a decision + browser QA).** The empty
->   Profile tab is fed by the global `AuthProvider` (business_profiles). Fixing
->   it means either (A) rewire the provider dashboard reads+writes to the
->   `olera-providers` directory row, or (B) hydrate + flip the public resolver.
->   Both touch the care-directory provider page DB Logan flagged caution about,
->   and the chunk needs a real browser QA pass. Deferred for a go/approach call.
-> - **Chunk 5 — NOT STARTED.** Cold-funnel `org` ref needs `olera_provider_id`
->   threaded through the selection→BridgeRow→custom_fields→template pipeline,
->   plus candidate-board + screener changes. Tractable; deferred for budget.
+> - **Chunk 4 — Step 1 DONE (approach A), Step 2 deferred.** Step 1: directory-
+>   linked providers' dashboard reads/writes the CORE fields (name, description,
+>   contact, address, category) on the `olera-providers` row via an ownership-
+>   checked server API + a dashboard-only read overlay; AuthProvider untouched;
+>   no public-page change. Fixes the empty tab + makes those edits public.
+>   tsc clean, committed, pushed. **Needs a browser QA pass.** Step 2 (photos /
+>   pricing / editorial metadata — needs transforms or a public-page change) is
+>   a separate careful pass.
+> - **Chunk 5 — DONE.** Cold link carries the existing `outreach_id` (no
+>   BridgeRow change) → public board pre-locks the screener to the provider's
+>   own directory listing via a new resolver API + the existing prefill lock.
+>   "Create new" preserved for genuinely new providers. tsc/lint clean,
+>   committed, pushed.
 > - **Chunk 6 — PARTIAL.** OPERATIONAL_BRIEF conversion invariant updated to
->   the self-serve-only model. Remaining doc sweep + full e2e verification with
->   Chunks 4/5.
+>   the self-serve-only model. Remaining: doc sweep + full e2e browser
+>   verification across Chunks 4-5.
 
 ## Locked decisions (from the alignment thread)
 

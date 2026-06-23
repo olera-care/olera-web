@@ -54,7 +54,7 @@ const EMAIL_RE = /\S+@\S+\.\S+/;
 // Set by the For Providers "Hire more caregivers" band: the org the provider
 // already chose there. When present we pre-fill + lock the org so the claim step
 // only needs an email (point 5: don't re-ask for the org).
-const HIRE_PREFILL_KEY = "olera_medjobs_hire_prefill";
+export const HIRE_PREFILL_KEY = "olera_medjobs_hire_prefill";
 
 export default function EligibilityScreenerModal({
   providerProfileId,

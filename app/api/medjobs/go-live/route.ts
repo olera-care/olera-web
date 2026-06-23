@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { candidateReadyEmail } from "@/lib/medjobs-email-templates";
 import { PARTNER_UNIVERSITIES, type PartnerUniversity } from "@/lib/staffing-outreach/partner-universities";
+
+// The catchment fan-out runs in the background via after(); give it room beyond
+// the default function budget (verify-on-send + Resend per recipient).
+export const maxDuration = 120;
 
 function getAdminClient() {
   return createClient(
@@ -82,17 +86,20 @@ export async function POST(_request: NextRequest) {
       return NextResponse.json({ error: "Failed to go live" }, { status: 500 });
     }
 
-    // First-time only: notify catchment providers. Isolated from the response.
+    // First-time only: notify catchment providers AFTER the response is sent.
+    // The fan-out can take many seconds (per-recipient verify + send) and must
+    // never block — or time out — the student's go-live request.
     const firstTime = !wasLive;
     if (firstTime) {
-      try {
-        await notifyCatchmentProviders(admin, {
-          slug: student.slug,
-          campus: typeof meta.campus === "string" ? meta.campus : null,
-        });
-      } catch (err) {
-        console.error("[medjobs/go-live] catchment notify error:", err);
-      }
+      const slug = student.slug;
+      const campus = typeof meta.campus === "string" ? meta.campus : null;
+      after(async () => {
+        try {
+          await notifyCatchmentProviders(getAdminClient(), { slug, campus });
+        } catch (err) {
+          console.error("[medjobs/go-live] catchment notify error:", err);
+        }
+      });
     }
 
     return NextResponse.json({ ok: true, firstTime });

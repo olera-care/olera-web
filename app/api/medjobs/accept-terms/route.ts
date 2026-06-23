@@ -8,7 +8,7 @@
  * Mirrors the eligibility/opportunity routes' auth + profile-resolution.
  */
 
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient, type SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
@@ -19,6 +19,10 @@ const TERMS_KEY = "interview_terms_accepted_at";
 
 /** Don't blast more than this many students from a single terms acceptance. */
 const MAX_CATCHMENT_NOTIFY = 200;
+
+// The student fan-out runs in the background via after(); the provider's
+// schedule flow awaits this route, so it must return immediately.
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   const supabaseUser = await createServerClient();
@@ -91,19 +95,26 @@ export async function POST(request: Request) {
     .eq("id", profileId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // First-time only: notify live students in this provider's catchment that a
-  // caregiver job just opened. Fully isolated — never blocks terms acceptance.
+  // First-time only: notify live students in this provider's catchment AFTER the
+  // response is sent. The provider's schedule flow awaits this route, so the
+  // (potentially large) student fan-out must never block it.
   if (firstTime) {
-    try {
-      await notifyCatchmentStudents(supabase, {
-        slug: (cur?.slug as string | null) ?? null,
-        displayName: (cur?.display_name as string | null) ?? null,
-        city: (cur?.city as string | null) ?? null,
-        state: (cur?.state as string | null) ?? null,
-      });
-    } catch (err) {
-      console.error("[medjobs/accept-terms] catchment notify error:", err);
-    }
+    const provider = {
+      slug: (cur?.slug as string | null) ?? null,
+      displayName: (cur?.display_name as string | null) ?? null,
+      city: (cur?.city as string | null) ?? null,
+      state: (cur?.state as string | null) ?? null,
+    };
+    after(async () => {
+      try {
+        const bgDb = createServiceClient(supabaseUrl, serviceKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        await notifyCatchmentStudents(bgDb, provider);
+      } catch (err) {
+        console.error("[medjobs/accept-terms] catchment notify error:", err);
+      }
+    });
   }
 
   return NextResponse.json({ ok: true, profile_id: profileId });

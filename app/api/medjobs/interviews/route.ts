@@ -513,6 +513,12 @@ export async function PATCH(request: NextRequest) {
     if (status === "rescheduled" && newTime) {
       update.proposed_time = newTime;
       update.status = "proposed";
+      // Flip ownership to the rescheduler so the OTHER party sees Confirm (not
+      // Withdraw) on the counter-proposed time. Without this, proposed_by stays
+      // on the original proposer and the reschedule can never be accepted.
+      update.proposed_by = userProfileIds.includes(interview.provider_profile_id)
+        ? interview.provider_profile_id
+        : interview.student_profile_id;
     }
 
     await admin.from("interviews").update(update).eq("id", interviewId);

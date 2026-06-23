@@ -143,12 +143,23 @@ export default function ContactSection({
   );
 
   let cta: React.ReactNode;
-  if (!isSample) {
-    // Real candidate: schedule directly — the Terms opt-in lives in the modal.
+  if (!isSample && providerProfile) {
+    // Real candidate, signed-in provider: schedule directly — the Terms opt-in
+    // lives in the modal.
     cta = (
       <button type="button" onClick={() => setShowSchedule(true)} className={ctaClass}>
         Schedule interview →
       </button>
+    );
+  } else if (!isSample) {
+    // Real candidate but no provider account yet (anon visitor, cold provider
+    // arriving from a "candidate ready" email, or a signed-in non-provider).
+    // Funnel through the hiring-needs screener on the board, which establishes
+    // the provider account before scheduling — submitting here would 401.
+    cta = (
+      <Link href="/medjobs/candidates?activate=1" className={ctaClass}>
+        Schedule interview →
+      </Link>
     );
   } else if (termsAccepted) {
     // Sample candidate, terms agreed: primed + waiting for real supply.

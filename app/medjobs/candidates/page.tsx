@@ -13,6 +13,7 @@ import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candid
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
+import { MEDJOBS_MARKETPLACE_V2_HIDDEN } from "@/lib/medjobs/flags";
 import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
 import ProvidersMarketing from "@/components/medjobs/ProvidersMarketing";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
@@ -264,8 +265,12 @@ function CandidateBrowseInner() {
     // Hard navigation (not router.push): the screener's in-modal sign-in flips
     // auth state on the same tick, which can swallow a client-side push and
     // strand the provider on this marketing page. A full document load forces a
-    // fresh server auth fetch so the gated board route resolves cleanly.
-    window.location.assign("/provider/medjobs/candidates");
+    // fresh server auth fetch so the gated board route resolves cleanly. Under
+    // the MVP, /provider/medjobs/candidates just redirects back here, so go
+    // straight to the consolidated board and skip the extra hop.
+    window.location.assign(
+      MEDJOBS_MARKETPLACE_V2_HIDDEN ? "/medjobs/candidates" : "/provider/medjobs/candidates",
+    );
   }, [refreshAccountData]);
 
   const selectClass =
@@ -518,9 +523,11 @@ function CandidateBrowseInner() {
               <button
                 type="button"
                 onClick={() => {
-                  // Signed-in providers get the full Hire Caregivers board (map +
-                  // cards); anon visitors expand the preview inline.
-                  if (hasProviderProfile) {
+                  // Under the MVP the Gen-2 provider board is consolidated into
+                  // this page (and /provider/medjobs/candidates redirects here),
+                  // so everyone expands inline. Only route to the standalone
+                  // board when it's actually live (flag off).
+                  if (hasProviderProfile && !MEDJOBS_MARKETPLACE_V2_HIDDEN) {
                     router.push("/provider/medjobs/candidates");
                     return;
                   }

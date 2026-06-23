@@ -96,11 +96,16 @@ export async function GET(request: NextRequest) {
   const { data: op } = await auth.db
     .from("olera-providers")
     .select(
-      "provider_name, provider_description, provider_category, phone, email, website, address, city, state, zipcode, provider_images, provider_logo, google_rating",
+      "provider_name, provider_description, provider_category, main_category, phone, email, website, address, city, state, zipcode, provider_images, provider_logo, google_rating",
     )
     .eq("provider_id", auth.sourceProviderId)
     .maybeSingle();
   const o = (op as Record<string, unknown> | null) ?? {};
+  // Care services on the public page are derived from the directory category +
+  // main_category. Mirror that so the portal shows the SAME services.
+  const careTypes = [o.provider_category, o.main_category]
+    .filter((v): v is string => typeof v === "string" && v.trim() !== "")
+    .filter((v, i, arr) => arr.indexOf(v) === i);
   // Gallery photos: olera-providers stores them pipe-joined ("url1 | url2").
   // Parse to the array shape the dashboard gallery expects; lead with the logo.
   const galleryImages = (o.provider_images as string | null)
@@ -126,6 +131,9 @@ export async function GET(request: NextRequest) {
       city: o.city ?? null,
       state: o.state ?? null,
       zip: o.zipcode != null ? String(o.zipcode) : null,
+      // care_types is overlaid only when the provider hasn't set their own (see
+      // useDirectoryProfileOverlay), so their edits aren't clobbered.
+      care_types: careTypes.length > 0 ? careTypes : null,
     },
     images,
     rating: (o.google_rating as number | null) ?? null,

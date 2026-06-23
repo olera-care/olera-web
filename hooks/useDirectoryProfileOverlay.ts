@@ -51,8 +51,16 @@ export function useDirectoryProfileOverlay(
   // Prefer directory values where present; keep business_profiles for the rest.
   // Writes mirror both records, so they stay in sync going forward.
   const merged = { ...profile } as Record<string, unknown>;
+  const existingCareTypes = (profile as { care_types?: unknown }).care_types;
   for (const [k, v] of Object.entries(overlay)) {
-    if (v != null && v !== "") merged[k] = v;
+    if (v == null || v === "") continue;
+    // care_types: the provider's own list wins if they've set one; otherwise
+    // fill from the directory. Prevents the directory value from clobbering an
+    // edit the provider made in the portal.
+    if (k === "care_types" && Array.isArray(existingCareTypes) && existingCareTypes.length > 0) {
+      continue;
+    }
+    merged[k] = v;
   }
   return merged as unknown as Profile;
 }

@@ -2899,6 +2899,35 @@ async function handleMarkEngagedBulk(
 
 // ── Contacts ────────────────────────────────────────────────────────────
 
+/**
+ * Person-shaped stakeholder types (dept_head / professor) are prospected with
+ * their email written to BOTH research_data.general_contact.email — what cold
+ * enrollment actually sends (see enrollRowIntoSmartlead) — AND a primary
+ * student_outreach_contacts row, which is what the drawer's inline person form
+ * edits. The two start equal, so editing the contact silently diverged from the
+ * address Smartlead received. Mirror the primary person's email/phone back into
+ * general_contact so the edited address is the one that ships. Office types
+ * (advisor / student_org) edit general_contact directly and providers have their
+ * own path, so neither needs this.
+ */
+async function syncPersonContactToGeneralContact(
+  db: DB,
+  row: OutreachRow,
+  email: string | null | undefined,
+  phone: string | null | undefined,
+) {
+  if (email === undefined && phone === undefined) return;
+  const gc = ((row.research_data ?? {}) as { general_contact?: Record<string, unknown> })
+    .general_contact ?? {};
+  const nextGc: Record<string, unknown> = { ...gc };
+  if (email !== undefined) nextGc.email = email ?? null;
+  if (phone !== undefined) nextGc.phone = phone ?? null;
+  await db
+    .from("student_outreach")
+    .update({ research_data: { ...(row.research_data ?? {}), general_contact: nextGc } })
+    .eq("id", row.id);
+}
+
 async function handleAddContact(
   db: DB,
   row: OutreachRow,
@@ -2976,6 +3005,15 @@ async function handleAddContact(
   });
   await touchOutreach(db, row.id, userId);
 
+  // Adding the PRIMARY person to a dept_head/professor row sets the cold-outreach
+  // recipient — mirror it into general_contact (the field enrollment reads).
+  if (
+    (body.is_primary ?? false) &&
+    (row.stakeholder_type === "dept_head" || row.stakeholder_type === "professor")
+  ) {
+    await syncPersonContactToGeneralContact(db, row, body.email ?? null, body.phone ?? null);
+  }
+
   // If this row was marked wrong_contact, prompt-friendly: silently surface
   // the row again by setting reopen_at = today. Admin still has to reopen.
   if (row.status === "wrong_contact") {
@@ -3051,14 +3089,23 @@ async function handleUpdateContact(
     .eq("id", body.contact_id)
     .eq("outreach_id", row.id);
 
-  // v8.7.1: when the primary contact's name changes on a single-contact
-  // type (advisor/professor), keep the stakeholder's display name in
-  // sync. Without this, renaming Marcus→Mark in the inline form leaves
-  // the card and drawer header showing the old name.
-  if (
-    (row.stakeholder_type === "advisor" || row.stakeholder_type === "professor") &&
-    (body.first_name !== undefined || body.last_name !== undefined || body.name !== undefined)
-  ) {
+  // Keep derived state in sync when a person-shaped stakeholder's PRIMARY
+  // contact is edited:
+  //  - advisor/professor: mirror the name into the stakeholder display name
+  //    (v8.7.1 — without this, renaming Marcus→Mark left the card/header stale).
+  //  - dept_head/professor: mirror email/phone into research_data.general_contact,
+  //    the address cold enrollment actually sends. The drawer's person form edits
+  //    the contacts row, but enrollment reads general_contact — without this the
+  //    edited address never reaches Smartlead (the originally-prospected email
+  //    ships instead).
+  const isPersonType =
+    row.stakeholder_type === "advisor" ||
+    row.stakeholder_type === "professor" ||
+    row.stakeholder_type === "dept_head";
+  const nameChanged =
+    body.first_name !== undefined || body.last_name !== undefined || body.name !== undefined;
+  const contactInfoChanged = body.email !== undefined || body.phone !== undefined;
+  if (isPersonType && (nameChanged || contactInfoChanged)) {
     const { data: contactRow } = await db
       .from("student_outreach_contacts")
       .select("is_primary, name")
@@ -3066,15 +3113,26 @@ async function handleUpdateContact(
       .single();
     const isPrimary = (contactRow as { is_primary: boolean } | null)?.is_primary === true;
     if (isPrimary) {
-      const newOrgName =
-        body.name?.trim() ||
-        derivedName ||
-        (contactRow as { name: string } | null)?.name?.trim();
-      if (newOrgName && newOrgName !== row.organization_name) {
-        await db
-          .from("student_outreach")
-          .update({ organization_name: newOrgName })
-          .eq("id", row.id);
+      if (
+        (row.stakeholder_type === "advisor" || row.stakeholder_type === "professor") &&
+        nameChanged
+      ) {
+        const newOrgName =
+          body.name?.trim() ||
+          derivedName ||
+          (contactRow as { name: string } | null)?.name?.trim();
+        if (newOrgName && newOrgName !== row.organization_name) {
+          await db
+            .from("student_outreach")
+            .update({ organization_name: newOrgName })
+            .eq("id", row.id);
+        }
+      }
+      if (
+        (row.stakeholder_type === "dept_head" || row.stakeholder_type === "professor") &&
+        contactInfoChanged
+      ) {
+        await syncPersonContactToGeneralContact(db, row, body.email, body.phone);
       }
     }
   }

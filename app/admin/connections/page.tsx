@@ -585,6 +585,7 @@ export default function ConnectionsTrackerPage() {
     "Not accepting new clients",
     "Unable to reach family",
     "Provider requested no more leads",
+    "Unable to reach provider - routed to voicemail",
     "Other",
   ] as const;
 
@@ -1655,15 +1656,18 @@ export default function ConnectionsTrackerPage() {
                         ))}
                       </select>
                     </div>
-                    {actionReason === "Other" && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Notes {actionReason !== "Other" && <span className="text-gray-400 font-normal">(optional)</span>}
+                      </label>
                       <textarea
                         value={actionNotes}
                         onChange={(e) => setActionNotes(e.target.value)}
-                        placeholder="Please describe the reason..."
+                        placeholder={actionReason === "Other" ? "Please describe the reason..." : "Add any context (e.g., time called, voicemail details)..."}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
                         rows={2}
                       />
-                    )}
+                    </div>
                   </>
                 )}
 

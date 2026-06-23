@@ -176,12 +176,12 @@ export default function ReferralsTab({
   return (
     <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8">
       {/* Headline */}
-      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight mb-2">
         Get referrals from {currentTarget.name}.
       </h2>
 
       {/* Subtitle */}
-      <p className="text-sm text-stone-500 text-center mb-6">
+      <p className="text-sm text-stone-500 mb-6">
         {currentTarget.cat === "hospital"
           ? "Hospitals send patients home every week. One call gets you on their referral list."
           : currentTarget.cat === "skilled_nursing"
@@ -226,7 +226,7 @@ export default function ReferralsTab({
               onClick={() => setShowScript(!showScript)}
               className="text-sm text-[#199087] hover:text-[#147a72] transition-colors flex items-center gap-1"
             >
-              {showScript ? "Hide script" : "We wrote your script"}
+              What to say
               <svg
                 className={`w-3.5 h-3.5 transition-transform ${showScript ? "rotate-180" : ""}`}
                 fill="none"

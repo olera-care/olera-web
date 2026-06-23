@@ -62,7 +62,7 @@ export default function AdsTab({
           <span className="text-sm font-semibold text-emerald-700">Your campaign is live</span>
         </div>
 
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-6">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight mb-6">
           Families are finding you.
         </h2>
 
@@ -104,11 +104,11 @@ export default function AdsTab({
           </span>
         </div>
 
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight mb-2">
           We&apos;re on it.
         </h2>
 
-        <p className="text-sm text-stone-500 text-center mb-6">
+        <p className="text-sm text-stone-500 mb-6">
           We&apos;ll send over the launch plan before anything goes live, then families arrive on your dashboard as they come in.
         </p>
 
@@ -134,11 +134,11 @@ export default function AdsTab({
           <span className="text-sm font-semibold text-amber-700">Queued</span>
         </div>
 
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight mb-2">
           Your launch plan is queued.
         </h2>
 
-        <p className="text-sm text-stone-500 text-center mb-6">
+        <p className="text-sm text-stone-500 mb-6">
           Finish your profile and we&apos;ll launch your campaign — families need to see your best before we send them your way.
         </p>
 
@@ -159,12 +159,12 @@ export default function AdsTab({
   return (
     <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8">
       {/* Headline */}
-      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight mb-2">
         Put your page in front of local families.
       </h2>
 
       {/* Subtitle with demand context */}
-      <p className="text-sm text-stone-500 text-center mb-6">
+      <p className="text-sm text-stone-500 mb-6">
         {familiesInCity && familiesInCity > 0
           ? `${familiesInCity.toLocaleString()} ${familiesInCity === 1 ? "family is" : "families are"} actively searching in ${city || "your area"} today.`
           : `Families in ${city || "your area"} are searching for senior care before they ever reach your page.`}

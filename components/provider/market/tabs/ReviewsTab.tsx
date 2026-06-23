@@ -252,12 +252,12 @@ export default function ReviewsTab({
       )}
 
       {/* Headline - direct call to action */}
-      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight text-center mb-2">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-stone-900 tracking-tight leading-tight mb-2">
         Ask a happy client for a review.
       </h2>
 
       {/* Subtitle - competitive context */}
-      <p className="text-sm text-stone-500 text-center mb-6">
+      <p className="text-sm text-stone-500 mb-6">
         {subtitle}
       </p>
 

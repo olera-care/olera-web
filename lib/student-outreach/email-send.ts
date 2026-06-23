@@ -327,7 +327,7 @@ function composeFooterText(): string {
     `Graize`,
     ``,
     `Graize Belandres`,
-    `Research Assistant to Dr. Logan DuBose`,
+    `Assistant to Dr. Logan DuBose`,
     `Program flyer: ${PROGRAM_URL}`,
     ``,
     `---`,
@@ -376,7 +376,7 @@ function loganSignatureHtml(): string {
 
 /**
  * Graize Belandres signature block. Sender identity — photo +
- * "Research Assistant to Dr. Logan DuBose" + program link + email.
+ * "Assistant to Dr. Logan DuBose" + program link + email.
  * Distinct from Dr. DuBose's block above (Graize is the operator;
  * Dr. DuBose is the principal admin is being introduced to).
  *
@@ -396,7 +396,7 @@ function grazieSignatureHtml(): string {
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
-      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0 0 2px;">Assistant to Dr. Logan DuBose</p>
       <p style="margin:0;"><a href="${PROGRAM_URL}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>

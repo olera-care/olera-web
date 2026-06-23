@@ -187,7 +187,7 @@ const SCHEDULE_LINK_SHORT = `[share more on a quick call](${PLACEHOLDER.calendly
  * Graize self-introduction line used by the stakeholder (academic-audience)
  * templates. Provider templates now use their own simpler intro inline.
  */
-const GRAIZE_INTRO = `My name is Graize Belandres, and I'm a research assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
+const GRAIZE_INTRO = `My name is Graize Belandres, and I'm an assistant working with Dr. Logan DuBose, MD, MBA, an NIH-funded researcher and Texas A&M College of Medicine alum.`;
 
 // ── Public API ──────────────────────────────────────────────────────────
 
@@ -318,6 +318,12 @@ export function firstNameOf(fullName: string | null | undefined): string {
  *   advisor / student_org             →  "Marcus"
  *   no name at all                    →  "there"
  */
+/** True when a contact's title denotes a doctor (Dr., Dr, Doctor). Used so a
+ *  doctor is addressed by title + last name, never by first name. */
+export function isDoctorTitle(title: string | null | undefined): boolean {
+  return /\b(dr|doctor)\b/i.test(title ?? "");
+}
+
 export function salutationFor(
   stakeholder_type: StakeholderType,
   first_name: string | null | undefined,
@@ -334,6 +340,9 @@ export function salutationFor(
     if (first) return first;
     return "there";
   }
+  // Informal cadences: a doctor is still addressed by title + last name (never
+  // first name), so "Hi {salutation}" renders "Hi Dr. Smith", not "Hi Bob".
+  if (isDoctorTitle(t) && last) return `Dr. ${last}`;
   return first || last || "there";
 }
 
@@ -369,7 +378,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, research assistant to Dr. Logan DuBose, reaching out regarding the ${programLink(FAMILIES_URL)}. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
+          `I'm Graize, assistant to Dr. Logan DuBose, reaching out regarding the ${programLink(FAMILIES_URL)}. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
           ``,
           `Your members are exactly who it's for, and Dr. DuBose and I are hoping to share it with pre-health groups like yours. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a time for Dr. DuBose to speak with your members.`,
           ``,
@@ -382,7 +391,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, research assistant to Dr. Logan DuBose, reaching out regarding the ${programLink(FAMILIES_ADVISORS_URL)}. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
+          `I'm Graize, assistant to Dr. Logan DuBose, reaching out regarding the ${programLink(FAMILIES_ADVISORS_URL)}. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
           ``,
           `Dr. DuBose and I are hoping to talk about the program with the ${PLACEHOLDER.campus} advisors that pre-health students turn to for advice on getting into medical or nursing school. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a couple of times that work this week or next for a Zoom call.`,
           ``,
@@ -395,7 +404,7 @@ export function introEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `I'm Graize, research assistant to Dr. Logan DuBose, reaching out regarding the ${programLink(FAMILIES_ADVISORS_URL)}. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
+          `I'm Graize, assistant to Dr. Logan DuBose, reaching out regarding the ${programLink(FAMILIES_ADVISORS_URL)}. This program places pre-health students in paid caregiver roles with older adults in the community to help them get hands-on caregiving hours, recommendation letters, and experience that strengthens their med, PA, and nursing applications.`,
           ``,
           `I'm reaching out to you as the head of your department because your students are among those it would serve. Dr. DuBose and I would value the chance to talk it through with you and learn how we may connect with your faculty and students about it. If you're open to it, just reply with your general interest level and we can follow up with more information and possibly a short Zoom this week or next.`,
           ``,
@@ -694,7 +703,7 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `Thanks for the call today. This is Graize, research assistant to Dr. Logan DuBose. As promised, here's more on the ${programLink(PROVIDER_BOARD_URL)}.`,
+      `Thanks for the call today. This is Graize, assistant to Dr. Logan DuBose. As promised, here's more on the ${programLink(PROVIDER_BOARD_URL)}.`,
       ``,
       `Here are the highlights:`,
       ``,
@@ -768,7 +777,7 @@ export function providerFinalEmail(
 // meeting). Goal: get the provider to click their magic link ({welcome_url})
 // and accept Terms. Every body offers BOTH the link and a meeting option so
 // the provider self-selects. Tone: simple, warm, human, low-pressure — a note
-// from the research assistant, not a marketing blast. No em-dashes.
+// from the assistant, not a marketing blast. No em-dashes.
 //
 // Greeting follows the provider pattern: named variant -> "Hi {first_name},";
 // general -> "Hello,". Activation usually targets the one person who engaged,

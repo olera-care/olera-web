@@ -937,8 +937,25 @@ async function provisionCampaign(
 }
 
 /**
- * Finalize a freshly provisioned campaign: set schedule, then leave it PAUSED.
- * NEVER START. Called after leads are pushed (the validated order).
+ * True when SMARTLEAD_AUTO_START_CAMPAIGNS opts into auto-starting campaigns.
+ * Default OFF: with the flag unset, finalizeCampaign leaves campaigns PAUSED —
+ * the original warmup/reputation guardrail (§8.1). Accepts "true"/"1" (any case).
+ */
+function autoStartEnabled(): boolean {
+  const v = (process.env.SMARTLEAD_AUTO_START_CAMPAIGNS ?? "").trim().toLowerCase();
+  return v === "true" || v === "1";
+}
+
+/**
+ * Finalize a freshly provisioned campaign: set schedule, then set status.
+ *
+ * Status is gated by SMARTLEAD_AUTO_START_CAMPAIGNS (§8.1 "blunter alternative"):
+ *   - unset / false → PAUSED (default; a human starts it after warmup sign-off)
+ *   - true          → START (campaign goes live the instant leads are enrolled)
+ *
+ * Called after leads are pushed (the validated order). WARNING: with the flag on,
+ * a campaign can start before its mailbox pool is warm — the warmup check in
+ * resolveMailboxPool only produces warnings, it does not block START.
  */
 async function finalizeCampaign(
   campaignId: number,
@@ -947,7 +964,8 @@ async function finalizeCampaign(
   const errors: StageError[] = [];
   const sched = await setCampaignSchedule(campaignId, schedule);
   if (!sched.ok) errors.push({ stage: "setCampaignSchedule", message: sched.error ?? "schedule failed" });
-  const status = await setCampaignStatus(campaignId, "PAUSED");
+  const desiredStatus = autoStartEnabled() ? "START" : "PAUSED";
+  const status = await setCampaignStatus(campaignId, desiredStatus);
   if (!status.ok) errors.push({ stage: "setCampaignStatus", message: status.error ?? "status failed" });
   return errors;
 }
@@ -955,8 +973,9 @@ async function finalizeCampaign(
 /**
  * Orchestrate a PAUSED Smartlead campaign from a batch of CRM rows.
  *
- * - NEVER calls START — there is no "START" literal in this module. A human
- *   starts the campaign in the Smartlead UI after warmup + Logan sign-off (§8).
+ * - Status is gated by SMARTLEAD_AUTO_START_CAMPAIGNS (default off → PAUSED, a
+ *   human starts it after warmup + sign-off; on → auto-START on enrollment). See
+ *   finalizeCampaign and §8.1.
  * - Does NOT write back to the CRM — that's the schedule_sequence integration
  *   (G4 single-writer).
  * - Aggregates errors into the report instead of throwing, so a partial
@@ -1033,7 +1052,7 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
   }
   report.enrolled_outreach_ids.push(...successfulRowIds);
 
-  // 6. Schedule + leave PAUSED (validated order: after leads).
+  // 6. Schedule + set status per SMARTLEAD_AUTO_START_CAMPAIGNS (validated order: after leads).
   report.errors.push(...(await finalizeCampaign(campaignId, input.schedule ?? defaultSchedule())));
 
   report.ok = report.errors.length === 0;
@@ -1073,8 +1092,9 @@ export interface EnrollResult {
  * (a sibling row already created the campus campaign), the lead is appended to
  * it; otherwise this row is the first and a new PAUSED campaign is provisioned.
  *
- * Like `launchCampaign`: never STARTs, never writes the CRM (the caller writes
- * the linkage + touchpoint through route.ts, G4), aggregates errors.
+ * Like `launchCampaign`: status follows SMARTLEAD_AUTO_START_CAMPAIGNS (default
+ * PAUSED), never writes the CRM (the caller writes the linkage + touchpoint
+ * through route.ts, G4), aggregates errors.
  */
 export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<EnrollResult> {
   const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
@@ -1178,10 +1198,10 @@ export interface ActivationEnrollInput {
  *   - The lead's welcome_url carries `?a=1` so the magic link auto-opens Terms.
  *   - Uses the `activation` sequence (canonical activation templates).
  *
- * Same safety as the cold path: never STARTs (campaign left PAUSED for a human
- * to start in Smartlead), never writes the CRM (caller persists the linkage),
- * aggregates errors. Inert when SMARTLEAD_API_KEY is unset (addLeads/create
- * return ok:false).
+ * Same path as the cold flow: status follows SMARTLEAD_AUTO_START_CAMPAIGNS
+ * (default PAUSED for a human to start in Smartlead), never writes the CRM
+ * (caller persists the linkage), aggregates errors. Inert when SMARTLEAD_API_KEY
+ * is unset (addLeads/create return ok:false).
  */
 export async function enrollActivationLead(input: ActivationEnrollInput): Promise<EnrollResult> {
   const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };

@@ -335,17 +335,12 @@ export default async function ProviderPage({
   })();
 
   const rating = meta?.rating;
-  // A claimed/account provider manages their own gallery — show exactly the
-  // photos they have (== the portal gallery). The logo fallback is only for
-  // unclaimed directory listings (so they aren't photoless).
   const images =
     meta?.images && meta.images.length > 0
       ? meta.images
-      : providerSource === "bp"
-        ? []
-        : profile.image_url
-          ? [profile.image_url]
-          : [];
+      : profile.image_url
+        ? [profile.image_url]
+        : [];
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
   let acceptedPayments = meta?.accepted_payments || [];
@@ -529,12 +524,9 @@ export default async function ProviderPage({
     (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
-  // Build care services. For a claimed/account provider, show exactly their
-  // stored care_types (== the portal editor) — no padding. Unclaimed directory
-  // listings get padded with category-inferred services so they aren't sparse.
   const rawCareTypes = (profile.care_types ?? []).map(normalizeCareLabel);
   const careServices: string[] = [...rawCareTypes];
-  if (profile.category && providerSource !== "bp") {
+  if (profile.category) {
     const inferred = getCategoryServices(profile.category);
     const existing = new Set(careServices.map((s) => s.toLowerCase()));
     for (const s of inferred) {

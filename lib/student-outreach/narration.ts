@@ -59,8 +59,6 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
         const via = typeof p.via === "string" ? p.via : null;
         if (via === "self_serve_activation") {
           text = `🎉 Pilot Active — provider accepted the agreement on the candidate board.`;
-        } else if (via === "admin_make_client") {
-          text = `🎉 Pilot Active — admin activated on the provider's behalf.`;
         } else {
           text = `🎉 Pilot Active — row converted, now an active partner.`;
         }
@@ -114,8 +112,6 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
         text = `Reached${contactName} — interested. Cadence stopped; row moved to Replies.`;
       } else if (outcome === "promised_callback") {
         text = `Reached${contactName} — promised callback. Row awaiting their return call.`;
-      } else if (outcome === "convert_to_client") {
-        text = `Reached${contactName} — converted to Client.`;
       } else if (outcome === "convert_to_partner") {
         text = `Reached${contactName} — committing to Partner.`;
       } else if (outcome === "connected_not_interested") {

@@ -34,9 +34,11 @@ import { generateUniqueSlug } from "@/lib/slug";
 export interface ClaimArgs {
   /** The olera-providers directory id (= outreach research_data.olera_provider_id). */
   oleraProviderId: string;
-  /** The claiming org's account id. NULL for admin-on-behalf conversions
-   *  where the provider hasn't authenticated yet — the row is created
-   *  unowned and adopted when they later sign in via magic link. */
+  /** The claiming org's account id. Always set by the self-serve activation
+   *  path (the only conversion path now that admin-on-behalf was removed).
+   *  Nullable is retained only so the primitive can still ADOPT a legacy
+   *  unowned "claimed" row left by the old admin path — it never CREATES a new
+   *  unowned row in practice. */
   accountId: string | null;
   /** Pilot metadata to merge onto business_profiles.metadata
    *  (interview_terms_accepted_at, pilot_active_through, terms_accepted_via). */

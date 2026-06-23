@@ -48,7 +48,6 @@ import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal"
 import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
-import { ProviderMakeClient } from "@/components/admin/medjobs/ProviderMakeClient";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
@@ -351,9 +350,7 @@ function InOutreachBody({
             <BookMeetingLink ctx={ctx} inline />
             {isPartnerRow(ctx) ? (
               <PartnerActivate ctx={ctx} action={action} setError={setError} />
-            ) : (
-              <ProviderMakeClient ctx={ctx} action={action} setError={setError} />
-            )}
+            ) : null}
           </>
         }
       />

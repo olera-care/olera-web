@@ -11,7 +11,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { resolveOrClaimProviderProfile } from "@/lib/medjobs/claim-provider-profile";
 import {
   onStageEnter,
   tasksToCancelOnExit,
@@ -124,13 +123,13 @@ export async function POST(
   // provider row half-converts (sets active_partner status but never
   // unlocks Partner Prospects). All four Log surfaces gate this:
   //
-  //   PROVIDER conversion (→ make_client):
-  //     - LogCallOutcomeModal:  convert_to_client outcome (provider only)
-  //     - CallForEmailModal:    convert_to_client engagement (provider modal)
-  //     - ReplyClassifierModal: not offered (gated by !isProvider; convert
-  //                             via Call modal or T&C/Stripe signal)
-  //     - LogMeetingModal:      not offered (gated by !isProvider; convert
-  //                             via Call modal — see R1 commit)
+  //   PROVIDER conversion: SELF-SERVE ONLY. A provider becomes a Client only
+  //   by accepting the pilot terms themselves via
+  //   POST /api/medjobs/pilot/activate (reached from the candidate board /
+  //   magic-link landing). Admin-on-behalf conversion was removed: there is no
+  //   make_client action, no convert_to_client call outcome, and no "Mark as
+  //   Client" control. A provider is a Client only once they have authenticated
+  //   and accepted terms (ownership-based claim — never claimed-but-unowned).
   //
   //   STAKEHOLDER conversion (→ mark_partner):
   //     - LogCallOutcomeModal:  convert_to_partner outcome (stakeholder only)
@@ -343,18 +342,6 @@ export async function POST(
       // level — drawer hides the banner once one exists.
       case "log_contact_form_outcome":
         await handleLogContactFormOutcome(db, row, body, user.id);
-        break;
-
-      // v9 Make Client — provider conversion. Writes
-      // business_profiles.metadata.interview_terms_accepted_at,
-      // transitions the outreach row to active_partner so its
-      // canonical Stage derives to "converted", and logs a
-      // stage_change touchpoint. The metadata write closes the
-      // funnel loop — the Partner-Prospect gate (lib/medjobs/
-      // partner-prospect-gate.ts) auto-unlocks on the next read
-      // for any Site whose catchment includes this provider.
-      case "make_client":
-        await handleMakeClient(db, row, user.id);
         break;
 
       // ── Snooze / redirect ───────────────────────────────────────────
@@ -1861,23 +1848,6 @@ async function handleLogCall(
         payload: callPayload,
       });
       await touchOutreach(db, row.id, userId);
-      return;
-    }
-    case "convert_to_client": {
-      // v9 final: provider conversion lives inside the Log workflow.
-      // Log the call touchpoint, then run handleMakeClient which
-      // writes business_profiles.metadata.interview_terms_accepted_at,
-      // transitions the row to active_partner (deriveStage maps that
-      // to 'converted' for provider rows), and unlocks Partner
-      // Prospects for catchment Sites.
-      await insertTouchpoint(db, row.id, "call_connected", userId, {
-        contact_id: body.contact_id ?? null,
-        channel: "phone",
-        outcome,
-        notes: body.notes ?? null,
-        payload: callPayload,
-      });
-      await handleMakeClient(db, row, userId);
       return;
     }
     case "connected_not_interested": {
@@ -3731,111 +3701,11 @@ async function handleQueueManualTask(
  * Prospects on the admin's next In Basket fetch. No additional
  * machinery — the gate is already reading from this column.
  */
-async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
-  if (row.kind !== "provider") {
-    throw new Error("make_client only valid for kind='provider' rows");
-  }
-
-  const nowIso = new Date().toISOString();
-  // v10 Phase 1 Bullet 11 (2026-06-04): admin-driven conversion now also
-  // sets the 90-day pilot timer (Q1 locked: "admin path also sets
-  // pilot_active_through so admin and self-serve paths produce identical
-  // state"). terms_accepted_via=admin differentiates from self-serve so
-  // the audit trail tells us which path the provider took.
-  const pilotActiveThroughIso = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 90);
-    return d.toISOString();
-  })();
-  // Admin-on-behalf conversion. Uses the SAME owned-claim primitive as the
-  // self-serve path (parity / Q1 lock), passing accountId=null: the provider
-  // hasn't authenticated yet, so the claimed row is created unowned and
-  // adopted when they later sign in via the magic link. Dedup-by
-  // source_provider_id + unique slug + claim_state="claimed" are enforced by
-  // the primitive (no duplicate vs the directory claim).
-  const pilotMetadata = {
-    interview_terms_accepted_at: nowIso,
-    pilot_active_through: pilotActiveThroughIso,
-    terms_accepted_via: "admin",
-  };
-  const oleraProviderId = (row.research_data as { olera_provider_id?: string })?.olera_provider_id;
-  let businessProfileId = row.provider_business_profile_id;
-
-  if (oleraProviderId) {
-    const result = await resolveOrClaimProviderProfile(db, {
-      oleraProviderId,
-      accountId: null,
-      pilotMetadata,
-      fallbackName: row.organization_name,
-    });
-    // conflict can't arise with accountId=null (no ownership comparison).
-    businessProfileId = result.business_profile_id;
-    await db
-      .from("student_outreach")
-      .update({ provider_business_profile_id: businessProfileId })
-      .eq("id", row.id);
-  } else if (businessProfileId) {
-    // Non-directory provider: patch metadata + claim directly.
-    const { data: bp } = await db
-      .from("business_profiles")
-      .select("metadata")
-      .eq("id", businessProfileId)
-      .maybeSingle();
-    if (!bp) throw new Error("Business profile not found");
-    const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
-    const { error: bpErr } = await db
-      .from("business_profiles")
-      .update({
-        metadata: { ...existingMeta, ...pilotMetadata },
-        claim_state: "claimed",
-        updated_at: nowIso,
-      })
-      .eq("id", businessProfileId);
-    if (bpErr) throw new Error(bpErr.message);
-  } else {
-    throw new Error("Provider row missing both provider_business_profile_id and olera_provider_id");
-  }
-
-  await insertTouchpoint(db, row.id, "stage_change", userId, {
-    notes: "Marked as Client (provider conversion)",
-    payload: { to: "client", via: "admin_make_client" },
-  });
-
-  const { error: srErr } = await db
-    .from("student_outreach")
-    .update({
-      status: "active_partner",
-      last_edited_by: userId,
-      last_edited_at: nowIso,
-    })
-    .eq("id", row.id);
-  if (srErr) throw new Error(srErr.message);
-
-  // v9 final: clean up every pending operational task on this
-  // outreach. The provider organization just converted — General
-  // Contact cards, Specific Contact cards, queued call follow-ups,
-  // queued cadence emails are all moot. Cancelling here removes
-  // them from Calls / Replies / Meetings instantly so admin
-  // doesn't have to chase ghost cards after conversion. The status
-  // transition above already removes the outreach from those tab
-  // queries, but cancelling pending tasks closes the loop on the
-  // task table too so the per-recipient fan-out counts go to 0
-  // (Calls especially counts pending tasks directly).
-  await db
-    .from("student_outreach_tasks")
-    .update({
-      status: "cancelled",
-      completed_at: nowIso,
-      completed_by: userId,
-    })
-    .eq("outreach_id", row.id)
-    .eq("status", "pending");
-
-  // Stop the cold + activation EMAIL drips too (Smartlead-side, not just CRM
-  // tasks) so a converted Client stops getting outreach emails even when the
-  // conversion came from a call rather than an email reply.
-  await stopRowSmartleadDrips(db, row, userId);
-}
+// handleMakeClient (admin-on-behalf provider conversion) was removed:
+// provider conversion is now SELF-SERVE ONLY via POST /api/medjobs/pilot/
+// activate. A provider becomes a Client only after they authenticate and
+// accept the pilot terms themselves (ownership-based claim — the unowned
+// claimed-but-adopted-later path no longer exists).
 
 async function handleSnooze(
   db: DB,

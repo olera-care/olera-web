@@ -168,41 +168,6 @@ export function ResearchTabContent({
                 window.location.href = `/admin/medjobs/logs?provider_id=${p.provider_id}`;
               },
             },
-            {
-              label: "Mark as Client ✓",
-              tone: "celebration",
-              onClick: async () => {
-                if (
-                  !window.confirm(
-                    `Mark ${p.provider_name} as a Client?\n\nMaterializes the outreach row and flags the provider as a Client.`,
-                  )
-                )
-                  return;
-                try {
-                  const res = await fetch(
-                    "/api/admin/medjobs/provider-prospects/materialize",
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        provider_id: p.provider_id,
-                        campus_id: p.campus_id,
-                      }),
-                    },
-                  );
-                  const body = await res.json();
-                  if (!res.ok) throw new Error(body.error || "Materialize failed");
-                  await fetch(`/api/admin/student-outreach/${body.id}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "make_client" }),
-                  });
-                  window.location.reload();
-                } catch (e) {
-                  console.error(e);
-                }
-              },
-            },
           ]}
         />
       }

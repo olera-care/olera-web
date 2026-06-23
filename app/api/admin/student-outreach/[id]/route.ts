@@ -37,6 +37,7 @@ import {
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
 import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
+import { getProviderOwnership } from "@/lib/providers/ownership.server";
 import {
   deriveRepliesState,
   deriveStateFromTouchpoints,
@@ -1085,6 +1086,43 @@ async function handleUpdateGeneralContact(
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+
+  // P1-A: mirror admin-confirmed contact fields to the PUBLIC directory row,
+  // but ONLY for a provider nobody owns yet. Once a real account owns the
+  // listing (claimed), MedJobs NEVER overwrites their display content — the
+  // edits stay on research_data only. Ownership keys off account_id, not the
+  // claim_state label (lib/providers/ownership.server.ts). Best-effort: a
+  // directory-write failure never breaks the CRM save.
+  const oleraProviderId =
+    (current as { olera_provider_id?: string | null }).olera_provider_id ?? null;
+  if (oleraProviderId) {
+    try {
+      const ownership = await getProviderOwnership(db, oleraProviderId);
+      if (!ownership.owned) {
+        // Confirmed general-contact fields → olera-providers columns. Push only
+        // values actually provided + non-empty (never erase directory data).
+        const dirPatch: Record<string, unknown> = {};
+        const setIf = (col: string, v: string | null | undefined) => {
+          if (typeof v === "string" && v.trim() !== "") dirPatch[col] = v.trim();
+        };
+        setIf("email", body.email);
+        setIf("phone", body.phone);
+        setIf("website", body.website);
+        setIf("address", body.street);
+        setIf("city", body.city);
+        setIf("state", body.state);
+        setIf("zipcode", body.zip);
+        if (Object.keys(dirPatch).length > 0) {
+          await db
+            .from("olera-providers")
+            .update(dirPatch)
+            .eq("provider_id", oleraProviderId);
+        }
+      }
+    } catch (e) {
+      console.error("[update_general_contact] directory mirror failed:", e);
+    }
+  }
 }
 
 /**

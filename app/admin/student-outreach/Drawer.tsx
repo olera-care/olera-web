@@ -458,6 +458,7 @@ function StakeholderDrawer({
             ctx={ctx}
             action={action}
             setError={setError}
+            activeTab={activeTab}
           />
         ) : (
           <DrawerBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />

@@ -116,13 +116,13 @@ function ProviderCaregiversContent() {
     router.replace("/provider/caregivers", { scroll: false });
   }, [interviews, newInterviewId, router]);
 
-  const updateStatus = async (interviewId: string, status: string) => {
+  const updateStatus = async (interviewId: string, status: string, newTime?: string) => {
     setActionLoading(interviewId);
     try {
       const res = await fetch("/api/medjobs/interviews", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interviewId, status }),
+        body: JSON.stringify({ interviewId, status, newTime }),
       });
       if (res.status === 402) {
         setShowUpgradeModal(true);

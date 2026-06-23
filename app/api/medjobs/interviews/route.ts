@@ -558,6 +558,51 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // Reschedule: a new time was proposed (status was flipped back to "proposed"
+    // above). Notify the OTHER party so they can review it like a fresh request
+    // [H3] — without this the rescheduled time silently never reaches them.
+    if (status === "rescheduled" && newTime) {
+      try {
+        const callerIsProvider = userProfileIds.includes(interview.provider_profile_id);
+        const recipient = callerIsProvider ? student : provider;
+        const proposerName = callerIsProvider ? provider.display_name : student.display_name;
+        const typeLabel = interview.type === "video" ? "Video" : interview.type === "in_person" ? "In-Person" : "Phone";
+        const time = new Date(newTime).toLocaleString("en-US", {
+          weekday: "long", month: "long", day: "numeric",
+          hour: "numeric", minute: "2-digit", timeZoneName: "short",
+        });
+
+        // Recipient gets a one-click magic link to their respective surface.
+        const viewUrl = callerIsProvider
+          ? (student.email
+              ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`)
+          : (provider.slug && provider.email
+              ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`);
+
+        if (recipient.email) {
+          await sendEmail({
+            to: recipient.email,
+            subject: `New interview time proposed by ${proposerName}`,
+            html: interviewProposedEmail({
+              proposerName,
+              interviewType: typeLabel,
+              proposedTime: time,
+              alternativeTime: null,
+              notes: interview.notes || null,
+              viewUrl,
+            }),
+            emailType: "interview_proposed",
+            recipientType: callerIsProvider ? "student" : "provider",
+            recipientProfileId: callerIsProvider ? interview.student_profile_id : interview.provider_profile_id,
+          });
+        }
+      } catch (err) {
+        console.error("[medjobs/interviews] reschedule email error:", err);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[medjobs/interviews] PATCH error:", err);

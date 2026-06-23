@@ -55,13 +55,13 @@ function InterviewsPageInner() {
     }
   }, [fetchInterviews, fetchPlacements, authLoading]);
 
-  const updateStatus = async (interviewId: string, status: string) => {
+  const updateStatus = async (interviewId: string, status: string, newTime?: string) => {
     setActionLoading(interviewId);
     try {
       await fetch("/api/medjobs/interviews", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interviewId, status }),
+        body: JSON.stringify({ interviewId, status, newTime }),
       });
       await fetchInterviews();
     } catch { /* ignore */ }

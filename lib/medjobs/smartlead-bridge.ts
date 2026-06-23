@@ -757,6 +757,11 @@ export function buildSmartleadPreview(input: {
   cadenceKey?: CadenceKey;
   adminFirstName?: string;
   senderEmails?: string[];
+  /** Row's stakeholder type — needed so an ACTIVATION preview renders the
+   *  correct partner landing (advisor/dept_head → families#help, student_org →
+   *  families). Without it the preview defaults to student_org and shows the
+   *  wrong link, even though the actual send is correct. */
+  stakeholderType?: StakeholderType | null;
 }): SmartleadPreview {
   const fanned = rowToLeads(input.row, input.campus);
 
@@ -798,6 +803,8 @@ export function buildSmartleadPreview(input: {
     campusSlug: input.campus.slug ?? null,
     // Partner rows (kind != provider) preview the student flyer link.
     isPartner: input.row.kind !== "provider",
+    // Activation previews need the type to render the right partner landing.
+    stakeholderType: input.stakeholderType ?? null,
   });
   const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
   const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));

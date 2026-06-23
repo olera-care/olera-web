@@ -1149,7 +1149,7 @@ export default function UnifiedAuthModal({
             />
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-1">
+          <h2 className="text-[26px] leading-tight tracking-tight font-semibold text-gray-900 text-center mb-1">
             {options.headline || "Log in or sign up"}
           </h2>
           {options.subline && (
@@ -1197,7 +1197,7 @@ export default function UnifiedAuthModal({
       {step === "sign-up" && (
         <div>
           <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Create your account</h2>
+            <h2 className="text-[26px] leading-tight tracking-tight font-semibold text-gray-900">Create your account</h2>
             <p className="text-sm text-gray-500 mt-1">{email}</p>
           </div>
 
@@ -1254,7 +1254,7 @@ export default function UnifiedAuthModal({
       {step === "sign-in" && (
         <div>
           <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Welcome back</h2>
+            <h2 className="text-[26px] leading-tight tracking-tight font-semibold text-gray-900">Welcome back</h2>
             <p className="text-sm text-gray-500 mt-1">{email || "Sign in to your account"}</p>
           </div>
 
@@ -1295,7 +1295,7 @@ export default function UnifiedAuthModal({
                   type="button"
                   onClick={handleSendOtpForSignIn}
                   disabled={loading || !email.trim()}
-                  className="min-h-[44px] px-2 flex items-center text-[15px] text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-[15px] text-gray-600 hover:text-gray-900 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Email me a code instead
                 </button>
@@ -1323,7 +1323,12 @@ export default function UnifiedAuthModal({
             </div>
           </form>
 
-          {passkeyButton && <div className="mt-3">{passkeyButton}</div>}
+          {passkeyButton && (
+            <>
+              {divider}
+              {passkeyButton}
+            </>
+          )}
 
           <p className="text-center text-sm text-gray-400 mt-5">
             New to Olera?{" "}
@@ -1350,7 +1355,7 @@ export default function UnifiedAuthModal({
           </div>
 
           <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Check your email</h2>
+            <h2 className="text-[26px] leading-tight tracking-tight font-semibold text-gray-900">Check your email</h2>
             <p className="text-sm text-gray-500 mt-1">
               Enter the code sent to <span className="font-medium text-gray-700">{email}</span>
             </p>

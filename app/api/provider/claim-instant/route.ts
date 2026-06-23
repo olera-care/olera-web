@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
+import { directoryHydrationFields, DIRECTORY_HYDRATION_COLUMNS } from "@/lib/providers/directory-hydrate";
 import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/lib/slack";
 import {
   scoreClaimTrust,
@@ -270,6 +271,19 @@ export async function POST(request: Request) {
       state || ""
     );
 
+    // Claiming a directory listing → hydrate the new business_profile with the
+    // directory's full display data (one complete, editable record from the
+    // start), instead of a thin shell projected at render time.
+    let hydration: ReturnType<typeof directoryHydrationFields> | null = null;
+    if (!isNewOrg && providerId) {
+      const { data: dirRow } = await supabaseAdmin
+        .from("olera-providers")
+        .select(DIRECTORY_HYDRATION_COLUMNS)
+        .eq("provider_id", providerId)
+        .maybeSingle();
+      if (dirRow) hydration = directoryHydrationFields(dirRow as Record<string, unknown>);
+    }
+
     const profileData = isNewOrg
       ? {
           account_id: accountId,
@@ -298,13 +312,18 @@ export async function POST(request: Request) {
           email: normalizedEmail,
           city: city || null,
           state: state || null,
+          // Hydrated from the directory listing (the one record).
+          description: hydration?.description ?? null,
+          care_types: hydration?.care_types ?? [],
+          category: hydration?.category ?? null,
+          image_url: hydration?.image_url ?? null,
           claim_state: "claimed",
           verification_state: verificationState,
           claim_trust_level: trustResult.level,
           claim_trust_reason: trustResult.reason,
           source: "claimed_from_directory",
           is_active: true,
-          metadata: {},
+          metadata: hydration?.images?.length ? { images: hydration.images } : {},
         };
 
     const { data: newProfile, error: insertErr } = await supabaseAdmin

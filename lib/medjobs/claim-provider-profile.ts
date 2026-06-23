@@ -30,6 +30,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
+import { directoryHydrationFields, DIRECTORY_HYDRATION_COLUMNS } from "@/lib/providers/directory-hydrate";
 
 export interface ClaimArgs {
   /** The olera-providers directory id (= outreach research_data.olera_provider_id). */
@@ -117,9 +118,13 @@ export async function resolveOrClaimProviderProfile(
   }
 
   // ── No profile yet → create one from the directory row ──────────────────
+  // Pull the full DISPLAY data too, so the claimed profile is hydrated (one
+  // complete, editable record) rather than a thin shell.
   const { data: op, error: opErr } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, city, state, email, phone, website, address, zipcode")
+    .select(
+      `provider_id, provider_name, city, state, email, phone, website, address, zipcode, ${DIRECTORY_HYDRATION_COLUMNS}`,
+    )
     .eq("provider_id", oleraProviderId)
     .maybeSingle();
   if (opErr || !op) {
@@ -133,6 +138,8 @@ export async function resolveOrClaimProviderProfile(
     (op.city as string | null) || "",
     (op.state as string | null) || "",
   );
+
+  const hydration = directoryHydrationFields(op as Record<string, unknown>);
 
   const { data: newBp, error: createErr } = await db
     .from("business_profiles")
@@ -148,12 +155,17 @@ export async function resolveOrClaimProviderProfile(
       website: op.website,
       address: op.address,
       zip: op.zipcode != null ? String(op.zipcode) : null,
+      // Hydrated from the directory listing (the one record).
+      description: hydration.description,
+      care_types: hydration.care_types,
+      category: hydration.category,
+      image_url: hydration.image_url,
       source_provider_id: oleraProviderId,
       source: "claimed_from_directory",
       claim_state: "claimed",
       verification_state: "unverified", // claim != verification
       is_active: true,
-      metadata: pilotMetadata,
+      metadata: hydration.images.length ? { ...pilotMetadata, images: hydration.images } : pilotMetadata,
       created_at: nowIso,
       updated_at: nowIso,
     })

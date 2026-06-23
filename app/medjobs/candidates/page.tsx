@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
+import DrDuBoseWelcome from "@/components/medjobs/DrDuBoseWelcome";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
@@ -11,7 +13,7 @@ import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candid
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
-import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
+import EligibilityScreenerModal, { HIRE_PREFILL_KEY } from "@/components/medjobs/EligibilityScreenerModal";
 import ProvidersMarketing from "@/components/medjobs/ProvidersMarketing";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import { US_STATES } from "@/lib/power-pages";
@@ -58,7 +60,7 @@ export default function CandidateBrowsePage() {
 function CandidateBrowseInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { profiles, refreshAccountData, isLoading } = useAuth();
+  const { profiles, isLoading } = useAuth();
 
   const providerProfile = profiles?.find(
     (p) => p.type === "organization" || p.type === "caregiver"
@@ -74,8 +76,14 @@ function CandidateBrowseInner() {
   )?.coverage_buckets;
 
   const claimConflict = searchParams?.get("claim_conflict") === "1";
+  // Cold-cadence link (Chunk 5): public board + ?outreach_id=...&screener=1.
+  // Non-auth trigger that pre-locks the screener to the provider's listing.
+  const outreachIdParam = searchParams?.get("outreach_id") ?? null;
+  const screenerParam = searchParams?.get("screener") === "1";
   const autoOpenScreener =
-    searchParams?.get("welcome") === "1" || searchParams?.get("activate") === "1";
+    searchParams?.get("welcome") === "1" ||
+    searchParams?.get("activate") === "1" ||
+    screenerParam;
   const universityFromUrl = searchParams?.get("university") ?? null;
   const campusSlugParam = searchParams?.get("campus") ?? null;
 
@@ -90,6 +98,9 @@ function CandidateBrowseInner() {
   const [geoState, setGeoState] = useState<string | null>(null);
   const [availabilityFilter, setAvailabilityFilter] = useState("");
   const [showScreener, setShowScreener] = useState(false);
+  const [highlightFirst, setHighlightFirst] = useState(false);
+  const firstCardRef = useRef<HTMLDivElement>(null);
+  const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
 
   const initedRef = useRef(false);
   const geoTriedRef = useRef(false);
@@ -178,11 +189,34 @@ function CandidateBrowseInner() {
   // eligible yet (anon or not-eligible provider).
   useEffect(() => {
     if (autoOpenedRef.current || isLoading) return;
-    if (autoOpenScreener && !isEligible && !claimConflict) {
-      autoOpenedRef.current = true;
+    if (!autoOpenScreener || isEligible || claimConflict) return;
+    autoOpenedRef.current = true;
+    (async () => {
+      // Cold link: resolve the provider's own directory listing and stash it as
+      // the screener prefill so the org is pre-locked (they claim their listing,
+      // not a duplicate). Best-effort — on failure the screener falls back to
+      // manual search + the "Create new" path for genuinely new providers.
+      if (outreachIdParam) {
+        try {
+          const res = await fetch(
+            `/api/medjobs/outreach-org?outreach_id=${encodeURIComponent(outreachIdParam)}`,
+          );
+          if (res.ok) {
+            const data = (await res.json()) as { org?: unknown };
+            if (data.org) {
+              sessionStorage.setItem(
+                HIRE_PREFILL_KEY,
+                JSON.stringify({ selectedOrg: data.org }),
+              );
+            }
+          }
+        } catch {
+          /* ignore — screener handles the no-prefill case */
+        }
+      }
       setShowScreener(true);
-    }
-  }, [autoOpenScreener, isEligible, claimConflict, isLoading]);
+    })();
+  }, [autoOpenScreener, isEligible, claimConflict, isLoading, outreachIdParam]);
 
   const onUniversityChange = useCallback((id: string) => {
     setUniversityId(id);
@@ -234,20 +268,31 @@ function CandidateBrowseInner() {
   const pageCards = topCards.slice((page - 1) * GRID_PAGE, page * GRID_PAGE);
 
   const onCheckEligibility = useCallback(() => setShowScreener(true), []);
+  const onReviewCandidates = useCallback(() => {
+    firstCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightFirst(true);
+    window.setTimeout(() => setHighlightFirst(false), 2200);
+  }, []);
+  // Schedule from a real candidate card. Anon/unclaimed providers are funneled
+  // to claim/setup first (the screener), since scheduling requires an account.
+  const openSchedule = useCallback(
+    (c: CandidateData) => {
+      if (hasProviderProfile) setScheduleTarget(c);
+      else setShowScreener(true);
+    },
+    [hasProviderProfile],
+  );
 
   // After the needs quiz, land the provider on the Hire Caregivers board (their
-  // map-based workspace), where the welcome banner picks up the next step. The
-  // screener's claim flow establishes the session first, so the gated route is
-  // reachable.
+  // map-based workspace). The screener already established the session + wrote
+  // eligibility, so we navigate straight there. We deliberately DON'T close the
+  // modal or re-refresh first: closing it would briefly reveal this marketing
+  // page before the hard navigation lands (the jank). Keeping the modal overlay
+  // up until the document load replaces the page makes the transition seamless.
+  // Hard nav (not router.push) so the gated route gets a fresh server auth read.
   const onScreenerComplete = useCallback(async () => {
-    await refreshAccountData();
-    setShowScreener(false);
-    // Hard navigation (not router.push): the screener's in-modal sign-in flips
-    // auth state on the same tick, which can swallow a client-side push and
-    // strand the provider on this marketing page. A full document load forces a
-    // fresh server auth fetch so the gated board route resolves cleanly.
     window.location.assign("/provider/medjobs/candidates");
-  }, [refreshAccountData]);
+  }, []);
 
   const selectClass =
     "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";
@@ -256,7 +301,15 @@ function CandidateBrowseInner() {
 
   const cardEl = (c: CandidateData) =>
     isDemoEra ? (
-      <BrowseCard key={c.id} provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
+      <BrowseCard
+        key={c.id}
+        provider={candidateToCardFormat(c, { isDemo: true })}
+        variant="candidate"
+        isDemo
+        href={`/medjobs/candidates/${c.slug}`}
+        ctaLabel="More details"
+        onCta={() => router.push(`/medjobs/candidates/${c.slug}`)}
+      />
     ) : (
       <BrowseCard
         key={c.id}
@@ -264,6 +317,8 @@ function CandidateBrowseInner() {
         variant="candidate"
         href={`/medjobs/candidates/${c.slug}`}
         matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
+        ctaLabel="Schedule interview"
+        onCta={() => openSchedule(c)}
       />
     );
 
@@ -271,7 +326,9 @@ function CandidateBrowseInner() {
     <main className="min-h-screen bg-white">
       <RefreshAfterCheckout />
 
-      {/* Hero — two-column, campus-aware */}
+      {/* Hero — anonymous visitors only; signed-in providers get the welcome
+          banner inside the content area below. */}
+      {!hasProviderProfile && (
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-primary-50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 md:pt-12 md:pb-12">
@@ -291,7 +348,7 @@ function CandidateBrowseInner() {
                   onClick={onCheckEligibility}
                   className="inline-flex items-center px-7 py-3.5 bg-primary-600 text-white text-[15px] font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
                 >
-                  Tell us your hiring needs →
+                  Get started →
                 </button>
                 <a
                   href="#how-it-works"
@@ -349,8 +406,15 @@ function CandidateBrowseInner() {
           </div>
         </div>
       </section>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        {hasProviderProfile && (
+          <DrDuBoseWelcome
+            campusName={selectedUniversityName}
+            onReviewCandidates={onReviewCandidates}
+          />
+        )}
         {claimConflict && (
           <div className="mb-6 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4">
             <h2 className="font-serif text-lg text-gray-900">
@@ -418,7 +482,15 @@ function CandidateBrowseInner() {
           ) : expanded ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pageCards.map(cardEl)}
+                {pageCards.map((c, i) => (
+                  <div
+                    key={c.id}
+                    ref={i === 0 ? firstCardRef : undefined}
+                    className={i === 0 && highlightFirst ? "rounded-2xl ring-2 ring-primary-500 ring-offset-2 transition" : undefined}
+                  >
+                    {cardEl(c)}
+                  </div>
+                ))}
               </div>
               {totalPages > 1 && (
                 <div className="mt-8">
@@ -445,8 +517,12 @@ function CandidateBrowseInner() {
                 </>
               )}
               <div ref={carouselRef} className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {carouselCards.map((c) => (
-                  <div key={c.id} className="w-72 shrink-0 snap-start">{cardEl(c)}</div>
+                {carouselCards.map((c, i) => (
+                  <div
+                    key={c.id}
+                    ref={i === 0 ? firstCardRef : undefined}
+                    className={`w-72 shrink-0 snap-start${i === 0 && highlightFirst ? " rounded-2xl ring-2 ring-primary-500 ring-offset-2" : ""}`}
+                  >{cardEl(c)}</div>
                 ))}
               </div>
             </div>
@@ -468,8 +544,8 @@ function CandidateBrowseInner() {
               <button
                 type="button"
                 onClick={() => {
-                  // Signed-in providers get the full Hire Caregivers board (map +
-                  // cards); anon visitors expand the preview inline.
+                  // Signed-in providers go to the full map-based Hire Caregivers
+                  // board; anon visitors expand the preview inline.
                   if (hasProviderProfile) {
                     router.push("/provider/medjobs/candidates");
                     return;
@@ -530,6 +606,15 @@ function CandidateBrowseInner() {
           orgName={providerProfile?.display_name ?? null}
           onClose={() => setShowScreener(false)}
           onComplete={onScreenerComplete}
+        />
+      )}
+
+      {scheduleTarget && (
+        <ScheduleInterviewModal
+          studentProfileId={scheduleTarget.id}
+          otherName={scheduleTarget.display_name}
+          onClose={() => setScheduleTarget(null)}
+          onScheduled={() => setScheduleTarget(null)}
         />
       )}
     </main>

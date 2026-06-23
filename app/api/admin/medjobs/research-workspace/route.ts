@@ -43,7 +43,14 @@ export async function GET(request: NextRequest) {
   const pr = ((campus as { partner_research?: unknown }).partner_research ?? {}) as Record<string, unknown>;
   const workspace = readWorkspace(pr, subtype);
   const audit = (pr.audit ?? {}) as Record<string, unknown>;
-  return NextResponse.json({ workspace, audit: audit[subtype] ?? null });
+  // C1: per-subtype progress so the workspace tabs can show counts for all
+  // three types at once (kept links + verified offices).
+  const summary: Record<string, { kept: number; verified: number }> = {};
+  for (const st of ["advisor", "student_org", "dept_head"] as PartnerSubtype[]) {
+    const w = readWorkspace(pr, st);
+    summary[st] = { kept: w.links.length, verified: w.offices.filter((o) => o.verified).length };
+  }
+  return NextResponse.json({ workspace, audit: audit[subtype] ?? null, summary });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -77,12 +84,31 @@ export async function PATCH(request: NextRequest) {
 
   // Only persist the workspace fields we own — never trust generated_at from the
   // client (that's set by the /generate route).
-  const { links, searches, offices, advisors } = body.workspace;
+  const { links, searches, offices, advisors, suggested, last_step } = body.workspace;
   const patch: Partial<WorkspaceState> = {};
   if (Array.isArray(links)) patch.links = links;
   if (Array.isArray(searches)) patch.searches = searches;
-  if (Array.isArray(offices)) patch.offices = offices;
+  if (Array.isArray(offices)) {
+    // outreach_id / generated_at are SERVER-OWNED (set by /generate). Preserve
+    // them from the DB by office id so a client autosave can never erase the
+    // "made" stamp — the root-cause fix for the dedup race.
+    const existing = readWorkspace(
+      (campus as { partner_research?: unknown }).partner_research,
+      subtype,
+    );
+    const stampById = new Map(
+      existing.offices.map((o) => [o.id, { outreach_id: o.outreach_id ?? null, generated_at: o.generated_at ?? null }]),
+    );
+    patch.offices = offices.map((o) => {
+      const s = stampById.get(o.id);
+      return s && s.outreach_id
+        ? { ...o, outreach_id: s.outreach_id, generated_at: s.generated_at }
+        : o;
+    });
+  }
   if (Array.isArray(advisors)) patch.advisors = advisors;
+  if (Array.isArray(suggested)) patch.suggested = suggested;
+  if (typeof last_step === "string") patch.last_step = last_step;
 
   const nextPr = writeWorkspace(
     (campus as { partner_research?: unknown }).partner_research,

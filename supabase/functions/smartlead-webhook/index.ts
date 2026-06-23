@@ -371,6 +371,18 @@ async function handleReply(row: ResolvedRow, extract: LeadExtract) {
     from_email: extract.fromEmail ?? extract.email ?? null,
   }, { resetViewedAt: true });
 
+  // They responded — stop any queued CALL cards so we don't ring someone who
+  // already wrote back. One query covers cold AND activation calls (both are
+  // outreach_followup_call). Smartlead already auto-pauses the email drip, and
+  // there are no CRM email-send tasks for Smartlead rows; outreach_email_send is
+  // included only to cover any legacy/non-Smartlead rows.
+  await supabase
+    .from("student_outreach_tasks")
+    .update({ status: "superseded", completed_at: new Date().toISOString() })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_followup_call", "outreach_email_send"]);
+
   if (PROMOTE_ON_REPLY.has(row.status)) {
     const patch: Record<string, unknown> = { status: "engaged" };
     // Clear reopen_at when reviving a row that was archived (no_response_closed).

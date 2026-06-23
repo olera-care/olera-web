@@ -221,7 +221,10 @@ function Board() {
       const { data } = await sb.auth.getSession();
       if (data.session) {
         setShowScreener(false);
-        router.push("/portal/medjobs");
+        // Land new students on Find Jobs (the catchment board), not the profile
+        // tab — they see real local opportunities immediately, with the board's
+        // own "complete your profile to apply" nudge.
+        router.push("/portal/medjobs/jobs");
         return;
       }
     } catch {

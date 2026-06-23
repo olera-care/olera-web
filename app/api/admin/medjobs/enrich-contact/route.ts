@@ -6,6 +6,7 @@ import {
   findPhone,
   findFax,
   findAddress,
+  discoverWebsiteByName,
   type ProviderContext,
 } from "@/lib/medjobs/outreach-enrichment";
 
@@ -112,6 +113,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // No website/source on file → discover the real business's site by name +
+    // location (Google Places). This becomes the source of record so a provider
+    // with no source link still pre-fills on first open. Skipped when a website
+    // already exists (resolved above).
+    if (!website) {
+      const found = await discoverWebsiteByName(
+        (row.organization_name as string) || null,
+        city,
+        state,
+      );
+      if (found.website) {
+        website = found.website;
+        placeId = placeId ?? found.placeId;
+      }
+    }
+
     const ctx: ProviderContext = {
       name: (row.organization_name as string) || null,
       website,
@@ -133,6 +150,9 @@ export async function POST(request: NextRequest) {
         findAddress(ctx),
       ]);
       return NextResponse.json({
+        // The resolved/discovered website — the client persists it as the
+        // source of record (research_data.general_contact.website).
+        website: { value: website },
         email: { value: e.email, source: e.source },
         contactForm: { value: f.url, source: f.source },
         phone: { value: p.phone, source: p.source },

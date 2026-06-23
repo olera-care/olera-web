@@ -134,7 +134,14 @@ const SUBJECT_FOLLOWUP = `Follow Up: Student Caregiver Program for ${PLACEHOLDER
 
 // Audience landing pages for the in-body program link. The flyer link next to
 // it uses the audience-aware {program_pdf} token (filled per send).
-const CANDIDATES_URL = "https://olera.care/medjobs/candidates"; // providers
+export const CANDIDATES_URL = "https://olera.care/medjobs/candidates"; // providers
+// Per-lead provider board link placeholder (Chunk 5). smartlead-bridge
+// substitutes it with the public board URL carrying
+// ?outreach_id={{outreach_id}}&screener=1 so a cold click pre-locks the
+// eligibility screener to the provider's OWN directory listing — they claim it
+// instead of accidentally creating a duplicate. Plain ref, no auth token (cold
+// emails stay deliverability-safe).
+const PROVIDER_BOARD_URL = "{board_url}";
 const FAMILIES_URL = "https://olera.care/medjobs/families"; // student orgs
 const FAMILIES_ADVISORS_URL = "https://olera.care/medjobs/families#help"; // advisors + dept heads (existing "For advisors, faculty & student orgs" section)
 
@@ -687,7 +694,7 @@ export function providerIntroEmail(
     body: [
       greeting,
       ``,
-      `Thanks for the call today. This is Graize, research assistant to Dr. Logan DuBose. As promised, here's more on the ${programLink(CANDIDATES_URL)}.`,
+      `Thanks for the call today. This is Graize, research assistant to Dr. Logan DuBose. As promised, here's more on the ${programLink(PROVIDER_BOARD_URL)}.`,
       ``,
       `Here are the highlights:`,
       ``,
@@ -721,7 +728,7 @@ export function providerFollowupEmail(
     body: [
       greeting,
       ``,
-      `Following up. If the ${programLink(CANDIDATES_URL)} could help, just reply "Interested" and Dr. DuBose or I will follow up with next steps.`,
+      `Following up. If the ${programLink(PROVIDER_BOARD_URL)} could help, just reply "Interested" and Dr. DuBose or I will follow up with next steps.`,
       ``,
       `Graize`,
     ].join("\n"),
@@ -746,7 +753,7 @@ export function providerFinalEmail(
     body: [
       greeting,
       ``,
-      `Circling back one last time on the ${programLink(CANDIDATES_URL)}.`,
+      `Circling back one last time on the ${programLink(PROVIDER_BOARD_URL)}.`,
       ``,
       `If you're interested, just reply "Interested" and Dr. DuBose or I will follow up with next steps. And if someone else at ${PLACEHOLDER.orgName} handles caregiver hiring, a quick forward to them would be appreciated.`,
       ``,

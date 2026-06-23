@@ -647,6 +647,11 @@ export interface DrawerContext {
     display_name: string | null;
     city: string | null;
     state: string | null;
+    /** Ownership/claim signals for the pre-flight lock. owned = account_id
+     *  present → MedJobs never edits this provider's directory content. */
+    account_id: string | null;
+    claim_state: string | null;
+    verification_state: string | null;
     metadata: Record<string, unknown> | null;
     // v9 SnapshotCard mirror fields — admin sees the directory at a glance
     // without leaving the drawer. Live-page link uses the slug.

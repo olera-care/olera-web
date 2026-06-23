@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import type { Interview } from "@/lib/types";
@@ -11,8 +12,19 @@ type InterviewWithProfiles = Interview & {
   student?: { id: string; slug?: string; display_name: string; image_url?: string };
 };
 
+// useSearchParams requires a Suspense boundary for Next.js static prerender.
 export default function InterviewsPage() {
+  return (
+    <Suspense fallback={null}>
+      <InterviewsPageInner />
+    </Suspense>
+  );
+}
+
+function InterviewsPageInner() {
   const { isLoading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const newInterviewId = searchParams.get("newInterview") || undefined;
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [placements, setPlacements] = useState<Placement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,13 +55,13 @@ export default function InterviewsPage() {
     }
   }, [fetchInterviews, fetchPlacements, authLoading]);
 
-  const updateStatus = async (interviewId: string, status: string) => {
+  const updateStatus = async (interviewId: string, status: string, newTime?: string) => {
     setActionLoading(interviewId);
     try {
       await fetch("/api/medjobs/interviews", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interviewId, status }),
+        body: JSON.stringify({ interviewId, status, newTime }),
       });
       await fetchInterviews();
     } catch { /* ignore */ }
@@ -83,6 +95,7 @@ export default function InterviewsPage() {
           actionLoading={actionLoading}
           placements={placements}
           onPlacementAction={handlePlacementAction}
+          initialSelectedId={newInterviewId}
         />
       </div>
     </main>

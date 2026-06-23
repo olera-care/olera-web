@@ -11,7 +11,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { resolveOrClaimProviderProfile } from "@/lib/medjobs/claim-provider-profile";
 import {
   onStageEnter,
   tasksToCancelOnExit,
@@ -37,6 +36,8 @@ import {
   type BridgeRow,
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
+import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
+import { getProviderOwnership } from "@/lib/providers/ownership.server";
 import {
   deriveRepliesState,
   deriveStateFromTouchpoints,
@@ -123,13 +124,13 @@ export async function POST(
   // provider row half-converts (sets active_partner status but never
   // unlocks Partner Prospects). All four Log surfaces gate this:
   //
-  //   PROVIDER conversion (→ make_client):
-  //     - LogCallOutcomeModal:  convert_to_client outcome (provider only)
-  //     - CallForEmailModal:    convert_to_client engagement (provider modal)
-  //     - ReplyClassifierModal: not offered (gated by !isProvider; convert
-  //                             via Call modal or T&C/Stripe signal)
-  //     - LogMeetingModal:      not offered (gated by !isProvider; convert
-  //                             via Call modal — see R1 commit)
+  //   PROVIDER conversion: SELF-SERVE ONLY. A provider becomes a Client only
+  //   by accepting the pilot terms themselves via
+  //   POST /api/medjobs/pilot/activate (reached from the candidate board /
+  //   magic-link landing). Admin-on-behalf conversion was removed: there is no
+  //   make_client action, no convert_to_client call outcome, and no "Mark as
+  //   Client" control. A provider is a Client only once they have authenticated
+  //   and accepted terms (ownership-based claim — never claimed-but-unowned).
   //
   //   STAKEHOLDER conversion (→ mark_partner):
   //     - LogCallOutcomeModal:  convert_to_partner outcome (stakeholder only)
@@ -344,18 +345,6 @@ export async function POST(
         await handleLogContactFormOutcome(db, row, body, user.id);
         break;
 
-      // v9 Make Client — provider conversion. Writes
-      // business_profiles.metadata.interview_terms_accepted_at,
-      // transitions the outreach row to active_partner so its
-      // canonical Stage derives to "converted", and logs a
-      // stage_change touchpoint. The metadata write closes the
-      // funnel loop — the Partner-Prospect gate (lib/medjobs/
-      // partner-prospect-gate.ts) auto-unlocks on the next read
-      // for any Site whose catchment includes this provider.
-      case "make_client":
-        await handleMakeClient(db, row, user.id);
-        break;
-
       // ── Snooze / redirect ───────────────────────────────────────────
       case "snooze":
         await handleSnooze(db, row, body, user.id);
@@ -563,6 +552,9 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     display_name: string | null;
     city: string | null;
     state: string | null;
+    account_id: string | null;
+    claim_state: string | null;
+    verification_state: string | null;
     metadata: Record<string, unknown> | null;
     slug: string | null;
     phone: string | null;
@@ -580,7 +572,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     const { data: bpRow } = await db
       .from("business_profiles")
       .select(
-        "email, display_name, city, state, zip, metadata, slug, phone, website, address, source_provider_id",
+        "email, display_name, city, state, zip, metadata, slug, phone, website, address, source_provider_id, account_id, claim_state, verification_state",
       )
       .eq("id", row.provider_business_profile_id)
       .maybeSingle();
@@ -597,6 +589,9 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
           website: string | null;
           address: string | null;
           source_provider_id: string | null;
+          account_id: string | null;
+          claim_state: string | null;
+          verification_state: string | null;
         }
       | null;
 
@@ -645,6 +640,9 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
         display_name: bp.display_name ?? null,
         city: bp.city ?? iosFallback?.city ?? null,
         state: bp.state ?? iosFallback?.state ?? null,
+        account_id: bp.account_id ?? null,
+        claim_state: bp.claim_state ?? null,
+        verification_state: bp.verification_state ?? null,
         metadata: bp.metadata ?? null,
         slug: bp.slug ?? null,
         phone: bp.phone ?? iosFallback?.phone ?? null,
@@ -1097,6 +1095,43 @@ async function handleUpdateGeneralContact(
   }
   const nextResearch: ResearchData = { ...current, general_contact: nextGc };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
+
+  // P1-A: mirror admin-confirmed contact fields to the PUBLIC directory row,
+  // but ONLY for a provider nobody owns yet. Once a real account owns the
+  // listing (claimed), MedJobs NEVER overwrites their display content — the
+  // edits stay on research_data only. Ownership keys off account_id, not the
+  // claim_state label (lib/providers/ownership.server.ts). Best-effort: a
+  // directory-write failure never breaks the CRM save.
+  const oleraProviderId =
+    (current as { olera_provider_id?: string | null }).olera_provider_id ?? null;
+  if (oleraProviderId) {
+    try {
+      const ownership = await getProviderOwnership(db, oleraProviderId);
+      if (!ownership.owned) {
+        // Confirmed general-contact fields → olera-providers columns. Push only
+        // values actually provided + non-empty (never erase directory data).
+        const dirPatch: Record<string, unknown> = {};
+        const setIf = (col: string, v: string | null | undefined) => {
+          if (typeof v === "string" && v.trim() !== "") dirPatch[col] = v.trim();
+        };
+        setIf("email", body.email);
+        setIf("phone", body.phone);
+        setIf("website", body.website);
+        setIf("address", body.street);
+        setIf("city", body.city);
+        setIf("state", body.state);
+        setIf("zipcode", body.zip);
+        if (Object.keys(dirPatch).length > 0) {
+          await db
+            .from("olera-providers")
+            .update(dirPatch)
+            .eq("provider_id", oleraProviderId);
+        }
+      }
+    } catch (e) {
+      console.error("[update_general_contact] directory mirror failed:", e);
+    }
+  }
 }
 
 /**
@@ -1862,23 +1897,6 @@ async function handleLogCall(
       await touchOutreach(db, row.id, userId);
       return;
     }
-    case "convert_to_client": {
-      // v9 final: provider conversion lives inside the Log workflow.
-      // Log the call touchpoint, then run handleMakeClient which
-      // writes business_profiles.metadata.interview_terms_accepted_at,
-      // transitions the row to active_partner (deriveStage maps that
-      // to 'converted' for provider rows), and unlocks Partner
-      // Prospects for catchment Sites.
-      await insertTouchpoint(db, row.id, "call_connected", userId, {
-        contact_id: body.contact_id ?? null,
-        channel: "phone",
-        outcome,
-        notes: body.notes ?? null,
-        payload: callPayload,
-      });
-      await handleMakeClient(db, row, userId);
-      return;
-    }
     case "connected_not_interested": {
       await insertTouchpoint(db, row.id, "call_connected", userId, {
         contact_id: body.contact_id ?? null,
@@ -2249,7 +2267,10 @@ async function handleLaunchActivation(
         return {
           outreach_id: row.id,
           task_type: "outreach_followup_call" as const,
-          due_at: new Date(now + day.day * 86_400_000).toISOString(),
+          // Calls only land on a business day (ET): roll weekends/holidays forward.
+          due_at: nextBusinessDayET(
+            new Date(now + day.day * 86_400_000),
+          ).toISOString(),
           payload: {
             cadence: "activation",
             day: day.day,
@@ -3727,111 +3748,11 @@ async function handleQueueManualTask(
  * Prospects on the admin's next In Basket fetch. No additional
  * machinery — the gate is already reading from this column.
  */
-async function handleMakeClient(db: DB, row: OutreachRow, userId: string) {
-  if (row.kind !== "provider") {
-    throw new Error("make_client only valid for kind='provider' rows");
-  }
-
-  const nowIso = new Date().toISOString();
-  // v10 Phase 1 Bullet 11 (2026-06-04): admin-driven conversion now also
-  // sets the 90-day pilot timer (Q1 locked: "admin path also sets
-  // pilot_active_through so admin and self-serve paths produce identical
-  // state"). terms_accepted_via=admin differentiates from self-serve so
-  // the audit trail tells us which path the provider took.
-  const pilotActiveThroughIso = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 90);
-    return d.toISOString();
-  })();
-  // Admin-on-behalf conversion. Uses the SAME owned-claim primitive as the
-  // self-serve path (parity / Q1 lock), passing accountId=null: the provider
-  // hasn't authenticated yet, so the claimed row is created unowned and
-  // adopted when they later sign in via the magic link. Dedup-by
-  // source_provider_id + unique slug + claim_state="claimed" are enforced by
-  // the primitive (no duplicate vs the directory claim).
-  const pilotMetadata = {
-    interview_terms_accepted_at: nowIso,
-    pilot_active_through: pilotActiveThroughIso,
-    terms_accepted_via: "admin",
-  };
-  const oleraProviderId = (row.research_data as { olera_provider_id?: string })?.olera_provider_id;
-  let businessProfileId = row.provider_business_profile_id;
-
-  if (oleraProviderId) {
-    const result = await resolveOrClaimProviderProfile(db, {
-      oleraProviderId,
-      accountId: null,
-      pilotMetadata,
-      fallbackName: row.organization_name,
-    });
-    // conflict can't arise with accountId=null (no ownership comparison).
-    businessProfileId = result.business_profile_id;
-    await db
-      .from("student_outreach")
-      .update({ provider_business_profile_id: businessProfileId })
-      .eq("id", row.id);
-  } else if (businessProfileId) {
-    // Non-directory provider: patch metadata + claim directly.
-    const { data: bp } = await db
-      .from("business_profiles")
-      .select("metadata")
-      .eq("id", businessProfileId)
-      .maybeSingle();
-    if (!bp) throw new Error("Business profile not found");
-    const existingMeta = (bp.metadata as Record<string, unknown> | null) ?? {};
-    const { error: bpErr } = await db
-      .from("business_profiles")
-      .update({
-        metadata: { ...existingMeta, ...pilotMetadata },
-        claim_state: "claimed",
-        updated_at: nowIso,
-      })
-      .eq("id", businessProfileId);
-    if (bpErr) throw new Error(bpErr.message);
-  } else {
-    throw new Error("Provider row missing both provider_business_profile_id and olera_provider_id");
-  }
-
-  await insertTouchpoint(db, row.id, "stage_change", userId, {
-    notes: "Marked as Client (provider conversion)",
-    payload: { to: "client", via: "admin_make_client" },
-  });
-
-  const { error: srErr } = await db
-    .from("student_outreach")
-    .update({
-      status: "active_partner",
-      last_edited_by: userId,
-      last_edited_at: nowIso,
-    })
-    .eq("id", row.id);
-  if (srErr) throw new Error(srErr.message);
-
-  // v9 final: clean up every pending operational task on this
-  // outreach. The provider organization just converted — General
-  // Contact cards, Specific Contact cards, queued call follow-ups,
-  // queued cadence emails are all moot. Cancelling here removes
-  // them from Calls / Replies / Meetings instantly so admin
-  // doesn't have to chase ghost cards after conversion. The status
-  // transition above already removes the outreach from those tab
-  // queries, but cancelling pending tasks closes the loop on the
-  // task table too so the per-recipient fan-out counts go to 0
-  // (Calls especially counts pending tasks directly).
-  await db
-    .from("student_outreach_tasks")
-    .update({
-      status: "cancelled",
-      completed_at: nowIso,
-      completed_by: userId,
-    })
-    .eq("outreach_id", row.id)
-    .eq("status", "pending");
-
-  // Stop the cold + activation EMAIL drips too (Smartlead-side, not just CRM
-  // tasks) so a converted Client stops getting outreach emails even when the
-  // conversion came from a call rather than an email reply.
-  await stopRowSmartleadDrips(db, row, userId);
-}
+// handleMakeClient (admin-on-behalf provider conversion) was removed:
+// provider conversion is now SELF-SERVE ONLY via POST /api/medjobs/pilot/
+// activate. A provider becomes a Client only after they authenticate and
+// accept the pilot terms themselves (ownership-based claim — the unowned
+// claimed-but-adopted-later path no longer exists).
 
 async function handleSnooze(
   db: DB,

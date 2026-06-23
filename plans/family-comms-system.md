@@ -140,7 +140,8 @@ distance, reviews) + "more options." Evidence: response times are long; promisin
 - Cap coverage: all reused email types are already in `FAMILY_NUDGE_EMAIL_TYPES`; no new type, no cap edit.
 
 ### Ops / cutover (after the code reshape, behind dry-run)
-1. **Apply migration 115** (self-report event type) to the shared Supabase — required before R1 sends in prod.
+0. **Email Gallery FIRST (before cutover).** Build the consolidated variant visualizer (`plans/email-gallery.md`) so every family variant is reviewable in-product before the coordinator sends real email. The cutover sends live mail — eyeball the full set in the gallery first.
+1. **Apply migration 115** (self-report event type) — ✅ DONE 2026-06-23.
 2. Run coordinator `?dry_run=true`, validate the new selection mix vs live data (expect compare
    rungs up, the old naked-completion volume down).
 3. **Pause the 6 originals** in `cron_config` (outcome-check, provider-silent, never-engaged,

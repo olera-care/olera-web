@@ -23,8 +23,9 @@
  *   prospect       → thin "Pre-Flight in progress" indicator; the operational
  *                    surface (Visit Website / Call to Confirm / Launch
  *                    Outreach) lives in the Research Card below.
- *   in_outreach    → one-line reply/awaiting status + "Check for reply" (Calls
- *                    tab leads with "Call provider" instead).
+ *   in_outreach    → call-first everywhere except the Emails tab ("Call
+ *                    provider" + next-call countdown); Emails tab leads with
+ *                    "Check for reply". Matches how call_due reads.
  *   call_due       → phone + "Call to follow up" → call outcome modal.
  *   meeting_set    → meeting time + "Log meeting outcome" → meeting modal.
  *   follow_up      → custom event copy.
@@ -287,20 +288,20 @@ function InOutreachBody({
         ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
         : "Outreach in flight";
 
-  // One next-step button per tab, with the cross-channel action demoted to a
-  // small secondary link (escape hatch). Calls tab leads with "Call provider"
-  // → the call outcome modal; every other tab (Emails, Providers, Partners,
-  // Meetings) leads with "Check for reply" → the email outcome modal, since an
-  // in-outreach row is fundamentally awaiting a reply. Labels are row-kind
-  // aware (provider vs partner contact).
-  const isCallsTab = activeTab === "calls";
+  // Call-first everywhere EXCEPT the Emails tab. A call-due row (CallDueBody)
+  // already reads call-first on every surface; an awaiting-reply row with a
+  // queued call should match — otherwise providers (whose calls are scheduled
+  // for later → in_outreach) look reply-first while partners (call due now →
+  // call_due) look call-first, an inconsistency keyed on stage. The Emails tab
+  // stays reply-first (the email drawer). Labels are row-kind aware.
+  const callFirst = activeTab != null && activeTab !== "replies";
   const partner = isPartnerRow(ctx);
   const callLabel = partner ? "Call contact" : "Call provider";
   const replyLabel = partner ? "Check for reply to contact" : "Check for reply to provider";
   const callTitle = "Call this contact now and log the outcome against the call script.";
   const replyTitle = "Pull in their reply and log the outcome.";
 
-  // On the Calls tab the status should answer "when's the next call?" — the
+  // When leading call-first, the status answers "when's the next call?" — the
   // cadence call we're nudging with, as a countdown ("in 3d" / "due now"), not
   // the cadence day number. Falls back to the email/outreach status when no
   // call is queued.
@@ -339,7 +340,7 @@ function InOutreachBody({
             <>
               <p className="text-sm text-gray-700">{headline}</p>
               <p className="mt-1 text-xs text-gray-500">
-                {isCallsTab ? callSubline : subline}
+                {callFirst ? callSubline : subline}
               </p>
             </>
           )}
@@ -351,7 +352,7 @@ function InOutreachBody({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {isCallsTab ? (
+        {callFirst ? (
           <>
             <button onClick={() => setShowConfirmCall(true)} title={callTitle} className={primaryBtn}>
               ☎ {callLabel}

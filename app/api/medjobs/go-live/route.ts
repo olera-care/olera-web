@@ -4,6 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { candidateReadyEmail } from "@/lib/medjobs-email-templates";
 import { PARTNER_UNIVERSITIES, type PartnerUniversity } from "@/lib/staffing-outreach/partner-universities";
+import { recentlyNotifiedEmails } from "@/lib/medjobs/ready-notify";
 
 // The catchment fan-out runs in the background via after(); give it room beyond
 // the default function budget (verify-on-send + Resend per recipient).
@@ -92,7 +93,13 @@ export async function POST(_request: NextRequest) {
     const firstTime = !wasLive;
     if (firstTime) {
       const slug = student.slug;
-      const campus = typeof meta.campus === "string" ? meta.campus : null;
+      // metadata.campus is the PartnerUniversity slug (eligibility funnel);
+      // metadata.university is the display name (legacy apply funnel). Either
+      // resolves via name-or-slug, so fall back to keep both funnels covered.
+      const campus =
+        (typeof meta.campus === "string" && meta.campus) ||
+        (typeof meta.university === "string" && meta.university) ||
+        null;
       after(async () => {
         try {
           await notifyCatchmentProviders(getAdminClient(), { slug, campus });
@@ -153,7 +160,12 @@ async function notifyCatchmentProviders(
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const viewUrl = `${siteUrl}/medjobs/candidates/${student.slug}`;
 
-  // Build a de-duplicated recipient list (one email per address).
+  // Frequency cap: skip providers already sent a candidate-ready email within
+  // the rolling window, so a burst of go-lives near one campus can't repeatedly
+  // hit the same provider.
+  const suppress = await recentlyNotifiedEmails(admin, "medjobs_candidate_ready");
+
+  // Build a de-duplicated, capped recipient list (one email per address).
   const seen = new Set<string>();
   const recipients: Array<{ email: string; providerName: string | null }> = [];
   for (const o of outreach as Array<{ provider_id: string; sequence_email: string | null; research_data: Record<string, unknown> | null }>) {
@@ -165,7 +177,7 @@ async function notifyCatchmentProviders(
       null;
     if (!email) continue;
     const key = email.trim().toLowerCase();
-    if (seen.has(key)) continue;
+    if (seen.has(key) || suppress.has(key)) continue;
     seen.add(key);
     recipients.push({ email, providerName: dir?.provider_name ?? null });
     if (recipients.length >= MAX_CATCHMENT_NOTIFY) break;

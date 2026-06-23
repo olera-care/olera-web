@@ -14,6 +14,7 @@ import { createClient as createServiceClient, type SupabaseClient } from "@supab
 import { sendEmail } from "@/lib/email";
 import { jobReadyEmail } from "@/lib/medjobs-email-templates";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
+import { recentlyNotifiedEmails } from "@/lib/medjobs/ready-notify";
 
 const TERMS_KEY = "interview_terms_accepted_at";
 
@@ -164,14 +165,21 @@ async function notifyCatchmentStudents(
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const viewUrl = `${siteUrl}/provider/${provider.slug}?ctx=medjobs-student`;
 
+  // Frequency cap: students already sent a job-ready email within the window are
+  // skipped, so several providers accepting terms near one campus don't stack up.
+  const suppress = await recentlyNotifiedEmails(db, "medjobs_job_ready");
+
   const seen = new Set<string>();
   let sent = 0;
   for (const s of students as Array<{ id: string; email: string | null; display_name: string | null; metadata: Record<string, unknown> | null }>) {
     if (!s.email) continue;
-    const campus = (s.metadata?.campus as string | undefined)?.trim().toLowerCase();
+    // campus = PartnerUniversity slug (eligibility funnel); university = display
+    // name (legacy apply funnel). campusKeys holds both forms, so accept either.
+    const campusVal = (s.metadata?.campus as string | undefined) || (s.metadata?.university as string | undefined);
+    const campus = campusVal?.trim().toLowerCase();
     if (!campus || !campusKeys.has(campus)) continue;
     const key = s.email.trim().toLowerCase();
-    if (seen.has(key)) continue;
+    if (seen.has(key) || suppress.has(key)) continue;
     seen.add(key);
     try {
       await sendEmail({

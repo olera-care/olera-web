@@ -9,6 +9,7 @@ import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
 import { studentInterestColdEmail } from "@/lib/medjobs-email-templates";
+import { getUniversityBySlug } from "@/lib/staffing-outreach/partner-universities";
 import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { InterviewStatus } from "@/lib/types";
 
@@ -377,7 +378,13 @@ export async function POST(request: NextRequest) {
               .select("metadata")
               .eq("id", resolvedStudentId)
               .single();
-            campus = ((studentRow?.metadata as Record<string, unknown> | null)?.campus as string | undefined) ?? null;
+            // Use the university DISPLAY NAME for the email copy. metadata.campus
+            // is the PartnerUniversity slug ("texas-am"), metadata.university is
+            // the name ("Texas A&M University"); fall back slug→name, then null.
+            const sMeta = (studentRow?.metadata as Record<string, unknown> | null) ?? {};
+            const uniName = (sMeta.university as string | undefined)?.trim();
+            const campusSlug = (sMeta.campus as string | undefined)?.trim();
+            campus = uniName || (campusSlug ? getUniversityBySlug(campusSlug)?.name ?? null : null) || null;
           }
         }
 

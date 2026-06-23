@@ -275,7 +275,15 @@ function CandidateBrowseInner() {
 
   const cardEl = (c: CandidateData) =>
     isDemoEra ? (
-      <BrowseCard key={c.id} provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
+      <BrowseCard
+        key={c.id}
+        provider={candidateToCardFormat(c, { isDemo: true })}
+        variant="candidate"
+        isDemo
+        href={`/medjobs/candidates/${c.slug}`}
+        ctaLabel="More details"
+        onCta={() => router.push(`/medjobs/candidates/${c.slug}`)}
+      />
     ) : (
       <BrowseCard
         key={c.id}

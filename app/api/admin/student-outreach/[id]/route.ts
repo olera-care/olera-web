@@ -552,6 +552,9 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     display_name: string | null;
     city: string | null;
     state: string | null;
+    account_id: string | null;
+    claim_state: string | null;
+    verification_state: string | null;
     metadata: Record<string, unknown> | null;
     slug: string | null;
     phone: string | null;
@@ -569,7 +572,7 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
     const { data: bpRow } = await db
       .from("business_profiles")
       .select(
-        "email, display_name, city, state, zip, metadata, slug, phone, website, address, source_provider_id",
+        "email, display_name, city, state, zip, metadata, slug, phone, website, address, source_provider_id, account_id, claim_state, verification_state",
       )
       .eq("id", row.provider_business_profile_id)
       .maybeSingle();
@@ -586,6 +589,9 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
           website: string | null;
           address: string | null;
           source_provider_id: string | null;
+          account_id: string | null;
+          claim_state: string | null;
+          verification_state: string | null;
         }
       | null;
 
@@ -634,6 +640,9 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
         display_name: bp.display_name ?? null,
         city: bp.city ?? iosFallback?.city ?? null,
         state: bp.state ?? iosFallback?.state ?? null,
+        account_id: bp.account_id ?? null,
+        claim_state: bp.claim_state ?? null,
+        verification_state: bp.verification_state ?? null,
         metadata: bp.metadata ?? null,
         slug: bp.slug ?? null,
         phone: bp.phone ?? iosFallback?.phone ?? null,

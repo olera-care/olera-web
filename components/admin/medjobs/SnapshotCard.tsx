@@ -96,6 +96,24 @@ export function ProviderSnapshotCard({
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
 
+  // Pre-flight content lock. Once a real account owns the listing, its
+  // directory content is sovereign: Business Name + General Contact render
+  // read-only by default so an operator doesn't casually edit a claimed
+  // provider's profile. An Edit override unlocks them to capture a better
+  // contact found on a call — those edits persist to the outreach record only
+  // (the backend never mirrors a claimed provider's data to the directory; see
+  // update_general_contact + getProviderOwnership). Decision-maker targeting
+  // stays editable (CRM-only). Outreach still launches in either state.
+  const owned = Boolean(bp?.account_id);
+  const [overrideEdit, setOverrideEdit] = useState(false);
+  const editable = isPreLaunch && (!owned || overrideEdit);
+  const claimTag = owned
+    ? bp?.verification_state === "verified" ||
+      bp?.verification_state === "not_required"
+      ? "Claimed · verified"
+      : "Claimed · unverified"
+    : null;
+
   const activeContacts = useMemo(
     () => ctx.contacts.filter((c) => c.status === "active"),
     [ctx.contacts],
@@ -190,6 +208,32 @@ export function ProviderSnapshotCard({
         </div>
       </header>
 
+      {/* Claimed-provider lock banner. The provider owns this listing, so its
+          content is read-only by default; Edit captures a better outreach
+          contact (saved to the outreach record only — never the public page). */}
+      {owned && (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-amber-900">
+              🔒 {claimTag} — owned by the provider
+            </p>
+            <p className="mt-0.5 text-[11px] text-amber-800">
+              Fields are read-only; edits update our outreach contact only and
+              never change the provider&apos;s public page.
+            </p>
+          </div>
+          {isPreLaunch && (
+            <button
+              type="button"
+              onClick={() => setOverrideEdit((v) => !v)}
+              className="shrink-0 rounded-md border border-amber-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-amber-800 hover:bg-amber-100"
+            >
+              {overrideEdit ? "Done editing" : "Edit"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── 0. Business Name ───────────────────────────────────────
           Editable canonical name. Materialized from business_profiles
           but the directory data can be stale; admin needs to fix it
@@ -199,7 +243,7 @@ export function ProviderSnapshotCard({
         ctx={ctx}
         action={action}
         setError={setError}
-        editable={isPreLaunch}
+        editable={editable}
       />
 
       {/* ── 1. General Contact ─────────────────────────────────────
@@ -211,7 +255,7 @@ export function ProviderSnapshotCard({
         ctx={ctx}
         action={action}
         setError={setError}
-        editable={isPreLaunch}
+        editable={editable}
         lastContactFormOutcome={
           (lastContactFormTp?.payload as Record<string, unknown> | null)
             ?.outcome as string | undefined

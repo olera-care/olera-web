@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import type { CompletenessSection } from "@/lib/medjobs-completeness";
 
@@ -83,12 +84,12 @@ export default function GoLiveReviewModal({
           </p>
 
           <div className="relative z-10 space-y-3">
-            <a
+            <Link
               href="/portal/medjobs/jobs"
               className="block w-full px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg text-center"
             >
               Start browsing jobs
-            </a>
+            </Link>
             <button
               type="button"
               onClick={onClose}

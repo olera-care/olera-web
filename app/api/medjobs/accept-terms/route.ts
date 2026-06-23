@@ -109,7 +109,6 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, profile_id: profileId });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ServiceDb = SupabaseClient<any, any, any>;
 
 /**

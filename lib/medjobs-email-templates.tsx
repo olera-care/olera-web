@@ -53,6 +53,127 @@ function button(label: string, href: string): string {
   return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
 }
 
+/**
+ * Human signature block for the program's relationship-driven mail (the
+ * bidirectional "ready" notifications + the cold student-interest note). These
+ * are sent by Graize on Dr. DuBose's behalf, so they sign as a person rather
+ * than as a faceless product — matching the cold-outreach voice providers and
+ * students already know from the campaign.
+ */
+function graizeSignature(): string {
+  return `
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin:24px 0 0;border-top:1px solid #f3f4f6;">
+      <tr><td style="padding:16px 0 0;">
+        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">Graize Belandres</p>
+        <p style="font-size:13px;color:#6b7280;margin:2px 0 0;">Olera MedJobs</p>
+        <p style="font-size:12px;color:#9ca3af;margin:10px 0 0;font-style:italic;">Message approved by Dr. Logan DuBose, MD, MBA</p>
+      </td></tr>
+    </table>`;
+}
+
+// ── Bidirectional "ready" notifications (Graize-signed) ───────────────
+
+/**
+ * Cold provider notification: a real student requested to interview with a
+ * provider who hasn't claimed their account yet. Treated like cold outreach
+ * (Graize voice, isolated sending domain via the "medjobs_student_interest"
+ * type) rather than a transactional interview email. The claim link signs the
+ * provider in and drops them on the interview.
+ */
+export function studentInterestColdEmail({
+  providerName,
+  campus,
+  claimUrl,
+}: {
+  providerName?: string | null;
+  campus?: string | null;
+  claimUrl: string;
+}): string {
+  const safeProvider = providerName ? escapeHtml(firstName(providerName, "there")) : "there";
+  const studentDesc = campus ? `A ${escapeHtml(campus)} student` : "A local pre-health student";
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">
+      ${studentDesc} is interested in working with you
+    </h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProvider}, ${studentDesc.charAt(0).toLowerCase()}${studentDesc.slice(1)} caregiver candidate found your
+      agency on Olera and asked to set up an interview for a paid caregiver role. These are
+      pre-health students (pre-med, nursing, PA) looking for hands-on caregiving experience.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
+      Review the request and pick a time — it only takes a minute.
+    </p>
+    <p style="margin:0;">${button("Review the request", claimUrl)}</p>
+    ${graizeSignature()}
+  `, `${studentDesc} wants to interview with you`);
+}
+
+/**
+ * Provider notification (catchment-wide): a new student caregiver just went
+ * live near the provider. Sent to both claimed and cold providers in the
+ * catchment, so it carries the Graize voice and a one-click link to the
+ * candidate's profile.
+ */
+export function candidateReadyEmail({
+  providerName,
+  campus,
+  candidateName,
+  viewUrl,
+}: {
+  providerName?: string | null;
+  campus?: string | null;
+  candidateName?: string | null;
+  viewUrl: string;
+}): string {
+  const safeProvider = providerName ? escapeHtml(firstName(providerName, "there")) : "there";
+  const where = campus ? `near ${escapeHtml(campus)}` : "near you";
+  const who = candidateName ? escapeHtml(candidateName) : "A new student caregiver";
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">
+      Ready for interview: a student caregiver candidate ${where}
+    </h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProvider}, ${who} is now available to interview for a paid caregiver role ${where}.
+      Take a look at their profile and schedule an interview if they're a fit.
+    </p>
+    <p style="margin:0;">${button("View candidate", viewUrl)}</p>
+    ${graizeSignature()}
+  `, `A student caregiver candidate is ready to interview ${where}`);
+}
+
+/**
+ * Student notification (catchment-wide): a provider near the student's campus
+ * just opened a caregiver opportunity (accepted the program terms). Sent to
+ * live students on the warm olera.care domain, Graize-signed, with a one-click
+ * link to the provider's opportunity page.
+ */
+export function jobReadyEmail({
+  studentName,
+  campus,
+  providerName,
+  viewUrl,
+}: {
+  studentName?: string | null;
+  campus?: string | null;
+  providerName?: string | null;
+  viewUrl: string;
+}): string {
+  const safeStudent = studentName ? escapeHtml(firstName(studentName, "there")) : "there";
+  const where = campus ? `near ${escapeHtml(campus)}` : "near you";
+  const who = providerName ? escapeHtml(providerName) : "A care provider";
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">
+      A caregiver job ${where} is open
+    </h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeStudent}, ${who} ${where} is hiring student caregivers and ready to interview.
+      This is a paid role with flexible hours — a great way to build hands-on caregiving experience.
+    </p>
+    <p style="margin:0;">${button("See the opportunity", viewUrl)}</p>
+    ${graizeSignature()}
+  `, `A caregiver job ${where} just opened`);
+}
+
 // ── Student Templates ────────────────────────────────────────────
 
 export function studentWelcomeEmail({

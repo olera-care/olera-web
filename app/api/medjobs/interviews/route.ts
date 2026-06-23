@@ -8,6 +8,7 @@ import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
+import { studentInterestColdEmail } from "@/lib/medjobs-email-templates";
 import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { InterviewStatus } from "@/lib/types";
 
@@ -189,6 +190,21 @@ export async function POST(request: NextRequest) {
         .single();
       if (!target) return NextResponse.json({ error: "Provider not found" }, { status: 404 });
 
+      // De-dup [M6]: a student re-applying to the same provider must not spawn a
+      // second interview (and a second cold email to the provider). If a live
+      // request already exists, return it idempotently instead of re-creating.
+      const { data: existingInterview } = await admin
+        .from("interviews")
+        .select("id")
+        .eq("provider_profile_id", target.id)
+        .eq("student_profile_id", callerStudent.id)
+        .in("status", ["proposed", "confirmed", "rescheduled"])
+        .limit(1)
+        .maybeSingle();
+      if (existingInterview) {
+        return NextResponse.json({ interviewId: existingInterview.id, isPendingVerification: false, deduped: true });
+      }
+
       resolvedProviderId = target.id;
       resolvedStudentId = callerStudent.id;
       proposedById = callerStudent.id;
@@ -340,21 +356,63 @@ export async function POST(request: NextRequest) {
 
         // Determine recipient profile ID for preference checking
         const recipientIsStudent = !isProviderRecipient;
-        await sendEmail({
-          to: recipientEmail!,
-          subject: `Interview request from ${proposerName}`,
-          html: interviewProposedEmail({
-            proposerName,
-            interviewType: typeLabel,
-            proposedTime: time,
-            alternativeTime: formattedAltTime,
-            notes: notes || null,
-            viewUrl,
-          }),
-          emailType: "interview_proposed",
-          recipientType: recipientIsStudent ? "student" : "provider",
-          recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
-        });
+
+        // Student → unclaimed provider: treat the request like cold outreach.
+        // An unclaimed provider (no account_id) gets the Graize-signed "a
+        // student is interested" note on the isolated sending domain, with the
+        // claim link as the CTA — not the transactional interview email. A
+        // claimed provider (and every student recipient) gets the normal one.
+        let isColdProviderApply = false;
+        let campus: string | null = null;
+        if (isProviderRecipient) {
+          const { data: providerRow } = await admin
+            .from("business_profiles")
+            .select("account_id")
+            .eq("id", resolvedProviderId)
+            .single();
+          if (!providerRow?.account_id) {
+            isColdProviderApply = true;
+            const { data: studentRow } = await admin
+              .from("business_profiles")
+              .select("metadata")
+              .eq("id", resolvedStudentId)
+              .single();
+            campus = ((studentRow?.metadata as Record<string, unknown> | null)?.campus as string | undefined) ?? null;
+          }
+        }
+
+        if (isColdProviderApply) {
+          await sendEmail({
+            to: recipientEmail!,
+            subject: campus
+              ? `A ${campus} student is interested in working with you`
+              : "A student is interested in working with you",
+            html: studentInterestColdEmail({
+              providerName: providerProfile.display_name,
+              campus,
+              claimUrl: viewUrl,
+            }),
+            emailType: "medjobs_student_interest",
+            recipientType: "provider",
+            providerId: resolvedProviderId,
+          });
+        } else {
+          await sendEmail({
+            to: recipientEmail!,
+            subject: `Interview request from ${proposerName}`,
+            html: interviewProposedEmail({
+              proposerName,
+              interviewType: typeLabel,
+              proposedTime: time,
+              alternativeTime: formattedAltTime,
+              notes: notes || null,
+              viewUrl,
+            }),
+            emailType: "interview_proposed",
+            recipientType: recipientIsStudent ? "student" : "provider",
+            recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
+          });
+        }
       } catch (err) {
         console.error("[medjobs/interviews] email error:", err);
       }

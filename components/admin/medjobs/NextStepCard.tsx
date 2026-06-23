@@ -299,6 +299,13 @@ function InOutreachBody({
   const callTitle = "Call this contact now and log the outcome against the call script.";
   const replyTitle = "Pull in their reply and log the outcome.";
 
+  // On the Calls tab the status should answer "when's the next call?" — the
+  // outreach-cadence call we're nudging with — not the next email. Falls back
+  // to the email/outreach status when no call is queued.
+  const callSubline = confirmCallTask
+    ? `Next call${confirmDay != null ? ` · Day ${confirmDay}` : ""} · ${formatRelative(confirmCallTask.due_at)}`
+    : subline;
+
   // The provider's address on the landed reply, for the one-line status.
   const replyFrom = latestReply
     ? ((): string | null => {
@@ -329,7 +336,9 @@ function InOutreachBody({
           ) : (
             <>
               <p className="text-sm text-gray-700">{headline}</p>
-              <p className="mt-1 text-xs text-gray-500">{subline}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {isCallsTab ? callSubline : subline}
+              </p>
             </>
           )}
         </div>

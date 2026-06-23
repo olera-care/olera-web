@@ -40,6 +40,7 @@ import {
   type Stage,
 } from "@/lib/medjobs/stage";
 import {
+  formatDueDate,
   formatLongDate,
   formatRelative,
 } from "@/lib/student-outreach/formatters";
@@ -278,10 +279,10 @@ function InOutreachBody({
   const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
   const subline = activationRunning
     ? nextActivationCall
-      ? `Next call ${formatRelative(nextActivationCall.due_at)}`
+      ? `Next call ${formatDueDate(nextActivationCall.due_at)}`
       : "Follow-ups queued"
     : nextEmail
-      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
+      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatDueDate(nextEmail.due_at)}`
       : lastEmailSent
         ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
         : "Outreach in flight";
@@ -300,10 +301,11 @@ function InOutreachBody({
   const replyTitle = "Pull in their reply and log the outcome.";
 
   // On the Calls tab the status should answer "when's the next call?" — the
-  // outreach-cadence call we're nudging with — not the next email. Falls back
-  // to the email/outreach status when no call is queued.
+  // cadence call we're nudging with, as a countdown ("in 3d" / "due now"), not
+  // the cadence day number. Falls back to the email/outreach status when no
+  // call is queued.
   const callSubline = confirmCallTask
-    ? `Next call${confirmDay != null ? ` · Day ${confirmDay}` : ""} · ${formatRelative(confirmCallTask.due_at)}`
+    ? `Next call ${formatDueDate(confirmCallTask.due_at)}`
     : subline;
 
   // The provider's address on the landed reply, for the one-line status.
@@ -475,6 +477,7 @@ function CallDueBody({
     typeof nextCallTask?.payload?.day === "number"
       ? (nextCallTask.payload.day as number)
       : null;
+  const callLabel = isPartnerRow(ctx) ? "Call contact" : "Call provider";
 
   return (
     <>
@@ -484,6 +487,11 @@ function CallDueBody({
         </span>
       </div>
       <p className="mt-2 text-sm font-medium text-gray-900">Next step: call to follow up</p>
+      {nextCallTask && (
+        <p className="mt-1 text-xs text-gray-500">
+          Next call {formatDueDate(nextCallTask.due_at)}
+        </p>
+      )}
       {primaryContact?.phone && (
         <p className="mt-1 text-sm">
           <a
@@ -502,7 +510,7 @@ function CallDueBody({
           onClick={() => setShowFollowUp(true)}
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          ☎ Call to follow up
+          ☎ {callLabel}
         </button>
       </div>
       {showFollowUp && (

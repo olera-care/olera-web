@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getServiceClient } from "@/lib/admin";
-import { SUPABASE_CAT_TO_PROFILE_CATEGORY } from "@/lib/types/provider";
+import { directoryHydrationFields, DIRECTORY_HYDRATION_COLUMNS } from "@/lib/providers/directory-hydrate";
 import { sendSlackAlert } from "@/lib/slack";
 
 function genSlug(base: string): string {
@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Look up the directory provider.
+    // Look up the directory provider (incl. the display fields to hydrate with).
     let q = db
       .from("olera-providers")
       .select(
-        "provider_id, provider_name, city, state, provider_category, provider_description, slug, phone, website, email",
+        `provider_id, provider_name, city, state, slug, phone, website, email, ${DIRECTORY_HYDRATION_COLUMNS}`,
       )
       .or("deleted.is.null,deleted.eq.false")
       .limit(1);
@@ -57,14 +57,24 @@ export async function POST(request: NextRequest) {
 
     const pid = (provider as { provider_id: string }).provider_id;
 
-    // Already materialized? (matched by source_provider_id, then slug.)
+    // Already materialized? Match on the canonical top-level source_provider_id
+    // column (with a legacy metadata fallback for rows created before the
+    // standardization), then by slug.
     const { data: bySource } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("source_provider_id", pid)
+      .maybeSingle();
+    if (bySource) {
+      return NextResponse.json({ providerProfileId: (bySource as { id: string }).id });
+    }
+    const { data: byLegacyMeta } = await db
       .from("business_profiles")
       .select("id")
       .filter("metadata->>source_provider_id", "eq", pid)
       .maybeSingle();
-    if (bySource) {
-      return NextResponse.json({ providerProfileId: (bySource as { id: string }).id });
+    if (byLegacyMeta) {
+      return NextResponse.json({ providerProfileId: (byLegacyMeta as { id: string }).id });
     }
 
     const oleraSlug = (provider as { slug: string | null }).slug;
@@ -80,20 +90,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create a minimal unclaimed organization shell from the directory row.
+    // Create an unclaimed organization record from the directory row, hydrated
+    // with its full display data (one complete record) and linked via the
+    // canonical top-level source_provider_id column.
     const p = provider as {
       provider_name: string | null;
       city: string | null;
       state: string | null;
-      provider_category: string | null;
-      provider_description: string | null;
       phone: string | null;
       website: string | null;
       email: string | null;
     };
-    const category = p.provider_category
-      ? SUPABASE_CAT_TO_PROFILE_CATEGORY[p.provider_category] ?? null
-      : null;
+    const hydration = directoryHydrationFields(provider as Record<string, unknown>);
 
     const { data: created, error } = await db
       .from("business_profiles")
@@ -101,13 +109,19 @@ export async function POST(request: NextRequest) {
         slug: genSlug(p.provider_name || oleraSlug || "provider"),
         type: "organization",
         display_name: p.provider_name || "Local provider",
-        description: p.provider_description ?? null,
+        description: hydration.description,
+        care_types: hydration.care_types,
+        category: hydration.category,
+        image_url: hydration.image_url,
         email: p.email ?? null,
         phone: p.phone ?? null,
+        website: p.website ?? null,
         city: p.city ?? null,
         state: p.state ?? null,
-        category,
-        metadata: { source_provider_id: pid, source: "medjobs_request" },
+        source_provider_id: pid,
+        metadata: hydration.images.length
+          ? { source: "medjobs_request", images: hydration.images }
+          : { source: "medjobs_request" },
         claim_state: "unclaimed",
         verification_state: "unverified",
         source: "seeded",

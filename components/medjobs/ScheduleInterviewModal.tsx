@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
 import UpgradeModal from "@/components/medjobs/UpgradeModal";
+import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
 
 export interface ScheduleFormData {
   type: "video" | "in_person" | "phone";
@@ -230,6 +231,7 @@ export default function ScheduleInterviewModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const isStudentInitiated = !!providerProfileId;
   const firstName = otherName.split(" ")[0];
@@ -265,6 +267,21 @@ export default function ScheduleInterviewModal({
     const alternativeTime = altDate && altTime ? new Date(`${altDate}T${altTime}`).toISOString() : undefined;
 
     try {
+      // Provider → student: record the one-time Terms acceptance (the scheduling
+      // gate) before proposing. Student → provider doesn't agree to provider terms.
+      if (!isStudentInitiated) {
+        const tRes = await fetch("/api/medjobs/accept-terms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        if (!tRes.ok) {
+          setError("Could not record your agreement. Please try again.");
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const res = await fetch("/api/medjobs/interviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,6 +298,10 @@ export default function ScheduleInterviewModal({
         setShowUpgradeModal(true);
         return;
       }
+      if (data.error === "terms_required") {
+        setError("Please accept the placement terms before scheduling.");
+        return;
+      }
       if (!res.ok) { setError(data.error || "Failed to schedule."); return; }
       // If interview is pending verification, notify parent so it can show appropriate CTA
       if (data.isPendingVerification && onScheduledUnverified) {
@@ -294,13 +315,29 @@ export default function ScheduleInterviewModal({
     }
   };
 
-  // Providers must accept T&C before scheduling; students don't need to
-  const canSubmit = date && time && !submitting;
+  // Provider → student must agree to the placement Terms before scheduling
+  // (the only gate). Student → provider has no provider-terms checkbox.
+  const canSubmit = !!date && !!time && !submitting && (isStudentInitiated || agreed);
 
-  // Footer with T&C and submit button - always visible at bottom
+  // Footer with T&C opt-in and submit button - always visible at bottom
   const footer = (
-    <div className="space-y-4 pt-2">
-      {/* Submit button */}
+    <div className="space-y-3 pt-2">
+      {!isStudentInitiated && (
+        <label className="flex items-start gap-2.5 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          />
+          <span>
+            I agree to the{" "}
+            <a href={EMPLOYER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary-700 hover:underline">
+              Terms &amp; Conditions
+            </a>
+          </span>
+        </label>
+      )}
       <button
         type="button"
         onClick={handleSubmit}

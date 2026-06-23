@@ -74,7 +74,7 @@ export default function ProvidersMarketing() {
               </div>
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <Link href={NEEDS_QUIZ_HREF} className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors">
-                  Tell us your hiring needs →
+                  Get started →
                 </Link>
                 <a href={PROVIDER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary-700 hover:underline">
                   Read provider agreement ↗
@@ -277,7 +277,7 @@ export default function ProvidersMarketing() {
           </h2>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href={NEEDS_QUIZ_HREF} className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20">
-              Tell us your hiring needs →
+              Get started →
             </Link>
             <a href={PROVIDER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary-700 hover:underline">
               Read provider agreement ↗

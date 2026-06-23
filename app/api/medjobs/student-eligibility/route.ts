@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
         email,
-        options: { redirectTo: `${siteUrl}/medjobs/families` },
+        options: { redirectTo: `${siteUrl}/portal/medjobs/jobs` },
       });
       // Actually send the sign-in link (generateLink only mints it).
       try {
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
         const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
           type: "magiclink",
           email,
-          options: { redirectTo: `${siteUrl}/medjobs/families` },
+          options: { redirectTo: `${siteUrl}/portal/medjobs/jobs` },
         });
         if (linkData?.properties?.hashed_token) {
           insertPathSignInToken = linkData.properties.hashed_token;

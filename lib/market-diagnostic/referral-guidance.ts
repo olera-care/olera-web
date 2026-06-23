@@ -55,6 +55,24 @@ export function getReferralGuidance(cat: string, agencyName?: string, city?: str
       ask: "Set up a two-way referral relationship.",
       whyCare: "Their clients need reliable care partners — and you can send them planning clients too.",
     },
+    home_health: {
+      askFor: "the intake coordinator or clinical director",
+      opener: `${intro} I provide the non-medical support — companion care, personal care, errands — that complements your clinical services.`,
+      ask: "Be their go-to for families who need more than skilled nursing can provide.",
+      whyCare: "A reliable non-medical partner extends their reach and keeps patients safer at home.",
+    },
+    financial: {
+      askFor: "the advisor or their client services team",
+      opener: `${intro} Many of your clients planning for retirement or long-term care end up needing help at home — I'd love to be a resource you can trust.`,
+      ask: "Be on their list when clients ask about care options.",
+      whyCare: "Their clients are planning ahead — you're the answer when the plan becomes real.",
+    },
+    faith: {
+      askFor: "the pastor, parish nurse, or senior ministry coordinator",
+      opener: `${intro} I help families in your congregation who need a hand at home — I'd love to be a trusted resource you can recommend.`,
+      ask: "Be their referral when members ask about care options.",
+      whyCare: "Their congregation trusts their recommendations — you become part of that circle of care.",
+    },
   };
 
   return G[cat] ?? null;

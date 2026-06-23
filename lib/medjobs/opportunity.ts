@@ -58,6 +58,65 @@ export interface Opportunity {
   pay: string;
   isFallback: boolean;
   note?: string;
+  /** Optional, only when the employer has filled them in ("Your ideal caregiver"). */
+  certifications?: string[];
+  skills?: string[];
+  hoursLabel?: string;
+}
+
+/**
+ * The persisted "Your ideal caregiver" fields a provider can optionally add to
+ * sharpen matches and enrich their student-facing opportunity. Stored on
+ * business_profiles.metadata[OPPORTUNITY_PROFILE_KEY]. Everything is optional —
+ * the deterministic fallback (buildOpportunity) covers anything left blank, so
+ * the provider is always "live" without filling any of this in.
+ */
+export const OPPORTUNITY_PROFILE_KEY = "medjobs_opportunity";
+
+export type HoursPerWeek = "0_10" | "10_20" | "20_30" | "30_plus";
+
+export interface OpportunityProfile {
+  certifications?: string[];
+  skills?: string[];
+  hours_per_week?: HoursPerWeek;
+  pay_min?: string;
+  pay_max?: string;
+  commitment?: "one_term" | "multiple_terms";
+}
+
+const HOURS_LABELS: Record<HoursPerWeek, string> = {
+  "0_10": "Up to 10 hrs/wk",
+  "10_20": "10–20 hrs/wk",
+  "20_30": "20–30 hrs/wk",
+  "30_plus": "30+ hrs/wk",
+};
+
+/** Read the persisted opportunity profile off a profile's metadata. */
+export function readOpportunityProfile(
+  metadata: Record<string, unknown> | null | undefined,
+): OpportunityProfile {
+  const raw = metadata?.[OPPORTUNITY_PROFILE_KEY];
+  return raw && typeof raw === "object" ? (raw as OpportunityProfile) : {};
+}
+
+/**
+ * Profile completeness for the unified provider profile bar. Intentionally
+ * low-stakes: the provider is live regardless; this just nudges enrichment.
+ * Returns a 0–100 percentage across a small set of value-bearing fields.
+ */
+export function opportunityCompleteness(
+  profile: OpportunityProfile,
+  demandCoverage?: string[] | null,
+): number {
+  const checks = [
+    (demandCoverage?.length ?? 0) > 0, // coverage from the eligibility screener
+    (profile.certifications?.length ?? 0) > 0,
+    !!profile.hours_per_week,
+    !!(profile.pay_min && profile.pay_max),
+    (profile.skills?.length ?? 0) > 0,
+  ];
+  const done = checks.filter(Boolean).length;
+  return Math.round((done / checks.length) * 100);
 }
 
 export function buildOpportunity(args: {
@@ -67,6 +126,8 @@ export function buildOpportunity(args: {
   isClaimed?: boolean;
   /** Optional real shift needs, when we have them. */
   coverageBuckets?: string[];
+  /** Optional persisted "Your ideal caregiver" overrides — applied when present. */
+  profile?: OpportunityProfile;
 }): Opportunity {
   const text = args.careText || "";
   const entry = TASKS_BY_TYPE.find((t) => t.match.test(text)) ?? TASKS_BY_TYPE[TASKS_BY_TYPE.length - 1];
@@ -77,16 +138,22 @@ export function buildOpportunity(args: {
     ? `Usually ${buckets.length === 1 ? buckets[0] : `${buckets.slice(0, -1).join(", ")} and ${buckets[buckets.length - 1]}`}, arranged with the employer.`
     : "Flexible shifts arranged with the employer, around your class schedule.";
 
+  const profile = args.profile ?? {};
+  const hasWage = !!(profile.pay_min && profile.pay_max);
   const isFallback = !args.isClaimed;
 
   return {
     roleLabel: `Student Caregiver · ${entry.label}`,
     tasks: entry.tasks,
-    when,
-    pay: "Pay is set with the employer.",
-    isFallback,
-    note: isFallback
+    when: profile.hours_per_week ? `${HOURS_LABELS[profile.hours_per_week]}, arranged with the employer.` : when,
+    // Pay shows the employer-set wage when present; otherwise stays honest.
+    pay: hasWage ? `$${profile.pay_min}–$${profile.pay_max}/hr` : "Pay is set with the employer.",
+    isFallback: isFallback && !hasWage,
+    note: isFallback && !hasWage
       ? `This is a typical ${entry.label.toLowerCase()} role. Exact details are confirmed with the employer at your interview.`
       : undefined,
+    certifications: profile.certifications?.length ? profile.certifications : undefined,
+    skills: profile.skills?.length ? profile.skills : undefined,
+    hoursLabel: profile.hours_per_week ? HOURS_LABELS[profile.hours_per_week] : undefined,
   };
 }

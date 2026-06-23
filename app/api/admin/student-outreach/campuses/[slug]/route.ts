@@ -44,8 +44,18 @@ export async function GET(
     dept_head: [],
     professor: [],
   };
+  // Provider rows live in student_outreach too (kind="provider"); they are NOT
+  // partner stakeholders, so they don't belong in the partner-type buckets.
+  // Grouping them by stakeholder_type used to crash (undefined bucket .push) →
+  // 500 with an empty body → the page's res.json() threw "Unexpected end of
+  // JSON input". Split providers out and guard unknown stakeholder types.
+  const providers: OutreachRow[] = [];
   for (const r of (stakeholders ?? []) as OutreachRow[]) {
-    grouped[r.stakeholder_type].push(r);
+    if (r.kind === "provider") {
+      providers.push(r);
+      continue;
+    }
+    if (grouped[r.stakeholder_type]) grouped[r.stakeholder_type].push(r);
   }
 
   const statusSummary: Partial<Record<Status, number>> = {};
@@ -85,6 +95,7 @@ export async function GET(
   return NextResponse.json({
     campus,
     stakeholders_by_type: grouped,
+    providers,
     approvals_by_outreach: approvalsByOutreach,
     total: stakeholders?.length ?? 0,
     status_summary: statusSummary,

@@ -3,11 +3,14 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
-import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
+import { generateMedJobsNotificationUrl, generateMedJobsStudentInterviewUrl } from "@/lib/claim-tokens";
 import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
 import { interviewProposedEmail, interviewConfirmedEmail, interviewCancelledEmail } from "@/lib/email-templates";
+import { studentInterestColdEmail } from "@/lib/medjobs-email-templates";
+import { getUniversityBySlug } from "@/lib/staffing-outreach/partner-universities";
+import { MEDJOBS_INTERVIEW_OPEN_LOOP } from "@/lib/medjobs/flags";
 import type { InterviewStatus } from "@/lib/types";
 
 function getAdminClient() {
@@ -145,11 +148,21 @@ export async function POST(request: NextRequest) {
         .eq("id", callerProvider.id)
         .single();
       const providerMeta = (providerFull?.metadata ?? {}) as Record<string, unknown>;
-      if (!isMedjobsEligible(providerMeta)) {
+      // MVP open-loop bypasses the eligibility gate (screener) so the scheduling
+      // loop runs without friction; otherwise eligibility is required.
+      if (!MEDJOBS_INTERVIEW_OPEN_LOOP && !isMedjobsEligible(providerMeta)) {
         return NextResponse.json({ error: "eligibility_required" }, { status: 402 });
       }
 
-      // Eligible providers notify the student immediately (no verification hold).
+      // Terms gate (the real MVP gate): a provider must have accepted the
+      // placement Terms before inviting a student. The UI ladder collects this
+      // first; enforcing it server-side closes the direct-API hole. 403 so the
+      // client doesn't mistake it for the (removed) paywall 402.
+      if (!providerMeta["interview_terms_accepted_at"]) {
+        return NextResponse.json({ error: "terms_required" }, { status: 403 });
+      }
+
+      // Notify the student immediately — no pending-verification hold (MVP).
       isPendingVerification = false;
 
       const { data: target } = await admin
@@ -177,6 +190,21 @@ export async function POST(request: NextRequest) {
         .in("type", ["organization", "caregiver"])
         .single();
       if (!target) return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+
+      // De-dup [M6]: a student re-applying to the same provider must not spawn a
+      // second interview (and a second cold email to the provider). If a live
+      // request already exists, return it idempotently instead of re-creating.
+      const { data: existingInterview } = await admin
+        .from("interviews")
+        .select("id")
+        .eq("provider_profile_id", target.id)
+        .eq("student_profile_id", callerStudent.id)
+        .in("status", ["proposed", "confirmed", "rescheduled"])
+        .limit(1)
+        .maybeSingle();
+      if (existingInterview) {
+        return NextResponse.json({ interviewId: existingInterview.id, isPendingVerification: false, deduped: true });
+      }
 
       resolvedProviderId = target.id;
       resolvedStudentId = callerStudent.id;
@@ -319,27 +347,79 @@ export async function POST(request: NextRequest) {
             ? generateMedJobsNotificationUrl(providerProfile.slug, providerProfile.email, "interview", interview.id)
             : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
         } else {
-          // Student receives - use portal link (unchanged from original)
-          viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+          // Student receives - one-click magic link to their portal interviews
+          // tab (auto-opens the new interview), falling back to the plain portal
+          // link if the email is somehow missing.
+          viewUrl = studentProfile.email
+            ? generateMedJobsStudentInterviewUrl(studentProfile.email, interview.id)
+            : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
         }
 
         // Determine recipient profile ID for preference checking
         const recipientIsStudent = !isProviderRecipient;
-        await sendEmail({
-          to: recipientEmail!,
-          subject: `Interview request from ${proposerName}`,
-          html: interviewProposedEmail({
-            proposerName,
-            interviewType: typeLabel,
-            proposedTime: time,
-            alternativeTime: formattedAltTime,
-            notes: notes || null,
-            viewUrl,
-          }),
-          emailType: "interview_proposed",
-          recipientType: recipientIsStudent ? "student" : "provider",
-          recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
-        });
+
+        // Student → unclaimed provider: treat the request like cold outreach.
+        // An unclaimed provider (no account_id) gets the Graize-signed "a
+        // student is interested" note on the isolated sending domain, with the
+        // claim link as the CTA — not the transactional interview email. A
+        // claimed provider (and every student recipient) gets the normal one.
+        let isColdProviderApply = false;
+        let campus: string | null = null;
+        if (isProviderRecipient) {
+          const { data: providerRow } = await admin
+            .from("business_profiles")
+            .select("account_id")
+            .eq("id", resolvedProviderId)
+            .single();
+          if (!providerRow?.account_id) {
+            isColdProviderApply = true;
+            const { data: studentRow } = await admin
+              .from("business_profiles")
+              .select("metadata")
+              .eq("id", resolvedStudentId)
+              .single();
+            // Use the university DISPLAY NAME for the email copy. metadata.campus
+            // is the PartnerUniversity slug ("texas-am"), metadata.university is
+            // the name ("Texas A&M University"); fall back slug→name, then null.
+            const sMeta = (studentRow?.metadata as Record<string, unknown> | null) ?? {};
+            const uniName = (sMeta.university as string | undefined)?.trim();
+            const campusSlug = (sMeta.campus as string | undefined)?.trim();
+            campus = uniName || (campusSlug ? getUniversityBySlug(campusSlug)?.name ?? null : null) || null;
+          }
+        }
+
+        if (isColdProviderApply) {
+          await sendEmail({
+            to: recipientEmail!,
+            subject: campus
+              ? `A ${campus} student is interested in working with you`
+              : "A student is interested in working with you",
+            html: studentInterestColdEmail({
+              providerName: providerProfile.display_name,
+              campus,
+              claimUrl: viewUrl,
+            }),
+            emailType: "medjobs_student_interest",
+            recipientType: "provider",
+            providerId: resolvedProviderId,
+          });
+        } else {
+          await sendEmail({
+            to: recipientEmail!,
+            subject: `Interview request from ${proposerName}`,
+            html: interviewProposedEmail({
+              proposerName,
+              interviewType: typeLabel,
+              proposedTime: time,
+              alternativeTime: formattedAltTime,
+              notes: notes || null,
+              viewUrl,
+            }),
+            emailType: "interview_proposed",
+            recipientType: recipientIsStudent ? "student" : "provider",
+            recipientProfileId: recipientIsStudent ? resolvedStudentId : resolvedProviderId,
+          });
+        }
       } catch (err) {
         console.error("[medjobs/interviews] email error:", err);
       }
@@ -408,8 +488,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Interview pending provider verification" }, { status: 403 });
     }
 
-    // Paywall gate: if a provider is confirming an inbound interview, check their tier
-    if (status === "confirmed") {
+    // Paywall gate: if a provider is confirming an inbound interview, check their
+    // tier. MVP "open the loop" (MEDJOBS_INTERVIEW_OPEN_LOOP) bypasses this so the
+    // scheduling loop runs end-to-end with no payment — the gate is Terms
+    // acceptance, not a paid tier. Flip the env flag to restore the paywall.
+    if (status === "confirmed" && !MEDJOBS_INTERVIEW_OPEN_LOOP) {
       const isProviderConfirming =
         userProfileIds.includes(interview.provider_profile_id) &&
         interview.proposed_by !== interview.provider_profile_id;
@@ -437,6 +520,12 @@ export async function PATCH(request: NextRequest) {
     if (status === "rescheduled" && newTime) {
       update.proposed_time = newTime;
       update.status = "proposed";
+      // Flip ownership to the rescheduler so the OTHER party sees Confirm (not
+      // Withdraw) on the counter-proposed time. Without this, proposed_by stays
+      // on the original proposer and the reschedule can never be accepted.
+      update.proposed_by = userProfileIds.includes(interview.provider_profile_id)
+        ? interview.provider_profile_id
+        : interview.student_profile_id;
     }
 
     await admin.from("interviews").update(update).eq("id", interviewId);
@@ -466,8 +555,10 @@ export async function PATCH(request: NextRequest) {
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
       });
 
-      // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
-      const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+      // Generate view URLs - both parties get a one-click magic link for auto-sign-in
+      const studentViewUrl = student.email
+        ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
       const providerViewUrl = provider.slug && provider.email
         ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
         : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
@@ -508,8 +599,10 @@ export async function PATCH(request: NextRequest) {
 
     if (status === "cancelled") {
       try {
-        // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
-        const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        // Generate view URLs - both parties get a one-click magic link for auto-sign-in
+        const studentViewUrl = student.email
+          ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+          : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
         const providerViewUrl = provider.slug && provider.email
           ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
           : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
@@ -533,6 +626,51 @@ export async function PATCH(request: NextRequest) {
         });
       } catch (err) {
         console.error("[medjobs/interviews] cancel email error:", err);
+      }
+    }
+
+    // Reschedule: a new time was proposed (status was flipped back to "proposed"
+    // above). Notify the OTHER party so they can review it like a fresh request
+    // [H3] — without this the rescheduled time silently never reaches them.
+    if (status === "rescheduled" && newTime) {
+      try {
+        const callerIsProvider = userProfileIds.includes(interview.provider_profile_id);
+        const recipient = callerIsProvider ? student : provider;
+        const proposerName = callerIsProvider ? provider.display_name : student.display_name;
+        const typeLabel = interview.type === "video" ? "Video" : interview.type === "in_person" ? "In-Person" : "Phone";
+        const time = new Date(newTime).toLocaleString("en-US", {
+          weekday: "long", month: "long", day: "numeric",
+          hour: "numeric", minute: "2-digit", timeZoneName: "short",
+        });
+
+        // Recipient gets a one-click magic link to their respective surface.
+        const viewUrl = callerIsProvider
+          ? (student.email
+              ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`)
+          : (provider.slug && provider.email
+              ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
+              : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`);
+
+        if (recipient.email) {
+          await sendEmail({
+            to: recipient.email,
+            subject: `New interview time proposed by ${proposerName}`,
+            html: interviewProposedEmail({
+              proposerName,
+              interviewType: typeLabel,
+              proposedTime: time,
+              alternativeTime: null,
+              notes: interview.notes || null,
+              viewUrl,
+            }),
+            emailType: "interview_proposed",
+            recipientType: callerIsProvider ? "student" : "provider",
+            recipientProfileId: callerIsProvider ? interview.student_profile_id : interview.provider_profile_id,
+          });
+        }
+      } catch (err) {
+        console.error("[medjobs/interviews] reschedule email error:", err);
       }
     }
 

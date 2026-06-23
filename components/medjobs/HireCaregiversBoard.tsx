@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
-import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
-import PostJobComingSoonModal from "@/components/medjobs/PostJobComingSoonModal";
+import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 
 /**
- * HireCaregiversBoard — the signed-in provider's "Hire caregivers" board at
- * /provider/medjobs/candidates (the provider mirror of the student JobsBoard).
- * Candidate tiles + a campus map, filtered by university and availability.
- * Reuses the public candidate feed + BrowseMap; demo fallback keeps it full.
+ * HireCaregiversBoard — the signed-in provider's "Hire Caregivers" board at
+ * /provider/medjobs/candidates. The provider mirror of the student Find Jobs
+ * board: catchment students on a campus map + "Schedule interview." Auto-filters
+ * to the provider's own catchment (city/state → partner university); providers
+ * outside any catchment see the demo set. No post-a-job machinery (MVP).
  */
 
 const CampusMap = dynamic(() => import("@/components/browse/CampusMap"), {
@@ -56,15 +57,12 @@ function matchesAvailability(c: CandidateData, val: string): boolean {
 
 export default function HireCaregiversBoard() {
   const { profiles } = useAuth();
-  const providerProfile = profiles?.find((p) => p.type === "organization");
+  const providerProfile = profiles?.find((p) => p.type === "organization" || p.type === "caregiver");
   const matchBuckets = (
     (providerProfile?.metadata as Record<string, unknown> | undefined)?.[
       "medjobs_demand_profile"
     ] as { coverage_buckets?: string[] } | undefined
   )?.coverage_buckets;
-  const eligible = isMedjobsEligible(
-    (providerProfile?.metadata ?? null) as Record<string, unknown> | null,
-  );
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [universityId, setUniversityId] = useState("");
@@ -72,9 +70,14 @@ export default function HireCaregiversBoard() {
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  // "Post a Job" is a placeholder for now — see the HANDOFF note by the modal.
-  const [showPostJob, setShowPostJob] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<CandidateData | null>(null);
+  const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
+  // null = unknown/not yet resolved; false = provider not near any partner campus
+  // (→ show demos); true = in a catchment (→ show that campus's real students).
+  const [inCatchment, setInCatchment] = useState<boolean | null>(null);
+  const autoFilteredRef = useRef(false);
 
+  // Universities for the dropdown + catchment id mapping.
   useEffect(() => {
     const sb = createClient();
     sb.from("medjobs_universities")
@@ -85,6 +88,48 @@ export default function HireCaregiversBoard() {
         if (data) setUniversities(data);
       });
   }, []);
+
+  // Auto-filter to the provider's own catchment: resolve their city/state →
+  // partner university → the matching medjobs_universities row. Runs once, after
+  // the university list loads. No catchment match → show demos.
+  useEffect(() => {
+    if (autoFilteredRef.current || universities.length === 0 || !providerProfile?.id) return;
+    autoFilteredRef.current = true;
+    (async () => {
+      try {
+        const sb = createClient();
+        const { data } = await sb
+          .from("business_profiles")
+          .select("city, state")
+          .eq("id", providerProfile.id)
+          .single();
+        const pcity = (data?.city as string | undefined)?.trim().toLowerCase();
+        const pstate = (data?.state as string | undefined)?.trim().toUpperCase();
+        if (!pcity || !pstate) {
+          setInCatchment(false);
+          return;
+        }
+        const matchUni = PARTNER_UNIVERSITIES.find((u) =>
+          u.catchment.some((c) => c.city.toLowerCase() === pcity && c.state.toUpperCase() === pstate),
+        );
+        if (!matchUni) {
+          setInCatchment(false);
+          return;
+        }
+        const med = universities.find((u) => u.name.toLowerCase() === matchUni.name.toLowerCase());
+        if (med) {
+          setUniversityId(med.id);
+          setInCatchment(true);
+        } else {
+          // Partner university with no matching medjobs_universities row — treat
+          // as out-of-catchment so we fall back to demos rather than all-real.
+          setInCatchment(false);
+        }
+      } catch {
+        setInCatchment(false);
+      }
+    })();
+  }, [universities, providerProfile?.id]);
 
   const fetchCandidates = useCallback(async (uniId: string) => {
     setLoading(true);
@@ -111,10 +156,12 @@ export default function HireCaregiversBoard() {
     selectedUni?.lat != null && selectedUni?.lng != null
       ? { lat: selectedUni.lat, lng: selectedUni.lng }
       : null;
-  // Demo era (no real students yet) → fall back to the curated samples so both
-  // the cards AND the map stay populated. They carry Austin-area coords.
-  const isDemoEra = !loading && candidates.length === 0;
-  const baseCards = candidates.length > 0 ? candidates : SAMPLE_CANDIDATES;
+
+  // Demo era: provider isn't near a partner campus, or their catchment has no
+  // live students yet. Either way show the curated samples so the board stays
+  // full (the user requested demo fallback when not in a catchment).
+  const isDemoEra = !loading && (inCatchment === false || candidates.length === 0);
+  const baseCards = isDemoEra ? SAMPLE_CANDIDATES : candidates;
   const filtered = baseCards.filter((c) => matchesAvailability(c, availability));
   const availLabel = AVAIL_OPTIONS.find((o) => o.value === availability)?.label ?? null;
   const mapCards = filtered
@@ -123,57 +170,43 @@ export default function HireCaregiversBoard() {
 
   const selectClass = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700";
 
+  // Provider is signed in here; scheduling opens the modal directly (the terms
+  // opt-in lives inside it). Demo cards link to the demo detail page instead.
+  const openSchedule = (c: CandidateData) => setScheduleTarget(c);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Welcome banner — a note from Dr. DuBose for eligible providers */}
-      {eligible && (
-        <div className="mb-8 rounded-2xl border border-primary-100/60 bg-gradient-to-r from-primary-50 to-vanilla-50 p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-4">
-              <Image
-                src="/images/for-providers/team/logan.jpg"
-                alt="Dr. Logan DuBose"
-                width={48}
-                height={48}
-                className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
-              />
-              <div className="min-w-0">
-                <p className="text-[15px] font-semibold text-gray-900">You&apos;re all set.</p>
-                <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
-                  Now let&apos;s post a job and interview and hire a caregiver.
-                </p>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
-              <button
-                type="button"
-                onClick={() => setShowPostJob(true)}
-                className="inline-flex items-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-              >
-                Post a Job →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="mb-5">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Hire Caregivers</h1>
+        <p className="text-gray-500 mt-1">
+          Browse student caregivers {campusName ? `near ${campusName}` : "near you"} and schedule interviews.
+        </p>
+      </div>
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-          Find caregivers {campusName ? `near ${campusName}` : "near you"}
-        </h1>
-        <div className="flex flex-wrap items-center gap-3">
-          <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass}>
-            <option value="">All universities</option>
-            {universities.map((u) => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </select>
-          <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass}>
-            {AVAIL_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </div>
+      <div className="mb-5 flex items-center gap-3">
+        <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass} aria-label="Filter by university">
+          <option value="">All universities</option>
+          {universities.map((u) => (
+            <option key={u.id} value={u.id}>{u.name}</option>
+          ))}
+        </select>
+        <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass} aria-label="Filter by availability">
+          {AVAIL_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        {(universityId || availability) && (
+          <button
+            type="button"
+            onClick={() => { setUniversityId(""); setAvailability(""); }}
+            className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Clear filters
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -197,36 +230,70 @@ export default function HireCaregiversBoard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filtered.map((c) => (
-                <div key={c.id} onMouseEnter={() => setHoveredId(c.id)} onMouseLeave={() => setHoveredId(null)}>
-                  {isDemoEra ? (
-                    <BrowseCard provider={candidateToCardFormat(c, { isDemo: true })} variant="candidate" isDemo />
-                  ) : (
+              {filtered.map((c) =>
+                isDemoEra ? (
+                  <BrowseCard
+                    key={c.id}
+                    provider={candidateToCardFormat(c, { isDemo: true })}
+                    variant="candidate"
+                    isDemo
+                  />
+                ) : (
+                  <div
+                    key={c.id}
+                    onMouseEnter={() => setHoveredId(c.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={(e) => {
+                      // Plain click opens the inline panel; cmd/ctrl-click opens
+                      // the full profile in a new tab.
+                      if (e.metaKey || e.ctrlKey) return;
+                      e.preventDefault();
+                      setSelectedCandidate(c);
+                    }}
+                    className={`cursor-pointer rounded-2xl transition-shadow ${
+                      selectedCandidate?.id === c.id ? "ring-2 ring-primary-500 shadow-md" : ""
+                    }`}
+                  >
                     <BrowseCard
                       provider={candidateToCardFormat(c)}
                       variant="candidate"
                       href={`/medjobs/candidates/${c.slug}`}
                       matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
                     />
-                  )}
-                </div>
-              ))}
+                  </div>
+                ),
+              )}
             </div>
           )}
         </div>
 
         <div className="hidden lg:block">
           <div className="sticky top-24 h-[calc(100vh-7rem)]">
-            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-              <CampusMap providers={mapCards} hoveredProviderId={hoveredId} onMarkerHover={setHoveredId} campusCenter={campusCenter} />
-            </div>
+            {selectedCandidate ? (
+              <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 bg-white">
+                <CandidateDetailPanel
+                  candidate={selectedCandidate}
+                  onClose={() => setSelectedCandidate(null)}
+                  onSchedule={() => openSchedule(selectedCandidate)}
+                />
+              </div>
+            ) : (
+              <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
+                <CampusMap providers={mapCards} hoveredProviderId={hoveredId} onMarkerHover={setHoveredId} campusCenter={campusCenter} />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Post a Job is a coming-soon placeholder — see PostJobComingSoonModal
-          for the HANDOFF note on building the real flow. */}
-      {showPostJob && <PostJobComingSoonModal onClose={() => setShowPostJob(false)} />}
+      {scheduleTarget && (
+        <ScheduleInterviewModal
+          studentProfileId={scheduleTarget.id}
+          otherName={scheduleTarget.display_name}
+          onClose={() => setScheduleTarget(null)}
+          onScheduled={() => setScheduleTarget(null)}
+        />
+      )}
     </div>
   );
 }

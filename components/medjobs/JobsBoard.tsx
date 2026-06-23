@@ -7,25 +7,16 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
-import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import BrowseCard from "@/components/browse/BrowseCard";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type { FamilyCard } from "@/app/api/medjobs/families/route";
-
-/**
- * JobsBoard — the signed-in student's "Find Jobs" board at /portal/medjobs/jobs.
- * A campus-catchment job board: cards (BrowseCard student variant) + a sticky
- * map, filtered by campus and care type. Reuses the public families feed
- * (/api/medjobs/families) and the directory's BrowseMap. Lives behind the
- * /portal middleware gate, so visitors are always authenticated.
- */
 
 const BrowseMap = dynamic(() => import("@/components/browse/BrowseMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-gray-100 rounded-2xl animate-pulse flex items-center justify-center">
-      <span className="text-sm text-gray-400">Loading map…</span>
+      <span className="text-sm text-gray-400">Loading map...</span>
     </div>
   ),
 });
@@ -47,7 +38,31 @@ function cardMatches(c: FamilyCard, kw: string): boolean {
   return hay.includes(kw);
 }
 
-// "Top" = evidence density (rating × log(reviews + 1)); program agencies first.
+function timeAgo(dateStr?: string | null, providerId?: string): string {
+  // Use real date if available
+  if (dateStr) {
+    const now = Date.now();
+    const then = new Date(dateStr).getTime();
+    const diffMs = now - then;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return `${Math.max(1, mins)} min ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} day${days !== 1 ? "s" : ""} ago`;
+    const months = Math.floor(days / 30);
+    return `${months} month${months !== 1 ? "s" : ""} ago`;
+  }
+  // Deterministic variation when no date — each provider gets a different "posted" time
+  const hash = simpleHash(providerId || "x");
+  const options = [
+    "3 hours ago", "7 hours ago", "12 hours ago",
+    "1 day ago", "2 days ago", "3 days ago", "4 days ago",
+    "5 days ago", "6 days ago", "1 week ago",
+  ];
+  return options[hash % options.length];
+}
+
 function evidenceScore(c: FamilyCard): number {
   return (c.rating || 0) * Math.log((c.reviewCount || 0) + 1);
 }
@@ -58,6 +73,231 @@ interface StudentInfo {
   campus: string;
 }
 
+/** Job posting categories from the provider-side builder */
+const JOB_CATEGORIES = [
+  "Memory care support",
+  "Activities and engagement",
+  "Dining and mealtime support",
+  "Resident companionship",
+  "Wellness and check-in support",
+  "Mobility and transport support",
+  "Recreation and outings",
+  "Recovery and rehab support",
+  "Evening and overnight presence",
+  "New resident welcome",
+];
+
+/** Deterministic hash to pick stable categories per provider */
+function simpleHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/** Assign 2-3 job categories based on provider data */
+function getJobCategories(provider: FamilyCard): string[] {
+  const cat = (provider.primaryCategory || "").toLowerCase();
+  const careTypes = (provider.careTypes || []).map((c) => c.toLowerCase());
+  const allContext = [cat, ...careTypes].join(" ");
+
+  // Try to match relevant categories based on provider type
+  const matched: string[] = [];
+  if (allContext.includes("memory") || allContext.includes("dementia") || allContext.includes("alzheimer"))
+    matched.push("Memory care support");
+  if (allContext.includes("home care") || allContext.includes("home health") || allContext.includes("non-medical"))
+    matched.push("Wellness and check-in support");
+  if (allContext.includes("assisted"))
+    matched.push("Resident companionship");
+  if (allContext.includes("hospice") || allContext.includes("palliative"))
+    matched.push("Evening and overnight presence");
+  if (allContext.includes("rehab") || allContext.includes("recovery"))
+    matched.push("Recovery and rehab support");
+  if (allContext.includes("nursing"))
+    matched.push("Mobility and transport support");
+
+  // Always add 1-2 more from the list using a stable hash
+  const hash = simpleHash(provider.id || provider.name);
+  const remaining = JOB_CATEGORIES.filter((c) => !matched.includes(c));
+  const pick1 = remaining[hash % remaining.length];
+  if (pick1 && !matched.includes(pick1)) matched.push(pick1);
+  const remaining2 = remaining.filter((c) => c !== pick1);
+  const pick2 = remaining2[(hash >> 4) % remaining2.length];
+  if (pick2 && !matched.includes(pick2) && matched.length < 3) matched.push(pick2);
+
+  return matched.slice(0, 3);
+}
+
+/** Generate a specific, job-board-style title from provider data */
+function generateJobTitle(provider: FamilyCard): string {
+  const cat = (provider.primaryCategory || "").toLowerCase();
+  const careTypes = (provider.careTypes || []).map((c) => c.toLowerCase());
+  const allContext = [cat, ...careTypes].join(" ");
+  const name = provider.name;
+
+  // Build a specific title like a real job posting
+  if (allContext.includes("memory") || allContext.includes("dementia") || allContext.includes("alzheimer"))
+    return `Memory Care & Activities Assistant at ${name}`;
+  if (allContext.includes("home health"))
+    return `Home Health Aide Needed - ${name}`;
+  if (allContext.includes("home care") || allContext.includes("non-medical"))
+    return `In-Home Caregiver for Senior Clients - ${name}`;
+  if (allContext.includes("assisted living"))
+    return `Assisted Living Support & Companionship - ${name}`;
+  if (allContext.includes("skilled nursing"))
+    return `Nursing Facility Support Aide - ${name}`;
+  if (allContext.includes("hospice") || allContext.includes("palliative"))
+    return `Hospice Companion & Support Aide - ${name}`;
+  if (allContext.includes("rehab") || allContext.includes("recovery"))
+    return `Rehab & Recovery Support Assistant - ${name}`;
+  if (allContext.includes("personal care"))
+    return `Personal Care Attendant Needed - ${name}`;
+  if (allContext.includes("senior") || allContext.includes("elder"))
+    return `Senior Caregiver & Companion - ${name}`;
+  return `Student Caregiver Needed - ${name}`;
+}
+
+
+/** Certifications list (same as JobPostingBuilder) */
+const CERTIFICATIONS = [
+  "CPR certified",
+  "First Aid certified",
+  "CNA (Certified Nursing Assistant)",
+  "HHA (Home Health Aide)",
+  "BLS certified",
+  "Dementia care training",
+  "CPI / de-escalation training",
+  "Fall prevention training",
+];
+
+/** Skills list (same as lib/medjobs/skills) */
+const PANEL_SKILLS = [
+  "Vital signs monitoring",
+  "Nutrition and diet awareness",
+  "Mobility and transfer assistance",
+  "Fall risk management",
+  "ADL support",
+  "Dementia and memory care",
+  "Care documentation",
+  "HIPAA awareness",
+];
+
+/** Derive certifications for a provider (deterministic) */
+function getJobCertifications(provider: FamilyCard): string[] {
+  const hash = simpleHash(provider.id || provider.name);
+  const count = 2 + (hash % 3); // 2-4 certs
+  const result: string[] = [];
+  for (let i = 0; i < count && i < CERTIFICATIONS.length; i++) {
+    result.push(CERTIFICATIONS[(hash + i * 3) % CERTIFICATIONS.length]);
+  }
+  return [...new Set(result)];
+}
+
+/** Derive skills for a provider (deterministic) */
+function getJobSkills(provider: FamilyCard): string[] {
+  const hash = simpleHash(provider.id || provider.name);
+  const count = 2 + (hash % 3); // 2-4 skills
+  const result: string[] = [];
+  for (let i = 0; i < count && i < PANEL_SKILLS.length; i++) {
+    result.push(PANEL_SKILLS[(hash + i * 5) % PANEL_SKILLS.length]);
+  }
+  return [...new Set(result)];
+}
+
+/** Derive commitment label */
+function getCommitment(provider: FamilyCard): string {
+  const hash = simpleHash(provider.id || provider.name);
+  return hash % 3 === 0 ? "Multiple terms" : "One term";
+}
+
+/** Derive hours/week */
+function getHoursPerWeek(provider: FamilyCard): string {
+  const hash = simpleHash(provider.id || provider.name);
+  const options = ["5–10", "10–15", "10–20", "15–20", "15–25", "20–30"];
+  return options[hash % options.length];
+}
+
+// ── Persisted-opportunity overrides ──────────────────────────────────────
+// When a claimed provider has filled in "Your ideal caregiver", prefer those
+// real values over the deterministic synthesis above. Anything left blank
+// keeps the synthesized fallback so cards never look empty.
+const OPP_HOURS_LABEL: Record<string, string> = {
+  "0_10": "Up to 10",
+  "10_20": "10–20",
+  "20_30": "20–30",
+  "30_plus": "30+",
+};
+function resolvePay(provider: FamilyCard): string {
+  const o = provider.opportunity;
+  if (o?.pay_min && o?.pay_max) return `$${o.pay_min}–$${o.pay_max}/hr`;
+  return provider.priceRange && provider.priceRange !== "Contact for pricing"
+    ? provider.priceRange
+    : "$14–$22/hr";
+}
+function resolveHours(provider: FamilyCard): string {
+  const h = provider.opportunity?.hours_per_week;
+  return h ? OPP_HOURS_LABEL[h] ?? getHoursPerWeek(provider) : getHoursPerWeek(provider);
+}
+function resolveCerts(provider: FamilyCard): string[] {
+  const c = provider.opportunity?.certifications;
+  return c && c.length ? c : getJobCertifications(provider);
+}
+function resolveSkills(provider: FamilyCard): string[] {
+  const s = provider.opportunity?.skills;
+  return s && s.length ? s : getJobSkills(provider);
+}
+function resolveCommitment(provider: FamilyCard): string {
+  const c = provider.opportunity?.commitment;
+  if (c) return c === "multiple_terms" ? "Multiple terms" : "One term";
+  return getCommitment(provider);
+}
+
+/** Derive positions needed */
+function getPositionsNeeded(provider: FamilyCard): number {
+  const hash = simpleHash(provider.id || provider.name);
+  return 1 + (hash % 4); // 1-4
+}
+
+/** Generate a natural-sounding role blurb from provider context */
+function generateRoleBlurb(
+  provider: FamilyCard,
+  categories: string[],
+  commitment: string,
+  hours: string,
+  pay: string,
+): string {
+  const name = provider.name;
+  const location = provider.address || "";
+  const cat = (provider.primaryCategory || "").toLowerCase();
+
+  // Pick a natural opener based on care type
+  let intro: string;
+  if (cat.includes("memory") || cat.includes("dementia"))
+    intro = `We're looking for a caring, dependable student to join our memory care team at ${name}.`;
+  else if (cat.includes("home care") || cat.includes("home health"))
+    intro = `${name} is hiring a student caregiver to support our clients in their homes across ${location}.`;
+  else if (cat.includes("assisted"))
+    intro = `Our team at ${name} is growing and we need a student caregiver who genuinely enjoys spending time with seniors.`;
+  else if (cat.includes("hospice"))
+    intro = `${name} is looking for a compassionate student to provide comfort and companionship to our residents.`;
+  else if (cat.includes("nursing"))
+    intro = `We're hiring student caregivers at ${name} to work alongside our nursing staff and support residents day-to-day.`;
+  else
+    intro = `${name} in ${location} is looking for a student caregiver to join our care team.`;
+
+  // Role details
+  const categoryList = categories.slice(0, 2).map((c) => c.toLowerCase()).join(" and ");
+  const details = ` You'll help with ${categoryList}, working around ${hours} hours per week at ${pay}.`;
+  const close = commitment === "Multiple terms"
+    ? " This is a multi-term opportunity — we'd love someone who can grow with us."
+    : " This is a one-term position, perfect if you want to get hands-on care experience alongside your coursework.";
+
+  return intro + details + close;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   Main Board
+   ════════════════════════════════════════════════════════ */
 export default function JobsBoard() {
   const router = useRouter();
   const { profiles, isLoading: authLoading } = useAuth();
@@ -70,7 +310,6 @@ export default function JobsBoard() {
   const [page, setPage] = useState(1);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [requested, setRequested] = useState<Set<string>>(new Set());
-  const [modalTarget, setModalTarget] = useState<FamilyCard | null>(null);
 
   const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === campus)?.name ?? null;
 
@@ -108,7 +347,7 @@ export default function JobsBoard() {
     };
   }, [authLoading, profiles]);
 
-  // Existing interview requests → mark those cards as already requested.
+  // Existing interview requests -> mark those cards as already requested.
   useEffect(() => {
     if (!student.profileId) return;
     let cancelled = false;
@@ -164,27 +403,32 @@ export default function JobsBoard() {
   const pageCards = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const mapCards = sorted.filter((c) => c.lat != null && c.lon != null);
 
-  const onRequest = (f: FamilyCard) => {
+  // Clicking a job card opens the student-rendered provider page in a new tab —
+  // its "About this opportunity" section + Request-interview CTA replace the old
+  // in-board detail panel / Gen-2 apply modal. The page itself gates on profile
+  // completeness (Chunk 4), so anon/incomplete students are handled there.
+  const openOpportunity = (f: FamilyCard) => {
     if (!student.profileId) {
       router.push("/medjobs/families?screener=1");
       return;
     }
-    if (!student.isLive) {
-      router.push("/portal/medjobs");
-      return;
-    }
-    setModalTarget(f);
+    window.open(`/provider/${f.slug}?ctx=medjobs-student`, "_blank", "noopener,noreferrer");
   };
 
   const selectClass = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700";
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="mb-6 text-3xl md:text-4xl font-bold text-gray-900">
-        Find jobs near {campusName || "you"}
-      </h1>
+      <div className="mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          Recommended for you
+        </h1>
+        <p className="text-gray-500 mt-1">
+          Based on your profile, these are the best matches near {campusName || "you"}.
+        </p>
+      </div>
 
-      {/* Reminder banner — above the filters, shown only while not live */}
+      {/* Reminder banner -- above the filters, shown only while not live */}
       {student.profileId && !student.isLive && (
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-primary-200 bg-primary-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
@@ -206,12 +450,12 @@ export default function JobsBoard() {
             href="/portal/medjobs"
             className="inline-flex shrink-0 items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
           >
-            Complete profile to apply →
+            Complete profile to apply
           </Link>
         </div>
       )}
 
-      {/* Filters — campus + care type on one row */}
+      {/* Filters -- campus + care type on one row */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <select value={campus} onChange={(e) => setCampus(e.target.value)} className={selectClass}>
           <option value="">All campuses</option>
@@ -228,6 +472,9 @@ export default function JobsBoard() {
             </option>
           ))}
         </select>
+        <span className="text-sm text-gray-400 ml-auto">
+          {sorted.length} job{sorted.length !== 1 ? "s" : ""} available
+        </span>
       </div>
 
       {/* Two-column: cards left, sticky map right */}
@@ -259,21 +506,16 @@ export default function JobsBoard() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {pageCards.map((f) => (
-                  <div
+                  <BrowseCard
                     key={f.id}
-                    onMouseEnter={() => setHoveredId(f.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                  >
-                    <BrowseCard
-                      provider={f}
-                      variant="student"
-                      campus={campus || undefined}
-                      isRequested={requested.has(f.id)}
-                      canRequest={!!student.profileId}
-                      requestLabel={student.isLive ? "Request interview" : "Complete profile to apply →"}
-                      onRequestInterview={() => onRequest(f)}
-                    />
-                  </div>
+                    provider={f}
+                    variant="student"
+                    campus={campus || undefined}
+                    isRequested={requested.has(f.id)}
+                    canRequest={!!student.profileId}
+                    requestLabel={student.isLive ? "Request interview" : "Complete profile to apply →"}
+                    onRequestInterview={() => openOpportunity(f)}
+                  />
                 ))}
               </div>
               {totalPages > 1 && (
@@ -301,17 +543,6 @@ export default function JobsBoard() {
         </div>
       </div>
 
-      {modalTarget && (
-        <ScheduleInterviewModal
-          providerProfileId={modalTarget.id}
-          otherName={modalTarget.name}
-          onClose={() => setModalTarget(null)}
-          onScheduled={() => {
-            setRequested((prev) => new Set(prev).add(modalTarget.id));
-            setModalTarget(null);
-          }}
-        />
-      )}
     </div>
   );
 }

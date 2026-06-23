@@ -11,6 +11,10 @@ import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { getCategory } from "@/lib/waiver-category";
 import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
 import { getRelatedArticles } from "@/lib/content";
+import {
+  benefitsNoindexRobots,
+  shouldIndexBenefitsProgram,
+} from "@/lib/benefits/program-content-quality";
 
 interface Props {
   params: Promise<{ state: string; benefit: string }>;
@@ -35,10 +39,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!state || !program) return {};
   const title = `${program.name} | ${state.name} | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in ${state.name}.`;
+  const isIndexable = shouldIndexBenefitsProgram(program);
   return {
     title,
     description,
     alternates: { canonical: `/senior-benefits/${stateId}/${benefitId}` },
+    ...(!isIndexable && { robots: benefitsNoindexRobots() }),
     openGraph: {
       title,
       description,

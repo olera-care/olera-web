@@ -199,9 +199,10 @@ export async function POST(request: Request) {
 
     const updatedThread = [...existingThread, newMessage];
 
-    // Determine provider and family based on connection type
+    // Determine provider and family/student based on connection type
     // inquiry: from=family, to=provider (family initiated)
     // request: from=provider, to=family (provider initiated via Matches)
+    // invitation: from=provider, to=student (provider invited via MedJobs)
     const isInquiry = connection.type === "inquiry";
     const providerProfileId = isInquiry ? connection.to_profile_id : connection.from_profile_id;
     const familyProfileId = isInquiry ? connection.from_profile_id : connection.to_profile_id;

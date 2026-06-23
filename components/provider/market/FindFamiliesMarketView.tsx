@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import MarketDiagnostic, { type MarketDiagnosticData } from "./MarketDiagnostic";
+import MarketActionHub from "./MarketActionHub";
+import { type MarketDiagnosticData } from "./MarketDiagnostic";
 import MarketLoading from "./MarketLoading";
 import type { SelfRank } from "@/lib/market-diagnostic/self-rank";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
@@ -16,7 +17,7 @@ import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
  * passes it in via `pinned` and it renders on top of the diagnostic.
  */
 export default function FindFamiliesMarketView({
-  city, state, category, providerName, providerSlug, providerPlaceId, providerSourceId, pinned,
+  city, state, category, providerName, providerSlug, providerPlaceId, providerSourceId, providerReviewCount, pinned,
 }: {
   city: string;
   state: string;
@@ -28,6 +29,8 @@ export default function FindFamiliesMarketView({
   providerPlaceId?: string;
   /** olera-providers link (source_provider_id) — higher-coverage server-side place_id fallback. */
   providerSourceId?: string;
+  /** Provider's current Google review count (from metadata) — for dynamic messaging. */
+  providerReviewCount?: number | null;
   /** Optional "family near you" section, rendered above the market diagnostic. */
   pinned?: ReactNode;
 }) {
@@ -87,6 +90,20 @@ export default function FindFamiliesMarketView({
     });
   }, [status, uncovered, providerSlug, providerName, city, state]);
 
+  // MarketActionHub handles its own layout, so render it directly when ready
+  if (status === "ready" && data) {
+    return (
+      <MarketActionHub
+        data={data}
+        self={self}
+        providerName={providerName}
+        providerSlug={providerSlug}
+        providerPlaceId={providerPlaceId}
+        providerReviewCount={providerReviewCount}
+      />
+    );
+  }
+
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
@@ -119,8 +136,6 @@ export default function FindFamiliesMarketView({
             )}
           </div>
         )}
-
-        {status === "ready" && data && <MarketDiagnostic data={data} interactive providerName={providerName} providerSlug={providerSlug} self={self} />}
       </div>
     </div>
   );

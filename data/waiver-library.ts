@@ -30,7 +30,7 @@ export interface MapPin {
 
 export type ProgramType = "benefit" | "resource" | "navigator" | "employment";
 export type ProgramComplexity = "deep" | "medium" | "simple";
-export type ContentStatus = "pipeline-draft" | "under-review" | "approved" | "published";
+export type ContentStatus = "pipeline-draft" | "under-review" | "needs-changes" | "approved" | "published";
 
 export interface GeographicScope {
   type: "federal" | "state" | "local";

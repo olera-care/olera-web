@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-06-22 — Family Comms Intelligence System: BUILT (v1) + strategy evolved to v2 compare-led flywheel (branch `mighty-carson`, draft PR #1165, NOT live, re-shape pending)
+
+Switched from provider engagement (handed to Esther) to the care-seeker/family side. Esther's "Family Re-engagement: The Intentionality Gap" doc + deep code review + live data pull.
+
+**Diagnosis (live data, 90d):** acquisition booming (738 families, 409 new/30d, 544 inbound inquiries) but the marketplace is one-sided — provider responsiveness is the constraint we can't control or even see (provider opens lead in-app ~20%, in-app responds ~3%, all connections stuck `status='pending'` forever; Find Families "Path B" ~14 reach-outs/quarter = effectively dead). The whole family nudge machine optimizes the wrong verb (publish→get-discovered), a near-dead path.
+
+**Reframe (TJ):** north star isn't binary "connection" — it's "family meaningfully helped." Build an inquiry-triggered HELP CASCADE: connection-first, help-always; assume providers often won't respond; when quiet → other providers → benefits → Olera direct help → never a dead end. Retention = accepted 2nd north star. Headline: replace passive verb ("publish your listing") with active ("we'll introduce you to 3 providers"). Self-report = dating-app "Did you meet?" pattern = ground-truth sensor AND cascade trigger.
+
+**ARCHITECTURE DECISION (the pivot):** don't ship family emails as independent crons. Build a **Family Comms Intelligence System** modeled on the provider weekly-digest. Key realization: registry + withCronRun + email_log/email_events measurement + `/admin/automations` cockpit ALREADY exist and already include families. Only 2 layers missing: (a) **governance cap** for families (extend `sendEmail` chokepoint to `recipientType==='family'` + `FAMILY_NUDGE_EMAIL_TYPES`, transactional exempt, ~3/7d tunable), (b) **Family Comms Coordinator** = one daily cron, pure priority ladder, ONE governed msg/family/cycle, subsumes the 6 family crons as rungs. Ladder = demote-publish + cascade: STOP-if-engaged > outcome-check(self-report) > provider-silent-alternatives > never-engaged > awaiting-match > benefits-intent > completion/publish(lowest).
+
+**BUILT this session on `mighty-carson` (draft PR #1165, type-clean, dry-run-validated, NOTHING LIVE):**
+- **Family governance cap** — `lib/email-governance.ts` (`FAMILY_NUDGE_EMAIL_TYPES` + `FAMILY_NUDGE_WEEKLY_CAP=3` + `isGovernedFamilyNudge`) + `lib/email.ts` sibling gate keyed on recipient email + `recipient_type='family'`, transactional exempt, fail-open, no schema change.
+- **Family Comms Coordinator** — `app/api/cron/family-comms-coordinator/route.ts`: one daily cron, 6-rung ladder, ONE governed email/family/cycle, global stops (unsubscribed / self-reported-yes / active thread). `?dry_run` validated on **515 live families in 5.6s** — sane distribution (lead_complete 208, lead_publish 45, never_engaged 8, outcome_check 6, provider_silent 1, pending_reach_out 1, day_10 **0**; no_rung 227, no_email 0). Lazy email resolution (auth fallback only for matched families).
+- **Plumbing:** `family-nudges` subordinated (stands down 20h after a coordinator send); `findAlternativeProviders` extracted to `lib/family-comms/alternatives.ts`; registered in `registry.ts` + `vercel.json`. Self-report element (prior session) folds in as a rung.
+- Spec: `plans/family-comms-system.md`.
+
+**STRATEGY v2 — compare-led flywheel (locked with TJ this session; supersedes the v1 ladder's priority + copy):** the flywheel = **Complete → Compare → Benefits → loop**. Compare options = HERO (#1, delivered unilaterally via 21k providers). Benefits = CLOSER (#2, don't over-index). Completion = FUEL (#3) but NEVER a naked ask — always "give one detail → better matches" (same action, opposite framing; this is why the dry-run's 208 completion picks were wrong in FRAMING not volume). **Responsiveness = INTERNAL ranking signal ONLY, never a response-time promise** (times are long; promising burns trust — cards compare on care type/price/distance/reviews). Compare destination = existing browse pre-filtered (WATCH: must satisfy click intent on ship). Concierge = flag-don't-build. Cadence = ship now + iterate in days, NO multi-week gate.
+
+**Next up (clean stopping point — pause OK):** the coordinator code still encodes the **v1 ladder**, so the #1 next move is the **compare-led re-shape pass (PLAN WITH TJ before code)** — re-order rungs compare-led, re-frame all copy (completion as value-exchange, strip every response-time claim), point compare CTAs at pre-filtered browse. THEN apply migration 115, THEN plan the cron cutover (pause the 6 originals in `cron_config`, revertible). Notion handoff: "Family Comms System — Handoff (2026-06-22)" (has paste-to-resume block). Memory: `project_family_help_cascade` (has full v2).
+
 ### 2026-06-22 — `/test-instructions` command + durable Codex skill (branch `codex/add-test-instructions-command`, PR #1169 → staging)
 
 **Trigger:** TJ created a Claude slash command called `test-instructions` and asked to copy it into this repo, then clarified that it needs to keep working across future Codex sessions instead of only in the current local worktree.
@@ -102,6 +122,28 @@ Closed the email/Questions arc end-to-end. Everything below is **in production**
 - Merge #1155 to staging (awaiting TJ go).
 - `/promote-to-main` to ship #1154 (+#1155 if merged) to production (awaiting TJ go).
 - **Step 2 — lane split** (`PROVIDER_NOTIFY_FROM`): verify the cousin domain is a separate Resend reputation unit before flipping it on. The weekly-digest carve-out in the send gate depends on this staying OFF until verified — do not remove that carve-out first.
+
+### 2026-06-19 — `/design-improvements` on auth modal + mobile nav drawer (PRs #1141, #1142)
+
+**Trigger:** TJ ran `/design-improvements` on two surfaces back-to-back, starting from screenshots.
+
+**Auth modal — sign-in "Welcome back" (PR #1141, branch `upbeat-jemison`):** punch-only pass on `components/auth/UnifiedAuthModal.tsx`.
+- Bumped step titles `text-xl` → `text-[26px]` tight-leading so the title is the focal point (the edge-aligned back/X chrome had been reading as the header).
+- Demoted "Email me a code instead" from `text-primary-600` (teal) → `text-gray-600` so only the Sign In button owns the accent.
+- Inserted the existing "or" divider between Sign In and the passkey button so passkey reads as a fallback, not a co-equal CTA.
+- `/pre-test`: clean (presentation-only, zero type surface).
+
+**Mobile nav drawer — logged-out (PR #1142, branch `mobile-nav-drawer-polish`):** punch + mobilize on the `Navbar.tsx` `lg:hidden` full-screen menu. **Iterated 4×** against TJ screenshots. Final state:
+- Labels `text-xl font-semibold`; Caregiver Support icon mortarboard → book-open (it links to the articles hub); footer secondaries `gray-500` → `gray-700 font-medium`; `active:` tap feedback on rows + CTAs; `max-w-md` centered column on tablet.
+- **Reverted two missed attempts:** (1) vertical-centering the nav (`my-auto`) — looked like a marooned text island; (2) per-row hairline dividers — fragmented the list AND the one under "Find Care" cut it off from its own subcategories. Final = top-anchored, single original group divider before "For Providers."
+
+**Decision / lesson:** A **nav list** is the Apple-Settings pattern (top-anchored, hairline rows) — NOT an empty-state hero (centered illustration + headline + CTA, à la Airbnb/Robinhood). Don't vertically center a bare list of links. Burned 3 iterations learning TJ's taste on this screen; went restrained after.
+
+**Open item:** the thin gray nav icons still read as weak. Options floated to TJ: drop entirely (typographic menu) / strengthen / keep receding behind bold labels. Awaiting his call — did NOT change unprompted.
+
+**Run-env note:** worktree has no `node_modules`; could not run tsc/build locally. All changes are className/SVG-path/JSX only (zero type surface); Vercel preview build is the compile check. SCRATCHPAD updated off fresh `staging` per [[feedback_scratchpad_out_of_code_prs]].
+
+**NEXT:** TJ verifies both PRs on their Vercel preview links (sign-in modal for #1141; logged-out hamburger for #1142). Decide the nav-icon direction. Then merge.
 
 ### 2026-06-18 — De-"host" copy + MedJobs admin reorg + flyer floor (branch `claude/keen-mendel-6i8iW`)
 

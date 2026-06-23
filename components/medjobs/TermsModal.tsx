@@ -48,46 +48,42 @@ export default function TermsModal({
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
+        {/* Scrollable body */}
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 pt-6 pb-2">
           <h3 className="font-serif text-xl text-gray-900">Olera Student Placement — Terms</h3>
 
           {/* TL;DR */}
           <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">TL;DR — what you&apos;re agreeing to</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">What you&apos;re agreeing to</p>
             <ul className="mt-2 space-y-1.5 text-sm text-gray-700">
-              <li>• Free to browse, interview, and connect — no upfront cost.</li>
-              <li>• <b>$200 one-time, per student, only if you hire them.</b></li>
-              <li>• Invoiced after the hire (we reconcile monthly; one invoice per student).</li>
-              <li>• 100% refunded if that student works under 15 hours.</li>
-              <li>• You are the employer — Olera matches &amp; verifies hours.</li>
+              <li>• Free to browse, interview, and connect.</li>
+              <li>• <b>$200 one-time per student — only if you hire them.</b></li>
+              <li>• Invoiced after the hire; <b>fully refunded</b> if they work under 15 hours.</li>
+              <li>• You are the employer; Olera matches &amp; verifies hours.</li>
             </ul>
           </div>
 
-          <Section title="How & when you pay">
-            You only owe a fee if you hire a student you met here. Each month we reconcile
-            hires (students report who hired them) and invoice you once per hired student.
-          </Section>
           <Section title="The 15-hour guarantee">
-            At typical home-care rates, about 15 worked hours covers your onboarding cost plus
-            a fair placement fee. If the student works fewer than 15 hours, you risked only
-            onboarding time — so we refund the $200 in full.
+            About 15 worked hours covers your onboarding cost plus a fair placement fee. If the
+            student works fewer, we refund the $200 in full.
           </Section>
           <Section title="What the student commits to">
-            Consents to background checks and no no-call/no-shows (or they&apos;re removed from
-            Olera). In return they get verified hours, credentialing support, and help turning
-            your feedback into a recommendation letter they may ask you to sign.
+            Background checks and no no-call/no-shows (or they&apos;re removed from Olera). In
+            return: verified hours, credentialing support, and a recommendation letter.
           </Section>
-          <Section title="What Olera does / does not do">
-            We match you, vet and verify students, confirm hours, and guarantee the 15-hour
-            refund. We do <b>not</b> employ or pay the student, run payroll or taxes, act as a
-            staffing agency, or guarantee performance beyond the refund.
+          <Section title="What Olera does &amp; doesn't do">
+            We match, vet, and verify students and confirm hours. We do <b>not</b> employ or pay
+            the student, run payroll, or act as a staffing agency.
           </Section>
 
           {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        </div>
 
+        {/* Pinned footer: action + escape hatch always visible */}
+        <div className="space-y-3 border-t border-gray-100 px-6 pb-5 pt-4">
           <button
             type="button"
             disabled={saving}
@@ -96,17 +92,17 @@ export default function TermsModal({
           >
             {saving ? "Recording…" : "Agree to Terms & Conditions"}
           </button>
-
-          {/* Escape hatches: re-read the full terms, or talk to Dr. DuBose. */}
-          <div className="flex items-center justify-center gap-4 text-sm">
-            <a href={EMPLOYER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary-700 hover:underline">
-              Review full terms
-            </a>
-            <span className="text-gray-300">·</span>
+          <p className="text-center text-sm text-gray-500">
+            Questions?{" "}
             <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary-700 hover:underline">
               Book a call with Dr. DuBose
             </a>
-          </div>
+          </p>
+          <p className="text-center text-xs">
+            <a href={EMPLOYER_AGREEMENT_URL} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:underline">
+              Review full terms
+            </a>
+          </p>
         </div>
       </div>
     </div>

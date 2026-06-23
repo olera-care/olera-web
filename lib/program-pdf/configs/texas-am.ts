@@ -86,50 +86,42 @@ export const TEXAS_AM: ProgramPdfConfig = {
   universityAccent: "#500000", // Aggie maroon
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Local Texas A&M pre-health student caregivers, matched to the recurring shifts you struggle to cover.",
+    "Vetted Texas A&M pre-health student caregivers for the recurring shifts you can't fill.",
   heroSubhead:
-    "Olera runs a Student Caregiver Program that places pre-nursing and pre-medical students from Texas A&M with home care agencies. Students commit to a semester of recurring availability, and we match them to your clients whose schedules line up. You get reliable recurring coverage; students get the supervised hours and recommendation letters that strengthen their applications to medical, PA, and nursing school.",
-  // v9.1 Graize 05.13 audit (Item 12): two benefit cards retitled
-  // to better fit the program's actual value to operators + clients.
-  // "Local Aggie talent pipeline" -> "Local evergreen talent pipeline"
-  // makes the perennial-semester point without university-specific
-  // jargon, and reads cleaner. "Pathway to long-term hires" framed
-  // the program as a recruiting funnel; the bigger win is the client-
-  // experience uplift from motivated pre-health caregivers — so it
-  // reframes as "Caregivers your clients remember".
+    "Olera recruits and vets pre-nursing and pre-medical students from Texas A&M and matches them to your agency as caregivers. They want supervised hours, mentorship, and recommendation letters for health school, so they commit to a semester of recurring availability and take the work seriously. You get reliable coverage for the shifts that are hardest to staff in the Bryan/College Station area. Browse and interview for free — you pay only when you hire.",
   benefits: [
     {
-      title: "Cover recurring shifts",
+      title: "Cover your hardest shifts",
       body: "Students commit to a semester of recurring availability: reliable coverage for nights, weekends, and standing schedules.",
     },
     {
-      title: "Motivated by experience, not just pay",
-      body: "Students prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
+      title: "Motivated by more than pay",
+      body: "They're after clinical hours, mentorship, and recommendation letters, so they show up and take the work seriously.",
     },
     {
-      title: "Local talent, semester after semester",
-      body: "Pre-nursing and pre-medical students from the Bryan/College Station area, available term after term.",
+      title: "Local, and back every term",
+      body: "Pre-nursing and pre-medical students from the Bryan/College Station area, available semester after semester.",
     },
     {
       title: "Caregivers your clients remember",
-      body: "Intergenerational connection and high-quality engagement from future nurses and physicians who care about the work.",
+      body: "Engaged, capable future nurses and physicians who care about the people they look after.",
     },
   ],
   steps: [
-    "Create your account and accept the partner terms.",
-    "Tell us about a client who needs recurring coverage.",
-    "We match a committed student caregiver whose availability fits.",
+    "Create your free account and review candidates.",
+    "Tell us the recurring shifts you need to cover.",
+    "We match a vetted student whose availability fits.",
     "Interview, hire, and the semester begins.",
   ],
   vetting: [
     "Screened pre-nursing and pre-medical students.",
     "Committed to a semester of recurring availability.",
-    "Professionalism and scheduling expectations set up-front.",
-    "Background-check support coordinated with your standard onboarding.",
+    "Professionalism and scheduling expectations set up front.",
+    "Background-check support coordinated with your onboarding.",
   ],
   pricing: {
-    headline: "No commitment up front. Matched only when you have a recurring need.",
-    body: "Matching, vetting, and program management are handled by Olera. We pair you with a committed student caregiver for the semester, and you run your standard hiring and onboarding.",
+    headline: "Free to browse and interview. $200 once per hire — refunded if they work under 15 hours.",
+    body: "No subscription, no commitment. You pay a one-time $200 only when you hire a student, fully refunded if they work fewer than 15 hours. Olera handles recruiting, vetting, and matching; you run your standard hiring and onboarding as the employer.",
   },
   // v9.1 Graize 05.13 audit (Item 13): shorter CTA so the label
   // doesn't truncate next to the QR code. The QR target URL already

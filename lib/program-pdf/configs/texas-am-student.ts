@@ -41,19 +41,19 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
     vetting: "Who can join",
     pricing: "What to expect",
   },
-  heroHeadline: "Get paid for real caregiving experience that counts toward your health career.",
+  heroHeadline: "Get paid for real caregiving experience that strengthens your health-school application.",
   heroSubhead:
-    "Olera's Student Caregiver Program places Texas A&M students in paid caregiver roles for older adults in the Bryan/College Station area. It's hands-on patient experience, plus a credential and references, that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes. Families near campus are hiring student caregivers now.",
+    "Olera matches Texas A&M pre-nursing and pre-medical students with local home care agencies as paid caregivers in the Bryan/College Station area. You get hands-on patient-care experience, mentorship, references, and a recommendation letter — the kind of record that strengthens your application to nursing, PA, medical, and other health programs, on a schedule that works around your classes. Agencies near campus are hiring student caregivers now.",
   benefits: [
-    { title: "Get paid", body: "Earn an hourly wage doing meaningful work, a paid role, not a volunteer gig." },
-    { title: "Real patient-care hours", body: "Direct experience caring for older adults, exactly what health programs look for." },
-    { title: "A credential + references", body: "Earn a credential and recommendation letters for medical, PA, and nursing school applications." },
+    { title: "Get paid", body: "Earn an hourly wage for meaningful work — a real job, not a volunteer gig." },
+    { title: "Real patient-care hours", body: "Hands-on experience caring for older adults, exactly what health programs look for." },
+    { title: "References + a recommendation letter", body: "Build a record from people who watched you work, for your nursing, PA, and medical school applications." },
     { title: "Mentorship around your classes", body: "Guidance from Dr. DuBose's team, on a schedule that fits your course load." },
   ],
   steps: [
     "Check your eligibility in a few minutes.",
-    "Quick screening + onboarding.",
-    "Get matched with a local family who needs care.",
+    "Quick screening and onboarding.",
+    "Get matched with a local home care agency that needs caregivers.",
     "Start your shifts and start earning.",
   ],
   // Repurposed "vetting" section → eligibility for students.
@@ -65,8 +65,8 @@ export const TEXAS_AM_STUDENT: ProgramPdfConfig = {
   ],
   // Repurposed "pricing" block → what to expect.
   pricing: {
-    headline: "Paid hourly · flexible hours · start this semester",
-    body: "You choose how much you work. We provide the training, the match, and ongoing support so you can focus on doing great work and building your health-career story.",
+    headline: "Paid hourly · flexible hours · free to join",
+    body: "You choose how much you work. Olera handles the match, the training, and ongoing support, so you can focus on doing great work and building your health-career story.",
   },
   ctaLabel: "Check eligibility: scan or visit",
 };

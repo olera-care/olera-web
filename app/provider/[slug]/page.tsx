@@ -8,6 +8,7 @@ import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/pr
 import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
 import { buildOpportunity, readOpportunityProfile } from "@/lib/medjobs/opportunity";
 import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
+import { readRequirements, DEMAND_SHAPE_OPTIONS, PRN_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -1086,13 +1087,31 @@ export default async function ProviderPage({
               {isStudentContext && (() => {
                 const oppMeta = (profile.metadata ?? null) as unknown as Record<string, unknown> | null;
                 const oppProfile = readOpportunityProfile(oppMeta);
-                const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as { coverage_buckets?: string[] } | null;
+                const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as {
+                  coverage_buckets?: string[];
+                  demand_shape?: "regular" | "varies" | "unpredictable";
+                  prn_open?: "yes" | "maybe" | "no";
+                } | null;
                 const opp = buildOpportunity({
                   careText: categoryLabel ?? profile.category,
                   isClaimed: providerSource === "bp",
                   coverageBuckets: demand?.coverage_buckets,
                   profile: oppProfile,
                 });
+                // Surface what the provider entered in their "Hire more
+                // caregivers" block: demand shape, PRN openness, and requirements.
+                const shapeLabel = demand?.demand_shape
+                  ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
+                  : null;
+                const prnLabel = demand?.prn_open
+                  ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
+                  : null;
+                const req = readRequirements(oppMeta);
+                const reqLabels: string[] = [
+                  ...(req.background_check ? ["Background check"] : []),
+                  ...(req.drug_test ? ["Drug test"] : []),
+                  ...(req.transportation ? ["Reliable transportation (license + insurance)"] : []),
+                ];
                 return (
                   <div className="py-8 border-b border-gray-200">
                     <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About this opportunity</h2>
@@ -1110,6 +1129,18 @@ export default async function ProviderPage({
                         <p className="text-sm font-medium text-gray-500">Pay</p>
                         <p className="text-sm text-gray-700">{opp.pay}</p>
                       </div>
+                      {shapeLabel && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Schedule</p>
+                          <p className="text-sm text-gray-700">{shapeLabel}</p>
+                        </div>
+                      )}
+                      {prnLabel && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Open to PRN (on-call)</p>
+                          <p className="text-sm text-gray-700">{prnLabel}</p>
+                        </div>
+                      )}
                     </div>
                     {(opp.certifications || opp.skills) && (
                       <div className="mt-4">
@@ -1117,6 +1148,16 @@ export default async function ProviderPage({
                         <div className="mt-1 flex flex-wrap gap-2">
                           {[...(opp.certifications ?? []), ...(opp.skills ?? [])].map((r) => (
                             <span key={r} className="inline-block rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {reqLabels.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Requirements</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {reqLabels.map((r) => (
+                            <span key={r} className="inline-block rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs text-amber-800">{r}</span>
                           ))}
                         </div>
                       </div>

@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId } from "@/lib/medjobs-helpers";
@@ -1124,7 +1122,6 @@ function StudentPortalContent({
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
   const [showGoLiveReview, setShowGoLiveReview] = useState(false);
-  const [openJobs, setOpenJobs] = useState<number | null>(null);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
 
@@ -1132,7 +1129,6 @@ function StudentPortalContent({
   const hasPhoto = !!profile.image_url;
   const verificationItems = getVerificationItems(meta);
   const verificationDone = verificationItems.every((v) => v.done);
-  const firstName = profile.display_name?.split(" ")[0] || "there";
 
   // Video verification
   const videoAvailable = hasVideo(meta);
@@ -1148,25 +1144,6 @@ function StudentPortalContent({
   // Section-based completeness (8 logical sections)
   const completeSections = getSectionCompleteness(meta, hasPhoto, hasBasicInfo);
   const completenessPercent = calculateCompleteness(meta, hasPhoto, hasBasicInfo);
-
-  // Campus + live open-jobs count for the welcome/FOMO banner.
-  const campusSlug = typeof meta.campus === "string" ? meta.campus : "";
-  const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === campusSlug)?.name ?? null;
-  useEffect(() => {
-    let cancelled = false;
-    const qs = campusSlug ? `?campus=${encodeURIComponent(campusSlug)}` : "";
-    fetch(`/api/medjobs/families${qs}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!cancelled && d && typeof d.total === "number") setOpenJobs(d.total);
-      })
-      .catch(() => {
-        /* count is decorative — ignore */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [campusSlug]);
 
   // Convert sections to items format for guided onboarding hook
   const completenessItems = completeSections.map((s) => ({
@@ -1277,55 +1254,6 @@ function StudentPortalContent({
   return (
     <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome + FOMO banner — a note from Dr. DuBose while not yet live */}
-        {!profile.is_active && (
-          <div className="mb-6 rounded-2xl border border-primary-100/60 bg-gradient-to-r from-primary-50 to-vanilla-50 p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-4">
-                <Image
-                  src="/images/for-providers/team/logan.jpg"
-                  alt="Dr. Logan DuBose"
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 shrink-0 rounded-full object-cover shadow-sm"
-                />
-                <div className="min-w-0">
-                  <p className="text-[15px] font-semibold text-gray-900">Hey {firstName}, it&apos;s Logan!</p>
-                  <p className="mt-0.5 text-sm text-gray-600 leading-relaxed">
-                    I&apos;m your program success manager. Complete your profile and get matched with{" "}
-                    {typeof openJobs === "number" && openJobs > 0 ? (
-                      <span className="font-semibold text-gray-900">{openJobs} open caregiving jobs</span>
-                    ) : (
-                      "open caregiving jobs"
-                    )}{" "}
-                    near {campusName || "you"} — start earning today.
-                  </p>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
-                <Link
-                  href="/medjobs/inbox"
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                  </svg>
-                  Messages
-                </Link>
-                <Link
-                  href="/portal/medjobs/jobs"
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-700 hover:shadow"
-                >
-                  Browse open jobs
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ── Grid: Main + Sidebar ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 

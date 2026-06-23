@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import Pagination from "@/components/ui/Pagination";
-import ApplyToJobModal from "@/components/medjobs/ApplyToJobModal";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type { FamilyCard } from "@/app/api/medjobs/families/route";
 
@@ -162,23 +161,19 @@ function generateJobTitle(provider: FamilyCard): string {
 function JobCard({
   provider,
   isRequested,
-  canRequest,
-  isLive,
   isSaved,
-  onApply,
+  onOpen,
   onToggleSave,
-  onViewDetail,
   onHover,
   onLeave,
 }: {
   provider: FamilyCard;
   isRequested: boolean;
-  canRequest: boolean;
-  isLive: boolean;
   isSaved: boolean;
-  onApply: () => void;
+  /** Open the student-rendered provider page (new tab) — where "About this
+   *  opportunity" + Request interview live. Replaces the old in-board modal. */
+  onOpen: () => void;
   onToggleSave: () => void;
-  onViewDetail: () => void;
   onHover: () => void;
   onLeave: () => void;
 }) {
@@ -191,7 +186,8 @@ function JobCard({
     <div
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 overflow-hidden flex flex-col"
+      onClick={onOpen}
+      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
     >
       {/* Provider photo banner */}
       <div className="relative h-40 bg-gray-100">
@@ -261,11 +257,11 @@ function JobCard({
         )}
       </div>
 
-      {/* CTAs */}
+      {/* CTAs — both open the student-rendered provider page (new tab) */}
       <div className="mt-auto px-4 pb-4 flex items-center justify-between">
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onViewDetail(); }}
+          onClick={(e) => { e.stopPropagation(); onOpen(); }}
           className="text-xs font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors"
         >
           View job description ↗
@@ -277,14 +273,10 @@ function JobCard({
         ) : (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onApply(); }}
-            className={`px-5 py-1.5 text-sm font-medium rounded-full border transition-all ${
-              canRequest && isLive
-                ? "text-primary-700 border-primary-200 hover:bg-primary-50 hover:border-primary-300"
-                : "text-gray-500 border-gray-200 hover:bg-gray-50"
-            }`}
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
+            className="px-5 py-1.5 text-sm font-medium rounded-full border text-primary-700 border-primary-200 hover:bg-primary-50 hover:border-primary-300 transition-all"
           >
-            {canRequest && isLive ? "Apply" : "Complete profile"}
+            View &amp; apply →
           </button>
         )}
       </div>
@@ -429,219 +421,6 @@ function generateRoleBlurb(
   return intro + details + close;
 }
 
-/* ────────────────────────────────────────────────────────
-   Job Detail Panel — centered pop-up modal
-   ──────────────────────────────────────────────────────── */
-function JobDetailPanel({
-  provider,
-  isRequested,
-  canRequest,
-  isLive,
-  onApply,
-  onClose,
-}: {
-  provider: FamilyCard;
-  isRequested: boolean;
-  canRequest: boolean;
-  isLive: boolean;
-  onApply: () => void;
-  onClose: () => void;
-}) {
-  const jobTitle = generateJobTitle(provider);
-  const location = provider.address || "";
-  const heroImage = provider.image || provider.fallbackImage;
-  const categories = getJobCategories(provider);
-  const certifications = resolveCerts(provider);
-  const skills = resolveSkills(provider);
-  const commitment = resolveCommitment(provider);
-  const hoursPerWeek = resolveHours(provider);
-  const positions = getPositionsNeeded(provider);
-  const payRange = resolvePay(provider);
-
-  return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/40 p-4 sm:p-8 overflow-y-auto" onClick={onClose}>
-      <div
-        className="relative w-full max-w-lg my-4 sm:my-8 bg-white rounded-2xl shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Provider overview header */}
-        <div className={`relative ${heroImage ? "h-44" : "h-28"} bg-gradient-to-br from-primary-50 via-vanilla-50 to-primary-100`}>
-          {heroImage && (
-            <Image src={heroImage} alt={provider.name} fill className="object-cover" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors"
-          >
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <div className="absolute bottom-4 left-5 right-5">
-            <p className="text-sm text-white/80 font-medium drop-shadow-sm">{provider.name}</p>
-            <p className="text-xs text-white/60 mt-0.5 drop-shadow-sm">{location}</p>
-            {provider.rating != null && provider.rating > 0 && (
-              <div className="flex items-center gap-1 mt-1">
-                <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-xs font-semibold text-white">{provider.rating}</span>
-                {provider.reviewCount != null && provider.reviewCount > 0 && (
-                  <span className="text-xs text-white/60">({provider.reviewCount})</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Quick details — right under the photo */}
-        <div className="px-5 pt-4 pb-3 space-y-3">
-          {/* Hours & Pay */}
-          <div>
-            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Hours & Pay</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-lg">
-                <p className="text-[10px] text-gray-400 uppercase font-semibold mb-0.5">Hours / week</p>
-                <p className="text-sm font-semibold text-gray-900">{hoursPerWeek}</p>
-              </div>
-              <div className="px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-lg">
-                <p className="text-[10px] text-gray-400 uppercase font-semibold mb-0.5">Pay range</p>
-                <p className="text-sm font-semibold text-gray-900">{payRange}</p>
-              </div>
-              <div className="px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-lg">
-                <p className="text-[10px] text-gray-400 uppercase font-semibold mb-0.5">Commitment</p>
-                <p className="text-sm font-semibold text-gray-900">{commitment}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Positions needed */}
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-            </svg>
-            Hiring {positions} student{positions !== 1 ? "s" : ""} for this role
-          </div>
-        </div>
-
-        {/* Apply CTA */}
-        <div className="px-5 pb-4">
-          {isRequested ? (
-            <div className="w-full py-3 text-center text-sm font-semibold text-primary-600 bg-primary-50 rounded-xl border border-primary-200">
-              You&apos;ve already applied
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={onApply}
-              className={`w-full py-3 text-sm font-semibold rounded-xl transition-all ${
-                canRequest && isLive
-                  ? "bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }`}
-            >
-              {canRequest && isLive ? "Apply to this job" : "Complete profile to apply"}
-            </button>
-          )}
-        </div>
-
-        <hr className="border-gray-100" />
-
-        {/* Job details */}
-        <div className="p-5 space-y-5">
-          {/* About the company — pulled from provider description */}
-          <div>
-            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">About {provider.name}</h3>
-            {provider.description ? (
-              <p className="text-sm text-gray-600 leading-relaxed">{provider.description}</p>
-            ) : (
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {provider.name} is a {(provider.primaryCategory || "senior care provider").toLowerCase()} serving the {location} area.
-                {provider.highlights && provider.highlights.length > 0
-                  ? ` We are ${provider.highlights.slice(0, 2).map((h) => h.toLowerCase()).join(" and ")}.`
-                  : ""}
-              </p>
-            )}
-            {provider.highlights && provider.highlights.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2.5">
-                {provider.highlights.map((h) => (
-                  <span key={h} className="inline-flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                    <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    {h}
-                  </span>
-                ))}
-              </div>
-            )}
-            {provider.rating != null && provider.rating > 0 && (
-              <div className="flex items-center gap-1.5 mt-2">
-                <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-sm font-semibold text-gray-900">{provider.rating}</span>
-                {provider.reviewCount != null && provider.reviewCount > 0 && (
-                  <span className="text-xs text-gray-400">({provider.reviewCount} reviews)</span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <hr className="border-gray-100" />
-
-          {/* The role — written naturally */}
-          <div>
-            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">The role</h3>
-            <p className="text-sm text-gray-700 leading-relaxed mb-3">
-              {generateRoleBlurb(provider, categories, commitment, hoursPerWeek, payRange)}
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {categories.map((cat) => (
-                <span key={cat} className="px-2.5 py-1 bg-primary-50 text-primary-700 rounded-lg text-xs font-medium border border-primary-100">
-                  {cat}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-gray-100" />
-
-          {/* What we're looking for */}
-          <div>
-            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">What we&apos;re looking for</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-1.5">Certifications</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {certifications.map((cert) => (
-                    <span key={cert} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-700 rounded-lg text-xs font-medium border border-gray-100">
-                      <svg className="w-3 h-3 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                      {cert}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-1.5">Skills</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {skills.map((skill) => (
-                    <span key={skill} className="px-2.5 py-1 bg-gray-50 text-gray-700 rounded-lg text-xs font-medium border border-gray-100">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ════════════════════════════════════════════════════════
    Main Board
@@ -658,8 +437,6 @@ export default function JobsBoard() {
   const [page, setPage] = useState(1);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [requested, setRequested] = useState<Set<string>>(new Set());
-  const [modalTarget, setModalTarget] = useState<FamilyCard | null>(null);
-  const [detailTarget, setDetailTarget] = useState<FamilyCard | null>(null);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
 
   const toggleSave = (id: string) => {
@@ -763,17 +540,16 @@ export default function JobsBoard() {
   const pageCards = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const mapCards = sorted.filter((c) => c.lat != null && c.lon != null);
 
-  const onApply = (f: FamilyCard) => {
+  // Clicking a job card opens the student-rendered provider page in a new tab —
+  // its "About this opportunity" section + Request-interview CTA replace the old
+  // in-board detail panel / Gen-2 apply modal. The page itself gates on profile
+  // completeness (Chunk 4), so anon/incomplete students are handled there.
+  const openOpportunity = (f: FamilyCard) => {
     if (!student.profileId) {
       router.push("/medjobs/families?screener=1");
       return;
     }
-    if (!student.isLive) {
-      router.push("/portal/medjobs");
-      return;
-    }
-    setDetailTarget(null);
-    setModalTarget(f);
+    window.open(`/provider/${f.slug}?ctx=medjobs-student`, "_blank", "noopener,noreferrer");
   };
 
   const selectClass = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700";
@@ -867,24 +643,16 @@ export default function JobsBoard() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {pageCards.map((f) => (
-                  <div
+                  <JobCard
                     key={f.id}
-                    className="cursor-pointer"
-                    onClick={() => setDetailTarget(f)}
-                  >
-                    <JobCard
-                      provider={f}
-                      isRequested={requested.has(f.id)}
-                      canRequest={!!student.profileId}
-                      isLive={student.isLive}
-                      isSaved={savedJobs.has(f.id)}
-                      onApply={() => onApply(f)}
-                      onToggleSave={() => toggleSave(f.id)}
-                      onViewDetail={() => setDetailTarget(f)}
-                      onHover={() => setHoveredId(f.id)}
-                      onLeave={() => setHoveredId(null)}
-                    />
-                  </div>
+                    provider={f}
+                    isRequested={requested.has(f.id)}
+                    isSaved={savedJobs.has(f.id)}
+                    onOpen={() => openOpportunity(f)}
+                    onToggleSave={() => toggleSave(f.id)}
+                    onHover={() => setHoveredId(f.id)}
+                    onLeave={() => setHoveredId(null)}
+                  />
                 ))}
               </div>
               {totalPages > 1 && (
@@ -912,30 +680,6 @@ export default function JobsBoard() {
         </div>
       </div>
 
-      {/* Job detail slide-in panel */}
-      {detailTarget && (
-        <JobDetailPanel
-          provider={detailTarget}
-          isRequested={requested.has(detailTarget.id)}
-          canRequest={!!student.profileId}
-          isLive={student.isLive}
-          onApply={() => onApply(detailTarget)}
-          onClose={() => setDetailTarget(null)}
-        />
-      )}
-
-      {/* Job application modal */}
-      {modalTarget && (
-        <ApplyToJobModal
-          providerProfileId={modalTarget.id}
-          providerName={modalTarget.name}
-          jobTitle={generateJobTitle(modalTarget)}
-          onClose={() => setModalTarget(null)}
-          onApplied={() => {
-            setRequested((prev) => new Set(prev).add(modalTarget.id));
-          }}
-        />
-      )}
     </div>
   );
 }

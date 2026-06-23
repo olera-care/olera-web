@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import type { Profile } from "@/lib/types";
 import type { ExtendedMetadata } from "@/lib/profile-completeness";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
  * Enriches a provider profile with data from the olera-providers table when
@@ -33,7 +32,7 @@ export function useProviderDashboardData(profile: Profile | null) {
     setMetadata(currentBaseMeta);
 
     // If we don't need enrichment, we're done
-    if (!profile.source_provider_id || !isSupabaseConfigured()) {
+    if (!profile.source_provider_id) {
       return;
     }
 
@@ -42,39 +41,26 @@ export function useProviderDashboardData(profile: Profile | null) {
       return;
     }
 
-    // Fetch enrichment in background (don't block render)
+    // Fetch enrichment in the background via the ownership-checked server bridge.
+    // olera-providers is service-role-only, so a direct browser read returns
+    // nothing — the dashboard gallery was empty for claimed providers. The
+    // bridge reads it server-side and returns the parsed image list + rating.
     (async () => {
       try {
-        const supabase = createClient();
-        const { data } = await supabase
-          .from("olera-providers")
-          .select(
-            "provider_images, provider_logo, google_rating"
-          )
-          .eq("provider_id", profile.source_provider_id!)
-          .single();
-
-        if (data) {
-          const iosImages = (data.provider_images as string | null)
-            ? (data.provider_images as string)
-                .split(" | ")
-                .map((s) => s.trim())
-                .filter(Boolean)
-            : [];
-          const logoImages = (data.provider_logo as string | null)
-            ? [data.provider_logo as string, ...iosImages]
-            : iosImages;
-
+        const res = await fetch(
+          `/api/provider/profile/directory?profileId=${encodeURIComponent(profile.id)}`,
+          { credentials: "include" },
+        );
+        if (res.ok) {
+          const data = (await res.json()) as { images?: string[]; rating?: number | null };
+          const logoImages = Array.isArray(data.images) ? data.images : [];
           setMetadata({
             ...currentBaseMeta,
             images:
               currentBaseMeta.images && currentBaseMeta.images.length > 0
                 ? currentBaseMeta.images
                 : logoImages,
-            rating:
-              currentBaseMeta.rating ??
-              (data.google_rating as number | null) ??
-              undefined,
+            rating: currentBaseMeta.rating ?? data.rating ?? undefined,
           });
         }
         // Mark as enriched to avoid re-fetching

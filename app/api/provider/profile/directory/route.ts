@@ -96,13 +96,24 @@ export async function GET(request: NextRequest) {
   const { data: op } = await auth.db
     .from("olera-providers")
     .select(
-      "provider_name, provider_description, provider_category, phone, email, website, address, city, state, zipcode",
+      "provider_name, provider_description, provider_category, phone, email, website, address, city, state, zipcode, provider_images, provider_logo, google_rating",
     )
     .eq("provider_id", auth.sourceProviderId)
     .maybeSingle();
   const o = (op as Record<string, unknown> | null) ?? {};
-  // Return in business_profiles field shape so the dashboard can overlay it
-  // directly onto the profile object.
+  // Gallery photos: olera-providers stores them pipe-joined ("url1 | url2").
+  // Parse to the array shape the dashboard gallery expects; lead with the logo.
+  const galleryImages = (o.provider_images as string | null)
+    ? (o.provider_images as string).split(" | ").map((s) => s.trim()).filter(Boolean)
+    : [];
+  const images = (o.provider_logo as string | null)
+    ? [o.provider_logo as string, ...galleryImages]
+    : galleryImages;
+  // `overlay` is the business_profiles field shape the dashboard overlays onto
+  // the profile object (core 1:1 fields). The rich display fields (images,
+  // rating) are returned alongside for the dashboard data hook, which reads
+  // them directly — olera-providers is service-role-only, so this server bridge
+  // is the only way the browser can see them.
   return NextResponse.json({
     overlay: {
       display_name: o.provider_name ?? null,
@@ -116,6 +127,8 @@ export async function GET(request: NextRequest) {
       state: o.state ?? null,
       zip: o.zipcode != null ? String(o.zipcode) : null,
     },
+    images,
+    rating: (o.google_rating as number | null) ?? null,
   });
 }
 

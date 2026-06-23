@@ -5,7 +5,7 @@ import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
-import { findAlternativeProviders } from "@/lib/family-comms/alternatives";
+import { findAlternativeProviders, careTypeToBrowseSlug } from "@/lib/family-comms/alternatives";
 import {
   connectionOutcomeCheckEmail,
   providerSilentEmail,
@@ -13,7 +13,6 @@ import {
   day10AwaitingEmail,
   familyPendingReachOutNudgeEmail,
   familyNudgeEmail,
-  goLiveReminderEmail,
 } from "@/lib/email-templates";
 
 /**
@@ -27,14 +26,18 @@ import {
  * family-nudges, is the demoted publish/completion machine; it stays separate but
  * subordinated — governed by the family cap + a coordinator-awareness guard.)
  *
- * The ladder encodes the help-cascade strategy (project_family_help_cascade):
+ * The ladder encodes the compare-led flywheel (project_family_help_cascade,
+ * project_family_comms_channels): compare options is the hero, benefits the closer
+ * (the personalized quiz), completion is woven in as a value-exchange (never a naked
+ * ask). Responsiveness is an INTERNAL ranking signal only — no response-time claims.
  *   0. GLOBAL STOPS  — unsubscribed / self-reported "yes" / active live thread
  *   1. outcome-check          → family_outcome_check       (the self-report sensor)
- *   2. provider-silent + alts → family_provider_silent
- *   3. never-engaged          → family_never_engaged
- *   4. awaiting-match         → day_10_awaiting
+ *   2. provider-silent → compare cards + benefits quiz     → family_provider_silent
+ *   3. never-engaged → compare cards (guide fallback)      → family_never_engaged
+ *   4. provider-responded → compare + how-to-choose        → day_10_awaiting
  *   5. pending reach-out      → family_reach_out_nudge
- *   6. lead follow-up         → family_nudge / go_live_reminder
+ *   6. stuck → completion-as-value-exchange (the quiz)     → family_nudge
+ *      (publish nudges are DEMOTED out — owned by the subordinated family-nudges cron)
  *
  * Sends flow through sendEmail(), which now enforces the per-family nudge cap, so
  * the coordinator can never over-mail. ?dry_run=true returns the per-family
@@ -64,6 +67,8 @@ interface ProfileRow {
   care_types?: string[] | null;
   account_id?: string | null;
   metadata?: Record<string, unknown> | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface ConnRow {
@@ -175,7 +180,7 @@ export async function GET(request: NextRequest) {
     //    connections drive rung 5. day-10 (rung 4) keys off provider-response age, not
     //    connection age, so we pull all pending/accepted inquiries (the rung filters).
     const familySel =
-      "id, display_name, email, phone, city, state, care_types, account_id, metadata";
+      "id, display_name, email, phone, city, state, care_types, account_id, metadata, lat, lng";
     const providerSel = "id, display_name, slug, city, state, care_types, metadata";
 
     const { data: inquiryRows, error: inqErr } = await db
@@ -268,6 +273,10 @@ export async function GET(request: NextRequest) {
       // is picked (and is skipped entirely in dry-run). recipient/authEmailFinal are assigned in
       // the send path below; the buildHtml closures read them at invocation time, after assignment.
       const directEmail = fp.email?.trim() || undefined;
+      // Hoisted in the fp-narrowed scope so the nested pickRung closure can use them
+      // without TS re-widening fp to possibly-undefined.
+      const familyLat = fp.lat ?? null;
+      const familyLng = fp.lng ?? null;
       let recipient = directEmail || "";
       let authEmailFinal = directEmail || "";
       const familyName = fp.display_name || "";
@@ -281,8 +290,45 @@ export async function GET(request: NextRequest) {
       // completeness threshold meaningfully).
       const completeness = calculateFamilyCompleteness(fp, directEmail || "");
       const isComplete = completeness.percentage >= 60;
-      const isPublished = (familyMeta.care_post as { status?: string } | undefined)?.status === "active";
-      const familyCity = fp.city || "your area";
+
+      // ── Compare-led URL builders (v2 flywheel) ──────────────────────────
+      // Both read authEmailFinal at *invocation* time (inside buildHtml, after the
+      // send-path resolves the deliverable email) — never during rung eligibility.
+      // buildBrowseUrl deep-links to a PRE-FILTERED browse: `type` (care-type slug)
+      // + `location` (city, state) — the exact params app/browse/page.tsx reads.
+      // careTypeToBrowseSlug returns null for unknown tokens → we omit `type` rather
+      // than send a broken filter.
+      const buildBrowseUrl = (provider: ProfileRow | undefined, eid: string | null): string => {
+        const typeSlug = careTypeToBrowseSlug((provider?.care_types as string[] | undefined)?.[0]);
+        const loc = [provider?.city, provider?.state].filter(Boolean).join(", ");
+        const qs = new URLSearchParams();
+        if (typeSlug) qs.set("type", typeSlug);
+        if (loc) qs.set("location", loc);
+        const path = qs.toString() ? `/browse?${qs.toString()}` : "/browse";
+        return generateFamilyInboxUrl(authEmailFinal, appendTrackingParams(path, eid), siteUrl);
+      };
+      // The benefits CLOSER: personalized quiz (auto-prefills from the family profile
+      // on arrival via the inbox magic-link).
+      const buildQuizUrl = (eid: string | null): string =>
+        generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/benefits/finder", eid), siteUrl);
+      // Map an alternative provider → a compare card (image + rating + distance), with a
+      // tracked, auth deep-linked view URL. Shared across the compare rungs (R2/R3/R4).
+      const toCard = (
+        p: Awaited<ReturnType<typeof findAlternativeProviders>>[number],
+        eid: string | null,
+      ) => ({
+        name: p.name,
+        viewUrl: generateFamilyInboxUrl(
+          authEmailFinal,
+          appendTrackingParams(`/provider/${p.slug}?rp=${p.slug}`, eid),
+          siteUrl,
+        ),
+        imageUrl: p.imageUrl,
+        priceRange: p.priceRange,
+        rating: p.rating,
+        reviewCount: p.reviewCount,
+        distanceMi: p.distanceMi,
+      });
 
       // Build the ladder for this family; first non-null plan wins.
       const plan = await pickRung();
@@ -344,6 +390,8 @@ export async function GET(request: NextRequest) {
             provider?.city || undefined,
             provider?.state || undefined,
             (provider?.care_types as string[]) || [],
+            familyLat,
+            familyLng,
           );
           if (alts.length >= 3) {
             const m = metaOf(r2trigger);
@@ -356,21 +404,8 @@ export async function GET(request: NextRequest) {
                 : "A few other providers near you",
               metadata: { connection_id: r2trigger.id, recommended_count: alts.length, provider_passed: providerPassed },
               buildHtml: (eid) => {
-                const browseDest = appendTrackingParams(
-                  `/browse?care_type=${encodeURIComponent((provider?.care_types as string[])?.[0] || "")}&city=${encodeURIComponent(provider?.city || "")}&state=${encodeURIComponent(provider?.state || "")}`,
-                  eid,
-                );
-                const browseUrl = generateFamilyInboxUrl(authEmailFinal, browseDest, siteUrl);
-                const recommendedProviders = alts.map((p) => ({
-                  name: p.name,
-                  slug: p.slug,
-                  priceRange: p.priceRange,
-                  viewUrl: generateFamilyInboxUrl(
-                    authEmailFinal,
-                    appendTrackingParams(`/provider/${p.slug}?rp=${p.slug}`, eid),
-                    siteUrl,
-                  ),
-                }));
+                const browseUrl = buildBrowseUrl(provider, eid);
+                const recommendedProviders = alts.map((p) => toCard(p, eid));
                 return providerSilentEmail({
                   familyName,
                   providerName,
@@ -379,6 +414,7 @@ export async function GET(request: NextRequest) {
                   recommendedProviders,
                   browseUrl,
                   city: provider?.city || null,
+                  benefitsQuizUrl: buildQuizUrl(eid),
                 });
               },
               stamp: async (sentAt) => {
@@ -410,15 +446,37 @@ export async function GET(request: NextRequest) {
         if (r3trigger && !familyEngagedAnywhere && !providerRespondedAnywhere && !alreadyNever) {
           const provider = norm(r3trigger.to_profile);
           const providerName = provider?.display_name || "the provider";
+          // Compare-led when we have alternatives to show; guide-led fallback otherwise.
+          const alts3 = await findAlternativeProviders(
+            db,
+            r3trigger.to_profile_id,
+            provider?.city || undefined,
+            provider?.state || undefined,
+            (provider?.care_types as string[]) || [],
+            familyLat,
+            familyLng,
+          );
+          const hasAlts3 = alts3.length >= 3;
           return {
             rung: "never_engaged",
             emailType: "family_never_engaged",
-            subject: "A quick resource while you're thinking things over",
-            metadata: { connection_id: r3trigger.id },
+            subject: hasAlts3
+              ? "A few other providers near you worth comparing"
+              : "A quick resource while you're thinking things over",
+            metadata: { connection_id: r3trigger.id, recommended_count: alts3.length },
             buildHtml: (eid) => {
               const guideUrl = `${siteUrl}${appendTrackingParams("/olera-senior-care-guide-one-page.pdf", eid)}`;
               const inboxUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/portal/inbox", eid), siteUrl);
-              return familyNeverEngagedEmail({ familyName, providerName, guideUrl, inboxUrl });
+              const recommendedProviders = hasAlts3 ? alts3.map((p) => toCard(p, eid)) : undefined;
+              return familyNeverEngagedEmail({
+                familyName,
+                providerName,
+                guideUrl,
+                inboxUrl,
+                recommendedProviders,
+                browseUrl: hasAlts3 ? buildBrowseUrl(provider, eid) : null,
+                benefitsQuizUrl: buildQuizUrl(eid),
+              });
             },
             stamp: async (sentAt) => {
               for (const c of fam.inquiries) {
@@ -449,16 +507,38 @@ export async function GET(request: NextRequest) {
         if (r4) {
           const provider = norm(r4.to_profile);
           const providerName = provider?.display_name || "the provider";
+          // A couple of others to compare against the one who responded.
+          const alts4 = await findAlternativeProviders(
+            db,
+            r4.to_profile_id,
+            provider?.city || undefined,
+            provider?.state || undefined,
+            (provider?.care_types as string[]) || [],
+            familyLat,
+            familyLng,
+          );
+          const hasAlts4 = alts4.length >= 2;
           return {
             rung: "awaiting_match",
             emailType: "day_10_awaiting",
-            subject: "Need a hand with the next step?",
-            metadata: { connection_id: r4.id },
+            subject: hasAlts4
+              ? `How does ${providerName} compare? A couple of others to weigh`
+              : "Need a hand with the next step?",
+            metadata: { connection_id: r4.id, recommended_count: alts4.length },
             buildHtml: (eid) => {
               const inboxUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/portal/inbox", eid), siteUrl);
-              const alternativesUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/browse", eid), siteUrl);
+              const alternativesUrl = buildBrowseUrl(provider, eid);
               const supportUrl = "mailto:support@olera.care?subject=Help%20with%20next%20steps";
-              return day10AwaitingEmail({ familyName, providerName, inboxUrl, supportUrl, alternativesUrl });
+              const recommendedProviders = hasAlts4 ? alts4.slice(0, 2).map((p) => toCard(p, eid)) : undefined;
+              return day10AwaitingEmail({
+                familyName,
+                providerName,
+                inboxUrl,
+                supportUrl,
+                alternativesUrl,
+                recommendedProviders,
+                benefitsQuizUrl: buildQuizUrl(eid),
+              });
             },
             stamp: async (sentAt) => {
               await db
@@ -512,9 +592,14 @@ export async function GET(request: NextRequest) {
           };
         }
 
-        // ── Rung 6: lead follow-up — inquiry ≥2d, NOT (complete AND published), cooldown 7d ──
-        if (!(isComplete && isPublished)) {
-          const flag = isComplete ? "family_publish_nudged_at" : "family_nudged_at";
+        // ── Rung 6: stuck → completion as VALUE-EXCHANGE (the quiz) — inquiry ≥2d,
+        //    profile incomplete, cooldown 7d. v2: completion is never a naked ask —
+        //    the quiz both sharpens matches AND surfaces benefits. PUBLISH nudges are
+        //    DEMOTED out of the coordinator entirely: the subordinated family-nudges
+        //    machine owns them now (so complete-but-unpublished families match no
+        //    coordinator rung here). ──
+        if (!isComplete) {
+          const flag = "family_nudged_at";
           const r6 = fam.inquiries.find((c) => {
             if (ageMs(c) < 2 * DAY) return false;
             const last = metaOf(c)[flag] as string | undefined;
@@ -524,17 +609,11 @@ export async function GET(request: NextRequest) {
             const provider = norm(r6.to_profile);
             const providerName = provider?.display_name || "the provider";
             return {
-              rung: isComplete ? "lead_publish" : "lead_complete",
-              emailType: isComplete ? "go_live_reminder" : "family_nudge",
-              subject: isComplete
-                ? `Providers in ${familyCity} are looking for families like yours`
-                : `Complete your profile to help ${providerName} respond`,
+              rung: "lead_complete",
+              emailType: "family_nudge",
+              subject: "See sharper matches near you — and how to pay for care",
               metadata: { connection_id: r6.id },
               buildHtml: (eid) => {
-                if (isComplete) {
-                  const matchesUrl = appendTrackingParams(`${siteUrl}/portal/profile`, eid);
-                  return goLiveReminderEmail({ unsubscribeId: fam.familyId, familyName, matchesUrl, city: familyCity });
-                }
                 const profileUrl = appendTrackingParams(`${siteUrl}/portal/profile`, eid);
                 return familyNudgeEmail({
                   unsubscribeId: fam.familyId,
@@ -543,6 +622,7 @@ export async function GET(request: NextRequest) {
                   missingFields: completeness.missingFields.slice(0, 5),
                   completionPercent: completeness.percentage,
                   profileUrl,
+                  benefitsQuizUrl: buildQuizUrl(eid),
                 });
               },
               stamp: async (sentAt) => {

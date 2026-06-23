@@ -1021,14 +1021,90 @@ export function connectionOutcomeCheckEmail(opts: {
   );
 }
 
+/**
+ * Light, secondary "see what you may qualify for" block — the benefits CLOSER in
+ * the compare-led flywheel. Links the personalized benefits quiz (/benefits/finder),
+ * which both gives the family results AND captures profile "fuel" for sharper
+ * matches. Renders nothing when no url is supplied (older/transactional callers).
+ * Intentionally a text link, not a button — it rides alongside compare, never leads.
+ */
+function benefitsQuizModule(url?: string | null): string {
+  if (!url) return "";
+  return `
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
+      It also helps to know what you can afford.
+      <a href="${url}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">See programs you may qualify for</a> — a quick 2-minute check that also sharpens your matches.
+    </p>
+  `;
+}
+
+/** A compare-card row: facility photo + name + a scannable trust line (rating · distance) + price. */
+export interface CompareCardItem {
+  name: string;
+  viewUrl: string;
+  priceRange: string | null;
+  /** Enhancement fields — the coordinator supplies all; legacy callers may omit them. */
+  imageUrl?: string | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  distanceMi?: number | null;
+  /** Tolerated (some callers build cards with a slug); not rendered. */
+  slug?: string;
+}
+
+function compareCardRow(p: CompareCardItem): string {
+  const stars =
+    p.rating != null ? `★ ${p.rating.toFixed(1)}${p.reviewCount ? ` (${p.reviewCount})` : ""}` : "";
+  const dist =
+    p.distanceMi != null
+      ? `${p.distanceMi < 10 ? p.distanceMi.toFixed(1) : Math.round(p.distanceMi)} mi away`
+      : "";
+  const metaLine = [stars, dist].filter(Boolean).join("&nbsp;&nbsp;·&nbsp;&nbsp;");
+  const meta = metaLine
+    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 2px;line-height:1.4;">${metaLine}</p>`
+    : "";
+  const price = p.priceRange
+    ? `<p style="font-size:13px;color:#6b7280;margin:0;line-height:1.4;">${escapeHtml(p.priceRange)}</p>`
+    : "";
+  const textCol = `
+        <td style="vertical-align:top;">
+          <p style="font-size:16px;color:${BRAND_COLOR};font-weight:600;margin:0 0 3px;line-height:1.3;">${escapeHtml(p.name)}</p>
+          ${meta}
+          ${price}
+        </td>`;
+  // Image is an enhancement layer — name/meta/price carry the card with images off
+  // (and when a legacy caller supplies no imageUrl, the row degrades to text-only).
+  const imageCol = p.imageUrl
+    ? `<td width="72" style="vertical-align:top;padding-right:14px;">
+          <img src="${p.imageUrl}" alt="${escapeHtml(p.name)}" width="72" height="72" style="width:72px;height:72px;border-radius:10px;object-fit:cover;display:block;background:#eef1f0;border:0;" />
+        </td>`
+    : "";
+  return `
+    <a href="${p.viewUrl}" style="text-decoration:none;display:block;">
+      <table cellpadding="0" cellspacing="0" width="100%" style="margin:0;"><tr>
+        ${imageCol}${textCol}
+      </tr></table>
+    </a>`;
+}
+
+/** Stacked compare cards with hairline separators (Zillow/Airbnb listing rhythm). */
+function compareCardsBlock(providers: CompareCardItem[]): string {
+  return providers
+    .map((p, i) => (i > 0 ? `<div style="height:1px;background:#eef1f0;margin:14px 0;"></div>` : "") + compareCardRow(p))
+    .join("");
+}
+
 export function providerSilentEmail(opts: {
   familyName: string;
   providerName: string;
   providerPassed: boolean; // true if provider actively declined, false if just silent
   declineMessage?: string | null; // Provider's custom message when declining (only shown if providerPassed is true)
-  recommendedProviders: { name: string; slug: string; priceRange: string | null; viewUrl: string }[];
+  recommendedProviders: CompareCardItem[];
   browseUrl: string;
   city: string | null;
+  /** Benefits quiz deep-link (the closer). Omitted by transactional callers. */
+  benefitsQuizUrl?: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const hasDeclineMessage = opts.providerPassed && opts.declineMessage?.trim();
@@ -1041,12 +1117,12 @@ export function providerSilentEmail(opts: {
     if (hasDeclineMessage) {
       openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now and left you a message:`;
     } else if (hasRecommendedProviders) {
-      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got plenty of other great options nearby who'd be glad to help:`;
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got other strong options nearby worth comparing:`;
     } else {
-      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area who may be able to help.`;
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area worth a look.`;
     }
   } else {
-    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you who are ready to help:" : ""}`;
+    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you worth comparing:" : ""}`;
   }
 
   // Adjust closing line based on whether we showed recommendations
@@ -1065,21 +1141,14 @@ export function providerSilentEmail(opts: {
         <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${escapeHtml(opts.declineMessage!.trim())}"</p>
       </div>
       ${hasRecommendedProviders
-        ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">But you've got plenty of other great options nearby who'd be glad to help:</p>`
-        : `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">There are other providers in your area who may be able to help:</p>`
+        ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">But you've got other strong options nearby worth comparing:</p>`
+        : `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">There are other providers in your area worth a look:</p>`
       }`
     : "";
 
   // Render recommended providers prominently (high up, visible on mobile)
   // Each provider gets a magic link for one-click viewing
-  const providersSection = hasRecommendedProviders
-    ? opts.recommendedProviders.map((p) => `
-        <div style="margin:0 0 12px;">
-          <a href="${p.viewUrl}" style="font-size:16px;color:${BRAND_COLOR};font-weight:600;text-decoration:none;display:block;margin-bottom:4px;">${escapeHtml(p.name)}</a>
-          ${p.priceRange ? `<p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(p.priceRange)}</p>` : ""}
-        </div>
-      `).join("")
-    : "";
+  const providersSection = hasRecommendedProviders ? compareCardsBlock(opts.recommendedProviders) : "";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
@@ -1094,11 +1163,12 @@ export function providerSilentEmail(opts: {
       ${providersSection}
     </div>
     ` : ""}
-    <div style="margin:0 0 24px;">${button("See more providers near you", opts.browseUrl)}</div>
+    <div style="margin:0 0 24px;">${button("Compare more providers near you", opts.browseUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       ${closingLine}
     </p>
+    ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
     </p>
@@ -1108,7 +1178,8 @@ export function providerSilentEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
       The Olera team
     </p>
-  `, `You're never limited to one — here are others ready to help.`);
+    ${authorBylineBlock({ topBorder: true })}
+  `, `You're never limited to one — here are others worth comparing.`);
 }
 
 /** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
@@ -1156,15 +1227,60 @@ export function providerStillSilentEmail(opts: {
   `, `You shouldn't have to wait this long — here are providers who'll respond.`);
 }
 
-/** Email to family who never engaged after sending lead - gentle re-engagement with guide */
+/**
+ * Email to a family who never engaged after sending a lead. Compare-led when we
+ * have alternatives to show (≥3 from the coordinator); falls back to the gentle
+ * guide-led version when we don't. Benefits quiz rides alongside as the closer.
+ */
 export function familyNeverEngagedEmail(opts: {
   familyName: string;
   providerName: string;
   guideUrl: string;
   inboxUrl: string;
+  /** When present (≥1), the email leads with these to compare. */
+  recommendedProviders?: CompareCardItem[];
+  /** Pre-filtered browse "see more" link (paired with recommendedProviders). */
+  browseUrl?: string | null;
+  /** Benefits quiz deep-link (the closer). */
+  benefitsQuizUrl?: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
+  const hasRecs = !!opts.recommendedProviders?.length;
 
+  const providersSection = hasRecs ? compareCardsBlock(opts.recommendedProviders!) : "";
+
+  // Compare-led body (we have options to show)
+  if (hasRecs) {
+    return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Finding the right care is a big decision, and you don't have to settle on the first option. Here are a few providers near you worth comparing:
+    </p>
+    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
+      ${providersSection}
+    </div>
+    ${opts.browseUrl ? `<div style="margin:0 0 24px;">${button("Compare more providers near you", opts.browseUrl)}</div>` : ""}
+    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      And <strong>${escapeHtml(opts.providerName)}</strong> is still there whenever you're ready — message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>. No forms, no phone calls you didn't ask for. New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> walks through what to look for.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      Want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+  `, `A few other providers near you worth comparing.`);
+  }
+
+  // Fallback: gentle guide-led body (no alternatives to show)
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
@@ -1173,6 +1289,7 @@ export function familyNeverEngagedEmail(opts: {
       It's completely okay if you're still thinking things over — finding the right care isn't a small decision. While you do, here's a free guide that walks through what to look for, what to ask, and how families pay for care:
     </p>
     <div style="margin:0 0 24px;">${button("Get the free guide", opts.guideUrl)}</div>
+    ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       And whenever you're ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. You can message them anytime, right from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a> — no forms, no phone calls you didn't ask for. Just reach out when it feels right.
@@ -1189,6 +1306,7 @@ export function familyNeverEngagedEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
       The Olera team
     </p>
+    ${authorBylineBlock({ topBorder: true })}
   `, `We're not going anywhere, and your provider is still one message away.`);
 }
 
@@ -4382,37 +4500,39 @@ export function familyNudgeEmail(opts: {
   missingFields: string[];
   completionPercent: number;
   profileUrl: string;
+  /** Benefits quiz deep-link — the value-exchange hero when present. */
+  benefitsQuizUrl?: string | null;
 }): string {
   const missingSummary =
     opts.missingFields.length <= 3
       ? opts.missingFields.join(", ")
       : `${opts.missingFields.slice(0, 3).join(", ")}, and ${opts.missingFields.length - 3} more`;
 
+  // The quiz is the hero when we have it (it both sharpens matches AND surfaces
+  // benefits — completion as value-exchange, never a naked profile-nag). Falls
+  // back to the plain profile link for callers that don't pass a quiz url.
+  const primaryUrl = opts.benefitsQuizUrl || opts.profileUrl;
+  const primaryLabel = opts.benefitsQuizUrl ? "See my matches & benefits" : "Add your details";
+
   return layout(
     `
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Help ${escapeHtml(opts.providerName)} serve you better</h1>
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">See sharper matches near you</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you recently reached out to <strong>${escapeHtml(opts.providerName)}</strong> about care options.
-    </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      To help them respond with the most relevant information, we recommend completing your profile. Right now it's ${opts.completionPercent}% complete.
+      Hi ${firstName(opts.familyName, "there")}, you recently started looking for care on Olera. Tell us a little more about what you need, and we'll show you better-matched providers nearby — and the programs that can help pay for them.
     </p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
-      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Missing information:</p>
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">A couple of details would sharpen your matches:</p>
       <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
     </div>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      A complete profile helps providers understand your needs and give you personalized recommendations.
-    </p>
-    <div>${button("Complete Your Profile", opts.profileUrl)}</div>
+    <div>${button(primaryLabel, primaryUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from profile reminders</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,
-    `Complete your profile to help ${escapeHtml(opts.providerName)} respond to your inquiry`
+    `See sharper matches near you — and how to pay for care`
   );
 }
 
@@ -4879,23 +4999,37 @@ export function day10AwaitingEmail(opts: {
   inboxUrl: string;
   supportUrl: string;
   alternativesUrl: string;
+  /** A couple of others to compare against the one who responded. */
+  recommendedProviders?: CompareCardItem[];
+  /** Benefits quiz deep-link (the closer). */
+  benefitsQuizUrl?: string | null;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const safeProviderName = escapeHtml(opts.providerName);
+  const hasRecs = !!opts.recommendedProviders?.length;
+
+  const providersSection = hasRecs ? compareCardsBlock(opts.recommendedProviders!) : "";
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      <strong>${safeProviderName}</strong> is still ready and waiting to hear from you. If you've been meaning to reply but haven't found the moment, that's completely normal — there's a lot to weigh, and there's no wrong pace.
+      You heard back from <strong>${safeProviderName}</strong> — that's a good place to be. If you've been meaning to reply but haven't found the moment, that's completely normal; there's a lot to weigh, and there's no wrong pace.
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      If something's making the next step feel hard, a real person on our team is glad to help — whether it's figuring out what to ask, thinking through your options, or just getting you started:
+    ${hasRecs ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      One thing that helps before you decide: seeing how they stack up against a couple of others nearby.
     </p>
-    <div style="margin:0 0 24px;">${button("Get help from a real person", opts.supportUrl)}</div>
+    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 20px;">
+      ${providersSection}
+    </div>
+    <div style="margin:0 0 24px;">${button("Compare your options", opts.alternativesUrl)}</div>
+    ` : ""}
+    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      You can also <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">pick up right where you left off</a> with ${safeProviderName} anytime — and if they're not feeling like the right fit, <a href="${opts.alternativesUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">there are other providers nearby</a> who'd be glad to help. Just say the word.
+      Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through — <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">just reach out</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       We're not going anywhere.
@@ -4906,5 +5040,6 @@ export function day10AwaitingEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
       The Olera team
     </p>
-  `, `${opts.providerName} is still ready for you — and a real person can help, no pressure.`);
+    ${authorBylineBlock({ topBorder: true })}
+  `, `You heard back from ${opts.providerName} — here's how to weigh your options.`);
 }

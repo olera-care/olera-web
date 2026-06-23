@@ -246,6 +246,43 @@ Surface this in the admin UI verbatim — no silent caps (matches the brief's
   (linkage check) and Smartlead dedupes on email — so a retry after partial
   failure tops up the campaign rather than duplicating.
 
+### 8.1 Go-live: lifting the paused guardrail (DEFERRED — not built)
+
+Today an admin who prospects → sends to Smartlead gets a **PAUSED** campaign and
+must log into the Smartlead UI to start it. That's the intended guardrail for
+warmup, but it's a handoff blocker: every admin needs Smartlead access and has to
+leave the app. When we're ready to go live, lift it at **one** choke point — do
+**not** scatter START calls.
+
+**The toggle point.** Every enrollment path (`schedule_sequence`, activation,
+campus enroll) funnels through `finalizeCampaign()` in
+`lib/medjobs/smartlead-bridge.ts` (~line 950), which hardcodes:
+
+```ts
+const status = await setCampaignStatus(campaignId, "PAUSED"); // never "START"
+```
+
+`setCampaignStatus(id, "START" | "PAUSED" | "STOPPED")` already exists in
+`lib/smartlead.ts` — only the call site is gated. Env is read via plain
+`process.env` (no typed env module), so a new flag is just `process.env.X`.
+
+**Recommended shape (preserves the human checkpoint):** keep `finalizeCampaign`
+**always PAUSED**. Add a new explicitly-gated `start_campaign` admin action +
+a "Start sending" button in the drawer that calls `setCampaignStatus(START)`.
+Hide the button behind an env flag (proposed name `SMARTLEAD_ALLOW_CAMPAIGN_START`,
+default off). Pre-go-live the button doesn't render and nothing changes; at
+go-live, flip the env var in Vercel — admins start each campaign from our app
+(no Smartlead login), and a half-warm campaign still can't auto-blast.
+
+**Simpler but blunter alternative (not recommended):** flip the line above to
+`START` when `SMARTLEAD_AUTO_START_CAMPAIGNS=true`. One line, no UI, but it
+auto-starts *every* campaign the instant a lead is enrolled — no per-campaign
+go/no-go, and it can fire during warmup. Use only if a manual button isn't worth
+the build.
+
+Either flag stays dormant until set, so documenting it here lifts nothing. When
+the build is approved, it's the G2 route.ts-change path (§9) for the new action.
+
 ---
 
 ## 9. The one route.ts change (needs explicit approval — G2)

@@ -5,11 +5,28 @@ ordered so the tree is always shippable and no surface is ever orphaned. The
 spine of the whole plan: **a provider has exactly one display record, and every
 claim path resolves to it — never a disconnected copy.**
 
-> **Status (branch `claude/keen-mendel-6i8iW`):** PLAN ONLY — no code written.
-> Produced from the alignment thread (source-of-truth, account handling,
-> claimed pre-flight, empty-Profile-tab, magic-link semantics, cold-funnel
-> directory connection). Read "Locked decisions" + "Pre-build risk review"
-> before touching code.
+> **Status (branch `claude/keen-mendel-6i8iW`):**
+> - **Chunk 1 — DONE** (renamed in build to "provider conversion is self-serve
+>   only"). Scope grew when `make_client` turned out to be the core conversion
+>   engine, not a button; per the P4 decision we eliminated admin-on-behalf
+>   conversion entirely. tsc clean, committed.
+> - **Chunk 2 — DONE.** Ownership helper + magic link claims & trust-scores on
+>   first auth (idempotent). tsc clean, committed.
+> - **Chunk 3 — DONE.** 3a backend never overwrites a claimed listing + P1-A
+>   push for unowned; 3b pre-flight read-only lock + Edit override + tag. tsc
+>   clean, committed.
+> - **Chunk 4 — NOT STARTED (needs a decision + browser QA).** The empty
+>   Profile tab is fed by the global `AuthProvider` (business_profiles). Fixing
+>   it means either (A) rewire the provider dashboard reads+writes to the
+>   `olera-providers` directory row, or (B) hydrate + flip the public resolver.
+>   Both touch the care-directory provider page DB Logan flagged caution about,
+>   and the chunk needs a real browser QA pass. Deferred for a go/approach call.
+> - **Chunk 5 — NOT STARTED.** Cold-funnel `org` ref needs `olera_provider_id`
+>   threaded through the selection→BridgeRow→custom_fields→template pipeline,
+>   plus candidate-board + screener changes. Tractable; deferred for budget.
+> - **Chunk 6 — PARTIAL.** OPERATIONAL_BRIEF conversion invariant updated to
+>   the self-serve-only model. Remaining doc sweep + full e2e verification with
+>   Chunks 4/5.
 
 ## Locked decisions (from the alignment thread)
 

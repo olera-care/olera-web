@@ -22,6 +22,7 @@ import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
+import HireCaregiversCard from "./HireCaregiversCard";
 import VerificationStatusCard from "./VerificationStatusCard";
 import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
@@ -33,6 +34,7 @@ import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
+import EditHireCaregiversModal from "./edit-modals/EditHireCaregiversModal";
 import DashboardHero, { type HeroAction } from "./v2/DashboardHero";
 import DashboardHeroSkeleton from "./v2/DashboardHeroSkeleton";
 import FamilyViewPreview from "./FamilyViewPreview";
@@ -49,6 +51,7 @@ const EDITABLE_SECTIONS: readonly SectionId[] = [
   "pricing",
   "payment",
   "owner",
+  "hire_caregivers",
 ];
 
 export default function DashboardPage() {
@@ -552,6 +555,11 @@ function DashboardContent({
               metadata={meta}
               onEdit={() => handleEdit("owner")}
             />,
+            <HireCaregiversCard
+              key="hire_caregivers"
+              metadata={meta}
+              onEdit={() => handleEdit("hire_caregivers")}
+            />,
             <NotificationPreferencesCard key="notifications" profileSlug={profile.slug} profileMetadata={meta} />,
           ].map((card, i) => (
             <div
@@ -615,6 +623,7 @@ function DashboardContent({
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
       {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
+      {editingSection === "hire_caregivers" && <EditHireCaregiversModal {...modalProps} />}
 
       {/* Verification Modal */}
       <VerificationMethodModal

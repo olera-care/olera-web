@@ -58,6 +58,7 @@ import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightRevi
 type ActionFn = (
   actionName: string,
   payload?: Record<string, unknown>,
+  opts?: { silent?: boolean },
 ) => Promise<DrawerContext>;
 
 interface Props {
@@ -569,9 +570,14 @@ function GeneralContactSection({
     setSaving(field);
     setError(null);
     try {
-      await action("update_general_contact", {
-        [field]: trimmed === "" ? null : trimmed,
-      });
+      // During the on-open auto-fill, write silently so the parent In Basket
+      // isn't refreshed (which would race mark_read and re-bold the row).
+      // Manual edits keep the normal path.
+      await action(
+        "update_general_contact",
+        { [field]: trimmed === "" ? null : trimmed },
+        { silent: autoFillingRef.current },
+      );
       setSavedAt(Date.now());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -789,6 +795,11 @@ function GeneralContactSection({
   const canAutoFill =
     editable && ctx.outreach.kind === "provider" && !alreadyAutoFilled;
   const autoFillRan = useRef(false);
+  // True only while the on-open auto-fill is writing. saveField reads this to
+  // persist silently (no parent list refresh) during the auto-fill window,
+  // so opening a card never resurrects its unread/bold state. Manual edits,
+  // which happen outside this window, keep the normal refreshing path.
+  const autoFillingRef = useRef(false);
   useEffect(() => {
     if (autoFillRan.current || !canAutoFill) return;
     autoFillRan.current = true;
@@ -796,13 +807,20 @@ function GeneralContactSection({
       // The route discovers a website (Google Places) when none is on file, so
       // this pre-fills on EVERY first open — source link or not. Blanks-only, so
       // existing values are never overwritten. Stamp "done" once afterward.
-      await findContact("all", true);
+      autoFillingRef.current = true;
       try {
-        await action("update_research", {
-          research: { provider_autofill_at: new Date().toISOString() },
-        });
-      } catch {
-        /* marker is best-effort; the ref still prevents a re-run this session */
+        await findContact("all", true);
+        try {
+          await action(
+            "update_research",
+            { research: { provider_autofill_at: new Date().toISOString() } },
+            { silent: true },
+          );
+        } catch {
+          /* marker is best-effort; the ref still prevents a re-run this session */
+        }
+      } finally {
+        autoFillingRef.current = false;
       }
     })();
     // findContact/action are stable for our purposes; the ref guard makes any

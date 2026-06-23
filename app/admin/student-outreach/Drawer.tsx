@@ -78,7 +78,11 @@ interface DrawerProps {
   activeTab?: TabKey;
 }
 
-type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
+type ActionFn = (
+  action: string,
+  payload?: Record<string, unknown>,
+  opts?: { silent?: boolean },
+) => Promise<DrawerContext>;
 
 // Dept-head pre-launch intro call — a recommended, non-gating courtesy call.
 // All three outcomes log a research call (no stage change); the email sequence
@@ -306,7 +310,7 @@ function StakeholderDrawer({
   }, [outreachId]);
 
   const action: ActionFn = useCallback(
-    async (action, payload = {}) => {
+    async (action, payload = {}, opts) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -315,7 +319,13 @@ function StakeholderDrawer({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Action failed");
       setCtx(data);
-      onAction(data);
+      // `silent` writes update only the drawer's own view, never the parent
+      // list. Drawer-internal hydration (the provider auto-fill on open) uses
+      // this so it doesn't reach handleDrawerAction -> silentRefresh, which
+      // re-fetches the whole In Basket and races the fire-and-forget mark_read
+      // — resurrecting the row's unread/bold state right after open (and
+      // re-running the expensive 6-endpoint list fetch on every drawer open).
+      if (!opts?.silent) onAction(data);
       return data as DrawerContext;
     },
     [outreachId, onAction],

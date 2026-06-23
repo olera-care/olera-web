@@ -55,7 +55,32 @@ export async function resolveProvider(
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single<Profile>();
-    if (data) return { kind: "active", provider: accountRowToProvider(data) };
+    if (data) {
+      // One display record per provider: if this claimed account is linked to a
+      // directory listing (source_provider_id), render from the DIRECTORY row —
+      // the single source of truth for display content (photos, services,
+      // description). This makes the account's own slug show the SAME rich page
+      // as the canonical directory slug, instead of the sparse account row. The
+      // page overlays claim/editorial via getClaimedAccount(source_provider_id),
+      // exactly as it does for the directory-slug path. Falls back to the account
+      // row when the directory row is missing/deleted, or for account-first
+      // providers (no source_provider_id).
+      const srcId = (data as { source_provider_id?: string | null }).source_provider_id;
+      if (srcId) {
+        try {
+          const { data: dir } = await db
+            .from("olera-providers")
+            .select("*")
+            .eq("provider_id", srcId)
+            .not("deleted", "is", true)
+            .maybeSingle<IOSProvider>();
+          if (dir) return { kind: "active", provider: directoryRowToProvider(dir) };
+        } catch {
+          // directory unreachable — fall back to the account row below.
+        }
+      }
+      return { kind: "active", provider: accountRowToProvider(data) };
+    }
   } catch {
     // fall through
   }

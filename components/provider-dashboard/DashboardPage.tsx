@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useDirectoryProfileOverlay } from "@/hooks/useDirectoryProfileOverlay";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -52,7 +53,11 @@ const EDITABLE_SECTIONS: readonly SectionId[] = [
 ];
 
 export default function DashboardPage() {
-  const profile = useProviderProfile();
+  const rawProfile = useProviderProfile();
+  // For directory-linked providers, overlay the core display fields from the
+  // directory row so the editor shows their real listing (not the thin account
+  // record). No-op for account-first providers.
+  const profile = useDirectoryProfileOverlay(rawProfile);
   const { metadata } = useProviderDashboardData(profile);
   const { user, refreshAccountData } = useAuth();
   const searchParams = useSearchParams();

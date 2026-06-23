@@ -161,7 +161,7 @@ function programLink(landingUrl: string): string {
  * orgs land on the families page, advisors + dept heads on the "For advisors,
  * faculty & student orgs" section.
  */
-function partnerLandingUrl(type: StakeholderType): string {
+export function partnerLandingUrl(type: StakeholderType): string {
   return type === "student_org" ? FAMILIES_URL : FAMILIES_ADVISORS_URL;
 }
 

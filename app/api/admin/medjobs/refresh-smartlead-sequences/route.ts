@@ -35,6 +35,7 @@ import { isAdmin } from "@/lib/admin";
 import { saveSequence } from "@/lib/smartlead";
 import { buildEmailSequence } from "@/lib/medjobs/smartlead-bridge";
 import type { CadenceKey } from "@/lib/student-outreach/cadence";
+import type { StakeholderType } from "@/lib/student-outreach/types";
 
 export const maxDuration = 120; // refreshing many campaigns may take time
 
@@ -43,6 +44,10 @@ interface RefreshLinkage {
   campus_slug: string | null;
   campus_name: string | null;
   cadence_key: CadenceKey;
+  /** Activation only: partner (advisor/dept_head/student_org) vs provider copy. */
+  is_partner?: boolean;
+  /** Activation only: drives per-type partner activation copy. */
+  stakeholder_type?: StakeholderType | null;
   sample_outreach_id: string;
 }
 
@@ -95,36 +100,54 @@ async function run(request: Request, apply: boolean): Promise<Response> {
   const campaignFilter = url.searchParams.get("campaign_id");
   const campusFilter = url.searchParams.get("campus");
 
-  // ── 1. Collect outreach rows with Smartlead linkage ─────────────────
-  const { data: rows, error } = await supabase
-    .from("student_outreach")
-    .select(
-      "id, campus_id, kind, stakeholder_type, research_data, campuses:campus_id (slug, name)",
-    )
-    .not("research_data->smartlead->>campaign_id", "is", null);
-
-  if (error) {
-    return NextResponse.json(
-      { error: `Supabase query failed: ${error.message}` },
-      { status: 500 },
-    );
-  }
-
-  // ── 2. Deduplicate to one entry per Smartlead campaign_id ───────────
-  const byCampaign = new Map<number, RefreshLinkage>();
-  for (const r of ((rows ?? []) as unknown) as Array<{
+  // ── 1. Collect outreach rows with Smartlead linkage (cold + activation) ─
+  type OutreachRow = {
     id: string;
     campus_id: string | null;
     kind: string | null;
     stakeholder_type: string | null;
     research_data: Record<string, unknown> | null;
     campuses: { slug: string | null; name: string | null } | null;
-  }>) {
+  };
+  const SELECT =
+    "id, campus_id, kind, stakeholder_type, research_data, campuses:campus_id (slug, name)";
+
+  // Cold campaigns live at research_data.smartlead.campaign_id; activation
+  // campaigns at research_data.smartlead_activation.campaign_id. Two queries so
+  // BOTH cold and activation campaigns get the refreshed copy/links/signatures.
+  const { data: coldRows, error: coldErr } = await supabase
+    .from("student_outreach")
+    .select(SELECT)
+    .not("research_data->smartlead->>campaign_id", "is", null);
+  if (coldErr) {
+    return NextResponse.json(
+      { error: `Supabase query failed (cold): ${coldErr.message}` },
+      { status: 500 },
+    );
+  }
+  const { data: actRows, error: actErr } = await supabase
+    .from("student_outreach")
+    .select(SELECT)
+    .not("research_data->smartlead_activation->>campaign_id", "is", null);
+  if (actErr) {
+    return NextResponse.json(
+      { error: `Supabase query failed (activation): ${actErr.message}` },
+      { status: 500 },
+    );
+  }
+
+  // ── 2. Deduplicate to one entry per Smartlead campaign_id ───────────
+  const byCampaign = new Map<number, RefreshLinkage>();
+  const matchesFilters = (cid: number, slug: string | null) =>
+    (!campaignFilter || String(cid) === campaignFilter) &&
+    (!campusFilter || slug === campusFilter);
+
+  // Cold campaigns — one cadence per kind/stakeholder_type.
+  for (const r of (((coldRows ?? []) as unknown) as OutreachRow[])) {
     const smartlead = (r.research_data?.smartlead ?? {}) as Record<string, unknown>;
     const cid = Number(smartlead.campaign_id);
     if (!Number.isFinite(cid)) continue;
-    if (campaignFilter && String(cid) !== campaignFilter) continue;
-    if (campusFilter && r.campuses?.slug !== campusFilter) continue;
+    if (!matchesFilters(cid, r.campuses?.slug ?? null)) continue;
     if (byCampaign.has(cid)) continue;
 
     const cadenceKey = resolveCadenceKey(r.kind, r.stakeholder_type);
@@ -139,6 +162,26 @@ async function run(request: Request, apply: boolean): Promise<Response> {
     });
   }
 
+  // Activation campaigns — always the "activation" cadence; partner vs provider
+  // copy is driven by is_partner + stakeholder_type.
+  for (const r of (((actRows ?? []) as unknown) as OutreachRow[])) {
+    const act = (r.research_data?.smartlead_activation ?? {}) as Record<string, unknown>;
+    const cid = Number(act.campaign_id);
+    if (!Number.isFinite(cid)) continue;
+    if (!matchesFilters(cid, r.campuses?.slug ?? null)) continue;
+    if (byCampaign.has(cid)) continue;
+
+    byCampaign.set(cid, {
+      campaign_id: cid,
+      campus_slug: r.campuses?.slug ?? null,
+      campus_name: r.campuses?.name ?? null,
+      cadence_key: "activation",
+      is_partner: r.kind !== "provider",
+      stakeholder_type: (r.stakeholder_type as StakeholderType | null) ?? null,
+      sample_outreach_id: r.id,
+    });
+  }
+
   // ── 3. For each campaign: render sequence + (optionally) push ───────
   const refreshed: RefreshResult[] = [];
   const failed: RefreshResult[] = [];
@@ -147,6 +190,8 @@ async function run(request: Request, apply: boolean): Promise<Response> {
     const steps = buildEmailSequence(linkage.cadence_key, {
       adminFirstName: "Logan",
       campusSlug: linkage.campus_slug,
+      isPartner: linkage.is_partner,
+      stakeholderType: linkage.stakeholder_type,
     });
     const subjects = steps.map((s) => s.subject);
 

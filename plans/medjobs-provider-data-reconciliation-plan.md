@@ -15,7 +15,7 @@ claim path resolves to it — never a disconnected copy.**
 > - **Chunk 3 — DONE.** 3a backend never overwrites a claimed listing + P1-A
 >   push for unowned; 3b pre-flight read-only lock + Edit override + tag. tsc
 >   clean, committed.
-> - **Chunk 4 — Step 1 DONE (approach A), Step 2 deferred.** Step 1: directory-
+> - **Chunk 4 — DONE (approach A, Steps 1 + 2).** Step 1: directory-
 >   linked providers' dashboard reads/writes the CORE fields (name, description,
 >   contact, address, category) on the `olera-providers` row via an ownership-
 >   checked server API + a dashboard-only read overlay; AuthProvider untouched;

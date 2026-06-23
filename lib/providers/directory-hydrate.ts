@@ -1,4 +1,6 @@
 import { SUPABASE_CAT_TO_PROFILE_CATEGORY } from "@/lib/types/provider";
+import { getCategoryServices } from "@/lib/provider-utils";
+import { normalizeCareLabel } from "@/lib/provider-highlights";
 
 /**
  * One provider, one record. When a directory (`olera-providers`) listing is
@@ -44,12 +46,28 @@ export function parseDirectoryImages(provider_images: string | null | undefined)
  * `metadata.images` alongside any other metadata it sets.
  */
 export function directoryHydrationFields(row: DirectoryRowForHydration): DirectoryHydration {
-  const careTypes = [row.provider_category, row.main_category]
-    .filter((v): v is string => typeof v === "string" && v.trim() !== "")
-    .filter((v, i, arr) => arr.indexOf(v) === i);
   const category = row.provider_category
     ? SUPABASE_CAT_TO_PROFILE_CATEGORY[row.provider_category] ?? null
     : null;
+  // care_types must be the SAME full list the public provider page renders, so
+  // the portal and the public page match exactly: the row's own categories
+  // (normalized) padded with the category-inferred services. We store the
+  // complete list on the business_profile so the provider owns + edits it.
+  const base = [row.provider_category, row.main_category]
+    .filter((v): v is string => typeof v === "string" && v.trim() !== "")
+    .map(normalizeCareLabel);
+  const careTypes: string[] = [];
+  const seen = new Set<string>();
+  for (const s of base) {
+    const key = s.toLowerCase();
+    if (!seen.has(key)) { seen.add(key); careTypes.push(s); }
+  }
+  if (category) {
+    for (const s of getCategoryServices(category)) {
+      const key = s.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); careTypes.push(s); }
+    }
+  }
   return {
     description: row.provider_description ?? null,
     care_types: careTypes,

@@ -448,7 +448,7 @@ export function ProgramPdfTemplate({
               ) : null}
               <View style={styles.sigText}>
                 <Text style={styles.sigName}>Graize Belandres</Text>
-                <Text style={styles.sigCred}>Research Assistant to</Text>
+                <Text style={styles.sigCred}>Assistant to</Text>
                 <Text style={styles.sigCred}>Dr. Logan DuBose</Text>
                 <Text style={styles.sigCred}>graize@olera.care</Text>
               </View>

@@ -32,7 +32,7 @@ import {
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
-import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, partnerLandingUrl, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, partnerLandingUrl, isDoctorTitle, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import type { Status, StakeholderType } from "@/lib/student-outreach/types";
@@ -294,6 +294,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
     if (c.suppressed) continue;
     if (c.email_verdict === "invalid") continue;
     const firstName = c.first_name?.trim() || "";
+    const lastName = c.last_name?.trim() || "";
     const salutation = isFormal
       ? `Dear ${salutationFor(
           row.kind === "dept_head" ? "dept_head" : "professor",
@@ -301,9 +302,13 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           c.last_name,
           c.title ?? null,
         )}`
-      : firstName
-        ? `Hi ${firstName}`
-        : "Hello";
+      : isDoctorTitle(c.title)
+        ? lastName
+          ? `Hello Dr. ${lastName}`
+          : "Hello"
+        : firstName
+          ? `Hi ${firstName}`
+          : "Hello";
     leads.push({
       outreach_id: row.outreach_id,
       contact_id: c.contact_id,
@@ -607,7 +612,7 @@ function grazieSignatureHtml(flyerUrl: string): string {
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
-      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0 0 2px;">Assistant to Dr. Logan DuBose</p>
       <p style="margin:0;"><a href="${flyerUrl}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>

@@ -1307,7 +1307,7 @@ function ResearchModePanel({
             </>
           }
           scriptLabel="Suggested script"
-          script={`"Hello, this is [your name], research assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${
+          script={`"Hello, this is [your name], assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${
             ctx.campus.name?.trim() || "your campus"
           } students, which places pre-health students in paid caregiver roles with older adults. Before I send any details, are you the right person in the department to talk with, or is there a better contact?"`}
           outcomes={INTRO_CALL_OUTCOMES}

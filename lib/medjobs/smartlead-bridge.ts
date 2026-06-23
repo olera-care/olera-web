@@ -32,7 +32,7 @@ import {
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
-import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import type { Status, StakeholderType } from "@/lib/student-outreach/types";
@@ -510,6 +510,14 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
     // the {{welcome_url}} merge tag at send time.
     .replace(/\{welcome_url\}/g, "{{welcome_url}}")
+    // Chunk 5: per-lead PUBLIC board link for the cold provider cadence. Carries
+    // the row's outreach_id (already a custom field) + screener=1 so the landing
+    // pre-locks the eligibility screener to the provider's own directory listing
+    // — no auth token, so cold deliverability is unaffected.
+    .replace(
+      /\{board_url\}/g,
+      `${CANDIDATES_URL}?outreach_id={{outreach_id}}&screener=1`,
+    )
     // Per-lead application link (campus + that row's outreach id) set in
     // rowToLeads as custom_fields.apply_url. Lets a partner-shared link trace
     // applies back to the org that shared it.

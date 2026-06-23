@@ -14,7 +14,7 @@ import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { MEDJOBS_MARKETPLACE_V2_HIDDEN } from "@/lib/medjobs/flags";
-import EligibilityScreenerModal from "@/components/medjobs/EligibilityScreenerModal";
+import EligibilityScreenerModal, { HIRE_PREFILL_KEY } from "@/components/medjobs/EligibilityScreenerModal";
 import ProvidersMarketing from "@/components/medjobs/ProvidersMarketing";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import { US_STATES } from "@/lib/power-pages";
@@ -77,8 +77,14 @@ function CandidateBrowseInner() {
   )?.coverage_buckets;
 
   const claimConflict = searchParams?.get("claim_conflict") === "1";
+  // Cold-cadence link (Chunk 5): public board + ?outreach_id=...&screener=1.
+  // Non-auth trigger that pre-locks the screener to the provider's listing.
+  const outreachIdParam = searchParams?.get("outreach_id") ?? null;
+  const screenerParam = searchParams?.get("screener") === "1";
   const autoOpenScreener =
-    searchParams?.get("welcome") === "1" || searchParams?.get("activate") === "1";
+    searchParams?.get("welcome") === "1" ||
+    searchParams?.get("activate") === "1" ||
+    screenerParam;
   const universityFromUrl = searchParams?.get("university") ?? null;
   const campusSlugParam = searchParams?.get("campus") ?? null;
 
@@ -184,11 +190,34 @@ function CandidateBrowseInner() {
   // eligible yet (anon or not-eligible provider).
   useEffect(() => {
     if (autoOpenedRef.current || isLoading) return;
-    if (autoOpenScreener && !isEligible && !claimConflict) {
-      autoOpenedRef.current = true;
+    if (!autoOpenScreener || isEligible || claimConflict) return;
+    autoOpenedRef.current = true;
+    (async () => {
+      // Cold link: resolve the provider's own directory listing and stash it as
+      // the screener prefill so the org is pre-locked (they claim their listing,
+      // not a duplicate). Best-effort — on failure the screener falls back to
+      // manual search + the "Create new" path for genuinely new providers.
+      if (outreachIdParam) {
+        try {
+          const res = await fetch(
+            `/api/medjobs/outreach-org?outreach_id=${encodeURIComponent(outreachIdParam)}`,
+          );
+          if (res.ok) {
+            const data = (await res.json()) as { org?: unknown };
+            if (data.org) {
+              sessionStorage.setItem(
+                HIRE_PREFILL_KEY,
+                JSON.stringify({ selectedOrg: data.org }),
+              );
+            }
+          }
+        } catch {
+          /* ignore — screener handles the no-prefill case */
+        }
+      }
       setShowScreener(true);
-    }
-  }, [autoOpenScreener, isEligible, claimConflict, isLoading]);
+    })();
+  }, [autoOpenScreener, isEligible, claimConflict, isLoading, outreachIdParam]);
 
   const onUniversityChange = useCallback((id: string) => {
     setUniversityId(id);

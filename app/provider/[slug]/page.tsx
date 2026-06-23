@@ -337,7 +337,7 @@ export default async function ProviderPage({
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
-  const acceptedPayments = meta?.accepted_payments || [];
+  let acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
@@ -443,15 +443,19 @@ export default async function ProviderPage({
   // For native business_profiles, use profile.verification_state directly
   // For iOS providers, this may be undefined but claimResult will override
   let actualVerificationState: string | null = profile.verification_state ?? null;
+  let claimMeta: ExtendedMetadata | null = null;
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
     actualVerificationState = claimResult.verification_state ?? actualVerificationState;
-    // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
-    const bpMeta = claimResult.metadata as ExtendedMetadata | null;
-    if (bpMeta?.staff) {
-      staff = bpMeta.staff;
-    }
+    // Overlay the editorial fields the provider edits in their dashboard but
+    // that don't exist on the directory row — owner story, payment types,
+    // staff screening, itemized pricing. This makes a directory-linked CLAIMED
+    // provider's public page show the same editorial data as an account-first
+    // provider (Chunk 4 Step 2). iOS/directory metadata has none of these.
+    claimMeta = claimResult.metadata as ExtendedMetadata | null;
+    if (claimMeta?.staff) staff = claimMeta.staff;
+    if (claimMeta?.accepted_payments) acceptedPayments = claimMeta.accepted_payments;
   }
 
   // Only show "Claimed" badge when provider is BOTH claimed AND verified
@@ -464,8 +468,8 @@ export default async function ProviderPage({
   const realReviewCount = qaResult.reviewCount;
   const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
-  const pricingDetails = meta?.pricing_details || [];
-  const staffScreening = meta?.staff_screening;
+  const pricingDetails = claimMeta?.pricing_details ?? meta?.pricing_details ?? [];
+  const staffScreening = claimMeta?.staff_screening ?? meta?.staff_screening;
 
   // === Review Data Sources (properly separated) ===
   // 1. Real reviews come from the reviews table (realReviewCount from DB query above)

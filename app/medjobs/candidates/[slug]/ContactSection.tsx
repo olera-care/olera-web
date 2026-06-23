@@ -46,10 +46,15 @@ export default function ContactSection({
   const providerProfile = profiles.find(
     (p) => p.type === "organization" || p.type === "caregiver",
   );
-  const termsAcceptedInitial = !!(
+  // Derive terms-accepted from the live profile metadata every render (not a
+  // one-time useState seed) so it stays correct across candidate pages once the
+  // provider has agreed anywhere. `agreedLocally` covers the same-page moment
+  // right after agreeing, before the auth refresh propagates.
+  const termsAcceptedFromMeta = !!(
     (providerProfile?.metadata as Record<string, unknown> | undefined)?.["interview_terms_accepted_at"]
   );
-  const [termsAccepted, setTermsAccepted] = useState(termsAcceptedInitial);
+  const [agreedLocally, setAgreedLocally] = useState(false);
+  const termsAccepted = agreedLocally || termsAcceptedFromMeta;
 
   const firstName = candidate.displayName.split(" ")[0];
 
@@ -127,7 +132,7 @@ export default function ContactSection({
       profileId={providerProfile?.id}
       onClose={() => setShowTerms(false)}
       onAgreed={() => {
-        setTermsAccepted(true);
+        setAgreedLocally(true);
         setShowTerms(false);
         // Refresh auth so the persisted interview_terms_accepted_at is reflected
         // on revisit (avoids a redundant re-accept on the next page load).

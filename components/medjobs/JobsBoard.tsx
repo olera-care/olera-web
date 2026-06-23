@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import Pagination from "@/components/ui/Pagination";
+import BrowseCard from "@/components/browse/BrowseCard";
 import { PARTNER_UNIVERSITIES } from "@/lib/staffing-outreach/partner-universities";
 import type { FamilyCard } from "@/app/api/medjobs/families/route";
 
@@ -155,134 +156,6 @@ function generateJobTitle(provider: FamilyCard): string {
   return `Student Caregiver Needed - ${name}`;
 }
 
-/* ────────────────────────────────────────────────────────
-   Job Posting Card — provider photo, job title, description
-   ──────────────────────────────────────────────────────── */
-function JobCard({
-  provider,
-  isRequested,
-  isSaved,
-  onOpen,
-  onToggleSave,
-  onHover,
-  onLeave,
-}: {
-  provider: FamilyCard;
-  isRequested: boolean;
-  isSaved: boolean;
-  /** Open the student-rendered provider page (new tab) — where "About this
-   *  opportunity" + Request interview live. Replaces the old in-board modal. */
-  onOpen: () => void;
-  onToggleSave: () => void;
-  onHover: () => void;
-  onLeave: () => void;
-}) {
-  const jobTitle = generateJobTitle(provider);
-  const location = provider.address || "";
-  const heroImage = provider.image || provider.fallbackImage;
-  const categories = getJobCategories(provider);
-
-  return (
-    <div
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      onClick={onOpen}
-      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
-    >
-      {/* Provider photo banner */}
-      <div className="relative h-40 bg-gray-100">
-        {heroImage ? (
-          <Image
-            src={heroImage}
-            alt={provider.name}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary-50 via-vanilla-50 to-primary-100" />
-        )}
-        {/* Save heart */}
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
-          className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white flex items-center justify-center transition-all shadow-sm"
-          aria-label={isSaved ? "Unsave job" : "Save job"}
-        >
-          <svg
-            className={`w-4 h-4 transition-colors ${isSaved ? "text-red-500 fill-red-500" : "text-gray-500"}`}
-            fill={isSaved ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Job title — the main headline */}
-      <div className="p-4 pb-2">
-        <h3 className="text-[15px] font-bold text-gray-900 leading-snug line-clamp-2">
-          {jobTitle}
-        </h3>
-        <p className="text-sm text-gray-500 mt-0.5">{location}</p>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5">
-          <span className="text-sm font-semibold text-gray-900">
-            {resolvePay(provider)}
-          </span>
-          <span className="text-gray-300">&middot;</span>
-          {categories.map((ct) => (
-            <span key={ct} className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-md text-[11px] font-medium border border-primary-100">
-              {ct}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Posted time + rating */}
-      <div className="px-4 pb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="text-xs text-gray-400">
-          Posted {timeAgo(provider.createdAt, provider.id)}
-        </span>
-        {provider.rating != null && provider.rating > 0 && (
-          <span className="inline-flex items-center gap-1 text-xs">
-            <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="font-semibold text-gray-900">{provider.rating}</span>
-            {provider.reviewCount != null && provider.reviewCount > 0 && (
-              <span className="text-gray-400">({provider.reviewCount})</span>
-            )}
-          </span>
-        )}
-      </div>
-
-      {/* CTAs — both open the student-rendered provider page (new tab) */}
-      <div className="mt-auto px-4 pb-4 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          className="text-xs font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors"
-        >
-          View job description ↗
-        </button>
-        {isRequested ? (
-          <span className="px-5 py-1.5 text-sm font-medium text-primary-600 border border-primary-200 rounded-full bg-primary-50">
-            Applied
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onOpen(); }}
-            className="px-5 py-1.5 text-sm font-medium rounded-full border text-primary-700 border-primary-200 hover:bg-primary-50 hover:border-primary-300 transition-all"
-          >
-            View &amp; apply →
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /** Certifications list (same as JobPostingBuilder) */
 const CERTIFICATIONS = [
@@ -437,16 +310,6 @@ export default function JobsBoard() {
   const [page, setPage] = useState(1);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [requested, setRequested] = useState<Set<string>>(new Set());
-  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
-
-  const toggleSave = (id: string) => {
-    setSavedJobs((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const campusName = PARTNER_UNIVERSITIES.find((u) => u.slug === campus)?.name ?? null;
 
@@ -643,15 +506,15 @@ export default function JobsBoard() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {pageCards.map((f) => (
-                  <JobCard
+                  <BrowseCard
                     key={f.id}
                     provider={f}
+                    variant="student"
+                    campus={campus || undefined}
                     isRequested={requested.has(f.id)}
-                    isSaved={savedJobs.has(f.id)}
-                    onOpen={() => openOpportunity(f)}
-                    onToggleSave={() => toggleSave(f.id)}
-                    onHover={() => setHoveredId(f.id)}
-                    onLeave={() => setHoveredId(null)}
+                    canRequest={!!student.profileId}
+                    requestLabel={student.isLive ? "Request interview" : "Complete profile to apply →"}
+                    onRequestInterview={() => openOpportunity(f)}
                   />
                 ))}
               </div>

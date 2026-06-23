@@ -226,7 +226,7 @@ export default function ReferralsTab({
               onClick={() => setShowScript(!showScript)}
               className="text-sm text-[#199087] hover:text-[#147a72] transition-colors flex items-center gap-1"
             >
-              {showScript ? "Hide script" : "We wrote your script"}
+              What to say
               <svg
                 className={`w-3.5 h-3.5 transition-transform ${showScript ? "rotate-180" : ""}`}
                 fill="none"

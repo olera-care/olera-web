@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { generateICS } from "@/lib/ics-generator";
-import { generateMedJobsNotificationUrl } from "@/lib/claim-tokens";
+import { generateMedJobsNotificationUrl, generateMedJobsStudentInterviewUrl } from "@/lib/claim-tokens";
 import { getAccessTier } from "@/lib/medjobs-access";
 import { isMedjobsEligible } from "@/lib/medjobs/eligibility";
 import { stopEmailSequence } from "@/lib/staffing-outreach/resend-automation";
@@ -330,8 +330,12 @@ export async function POST(request: NextRequest) {
             ? generateMedJobsNotificationUrl(providerProfile.slug, providerProfile.email, "interview", interview.id)
             : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
         } else {
-          // Student receives - use portal link (unchanged from original)
-          viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+          // Student receives - one-click magic link to their portal interviews
+          // tab (auto-opens the new interview), falling back to the plain portal
+          // link if the email is somehow missing.
+          viewUrl = studentProfile.email
+            ? generateMedJobsStudentInterviewUrl(studentProfile.email, interview.id)
+            : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
         }
 
         // Determine recipient profile ID for preference checking
@@ -480,8 +484,10 @@ export async function PATCH(request: NextRequest) {
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
       });
 
-      // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
-      const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+      // Generate view URLs - both parties get a one-click magic link for auto-sign-in
+      const studentViewUrl = student.email
+        ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
       const providerViewUrl = provider.slug && provider.email
         ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
         : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
@@ -522,8 +528,10 @@ export async function PATCH(request: NextRequest) {
 
     if (status === "cancelled") {
       try {
-        // Generate view URLs - providers get magic link for auto-sign-in, students get portal link
-        const studentViewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
+        // Generate view URLs - both parties get a one-click magic link for auto-sign-in
+        const studentViewUrl = student.email
+          ? generateMedJobsStudentInterviewUrl(student.email, interviewId)
+          : `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`;
         const providerViewUrl = provider.slug && provider.email
           ? generateMedJobsNotificationUrl(provider.slug, provider.email, "interview", interviewId)
           : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;

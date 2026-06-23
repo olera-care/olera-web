@@ -2754,7 +2754,7 @@ export function interviewProposedEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       Review the details and respond to let them know if you're available.
     </p>
-    <div style="margin:0 0 24px;">${button("View & Respond", opts.viewUrl)}</div>
+    <div style="margin:0 0 24px;">${button("Review Request", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

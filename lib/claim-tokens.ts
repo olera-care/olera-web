@@ -214,6 +214,25 @@ export function generateMedJobsNotificationUrl(
 }
 
 /**
+ * Generate a STUDENT-side one-click interview link. Mirror of
+ * generateMedJobsNotificationUrl but routes to the student claim handler, which
+ * authenticates the (already-registered) student and redirects to their portal
+ * interviews tab with ?newInterview=<id>. The token's id field is opaque here —
+ * the route re-derives the student from the interview and verifies the email.
+ */
+export function generateMedJobsStudentInterviewUrl(
+  email: string,
+  interviewId: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken("student", email);
+  const url = new URL(`${baseUrl}/api/medjobs/claim-interview-student`);
+  url.searchParams.set("interviewId", interviewId);
+  url.searchParams.set("otk", token);
+  return url.toString();
+}
+
+/**
  * Generate a lead claim URL with embedded claim token.
  * Routes to /api/claim-lead which handles server-side authentication
  * and redirects directly to /provider/connections.

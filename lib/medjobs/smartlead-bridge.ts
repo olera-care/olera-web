@@ -32,7 +32,7 @@ import {
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
-import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, partnerLandingUrl, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import type { Status, StakeholderType } from "@/lib/student-outreach/types";
@@ -449,6 +449,14 @@ export function buildEmailSequence(
       ? "provider"
       : "student";
 
+  // Logan's signature "Student Caregiver Program" link follows the same
+  // audience bucket as the body + flyer: provider cadences point to the
+  // provider landing; student-side cadences point to the program/families page
+  // (advisors/dept-heads/professors → the "For advisors, faculty & student
+  // orgs" section, student orgs → the families page).
+  const programLandingUrl =
+    pdfAudience === "provider" ? PROGRAM_URL : partnerLandingUrl(ctxStakeholderType);
+
   const days = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const steps: SmartleadSequenceStep[] = [];
   let prevEmailDay = 0;
@@ -464,7 +472,7 @@ export function buildEmailSequence(
         seq_number: seq,
         seq_delay_details: { delay_in_days: seq === 1 ? 0 : day.day - prevEmailDay },
         subject: finalizeTokens(draft.subject, adminFirstName),
-        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience),
+        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience, programLandingUrl),
       });
       prevEmailDay = day.day;
     }
@@ -557,18 +565,18 @@ const GRAZIE_PHOTO_URL =
  * Structure: Best, → Graize block → divider → "Message Approved" → Logan
  * block. Matches the Resend ordering.
  */
-function composeSmartleadFooterHtml(flyerUrl: string): string {
+function composeSmartleadFooterHtml(flyerUrl: string, programLandingUrl: string): string {
   return [
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
     grazieSignatureHtml(flyerUrl),
     `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
     `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
-    loganSignatureHtml(),
+    loganSignatureHtml(programLandingUrl),
   ].join("\n");
 }
 
-function loganSignatureHtml(): string {
+function loganSignatureHtml(programLandingUrl: string): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>
@@ -581,7 +589,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${programLandingUrl}" style="color:#059669;">Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}?utm_content={{outreach_id}}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -632,6 +640,7 @@ function toSmartleadHtml(
   adminFirstName: string,
   campusSlug: string | null,
   pdfAudience: "provider" | "student" = "provider",
+  programLandingUrl: string = PROGRAM_URL,
 ): string {
   // Partner/student-org/welcome emails link the STUDENT flyer (what partners
   // share with students); provider emails link the agency brochure.
@@ -655,8 +664,9 @@ function toSmartleadHtml(
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));
-  // Signature "Program flyer" link uses the same audience-aware PDF URL.
-  return bodyHtml + composeSmartleadFooterHtml(pdfUrl);
+  // Signatures: Graize's "Program flyer" → audience-aware PDF; Logan's
+  // "Student Caregiver Program" → audience-aware landing page.
+  return bodyHtml + composeSmartleadFooterHtml(pdfUrl, programLandingUrl);
 }
 
 // ── Server-side preview rendering (no network) ───────────────────────────

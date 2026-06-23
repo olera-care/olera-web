@@ -143,22 +143,25 @@ export default function ContactSection({
   );
 
   let cta: React.ReactNode;
-  if (!termsAccepted) {
-    cta = (
-      <button type="button" onClick={() => setShowTerms(true)} className={ctaClass}>
-        Review Terms &amp; Conditions →
-      </button>
-    );
-  } else if (isSample) {
-    cta = (
-      <div className="w-full rounded-xl bg-gray-100 px-4 py-2.5 text-center text-sm font-medium text-gray-500">
-        We&apos;ll notify you when your first student is ready
-      </div>
-    );
-  } else {
+  if (!isSample) {
+    // Real candidate: schedule directly — the Terms opt-in lives in the modal.
     cta = (
       <button type="button" onClick={() => setShowSchedule(true)} className={ctaClass}>
         Schedule interview →
+      </button>
+    );
+  } else if (termsAccepted) {
+    // Sample candidate, terms agreed: primed + waiting for real supply.
+    cta = (
+      <div className="w-full rounded-xl bg-gray-100 px-4 py-2.5 text-center text-sm font-medium text-gray-500">
+        We&apos;ll notify you when we have a candidate near you.
+      </div>
+    );
+  } else {
+    // Sample candidate: review + agree to terms while waiting.
+    cta = (
+      <button type="button" onClick={() => setShowTerms(true)} className={ctaClass}>
+        Review Terms &amp; Conditions →
       </button>
     );
   }

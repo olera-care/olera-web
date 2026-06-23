@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import DrDuBoseWelcome from "@/components/medjobs/DrDuBoseWelcome";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
@@ -93,6 +94,7 @@ function CandidateBrowseInner() {
   const [showScreener, setShowScreener] = useState(false);
   const [highlightFirst, setHighlightFirst] = useState(false);
   const firstCardRef = useRef<HTMLDivElement>(null);
+  const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
 
   const initedRef = useRef(false);
   const geoTriedRef = useRef(false);
@@ -242,6 +244,15 @@ function CandidateBrowseInner() {
     setHighlightFirst(true);
     window.setTimeout(() => setHighlightFirst(false), 2200);
   }, []);
+  // Schedule from a real candidate card. Anon/unclaimed providers are funneled
+  // to claim/setup first (the screener), since scheduling requires an account.
+  const openSchedule = useCallback(
+    (c: CandidateData) => {
+      if (hasProviderProfile) setScheduleTarget(c);
+      else setShowScreener(true);
+    },
+    [hasProviderProfile],
+  );
 
   // After the needs quiz, land the provider on the Hire Caregivers board (their
   // map-based workspace), where the welcome banner picks up the next step. The
@@ -272,6 +283,8 @@ function CandidateBrowseInner() {
         variant="candidate"
         href={`/medjobs/candidates/${c.slug}`}
         matchLabel={candidateMatchLabel(matchBuckets, c) ?? undefined}
+        ctaLabel="Schedule interview"
+        onCta={() => openSchedule(c)}
       />
     );
 
@@ -559,6 +572,15 @@ function CandidateBrowseInner() {
           orgName={providerProfile?.display_name ?? null}
           onClose={() => setShowScreener(false)}
           onComplete={onScreenerComplete}
+        />
+      )}
+
+      {scheduleTarget && (
+        <ScheduleInterviewModal
+          studentProfileId={scheduleTarget.id}
+          otherName={scheduleTarget.display_name}
+          onClose={() => setScheduleTarget(null)}
+          onScheduled={() => setScheduleTarget(null)}
         />
       )}
     </main>

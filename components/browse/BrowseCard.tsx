@@ -87,6 +87,9 @@ interface BrowseCardProps {
   matchScore?: number | null;
   /** candidate variant — quick invite button callback. */
   onQuickInvite?: () => void;
+  /** candidate variant — generic CTA label + handler (e.g. "Schedule Interview" / "More details"). */
+  ctaLabel?: string;
+  onCta?: () => void;
   /** candidate variant — true if already invited. */
   isInvited?: boolean;
   /** student variant — campus slug, carried into the provider detail link. */
@@ -105,6 +108,8 @@ export default function BrowseCard({
   matchLabel,
   matchScore,
   onQuickInvite,
+  ctaLabel,
+  onCta,
   isInvited = false,
   campus,
 }: BrowseCardProps) {
@@ -424,8 +429,21 @@ export default function BrowseCard({
           <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
         ) : null)}
 
-        {/* Candidate action: quick invite */}
-        {isCandidate && onQuickInvite && (
+        {/* Candidate action: generic CTA (Schedule Interview / More details) */}
+        {isCandidate && onCta && (
+          <div className="mt-3 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCta(); }}
+              className="inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors shadow-sm"
+            >
+              {ctaLabel ?? "Schedule interview"}
+            </button>
+          </div>
+        )}
+
+        {/* Candidate action: quick invite (legacy) */}
+        {isCandidate && !onCta && onQuickInvite && (
           <div className="mt-3 flex items-center justify-end">
             {isInvited ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">

@@ -41,8 +41,7 @@ import { useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
-import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
-import type { PartnerEvidence } from "@/components/admin/medjobs/PartnerEvidencePanel";
+import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 
 type ActionFn = (
   actionName: string,
@@ -64,8 +63,8 @@ interface FutureRow {
   subline: string | null;
   /**
    * v9 Phase 9: optional per-task call action. When present, the
-   * timeline row renders an inline Log button that opens
-   * LogCallOutcomeModal scoped to this specific task. Other future
+   * timeline row renders an inline Log button that opens the shared
+   * CallFollowUpModal scoped to this specific task. Other future
    * row types (email queued, custom event) leave this null.
    */
   callTask: {
@@ -74,6 +73,7 @@ interface FutureRow {
     recipientPhone: string | null;
     recipientRole: string | null;
     cadenceDay: number | null;
+    script: string | null;
   } | null;
 }
 
@@ -180,6 +180,10 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
                   ? (payload.recipient_role as string)
                   : null,
               cadenceDay: day,
+              script:
+                typeof payload?.script === "string"
+                  ? (payload.script as string)
+                  : null,
             }
           : null,
       });
@@ -213,37 +217,11 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
       : pastRows;
   const hiddenPastCount = pastRows.length - visiblePastRows.length;
 
-  // v9 Phase 9: per-task call logging state. When admin clicks Log
-  // on a call task row, we open LogCallOutcomeModal scoped to that
-  // specific recipient + task_id. The handler dispatches log_call
-  // with task_id so markCurrentCallTaskComplete claims THAT task
-  // (not the most-overdue auto-pick).
+  // Per-task call logging state. When admin clicks Log on a call task row, we
+  // open the shared CallFollowUpModal scoped to that specific task_id so
+  // markCurrentCallTaskComplete claims THAT task (not the most-overdue
+  // auto-pick). Same flow as the drawer's "Call to follow up" button.
   const [callLogTask, setCallLogTask] = useState<FutureRow["callTask"]>(null);
-
-  const submitCallLog = async (
-    outcome: string,
-    notes: string,
-    partner?: PartnerEvidence,
-  ): Promise<void> => {
-    if (!callLogTask) return;
-    try {
-      await action("log_call", {
-        outcome,
-        notes,
-        task_id: callLogTask.taskId,
-        cadence_day: callLogTask.cadenceDay ?? undefined,
-      });
-      // Conversion outcome (convert_to_partner) rides a partner payload — fire
-      // mark_partner so the timeline path converts like the step-list path.
-      if (partner) {
-        await action("mark_partner", { ...partner });
-      }
-      setCallLogTask(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to log call");
-      throw e;
-    }
-  };
 
   const hasAnyActivity = futureRows.length > 0 || pastRows.length > 0;
 
@@ -314,14 +292,19 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
       )}
 
       {callLogTask && (
-        <LogCallOutcomeModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={callLogTask.recipientName}
-          contactPhone={callLogTask.recipientPhone}
-          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
-          stakeholderType={ctx.outreach.stakeholder_type}
-          onCancel={() => setCallLogTask(null)}
-          onSubmit={submitCallLog}
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={callLogTask.script}
+          scriptLabel={
+            callLogTask.cadenceDay != null
+              ? `Day ${callLogTask.cadenceDay} script`
+              : "Call script"
+          }
+          taskId={callLogTask.taskId}
+          cadenceDay={callLogTask.cadenceDay}
+          onClose={() => setCallLogTask(null)}
+          setError={setError}
         />
       )}
     </section>

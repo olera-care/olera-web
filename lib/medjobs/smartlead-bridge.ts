@@ -21,7 +21,9 @@ import {
   addLeads,
   attachEmailAccounts,
   createCampaign,
+  getLeadByEmail,
   listEmailAccounts,
+  pauseLeadInCampaign,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
@@ -30,7 +32,7 @@ import {
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
-import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, partnerLandingUrl, isDoctorTitle, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
 import { studentApplyUrl } from "@/lib/medjobs/apply-link";
 import type { Status, StakeholderType } from "@/lib/student-outreach/types";
@@ -292,6 +294,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
     if (c.suppressed) continue;
     if (c.email_verdict === "invalid") continue;
     const firstName = c.first_name?.trim() || "";
+    const lastName = c.last_name?.trim() || "";
     const salutation = isFormal
       ? `Dear ${salutationFor(
           row.kind === "dept_head" ? "dept_head" : "professor",
@@ -299,9 +302,13 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           c.last_name,
           c.title ?? null,
         )}`
-      : firstName
-        ? `Hi ${firstName}`
-        : "Hello";
+      : isDoctorTitle(c.title)
+        ? lastName
+          ? `Hello Dr. ${lastName}`
+          : "Hello"
+        : firstName
+          ? `Hi ${firstName}`
+          : "Hello";
     leads.push({
       outreach_id: row.outreach_id,
       contact_id: c.contact_id,
@@ -447,6 +454,14 @@ export function buildEmailSequence(
       ? "provider"
       : "student";
 
+  // Logan's signature "Student Caregiver Program" link follows the same
+  // audience bucket as the body + flyer: provider cadences point to the
+  // provider landing; student-side cadences point to the program/families page
+  // (advisors/dept-heads/professors → the "For advisors, faculty & student
+  // orgs" section, student orgs → the families page).
+  const programLandingUrl =
+    pdfAudience === "provider" ? PROGRAM_URL : partnerLandingUrl(ctxStakeholderType);
+
   const days = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const steps: SmartleadSequenceStep[] = [];
   let prevEmailDay = 0;
@@ -462,7 +477,7 @@ export function buildEmailSequence(
         seq_number: seq,
         seq_delay_details: { delay_in_days: seq === 1 ? 0 : day.day - prevEmailDay },
         subject: finalizeTokens(draft.subject, adminFirstName),
-        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience),
+        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience, programLandingUrl),
       });
       prevEmailDay = day.day;
     }
@@ -508,6 +523,14 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
     // the {{welcome_url}} merge tag at send time.
     .replace(/\{welcome_url\}/g, "{{welcome_url}}")
+    // Chunk 5: per-lead PUBLIC board link for the cold provider cadence. Carries
+    // the row's outreach_id (already a custom field) + screener=1 so the landing
+    // pre-locks the eligibility screener to the provider's own directory listing
+    // — no auth token, so cold deliverability is unaffected.
+    .replace(
+      /\{board_url\}/g,
+      `${CANDIDATES_URL}?outreach_id={{outreach_id}}&screener=1`,
+    )
     // Per-lead application link (campus + that row's outreach id) set in
     // rowToLeads as custom_fields.apply_url. Lets a partner-shared link trace
     // applies back to the org that shared it.
@@ -547,18 +570,18 @@ const GRAZIE_PHOTO_URL =
  * Structure: Best, → Graize block → divider → "Message Approved" → Logan
  * block. Matches the Resend ordering.
  */
-function composeSmartleadFooterHtml(): string {
+function composeSmartleadFooterHtml(flyerUrl: string, programLandingUrl: string): string {
   return [
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
-    grazieSignatureHtml(),
+    grazieSignatureHtml(flyerUrl),
     `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
     `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
-    loganSignatureHtml(),
+    loganSignatureHtml(programLandingUrl),
   ].join("\n");
 }
 
-function loganSignatureHtml(): string {
+function loganSignatureHtml(programLandingUrl: string): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>
@@ -571,7 +594,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${programLandingUrl}" style="color:#059669;">Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}?utm_content={{outreach_id}}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -580,7 +603,7 @@ function loganSignatureHtml(): string {
 </table>`;
 }
 
-function grazieSignatureHtml(): string {
+function grazieSignatureHtml(flyerUrl: string): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:6px;">
   <tr>
@@ -589,8 +612,8 @@ function grazieSignatureHtml(): string {
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
-      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
-      <p style="margin:0;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
+      <p style="margin:0 0 2px;">Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0;"><a href="${flyerUrl}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>
 </table>`;
@@ -622,6 +645,7 @@ function toSmartleadHtml(
   adminFirstName: string,
   campusSlug: string | null,
   pdfAudience: "provider" | "student" = "provider",
+  programLandingUrl: string = PROGRAM_URL,
 ): string {
   // Partner/student-org/welcome emails link the STUDENT flyer (what partners
   // share with students); provider emails link the agency brochure.
@@ -645,7 +669,9 @@ function toSmartleadHtml(
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));
-  return bodyHtml + composeSmartleadFooterHtml();
+  // Signatures: Graize's "Program flyer" → audience-aware PDF; Logan's
+  // "Student Caregiver Program" → audience-aware landing page.
+  return bodyHtml + composeSmartleadFooterHtml(pdfUrl, programLandingUrl);
 }
 
 // ── Server-side preview rendering (no network) ───────────────────────────
@@ -731,6 +757,11 @@ export function buildSmartleadPreview(input: {
   cadenceKey?: CadenceKey;
   adminFirstName?: string;
   senderEmails?: string[];
+  /** Row's stakeholder type — needed so an ACTIVATION preview renders the
+   *  correct partner landing (advisor/dept_head → families#help, student_org →
+   *  families). Without it the preview defaults to student_org and shows the
+   *  wrong link, even though the actual send is correct. */
+  stakeholderType?: StakeholderType | null;
 }): SmartleadPreview {
   const fanned = rowToLeads(input.row, input.campus);
 
@@ -772,6 +803,8 @@ export function buildSmartleadPreview(input: {
     campusSlug: input.campus.slug ?? null,
     // Partner rows (kind != provider) preview the student flyer link.
     isPartner: input.row.kind !== "provider",
+    // Activation previews need the type to render the right partner landing.
+    stakeholderType: input.stakeholderType ?? null,
   });
   const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
   const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));
@@ -926,8 +959,25 @@ async function provisionCampaign(
 }
 
 /**
- * Finalize a freshly provisioned campaign: set schedule, then leave it PAUSED.
- * NEVER START. Called after leads are pushed (the validated order).
+ * True when SMARTLEAD_AUTO_START_CAMPAIGNS opts into auto-starting campaigns.
+ * Default OFF: with the flag unset, finalizeCampaign leaves campaigns PAUSED —
+ * the original warmup/reputation guardrail (§8.1). Accepts "true"/"1" (any case).
+ */
+function autoStartEnabled(): boolean {
+  const v = (process.env.SMARTLEAD_AUTO_START_CAMPAIGNS ?? "").trim().toLowerCase();
+  return v === "true" || v === "1";
+}
+
+/**
+ * Finalize a freshly provisioned campaign: set schedule, then set status.
+ *
+ * Status is gated by SMARTLEAD_AUTO_START_CAMPAIGNS (§8.1 "blunter alternative"):
+ *   - unset / false → PAUSED (default; a human starts it after warmup sign-off)
+ *   - true          → START (campaign goes live the instant leads are enrolled)
+ *
+ * Called after leads are pushed (the validated order). WARNING: with the flag on,
+ * a campaign can start before its mailbox pool is warm — the warmup check in
+ * resolveMailboxPool only produces warnings, it does not block START.
  */
 async function finalizeCampaign(
   campaignId: number,
@@ -936,7 +986,8 @@ async function finalizeCampaign(
   const errors: StageError[] = [];
   const sched = await setCampaignSchedule(campaignId, schedule);
   if (!sched.ok) errors.push({ stage: "setCampaignSchedule", message: sched.error ?? "schedule failed" });
-  const status = await setCampaignStatus(campaignId, "PAUSED");
+  const desiredStatus = autoStartEnabled() ? "START" : "PAUSED";
+  const status = await setCampaignStatus(campaignId, desiredStatus);
   if (!status.ok) errors.push({ stage: "setCampaignStatus", message: status.error ?? "status failed" });
   return errors;
 }
@@ -944,8 +995,9 @@ async function finalizeCampaign(
 /**
  * Orchestrate a PAUSED Smartlead campaign from a batch of CRM rows.
  *
- * - NEVER calls START — there is no "START" literal in this module. A human
- *   starts the campaign in the Smartlead UI after warmup + Logan sign-off (§8).
+ * - Status is gated by SMARTLEAD_AUTO_START_CAMPAIGNS (default off → PAUSED, a
+ *   human starts it after warmup + sign-off; on → auto-START on enrollment). See
+ *   finalizeCampaign and §8.1.
  * - Does NOT write back to the CRM — that's the schedule_sequence integration
  *   (G4 single-writer).
  * - Aggregates errors into the report instead of throwing, so a partial
@@ -1022,7 +1074,7 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
   }
   report.enrolled_outreach_ids.push(...successfulRowIds);
 
-  // 6. Schedule + leave PAUSED (validated order: after leads).
+  // 6. Schedule + set status per SMARTLEAD_AUTO_START_CAMPAIGNS (validated order: after leads).
   report.errors.push(...(await finalizeCampaign(campaignId, input.schedule ?? defaultSchedule())));
 
   report.ok = report.errors.length === 0;
@@ -1062,8 +1114,9 @@ export interface EnrollResult {
  * (a sibling row already created the campus campaign), the lead is appended to
  * it; otherwise this row is the first and a new PAUSED campaign is provisioned.
  *
- * Like `launchCampaign`: never STARTs, never writes the CRM (the caller writes
- * the linkage + touchpoint through route.ts, G4), aggregates errors.
+ * Like `launchCampaign`: status follows SMARTLEAD_AUTO_START_CAMPAIGNS (default
+ * PAUSED), never writes the CRM (the caller writes the linkage + touchpoint
+ * through route.ts, G4), aggregates errors.
  */
 export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<EnrollResult> {
   const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
@@ -1167,10 +1220,10 @@ export interface ActivationEnrollInput {
  *   - The lead's welcome_url carries `?a=1` so the magic link auto-opens Terms.
  *   - Uses the `activation` sequence (canonical activation templates).
  *
- * Same safety as the cold path: never STARTs (campaign left PAUSED for a human
- * to start in Smartlead), never writes the CRM (caller persists the linkage),
- * aggregates errors. Inert when SMARTLEAD_API_KEY is unset (addLeads/create
- * return ok:false).
+ * Same path as the cold flow: status follows SMARTLEAD_AUTO_START_CAMPAIGNS
+ * (default PAUSED for a human to start in Smartlead), never writes the CRM
+ * (caller persists the linkage), aggregates errors. Inert when SMARTLEAD_API_KEY
+ * is unset (addLeads/create return ok:false).
  */
 export async function enrollActivationLead(input: ActivationEnrollInput): Promise<EnrollResult> {
   const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
@@ -1259,5 +1312,67 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
 
   result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
   result.ok = result.errors.length === 0;
+  return result;
+}
+
+// ── Stop drips on conversion ─────────────────────────────────────────────
+
+export interface PauseDripsResult {
+  /** Lead/campaign pairs successfully paused. */
+  paused: number;
+  /** Pairs we attempted (campaign_id × email). */
+  attempted: number;
+  errors: string[];
+}
+
+/**
+ * Pause a contact's drip across one or more Smartlead campaigns on conversion.
+ *
+ * When a row converts to Client / Partner we cancel the CRM tasks, but the cold
+ * + activation EMAILS drip from Smartlead campaigns, which only auto-pause on a
+ * detected reply. A conversion made on a call (no reply) would otherwise keep
+ * emailing a now-converted contact. This resolves each email to its Smartlead
+ * lead id once, then pauses that lead in each campaign it might still be in.
+ *
+ * Best-effort by design: never throws, and is inert when SMARTLEAD_API_KEY is
+ * unset (the underlying calls return ok:false). The caller does not fail the
+ * conversion on a pause error.
+ */
+export async function pauseLeadDrips(
+  targets: Array<{ campaignId: number; email: string }>,
+): Promise<PauseDripsResult> {
+  const result: PauseDripsResult = { paused: 0, attempted: 0, errors: [] };
+
+  // Dedup (campaign, email) pairs and resolve each email → lead id once.
+  const seen = new Set<string>();
+  const leadIdByEmail = new Map<string, number | null>();
+
+  for (const { campaignId, email } of targets) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!campaignId || !normalizedEmail) continue;
+    const key = `${campaignId}::${normalizedEmail}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.attempted += 1;
+
+    let leadId = leadIdByEmail.get(normalizedEmail);
+    if (leadId === undefined) {
+      const lookup = await getLeadByEmail(normalizedEmail);
+      leadId = lookup.ok ? (lookup.data?.id ?? null) : null;
+      if (!lookup.ok) {
+        result.errors.push(`lookup ${normalizedEmail}: ${lookup.error}`);
+      }
+      leadIdByEmail.set(normalizedEmail, leadId);
+    }
+    if (leadId == null) continue; // not found / not configured — skip quietly
+
+    const paused = await pauseLeadInCampaign(campaignId, leadId);
+    if (paused.ok) {
+      result.paused += 1;
+    } else {
+      result.errors.push(`pause ${normalizedEmail}@${campaignId}: ${paused.error}`);
+    }
+  }
+
   return result;
 }

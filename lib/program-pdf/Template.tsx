@@ -318,7 +318,11 @@ export function ProgramPdfTemplate({
   const subtitle =
     config.subtitle ??
     "A Student Caregiver Program that matches vetted student caregivers to your recurring shifts";
-  const universityTagLine = config.universityTagLine ?? "Student Caregiver Program";
+  // Descriptive, non-possessive default. The header pairs this with the
+  // university name; "<University> · Student Caregiver Program" would imply
+  // the university runs the program, so the tagline describes the audience
+  // instead.
+  const universityTagLine = config.universityTagLine ?? "Paid caregiving program";
   const headers = config.sectionHeaders ?? {
     benefits: "Why agencies participate",
     steps: "How it works",
@@ -327,7 +331,7 @@ export function ProgramPdfTemplate({
   };
   return (
     <Document
-      title={`${config.universityShort} Student Caregiver Program`}
+      title="Olera's Student Caregiver Program"
       author="Olera"
       subject={config.documentSubject ?? "Provider outreach packet"}
     >
@@ -359,16 +363,18 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Title */}
-        {/* Title reads "Olera's {university} Student Caregiver Program"
-            to anchor the brand and match the outreach emails' framing. */}
+        {/* Title is "Olera's Student Caregiver Program" — the university is
+            NOT baked into the program name (a possessive "Olera's <University>
+            …" implies the school runs/endorses it). The campus still appears
+            descriptively in the header lockup and, for real campuses, the
+            eyebrow line below. Matches the outreach emails' framing. */}
         <View style={styles.titleBlock}>
-          <Text style={styles.programTitle}>
-            {/* universityShort is empty for the generic flyer — collapse the
-                double space so the title reads "Olera's Pre-Health …". */}
-            {["Olera’s", config.universityShort, "Student Caregiver Program"]
-              .filter(Boolean)
-              .join(" ")}
-          </Text>
+          {config.universityShort ? (
+            <Text style={styles.programSubtitle}>
+              For pre-health students near {config.universityName}
+            </Text>
+          ) : null}
+          <Text style={styles.programTitle}>Olera’s Student Caregiver Program</Text>
           <Text style={styles.programSubtitle}>{subtitle}</Text>
         </View>
 
@@ -442,7 +448,7 @@ export function ProgramPdfTemplate({
               ) : null}
               <View style={styles.sigText}>
                 <Text style={styles.sigName}>Graize Belandres</Text>
-                <Text style={styles.sigCred}>Research Assistant to</Text>
+                <Text style={styles.sigCred}>Assistant to</Text>
                 <Text style={styles.sigCred}>Dr. Logan DuBose</Text>
                 <Text style={styles.sigCred}>graize@olera.care</Text>
               </View>

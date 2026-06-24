@@ -4,9 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ReviewUpgradeModal from "@/components/provider/ReviewUpgradeModal";
-import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
-import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import { markReviewAsRead } from "@/hooks/useUnreadReviewsCount";
 import type { OrganizationMetadata } from "@/lib/types";
 
@@ -508,8 +506,6 @@ function SendRequestForm({
   creditsUsed,
   onUpgradeRequired,
   hasGooglePlaceId,
-  isVerified,
-  onVerifyClick,
 }: {
   onSuccess?: () => void;
   providerSlug?: string;
@@ -517,8 +513,6 @@ function SendRequestForm({
   creditsUsed: number;
   onUpgradeRequired: () => void;
   hasGooglePlaceId: boolean;
-  isVerified?: boolean;
-  onVerifyClick?: () => void;
 }) {
   // Delivery method toggle
   const [deliveryMethod, setDeliveryMethod] = useState<"email" | "link">("email");
@@ -539,6 +533,7 @@ function SendRequestForm({
   const [successLink, setSuccessLink] = useState<string | null>(null); // For fallback manual copy
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false); // Track if user copied from success screen
+  const [noEmailClicked, setNoEmailClicked] = useState(false); // Track "no email" feedback
   const isAtLimit = remainingRequests <= 0;
 
   // Auto-dismiss success after 4 seconds (only if Google is already connected)
@@ -549,17 +544,40 @@ function SendRequestForm({
     }
   }, [showSuccess, hasGooglePlaceId]);
 
+  // Auto-dismiss "no email" feedback after 3 seconds
+  useEffect(() => {
+    if (noEmailClicked) {
+      const timer = setTimeout(() => setNoEmailClicked(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [noEmailClicked]);
+
+  // Handle "I only have their phone number" click
+  const handleNoEmailClick = () => {
+    if (!providerSlug || noEmailClicked) return;
+
+    // Fire the tracking event
+    fetch("/api/activity/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        actor: "provider",
+        provider_id: providerSlug,
+        event_type: "review_no_email_signal",
+        metadata: { source: "reviews_page" },
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Non-critical - fire and forget
+    });
+
+    setNoEmailClicked(true);
+  };
+
   // Email submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit) return;
-
-    // Check verification before sending email requests
-    // Use !isVerified to catch both false and undefined (profile still loading)
-    if (!isVerified && onVerifyClick) {
-      onVerifyClick();
-      return;
-    }
 
     setIsSubmitting(true);
     setShowSuccess(false);
@@ -874,6 +892,22 @@ function SendRequestForm({
                 required
                 autoComplete="off"
               />
+              {/* No email link */}
+              <div className="mt-1.5 text-right">
+                {noEmailClicked ? (
+                  <span className="text-xs text-emerald-600 font-medium">
+                    Got it — SMS is coming soon
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleNoEmailClick}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                  >
+                    I only have their phone number
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -895,34 +929,23 @@ function SendRequestForm({
           </div>
 
           {/* Submit button */}
-          <div className="space-y-2">
-            <button
-              type="submit"
-              disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
-              className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
-            >
-              {isSubmitting ? (
-                <span className="inline-flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Sending...
-                </span>
-              ) : (
-                <span className="inline-flex items-center justify-center gap-2">
-                  <MailIcon className="w-5 h-5" />
-                  Send review request
-                </span>
-              )}
-            </button>
-            {/* Verification hint for unverified providers */}
-            {!isVerified && (
-              <p className="text-center text-xs text-gray-400">
-                <svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                </svg>
-                Verification required to send
-              </p>
+          <button
+            type="submit"
+            disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
+            className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
+          >
+            {isSubmitting ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Sending...
+              </span>
+            ) : (
+              <span className="inline-flex items-center justify-center gap-2">
+                <MailIcon className="w-5 h-5" />
+                Send review request
+              </span>
             )}
-          </div>
+          </button>
         </form>
       )}
 
@@ -1335,27 +1358,6 @@ export default function ProviderReviewsPage() {
   const metadata = profile?.metadata as OrganizationMetadata | undefined;
   const hasGooglePlaceId = !!(metadata?.google_metadata?.place_id);
 
-  // Verification state
-  const verificationState = profile?.verification_state as string | null;
-  const isVerified =
-    verificationState === "verified" ||
-    verificationState === "not_required";
-
-  // Verification modal
-  const {
-    isOpen: isVerificationModalOpen,
-    open: openVerificationModal,
-    close: closeVerificationModal,
-    handleSubmit: handleVerificationSubmit,
-    handleDismiss: handleVerificationDismiss,
-  } = useVerificationModal({
-    profileId: profile?.id || "",
-    onVerified: () => {
-      closeVerificationModal();
-      router.refresh();
-    },
-  });
-
   // Fetch highlighted review if ?id= param is present
   const reviewIdParam = searchParams.get("id");
   const profileId = profile?.id;
@@ -1568,8 +1570,6 @@ export default function ProviderReviewsPage() {
                     creditsUsed={creditsUsed}
                     onUpgradeRequired={() => setShowUpgradeModal(true)}
                     hasGooglePlaceId={hasGooglePlaceId}
-                    isVerified={isVerified}
-                    onVerifyClick={openVerificationModal}
                   />
                 </div>
               )}
@@ -1607,16 +1607,6 @@ export default function ProviderReviewsPage() {
           onClose={() => setShowUpgradeModal(false)}
         />
       )}
-
-      {/* Verification Modal */}
-      <VerificationMethodModal
-        isOpen={isVerificationModalOpen}
-        onClose={closeVerificationModal}
-        onSubmit={handleVerificationSubmit}
-        onDismiss={handleVerificationDismiss}
-        businessName={profile?.display_name || "your business"}
-        profileId={profile?.id}
-      />
     </>
   );
 }

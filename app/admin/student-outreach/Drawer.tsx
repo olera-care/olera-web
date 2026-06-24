@@ -15,19 +15,20 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PreFlightReviewModal } from "./PreFlightReviewModal";
 import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
-import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
-import { DeptHeadIntroCallModal } from "@/components/admin/medjobs/DeptHeadIntroCallModal";
+import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
+import {
+  CallOutcomeModal,
+  type OutcomeChoice,
+} from "@/components/admin/medjobs/CallOutcomeModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
-import { refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import StyledSelect from "@/components/ui/Select";
 import {
   KIND_LABELS,
@@ -39,6 +40,7 @@ import {
   type Status,
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
+import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { cleanOrgName } from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
@@ -71,9 +73,40 @@ interface DrawerProps {
    *  subset of the list row, so passing it renders the drawer instantly with
    *  no fetch (avoids the fetch-all-then-find). */
   candidateSeed?: CandidateDrawerData;
+  /** Which In Basket tab the drawer was opened from — threaded to NextStepCard
+   *  so the awaiting-reply call affordance adapts (Emails → link, else button). */
+  activeTab?: TabKey;
 }
 
-type ActionFn = (action: string, payload?: Record<string, unknown>) => Promise<DrawerContext>;
+type ActionFn = (
+  action: string,
+  payload?: Record<string, unknown>,
+  opts?: { silent?: boolean },
+) => Promise<DrawerContext>;
+
+// Dept-head pre-launch intro call — a recommended, non-gating courtesy call.
+// All three outcomes log a research call (no stage change); the email sequence
+// still launches explicitly afterward.
+const INTRO_CALL_OUTCOMES: OutcomeChoice[] = [
+  {
+    key: "connected",
+    label: "Reached them",
+    blurb: "Spoke with the department head (or their office). Introduced ourselves + Dr. DuBose.",
+    tone: "happy",
+  },
+  {
+    key: "voicemail",
+    label: "Left a voicemail",
+    blurb: "Left a brief professional message that information is on the way.",
+    tone: "neutral",
+  },
+  {
+    key: "no_answer",
+    label: "No answer",
+    blurb: "Nobody picked up. Launch anyway — the intro email still goes out.",
+    tone: "neutral",
+  },
+];
 
 // v8.10.37: terminal closed statuses — Step Board hides for these so the
 // drawer doesn't invite adding workflow steps to a closed/DNC stakeholder.
@@ -131,6 +164,7 @@ export function Drawer(props: DrawerProps) {
       outreachId={props.outreachId}
       onClose={props.onClose}
       onAction={props.onAction ?? (() => {})}
+      activeTab={props.activeTab}
     />
   );
 }
@@ -220,11 +254,13 @@ function StakeholderDrawer({
   onClose,
   onAction,
   seedName,
+  activeTab,
 }: {
   outreachId: string;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
   seedName?: string;
+  activeTab?: TabKey;
 }) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -249,15 +285,16 @@ function StakeholderDrawer({
     return () => { cancelled = true; };
   }, [outreachId]);
 
-  // v9.0 Phase 4: mark the row read on drawer mount. Fire-and-forget;
-  // a failed mark_read shouldn't disrupt the drawer experience. The
-  // server is idempotent (only updates if viewed_at IS NULL) so this
-  // is safe to call on every mount.
+  // Mark the row read on drawer mount — persist only, fire-and-forget.
+  // The server is idempotent (updates only if viewed_at IS NULL), so this
+  // is safe on every mount.
   //
-  // v9.0 Phase 7 Commit K: after mark_read lands, fire the global
-  // refresh so the In Basket hero (Queued counts) + sidebar
-  // fractions reflect the new read state in real time without
-  // waiting for the next user action.
+  // Deliberately does NOT call refreshMedJobs(). That global refresh
+  // refetched the entire In Basket (6 endpoints, incl. a 75K-row catchment
+  // scan) and re-sorted the list every time you merely opened a card —
+  // the cause of both the slow drawer and the silent reorder. The opening
+  // surface (MedJobsTabPage) now applies read state optimistically in
+  // place; the hero/sidebar reconcile on the next genuine refresh.
   useEffect(() => {
     void (async () => {
       try {
@@ -266,7 +303,6 @@ function StakeholderDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "mark_read" }),
         });
-        refreshMedJobs();
       } catch {
         /* non-critical */
       }
@@ -274,7 +310,7 @@ function StakeholderDrawer({
   }, [outreachId]);
 
   const action: ActionFn = useCallback(
-    async (action, payload = {}) => {
+    async (action, payload = {}, opts) => {
       const res = await fetch(`/api/admin/student-outreach/${outreachId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -283,7 +319,13 @@ function StakeholderDrawer({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Action failed");
       setCtx(data);
-      onAction(data);
+      // `silent` writes update only the drawer's own view, never the parent
+      // list. Drawer-internal hydration (the provider auto-fill on open) uses
+      // this so it doesn't reach handleDrawerAction -> silentRefresh, which
+      // re-fetches the whole In Basket and races the fire-and-forget mark_read
+      // — resurrecting the row's unread/bold state right after open (and
+      // re-running the expensive 6-endpoint list fetch on every drawer open).
+      if (!opts?.silent) onAction(data);
       return data as DrawerContext;
     },
     [outreachId, onAction],
@@ -416,9 +458,10 @@ function StakeholderDrawer({
             ctx={ctx}
             action={action}
             setError={setError}
+            activeTab={activeTab}
           />
         ) : (
-          <DrawerBody ctx={ctx} action={action} setError={setError} />
+          <DrawerBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
         )
       ) : null}
     </DrawerShell>
@@ -510,7 +553,8 @@ function ProviderDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: "client", id: providerId, action: "read" }),
         });
-        refreshMedJobs();
+        // No refreshMedJobs: the opening surface applies read optimistically
+        // in place (setEntityRead). This effect only persists.
       } catch {
         /* non-critical */
       }
@@ -803,7 +847,8 @@ function CandidateDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: "candidate", id: candidateId, action: "read" }),
         });
-        refreshMedJobs();
+        // No refreshMedJobs: the opening surface applies read optimistically
+        // in place (setEntityRead). This effect only persists.
       } catch {
         /* non-critical */
       }
@@ -909,10 +954,12 @@ function DrawerBody({
   ctx,
   action,
   setError,
+  activeTab,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (e: string | null) => void;
+  activeTab?: TabKey;
 }) {
   // v8.10.4: research stages are a different mode entirely. The research
   // form IS the next step, so it leads the drawer (no NextStepPanel),
@@ -949,7 +996,7 @@ function DrawerBody({
         // is absent from the Partner drawer between this commit and
         // the timeline; pending email/call tasks remain visible via
         // History in More Details.
-        <NextStepCard ctx={ctx} action={action} setError={setError} />
+        <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
       )}
 
       {/* Zone 4 · OutreachTimeline — the chronological surface. Past
@@ -1088,7 +1135,7 @@ function ResearchModePanel({
   // Office prospects mirror provider Pre-Flight EXACTLY: outreach is gated on a
   // logged confirmation call. The launcher stays disabled until a "Confirmed"
   // call outcome is logged (or Pre-Flight is overridden) — same verification
-  // state, same modal (CallForEmailModal) as providers.
+  // state, same modal (PreFlightCallModal) as providers.
   const overridden = (rd as { pre_flight_overridden?: boolean }).pre_flight_overridden === true;
   const verificationState = getVerificationState(ctx.touchpoints, overridden);
   const officePhone = ((rd.general_contact ?? {}) as { phone?: string }).phone ?? null;
@@ -1131,44 +1178,35 @@ function ResearchModePanel({
   const requiresCall = isOffice && Boolean(officePhone);
   const officeCanLaunch = hasOfficeEmail && (requiresCall ? verificationState.can_launch : true);
 
-  const orientation = isOffice ? (
-    requiresCall ? (
-      <>Check the info, call to confirm, then launch outreach.</>
-    ) : (
+  // Unified orientation across all stakeholder types (no per-type drift). Only
+  // the phoneless-office case drops the "call to confirm" clause.
+  const orientation =
+    isOffice && !requiresCall ? (
       <>Check the info, then launch outreach.</>
-    )
-  ) : isProspect ? (
-    <>Add a contact below, then click <em>Research complete</em>. You&apos;ll review the email sequence next.</>
-  ) : (
-    <>Check the info, call to confirm, then launch outreach.</>
-  );
+    ) : (
+      <>Check the info, call to confirm, then launch outreach.</>
+    );
 
-  const checklist = isOffice
-    ? [] // offices: the buttons (Call to Confirm → Launch) carry the workflow; no checklist line
-    : isProspect
-      ? [
-          { done: haveContact, label: "At least one active contact added" },
-        ]
-      : [{ done: eligibleEmail > 0 || hasOfficeEmail, label: "An email on file to reach out to" }];
+  // Less is more: no readiness checklist on any stakeholder pre-flight. The
+  // disabled-until-ready CTA (and its tooltip) already communicate what's needed.
+  const checklist: Array<{ done: boolean; label: string }> = [];
 
   // CTA: offices show Pre-Flight (Verification + Call to Confirm + Launch) at
   // any research status; non-office prospects keep the Research-complete step.
   let cta: React.ReactNode;
   if (!isOffice && isProspect) {
-    const label = ready
-      ? "✓ Research complete — review email sequence"
-      : "Add a contact to continue";
+    // Same row layout + labels as the office path: an optional Call to Confirm
+    // (recommended, non-blocking for dept heads) + a primary "Launch outreach"
+    // that records research-complete and opens the per-recipient review. No
+    // visual drift from the office flow.
     cta = (
-      <div className="space-y-2">
-        {/* Dept heads: recommended (non-blocking) intro call when a phone
-            exists. Sits above Launch — placing the courtesy call before the
-            email — but never gates it. */}
+      <div className="flex flex-wrap items-center gap-2">
         {type === "dept_head" && deptHeadPhone && (
           <button
             onClick={() => setShowIntroCall(true)}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
           >
-            📞 Intro call (recommended) — {deptHeadPhone}
+            📞 Call to Confirm
           </button>
         )}
         <button
@@ -1181,11 +1219,10 @@ function ResearchModePanel({
             }
           }}
           disabled={!ready}
-          className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-            ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-          }`}
+          title={ready ? "Review recipients and launch outreach." : "Add a contact first."}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {label}
+          Launch outreach →
         </button>
       </div>
     );
@@ -1227,15 +1264,16 @@ function ResearchModePanel({
     );
   } else {
     cta = (
-      <button
-        onClick={() => setShowPreFlight(true)}
-        disabled={!ready}
-        className={`w-full rounded-md px-3 py-2 text-sm font-semibold text-white transition-colors ${
-          ready ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
-        }`}
-      >
-        {ready ? "Start email sequence →" : "Add a contact with email to continue"}
-      </button>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowPreFlight(true)}
+          disabled={!ready}
+          title={ready ? "Review recipients and launch outreach." : "Add a contact with email first."}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Launch outreach →
+        </button>
+      </div>
     );
   }
 
@@ -1248,7 +1286,7 @@ function ResearchModePanel({
         research={{ orientation, checklist, cta }}
       />
       {showCallConfirm && (
-        <CallForEmailModal
+        <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
           phone={officePhone}
@@ -1259,15 +1297,36 @@ function ResearchModePanel({
         />
       )}
       {showIntroCall && (
-        <DeptHeadIntroCallModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={deptHeadContactName}
-          campusName={ctx.campus.name}
-          phone={deptHeadPhone}
-          action={action}
+        <CallOutcomeModal
+          title="Intro call (recommended)"
+          subtitle={
+            <>
+              {ctx.outreach.organization_name}
+              {deptHeadContactName ? ` · ${deptHeadContactName}` : ""}
+              {deptHeadPhone ? ` · ${deptHeadPhone}` : ""}
+            </>
+          }
+          scriptLabel="Suggested script"
+          script={`"Hello, this is [your name], assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${
+            ctx.campus.name?.trim() || "your campus"
+          } students, which places pre-health students in paid caregiver roles with older adults. Before I send any details, are you the right person in the department to talk with, or is there a better contact?"`}
+          outcomes={INTRO_CALL_OUTCOMES}
           onCancel={() => setShowIntroCall(false)}
-          onDone={() => setShowIntroCall(false)}
-          setError={setError}
+          onSubmit={async (outcomeKey, notes) => {
+            setError(null);
+            try {
+              // log_research_call records the call without advancing the stage —
+              // the row still launches via the email sequence afterward.
+              await action("log_research_call", {
+                outcome: outcomeKey ?? "connected",
+                notes,
+              });
+              setShowIntroCall(false);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to log the intro call");
+              throw e;
+            }
+          }}
         />
       )}
       {showPreFlight && isOffice && (
@@ -1295,15 +1354,27 @@ function ResearchModePanel({
         />
       )}
       {showPreFlight && !isOffice && (
-        <PreFlightReviewModal
-          stakeholderType={type}
+        // Non-office stakeholders (dept head, professor) now use the SAME
+        // per-recipient pre-flight as offices, so the launch payload carries
+        // recipients + call_scripts and the cadence's phone-day CALL tasks
+        // actually queue (previously this path sent email snapshots only — the
+        // root cause of dept heads getting no call card). Recipients come from
+        // the named contact(s); no synthetic general recipient.
+        <ProviderPreFlightModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
+          campusSlug={ctx.campus.slug}
+          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
           contacts={ctx.contacts}
+          generalContact={{ email: null, phone: null }}
+          smartleadPreview={ctx.smartlead_preview}
+          cadenceKey={type}
+          pdfAudience="student"
+          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (snapshots) => {
+          onSubmit={async (payload) => {
             try {
-              await action("schedule_sequence", { email_snapshots: snapshots });
+              await action("schedule_sequence", payload);
               setShowPreFlight(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Schedule failed");
@@ -1323,34 +1394,6 @@ function ResearchModePanel({
 // short paragraph: what's happening + what to do next. The row cards
 // own the actual buttons; the drawer just describes and offers a few
 // always-visible CTAs (Mark Partner, Log meeting outcome).
-
-/** Read-only social channels (Instagram / Discord / GroupMe …) the AI surfaced
- *  for an organization. Stored on research_data.socials at generation time;
- *  shown as small links since student orgs often reach members via social. */
-function OrgSocials({ ctx }: { ctx: DrawerContext }) {
-  const socials =
-    ((ctx.outreach.research_data as { socials?: Array<{ platform?: string | null; url?: string | null }> } | null)
-      ?.socials ?? []).filter((s) => s?.url);
-  if (socials.length === 0) return null;
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-        Socials
-      </span>
-      {socials.map((s, i) => (
-        <a
-          key={i}
-          href={s.url ?? "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium text-primary-600 hover:underline"
-        >
-          {s.platform || "link"} ↗
-        </a>
-      ))}
-    </div>
-  );
-}
 
 function ResearchSection({
   ctx,
@@ -1387,9 +1430,9 @@ function ResearchSection({
       : "",
   );
 
-  const [programs, setPrograms] = useState<string[]>(ctx.outreach.programs);
-
-  const programOptions = useMemo(() => PROGRAMS.filter((p) => p !== OTHER), []);
+  // Programs are no longer edited in the pre-flight (UI removed — less is more);
+  // the saved value is preserved on the row and still sent on save.
+  const [programs] = useState<string[]>(ctx.outreach.programs);
 
   // v8.7: for single-contact types (dept_head / professor) we render the
   // primary contact inline here instead of a separate Contacts section.
@@ -1531,11 +1574,6 @@ function ResearchSection({
           </div>
         )}
 
-        {/* Social channels the AI surfaced (Instagram / Discord / GroupMe …) —
-            read-only; useful context for student orgs whose primary reach is
-            social, not email. */}
-        {isOffice && <OrgSocials ctx={ctx} />}
-
         {showDepartment && (
           <>
             <Select
@@ -1577,26 +1615,6 @@ function ResearchSection({
           </>
         )}
 
-        {/* Programs — not shown for advising offices. */}
-        {isOffice ? null : singleProgram(type) ? (
-          <Select
-            label="Program"
-            value={programs[0] ?? ""}
-            onChange={(v) => { const next = v ? [v] : []; setPrograms(next); saveOutreach({ programs: next }); }}
-            options={programOptions.map((p) => ({ value: p, label: p }))}
-          />
-        ) : (
-          <MultiToggle
-            label="Programs"
-            values={programs}
-            options={programOptions}
-            onToggle={(v) => {
-              const next = programs.includes(v) ? programs.filter((p) => p !== v) : [...programs, v];
-              setPrograms(next);
-              saveOutreach({ programs: next });
-            }}
-          />
-        )}
 
         {/* Named contacts — the SAME shared component the Provider drawer uses
             for Decision makers. Advising offices have "Advisors"; student

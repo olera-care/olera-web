@@ -6,7 +6,9 @@ import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsDat
 import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
 import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
-import { buildOpportunity } from "@/lib/medjobs/opportunity";
+import { buildOpportunity, readOpportunityProfile } from "@/lib/medjobs/opportunity";
+import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
+import { readRequirements, DEMAND_SHAPE_OPTIONS, PRN_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -333,10 +335,15 @@ export default async function ProviderPage({
   })();
 
   const rating = meta?.rating;
-  const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
+  const images =
+    meta?.images && meta.images.length > 0
+      ? meta.images
+      : profile.image_url
+        ? [profile.image_url]
+        : [];
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
-  const acceptedPayments = meta?.accepted_payments || [];
+  let acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
@@ -442,15 +449,19 @@ export default async function ProviderPage({
   // For native business_profiles, use profile.verification_state directly
   // For iOS providers, this may be undefined but claimResult will override
   let actualVerificationState: string | null = profile.verification_state ?? null;
+  let claimMeta: ExtendedMetadata | null = null;
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
     actualVerificationState = claimResult.verification_state ?? actualVerificationState;
-    // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
-    const bpMeta = claimResult.metadata as ExtendedMetadata | null;
-    if (bpMeta?.staff) {
-      staff = bpMeta.staff;
-    }
+    // Overlay the editorial fields the provider edits in their dashboard but
+    // that don't exist on the directory row — owner story, payment types,
+    // staff screening, itemized pricing. This makes a directory-linked CLAIMED
+    // provider's public page show the same editorial data as an account-first
+    // provider (Chunk 4 Step 2). iOS/directory metadata has none of these.
+    claimMeta = claimResult.metadata as ExtendedMetadata | null;
+    if (claimMeta?.staff) staff = claimMeta.staff;
+    if (claimMeta?.accepted_payments) acceptedPayments = claimMeta.accepted_payments;
   }
 
   // Only show "Claimed" badge when provider is BOTH claimed AND verified
@@ -463,8 +474,8 @@ export default async function ProviderPage({
   const realReviewCount = qaResult.reviewCount;
   const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
-  const pricingDetails = meta?.pricing_details || [];
-  const staffScreening = meta?.staff_screening;
+  const pricingDetails = claimMeta?.pricing_details ?? meta?.pricing_details ?? [];
+  const staffScreening = claimMeta?.staff_screening ?? meta?.staff_screening;
 
   // === Review Data Sources (properly separated) ===
   // 1. Real reviews come from the reviews table (realReviewCount from DB query above)
@@ -513,8 +524,6 @@ export default async function ProviderPage({
     (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
-  // Build care services: real data first, then pad with category-inferred services
-  // Normalize labels to collapse synonyms (e.g., "Home Care (Non-medical)" → "Home Care")
   const rawCareTypes = (profile.care_types ?? []).map(normalizeCareLabel);
   const careServices: string[] = [...rawCareTypes];
   if (profile.category) {
@@ -1079,10 +1088,33 @@ export default async function ProviderPage({
 
               {/* ── About this opportunity (student context only) ── */}
               {isStudentContext && (() => {
+                const oppMeta = (profile.metadata ?? null) as unknown as Record<string, unknown> | null;
+                const oppProfile = readOpportunityProfile(oppMeta);
+                const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as {
+                  coverage_buckets?: string[];
+                  demand_shape?: "regular" | "varies" | "unpredictable";
+                  prn_open?: "yes" | "maybe" | "no";
+                } | null;
                 const opp = buildOpportunity({
                   careText: categoryLabel ?? profile.category,
                   isClaimed: providerSource === "bp",
+                  coverageBuckets: demand?.coverage_buckets,
+                  profile: oppProfile,
                 });
+                // Surface what the provider entered in their "Hire more
+                // caregivers" block: demand shape, PRN openness, and requirements.
+                const shapeLabel = demand?.demand_shape
+                  ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
+                  : null;
+                const prnLabel = demand?.prn_open
+                  ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
+                  : null;
+                const req = readRequirements(oppMeta);
+                const reqLabels: string[] = [
+                  ...(req.background_check ? ["Background check"] : []),
+                  ...(req.drug_test ? ["Drug test"] : []),
+                  ...(req.transportation ? ["Reliable transportation (license + insurance)"] : []),
+                ];
                 return (
                   <div className="py-8 border-b border-gray-200">
                     <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About this opportunity</h2>
@@ -1100,7 +1132,39 @@ export default async function ProviderPage({
                         <p className="text-sm font-medium text-gray-500">Pay</p>
                         <p className="text-sm text-gray-700">{opp.pay}</p>
                       </div>
+                      {shapeLabel && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Schedule</p>
+                          <p className="text-sm text-gray-700">{shapeLabel}</p>
+                        </div>
+                      )}
+                      {prnLabel && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Open to PRN (on-call)</p>
+                          <p className="text-sm text-gray-700">{prnLabel}</p>
+                        </div>
+                      )}
                     </div>
+                    {(opp.certifications || opp.skills) && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Who we&apos;re looking for</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {[...(opp.certifications ?? []), ...(opp.skills ?? [])].map((r) => (
+                            <span key={r} className="inline-block rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {reqLabels.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Requirements</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {reqLabels.map((r) => (
+                            <span key={r} className="inline-block rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs text-amber-800">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <p className="mt-4 text-sm font-medium text-emerald-700">
                       Counts toward your 120 patient-care hours.
                     </p>

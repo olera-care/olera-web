@@ -22,6 +22,7 @@ import {
   CALENDLY_URL,
   PROGRAM_URL,
   firstNameOf,
+  partnerLandingUrl,
   salutationFor,
   substituteVars,
 } from "./templates";
@@ -296,20 +297,20 @@ async function loadProgramPdfAttachment(
  * these. Keeps email chrome consistent across every variant and
  * decouples the sender identity from cadence copy edits.
  */
-function composeFooterHtml(): string {
+function composeFooterHtml(flyerUrl: string, programLandingUrl: string): string {
   return [
     // 1+2: warm sign-off + Graize block. Sits directly under the
     //      body so the email reads like a real note from Graize,
     //      not a marketing footer.
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
-    grazieSignatureHtml(),
+    grazieSignatureHtml(flyerUrl),
     // 3: divider — separates the sender identity from the
     //    "approved by" attribution + principal signature.
     `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
     // 4+5: Approved-by line + Logan block.
     `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
-    loganSignatureHtml(),
+    loganSignatureHtml(programLandingUrl),
     // 6: compliance line — bottom, smallest, gray.
     `<p style="margin:24px 0 0;font-size:11px;line-height:1.5;color:#9ca3af;font-family:Inter,Arial,sans-serif;">Reply STOP if you would like us to stop reaching out.</p>`,
   ].join("\n");
@@ -327,9 +328,8 @@ function composeFooterText(): string {
     `Graize`,
     ``,
     `Graize Belandres`,
-    `Research Assistant to Dr. Logan DuBose`,
-    `${PROGRAM_URL}`,
-    `graize@olera.care`,
+    `Assistant to Dr. Logan DuBose`,
+    `Program flyer: ${PROGRAM_URL}`,
     ``,
     `---`,
     `Message Approved by Dr. Logan DuBose, MD/MBA`,
@@ -339,7 +339,7 @@ function composeFooterText(): string {
     `Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program`,
     `Texas A&M College of Medicine, Class of 2022`,
     `General Practitioner, Fredericksburg Christian Health Clinic, Virginia`,
-    `Director, Olera Student Caregiver Program (${PROGRAM_URL})`,
+    `Director, Student Caregiver Program (${PROGRAM_URL})`,
     `Schedule a meeting: ${CALENDLY_URL}`,
     ``,
     `Reply STOP if you would like us to stop reaching out.`,
@@ -352,7 +352,7 @@ function composeFooterText(): string {
  * clinical practice) and folds the program URL into the directorship
  * line so it lives in the signature instead of the body copy.
  */
-function loganSignatureHtml(): string {
+function loganSignatureHtml(programLandingUrl: string): string {
   const photoUrl = LOGAN_PHOTO_URL;
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
@@ -366,7 +366,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Olera Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${programLandingUrl}" style="color:#059669;">Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -377,7 +377,7 @@ function loganSignatureHtml(): string {
 
 /**
  * Graize Belandres signature block. Sender identity — photo +
- * "Research Assistant to Dr. Logan DuBose" + program link + email.
+ * "Assistant to Dr. Logan DuBose" + program link + email.
  * Distinct from Dr. DuBose's block above (Graize is the operator;
  * Dr. DuBose is the principal admin is being introduced to).
  *
@@ -387,7 +387,7 @@ function loganSignatureHtml(): string {
  * <img> tag still renders (broken-image fallback); recipient still
  * sees the text block, no copy is lost.
  */
-function grazieSignatureHtml(): string {
+function grazieSignatureHtml(flyerUrl: string): string {
   const photoUrl = GRAZIE_PHOTO_URL;
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:6px;">
@@ -397,9 +397,8 @@ function grazieSignatureHtml(): string {
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
-      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
-      <p style="margin:0 0 2px;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
-      <p style="margin:0;"><a href="mailto:graize@olera.care" style="color:#059669;">graize@olera.care</a></p>
+      <p style="margin:0 0 2px;">Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0;"><a href="${flyerUrl}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>
 </table>`;
@@ -421,6 +420,17 @@ export async function sendOutreachEmail(
     admin_first_name: input.admin_first_name,
   };
 
+  // The Resend path is partner/stakeholder-only (seasonal + legacy sends), so
+  // the audience is always STUDENT: the flyer is the student one-pager partners
+  // share, and the program link is the families page (advisors/dept-heads/profs
+  // → families#help, student orgs → families). Mirrors the Smartlead path's
+  // audience-aware links so the body {program_pdf} + signatures never point a
+  // partner at the provider page.
+  const flyerUrl = input.campus_slug
+    ? `https://olera.care/api/medjobs/program-pdf?university=${input.campus_slug}&audience=student`
+    : PROGRAM_URL;
+  const programLandingUrl = partnerLandingUrl(input.stakeholder_type);
+
   const results: PerRecipientResult[] = [];
   for (let i = 0; i < input.recipients.length; i++) {
     const r = input.recipients[i];
@@ -437,6 +447,9 @@ export async function sendOutreachEmail(
       ...staticVars,
       calendly_url: CALENDLY_URL,
       program_url: PROGRAM_URL,
+      // Audience-aware: body {program_pdf} now resolves to the student flyer
+      // instead of falling back to the provider page.
+      program_pdf: flyerUrl,
     };
     const subject = substituteVars(input.subject, vars);
     const body = substituteVars(input.body, vars);
@@ -444,7 +457,7 @@ export async function sendOutreachEmail(
     // (divider + STOP + Approved by + Logan signature + Graize
     // signature). Footer is composed once in composeFooterHtml;
     // body never carries any signature copy.
-    const html = bodyToHtml(body) + composeFooterHtml();
+    const html = bodyToHtml(body) + composeFooterHtml(flyerUrl, programLandingUrl);
 
     try {
       const send = await sendEmail({

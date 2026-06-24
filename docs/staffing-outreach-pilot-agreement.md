@@ -1,7 +1,8 @@
-# Pilot Program Service Agreement — source
+# Student Caregiver Program — Provider Service Agreement (source)
 
-This is the canonical text for the Olera Student Caregiver Pilot service
-agreement that gets attached to the Step 1 post-consent email. It is kept
+This is the canonical text for the Olera Student Caregiver Program
+provider service agreement that gets attached to the Step 1 post-consent
+email. It is kept
 here in markdown so it stays diffable and reviewable; the actual binary
 PDF that gets attached lives in Supabase Storage.
 
@@ -29,29 +30,31 @@ re-upload (overwriting the same path so URL stays stable).
 
 ---
 
-## Pilot Program Service Agreement
+## Student Caregiver Program — Provider Service Agreement
 
-**Olera, Inc. — Student Caregiver Pilot Program**
+**Olera, Inc. — Student Caregiver Program**
 
-**Parties.** This Pilot Program Service Agreement (the "Agreement") is
-entered into between Olera, Inc. ("Olera") and Provider User
-("Provider"), effective on the date last signed below.
+**Parties.** This Service Agreement (the "Agreement") is entered into
+between Olera, Inc. ("Olera") and Provider User ("Provider"), effective
+on the date last signed below.
 
-**Term.** The pilot runs for three (3) months from the effective date.
-Either party may end the pilot at any time with written notice.
+**Term.** This Agreement begins on the effective date and continues until
+either party ends it with written notice. Ending it does not affect
+placements already made.
 
 **Scope.** Olera will recruit and vet pre-nursing and pre-medical
-students from recruitment channels at partner universities and post
-their profiles to the student caregiver candidate board hosted on Olera,
-Inc. website (https://olera.care/medjobs/candidates). Provider receives
-a free account with access to the candidate board page, where Provider
-may review student profiles and invite candidates to interview.
+students from recruitment channels at partner universities and match
+them to Provider as candidate caregivers. Provider receives a free
+account with access to the candidate board hosted on the Olera, Inc.
+website (https://olera.care/medjobs/candidates), where Provider may
+review student profiles, invite candidates to interview, and make hiring
+offers. Provider is free to browse, interview, and connect at no cost.
 
-**Cost.** There is no fee for participation during the pilot. No payment
-information is required. After the three-month pilot, continued use of
-the platform may be offered on a paid basis; any future paid
-relationship will be covered by a separate written agreement after this
-term ends.
+**Cost.** There is no fee to browse, interview, or connect with students,
+and no payment information is required to create an account or review
+candidates. Provider pays Olera a one-time placement fee of $200 for each
+student it hires, invoiced after the hire. If a hired student works fewer
+than fifteen (15) hours, Olera refunds that placement fee in full.
 
 **Feedback and research participation (optional).** Olera may request
 feedback on the Provider's experience during participation, the
@@ -74,13 +77,13 @@ checks, and compliance with applicable employment laws.
 
 **Confidentiality.** Each party will keep non-public information shared
 by the other party confidential and use it only for purposes of the
-pilot.
+program.
 
-**Limitation of liability.** The platform and pilot are provided as-is
-during the pilot period. Olera is not liable for indirect or
-consequential damages arising from use of the platform or from any
-hiring or employment decision made by Provider.
+**Limitation of liability.** The platform and services are provided
+as-is. Olera is not liable for indirect or consequential damages arising
+from use of the platform or from any hiring or employment decision made
+by Provider.
 
 **General.** This Agreement is the entire agreement between the parties
-regarding the pilot. It is governed by the laws of the State of Texas.
+regarding the program. It is governed by the laws of the State of Texas.
 Amendments must be in writing and signed by both parties.

@@ -9,7 +9,8 @@ export type SectionId =
   | "about"
   | "pricing"
   | "payment"
-  | "owner";
+  | "owner"
+  | "hire_caregivers";
 
 export interface BaseEditModalProps {
   profile: Profile;

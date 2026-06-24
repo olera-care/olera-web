@@ -6,24 +6,28 @@
  * Zone 2 of the unified drawer skeleton. Renders the single most relevant
  * action for the row's current Stage. One component, eight stage branches.
  *
- * Activation-system model (the simplified post-outreach workflow): the whole
- * funnel runs through two buttons — **Interested → activation** (opens the
- * CadenceLaunchModal) and **Not interested → close** — surfaced by the shared
- * `ActivationActions` component on the Email / Call / Meeting faces. When a
- * cadence is running, ActivationActions shows its status + a Stop control. The
- * old per-stage outcome modals (ReplyClassifierModal / LogCallOutcomeModal /
- * LogMeetingModal) are no longer used here.
+ * One-button-per-next-step model: each face surfaces a SINGLE primary action
+ * that opens a channel-appropriate outcome modal, all built on the shared
+ * CallOutcomeModal shell (context block on top, outcome cards below):
+ *   - Emails   → "Check for reply to provider" → EmailReplyModal (the reply,
+ *                or a "no reply yet" empty state, pulled in via <ReplyBlock>).
+ *   - Calls    → "Call provider" → CallFollowUpModal (the call script on top).
+ *   - Meetings → "Log meeting outcome" → MeetingOutcomeModal (meeting details).
+ * The funnel actions (Interested → activation, Book a meeting, Make partner,
+ * Not interested) are outcome CARDS inside those modals, not inline buttons —
+ * so the next step reads as one obvious move. The cross-channel action is a
+ * small secondary link.
  *
  * Stage-driven content rules:
  *
  *   prospect       → thin "Pre-Flight in progress" indicator; the operational
  *                    surface (Visit Website / Call to Confirm / Launch
  *                    Outreach) lives in the Research Card below.
- *   in_outreach    → awaiting reply, or the landed reply (ReplyPreview);
- *                    Interested / Not interested.
- *   call_due       → phone + script + Interested / Not interested + Couldn't reach.
- *   meeting_set    → meeting time + Interested (post-meeting activation) / Not
- *                    interested.
+ *   in_outreach    → call-first everywhere except the Emails tab ("Call
+ *                    provider" + next-call countdown); Emails tab leads with
+ *                    "Check for reply". Matches how call_due reads.
+ *   call_due       → phone + "Call to follow up" → call outcome modal.
+ *   meeting_set    → meeting time + "Log meeting outcome" → meeting modal.
  *   follow_up      → custom event copy.
  *   bounce_fix     → fix-email-and-resend placeholder.
  *   converted      → terminal-positive copy, no CTA.
@@ -37,15 +41,17 @@ import {
   type Stage,
 } from "@/lib/medjobs/stage";
 import {
+  formatDueDate,
   formatLongDate,
   formatRelative,
 } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
-import { CALENDLY_URL } from "@/lib/student-outreach/templates";
-import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
+import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
+import { EmailReplyModal } from "@/components/admin/medjobs/EmailReplyModal";
+import { MeetingOutcomeModal } from "@/components/admin/medjobs/MeetingOutcomeModal";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
-import { PartnerActivate } from "@/components/admin/medjobs/PartnerActivate";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
@@ -59,12 +65,17 @@ export interface NextStepCardProps {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
+  /** Which In Basket tab the drawer was opened from. Drives the
+   *  awaiting-reply call affordance: Emails ("replies") shows a small link;
+   *  Calls + every other tab show a prominent far-left button. */
+  activeTab?: TabKey;
 }
 
 export function NextStepCard({
   ctx,
   action: rawAction,
   setError,
+  activeTab,
 }: NextStepCardProps) {
   // E1 + E2: wrap the action dispatcher so successful Log operations
   // (a) surface a toast naming the consequence and (b) mark the row
@@ -127,6 +138,7 @@ export function NextStepCard({
             action={action}
             setError={setError}
             stageLabel={display.label}
+            activeTab={activeTab}
           />
         </div>
       </div>
@@ -142,18 +154,20 @@ function StageBody({
   action,
   setError,
   stageLabel,
+  activeTab,
 }: {
   stage: Stage;
   ctx: DrawerContext;
   action: ActionFn;
   setError: (msg: string | null) => void;
   stageLabel: string;
+  activeTab?: TabKey;
 }) {
   switch (stage) {
     case "prospect":
       return <ProspectBody ctx={ctx} />;
     case "in_outreach":
-      return <InOutreachBody ctx={ctx} action={action} setError={setError} />;
+      return <InOutreachBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />;
     case "call_due":
       return <CallDueBody ctx={ctx} action={action} setError={setError} />;
     case "meeting_set":
@@ -201,10 +215,12 @@ function InOutreachBody({
   ctx,
   action,
   setError,
+  activeTab,
 }: {
   ctx: DrawerContext;
   action: ActionFn;
   setError: (m: string | null) => void;
+  activeTab?: TabKey;
 }) {
   // What's queued next, for the awaiting-reply subline.
   const nextEmail = ctx.pending_tasks
@@ -214,9 +230,8 @@ function InOutreachBody({
     .filter((t) => t.touchpoint_type === "email_sent")
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
-  // A landed reply is the headline (the Email face); otherwise we're awaiting
-  // one. Either way the only actions are Interested / Not interested (in
-  // ActivationActions), which also surfaces a running activation cadence.
+  // A landed reply drives the one-line status (and is pulled into the reply
+  // modal); otherwise we're awaiting one. The outcome cards live in the modal.
   const latestReply = ctx.touchpoints
     .filter((t) => t.touchpoint_type === "email_replied")
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
@@ -232,51 +247,155 @@ function InOutreachBody({
         (t.payload as Record<string, unknown> | null)?.cadence === "activation",
     )
     .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+  // Cold-cadence call (not an activation call) — its script seeds the
+  // "Call to confirm" modal when we're awaiting an outreach reply.
+  const nextColdCall = ctx.pending_tasks
+    .filter(
+      (t) =>
+        t.task_type === "outreach_followup_call" &&
+        (t.payload as Record<string, unknown> | null)?.cadence !== "activation",
+    )
+    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
+
+  // "Call to confirm": let the admin proactively call an awaiting-reply row and
+  // log the outcome against the right script, without waiting for a call to be
+  // due. Script + outcome set follow the cadence we're awaiting.
+  const [showConfirmCall, setShowConfirmCall] = useState(false);
+  const [showReply, setShowReply] = useState(false);
+  const confirmCallTask = activationRunning ? nextActivationCall : nextColdCall;
+  const confirmScript =
+    typeof confirmCallTask?.payload?.script === "string"
+      ? (confirmCallTask.payload.script as string)
+      : null;
+  const confirmDay =
+    typeof confirmCallTask?.payload?.day === "number"
+      ? (confirmCallTask.payload.day as number)
+      : null;
+  const confirmScriptLabel = activationRunning
+    ? "Activation call script"
+    : confirmDay != null
+      ? `Day ${confirmDay} script`
+      : "Call script";
 
   const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
   const subline = activationRunning
     ? nextActivationCall
-      ? `Next call ${formatRelative(nextActivationCall.due_at)}`
+      ? `Next call ${formatDueDate(nextActivationCall.due_at)}`
       : "Follow-ups queued"
     : nextEmail
-      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatRelative(nextEmail.due_at)}`
+      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatDueDate(nextEmail.due_at)}`
       : lastEmailSent
         ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
         : "Outreach in flight";
 
+  // Call-first everywhere EXCEPT the Emails tab. A call-due row (CallDueBody)
+  // already reads call-first on every surface; an awaiting-reply row with a
+  // queued call should match — otherwise providers (whose calls are scheduled
+  // for later → in_outreach) look reply-first while partners (call due now →
+  // call_due) look call-first, an inconsistency keyed on stage. The Emails tab
+  // stays reply-first (the email drawer). Labels are row-kind aware.
+  const callFirst = activeTab != null && activeTab !== "replies";
+  const partner = isPartnerRow(ctx);
+  const callLabel = partner ? "Call contact" : "Call provider";
+  const replyLabel = partner ? "Check for reply to contact" : "Check for reply to provider";
+  const callTitle = "Call this contact now and log the outcome against the call script.";
+  const replyTitle = "Pull in their reply and log the outcome.";
+
+  // When leading call-first, the status answers "when's the next call?" — the
+  // cadence call we're nudging with, as a countdown ("in 3d" / "due now"), not
+  // the cadence day number. Falls back to the email/outreach status when no
+  // call is queued.
+  const callSubline = confirmCallTask
+    ? `Next call ${formatDueDate(confirmCallTask.due_at)}`
+    : subline;
+
+  // The provider's address on the landed reply, for the one-line status.
+  const replyFrom = latestReply
+    ? ((): string | null => {
+        const p = latestReply.payload ?? {};
+        return (
+          (typeof p.recipient_email === "string" && p.recipient_email.trim()) ||
+          (typeof p.from_email === "string" && p.from_email.trim()) ||
+          null
+        );
+      })()
+    : null;
+
+  const primaryBtn =
+    "inline-flex items-center gap-1.5 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700";
+  const linkBtn =
+    "inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline";
+
   return (
     <>
-      {/* Headline on the left; the manual-reply Smartlead escape hatch pinned
-          to the card's top-right corner. */}
+      {/* One-line status on the left; the Smartlead escape hatch pinned to the
+          card's top-right corner. The full reply now lives inside the modal. */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {latestReply ? (
-            <ReplyPreview reply={latestReply} />
+            <p className="truncate text-sm text-gray-700">
+              ✉ They replied{replyFrom ? ` · ${replyFrom}` : ""}
+            </p>
           ) : (
             <>
               <p className="text-sm text-gray-700">{headline}</p>
-              <p className="mt-1 text-xs text-gray-500">{subline}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {callFirst ? callSubline : subline}
+              </p>
             </>
           )}
         </div>
-        <span className="shrink-0">
-          <SmartleadInboxLink linkage={linkageFromResearchData(ctx.outreach.research_data)} />
-        </span>
+        <SmartleadInboxLink
+          linkage={linkageFromResearchData(ctx.outreach.research_data)}
+          label="Smartlead"
+        />
       </div>
-      <ActivationActions
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        source="reply"
-        trailing={
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {callFirst ? (
           <>
-            <BookMeetingLink ctx={ctx} inline />
-            {isPartnerRow(ctx) && (
-              <PartnerActivate ctx={ctx} action={action} setError={setError} />
-            )}
+            <button onClick={() => setShowConfirmCall(true)} title={callTitle} className={primaryBtn}>
+              ☎ {callLabel}
+            </button>
+            <button onClick={() => setShowReply(true)} title={replyTitle} className={linkBtn}>
+              ✉ {replyLabel}
+            </button>
           </>
-        }
-      />
+        ) : (
+          <>
+            <button onClick={() => setShowReply(true)} title={replyTitle} className={primaryBtn}>
+              ✉ {replyLabel}
+            </button>
+            <button onClick={() => setShowConfirmCall(true)} title={callTitle} className={linkBtn}>
+              ☎ {callLabel}
+            </button>
+          </>
+        )}
+      </div>
+
+      {showConfirmCall && (
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={confirmScript}
+          scriptLabel={confirmScriptLabel}
+          mode={activationRunning ? "activation" : "outreach"}
+          source="reply"
+          onClose={() => setShowConfirmCall(false)}
+          setError={setError}
+        />
+      )}
+      {showReply && (
+        <EmailReplyModal
+          ctx={ctx}
+          action={action}
+          reply={latestReply ?? null}
+          activationRunning={activationRunning}
+          source="reply"
+          onClose={() => setShowReply(false)}
+          setError={setError}
+        />
+      )}
     </>
   );
 }
@@ -335,9 +454,12 @@ function CallDueBody({
   action: ActionFn;
   setError: (m: string | null) => void;
 }) {
-  const [reaching, setReaching] = useState(false);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+
   const primaryContact =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ?? null;
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
   const contactName = primaryContact
     ? [primaryContact.title, primaryContact.first_name, primaryContact.last_name]
         .filter(Boolean)
@@ -356,20 +478,7 @@ function CallDueBody({
     typeof nextCallTask?.payload?.day === "number"
       ? (nextCallTask.payload.day as number)
       : null;
-
-  // Couldn't reach → clears this call off the queue (reuses the existing
-  // no_answer outcome). The next cadence call, if any, stays scheduled.
-  const couldntReach = async () => {
-    setReaching(true);
-    setError(null);
-    try {
-      await action("log_call_outcome", { outcome: "no_answer" });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setReaching(false);
-    }
-  };
+  const callLabel = isPartnerRow(ctx) ? "Call contact" : "Call provider";
 
   return (
     <>
@@ -378,8 +487,14 @@ function CallDueBody({
           Call
         </span>
       </div>
+      <p className="mt-2 text-sm font-medium text-gray-900">Next step: call to follow up</p>
+      {nextCallTask && (
+        <p className="mt-1 text-xs text-gray-500">
+          Next call {formatDueDate(nextCallTask.due_at)}
+        </p>
+      )}
       {primaryContact?.phone && (
-        <p className="mt-2 text-sm">
+        <p className="mt-1 text-sm">
           <a
             href={`tel:${primaryContact.phone}`}
             className="font-semibold text-primary-700 hover:underline"
@@ -391,40 +506,24 @@ function CallDueBody({
           )}
         </p>
       )}
-      {callScript && (
-        <details className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-          <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-gray-600">
-            {callDay != null ? `Day ${callDay} script` : "Suggested script"}
-          </summary>
-          <pre className="mt-2 whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
-            {callScript}
-          </pre>
-        </details>
-      )}
-      <ActivationActions
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        source="phone"
-        trailing={
-          <>
-            <BookMeetingLink ctx={ctx} inline />
-            {isPartnerRow(ctx) && (
-              <PartnerActivate ctx={ctx} action={action} setError={setError} />
-            )}
-          </>
-        }
-      />
-      <div className="mt-2">
+      <div className="mt-3">
         <button
-          onClick={couldntReach}
-          disabled={reaching}
-          title="No answer / voicemail — clears this call; the next one stays scheduled."
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          onClick={() => setShowFollowUp(true)}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          {reaching ? "Saving…" : "Couldn't reach"}
+          ☎ {callLabel}
         </button>
       </div>
+      {showFollowUp && (
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={callScript}
+          scriptLabel={callDay != null ? `Day ${callDay} script` : "Call script"}
+          onClose={() => setShowFollowUp(false)}
+          setError={setError}
+        />
+      )}
     </>
   );
 }
@@ -440,6 +539,8 @@ function MeetingSetBody({
   action: ActionFn;
   setError: (m: string | null) => void;
 }) {
+  const [showOutcome, setShowOutcome] = useState(false);
+  const activationRunning = isActivationRunning(ctx);
   const sublineCopy =
     ctx.meeting_state === "scheduled" && ctx.meeting_at
       ? `📅 Booked · ${formatLongDate(ctx.meeting_at)}`
@@ -448,17 +549,23 @@ function MeetingSetBody({
   return (
     <>
       <p className="text-sm font-medium text-gray-900">{sublineCopy}</p>
-      <ActivationActions
-        ctx={ctx}
-        action={action}
-        setError={setError}
-        source="meeting"
-        trailing={
-          isPartnerRow(ctx) ? (
-            <PartnerActivate ctx={ctx} action={action} setError={setError} />
-          ) : null
-        }
-      />
+      <div className="mt-3">
+        <button
+          onClick={() => setShowOutcome(true)}
+          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+        >
+          Log meeting outcome
+        </button>
+      </div>
+      {showOutcome && (
+        <MeetingOutcomeModal
+          ctx={ctx}
+          action={action}
+          activationRunning={activationRunning}
+          onClose={() => setShowOutcome(false)}
+          setError={setError}
+        />
+      )}
     </>
   );
 }
@@ -620,243 +727,6 @@ function ClosedBody({
             {reopening ? "Reopening…" : "Reopen →"}
           </button>
         </div>
-      )}
-    </>
-  );
-}
-
-/**
- * Reply face (Phase 4). Renders the provider's actual incoming reply (captured
- * by the Smartlead webhook into the email_replied touchpoint payload) so the
- * admin answers what they said. Prefers the plain-text preview; falls back to
- * stripping the HTML reply body.
- */
-function ReplyPreview({
-  reply,
-}: {
-  reply: { created_at: string; payload: Record<string, unknown> | null };
-}) {
-  const p = reply.payload ?? {};
-  const previewRaw =
-    (typeof p.preview_text === "string" && p.preview_text.trim()) ||
-    (typeof p.reply_body === "string"
-      ? p.reply_body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
-      : "");
-  const preview = previewRaw ? previewRaw.slice(0, 320) : "";
-  // Show the PROVIDER's address (the lead email Smartlead captured as
-  // recipient_email), not from_email — Smartlead's reply payload puts our own
-  // campaign sender in from_email, so that would mislabel the reply as coming
-  // from us. Fall back to from_email only if the lead email is missing.
-  const from =
-    (typeof p.recipient_email === "string" && p.recipient_email.trim()) ||
-    (typeof p.from_email === "string" && p.from_email.trim()) ||
-    null;
-  return (
-    <div className="mb-1 rounded-md border border-gray-200 bg-white p-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-        ✉ They replied{from ? ` · ${from}` : ""}
-      </p>
-      {preview ? (
-        <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800">
-          {preview}
-          {previewRaw.length > 320 ? "…" : ""}
-        </p>
-      ) : (
-        <p className="mt-1 text-sm text-gray-500">
-          Reply received — open your inbox to read the full message.
-        </p>
-      )}
-    </div>
-  );
-}
-
-/**
- * Build THIS provider's personalized Calendly link — the same
- * `utm_content=<outreach_id>` the outreach emails carry. When an admin books on
- * the provider's behalf (a reply came in with times, or they're on a call),
- * using this link instead of a generic one means the resulting Calendly booking
- * auto-files to THIS exact row in the webhook — no orphaned/unmatched meetings.
- * Prefills the invitee name + email when known so there's nothing to retype.
- */
-function bookingUrlFor(ctx: DrawerContext): string {
-  const dm = ctx.outreach.research_data?.decision_maker;
-  const gc = ctx.outreach.research_data?.general_contact;
-  const primary =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
-    ctx.contacts.find((c) => c.status === "active") ??
-    null;
-  const email =
-    (dm && !dm.unavailable && dm.email ? dm.email : null) ??
-    primary?.email ??
-    gc?.email ??
-    null;
-  const name = primary
-    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() ||
-      primary.name
-    : dm?.name ?? null;
-  const params = new URLSearchParams();
-  params.set("utm_content", ctx.outreach.id);
-  if (name) params.set("name", name);
-  if (email) params.set("email", email);
-  return `${CALENDLY_URL}?${params.toString()}`;
-}
-
-/** "Book a meeting" — opens this provider's tagged Calendly link in a new tab.
- *  Surfaced on the reply + call faces, the two moments an admin naturally books
- *  on a provider's behalf. */
-function BookMeetingLink({ ctx, inline = false }: { ctx: DrawerContext; inline?: boolean }) {
-  return (
-    <a
-      href={bookingUrlFor(ctx)}
-      target="_blank"
-      rel="noopener noreferrer"
-      title="Opens this provider's Calendly link (tagged to this row) so the booking files here automatically."
-      className={`${inline ? "" : "mt-2 "}inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50`}
-    >
-      📅 Book a meeting
-    </a>
-  );
-}
-
-/**
- * Activation system (Phase 2). The two buttons that carry the whole
- * post-outreach funnel from any warm signal:
- *   Interested → opens the CadenceLaunchModal (review the activation
- *                emails + calls, then Launch).
- *   Not interested → closes the row.
- *
- * Recipient resolution honors the two-contact model: email prefers the
- * Decision Maker, then the primary active contact, then the General
- * Contact; phone uses the primary active contact (or General Contact).
- * `source` tags where the interest came from (audit only — the activation
- * cadence sends one canonical opener regardless of source).
- */
-function ActivationActions({
-  ctx,
-  action,
-  setError,
-  source,
-  trailing,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (m: string | null) => void;
-  source: "reply" | "phone" | "meeting";
-  /** Extra buttons (Book a meeting / Make a partner) rendered in the SAME
-   *  horizontal row as Interested / Not interested, so the whole face shows
-   *  one row of actions rather than a 2x2 stack. */
-  trailing?: React.ReactNode;
-}) {
-  const [showLaunch, setShowLaunch] = useState(false);
-  const [closing, setClosing] = useState(false);
-
-  // Partner activation ("Make a partner") moved next to Book a meeting on the
-  // email/call/meeting faces via the shared PartnerActivate component, so it's
-  // available both before AND after the activation cadence launches. Providers
-  // never see it.
-
-  const primary =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
-    ctx.contacts.find((c) => c.status === "active") ??
-    null;
-  const dm = ctx.outreach.research_data?.decision_maker;
-  const gc = ctx.outreach.research_data?.general_contact;
-
-  const recipientEmail =
-    (dm && !dm.unavailable && dm.email ? dm.email : null) ??
-    primary?.email ??
-    gc?.email ??
-    null;
-  const recipientPhone = primary?.phone ?? gc?.phone ?? null;
-  const recipientName = primary
-    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() ||
-      primary.name
-    : dm?.name ?? null;
-  const recipientContactId = primary?.id ?? null;
-  const recipientFirstName =
-    primary?.first_name ??
-    (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ??
-    null;
-  const recipientLastName = primary?.last_name ?? null;
-
-  // A running activation cadence is now reflected in the headline copy
-  // ("Awaiting reply to activation cadence") rather than a heavy green box,
-  // and the off-switch lives in the drawer's overflow menu (Stop all
-  // outreach). Once running, the Interested/Not-interested decision is moot,
-  // so this face shows just the trailing actions (Book a meeting / Make a
-  // partner).
-  const isRunning = isActivationRunning(ctx);
-
-  const markNotInterested = async () => {
-    setClosing(true);
-    setError(null);
-    try {
-      await action("mark_not_interested", {});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to close");
-    } finally {
-      setClosing(false);
-    }
-  };
-
-  if (isRunning) {
-    return trailing ? (
-      <div className="mt-3 flex flex-wrap items-center gap-2">{trailing}</div>
-    ) : null;
-  }
-
-  return (
-    <>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => setShowLaunch(true)}
-          title="Send the activation link + meeting option and start the follow-up cadence."
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
-        >
-          Interested
-        </button>
-        <button
-          onClick={markNotInterested}
-          disabled={closing}
-          title="Send a polite closing note and stop outreach."
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-        >
-          Not interested
-        </button>
-        {trailing}
-      </div>
-      {showLaunch && (
-        <CadenceLaunchModal
-          cadenceKey="activation"
-          isPartner={ctx.outreach.kind != null && ctx.outreach.kind !== "provider"}
-          partnerStakeholderType={ctx.outreach.stakeholder_type}
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          recipientName={recipientName}
-          recipientEmail={recipientEmail}
-          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
-          onCancel={() => setShowLaunch(false)}
-          onSubmit={async (payload) => {
-            try {
-              await action("launch_activation", {
-                call_scripts: payload.call_scripts,
-                recipient: {
-                  name: recipientName,
-                  email: recipientEmail,
-                  phone: recipientPhone,
-                  contact_id: recipientContactId,
-                  first_name: recipientFirstName,
-                  last_name: recipientLastName,
-                },
-                source,
-              });
-              setShowLaunch(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Launch failed");
-              throw e;
-            }
-          }}
-        />
       )}
     </>
   );

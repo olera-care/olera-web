@@ -55,6 +55,10 @@ export async function resolveProvider(
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single<Profile>();
+    // The business_profile is the canonical, hydrated provider record (the
+    // directory row is copied in at claim time), so render it directly — this is
+    // what surfaces the provider's edits. (No directory read-through: that was a
+    // band-aid for the old thin-profile model.)
     if (data) return { kind: "active", provider: accountRowToProvider(data) };
   } catch {
     // fall through

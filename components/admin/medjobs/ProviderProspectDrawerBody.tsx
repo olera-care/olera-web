@@ -24,6 +24,7 @@
 
 import { useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
@@ -36,9 +37,12 @@ interface Props {
     payload?: Record<string, unknown>,
   ) => Promise<DrawerContext>;
   setError: (msg: string | null) => void;
+  /** Which In Basket tab the drawer was opened from — threaded to NextStepCard
+   *  so providers get the same tab-aware call-first behavior as partners. */
+  activeTab?: TabKey;
 }
 
-export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
+export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }: Props) {
   const { outreach } = ctx;
   const [showMore, setShowMore] = useState(false);
 
@@ -113,7 +117,9 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           starts directly with the Research Card — the old thin "Pre-Flight"
           indicator box was redundant (the Research Card's own orienting line
           says what to do). NextStepCard stays for post-launch stage CTAs. */}
-      {!isPreLaunch && <NextStepCard ctx={ctx} action={action} setError={setError} />}
+      {!isPreLaunch && (
+        <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
+      )}
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
           General Contact + Specific Contacts + research notes the

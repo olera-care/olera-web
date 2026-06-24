@@ -7,6 +7,58 @@
 
 ## Current Focus
 
+### 2026-06-22 — Family Comms Intelligence System: BUILT (v1) + strategy evolved to v2 compare-led flywheel (branch `mighty-carson`, draft PR #1165, NOT live, re-shape pending)
+
+Switched from provider engagement (handed to Esther) to the care-seeker/family side. Esther's "Family Re-engagement: The Intentionality Gap" doc + deep code review + live data pull.
+
+**Diagnosis (live data, 90d):** acquisition booming (738 families, 409 new/30d, 544 inbound inquiries) but the marketplace is one-sided — provider responsiveness is the constraint we can't control or even see (provider opens lead in-app ~20%, in-app responds ~3%, all connections stuck `status='pending'` forever; Find Families "Path B" ~14 reach-outs/quarter = effectively dead). The whole family nudge machine optimizes the wrong verb (publish→get-discovered), a near-dead path.
+
+**Reframe (TJ):** north star isn't binary "connection" — it's "family meaningfully helped." Build an inquiry-triggered HELP CASCADE: connection-first, help-always; assume providers often won't respond; when quiet → other providers → benefits → Olera direct help → never a dead end. Retention = accepted 2nd north star. Headline: replace passive verb ("publish your listing") with active ("we'll introduce you to 3 providers"). Self-report = dating-app "Did you meet?" pattern = ground-truth sensor AND cascade trigger.
+
+**ARCHITECTURE DECISION (the pivot):** don't ship family emails as independent crons. Build a **Family Comms Intelligence System** modeled on the provider weekly-digest. Key realization: registry + withCronRun + email_log/email_events measurement + `/admin/automations` cockpit ALREADY exist and already include families. Only 2 layers missing: (a) **governance cap** for families (extend `sendEmail` chokepoint to `recipientType==='family'` + `FAMILY_NUDGE_EMAIL_TYPES`, transactional exempt, ~3/7d tunable), (b) **Family Comms Coordinator** = one daily cron, pure priority ladder, ONE governed msg/family/cycle, subsumes the 6 family crons as rungs. Ladder = demote-publish + cascade: STOP-if-engaged > outcome-check(self-report) > provider-silent-alternatives > never-engaged > awaiting-match > benefits-intent > completion/publish(lowest).
+
+**BUILT this session on `mighty-carson` (draft PR #1165, type-clean, dry-run-validated, NOTHING LIVE):**
+- **Family governance cap** — `lib/email-governance.ts` (`FAMILY_NUDGE_EMAIL_TYPES` + `FAMILY_NUDGE_WEEKLY_CAP=3` + `isGovernedFamilyNudge`) + `lib/email.ts` sibling gate keyed on recipient email + `recipient_type='family'`, transactional exempt, fail-open, no schema change.
+- **Family Comms Coordinator** — `app/api/cron/family-comms-coordinator/route.ts`: one daily cron, 6-rung ladder, ONE governed email/family/cycle, global stops (unsubscribed / self-reported-yes / active thread). `?dry_run` validated on **515 live families in 5.6s** — sane distribution (lead_complete 208, lead_publish 45, never_engaged 8, outcome_check 6, provider_silent 1, pending_reach_out 1, day_10 **0**; no_rung 227, no_email 0). Lazy email resolution (auth fallback only for matched families).
+- **Plumbing:** `family-nudges` subordinated (stands down 20h after a coordinator send); `findAlternativeProviders` extracted to `lib/family-comms/alternatives.ts`; registered in `registry.ts` + `vercel.json`. Self-report element (prior session) folds in as a rung.
+- Spec: `plans/family-comms-system.md`.
+
+**STRATEGY v2 — compare-led flywheel (locked with TJ this session; supersedes the v1 ladder's priority + copy):** the flywheel = **Complete → Compare → Benefits → loop**. Compare options = HERO (#1, delivered unilaterally via 21k providers). Benefits = CLOSER (#2, don't over-index). Completion = FUEL (#3) but NEVER a naked ask — always "give one detail → better matches" (same action, opposite framing; this is why the dry-run's 208 completion picks were wrong in FRAMING not volume). **Responsiveness = INTERNAL ranking signal ONLY, never a response-time promise** (times are long; promising burns trust — cards compare on care type/price/distance/reviews). Compare destination = existing browse pre-filtered (WATCH: must satisfy click intent on ship). Concierge = flag-don't-build. Cadence = ship now + iterate in days, NO multi-week gate.
+
+**Next up (clean stopping point — pause OK):** the coordinator code still encodes the **v1 ladder**, so the #1 next move is the **compare-led re-shape pass (PLAN WITH TJ before code)** — re-order rungs compare-led, re-frame all copy (completion as value-exchange, strip every response-time claim), point compare CTAs at pre-filtered browse. THEN apply migration 115, THEN plan the cron cutover (pause the 6 originals in `cron_config`, revertible). Notion handoff: "Family Comms System — Handoff (2026-06-22)" (has paste-to-resume block). Memory: `project_family_help_cascade` (has full v2).
+
+### 2026-06-22 — `/test-instructions` command + durable Codex skill (branch `codex/add-test-instructions-command`, PR #1169 → staging)
+
+**Trigger:** TJ created a Claude slash command called `test-instructions` and asked to copy it into this repo, then clarified that it needs to keep working across future Codex sessions instead of only in the current local worktree.
+
+**Built:** copied `.claude/commands/test-instructions.md` verbatim from the Claude worktrees; added `.agents/skills/test-instructions/SKILL.md` as the repo-local Codex wrapper; added an `AGENTS.md` trigger line so future repo sessions route manual QA requests to the skill.
+
+**Durability fix:** also installed a user-level fallback at `/Users/tfalohun/.agents/skills/test-instructions/` with a bundled `command.md`, so `/test-instructions` works even before PR #1169 is merged. The repo command remains canonical once merged.
+
+**Validation:** copied command hash matches the Claude source; staged diff contains only `AGENTS.md`, the repo skill wrapper, and the command file. Vercel for PR #1169 is green. Manual use was exercised by producing test instructions for the Benefits noindex PR #1166.
+
+**NEXT:** merge PR #1169 to staging so the repo-local command/skill is available to future worktrees without relying on the user-level fallback.
+
+### 2026-06-22 — Franchil Google Ads account cleanup + keyword fix (no code; concierge walkthrough in Google Ads UI)
+
+TJ shared the Google Ads dashboard ("the interface is a mess") for the live Franchil campaign. Translated the cluttered account into plain English and walked him click-by-click through three fixes. **All done in the Google Ads UI — no repo changes.**
+
+**Diagnosis (the account was confusing for real reasons):**
+- **Date-filter trap:** dashboard was pinned to **Nov 15 – Dec 12, 2025** — ~6 months *before* Franchil launched (flight Jun 22 → Jul 5, 2026). So Franchil showed 0/$0 not because it was dead but because the window predated it. The "440 clicks / $0.96 CPC" headline = stale account totals from that dead window.
+- **Franchil is approved & live:** status **"Eligible (Limited)"** — passed policy review (no longer "under review"), valid "Ad group 1", $50 total cap, Search-only all correct. The "Limited" qualifier was **"Missing enough relevant keywords."**
+- **Account clutter:** 10 campaigns total — 5 Removed (dead), 2 Paused, + **two old Display campaigns still LIVE at ~$10/day combined** ("Website traffic-Display-[May 2]" $9 + "April 2023" $1) quietly spending on non-Franchil. The "1 campaign with no ad groups" warning was NOT Franchil.
+
+**Fixes TJ executed (guided):**
+1. **Date range** → changed off the Nov–Dec 2025 window so live data is visible.
+2. **Paused the two old Display campaigns** → stops ~$10/day leak on unrelated old campaigns.
+3. **Added 15 keywords** to Franchil (8 → 21 total). Pasted phrase-match list (Killeen + Harker Heights + Copperas Cove + service terms + "near me"). Google policy-flagged 2 health-condition terms (`dementia care at home`, `alzheimer's home care`) under "Health in personalized advertising" — dropped them rather than request exception. Result: 3 already **Eligible** (`home care killeen`, `in home care killeen tx`, `home health aide killeen`), ~6 Pending/Under review (clears in hours), many **"Low search volume"** (dormant, not errors — Killeen is just a small market; they auto-activate if volume appears). "Missing relevant keywords" throttle should clear.
+
+**Key insight surfaced:** in a market this small, reach is carried by a **handful of broad eligible terms**, not the geo long-tail (most hyper-specific phrases are low-volume/dormant). Fine for a $50 test. **Watch:** if the campaign under-spends by Jul 5, the lever is flipping 1–2 eligible keywords to **broad match** — don't do it preemptively.
+
+**Next up (unchanged + 1 new):**
+- **#4 Google conversion tracking** — still NOT set up (account-wide "Conversion tracking setup is incomplete" banner). This is the Google-side mirror of last session's app-side attribution work; without it Maximize-clicks optimizes for clicks not leads, and Google sees zero conversions. Bigger lift (wire a Google conversion action to fire on `connection_sent`/`lead_received`). Deferred — TJ to decide whether to do now or after a few days of run data.
+- Phase 2 (from 6/21): multi-provider UTM attribution on `connection_sent`, backfill Franchil null lat/lng, conversion-rate estimate in budget step.
+
 ### 2026-06-21 — Franchil managed-ads activation: real campaign performance to provider + admin (branch `smart-hopper`, PRs #1161/#1163 → SHIPPED TO PROD)
 
 > **UPDATE (PM):** Shipped to prod (#1161 → staging, #1163 staging→main, main `f5a85d05`). **Google Search campaign published live** with TJ (click-by-click): Search-only (Display + partners off), $50 total-budget cap, Killeen 20mi, EN+ES, 8 phrase-match keywords + 9 negatives, tagged Final URL, Maximize-clicks $2.50 cap — now in Google policy review. Tracking is wired end-to-end (provider `/provider/boost` panel + admin `/admin/ad-boost` parity). **Phase 2 queued as 3 Web App board tasks:** (1) clean multi-provider UTM attribution on `connection_sent` [P2], (2) backfill Franchil null lat/lng [P2], (3) conversion-rate estimate in budget step [P3]. Only open item: ads flip from "under review" → "Eligible" (Google's call). Comms: team update posted to #ai-product-development (high-level, no jargon — "first managed-ads campaign, $50 start, trackable"); campaign-live email to Hilda drafted in Notion (under the handoff page) with the `olera.care/provider/boost` link + honest "$50 = a window not a faucet" framing — TJ to verify the boost panel renders for her, then send.
@@ -70,6 +122,28 @@ Closed the email/Questions arc end-to-end. Everything below is **in production**
 - Merge #1155 to staging (awaiting TJ go).
 - `/promote-to-main` to ship #1154 (+#1155 if merged) to production (awaiting TJ go).
 - **Step 2 — lane split** (`PROVIDER_NOTIFY_FROM`): verify the cousin domain is a separate Resend reputation unit before flipping it on. The weekly-digest carve-out in the send gate depends on this staying OFF until verified — do not remove that carve-out first.
+
+### 2026-06-19 — `/design-improvements` on auth modal + mobile nav drawer (PRs #1141, #1142)
+
+**Trigger:** TJ ran `/design-improvements` on two surfaces back-to-back, starting from screenshots.
+
+**Auth modal — sign-in "Welcome back" (PR #1141, branch `upbeat-jemison`):** punch-only pass on `components/auth/UnifiedAuthModal.tsx`.
+- Bumped step titles `text-xl` → `text-[26px]` tight-leading so the title is the focal point (the edge-aligned back/X chrome had been reading as the header).
+- Demoted "Email me a code instead" from `text-primary-600` (teal) → `text-gray-600` so only the Sign In button owns the accent.
+- Inserted the existing "or" divider between Sign In and the passkey button so passkey reads as a fallback, not a co-equal CTA.
+- `/pre-test`: clean (presentation-only, zero type surface).
+
+**Mobile nav drawer — logged-out (PR #1142, branch `mobile-nav-drawer-polish`):** punch + mobilize on the `Navbar.tsx` `lg:hidden` full-screen menu. **Iterated 4×** against TJ screenshots. Final state:
+- Labels `text-xl font-semibold`; Caregiver Support icon mortarboard → book-open (it links to the articles hub); footer secondaries `gray-500` → `gray-700 font-medium`; `active:` tap feedback on rows + CTAs; `max-w-md` centered column on tablet.
+- **Reverted two missed attempts:** (1) vertical-centering the nav (`my-auto`) — looked like a marooned text island; (2) per-row hairline dividers — fragmented the list AND the one under "Find Care" cut it off from its own subcategories. Final = top-anchored, single original group divider before "For Providers."
+
+**Decision / lesson:** A **nav list** is the Apple-Settings pattern (top-anchored, hairline rows) — NOT an empty-state hero (centered illustration + headline + CTA, à la Airbnb/Robinhood). Don't vertically center a bare list of links. Burned 3 iterations learning TJ's taste on this screen; went restrained after.
+
+**Open item:** the thin gray nav icons still read as weak. Options floated to TJ: drop entirely (typographic menu) / strengthen / keep receding behind bold labels. Awaiting his call — did NOT change unprompted.
+
+**Run-env note:** worktree has no `node_modules`; could not run tsc/build locally. All changes are className/SVG-path/JSX only (zero type surface); Vercel preview build is the compile check. SCRATCHPAD updated off fresh `staging` per [[feedback_scratchpad_out_of_code_prs]].
+
+**NEXT:** TJ verifies both PRs on their Vercel preview links (sign-in modal for #1141; logged-out hamburger for #1142). Decide the nav-icon direction. Then merge.
 
 ### 2026-06-18 — De-"host" copy + MedJobs admin reorg + flyer floor (branch `claude/keen-mendel-6i8iW`)
 

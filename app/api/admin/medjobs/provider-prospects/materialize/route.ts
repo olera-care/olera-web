@@ -102,9 +102,13 @@ export async function POST(request: NextRequest) {
 
     const orgName = provider.provider_name || "(unnamed provider)";
 
-    // Inherit created_at from olera-providers so the materialized row
-    // keeps the same rank in the Prospects sort as the virtual card.
-    const inheritedCreatedAt = provider.created_at ?? null;
+    // Inherit created_at from olera-providers so the materialized row keeps
+    // the EXACT same rank in the Prospects sort as the virtual card. The
+    // virtual card (lib/medjobs/catchment.ts) falls back to the epoch
+    // sentinel when the provider's created_at is null; we MUST use the same
+    // fallback here, otherwise null-dated providers materialize with now()
+    // and the card jumps to the top of the list on click.
+    const inheritedCreatedAt = provider.created_at ?? new Date(0).toISOString();
 
     // Store olera-providers data in research_data.general_contact so
     // the outreach cadence can use it (email, phone, website, location).

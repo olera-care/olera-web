@@ -215,6 +215,46 @@ export async function resolveWebsite(
 }
 
 // ---------------------------------------------------------------------------
+// Website DISCOVERY — find a real business's website by name + location via
+// Google Places text search, for providers with no website/source on file.
+// Returns the actual business's site (not an LLM guess), so the auto-fill on
+// first open can still find a source to scrape.
+// ---------------------------------------------------------------------------
+
+export async function discoverWebsiteByName(
+  name: string | null | undefined,
+  city?: string | null,
+  state?: string | null,
+  cost?: CostTracker,
+): Promise<{ website: string | null; placeId: string | null }> {
+  const gKey = googleKey();
+  const q = (name ?? "").trim();
+  if (!gKey || !q) return { website: null, placeId: null };
+  const textQuery = [q, city, state].filter(Boolean).join(" ");
+  try {
+    const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": gKey,
+        "X-Goog-FieldMask": "places.id,places.websiteUri,places.displayName",
+      },
+      body: JSON.stringify({ textQuery, pageSize: 1 }),
+    });
+    cost?.addGoogle();
+    if (!res.ok) return { website: null, placeId: null };
+    const data = (await res.json()) as {
+      places?: Array<{ id?: string; websiteUri?: string }>;
+    };
+    const top = data.places?.[0];
+    if (!top) return { website: null, placeId: null };
+    return { website: normalizeWebsite(top.websiteUri ?? null), placeId: top.id ?? null };
+  } catch {
+    return { website: null, placeId: null };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // EMAIL finder
 // ---------------------------------------------------------------------------
 

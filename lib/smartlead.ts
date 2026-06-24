@@ -364,3 +364,62 @@ export async function updateLeadInCampaign(
     patch
   );
 }
+
+/**
+ * Look up a Smartlead lead's internal id by email address. Smartlead's
+ * fetch-lead-by-email endpoint returns the lead object (across all campaigns);
+ * we only need its `id` to drive per-campaign actions like pause. Returns null
+ * (ok:true, data:null) when no lead matches. Shape is defensive — Smartlead has
+ * returned the lead bare, under a `lead` key, or inside `data` in the wild.
+ *
+ * Endpoint follows Smartlead's documented "fetch lead by email" API — verify
+ * against current docs before go-live (dormant until SMARTLEAD_API_KEY is set).
+ */
+export async function getLeadByEmail(
+  email: string
+): Promise<SmartleadResult<{ id: number } | null>> {
+  const raw = await smartleadRequest<unknown>(
+    "GET",
+    `/leads/?email=${encodeURIComponent(email)}`
+  );
+  if (!raw.ok) return { ok: false, error: raw.error, status: raw.status };
+
+  const pickId = (o: unknown): number | null => {
+    if (!o || typeof o !== "object") return null;
+    const rec = o as Record<string, unknown>;
+    const inner = (rec.lead ?? rec) as Record<string, unknown>;
+    return typeof inner.id === "number" ? inner.id : null;
+  };
+
+  let id: number | null = null;
+  const d = raw.data;
+  if (Array.isArray(d)) {
+    id = d.length > 0 ? pickId(d[0]) : null;
+  } else if (d && typeof d === "object" && Array.isArray((d as Record<string, unknown>).data)) {
+    const arr = (d as { data: unknown[] }).data;
+    id = arr.length > 0 ? pickId(arr[0]) : null;
+  } else {
+    id = pickId(d);
+  }
+
+  return { ok: true, data: id != null ? { id } : null, status: raw.status };
+}
+
+/**
+ * Pause a single lead's drip within a campaign (Smartlead stops scheduling that
+ * lead's remaining sequence steps). Used on conversion so a Client/Partner stops
+ * receiving cold + activation emails even when they converted via a call rather
+ * than an email reply (Smartlead only auto-pauses on a detected reply).
+ *
+ * Endpoint follows Smartlead's documented "pause lead by campaign id" API —
+ * verify against current docs before go-live (dormant until the key is set).
+ */
+export async function pauseLeadInCampaign(
+  campaignId: number,
+  leadId: number
+): Promise<SmartleadResult<{ ok?: boolean }>> {
+  return smartleadRequest(
+    "POST",
+    `/campaigns/${campaignId}/leads/${leadId}/pause`
+  );
+}

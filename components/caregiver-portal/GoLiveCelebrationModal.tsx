@@ -68,22 +68,22 @@ export default function GoLiveCelebrationModal({
 
         {/* Description with animation */}
         <p className={`relative z-10 text-gray-600 mb-8 max-w-sm mx-auto leading-relaxed transition-all duration-500 ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "250ms" }}>
-          Your profile is now visible to care providers. They can view your intro video, background, and reach out about opportunities.
+          Providers can now see your profile. Start browsing jobs and find your first match.
         </p>
 
         {/* Actions with animation */}
         <div className={`relative z-10 space-y-3 transition-all duration-500 ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "350ms" }}>
+          <a
+            href="/portal/medjobs/jobs"
+            className="block w-full px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-center"
+          >
+            Start browsing jobs
+          </a>
           <button
             onClick={handleViewProfile}
-            className="w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-          >
-            See how providers see you
-          </button>
-          <button
-            onClick={onClose}
             className="w-full px-6 py-2.5 text-gray-500 hover:text-gray-900 font-medium transition-colors"
           >
-            Continue to profile
+            See how providers see you
           </button>
         </div>
       </div>

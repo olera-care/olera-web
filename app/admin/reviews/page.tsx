@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
+import CollapsibleSection from "@/components/admin/CollapsibleSection";
 
 // ── Types ──
 
@@ -67,6 +68,13 @@ interface ReviewStats {
 
 // ── Main Page Component ──
 
+interface NoEmailSignal {
+  provider_id: string;
+  provider_name: string;
+  signal_count: number;
+  last_signal_at: string;
+}
+
 export default function AdminReviewsPage() {
   const [mainTab, setMainTab] = useState<MainTab>("all");
   const [flaggedCount, setFlaggedCount] = useState(0);
@@ -79,6 +87,12 @@ export default function AdminReviewsPage() {
     customFrom: "",
     customTo: "",
   });
+
+  // No-email signals state
+  const [noEmailSignals, setNoEmailSignals] = useState<NoEmailSignal[]>([]);
+  const [noEmailSignalsLoading, setNoEmailSignalsLoading] = useState(true);
+  const [noEmailSignalsError, setNoEmailSignalsError] = useState(false);
+  const [noEmailSignalsCount, setNoEmailSignalsCount] = useState(0); // unique providers count
 
   // Track stats version to trigger child refreshes
   const [statsVersion, setStatsVersion] = useState(0);
@@ -121,6 +135,30 @@ export default function AdminReviewsPage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  // Fetch no-email signals
+  const fetchNoEmailSignals = useCallback(async () => {
+    setNoEmailSignalsLoading(true);
+    setNoEmailSignalsError(false);
+    try {
+      const res = await fetch("/api/admin/review-signals");
+      if (res.ok) {
+        const data = await res.json();
+        setNoEmailSignals(data.signals || []);
+        setNoEmailSignalsCount(data.unique_providers || 0);
+      } else {
+        setNoEmailSignalsError(true);
+      }
+    } catch {
+      setNoEmailSignalsError(true);
+    } finally {
+      setNoEmailSignalsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNoEmailSignals();
+  }, [fetchNoEmailSignals]);
 
   // Callback for child components to trigger stats refresh
   const onStatsChange = useCallback(() => {
@@ -190,6 +228,68 @@ export default function AdminReviewsPage() {
           </div>
         </div>
       )}
+
+      {/* No Email Signals Section */}
+      <CollapsibleSection
+        title={`No Email Signals${noEmailSignalsCount > 0 ? ` (${noEmailSignalsCount} provider${noEmailSignalsCount === 1 ? "" : "s"})` : ""}`}
+        storageKey="admin-reviews-no-email-signals"
+        defaultCollapsed={true}
+        loading={noEmailSignalsLoading}
+      >
+        {noEmailSignalsError ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            Failed to load signals. <button onClick={fetchNoEmailSignals} className="underline">Retry</button>
+          </div>
+        ) : noEmailSignals.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">No signals yet. Providers who click "I only have their phone number" will appear here.</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 bg-teal-50 border-b border-teal-100">
+              <p className="text-sm text-teal-800">
+                <strong>SMS demand signals</strong> — Providers who indicated their client only has a phone number.
+                This data helps prioritize SMS review request support.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Clicks</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Signal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {noEmailSignals.map((signal) => (
+                    <tr key={signal.provider_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <a
+                          href={`/provider/${signal.provider_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-primary-600 hover:underline"
+                        >
+                          {signal.provider_name}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-semibold text-gray-900">
+                          {signal.signal_count}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {formatRelativeTime(signal.last_signal_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </CollapsibleSection>
 
       {/* Main tabs */}
       <div className="border-b border-gray-200 mb-6">
@@ -1441,4 +1541,20 @@ function formatSlug(slug: string): string {
   return slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

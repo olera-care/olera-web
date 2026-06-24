@@ -10,7 +10,7 @@
  * [subtype] (no student_outreach rows until Generate).
  */
 
-import type { PartnerSubtype, SocialLink } from "@/lib/medjobs/partner-sourcing";
+import type { PartnerSubtype } from "@/lib/medjobs/partner-sourcing";
 
 /** Required type tag on every office prospect. Orgs only — individuals (advisor
  *  / professor) are latched under an org and derive their kind from it. */
@@ -57,15 +57,16 @@ export interface WorkspaceOffice {
    *  personalize the office email ("ask for X"), NOT prospects. */
   ask_for: string[];
   notes?: string | null;
-  /** Social channels (Instagram / Discord / GroupMe …) the AI surfaced. Carried
-   *  through to research_data.socials at Generate; shown read-only in the drawer.
-   *  Especially relevant for student orgs whose primary reach is social. */
-  socials?: SocialLink[];
   /** Kept links that support this office record. */
   source_link_ids: string[];
   verified?: boolean;
   /** No email found — kept as a phone "call" lead, out of the email funnel. */
   call_only?: boolean;
+  /** Set once this office has been materialized into a prospect
+   *  (student_outreach row). Locks it from re-generation so a returning user
+   *  can't create duplicate prospects, and drives the "✓ In In-Basket" badge. */
+  outreach_id?: string | null;
+  generated_at?: string | null;
   // ── Department-head (person-shaped) fields ──────────────────────────────
   // For the dept_head subtype the "office" IS a department and the prospect is
   // ONE person (the chair). `name` is the department; these carry the chair,
@@ -89,10 +90,17 @@ export interface WorkspaceState {
   offices: WorkspaceOffice[];
   advisors: WorkspaceAdvisor[];
   generated_at: string | null;
+  /** Un-kept AI link suggestions, persisted so a mid-triage break doesn't lose
+   *  them (Task 4). Cleared as the admin keeps/discards each. */
+  suggested?: WorkspaceLink[];
+  /** Last step the admin was on for this subtype, so reopening resumes there
+   *  instead of snapping back to "links". Stored as a plain string (the Step
+   *  union lives in the workspace component). */
+  last_step?: string;
 }
 
 export function emptyWorkspace(): WorkspaceState {
-  return { links: [], searches: [], offices: [], advisors: [], generated_at: null };
+  return { links: [], searches: [], offices: [], advisors: [], generated_at: null, suggested: [] };
 }
 
 export function wsId(): string {
@@ -123,6 +131,8 @@ export function readWorkspace(partnerResearch: unknown, subtype: PartnerSubtype)
     offices: Array.isArray(cur.offices) ? (cur.offices as WorkspaceOffice[]) : [],
     advisors: Array.isArray(cur.advisors) ? (cur.advisors as WorkspaceAdvisor[]) : [],
     generated_at: typeof cur.generated_at === "string" ? cur.generated_at : null,
+    suggested: Array.isArray(cur.suggested) ? (cur.suggested as WorkspaceLink[]) : [],
+    last_step: typeof cur.last_step === "string" ? cur.last_step : undefined,
   };
 }
 
@@ -164,12 +174,12 @@ export function predefinedSearches(subtype: PartnerSubtype, uni: string): Search
     ];
   }
   return [
-    { key: "org_dir", label: `Google: ${uni} student organizations directory pre-health`, url: g(`${uni} student organizations directory pre-health`), ran: false },
-    { key: "org_premed", label: `Google: ${uni} pre-med society OR AMSA chapter contact`, url: g(`${uni} pre-med society OR AMSA chapter contact`), ran: false },
-    { key: "org_prenursing_pa", label: `Google: ${uni} pre-nursing OR pre-PA OR pre-dental club contact`, url: g(`${uni} pre-nursing OR pre-PA OR pre-dental club contact`), ran: false },
-    { key: "org_hosa", label: `Google: ${uni} HOSA OR public health student club`, url: g(`${uni} HOSA OR public health student club`), ran: false },
-    { key: "org_identity", label: `Google: ${uni} MAPS OR SNMA OR minority pre-health organization`, url: g(`${uni} MAPS OR SNMA OR minority pre-health organization`), ran: false },
-    { key: "org_ig", label: `Google: ${uni} pre-health club Instagram`, url: g(`${uni} pre-health club Instagram`), ran: false },
+    { key: "org_premed", label: `Google: pre-medical student organizations ${uni}`, url: g(`pre-medical student organizations ${uni}`), ran: false },
+    { key: "org_prenursing", label: `Google: pre-nursing student organizations ${uni}`, url: g(`pre-nursing student organizations ${uni}`), ran: false },
+    { key: "org_prepa", label: `Google: pre-PA student organizations ${uni}`, url: g(`pre-PA student organizations ${uni}`), ran: false },
+    { key: "org_prept", label: `Google: pre-PT student organizations ${uni}`, url: g(`pre-PT student organizations ${uni}`), ran: false },
+    { key: "org_pubh", label: `Google: public health student organizations ${uni}`, url: g(`public health student organizations ${uni}`), ran: false },
+    { key: "org_geriatrics", label: `Google: geriatrics student organizations ${uni}`, url: g(`geriatrics student organizations ${uni}`), ran: false },
   ];
 }
 

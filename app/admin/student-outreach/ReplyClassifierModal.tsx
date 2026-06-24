@@ -30,9 +30,8 @@ import {
 import type { DistributionEvidence } from "@/lib/student-outreach/types";
 
 // v8.10.8: added "not_interested" — admin's "they said no thanks" path.
-// P3: added "became_client" — provider-only direct conversion path
-// when a reply commits them to the caregiver-hiring pilot. UI-level
-// only; dispatches existing make_client action.
+// Provider conversion is self-serve only — there is no admin "became a
+// client" classification (removed with the make_client path).
 // P4: added "redirected" — they're sending us to a different decision-
 // maker. UI-level only; dispatches add_contact for the new contact
 // plus classify_reply(keep_emailing) so the original cadence stops
@@ -43,7 +42,6 @@ export type ReplyClassification =
   | "wants_meeting"
   | "already_booked"
   | "committed"
-  | "became_client"
   | "redirected"
   | "not_interested";
 
@@ -224,15 +222,6 @@ export function ReplyClassifierModal({
                 onSelect={() => setChoice("committed")}
                 label="Mark as Partner ★"
                 blurb="They committed to sharing with students. Capture the evidence below."
-                tone="ok"
-              />
-            )}
-            {isProvider && (
-              <ChoiceCard
-                active={choice === "became_client"}
-                onSelect={() => setChoice("became_client")}
-                label="Became a Client ✓"
-                blurb="They committed to the caregiver-hiring pilot. Marks the provider as a Client and unlocks Partner Prospects for catchment Sites."
                 tone="ok"
               />
             )}

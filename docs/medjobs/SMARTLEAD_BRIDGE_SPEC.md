@@ -232,19 +232,58 @@ Surface this in the admin UI verbatim — no silent caps (matches the brief's
 
 ## 8. Safety rails
 
-- **PAUSED-only.** The bridge has no code path that calls `setCampaignStatus("START")`.
-  A campaign goes live only by a human in the Smartlead UI (or, later, a separate
-  explicitly-gated admin action). Rationale: the `setCampaignStatus` comment —
-  starting before the pool is warm is the #1 way to torch domain reputation.
-- **Warmup gate is advisory at create-time, hard at start-time.** Creating a
-  PAUSED campaign during warmup is fine and useful (lets us stage before late
-  June). The warmup check produces *warnings*; the human owns the START decision.
+- **PAUSED by default, auto-START opt-in.** `finalizeCampaign` calls
+  `setCampaignStatus("PAUSED")` unless `SMARTLEAD_AUTO_START_CAMPAIGNS` is set
+  truthy, in which case it calls `setCampaignStatus("START")`. With the flag unset
+  (the default) a campaign goes live only by a human in the Smartlead UI.
+  Rationale: starting before the pool is warm is the #1 way to torch domain
+  reputation — see the §8.1 warning before enabling the flag.
+- **Warmup gate is advisory only.** Creating a PAUSED campaign during warmup is
+  fine and useful (lets us stage before go-live). The warmup check produces
+  *warnings*, never a block — so with `SMARTLEAD_AUTO_START_CAMPAIGNS=true` a
+  campaign **can auto-start before its mailboxes are warm**. The flag owner owns
+  that risk.
 - **Fail-closed inherited from the engine.** No `SMARTLEAD_API_KEY` → every call
   returns `{ok:false}`; `launchCampaign` reports errors and writes back nothing.
   A missing key can never partially enroll.
 - **Idempotent re-runs.** Re-running for a campus skips `already_enrolled` rows
   (linkage check) and Smartlead dedupes on email — so a retry after partial
   failure tops up the campaign rather than duplicating.
+
+### 8.1 Go-live: lifting the paused guardrail (BUILT — `SMARTLEAD_AUTO_START_CAMPAIGNS`)
+
+Historically an admin who prospects → sends to Smartlead got a **PAUSED**
+campaign and had to log into the Smartlead UI to start it — the intended warmup
+guardrail, but a handoff blocker. The guardrail is now liftable at **one** choke
+point via an env flag; we did not scatter START calls.
+
+**The toggle point.** Every enrollment path (`schedule_sequence`, activation,
+campus enroll) funnels through `finalizeCampaign()` in
+`lib/medjobs/smartlead-bridge.ts`, which now reads the flag:
+
+```ts
+const desiredStatus = autoStartEnabled() ? "START" : "PAUSED";
+const status = await setCampaignStatus(campaignId, desiredStatus);
+```
+
+`autoStartEnabled()` returns true when `SMARTLEAD_AUTO_START_CAMPAIGNS` is
+`"true"` or `"1"` (case-insensitive). Env is read via plain `process.env`.
+
+**What this build is (the "blunter" option, chosen 2026-06-23).** With the flag
+on, the bridge auto-starts *every* campaign the instant a lead is enrolled —
+there is **no** per-campaign go/no-go and it **can fire during warmup** (the
+warmup check is advisory, §8). The flag stays dormant until set, so it changes
+nothing until flipped in Vercel.
+
+⚠️ **Before flipping `SMARTLEAD_AUTO_START_CAMPAIGNS=true` in Vercel:** confirm
+the mailbox pool is warm (`warmup_details.status === "ACTIVE"`). Starting cold
+before warmup torches domain reputation, and nothing in code will stop it.
+
+**Not built (the recommended-but-heavier shape):** a per-campaign `start_campaign`
+admin action + "Start sending" button gated behind `SMARTLEAD_ALLOW_CAMPAIGN_START`,
+which would preserve a per-campaign human checkpoint inside the app. If the
+all-or-nothing flag proves too blunt, that remains the upgrade path (G2
+route.ts-change, §9).
 
 ---
 

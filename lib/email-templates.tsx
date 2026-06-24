@@ -417,7 +417,7 @@ export function coldProviderRankEmail(opts: {
   outOf: number;
   cityLabel: string;
   careLabel: string;      // "home care" | "assisted living"
-  ctaUrl: string;         // one-click market magic link (auth → /provider/market)
+  ctaUrl: string;         // one-click market magic link (auth → /provider/growth)
   manageUrl: string;
   removeUrl: string;
   unsubscribeUrl: string;
@@ -3267,7 +3267,7 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
   const r = opts.referralTeaser;
   const marketArea = m?.cityLabel ? escapeHtml(m.cityLabel) : "your area";
   const marketAreaAdjective = m?.cityLabel ? `${escapeHtml(m.cityLabel)}-area` : "nearby";
-  const eyebrowText = m ? `Your market · ${escapeHtml(m.cityLabel)}` : "Your week on Olera";
+  const eyebrowText = m ? `Your growth · ${escapeHtml(m.cityLabel)}` : "Your week on Olera";
   const headlineHtml = m
     ? r
       ? `Families in ${marketArea} ask these places who provides care.`
@@ -3282,9 +3282,9 @@ export function providerWeeklyDigestEmail(opts: DigestOpts): string {
       ? `Share of voice — who owns the reviews families read on Google — is the currency of local trust. Here's exactly where you stand, and the fastest ways to climb.`
       : `We mapped your local market: your competitors by share of voice, your best referral sources, and the ZIPs worth your marketing time.`
     : lead;
-  const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your market" : "See your full analytics";
+  const ctaLabel = r ? `See the ${marketArea} map` : m ? "See your growth" : "See your full analytics";
   const ctaUrl = m
-    ? (opts.marketUrl || `${BASE_URL}/provider/market?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
+    ? (opts.marketUrl || `${BASE_URL}/provider/growth?utm_source=weekly_digest&utm_medium=email&utm_campaign=${r ? "referral_teaser" : "market_rank"}`)
     : dashboardUrl;
   const referralRows = r?.targets.slice(0, 3).map((target) => {
     const distance = target.distanceMiles == null ? "" : ` · ${Number(target.distanceMiles).toFixed(1)} mi`;

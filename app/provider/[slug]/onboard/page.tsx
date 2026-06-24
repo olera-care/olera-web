@@ -53,8 +53,8 @@ function getActionRedirectUrl(
       case "settings":
         return "/account/settings";
       case "market":
-        // Cold/quiet rank email ("See where you rank") → the Your Market diagnostic.
-        return "/provider/market";
+        // Cold/quiet rank email ("See where you rank") → the Growth diagnostic.
+        return "/provider/growth";
       case "ads":
         // Managed-ads digest email ("We'll run the ads") → the boost pitch + setup.
         return "/provider/boost";

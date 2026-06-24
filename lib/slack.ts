@@ -493,7 +493,7 @@ export function slackAnalyticsTeaserCtaClicked(opts: {
 }
 
 /**
- * 🏙️ Provider with NO local leads viewed "Your Market" — the market
+ * 🏙️ Provider with NO local leads viewed "Growth" — the market
  * diagnostic that defaults the Find Families tab when a provider's city has
  * no registered families yet. This is the ~99% default state, so it doubles
  * as the canonical "a provider is looking at the market product" signal.
@@ -540,7 +540,7 @@ export function slackMarketDiagnosticNoLeads(opts: {
   };
 }
 
-// ── Managed Ads funnel + Your Market alerts (migration 105) ──────
+// ── Managed Ads funnel + Growth alerts (migration 105) ──────
 // Real-time visibility into the reworked provider funnel: who's clicking
 // toward managed ads, who's viewing the boost page + their market. Mirrors
 // slackMarketDiagnosticNoLeads. The conversion (campaign requested) pings via
@@ -551,7 +551,7 @@ const ADS_CTA_SOURCE_LABELS: Record<string, string> = {
   post_edit: "post-edit nudge",
   ff_pitch: "Find Families pitch",
   ff_banner: "Find Families banner",
-  your_market_playbook: "Your Market playbook",
+  your_market_playbook: "Growth playbook",
 };
 
 /** 📣 Provider tapped a CTA toward managed ads (/provider/boost). */
@@ -637,7 +637,7 @@ export function slackBoostViewed(opts: {
   };
 }
 
-/** 🏙️ Provider viewed their Your Market diagnostic. */
+/** 🏙️ Provider viewed their Growth diagnostic. */
 export function slackYourMarketViewed(opts: {
   providerName: string;
   providerSlug: string;
@@ -648,9 +648,9 @@ export function slackYourMarketViewed(opts: {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   const where = [opts.city, opts.state].filter(Boolean).join(", ") || "unknown location";
   return {
-    text: `Your Market view: ${opts.providerName} — ${where}${opts.covered ? "" : " (uncovered)"}`,
+    text: `Growth view: ${opts.providerName} — ${where}${opts.covered ? "" : " (uncovered)"}`,
     blocks: [
-      { type: "header", text: { type: "plain_text", text: "🏙️ Provider Viewed Your Market", emoji: true } },
+      { type: "header", text: { type: "plain_text", text: "🏙️ Provider Viewed Growth", emoji: true } },
       {
         type: "section",
         fields: [
@@ -668,7 +668,7 @@ export function slackYourMarketViewed(opts: {
   };
 }
 
-/** 📋 Provider tapped a Your Market playbook step. */
+/** 📋 Provider tapped a Growth playbook step. */
 export function slackYourMarketPlaybookClicked(opts: {
   providerName: string;
   providerSlug: string;
@@ -676,7 +676,7 @@ export function slackYourMarketPlaybookClicked(opts: {
 }): { text: string; blocks: SlackBlock[] } {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
   return {
-    text: `Your Market playbook: ${opts.providerName} — ${opts.item}`,
+    text: `Growth playbook: ${opts.providerName} — ${opts.item}`,
     blocks: [
       { type: "header", text: { type: "plain_text", text: "📋 Provider Worked Their Playbook", emoji: true } },
       {

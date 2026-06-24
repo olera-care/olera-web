@@ -1007,7 +1007,7 @@ export async function GET(request: NextRequest) {
             outOf: marketRank!.outOf,
             cityLabel: marketRank!.cityLabel,
             careLabel: marketRank!.careLabel,
-            // One-click "market" magic link → invisibly authenticates onto /provider/market.
+            // One-click "market" magic link → invisibly authenticates onto /provider/growth.
             ctaUrl: generateProviderPortalUrl(providerSlug, bp.email, "market"),
             manageUrl: generateProviderPortalUrl(providerSlug, bp.email, "manage"),
             removeUrl: `${siteUrl}/for-providers/removal-request/${providerSlug}`,

@@ -143,7 +143,7 @@ export default function MarketActionHub({
             onClick={() => setIsMarketExpanded(!isMarketExpanded)}
             className="w-full flex items-center justify-center gap-2 py-3 text-sm text-stone-500 hover:text-stone-700 transition-colors"
           >
-            <span>View your full market analysis</span>
+            <span>View your full growth analysis</span>
             <svg
               className={`w-4 h-4 transition-transform duration-200 ${isMarketExpanded ? "rotate-180" : ""}`}
               fill="none"

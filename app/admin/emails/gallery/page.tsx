@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 interface VariantMeta {
@@ -71,7 +72,8 @@ export default function EmailGalleryPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-[1100px] px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Email Gallery</h1>
+          <Link href="/admin/emails" className="text-sm text-primary-600 hover:underline">← Emails log</Link>
+          <h1 className="mt-2 text-2xl font-semibold text-gray-900">Email Gallery</h1>
           <p className="mt-1 text-sm text-gray-500">
             Every email variant rendered from canned sample data — viewable before any real send.{" "}
             <span className="text-gray-400">Each frame is a stable shareable link (open in new tab).</span>

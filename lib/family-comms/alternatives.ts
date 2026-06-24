@@ -58,18 +58,44 @@ export interface RecommendedProvider {
 // home_health has no dedicated stock set → maps to home-care.
 const STOCK_BASE =
   "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/fallback";
-function categoryStockImage(careType: string | undefined, index: number): string {
+
+// Map a care_type to one of the 5 stock-image categories. care_types in
+// business_profiles are stored DISPLAY-CASE with spaces/punctuation
+// ("Assisted Living", "Home Care (Non-medical)", "Assisted Living | Memory Care"),
+// NOT snake_case tokens — so normalize aggressively: take the first of a
+// pipe-joined list, drop parentheticals, collapse anything non-alpha to "_".
+// (Earlier this only handled hyphens, so every display-case label fell through to
+// the home-care fallback — an assisted-living facility showed a home-care photo.)
+function stockSlugForCareType(careType: string | undefined): string {
+  const norm = (careType || "")
+    .split("|")[0]
+    .toLowerCase()
+    .replace(/\(.*?\)/g, " ")
+    .replace(/[^a-z]+/g, "_")
+    .replace(/^_+|_+$/g, "");
   const map: Record<string, string> = {
     home_care: "home-care",
     in_home_care: "home-care",
     home_health: "home-care",
+    home_health_care: "home-care",
     home_health_agency: "home-care",
+    personal_care: "home-care",
+    companion_care: "home-care",
+    respite_care: "home-care",
     assisted_living: "assisted-living",
     memory_care: "memory-care",
     nursing_home: "nursing-home",
+    nursing_homes: "nursing-home",
+    skilled_nursing: "nursing-home",
     independent_living: "independent-living",
+    senior_living: "independent-living",
+    senior_community: "independent-living",
+    senior_communities: "independent-living",
   };
-  const slug = map[(careType || "").toLowerCase().replace(/-/g, "_")] || "home-care";
+  return map[norm] || "home-care";
+}
+function categoryStockImage(careType: string | undefined, index: number): string {
+  const slug = stockSlugForCareType(careType);
   const variant = (index % 3) + 1; // rotate 1..3 so 3 same-category cards aren't identical
   return `${STOCK_BASE}/${slug}-${variant}.jpg`;
 }

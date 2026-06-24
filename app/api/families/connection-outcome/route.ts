@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         from_profile_id,
         to_profile_id,
         metadata,
-        from_profile:business_profiles!connections_from_profile_id_fkey(care_types),
+        from_profile:business_profiles!connections_from_profile_id_fkey(care_types, lat, lng),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, city, state, care_types)
       `,
       )
@@ -104,12 +104,16 @@ export async function POST(request: NextRequest) {
     const providerCareTypes = (toProfile?.care_types as string[]) || [];
     const familyCareTypes = (fromProfile?.care_types as string[]) || providerCareTypes;
 
+    const familyLat = typeof fromProfile?.lat === "number" ? fromProfile.lat : null;
+    const familyLng = typeof fromProfile?.lng === "number" ? fromProfile.lng : null;
     const alternatives = await findAlternativeProviders(
       db,
       conn.to_profile_id,
       providerCity,
       providerState,
       providerCareTypes,
+      familyLat,
+      familyLng,
     );
 
     const browseParams = new URLSearchParams();

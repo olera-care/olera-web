@@ -160,6 +160,7 @@ export async function GET(request: NextRequest) {
 
     // Get engagement data for all connections
     const connectionIds = allConnections.map((c) => c.id);
+    const connectionIdSet = new Set(connectionIds);
     const providerKeys = [
       ...new Set(
         allConnections
@@ -167,6 +168,130 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       ),
     ] as string[];
+
+    // ── Email delivery status tracking ──
+    // Query email_log to find connections with delivery failures
+    // Only mark as "failed" if the MOST RECENT email failed
+    type EmailIssueType = "no_email" | "failed" | "invalid" | null;
+    const connectionEmailIssueType = new Map<string, EmailIssueType>();
+
+    const connectionsWithDeliveryFailure = new Set<string>();
+    const connectionsWithSuccessfulDelivery = new Set<string>();
+    const recipientsWithDeliveryFailure = new Set<string>();
+    const recipientsWithSuccessfulDelivery = new Set<string>();
+
+    if (connectionIds.length > 0) {
+      // Query email_log for all provider emails to find most recent status
+      const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const queryDateFrom = dateFrom || fallbackDate;
+
+      const { data: emailLogEntries } = await db
+        .from("email_log")
+        .select("metadata, status, bounced_at, created_at, recipient")
+        .eq("recipient_type", "provider")
+        .gte("created_at", queryDateFrom)
+        .order("created_at", { ascending: false })
+        .limit(5000);
+
+      // Track most recent email per connection
+      const mostRecentEmailPerConnection = new Map<string, { isFailed: boolean; timestamp: string }>();
+      const mostRecentEmailPerRecipient = new Map<string, { isFailed: boolean; timestamp: string }>();
+
+      for (const email of emailLogEntries ?? []) {
+        const meta = email.metadata as Record<string, unknown> | null;
+        const emailTime = email.created_at as string;
+        const isFailed = email.status === "failed" || email.bounced_at != null;
+        const recipient = (email.recipient as string | null)?.toLowerCase().trim();
+
+        // Track by recipient email
+        if (recipient) {
+          const existing = mostRecentEmailPerRecipient.get(recipient);
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerRecipient.set(recipient, { isFailed, timestamp: emailTime });
+          }
+        }
+
+        // Track by connection_id
+        const singleConnId = meta?.connection_id as string | undefined;
+        const multiConnIds = meta?.connection_ids as string[] | undefined;
+        const connIds: string[] = [];
+        if (singleConnId) connIds.push(singleConnId);
+        if (Array.isArray(multiConnIds)) connIds.push(...multiConnIds);
+
+        for (const connId of connIds) {
+          if (!connectionIdSet.has(connId)) continue;
+          const existing = mostRecentEmailPerConnection.get(connId);
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+          }
+        }
+      }
+
+      // Build failure/success sets
+      for (const [connId, { isFailed }] of mostRecentEmailPerConnection) {
+        if (isFailed) {
+          connectionsWithDeliveryFailure.add(connId);
+        } else {
+          connectionsWithSuccessfulDelivery.add(connId);
+        }
+      }
+      for (const [recipient, { isFailed }] of mostRecentEmailPerRecipient) {
+        if (isFailed) {
+          recipientsWithDeliveryFailure.add(recipient);
+        } else {
+          recipientsWithSuccessfulDelivery.add(recipient);
+        }
+      }
+    }
+
+    // Query for invalid emails (verified by ZeroBounce)
+    const providerEmailAddresses = new Set<string>();
+    for (const c of allConnections) {
+      const email = c.to_profile?.email?.trim();
+      if (email) providerEmailAddresses.add(email);
+    }
+
+    const invalidEmailSet = new Set<string>();
+    if (providerEmailAddresses.size > 0) {
+      const emailArray = Array.from(providerEmailAddresses);
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < emailArray.length; i += BATCH_SIZE) {
+        const batch = emailArray.slice(i, i + BATCH_SIZE);
+        const { data: verifications } = await db
+          .from("email_verifications")
+          .select("email")
+          .in("email", batch)
+          .eq("status", "invalid");
+        for (const v of verifications ?? []) {
+          if (v.email) invalidEmailSet.add(v.email);
+        }
+      }
+    }
+
+    // Compute email issue type for each connection
+    for (const c of allConnections) {
+      const providerEmail = c.to_profile?.email?.trim();
+      let emailIssueType: EmailIssueType = null;
+
+      if (!providerEmail) {
+        emailIssueType = "no_email";
+      } else if (connectionsWithDeliveryFailure.has(c.id)) {
+        emailIssueType = "failed";
+      } else {
+        const recipientKey = providerEmail.toLowerCase();
+        const recipientHasFailure = recipientsWithDeliveryFailure.has(recipientKey);
+        const recipientHasSuccess = recipientsWithSuccessfulDelivery.has(recipientKey);
+        const connectionHasSuccess = connectionsWithSuccessfulDelivery.has(c.id);
+
+        if (recipientHasFailure && !recipientHasSuccess && !connectionHasSuccess) {
+          emailIssueType = "failed";
+        } else if (invalidEmailSet.has(providerEmail) && !connectionHasSuccess && !recipientHasSuccess) {
+          emailIssueType = "invalid";
+        }
+      }
+
+      connectionEmailIssueType.set(c.id, emailIssueType);
+    }
 
     // Fetch engagement events
     const engagementMap = new Map<
@@ -210,7 +335,7 @@ export async function GET(request: NextRequest) {
       for (const ev of allActivityEvents) {
         const meta = ev.metadata as Record<string, unknown> | null;
         const connId = (meta?.connection_id || meta?.lead_id) as string | undefined;
-        if (!connId || !connectionIds.includes(connId)) continue;
+        if (!connId || !connectionIdSet.has(connId)) continue;
 
         let eng = engagementMap.get(connId);
         if (!eng) {
@@ -260,9 +385,8 @@ export async function GET(request: NextRequest) {
         const provider = c.to_profile;
         const meta = getConnectionMeta(c);
 
-        // Check for email issues (no email, or email looks invalid)
-        const providerEmail = provider?.email?.trim();
-        const hasEmailIssue = !providerEmail || !providerEmail.includes("@");
+        // Get computed email issue type
+        const emailIssue = connectionEmailIssueType.get(c.id);
 
         // Check if provider is claimed (has account linked)
         const isProviderClaimed = !!provider?.account_id;
@@ -274,10 +398,20 @@ export async function GET(request: NextRequest) {
         if (filter === "connected") return level === "connected" && !meta.archived;
         if (filter === "needs_follow_up") return level === "needs_follow_up" && !meta.archived;
 
-        // Needs Email: has email issue, not engaged, not claimed, not archived
+        // Needs Email: provider has NO email on file, not engaged, not claimed, not archived/declined/not-interested
         if (filter === "needs_email") {
           const hasEngaged = level === "viewed" || level === "connected";
-          return hasEmailIssue && !hasEngaged && !isProviderClaimed && !meta.archived;
+          const isDeclined = meta.archived && meta.archiveReason;
+          const isNotInterested = meta.adminOverride?.status === "not_interested";
+          return emailIssue === "no_email" && !hasEngaged && !isProviderClaimed && !meta.archived && !isDeclined && !isNotInterested;
+        }
+
+        // Delivery Issues: email bounced/failed/invalid, not engaged, not claimed, not archived/declined/not-interested
+        if (filter === "delivery_issues") {
+          const hasEngaged = level === "viewed" || level === "connected";
+          const isDeclined = meta.archived && meta.archiveReason;
+          const isNotInterested = meta.adminOverride?.status === "not_interested";
+          return (emailIssue === "failed" || emailIssue === "invalid") && !hasEngaged && !isProviderClaimed && !meta.archived && !isDeclined && !isNotInterested;
         }
 
         // Admin marked as "not interested" (but not archived)

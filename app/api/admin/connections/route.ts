@@ -119,7 +119,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "declined" | "admin_not_interested" | "archived";
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "delivery_issues" | "declined" | "admin_not_interested" | "archived";
 
 // Email issue types for the "Needs Email" tab
 type EmailIssueType = "no_email" | "failed" | "invalid" | null;
@@ -143,7 +143,8 @@ interface EngagementCounts {
   viewed: number;
   connected: number;
   needs_follow_up: number;
-  needs_email: number; // Combined: no email, delivery failed, or invalid email
+  needs_email: number; // Provider has no email on file
+  delivery_issues: number; // Email bounced, failed, or invalid - can try override
   declined: number; // Provider archived with decline reasons (via portal)
   admin_not_interested: number; // Admin marked provider as not interested (soft rejection)
   archived: number; // Admin-archived providers - no emails sent
@@ -1031,6 +1032,7 @@ export async function GET(request: NextRequest) {
       connected: 0,
       needs_follow_up: 0,
       needs_email: 0,
+      delivery_issues: 0,
       declined: 0,
       admin_not_interested: 0,
       archived: 0,
@@ -1230,11 +1232,18 @@ export async function GET(request: NextRequest) {
           engagementCounts[engResult.level]++;
         }
 
-        // Only count in needs_email if: has email issue AND NOT engaged AND NOT claimed
+        // Count email-related tabs if: has email issue AND NOT engaged AND NOT claimed
         // Claimed providers manage their own email - we can't change it
-        // Archived, declined, and admin_not_interested leads shouldn't appear in "Needs Email"
+        // Archived, declined, and admin_not_interested leads shouldn't appear in email tabs
         if (emailIssueType && !hasProviderEngagement && !isProviderClaimed && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
-          engagementCounts.needs_email++;
+          // Split by issue type:
+          // - no_email → Needs Email (find and add an email)
+          // - failed/invalid → Delivery Issues (try override or find new email)
+          if (emailIssueType === "no_email") {
+            engagementCounts.needs_email++;
+          } else {
+            engagementCounts.delivery_issues++;
+          }
         }
 
         // Count declined (provider explicitly declined with reason)
@@ -1318,9 +1327,9 @@ export async function GET(request: NextRequest) {
         });
       }
       // Special filter: needs_email (provider perspective only)
-      // Combines: no email, delivery failed, or invalid email
-      // BUT: Exclude if provider has ENGAGED (viewed/connected) - they go to engagement tab
-      // AND: Exclude CLAIMED providers - we can't change their email anyway (it's locked)
+      // Only providers with NO email on file
+      // Exclude if provider has ENGAGED (viewed/connected) - they go to engagement tab
+      // Exclude CLAIMED providers - we can't change their email anyway (it's locked)
       else if (responseFilter === "needs_email" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
@@ -1329,9 +1338,30 @@ export async function GET(request: NextRequest) {
           const engLevel = connectionEngagementLevels.get(c.id);
           const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
           const isProviderClaimed = c.provider.isAccountClaimed === true;
-          return (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null &&
-            !hasProviderEngagement &&  // Only if NOT engaged
-            !isProviderClaimed &&  // Claimed providers manage their own email
+          const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+          return emailIssue === "no_email" &&
+            !hasProviderEngagement &&
+            !isProviderClaimed &&
+            !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
+        });
+      }
+      // Special filter: delivery_issues (provider perspective only)
+      // Providers with email that bounced, failed, or is invalid
+      // Exclude if provider has ENGAGED - they go to engagement tab
+      // Exclude CLAIMED providers - we can't change their email
+      else if (responseFilter === "delivery_issues" && perspective === "provider") {
+        list = list.filter((c) => {
+          const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+          const isProviderDeclined = c.archived && !!c.archiveReason;
+          const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+          const engLevel = connectionEngagementLevels.get(c.id);
+          const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
+          const isProviderClaimed = c.provider.isAccountClaimed === true;
+          const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+          // failed or invalid (not no_email)
+          return (emailIssue === "failed" || emailIssue === "invalid") &&
+            !hasProviderEngagement &&
+            !isProviderClaimed &&
             !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }

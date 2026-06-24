@@ -21,6 +21,11 @@ interface Alternative {
   slug: string;
   url: string;
   priceRange: string | null;
+  /** Enhancement fields from findAlternativeProviders — mirror the email compare cards. */
+  imageUrl?: string;
+  rating?: number | null;
+  reviewCount?: number | null;
+  distanceMi?: number | null;
 }
 
 interface OutcomeResult {
@@ -127,17 +132,42 @@ function ConnectionOutcomeInner() {
             </div>
 
             {alternatives.length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-4 mb-4 space-y-3">
-                {alternatives.map((p) => (
-                  <a
-                    key={p.slug}
-                    href={p.url}
-                    className="block bg-white rounded-lg border border-gray-200 px-4 py-3 hover:border-primary-300 transition-colors"
-                  >
-                    <span className="block text-primary-700 font-semibold">{p.name}</span>
-                    {p.priceRange && <span className="block text-sm text-gray-500 mt-0.5">{p.priceRange}</span>}
-                  </a>
-                ))}
+              <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 mb-4 overflow-hidden">
+                {alternatives.map((p) => {
+                  const meta = [
+                    p.rating != null
+                      ? `★ ${p.rating.toFixed(1)}${p.reviewCount ? ` (${p.reviewCount})` : ""}`
+                      : null,
+                    p.distanceMi != null
+                      ? `${p.distanceMi < 10 ? p.distanceMi.toFixed(1) : Math.round(p.distanceMi)} mi away`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join("  ·  ");
+                  return (
+                    <a
+                      key={p.slug}
+                      href={p.url}
+                      className="flex items-start gap-3.5 bg-white px-4 py-3.5 hover:bg-gray-50 transition-colors"
+                    >
+                      {p.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.imageUrl}
+                          alt={p.name}
+                          width={56}
+                          height={56}
+                          className="w-14 h-14 rounded-lg object-cover bg-gray-100 shrink-0"
+                        />
+                      )}
+                      <span className="min-w-0">
+                        <span className="block text-primary-700 font-semibold leading-tight truncate">{p.name}</span>
+                        {meta && <span className="block text-[13px] text-gray-500 mt-0.5">{meta}</span>}
+                        {p.priceRange && <span className="block text-[13px] text-gray-500 mt-0.5">{p.priceRange}</span>}
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
             )}
 

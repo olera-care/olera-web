@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-24 — Family Comms v2: CUTOVER LIVE ON PROD + measurement surface shipped (branch `mighty-carson`)
+
+The compare-led flywheel is now the active family-comms system in production (main `cb71fc48`). Two things shipped today.
+
+**1. Cutover flipped (DB-only, no deploy).** Via `cron_config` upsert: `family-comms-coordinator` → `enabled=true`; the 6 inquiry originals → `enabled=false` together (`family-outcome-check`, `family-provider-silent`, `family-never-engaged`, `family-day-10-awaiting`, `matches-family-nudge`, `lead-family-nudge`). `family-nudges` (publish/go-live engine, drives the 86 published profiles) left ON — deliberately preserved. `provider-still-silent` left ON intentionally (not in the coordinator's 6; template already reshaped + cap-governed, so no mixed old/new). **Rollback = unpause the 6 + pause coordinator in `cron_config`, no deploy.** Verified all 7 job_ids against `withCronRun` ids before writing (a typo'd job_id silently no-ops).
+
+**2. Measurement surface (`/admin/family-comms`).** New page + `GET /api/admin/family-comms-analytics/summary` (PR #1202→staging, #1203→main, LIVE). First-principles family-engagement + email observability (re-centered per TJ: the spine is "how families move + how every email performs," NOT the cutover). Sections: top-line stats · engagement flywheel funnel · email-performance-by-type table (sent/deliver/open/click/bounce + 8-wk sparklines) · outcome-check sensor (yes/no/not-yet) · downstream conversions · secondary collapsible cutover lens. **Zero new instrumentation** — all from `email_log` + Resend webhook columns (`first_opened_at`/`first_clicked_at`/`bounced_at`) + `seeker_activity` conversions (`connection_outcome_reported`, `compare_cta_converted`, `guide_cta_converted`, `benefits_completed`, `profile_published`=went-live). Files: `app/admin/family-comms/page.tsx`, `app/api/admin/family-comms-analytics/summary/route.ts`, `components/admin/AdminSidebar.tsx` (nav link under Operations). tsc 0 / eslint clean / smoke-tested live (2,716 family emails/90d, 37% open, 78 benefits-completions, 53 go-lives).
+
+**Honesty fixes during pre-test:** dropped `benefits_started` from the funnel spine (under-tracked — 0/90d vs 78 completed, would read as "completed > started"); funnel lower-steps labeled as window totals not per-send attribution (the `eid` param is already on links → join is the v2 of the dashboard).
+
+**OPEN LOOP:** the coordinator has NOT sent a real email yet — first production cycle is **17:00 UTC 2026-06-24** (~it was paused until today's flip). Only run on record is a 06-23 dry-run (527 families → would-send 222; rungs heavily completion-weighted: 211 lead-complete, 8 outcome-check, 2 never-engaged, 1 pending-reach-out; 0 send-failures — brain works). Verify after 17:00 UTC: coordinator ran for real (not dry, sent>0), the 6 paused crons logged `skipped_paused`, `family-nudges` still ran. **Verification script:** `scratchpad/verify-cutover-firstrun.js` (run from `~/Desktop/olera-web`), or eyeball `/admin/automations`.
+
+**Comms:** updated the Notion branch handoff (`3885903a...`) with current state + appended a §7 CEO brief; posted an Esther update to #ai-product-development (reframed away from "nag emails" — she built the originals).
+
+**Next up:** (1) verify the 17:00 UTC first run; (2) preservation baseline (`email_log` → which emails the 86 published seekers got → fold winners into the ladder); (3) true per-send attribution (`eid`→`email_log` join); (4) personalization (rank compare by captured budget/care-needs + close the anon-quiz gap where `save-results` doesn't write `city`/`care_types`); (5) SMS for the one-tap sensor (10DLC/TCPA). Plan with TJ before code. Memory: `project_family_help_cascade`, `project_family_comms_channels`.
+
 ### 2026-06-22 — Family Comms Intelligence System: BUILT (v1) + strategy evolved to v2 compare-led flywheel (branch `mighty-carson`, draft PR #1165, NOT live, re-shape pending)
 
 Switched from provider engagement (handed to Esther) to the care-seeker/family side. Esther's "Family Re-engagement: The Intentionality Gap" doc + deep code review + live data pull.

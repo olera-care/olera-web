@@ -301,6 +301,47 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/connections",
   },
   {
+    id: "family-outcome-check",
+    name: "Family outcome check — did the provider respond?",
+    description:
+      "48–72h after a family inquiry, asks the family via one-click email whether the provider got back to them (the dating-app 'did you meet?' pattern). The answer is our ground-truth connection signal; a 'no'/'not yet' routes them to the alternative-provider + benefits mini-cascade. Fires before family-provider-silent / family-never-engaged; a 'yes' suppresses those.",
+    recipientCohort:
+      "Families with an inquiry aged 48–72h where the provider hasn't visibly responded and no outcome is recorded yet. One per family per run.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 16 * * *",
+    humanSchedule: "Daily, 16:00 UTC (~11 AM ET)",
+    path: "/api/cron/family-outcome-check",
+    emailTypes: ["family_outcome_check"],
+    successSignal:
+      "Family clicks Yes/No/Not-yet → connections.metadata.outcome + seeker_activity.connection_outcome_reported.",
+    relatedAdminPath: "/admin/care-seekers",
+  },
+  {
+    id: "family-comms-coordinator",
+    name: "Family comms coordinator — help-cascade arbiter",
+    description:
+      "The family-side arbitration brain. One daily cron that picks the single highest-priority message per family per cycle via a fixed help-cascade ladder (outcome-check → provider-silent+alternatives → never-engaged → awaiting-match → pending reach-out → lead follow-up), replacing the uncoordinated firehose of the 6 connection-triggered family crons. Global stops for unsubscribed / self-reported-yes / active live threads. Sends flow through the per-family nudge cap; ?dry_run=true returns the per-family selection without sending.",
+    recipientCohort:
+      "Every family with an open inquiry/request connection; at most one governed email per family per run, chosen by the ladder.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 17 * * *",
+    humanSchedule: "Daily, 17:00 UTC (~12 PM ET)",
+    path: "/api/cron/family-comms-coordinator",
+    emailTypes: [
+      "family_outcome_check",
+      "family_provider_silent",
+      "family_never_engaged",
+      "day_10_awaiting",
+      "family_reach_out_nudge",
+      "family_nudge",
+      "go_live_reminder",
+    ],
+    successSignal: "Family is meaningfully helped (responds, reaches an alternative, completes, or publishes).",
+    relatedAdminPath: "/admin/connections",
+  },
+  {
     id: "provider-still-silent",
     name: "Provider STILL silent — trust recovery",
     description: "Daily: sends Email #6 when provider STILL hasn't responded after 7+ days. Trust recovery email — acknowledges failure, actively intervenes with responsive alternatives + personal support fallback. Family-level intelligence.",

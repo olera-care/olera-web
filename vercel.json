@@ -107,6 +107,14 @@
     {
       "path": "/api/cron/provider-still-silent",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/family-outcome-check",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/family-comms-coordinator",
+      "schedule": "0 17 * * *"
     }
   ]
 }

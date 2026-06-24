@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
         already_sent: 0,
         no_email: 0,
         send_failed: 0,
+        outcome_connected: 0,
       },
       dry_run: dryRun,
     };
@@ -163,6 +164,18 @@ export async function GET(request: NextRequest) {
       if (alreadySent) {
         counts.skipped++;
         counts.skipReasons.already_sent++;
+        continue;
+      }
+
+      // Suppress if the family already self-reported (outcome-check) that the
+      // provider DID get back to them — don't contradict their own answer.
+      const familySaidConnected = (allFamilyConnections || []).some((conn) => {
+        const m = (conn.metadata || {}) as Record<string, unknown>;
+        return (m.outcome as { value?: string } | undefined)?.value === "yes";
+      });
+      if (familySaidConnected) {
+        counts.skipped++;
+        counts.skipReasons.outcome_connected++;
         continue;
       }
 

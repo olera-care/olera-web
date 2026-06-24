@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-06-23 — Benefits Florida backfill pilot paused for Cess review (branch `codex/benefits-florida-backfill`, PR #1177 -> staging)
+
+**Trigger:** TJ found live Google-indexable-looking Benefits program pages that rendered as empty/thin shells. Investigation showed the problem was not a mislink to an existing rich page: several legacy `waiver-library` program URLs resolved publicly but lacked rich pipeline body content.
+
+**Built:** PR #1177 backfills three Florida gaps as rich `under-review` pipeline drafts:
+- `medicaid-for-aged-and-disabled-meds-ad`
+- `long-term-care-ombudsman-program`
+- `national-family-caregiver-support-program`
+
+**Behavior locked:** direct URLs render full content for review, show `Under review`, emit `noindex, follow`, stay out of sitemap, and stay out of public state discovery until Cecille/Cess/Data Quality verifies. Existing rich pipeline drafts remain indexable. No bulk approval/publishing. Florida `home-delivered-meals` intentionally not backfilled because it needs alias/canonical review vs `home-delivered-meals-on-wheels`.
+
+**Important pre-test catch:** initial discovery policy equaled indexability, which would have changed many state-page program counts. Narrowed it so `shouldIndexBenefitsProgram()` remains strict, but `shouldDiscoverBenefitsProgram()` only hides explicit `under-review` / `needs-changes` statuses. Corpus audit now shows no empty state overview pages and only Florida `/senior-benefits/florida` changes, 10 -> 7 visible programs, exactly removing the three under-review pages.
+
+**Status:** committed/pushed in PR #1177, Vercel green, GitHub review required. Slack message sent to `#senior-benefits-planner` tagging Ces (`U063P1X0WUE`) with Thursday, June 25 review deadline: https://oleraworkspace.slack.com/archives/C08L0H8CADB/p1782192023212549. Cess later clarified she only reviews Benefits programs present in Notion, so the three new code-backed drafts were added to the Benefits review database and assigned to her (`Status = Not Started`).
+
+**Notion review rows added 2026-06-24:** [FL — Medicaid for Aged and Disabled (MEDS-AD)](https://olera.notion.site/FL-Medicaid-for-Aged-and-Disabled-MEDS-AD-3895903a0ffe81c69d0eea2bd7fe5226), [FL — Long-Term Care Ombudsman Program](https://olera.notion.site/FL-Long-Term-Care-Ombudsman-Program-3895903a0ffe819b85bed49b155cb934), and [FL — National Family Caregiver Support Program](https://olera.notion.site/FL-National-Family-Caregiver-Support-Program-3895903a0ffe81cfb5d0da76ac65e0d2). Follow-up Slack update was posted as a top-level channel message, not a thread reply: https://oleraworkspace.slack.com/archives/C08L0H8CADB/p1782276700805839
+
+**Validation:** `npx --no-install tsc --noEmit` passed after rebase onto latest `origin/staging`; `git diff --check` passed; policy/sitemap/corpus audits passed. Preview: https://olera-web-git-codex-benefits-florida-backfill-olera.vercel.app
+
+**NEXT:** pause backfill work until Cess reviews the three Notion rows. If approved, make a tiny follow-up/status-change PR for those three pages to become discoverable/indexable. If needs changes, patch content while they remain `under-review`. Do not scale the remaining no-content inventory yet.
+
 ### 2026-06-22 — `/test-instructions` command + durable Codex skill (branch `codex/add-test-instructions-command`, PR #1169 → staging)
 
 **Trigger:** TJ created a Claude slash command called `test-instructions` and asked to copy it into this repo, then clarified that it needs to keep working across future Codex sessions instead of only in the current local worktree.
@@ -2903,6 +2924,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Blocked / Needs Input
 
+- **Benefits Florida backfill pilot:** waiting on Cess/Data Quality review of PR #1177's three `under-review` pages by Thursday, June 25. The three matching Notion review rows now exist and are assigned to Cess. Do not merge/publish/scale the backfill until reviewed.
 - ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
 - ~~**Top 100 pages from Search Console:**~~ ✅ Done — GSC export analyzed, 0 404 risks found
 - ~~**Editorial content redirect decision:**~~ ✅ Done — all v1.0 content routes now have redirects in `next.config.ts`: `/research-and-press/*` → homepage, `/caregiver-forum/*` → `/`, `/caregiver-relief-network/*` → homepage, `/company/*` → dedicated pages
@@ -2910,6 +2932,13 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Benefits Florida backfill pilot (PR #1177):**
+- Wait for Cess review in `#senior-benefits-planner` (deadline Thursday, June 25).
+- Review queue handoff is now in Notion: MEDS-AD, Long-Term Care Ombudsman, and National Family Caregiver Support are assigned to Cess as `Not Started`.
+- If approved: make a small status-promotion PR for the three Florida pages so they become discoverable/indexable.
+- If needs changes: patch the three drafts while keeping them `under-review` / `noindex`.
+- After the pilot passes, design a repeatable state-batch workflow for the remaining no-content inventory; do not scale before the review loop is proven.
 
 **Email deliverability follow-ups (updated 2026-06-11 PM):**
 - ⏳ **`seniorlistings.net` warming in Smartlead** (started 2026-06-11, seasoned ~early-July). Decide its eventual send-use closer to July (cold outreach via Smartlead, or wherever it fits). Optionally connect + warm `team@seniorlistings.net` (2nd mailbox).
@@ -2953,6 +2982,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-06-23 | Benefits backfilled pages start as `under-review`, not approved/published | Users and Cess need full pages to review, but approval must keep meaning human-reviewed trust. `under-review` renders by direct URL, emits `noindex`, and stays out of listings/sitemap until Data Quality verifies. |
+| 2026-06-23 | Discovery is not the same as indexability for Benefits listings | Making discovery equal strict indexability caused broad state-page count churn. Final policy keeps existing listings stable and hides only explicit review-gated statuses, while SEO indexability remains stricter. |
 | 2026-04-27 | Scrap regex amnesia detector for LLM self-correction pass | After 5 regex iterations (v1 → v2.2) chasing TJ-flagged FPs, recognized regex-on-LLM-free-text is fundamentally fragile. Forced-choice anti-amnesia prompt on the 2,936 OUT_OF_SCOPE verdicts gave structured output for ~$5 in 4 min. Replaced regex output entirely. |
 | 2026-04-27 | Generate disagreements file as third review artifact | When two noisy signals disagree (regex v2.2 vs LLM re-pass), the cases worth highest scrutiny are the 233 disagreements (8% of OUT_OF_SCOPE). Cheap to produce, valuable for spot-check, surfaces blindspots in either signal. |
 | 2026-04-27 | Backup CSVs written BEFORE DB writes, not after | If execution fails partway, we still have the full intended-state record. Recovery is a single SQL UPDATE per CSV. Previous data sweeps generated backups after which is recoverable but more painful. |
@@ -3073,6 +3104,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-06-23 — Benefits Florida backfill pilot saved (PR #1177 open, paused for Cess review)
+
+Backfilled three Florida Benefits pages that were previously routable but effectively blank/thin: MEDS-AD, Long-Term Care Ombudsman, and National Family Caregiver Support. Added rich `under-review` pipeline drafts and review-gated discovery behavior in `lib/benefits/program-content-quality.ts`, `app/benefits/[slug]/page.tsx`, `app/senior-benefits/[state]/page.tsx`, `data/pipeline/FL/drafts.json`, and `data/pipeline/FL/drafts.ts`. PR #1177 is open against `staging`; Vercel is green. Validation passed: `tsc`, `git diff --check`, policy/sitemap/corpus audits. Slack note sent to Ces in `#senior-benefits-planner` with Thursday, June 25 review deadline. Pause here: do not merge, publish, or scale until Cess/Data Quality reviews the three pages.
+
+### 2026-06-24 — Benefits review queue rows added for Cess (no code)
+
+Cess clarified that her review workflow is Notion-driven and the three PR #1177 backfill programs were not visible in her FL queue. Created matching Notion rows in the Benefits review database for MEDS-AD, Long-Term Care Ombudsman, and National Family Caregiver Support with `State = FL`, `Reviewer = Cess`, `Status = Not Started`, preview links, and source URLs. Deleted the accidental threaded Slack reply and reposted the update as a top-level `#senior-benefits-planner` message: https://oleraworkspace.slack.com/archives/C08L0H8CADB/p1782276700805839
 
 ### 2026-06-11 (PM) — seniorlistings.net cold-domain warm-up stood up; Resend rotation pool closed
 

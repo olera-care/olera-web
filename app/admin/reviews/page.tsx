@@ -93,6 +93,9 @@ export default function AdminReviewsPage() {
   const [noEmailSignalsLoading, setNoEmailSignalsLoading] = useState(true);
   const [noEmailSignalsError, setNoEmailSignalsError] = useState(false);
   const [noEmailSignalsCount, setNoEmailSignalsCount] = useState(0); // unique providers count
+  const [pendingDeleteSignal, setPendingDeleteSignal] = useState<NoEmailSignal | null>(null);
+  const [deletingSignal, setDeletingSignal] = useState<string | null>(null);
+  const [deleteSignalError, setDeleteSignalError] = useState<string | null>(null);
 
   // Track stats version to trigger child refreshes
   const [statsVersion, setStatsVersion] = useState(0);
@@ -159,6 +162,38 @@ export default function AdminReviewsPage() {
   useEffect(() => {
     fetchNoEmailSignals();
   }, [fetchNoEmailSignals]);
+
+  // Delete a no-email signal entry
+  const handleDeleteSignal = useCallback(async () => {
+    if (!pendingDeleteSignal) return;
+
+    setDeletingSignal(pendingDeleteSignal.provider_id);
+    setDeleteSignalError(null);
+
+    try {
+      const res = await fetch("/api/admin/review-signals", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId: pendingDeleteSignal.provider_id }),
+      });
+
+      if (res.ok) {
+        // Remove from local state
+        setNoEmailSignals((prev) =>
+          prev.filter((s) => s.provider_id !== pendingDeleteSignal.provider_id)
+        );
+        setNoEmailSignalsCount((c) => Math.max(0, c - 1));
+        setPendingDeleteSignal(null);
+      } else {
+        const data = await res.json();
+        setDeleteSignalError(data.error || "Failed to delete signals");
+      }
+    } catch {
+      setDeleteSignalError("Failed to delete signals. Please try again.");
+    } finally {
+      setDeletingSignal(null);
+    }
+  }, [pendingDeleteSignal]);
 
   // Callback for child components to trigger stats refresh
   const onStatsChange = useCallback(() => {
@@ -245,25 +280,27 @@ export default function AdminReviewsPage() {
             <p className="text-gray-500 text-sm">No signals yet. Providers who click "I only have their phone number" will appear here.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 bg-teal-50 border-b border-teal-100">
+          <>
+            <div className="rounded-lg bg-teal-50 border border-teal-100 px-4 py-3 mb-4">
               <p className="text-sm text-teal-800">
                 <strong>SMS demand signals</strong> — Providers who indicated their client only has a phone number.
                 This data helps prioritize SMS review request support.
               </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Clicks</th>
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Signal</th>
+                    <th className="w-12"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {noEmailSignals.map((signal) => (
-                    <tr key={signal.provider_id} className="hover:bg-gray-50">
+                    <tr key={signal.provider_id} className="group hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <a
                           href={`/provider/${signal.provider_id}`}
@@ -282,14 +319,83 @@ export default function AdminReviewsPage() {
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {formatRelativeTime(signal.last_signal_at)}
                       </td>
+                      <td className="px-4 py-4 text-right">
+                        <button
+                          onClick={() => setPendingDeleteSignal(signal)}
+                          disabled={deletingSignal === signal.provider_id}
+                          className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                          title="Delete signal records"
+                        >
+                          {deletingSignal === signal.provider_id ? (
+                            <span className="text-xs">...</span>
+                          ) : (
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </CollapsibleSection>
+
+      {/* Delete Signal Confirmation Modal */}
+      {pendingDeleteSignal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">
+              Delete signal records?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{pendingDeleteSignal.provider_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Signals</dt>
+                <dd className="text-gray-900">{pendingDeleteSignal.signal_count} click{pendingDeleteSignal.signal_count === 1 ? "" : "s"}</dd>
+              </div>
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will delete all "no email" signal records for this provider. This cannot be undone.
+            </p>
+            {deleteSignalError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteSignalError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDeleteSignal(null);
+                  setDeleteSignalError(null);
+                }}
+                disabled={deletingSignal === pendingDeleteSignal.provider_id}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSignal}
+                disabled={deletingSignal === pendingDeleteSignal.provider_id}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deletingSignal === pendingDeleteSignal.provider_id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main tabs */}
       <div className="border-b border-gray-200 mb-6">

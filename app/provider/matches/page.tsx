@@ -1851,7 +1851,7 @@ export default function ProviderMatchesPage() {
   // No nearby leads (the ~99.9% case) — Find Families becomes the Managed Ads
   // pitch: "no families showing up on their own? we'll go get them." The pitch
   // links to /provider/boost for the actual eligibility gate + setup. Market
-  // intelligence now lives on its own tab (/provider/growth), not here.
+  // intelligence now lives on its own tab (/provider/market), not here.
   if (nearbySeekers.length === 0) {
     return (
       <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">

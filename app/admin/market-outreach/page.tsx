@@ -222,7 +222,7 @@ export default function AdminMarketOutreachPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Market Outreach Queue</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Providers who saw Growth, worked referral targets, or need an operator nudge.
+          Providers who saw Your Market, worked referral targets, or need an operator nudge.
         </p>
       </div>
 
@@ -233,7 +233,7 @@ export default function AdminMarketOutreachPage() {
       )}
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatCard label="Viewed growth" value={loading ? "-" : data?.totals.viewed ?? 0} />
+        <StatCard label="Viewed market" value={loading ? "-" : data?.totals.viewed ?? 0} />
         <StatCard label="Not started" value={loading ? "-" : data?.totals.not_started ?? 0} tone="amber" />
         <StatCard label="Started" value={loading ? "-" : data?.totals.started ?? 0} tone="blue" />
         <StatCard label="Responded/referring" value={loading ? "-" : data?.totals.momentum ?? 0} tone="emerald" />
@@ -278,7 +278,7 @@ export default function AdminMarketOutreachPage() {
           <div className="p-8 text-center text-gray-400">Loading...</div>
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
-            {search || stage !== "all" ? "No providers match this queue filter" : "No growth outreach activity yet"}
+            {search || stage !== "all" ? "No providers match this queue filter" : "No market outreach activity yet"}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -331,7 +331,7 @@ export default function AdminMarketOutreachPage() {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">Viewed growth, no target work yet</span>
+                          <span className="text-xs text-gray-400">Viewed market, no target work yet</span>
                         )}
                       </td>
                       <td className="px-4 py-4 text-right text-xs text-gray-500">
@@ -349,7 +349,7 @@ export default function AdminMarketOutreachPage() {
                             Outreach activity
                           </Link>
                           <Link href={viewedHref} className="text-xs font-medium text-gray-600 hover:text-gray-900">
-                            Growth views
+                            Market views
                           </Link>
                           <button
                             type="button"

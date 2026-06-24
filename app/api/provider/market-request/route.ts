@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   try {
     const { sendSlackAlert } = await import("@/lib/slack");
     await sendSlackAlert(
-      `🎯 *${profile?.display_name ?? "A provider"}* (${user.email}) requested *${label}*${loc ? ` — ${loc}` : ""} from Growth.`,
+      `🎯 *${profile?.display_name ?? "A provider"}* (${user.email}) requested *${label}*${loc ? ` — ${loc}` : ""} from Your Market.`,
     );
   } catch (e) {
     console.warn("[market-request] slack notify failed", e);

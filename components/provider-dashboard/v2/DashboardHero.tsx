@@ -107,12 +107,12 @@ const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
 // Find Families (/provider/matches) is now leads-only: the hot "family near you"
 // tier links here to the lead cards. The cold "market intel" tier instead links
-// to Growth (/provider/growth) — the demand/competition diagnostic, which
+// to Your Market (/provider/market) — the demand/competition diagnostic, which
 // split out into its own tab. Reuse existing hero imagery — the leads photo
 // (someone reaching out) for the live-family case, the spike photo (upward
 // momentum) for the market read — so no new assets ship.
 const FIND_FAMILIES_HREF = "/provider/matches";
-const MARKET_HREF = "/provider/growth";
+const MARKET_HREF = "/provider/market";
 const FIND_FAMILIES_LIVE_IMAGE = TIER_LEADS_IMAGE;
 const MARKET_INTEL_IMAGE = TIER_SPIKE_IMAGE;
 

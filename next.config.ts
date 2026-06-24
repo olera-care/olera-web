@@ -188,6 +188,9 @@ const nextConfig: NextConfig = {
       // exist as dedicated entity pages. The Phase 6 redirects that
       // pointed them at /in-basket are removed — next.js now routes
       // straight to the real pages.
+
+      // Provider hub: Your Market → Growth rename (2026-06-24)
+      { source: "/provider/market", destination: "/provider/growth", permanent: true },
     ];
   },
 

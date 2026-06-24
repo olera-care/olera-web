@@ -217,8 +217,8 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   managed_ads_cta_clicked: "Tapped a managed-ads CTA",
   managed_ads_boost_viewed: "Viewed the managed-ads page",
   managed_ads_requested: "Requested a managed-ads campaign",
-  your_market_viewed: "Viewed Your Market",
-  your_market_playbook_clicked: "Tapped a Your Market playbook step",
+  your_market_viewed: "Viewed Growth",
+  your_market_playbook_clicked: "Tapped a Growth playbook step",
   // Trust flags
   suspicious_claim: "Flagged claim attempt",
 };

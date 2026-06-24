@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
 type StatusFilter = "all" | "sent" | "failed";
@@ -258,6 +259,12 @@ export default function AdminEmailsPage() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500">{total} total</span>
+            <Link
+              href="/admin/emails/gallery"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Email Gallery →
+            </Link>
             <button
               onClick={handleExport}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

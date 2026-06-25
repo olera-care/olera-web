@@ -27,6 +27,7 @@ export async function GET(req: Request) {
       variants: EMAIL_VARIANTS.map((v) => ({
         id: v.id, audience: v.audience, group: v.group, label: v.label,
         subject: v.subject, emailType: v.emailType, cron: v.cron ?? null,
+        who: v.who ?? null, why: v.why ?? null,
       })),
     });
   }

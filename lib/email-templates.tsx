@@ -4522,9 +4522,10 @@ export function familyNudgeEmail(opts: {
   // benefits — completion as value-exchange, never a naked profile-nag). Falls
   // back to the plain profile link for callers that don't pass a quiz url.
   const primaryUrl = opts.benefitsQuizUrl || opts.profileUrl;
-  // "benefits" reads as employment benefits to a cold family — keep the CTA about
-  // matches; the financial-help angle is explained in the line below the button.
-  const primaryLabel = opts.benefitsQuizUrl ? "See my care matches" : "Add your details";
+  // CTA mirrors the body's verb ("...would sharpen these matches") so it matches
+  // the click intent: you're sharing a detail to improve matches, not viewing a
+  // ready list. ("benefits" also reads as employment benefits, so it's out.)
+  const primaryLabel = opts.benefitsQuizUrl ? "Sharpen my matches" : "Add your details";
 
   // Weave in the provider they reached out to (guarded — a generic version reads
   // fine when it's absent).

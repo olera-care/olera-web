@@ -10,6 +10,7 @@ import {
   completionNudge2Email,
   completionNudge3Email,
   completionNudge4Email,
+  completionNudgeSubject,
   publishNudge1Email,
   publishNudge2Email,
   publishNudge3Email,
@@ -851,23 +852,14 @@ export async function GET(request: NextRequest) {
             emailType = "completion_maintenance";
             counts.maintenanceNudges++;
           } else {
-            switch (nudgeNumber) {
-              case 1:
-                subject = "Quick question about your care search";
-                break;
-              case 2:
-                subject = providerCount
-                  ? `${providerCount} providers in ${locationText} are looking for families`
-                  : `Providers in ${locationText} are looking for families`;
-                break;
-              case 3:
-                subject = "Families with complete profiles hear back faster";
-                break;
-              case 4:
-              default:
-                subject = `Providers near you (including these top-rated ones)`;
-                break;
-            }
+            // Subject is owned by the template (completionNudgeSubject) now, so the
+            // inbox subject, the preview drawer, and the email_log row all read from
+            // one source and can't silently drift.
+            subject = completionNudgeSubject(nudgeNumber, {
+              providerCount,
+              city: family.city || undefined,
+              state: family.state || undefined,
+            });
             emailType = `completion_nudge_${nudgeNumber}`;
             counts.completionNudges++;
             // Also increment legacy counter for backward compat reporting
@@ -921,7 +913,7 @@ export async function GET(request: NextRequest) {
                   completionPercent: completeness.percentage,
                   providerCount,
                   city: family.city || undefined,
-                });
+                }).html;
                 break;
               case 2:
                 html = completionNudge2Email({
@@ -933,7 +925,7 @@ export async function GET(request: NextRequest) {
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
-                });
+                }).html;
                 break;
               case 3:
                 html = completionNudge3Email({
@@ -945,7 +937,7 @@ export async function GET(request: NextRequest) {
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
-                });
+                }).html;
                 break;
               case 4:
               default:
@@ -959,7 +951,7 @@ export async function GET(request: NextRequest) {
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
-                });
+                }).html;
                 break;
             }
           }

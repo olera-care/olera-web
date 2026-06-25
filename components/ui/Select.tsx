@@ -183,10 +183,15 @@ export default function Select({
       }
     };
 
-    // Close dropdown when page scrolls to prevent floating dropdown issue
-    const handleScroll = () => {
-      setIsOpen(false);
-      setFocusedIndex(-1);
+    // Close dropdown when page scrolls to prevent floating dropdown issue.
+    // But ignore scroll events from inside the dropdown itself (e.g., scrolling
+    // through a long list of options).
+    const handleScroll = (e: Event) => {
+      const scrolledInsideDropdown = listRef.current?.contains(e.target as Node);
+      if (!scrolledInsideDropdown) {
+        setIsOpen(false);
+        setFocusedIndex(-1);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);

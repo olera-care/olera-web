@@ -312,6 +312,9 @@ function DashboardContent({
     }
   }, [editingSection, guided, setEditingSection]);
 
+  // Verification state for status display (VerificationStatusCard)
+  const verificationState = profile.verification_state as string | null;
+
   // Shared modal props
   const modalProps = {
     profile,
@@ -451,7 +454,7 @@ function DashboardContent({
             const shouldShowMobileBadgeCard = !m?.badge_approved && (!hasSubmission || wasRejected);
             return shouldShowMobileBadgeCard ? (
               <div className="lg:hidden">
-                <MobileBadgeRequestCard onRequestBadge={() => handleOpenVerificationModal()} wasRejected={wasRejected} />
+                <MobileBadgeRequestCard onRequestBadge={() => openVerificationModal()} wasRejected={wasRejected} />
               </div>
             ) : null;
           })()}
@@ -564,7 +567,7 @@ function DashboardContent({
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
               verificationState={verificationState}
-              onRequestVerification={handleOpenVerificationModal}
+              onRequestVerification={openVerificationModal}
             />
 
             {/* Profile completeness - collapsible (expanded for new providers < 30%) */}

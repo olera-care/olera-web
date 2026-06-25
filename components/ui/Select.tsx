@@ -183,8 +183,18 @@ export default function Select({
       }
     };
 
+    // Close dropdown when page scrolls to prevent floating dropdown issue
+    const handleScroll = () => {
+      setIsOpen(false);
+      setFocusedIndex(-1);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
   }, [isOpen]);
 
   // ────────────────────────────────────────────────────────────

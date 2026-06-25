@@ -74,7 +74,8 @@ export default function HireCaregiversBoard() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateData | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  // Track which mobile filter bottom sheet is open: null, "university", or "availability"
+  const [mobileFilterOpen, setMobileFilterOpen] = useState<"university" | "availability" | null>(null);
   // null = unknown/not yet resolved; false = provider not near any partner campus
   // (→ show demos); true = in a catchment (→ show that campus's real students).
   const [inCatchment, setInCatchment] = useState<boolean | null>(null);
@@ -180,7 +181,6 @@ export default function HireCaregiversBoard() {
     value: o.value,
     label: o.label,
   }));
-  const activeFilterCount = (universityId ? 1 : 0) + (availability ? 1 : 0);
 
   // Provider is signed in here; scheduling opens the modal directly (the terms
   // opt-in lives inside it). Demo cards link to the demo detail page instead.
@@ -195,46 +195,33 @@ export default function HireCaregiversBoard() {
         </p>
       </div>
 
-      {/* Mobile: Filter chips + Filters button */}
+      {/* Mobile: Two explicit filter buttons that open bottom sheets */}
       <div className="mb-5 flex items-center gap-2 sm:hidden">
-        {universityId && (
-          <button
-            onClick={() => setUniversityId("")}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700"
-          >
-            <span className="truncate max-w-[100px]">
-              {universities.find((u) => u.id === universityId)?.name || "University"}
-            </span>
-            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-        {availability && (
-          <button
-            onClick={() => setAvailability("")}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700"
-          >
-            <span>{availLabel}</span>
-            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-        <div className="flex-1" />
         <button
-          onClick={() => setShowMobileFilters(true)}
-          className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+          onClick={() => setMobileFilterOpen("university")}
+          className={`flex-1 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
+            universityId ? "border-primary-300 text-primary-700" : "border-gray-200 text-gray-700"
+          }`}
         >
-          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          <span className="truncate">
+            {universityId
+              ? universities.find((u) => u.id === universityId)?.name || "University"
+              : "All universities"}
+          </span>
+          <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          <span className="text-sm font-medium text-gray-700">Filters</span>
-          {activeFilterCount > 0 && (
-            <span className="flex items-center justify-center w-5 h-5 bg-primary-500 text-white text-xs font-semibold rounded-full">
-              {activeFilterCount}
-            </span>
-          )}
+        </button>
+        <button
+          onClick={() => setMobileFilterOpen("availability")}
+          className={`flex-1 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
+            availability ? "border-primary-300 text-primary-700" : "border-gray-200 text-gray-700"
+          }`}
+        >
+          <span className="truncate">{availability ? availLabel : "All availability"}</span>
+          <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
       </div>
 
@@ -362,89 +349,73 @@ export default function HireCaregiversBoard() {
         />
       )}
 
-      {/* Mobile filter bottom sheet */}
+      {/* Mobile: University filter bottom sheet */}
       <Modal
-        isOpen={showMobileFilters}
-        onClose={() => setShowMobileFilters(false)}
-        title="Filters"
+        isOpen={mobileFilterOpen === "university"}
+        onClose={() => setMobileFilterOpen(null)}
+        title="University"
         size="lg"
-        footer={
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setUniversityId("");
-                setAvailability("");
-              }}
-              className="flex-1 py-3.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-            >
-              Reset
-            </button>
-            <button
-              onClick={() => setShowMobileFilters(false)}
-              className="flex-1 py-3.5 text-sm font-semibold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors"
-            >
-              Show caregivers
-            </button>
-          </div>
-        }
       >
-        <div className="space-y-6 pt-2">
-          {/* University filter */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              University
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setUniversityId("")}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  !universityId
-                    ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
-                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                All universities
-              </button>
-              {universities.map((u) => (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => setUniversityId(u.id)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    universityId === u.id
-                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {u.name}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setUniversityId("");
+              setMobileFilterOpen(null);
+            }}
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              !universityId
+                ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            All universities
+          </button>
+          {universities.map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => {
+                setUniversityId(u.id);
+                setMobileFilterOpen(null);
+              }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                universityId === u.id
+                  ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {u.name}
+            </button>
+          ))}
+        </div>
+      </Modal>
 
-          {/* Availability filter */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Availability
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {AVAIL_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value || "all"}
-                  type="button"
-                  onClick={() => setAvailability(opt.value)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    availability === opt.value
-                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Mobile: Availability filter bottom sheet */}
+      <Modal
+        isOpen={mobileFilterOpen === "availability"}
+        onClose={() => setMobileFilterOpen(null)}
+        title="Availability"
+        size="lg"
+      >
+        <div className="flex flex-wrap gap-2 pt-2">
+          {AVAIL_OPTIONS.map((opt) => (
+            <button
+              key={opt.value || "all"}
+              type="button"
+              onClick={() => {
+                setAvailability(opt.value);
+                setMobileFilterOpen(null);
+              }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                availability === opt.value
+                  ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </Modal>
     </div>

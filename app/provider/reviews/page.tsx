@@ -574,7 +574,7 @@ function SendRequestForm({
   // Email submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !email.trim() || !customMessage.trim() || isSubmitting || isAtLimit) return;
+    if (!clientName.trim() || !isValidEmail(email.trim()) || !customMessage.trim() || isSubmitting || isAtLimit) return;
 
     setIsSubmitting(true);
     setShowSuccess(false);

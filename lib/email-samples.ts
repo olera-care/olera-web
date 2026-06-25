@@ -190,7 +190,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Completion as value-exchange — the quiz sharpens matches AND captures fuel; framed as \"sharper matches,\" never a naked \"finish your profile.\"",
     render: () => familyNudgeEmail({
       unsubscribeId: "sample-id", familyName: F.familyName, providerName: F.providerName,
-      missingFields: ["budget", "care timeline", "ZIP code"], completionPercent: 35, profileUrl: F.profileUrl,
+      missingFields: ["budget", "care timeline", "ZIP code"], completionPercent: 65, profileUrl: F.profileUrl,
       benefitsQuizUrl: F.quizUrl,
     }),
   },

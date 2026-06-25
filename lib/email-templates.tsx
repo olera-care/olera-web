@@ -4512,33 +4512,44 @@ export function familyNudgeEmail(opts: {
   // benefits — completion as value-exchange, never a naked profile-nag). Falls
   // back to the plain profile link for callers that don't pass a quiz url.
   const primaryUrl = opts.benefitsQuizUrl || opts.profileUrl;
-  const primaryLabel = opts.benefitsQuizUrl ? "See my matches & benefits" : "Add your details";
+  // "benefits" reads as employment benefits to a cold family — keep the CTA about
+  // matches; the financial-help angle is explained in the line below the button.
+  const primaryLabel = opts.benefitsQuizUrl ? "See my care matches" : "Add your details";
 
-  // Weave in what we already know but used to throw away: the provider they
-  // reached out to, and how far along they are. Both are guarded — a generic
-  // version reads fine when they're absent.
+  // Weave in the provider they reached out to (guarded — a generic version reads
+  // fine when it's absent).
   const providerClause = opts.providerName
     ? ` and reached out to ${escapeHtml(opts.providerName)}`
     : "";
+  // Count-aware so the lead-in never miscounts the fields listed below it.
+  const detailsLead =
+    opts.missingFields.length === 1
+      ? "One quick detail improves your matches:"
+      : "A few quick details improve your matches:";
+  // Progress is only motivating when they're genuinely far along; below ~half it
+  // reads as work-remaining, so we only show it from 50%+ (and never at 100%).
   const progressLine =
-    opts.completionPercent > 0 && opts.completionPercent < 100
-      ? `<p style="font-size:14px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">You're already ${Math.round(opts.completionPercent)}% of the way there.</p>`
+    opts.completionPercent >= 50 && opts.completionPercent < 100
+      ? `<p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 20px;line-height:1.6;">You're already ${Math.round(opts.completionPercent)}% done.</p>`
       : "";
 
   return layout(
     `
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">See sharper matches near you</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera${providerClause} — and finding the right fit is a big decision, with a lot to weigh and no wrong pace. Share a couple more details and we'll line up better-matched providers near you, plus the programs that can help cover the cost.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Find better-fit care near you</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera${providerClause}. Finding the right fit is a big decision, and it's normal to need time to compare options.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Share a couple more details and we'll show you better-matched providers near you, plus the programs that may help cover the cost.
     </p>
     ${progressLine}
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
-      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Two quick things sharpen your matches:</p>
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">${detailsLead}</p>
       <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
     </div>
     <div>${button(primaryLabel, primaryUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Cost is the first question most families have — the same step shows what financial help you may qualify for.
+      Cost is often the first question families have — this same step shows what financial help you may qualify for.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:12px 0 0;line-height:1.6;">
       Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
@@ -4548,7 +4559,7 @@ export function familyNudgeEmail(opts: {
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,
-    `See sharper matches near you — and how to pay for care`
+    `Find better-fit care near you — and how to pay for it`
   );
 }
 

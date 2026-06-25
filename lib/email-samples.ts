@@ -184,13 +184,13 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "family_nudge", audience: "family", group: "Family · Compare cascade",
-    label: "R6 · Stuck → completion as value-exchange", subject: "See sharper matches near you — and how to pay for care",
+    label: "R6 · Stuck → completion as value-exchange", subject: "A few more care options near you",
     emailType: "family_nudge", cron: "family-comms-coordinator",
     who: "Inquiry ≥2 days old, profile under 60% complete, not currently in an active live thread.",
     why: "Completion as value-exchange — the quiz sharpens matches AND captures fuel; framed as \"sharper matches,\" never a naked \"finish your profile.\"",
     render: () => familyNudgeEmail({
       unsubscribeId: "sample-id", familyName: F.familyName, providerName: F.providerName,
-      missingFields: ["budget", "care timeline", "ZIP code"], completionPercent: 35, profileUrl: F.profileUrl,
+      missingFields: ["budget", "care timeline", "ZIP code"], completionPercent: 65, profileUrl: F.profileUrl,
       benefitsQuizUrl: F.quizUrl,
     }),
   },

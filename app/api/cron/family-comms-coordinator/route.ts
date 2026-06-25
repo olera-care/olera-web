@@ -611,7 +611,9 @@ export async function GET(request: NextRequest) {
             return {
               rung: "lead_complete",
               emailType: "family_nudge",
-              subject: "See sharper matches near you — and how to pay for care",
+              // The real inbox subject (front-loaded, mobile-safe). The cost hook
+              // rides in the template's preheader so both show in the inbox row.
+              subject: "A few more care options near you",
               metadata: { connection_id: r6.id },
               buildHtml: (eid) => {
                 const profileUrl = appendTrackingParams(`${siteUrl}/portal/profile`, eid);

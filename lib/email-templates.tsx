@@ -4503,36 +4503,69 @@ export function familyNudgeEmail(opts: {
   /** Benefits quiz deep-link — the value-exchange hero when present. */
   benefitsQuizUrl?: string | null;
 }): string {
-  const missingSummary =
-    opts.missingFields.length <= 3
-      ? opts.missingFields.join(", ")
-      : `${opts.missingFields.slice(0, 3).join(", ")}, and ${opts.missingFields.length - 3} more`;
+  // De-boxed (no gray SaaS callout): the missing fields read as one warm line
+  // with the field names emphasized inline. Grammatical join, capped at 3.
+  const boldFields = opts.missingFields
+    .slice(0, 3)
+    .map((f) => `<strong style="font-weight:600;color:#374151;">${escapeHtml(f)}</strong>`);
+  const fieldPhrase =
+    boldFields.length <= 1
+      ? boldFields[0] ?? ""
+      : boldFields.length === 2
+        ? `${boldFields[0]} and ${boldFields[1]}`
+        : `${boldFields[0]}, ${boldFields[1]}, and ${boldFields[2]}`;
+  const askLine = fieldPhrase
+    ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">Sharing your ${fieldPhrase} would sharpen these matches the most.</p>`
+    : "";
 
   // The quiz is the hero when we have it (it both sharpens matches AND surfaces
   // benefits — completion as value-exchange, never a naked profile-nag). Falls
   // back to the plain profile link for callers that don't pass a quiz url.
   const primaryUrl = opts.benefitsQuizUrl || opts.profileUrl;
-  const primaryLabel = opts.benefitsQuizUrl ? "See my matches & benefits" : "Add your details";
+  // CTA is the outcome of the ask above ("...would sharpen these matches"): you
+  // share a detail and get better matches — not a ready list to "view" (the old
+  // dissonance). ("benefits" also reads as employment benefits, so it's out.)
+  const primaryLabel = opts.benefitsQuizUrl ? "Get better matches" : "Add my details";
+
+  // Weave in the provider they reached out to (guarded — a generic version reads
+  // fine when it's absent).
+  const providerClause = opts.providerName
+    ? ` and reached out to ${escapeHtml(opts.providerName)}`
+    : "";
+  // Progress is only motivating when they're genuinely far along; below ~half it
+  // reads as work-remaining, so we only show it from 50%+ (and never at 100%).
+  const progressLine =
+    opts.completionPercent >= 50 && opts.completionPercent < 100
+      ? `<p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 20px;line-height:1.6;">You're already ${Math.round(opts.completionPercent)}% done.</p>`
+      : "";
 
   return layout(
     `
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">See sharper matches near you</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you recently started looking for care on Olera. Tell us a little more about what you need, and we'll show you better-matched providers nearby — and the programs that can help pay for them.
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Let&rsquo;s find care that fits</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera${providerClause}. Finding the right fit is a big decision, and it's normal to need time to compare options.
     </p>
-    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
-      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">A couple of details would sharpen your matches:</p>
-      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
-    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Share a couple more details and we'll show you better-matched providers near you, plus the programs that may help cover the cost.
+    </p>
+    ${progressLine}
+    ${askLine}
     <div>${button(primaryLabel, primaryUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Cost is often the first question families have — this same step shows what financial help you may qualify for.
     </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
+    <p style="font-size:14px;color:#6b7280;margin:12px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,
-    `See sharper matches near you — and how to pay for care`
+    // Preheader (inbox preview text, after the subject) — NOT the subject, which
+    // the caller sets. Carries the cost hook that doesn't fit in the subject, so
+    // the inbox row reads "A few more care options near you · Plus the programs…".
+    `Plus the programs that can help cover the cost.`
   );
 }
 

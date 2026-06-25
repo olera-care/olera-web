@@ -191,7 +191,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Completion as value-exchange — the quiz sharpens matches AND captures fuel; framed as \"sharper matches,\" never a naked \"finish your profile.\"",
     render: () => familyNudgeEmail({
       unsubscribeId: "sample-id", familyName: F.familyName, providerName: F.providerName,
-      missingFields: ["budget", "care timeline", "ZIP code"], completionPercent: 65, profileUrl: F.profileUrl,
+      missingFields: ["Timeline", "Payment Methods", "Care Needs"], completionPercent: 65, profileUrl: F.profileUrl,
       benefitsQuizUrl: F.quizUrl,
     }),
   },
@@ -209,7 +209,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Open the completion sequence — value-first: better-fit care plus help covering the cost, in exchange for a couple details. (R6 redesign.)",
     render: () => completionNudge1Email({
       unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
-      missingFields: ["budget", "care timeline"], completionPercent: 30, providerCount: 24, city: "Killeen",
+      missingFields: ["Timeline", "Payment Methods"], completionPercent: 30, providerCount: 24, city: "Killeen",
     }).html,
   },
   {
@@ -220,7 +220,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Progress + provider-count social proof — show the market is active and waiting.",
     render: () => completionNudge2Email({
       unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
-      missingFields: ["budget"], completionPercent: 45, providerCount: 24, city: "Killeen", state: "TX",
+      missingFields: ["Timeline", "Payment Methods"], completionPercent: 45, providerCount: 24, city: "Killeen", state: "TX",
     }).html,
   },
   {
@@ -231,7 +231,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Social proof + gentle urgency — completeness correlates with faster provider responses.",
     render: () => completionNudge3Email({
       unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
-      missingFields: ["budget"], completionPercent: 50, providerCount: 24, city: "Killeen", state: "TX",
+      missingFields: ["Timeline", "Payment Methods"], completionPercent: 50, providerCount: 24, city: "Killeen", state: "TX",
     }).html,
   },
   {
@@ -242,7 +242,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Final push with up to 3 specific provider cards near them to make it concrete.",
     render: () => completionNudge4Email({
       unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
-      missingFields: ["budget"], completionPercent: 55, providers: FAM_CARDS, providerCount: 24, city: "Killeen", state: "TX",
+      missingFields: ["Timeline", "Payment Methods"], completionPercent: 55, providers: FAM_RECS, providerCount: 24, city: "Killeen", state: "TX",
     }).html,
   },
   {

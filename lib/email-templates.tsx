@@ -500,7 +500,7 @@ export function completionNudgeSubject(
       return "Want to hear back faster?";
     case 4:
     default:
-      return "Providers near you (including these top-rated ones)";
+      return `A few providers near ${locationText} worth a look`;
   }
 }
 
@@ -2332,37 +2332,50 @@ export function completionNudge4Email(opts: {
   welcomeUrl: string;
   missingFields?: string[];
   completionPercent?: number;
-  providers?: EmailProviderCard[];
+  providers?: CompareCardItem[];
   providerCount?: number;
   city?: string;
   state?: string;
 }): { subject: string; html: string } {
-  const percent = opts.completionPercent ?? 0;
   const locationText = opts.city || opts.state || "your area";
-  const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers) : "";
+  // Photo + hairline cards (the matches-email style), not the boxed text cards.
+  const providersHtml = opts.providers?.length ? compareCardsBlock(opts.providers) : "";
   const remainingCount = (opts.providerCount ?? 0) - (opts.providers?.length ?? 0);
-
-  const preheader = `They're ready to help when you are`;
+  // Day-13 final touch: make it concrete — actual providers near them, as cards —
+  // and keep it warm and low-pressure. Same shared system; the cards are the hero.
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " helps us match you to the right ones.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
   return {
     subject: completionNudgeSubject(4, { city: opts.city, state: opts.state }),
-    html: layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Providers near you (including these top-rated ones)</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, here are a few highly-rated providers in ${escapeHtml(locationText)}:
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A few providers near you who could help</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search a little while back, so here are a few highly-rated providers near ${escapeHtml(locationText)} to give you a real starting point:
     </p>
     ${providersHtml}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      ${remainingCount > 0 ? `These providers (and ${remainingCount} others) are looking for families to help. ` : ""}Once your profile is complete, they can see your situation and reach out directly.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      ${remainingCount > 0 ? `There are ${remainingCount} more near you. ` : ""}Whenever you&rsquo;re ready, tell us a little more and the ones that fit can reach out to you directly &mdash; already knowing your situation.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're ${percent}% there.
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
     </p>
-    <div>${button("Finish Your Profile", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader),
+  `,
+      // Subject lists the providers; preheader carries the low-pressure tone.
+      `Real options near you — no rush.`,
+    ),
   };
 }
 

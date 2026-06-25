@@ -22,6 +22,8 @@ import {
   monthlyProviderRecommendationsEmail,
   inactivityReengagementEmail,
 } from "@/lib/email-templates";
+import type { CompareCardItem } from "@/lib/email-templates";
+import { categoryStockImage } from "@/lib/family-comms/alternatives";
 import { withCronRun } from "@/lib/crons/run";
 import {
   fetchFamilyProfilesPage,
@@ -940,19 +942,31 @@ export async function GET(request: NextRequest) {
                 }).html;
                 break;
               case 4:
-              default:
+              default: {
+                // Photo cards (the matches-email style). Directory providers are the
+                // reliable source; each gets a category stock image (the same email-safe
+                // fallback the coordinator uses) so cards never render blank.
+                const recCards: CompareCardItem[] = topProviders.map((p, i) => ({
+                  name: p.name,
+                  viewUrl: `${siteUrl}/provider/${p.slug}`,
+                  imageUrl: categoryStockImage(p.category, i),
+                  priceRange: p.priceRange ?? null,
+                  rating: p.rating || null,
+                  reviewCount: p.reviewCount || null,
+                }));
                 html = completionNudge4Email({
                   unsubscribeId: family.id,
                   familyName: firstName,
                   welcomeUrl,
                   missingFields: completeness.missingFields,
                   completionPercent: completeness.percentage,
-                  providers: topProviders,
+                  providers: recCards,
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
                 }).html;
                 break;
+              }
             }
           }
 

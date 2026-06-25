@@ -14,6 +14,7 @@ import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
+import ShareButton from "@/components/providers/ShareButton";
 import CareServicesList from "@/components/providers/CareServicesList";
 import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
@@ -35,6 +36,13 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
+import FloorPlanCarousel from "@/components/providers/FloorPlanCarousel";
+import AccommodationsSection from "@/components/providers/AccommodationsSection";
+import AmenitiesSection from "@/components/providers/AmenitiesSection";
+import NeighborhoodMap from "@/components/providers/NeighborhoodMap";
+import type { NearbyCategory } from "@/components/providers/NeighborhoodMap";
+import DiningCarousel from "@/components/providers/DiningCarousel";
+import MorningStarContent, { MorningStarAbout } from "@/components/providers/custom/MorningStarContent";
 import { LeadCaptureSheetWrapper } from "@/components/providers/lead-capture";
 import BenefitsDiscoveryModule from "@/components/providers/BenefitsDiscoveryModule";
 import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
@@ -55,6 +63,9 @@ import { normalizeQuestion } from "@/lib/qa-utils";
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
+import { resolveProviderTags } from "@/lib/provider-tags";
+import { groupPhotos, pickHeroImages, type GroupedPhoto } from "@/lib/photo-categories";
+import PhotoTourWrapper from "@/components/providers/PhotoTourWrapper";
 import { getServiceClient } from "@/lib/admin";
 import { ViewTracker } from "@/components/analytics/ViewTracker";
 
@@ -335,12 +346,17 @@ export default async function ProviderPage({
   })();
 
   const rating = meta?.rating;
-  const images =
+  let images =
     meta?.images && meta.images.length > 0
       ? meta.images
       : profile.image_url
         ? [profile.image_url]
         : [];
+  // Category override — must happen before categoryLabel is computed
+  if (profile.slug === "emerald-oaks") {
+    profile.category = "independent_living";
+  }
+
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
   let acceptedPayments = meta?.accepted_payments || [];
@@ -570,21 +586,176 @@ export default async function ProviderPage({
   const hasBenefitsData = !!(benefitsData && benefitsData.programs.length > 0);
 
   // ============================================================
+  // Custom provider content — slug-based overrides
+  // ============================================================
+  const isEmeraldOaks = profile.slug === "emerald-oaks";
+  const isMorningStar = profile.slug === "morningstar-assisted-living-memory-care-at-west-san-jose";
+
+  // Resolve category tags for hero/card display and filtering
+  // Provider tag IDs and featured selections will come from DB;
+  // hardcoded per-provider overrides for now.
+  const providerTagIds: string[] = isEmeraldOaks
+    ? ["pet-friendly", "restaurant-style-dining", "fitness-center-pool", "movie-theater",
+       "transportation-provided", "on-site-salon-spa", "maintenance-free-living",
+       "social-activity-calendar", "guest-suites"]
+    : (meta?.amenities as string[]) ?? [];
+  const featuredTagIds: string[] | undefined = isEmeraldOaks
+    ? ["pet-friendly", "restaurant-style-dining"]
+    : undefined;
+  const providerTags = resolveProviderTags(
+    profile.category ?? "",
+    providerTagIds,
+    featuredTagIds,
+  );
+
+  // About section — badges and standout (provider-editable fields)
+  // Will come from DB; hardcoded for Emerald Oaks launch.
+  const providerBadges: { title: string; subtitle: string; imageSrc?: string; badgeColor?: string }[] = isEmeraldOaks
+    ? [
+        { title: "NATIONALLY RATED", subtitle: "Best Independent Living", badgeColor: "#C5A44E" },
+        { title: "HIGH PERFORMING", subtitle: "in 3 Service Areas", badgeColor: "#4A6FA5" },
+      ]
+    : [];
+  const providerStandout: { heading: string; points: string[] } | null = isEmeraldOaks
+    ? {
+        heading: "What makes this place special",
+        points: [
+          "Signature Freedom Dining program with a chef-led kitchen, restaurant-style meals, and an all-day bistro",
+          "Full-size movie theater, fitness center, heated pool, and on-site salon and spa",
+        ],
+      }
+    : null;
+
+  // Nearby places — will come from DB (batch Overpass lookup per address).
+  // Hardcoded per provider for now.
+  const nearbyPlacesMap: Record<string, NearbyCategory[]> = {
+    "emerald-oaks": [
+      { label: "Hospital", icon: "hospital", places: [
+        { name: "Methodist Stone Oak Hospital", distance: "3.4 mi", lat: 29.6127, lng: -98.4572 },
+        { name: "Laurel Ridge Treatment Center", distance: "2.4 mi", lat: 29.6050, lng: -98.5100 },
+      ]},
+      { label: "Pharmacy", icon: "pharmacy", places: [
+        { name: "CVS Pharmacy", distance: "2.1 mi", lat: 29.6250, lng: -98.4700 },
+        { name: "H-E-B Pharmacy", distance: "3.2 mi", lat: 29.6100, lng: -98.4500 },
+      ]},
+      { label: "Grocery", icon: "grocery", places: [
+        { name: "H-E-B", distance: "3.2 mi", lat: 29.6100, lng: -98.4500 },
+        { name: "Trader Joe's", distance: "5.1 mi", lat: 29.5850, lng: -98.4950 },
+      ]},
+      { label: "Dining", icon: "dining", places: [
+        { name: "The Village at Stone Oak", distance: "2.8 mi", lat: 29.6220, lng: -98.4850 },
+      ]},
+      { label: "Parks", icon: "parks", places: [
+        { name: "Hardberger Park", distance: "10 mi", lat: 29.5230, lng: -98.5320 },
+      ]},
+      { label: "Place of Worship", icon: "worship", places: [
+        { name: "Oak Hills Church", distance: "4.2 mi", lat: 29.5550, lng: -98.5550 },
+      ]},
+    ],
+    "tradition-senior-living-lp": [
+      { label: "Hospital", icon: "hospital", places: [
+        { name: "UT Southwestern Medical Center", distance: "2.1 mi", lat: 32.8369, lng: -96.8418 },
+        { name: "Parkland Memorial Hospital", distance: "3.4 mi", lat: 32.8121, lng: -96.8379 },
+      ]},
+      { label: "Pharmacy", icon: "pharmacy", places: [
+        { name: "CVS Pharmacy", distance: "0.8 mi", lat: 32.8430, lng: -96.8320 },
+        { name: "Walgreens", distance: "1.2 mi", lat: 32.8560, lng: -96.8350 },
+      ]},
+      { label: "Grocery", icon: "grocery", places: [
+        { name: "Whole Foods Market", distance: "1.5 mi", lat: 32.8380, lng: -96.8220 },
+        { name: "Tom Thumb", distance: "1.8 mi", lat: 32.8550, lng: -96.8200 },
+      ]},
+      { label: "Dining", icon: "dining", places: [
+        { name: "Lovers Seafood & Market", distance: "0.6 mi", lat: 32.8510, lng: -96.8380 },
+        { name: "Meso Maya", distance: "1.3 mi", lat: 32.8420, lng: -96.8250 },
+      ]},
+      { label: "Parks", icon: "parks", places: [
+        { name: "Reverchon Park", distance: "1.1 mi", lat: 32.8010, lng: -96.8130 },
+        { name: "Bachman Lake Park", distance: "2.8 mi", lat: 32.8650, lng: -96.8700 },
+      ]},
+      { label: "Place of Worship", icon: "worship", places: [
+        { name: "Highland Park United Methodist", distance: "1.4 mi", lat: 32.8380, lng: -96.8010 },
+      ]},
+    ],
+  };
+  const nearbyPlaces: NearbyCategory[] = nearbyPlacesMap[profile.slug] ?? [];
+
+  // Grouped photo tour — per-provider photo data mapped to category slots.
+  // Will come from DB eventually; hardcoded for Emerald Oaks launch.
+  const groupedPhotos: GroupedPhoto[] = isEmeraldOaks
+    ? [
+        // Exterior
+        { src: "/providers/emerald-oaks/photos/exterior.webp", categoryId: "exterior" },
+        { src: "/providers/emerald-oaks/photos/exterior-patio.png", categoryId: "exterior" },
+        // Bathroom
+        { src: "/providers/emerald-oaks/photos/bathroom.png", categoryId: "bathroom" },
+        // Full Kitchen
+        { src: "/providers/emerald-oaks/photos/kitchen.webp", categoryId: "full-kitchen" },
+        // Bedroom
+        { src: "/providers/emerald-oaks/photos/bedroom.webp", categoryId: "bedroom" },
+        // Dining
+        { src: "/providers/emerald-oaks/photos/dining-area.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/chef.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/salad-bar.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/salmon.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/steak.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/steak-shrimp.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/creme-brulee.webp", categoryId: "dining" },
+        { src: "/providers/emerald-oaks/dining/shortcake.webp", categoryId: "dining" },
+        // Amenities (fitness, theater, lounges)
+        { src: "/providers/emerald-oaks/amenities/fitness-center.png", categoryId: "amenities" },
+        { src: "/providers/emerald-oaks/amenities/pool-table.png", categoryId: "amenities" },
+        { src: "/providers/emerald-oaks/photos/fitness.webp", categoryId: "amenities" },
+        { src: "/providers/emerald-oaks/photos/theater.webp", categoryId: "amenities" },
+        { src: "/providers/emerald-oaks/photos/salon.webp", categoryId: "amenities" },
+        { src: "/providers/emerald-oaks/amenities/socializing.webp", categoryId: "amenities" },
+        { src: "/providers/emerald-oaks/amenities/theatre.webp", categoryId: "amenities" },
+      ]
+    : [];
+
+  const photoGroups = groupPhotos(profile.category ?? "", groupedPhotos);
+
+  // Override hero images from grouped photos when available
+  if (groupedPhotos.length > 0) {
+    images = pickHeroImages(profile.category ?? "", groupedPhotos, 5);
+  }
+
+  if (isMorningStar) {
+    images = [
+      "/providers/morningstar-west-san-jose/google-1.webp",
+      "/providers/morningstar-west-san-jose/bistro.png",
+      "/providers/morningstar-west-san-jose/theatre.png",
+      "/providers/morningstar-west-san-jose/art-studio.png",
+      "/providers/morningstar-west-san-jose/fitness.png",
+    ];
+  }
+
+  // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
-  const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
-  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
-  sectionItems.push({ id: "services", label: "Services" });
-  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
-  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
-  sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
-  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+  const sectionItems: SectionItem[] = isMorningStar
+    ? [
+        { id: "reviews", label: "Reviews" },
+        { id: "faq", label: "FAQs" },
+        { id: "pricing", label: "Pricing" },
+        { id: "care", label: "Care" },
+        { id: "staffing", label: "Staffing" },
+        { id: "safety", label: "Safety" },
+        { id: "memory-care", label: "Memory Care" },
+        { id: "neighborhood", label: "Neighborhood" },
+      ]
+    : [
+        { id: "reviews", label: "Reviews" },
+        { id: "faq", label: "FAQs" },
+        { id: "about", label: "About" },
+        ...(isEmeraldOaks ? [
+          { id: "accommodations", label: "Accommodations" },
+          { id: "dining", label: "Dining" },
+        ] : []),
+        { id: "amenities", label: "Amenities" },
+        { id: "neighborhood", label: "Neighborhood" },
+      ];
 
   // ============================================================
   // Render
@@ -739,9 +910,6 @@ export default async function ProviderPage({
         />
       )}
 
-      {/* Section Navigation (appears on scroll) - desktop only */}
-      <SectionNav sections={sectionItems} />
-
       {/* Mobile Provider Top Nav - always sticky on mobile */}
       <MobileProviderTopNav />
 
@@ -774,6 +942,13 @@ export default async function ProviderPage({
                 category={profile.category}
                 fallbackImage={heroFallbackImage}
               />
+              {photoGroups.length > 0 && (
+                <PhotoTourWrapper
+                  groups={photoGroups}
+                  providerName={profile.display_name}
+                  totalCount={groupedPhotos.length}
+                />
+              )}
               <MobileGalleryActionBar
                 provider={{
                   providerId: profile.slug,
@@ -809,7 +984,7 @@ export default async function ProviderPage({
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
                   {profile.display_name}
                 </h1>
-                <div className="hidden md:block">
+                <div className="hidden md:flex items-center gap-2">
                   <SaveButton
                     provider={{
                       providerId: profile.slug,
@@ -822,6 +997,7 @@ export default async function ProviderPage({
                     }}
                     variant="pill"
                   />
+                  <ShareButton name={profile.display_name} />
                 </div>
               </div>
 
@@ -983,6 +1159,8 @@ export default async function ProviderPage({
                       <span>on Google</span>
                     </span>
                   )}
+                  <span className="text-gray-300">·</span>
+                  <span className="text-xs text-teal-700 bg-teal-50 rounded-full px-2.5 py-1 font-medium">Updated May 2026</span>
                 </div>
 
                 {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
@@ -1011,16 +1189,18 @@ export default async function ProviderPage({
                 )}
               </div>
 
-              {/* Highlight badges — data-driven, variable count (1-4 items) */}
+              {/* Highlight badges + social proof stats */}
               {/* Hidden on mobile for cleaner hero, shown on desktop */}
-              {highlights.length > 0 && (
+              {(highlights.length > 0 || providerTags.featured.length > 0) && (
                 <div id="highlights" className="scroll-mt-20 hidden md:block">
-                  {/* Desktop: flex-wrap chips */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {highlights.map((h) => (
-                      <div key={h.label} className="bg-white border border-gray-200 rounded-lg py-2.5 px-3 flex items-center gap-2">
-                        <HighlightIcon icon={h.icon} className="w-4 h-4 text-primary-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-600">{h.label}</span>
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                    <div className="bg-green-50 border border-green-200 rounded-full py-1.5 px-3 flex items-center gap-1.5">
+                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
+                      <span className="text-sm text-green-700 font-medium">Accepting residents</span>
+                    </div>
+                    {providerTags.featured.map((tag) => (
+                      <div key={tag.id} className="bg-white border border-gray-200 rounded-full py-1.5 px-3">
+                        <span className="text-sm text-gray-600">{tag.label}</span>
                       </div>
                     ))}
                   </div>
@@ -1041,6 +1221,8 @@ export default async function ProviderPage({
                 claimAccountId={claimAccountId}
               />
               </div>
+
+              {/* About moved to content zone, before Reviews */}
 
               {/* Managed by — only show when staff data exists, hidden on mobile */}
               {hasStaff && (
@@ -1081,6 +1263,9 @@ export default async function ProviderPage({
           {/* ========== Left Column ========== */}
           <div className="lg:col-span-2">
 
+            {/* Section Navigation — inline nav with bottom border */}
+            <SectionNav sections={sectionItems} />
+
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
                ══════════════════════════════════════════ */}
@@ -1101,8 +1286,6 @@ export default async function ProviderPage({
                   coverageBuckets: demand?.coverage_buckets,
                   profile: oppProfile,
                 });
-                // Surface what the provider entered in their "Hire more
-                // caregivers" block: demand shape, PRN openness, and requirements.
                 const shapeLabel = demand?.demand_shape
                   ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
                   : null;
@@ -1173,6 +1356,72 @@ export default async function ProviderPage({
                 );
               })()}
 
+              {/* ── MorningStar custom layout ── */}
+              {isMorningStar ? (
+                <>
+                  <MorningStarAbout />
+
+                  <div id="reviews" className="scroll-mt-20 border-t border-gray-200">
+                    <ReviewsSection
+                      providerId={profile.slug}
+                      providerSlug={profile.slug}
+                      providerName={profile.display_name}
+                      mockReviews={reviewsToShow}
+                      isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                      googleReviewsData={googleReviewsData}
+                      placeId={providerPlaceId}
+                      hideBorder
+                    />
+                  </div>
+
+                  <div id="faq" className="py-8 scroll-mt-20 border-t border-gray-200">
+                    <QASectionWithVariant
+                      providerId={profile.slug}
+                      providerName={profile.display_name}
+                      providerImage={images[0]}
+                      providerSlug={profile.slug}
+                      providerLocation={profile.city && profile.state ? `${profile.city}, ${profile.state}` : ""}
+                      providerCareTypes={profile.care_types || []}
+                      providerRating={rating}
+                      providerPriceRange={priceRange ?? undefined}
+                      providerCity={profile.city ?? undefined}
+                      providerState={profile.state ?? undefined}
+                      questions={answeredQuestions.map((q) => ({
+                        id: q.id,
+                        question: q.question,
+                        answer: q.answer,
+                        asker_name: q.asker_name,
+                        created_at: q.created_at,
+                      }))}
+                      suggestedQuestions={getSuggestedQuestions(profile.category)}
+                      hasBenefitsData={hasBenefitsData && !!benefitsData}
+                      similarProvidersForMulti={similarProvidersForMulti}
+                      alternativeProviders={outreachCandidates}
+                      providerCategory={outreachCategoryString}
+                    />
+                  </div>
+
+                  <MorningStarContent />
+
+                  <div className="py-8 border-t border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
+                    </p>
+                    <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
+                      <p className="text-sm text-gray-500">Are you the owner of this business?</p>
+                      <a
+                        href={`/provider/onboarding?org=${profile.slug}`}
+                        className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                      >
+                        Manage this page <span aria-hidden="true">→</span>
+                      </a>
+                    </div>
+                  </div>
+                </>
+              ) : (
+              <>
+
               {/* ── What families are saying (above services when reviews exist) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
                 <div id="reviews" className="scroll-mt-20">
@@ -1219,10 +1468,6 @@ export default async function ProviderPage({
                   providerCategory={outreachCategoryString}
                 />
 
-                {/* Outreach arm of the 5-way intake A/B. Slot itself renders
-                    null for the ~80% not in the outreach arm, so no wrapping div
-                    here — it would leave a phantom mt-6 gap. The module owns
-                    its own top margin. See IntakeVariantSlots.tsx. */}
                 {canFetchOutreachCandidates && outreachCandidates.length > 0 && (
                   <AgentOutreachSlot
                     sourceProviderId={profile.slug}
@@ -1235,6 +1480,280 @@ export default async function ProviderPage({
                 )}
               </div>
               )}
+
+              {/* ── About (description + badges + standout) ── */}
+              <div id="about" className="py-8 border-t border-gray-200 scroll-mt-20">
+                {/* Part 1: Description */}
+                <div className="flex items-center gap-3 mb-3">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display">About {profile.display_name}</h2>
+                  {isEmeraldOaks && (
+                    <div className="flex items-center gap-2">
+                      <a href="https://www.facebook.com/EmeraldOaksRetirement" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Facebook">
+                        <svg className="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                      </a>
+                      <a href="https://www.instagram.com/emeraldoaksretirement" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Instagram">
+                        <svg className="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
+                      </a>
+                      <a href="https://rlcommunities.com/communities/texas/emerald-oaks-retirement/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Website">
+                        <svg className="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9 9 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                      </a>
+                    </div>
+                  )}
+                </div>
+                <ExpandableText
+                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
+                  maxLength={400}
+                />
+
+                {/* Part 2: Awards and accolades — collapses when empty */}
+                {providerBadges.length > 0 && (
+                  <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
+                    <div className="flex flex-wrap gap-x-10 gap-y-4">
+                      {providerBadges.map((badge) => (
+                        <div key={badge.title} className="flex items-center gap-3">
+                          {badge.imageSrc ? (
+                            <Image
+                              src={badge.imageSrc}
+                              alt={badge.title}
+                              width={48}
+                              height={48}
+                              className="w-12 h-12 object-contain shrink-0"
+                            />
+                          ) : (
+                            <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
+                              <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill={badge.badgeColor ?? "#C5A44E"} />
+                              <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
+                              <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
+                              <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill={badge.badgeColor ?? "#C5A44E"} fontFamily="system-ui">AWARD</text>
+                            </svg>
+                          )}
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">{badge.title}</span>
+                            <span className="text-sm text-gray-500">{badge.subtitle}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Part 3: What makes this place special — collapses when empty */}
+                {providerStandout && (
+                  <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                      <h3 className="text-base font-semibold text-teal-900">{providerStandout.heading}</h3>
+                    </div>
+                    <ul className="space-y-2">
+                      {providerStandout.points.map((point) => (
+                        <li key={point} className="flex items-start gap-2.5">
+                          <svg className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" /></svg>
+                          <span className="text-sm text-teal-800 leading-relaxed">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Accommodations ── */}
+              {isEmeraldOaks && (
+              <div id="accommodations" className="scroll-mt-20 py-8 border-t border-gray-200">
+                <AccommodationsSection
+                  sharedFeatures={[
+                    "Full Kitchen",
+                    "Wheelchair Accessible Showers",
+                    "Air Conditioned",
+                    "Wi-Fi/High-Speed Internet",
+                    "Cable or Satellite TV",
+                    "Handicap Accessible",
+                    "Ground Floor Units",
+                    "Garden View",
+                    "Respite or Short Term Stays Offered",
+                  ]}
+                  units={[
+                    {
+                      name: "Studio",
+                      price: "$4,020",
+                      sqft: "566 Sq. Ft.",
+                      floorPlans: [
+                        { label: "Studio", sqft: "566 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/studio-2.jpg" },
+                      ],
+                    },
+                    {
+                      name: "1 Bedroom",
+                      price: "$3,880",
+                      sqft: "588–759 Sq. Ft.",
+                      floorPlans: [
+                        { label: "1 Bed (A)", sqft: "694 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-a.jpg" },
+                        { label: "1 Bed (AC)", sqft: "650 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-ac.jpg" },
+                        { label: "1 Bed (B)", sqft: "759 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-b.jpg" },
+                        { label: "1 Bed (BC)", sqft: "706 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-bc.jpg" },
+                        { label: "1 Bed (C)", sqft: "588 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/1-bed-c.jpg" },
+                      ],
+                    },
+                    {
+                      name: "2 Bedroom",
+                      price: "$5,800",
+                      sqft: "1,013–1,138 Sq. Ft.",
+                      floorPlans: [
+                        { label: "2 Bed (A)", sqft: "1,114 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/2-bed-a.jpg" },
+                        { label: "2 Bed (B)", sqft: "1,138 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/2-bed-b.jpg" },
+                        { label: "2 Bed (C)", sqft: "1,013 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/2-bed-c.jpg" },
+                      ],
+                    },
+                    {
+                      name: "3 Bedroom",
+                      sqft: "1,206 Sq. Ft.",
+                      floorPlans: [
+                        { label: "3 Bed (A)", sqft: "1,206 Sq. Ft.", img: "/providers/emerald-oaks/floor-plans/3-bed-a.jpg" },
+                      ],
+                    },
+                  ]}
+                  disclaimer="Prices quoted are monthly rental charges and are provided by the community. Actual prices may differ due to one-time fees, timing, and care services required. For the best price estimate, please contact Emerald Oaks directly."
+                  providerName="Emerald Oaks"
+                />
+              </div>
+              )}
+
+              {/* ── Dining ── */}
+              {isEmeraldOaks && (
+              <div id="dining" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Dining</h2>
+                <p className="text-base text-gray-600 mb-5">Signature Freedom Dining offers chef-prepared meals served resort-style throughout the day, with flexible hours and multiple dining settings, all included in monthly rent.</p>
+                <DiningCarousel images={[
+                  { src: "/providers/emerald-oaks/dining/steak.webp", alt: "Chef-prepared steak" },
+                  { src: "/providers/emerald-oaks/dining/chef.webp", alt: "Chef-prepared meals" },
+                  { src: "/providers/emerald-oaks/dining/salad.webp", alt: "Fresh chicken berry salad" },
+                  { src: "/providers/emerald-oaks/dining/steak-shrimp.webp", alt: "Steak and shrimp" },
+                  { src: "/providers/emerald-oaks/dining/salmon.webp", alt: "Salmon entrée" },
+                  { src: "/providers/emerald-oaks/dining/salad-bar.webp", alt: "Salad bar" },
+                  { src: "/providers/emerald-oaks/dining/creme-brulee.webp", alt: "Crème brûlée" },
+                  { src: "/providers/emerald-oaks/dining/shortcake.webp", alt: "Strawberry shortcake" },
+                ]} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2 mt-6">
+                  {[
+                    "Flexible Dining Hours",
+                    "Sunday Brunch",
+                    "24-Hour Chef's Pantry",
+                    "Tableside Service",
+                    "Meal Delivery for Daily Meals",
+                    "Casual Buffet",
+                    "Professional Chefs",
+                    "Fresh, Healthy Ingredients",
+                    "Share meals with friends and family anytime, with affordable meal rates",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                      <span className="text-sm text-gray-700">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              )}
+
+              {/* ── Amenities ── */}
+              {isEmeraldOaks ? (
+              <AmenitiesSection
+                highlightPhoto={{
+                  src: "/providers/emerald-oaks/photos/amenities-highlight.png",
+                  alt: "Residents enjoying the fitness center at Emerald Oaks",
+                }}
+                categories={[
+                {
+                  heading: "Fitness & Wellness",
+                  icon: "fitness",
+                  items: [
+                    "Fitness Center",
+                    "Walking Paths",
+                    "Health & Wellness Programs",
+                    "Ageless Grace Brain Fitness Program",
+                    "Raised Garden Beds",
+                  ],
+                },
+                {
+                  heading: "Social & Recreation",
+                  icon: "social",
+                  items: [
+                    "Arts & Crafts Room",
+                    "Billiards & Game Room",
+                    "Library",
+                    "Computer Center",
+                    "Daily Social Activities",
+                    "Main Street Shops & Gathering Spaces",
+                    "Full-Size Movie Theater",
+                  ],
+                },
+                {
+                  heading: "Services & Convenience",
+                  icon: "services",
+                  items: [
+                    "Weekly Housekeeping",
+                    "On-Call Maintenance",
+                    "On-Site Salon & Spa",
+                    "Scheduled Transportation",
+                    "Bus Outings",
+                    "On-Site Bank Branch",
+                    "Pharmacy Delivery",
+                    "Gift Shop",
+                    "Grocery Shopping Service",
+                    "Guest Suite for Visiting Family",
+                    "Valet & Resident Parking",
+                  ],
+                },
+                {
+                  heading: "Safety & Support",
+                  icon: "safety",
+                  items: [
+                    "24/7 Concierge",
+                    "Emergency Alert Systems",
+                    "Live-In On-Site Management",
+                  ],
+                },
+                {
+                  heading: "Pet Friendly",
+                  icon: "pet",
+                  items: [
+                    "Dogs & Cats Welcome",
+                    "Landscaped Dog-Walking Grounds",
+                  ],
+                },
+              ]} />
+              ) : careServices.length > 0 && (
+              <AmenitiesSection categories={careServices.map((s) => {
+                // Map care service labels to amenity icons
+                const lower = s.toLowerCase();
+                let icon: import("@/components/providers/AmenitiesSection").AmenityIcon = "services";
+                if (lower.includes("fitness") || lower.includes("wellness") || lower.includes("pool")) icon = "fitness";
+                else if (lower.includes("social") || lower.includes("community") || lower.includes("event")) icon = "community";
+                else if (lower.includes("recreation") || lower.includes("activit")) icon = "recreation";
+                else if (lower.includes("meal") || lower.includes("dining") || lower.includes("food")) icon = "meals";
+                else if (lower.includes("housekeep") || lower.includes("laundry")) icon = "housekeeping";
+                else if (lower.includes("transport") || lower.includes("shuttle")) icon = "transportation";
+                else if (lower.includes("maintenance") || lower.includes("repair")) icon = "maintenance";
+                else if (lower.includes("concierge") || lower.includes("front desk")) icon = "concierge";
+                else if (lower.includes("safety") || lower.includes("security") || lower.includes("emergency") || lower.includes("independent")) icon = "independent";
+                else if (lower.includes("pet")) icon = "pet";
+                return { heading: s, icon, items: [] };
+              })} />
+              )}
+
+              {/* ── Neighborhood ── */}
+              <div id="neighborhood" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-1">What&apos;s nearby</h2>
+                {profile.address ? (
+                  <p className="text-sm text-gray-500 mb-1">{profile.address}{profile.city ? `, ${profile.city}` : ""}{profile.state ? `, ${profile.state}` : ""}</p>
+                ) : profile.city && profile.state ? (
+                  <p className="text-sm text-gray-500 mb-1">{profile.city}, {profile.state}</p>
+                ) : null}
+
+                <NeighborhoodMap
+                  providerName={profile.display_name}
+                  center={{ lat: profile.lat ?? 0, lng: profile.lng ?? 0 }}
+                  address={[profile.address, profile.city, profile.state].filter(Boolean).join(", ")}
+                  categories={nearbyPlaces}
+                />
+              </div>
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
@@ -1265,12 +1784,6 @@ export default async function ProviderPage({
                   </div>
                 </BenefitsArmGate>
               )}
-
-              {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
-                <CareServicesList services={careServices} initialCount={6} />
-              </div>
 
               {/* ── Staff Screening — hidden when no real data ── */}
               {hasStaffScreening && (
@@ -1318,54 +1831,6 @@ export default async function ProviderPage({
               {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
                 <div className="py-8 border-t border-gray-200">
                   <AiTrustSignalsSection signals={aiTrustSignals} />
-                </div>
-              )}
-
-              {/* ── About ── */}
-              <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
-                <ExpandableText
-                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
-                  maxLength={300}
-                />
-              </div>
-
-              {/* ── Detailed Pricing ── */}
-              {pricingDetails.length > 0 && (
-                <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Prices at {profile.display_name}</h2>
-                  <div className="space-y-2">
-                    {pricingDetails.map((item) => (
-                      <div
-                        key={item.service}
-                        className="flex items-center justify-between py-3.5 px-4 bg-gray-50 rounded-lg"
-                      >
-                        <span className="text-base font-medium text-gray-900">{item.service}</span>
-                        <span className="text-base font-semibold text-gray-900">
-                          {item.rate} <span className="font-normal text-gray-500">/{item.rateType.replace("per ", "")}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
-                    Get a custom quote
-                  </ScrollToConnectionCard>
-                  {pricingConfig && (
-                    <p className="text-xs text-gray-400 mt-4 leading-relaxed">
-                      {pricingConfig.disclaimer({
-                        providerName: profile.display_name,
-                        city: profile.city ?? undefined,
-                        state: profile.state ?? undefined,
-                      })}
-                      {pricingConfig.coverageNote && (
-                        <> {pricingConfig.coverageNote({
-                          providerName: profile.display_name,
-                          city: profile.city ?? undefined,
-                          state: profile.state ?? undefined,
-                        })}</>
-                      )}
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -1460,6 +1925,9 @@ export default async function ProviderPage({
                 </div>
               </div>
 
+              </>
+              )}
+
             </div>
           </div>
 
@@ -1516,9 +1984,9 @@ export default async function ProviderPage({
           </div>
         </div>
 
-        {/* ===== Compare Providers (hidden in student context) ===== */}
+        {/* ===== Nearby Communities / Compare Providers (hidden in student context) ===== */}
         {!isStudentContext && similarProviders.providers.length > 0 && (
-          <div className="border-t border-gray-200 pt-8 mt-4">
+          <div id="nearby" className="border-t border-gray-200 pt-8 mt-4 scroll-mt-20">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               {similarProviders.isLocal
                 ? <>Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options</>

@@ -1014,6 +1014,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Human-trust allowlist (email_overrides): addresses an admin explicitly
+    // overrode/trusted (e.g. "Save anyway" after phoning the provider). At send
+    // time these already bypass ZeroBounce + suppression (lib/email.ts). Mirror
+    // that here so a manual override STICKS — without this, the classifier below
+    // re-derives "invalid"/"failed" from stale ZeroBounce/email_log data every
+    // load and bounces the provider back to Needs Email / Delivery Issues.
+    const trustedEmailSet = new Set<string>();
+    if (providerEmailAddresses.size > 0) {
+      const lowerEmails = Array.from(providerEmailAddresses).map((e) => e.toLowerCase());
+      for (let i = 0; i < lowerEmails.length; i += 500) {
+        const { data: trusted } = await db
+          .from("email_overrides")
+          .select("email")
+          .in("email", lowerEmails.slice(i, i + 500));
+        for (const t of trusted ?? []) {
+          trustedEmailSet.add((t.email as string).toLowerCase());
+        }
+      }
+    }
+
     // Workflow-based counts (legacy)
     const workflowCounts: WorkflowCounts = {
       all: 0,
@@ -1169,6 +1189,12 @@ export async function GET(request: NextRequest) {
 
         if (!providerEmail) {
           emailIssueType = "no_email";
+        } else if (trustedEmailSet.has(providerEmail.toLowerCase())) {
+          // Admin-trusted override (email_overrides). Mirror send-side semantics:
+          // bypass BOTH the verification verdict and the delivery-failure
+          // heuristics so the provider stays out of needs_email/delivery_issues
+          // after a manual override. Leave emailIssueType null.
+          emailIssueType = null;
         } else if (connectionsWithDeliveryFailure.has(c.id)) {
           // Connection-specific email failed
           emailIssueType = "failed";
@@ -1192,6 +1218,11 @@ export async function GET(request: NextRequest) {
 
         // Store the issue type on the connection for filtering/display
         (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType = emailIssueType;
+
+        // Surface whether the current email is on the human-trust allowlist so the
+        // UI can show a "Trusted" state (the override stuck) instead of a warning.
+        (c as typeof c & { emailTrusted: boolean }).emailTrusted =
+          !!providerEmail && trustedEmailSet.has(providerEmail.toLowerCase());
 
         // Archive classification:
         // - "Archived" tab: admin-archived provider OR connection archived without provider decline reason

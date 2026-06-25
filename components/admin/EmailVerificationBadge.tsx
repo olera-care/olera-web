@@ -73,6 +73,40 @@ export default function EmailVerificationBadge({
     },
   };
 
+  // invalid / risky: an operator may legitimately override these (they've
+  // confirmed the address by phone or off the provider's site). Show a compact,
+  // calm amber flag with the "why + what to do" tucked into a hover tooltip —
+  // rather than a scary red verdict and a wall of inline text.
+  const guidance: Partial<Record<VerificationStatus, { label: string; tip: string }>> = {
+    invalid: {
+      label: "May bounce",
+      tip: "An automated check thinks this address would bounce. If you've confirmed it with the provider, save anyway — we'll trust it from here.",
+    },
+    risky: {
+      label: "Catch-all",
+      tip: "This domain accepts all mail, so we can't confirm a real inbox. Use a named address if you can — or save anyway if you've confirmed it.",
+    },
+  };
+
+  if (status === "invalid" || status === "risky") {
+    const g = guidance[status]!;
+    return (
+      <span
+        className={`group relative inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 cursor-help ${className}`}
+      >
+        <span aria-hidden>⚠</span>
+        {g.label}
+        <span className="flex h-3 w-3 items-center justify-center rounded-full bg-amber-400 text-[9px] font-bold text-white">i</span>
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute bottom-full left-0 z-10 mb-1.5 w-56 rounded-lg bg-gray-900 px-2.5 py-2 text-xs font-normal leading-snug text-gray-50 opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+        >
+          {g.tip}
+        </span>
+      </span>
+    );
+  }
+
   const { icon, text, classes } = config[status];
 
   return (

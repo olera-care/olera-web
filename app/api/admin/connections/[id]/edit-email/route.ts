@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams, markEmailTrusted } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 import { getSiteUrl } from "@/lib/site-url";
@@ -253,6 +253,20 @@ export async function POST(
         success: false,
         error: "Failed to send email notification",
       }, { status: 500 });
+    }
+
+    // If the admin forced past the verification gate, this is a human-trusted
+    // address — they have better evidence the inbox is real than ZeroBounce
+    // (phoned the provider, pulled it off the official site). Record it on the
+    // trust allowlist so future sends AND the connections queue stop re-flagging
+    // it as invalid/failed; otherwise the override "reverts" to Needs Email on the
+    // next list load. Best-effort (never throws).
+    if (force) {
+      await markEmailTrusted(newEmail, {
+        reason: "admin",
+        note: `edit-email override on connection ${connectionId}`,
+        createdBy: `admin:${admin.id}`,
+      });
     }
 
     // Email sent successfully - now update connection metadata

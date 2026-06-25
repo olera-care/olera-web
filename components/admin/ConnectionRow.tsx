@@ -83,6 +83,7 @@ export interface ConnectionRowData {
   archivedAt?: string;
   /** Email issue type for "Needs Email" tab */
   emailIssueType?: "no_email" | "failed" | "invalid" | null;
+  emailTrusted?: boolean;
   /** Admin archived this provider - no emails sent to them */
   isProviderArchived?: boolean;
   /** Provider is inactive (deleted account, removed, etc.) */
@@ -937,7 +938,10 @@ export default function ConnectionRow({
         body: JSON.stringify({
           profileId,
           email: emailInput.trim(),
-          force: forceKind !== null, // Pass force flag to bypass verification check
+          // Force when overriding a failed auto-check — prior 422 (forceKind) or
+          // the inline verdict is invalid/risky. Lets the single "Add anyway"
+          // button work in one click.
+          force: forceKind !== null || verificationStatus === "invalid" || verificationStatus === "risky",
         }),
       });
 
@@ -1019,7 +1023,9 @@ export default function ConnectionRow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           newEmail: pendingEmailEdit.newEmail,
-          force: forceKind !== null, // Pass force flag to bypass verification check
+          // Force when the operator is overriding a failed auto-check — either from
+          // a prior 422 (forceKind) or because the inline verdict is invalid/risky.
+          force: forceKind !== null || verificationStatus === "invalid" || verificationStatus === "risky",
         }),
       });
 
@@ -1666,6 +1672,11 @@ export default function ConnectionRow({
                                 ⚠️ {c.emailIssueType === "failed" ? "Delivery failed" : "Invalid email"} — needs replacement
                               </p>
                             )}
+                            {c.emailTrusted && (
+                              <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5" title="Admin-confirmed — we'll stop flagging this address">
+                                Trusted ✓
+                              </span>
+                            )}
                           </>
                         ) : (
                           <form onSubmit={handleEditEmail} className="space-y-1">
@@ -1699,7 +1710,7 @@ export default function ConnectionRow({
                                     type="button"
                                     onClick={() => handleFindEmail("edit")}
                                     disabled={editingEmailLoading || findingEmail}
-                                    className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                    className="px-2 py-1 text-xs font-medium text-teal-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                                     title="Find provider email using web scraping + AI"
                                   >
                                     {findingEmail ? "Searching..." : "✦ Find"}
@@ -1716,22 +1727,22 @@ export default function ConnectionRow({
                                   </button>
                                 )}
                               </div>
+                              {/* One primary action. When the address failed the
+                                  auto-check, the operator overriding it is the
+                                  expected path — so the button itself becomes
+                                  "Save anyway" instead of a disabled Save + a
+                                  buried link. The confirm modal is the safety net. */}
                               <button
                                 type="submit"
-                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email || ((verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null)}
+                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email}
                                 className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                {editingEmailLoading ? "Saving..." : "Save"}
+                                {editingEmailLoading
+                                  ? "Saving..."
+                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null
+                                    ? "Save anyway"
+                                    : "Save"}
                               </button>
-                              {(verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null && (
-                                <button
-                                  type="button"
-                                  onClick={() => setForceKind(verificationStatus === "invalid" ? "undeliverable" : "risky")}
-                                  className="text-xs text-gray-500 hover:text-gray-700 underline"
-                                >
-                                  Save anyway
-                                </button>
-                              )}
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1893,7 +1904,7 @@ export default function ConnectionRow({
                                 type="button"
                                 onClick={() => handleFindEmail("add")}
                                 disabled={addingEmail || findingEmail}
-                                className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                className="px-2 py-1 text-xs font-medium text-teal-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                                 title="Find provider email using web scraping + AI"
                               >
                                 {findingEmail ? "Searching..." : "✦ Find"}
@@ -1912,20 +1923,15 @@ export default function ConnectionRow({
                           </div>
                           <button
                             type="submit"
-                            disabled={addingEmail || findingEmail || !emailInput.trim() || ((verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null)}
+                            disabled={addingEmail || findingEmail || !emailInput.trim()}
                             className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {addingEmail ? "Adding..." : "Add"}
+                            {addingEmail
+                              ? "Adding..."
+                              : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null
+                                ? "Add anyway"
+                                : "Add"}
                           </button>
-                          {(verificationStatus === "invalid" || verificationStatus === "risky") && forceKind === null && (
-                            <button
-                              type="button"
-                              onClick={() => setForceKind(verificationStatus === "invalid" ? "undeliverable" : "risky")}
-                              className="text-xs text-gray-500 hover:text-gray-700 underline"
-                            >
-                              Add anyway
-                            </button>
-                          )}
                         </div>
                         {/* Verification and trust score badges */}
                         <div className="flex items-center gap-3">

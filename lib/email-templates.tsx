@@ -4562,7 +4562,10 @@ export function familyNudgeEmail(opts: {
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,
-    `Let's find care that fits — and how to pay for it`
+    // Preheader (inbox preview text, after the subject) — NOT the subject, which
+    // the caller sets. Carries the cost hook that doesn't fit in the subject, so
+    // the inbox row reads "A few more care options near you · Plus the programs…".
+    `Plus the programs that can help cover the cost.`
   );
 }
 

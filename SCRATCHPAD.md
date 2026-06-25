@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-06-25 (PM) — Family-comms email CREATIVE redesign: full completion sequence + shared design-system, PROMOTED to prod (branch `mighty-carson`, PRs #1213-1216 → staging, #1217 → main)
+
+Phase 3 (redesign the legacy email creative the coordinator/engine renders) continued from R6 `family_nudge`. Redesigned the **whole `completion_nudge_1-4` sequence** (the OLD `family-nudges` engine, day 0/2/6/13) and stood up a **shared email design-system**, then **promoted everything to production** ahead of the next cron sends. SCRATCHPAD logged separately per [[feedback_scratchpad_out_of_code_prs]].
+
+**The four emails (each a distinct angle so the arc isn't repetitive):** nudge_1 empathy+cost ("Care is hard to figure out. Cost is harder." / subject "Want a hand with your care search?") **#1213**; nudge_2 day-2 social proof ("there really are X providers near you", flipped from provider-hunger "looking for families") **#1214**; nudge_3 day-6 payoff ("providers can actually help" — *enables* a reply, doesn't overpromise "you'll hear back") **#1215**; nudge_4 day-13 **photo provider cards** (`compareCardsBlock`, 72px thumb + hairlines, vs the old boxed text cards) **#1216**.
+
+**Design-system (the force-multiplier, #1213):** completion templates return **`{ subject, html }`** via one `completionNudgeSubject()` source → subject can't drift between send-path / preview-drawer / email_log (the exact bug that bit R6). Shared helpers `fieldAskLine` (de-boxed warm ask), `completionProgressLine` (gated ≥50% momentum, no homework-bar), **`humanizeFields`** (maps internal completeness labels → family language: "Payment Methods"→"how you'd like to pay"; prioritizes matching-relevant fields). R6 now consumes these too — **fixed a live R6 bug** that rendered "Photo, Real Name, Phone". Global byline reword "less opaque"→**"easier to understand and compare"** (shared across 13 emails incl. provider digests — resolved one of the two parked decisions).
+
+**Voice locked (TJ redlines):** friend-voice, value-first, NOT slogan/feature-brag ("lotion bottle"), de-boxed, outcome CTAs ("Get better matches"), founder byline. nudge_4 photos use **category stock** via `categoryStockImage` (email-safe direct https — NOT `/_next/image` which WAF-429s blank, see [[feedback_waf_next_image_429]]); chose reliable-stock over sparse-real (directory source always returns cards; claimed-provider source is sparse in small markets).
+
+**Files:** `lib/email-templates.tsx` (creative + new shared helpers + `completionNudgeSubject`), `lib/email-samples.ts` (fixtures → real completeness labels for drawer fidelity; nudge_4 → photo-card fixture), `app/api/cron/family-nudges/route.ts` (nudge_4 maps directory providers → `CompareCardItem` w/ stock images; subject via shared source), `lib/family-comms/alternatives.ts` (`export categoryStockImage`). tsc 0 throughout; each email iterated live in a scratch `.html` preview (push → TJ feels → redline).
+
+**Workflow note:** ship each email as its own squash PR to staging, then `git reset --hard origin/staging` to realign the base — squash-merge + keep-working creates a duplicate-commit conflict otherwise (hit it on nudge_2, #1214). Branch is now even with main AND staging (0/0).
+
+**Next up:** (1) **`never_engaged` (R3)** — weakest rung ~20% open, sensitive moment; NOTE it lives in the **coordinator** rung templates, not the family-nudges engine; (2) `publish_nudge_1-4`; (3) light-touch R2/R4; (4) Track 2 (later): fold the family-nudges engine into the coordinator. **Open caveat:** none of the 5 redesigns observed in a real inbox at volume yet — spot-check a delivered copy after the next sends (~15:00 UTC family-nudges, ~17:00 UTC coordinator). One parked decision remains: named-human From (needs monitored reply inbox). Handoff + promotion report in Notion. Memory: [[project_family_help_cascade]], [[feedback_design_taste]], [[feedback_waf_next_image_429]].
+
 ### 2026-06-25 — Cutover first-run verified + Family Comms dashboard: recipient-scoping fix + per-email-type preview drawer (branch `mighty-carson`, PR #1207 → staging)
 
 Three things this session, all on `mighty-carson`. **PR #1207 → staging** (code; SCRATCHPAD logged separately per [[feedback_scratchpad_out_of_code_prs]]).

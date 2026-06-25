@@ -12,7 +12,7 @@
  * and PII-free. Image URLs use the Supabase-hosted stock set (email-proxy safe).
  */
 import {
-  // family
+  // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
   providerSilentEmail,
   familyNeverEngagedEmail,
@@ -20,6 +20,20 @@ import {
   familyPendingReachOutNudgeEmail,
   familyNudgeEmail,
   type CompareCardItem,
+  // family · profile sequences (family-nudges / conversation-stale / lead-family-nudge / matches-nudge)
+  completionNudge1Email,
+  completionNudge2Email,
+  completionNudge3Email,
+  completionNudge4Email,
+  publishNudge1Email,
+  publishNudge2Email,
+  publishNudge3Email,
+  publishNudge4Email,
+  goLiveReminderEmail,
+  matchesNudgeEmail,
+  staleConversationFamilyEmail,
+  postConnectionFollowupEmail,
+  type EmailProviderCard,
   // provider
   providerWeeklyDigestEmail,
   providerProfileCompletionEmail,
@@ -41,6 +55,10 @@ export interface EmailVariant {
   emailType: string;
   /** Cron/registry id that sends it — links to /admin/automations/[id]. */
   cron?: string;
+  /** Who receives this — the eligibility, in plain terms (for the "why this group" UI). */
+  who?: string;
+  /** Why we send it — the intent behind the copy (for the "why this group" UI). */
+  why?: string;
   /** Renders the LIVE template with sample fixtures → full HTML. */
   render: () => string;
 }
@@ -60,7 +78,17 @@ const F = {
   inboxUrl: "https://olera.care/portal/inbox",
   guideUrl: "https://olera.care/olera-senior-care-guide-one-page.pdf",
   profileUrl: "https://olera.care/portal/profile",
+  welcomeUrl: "https://olera.care/portal/welcome",
+  matchesUrl: "https://olera.care/portal/matches",
 };
+
+// EmailProviderCard fixtures — the richer card shape used by the completion/publish
+// sequences and go-live reminder (distinct from the compare-cascade CompareCardItem).
+const FAM_CARDS: EmailProviderCard[] = [
+  { name: "Golden Years Home Care", category: "home_care", slug: "golden-years", rating: 4.8, reviewCount: 42, reviewSnippet: "They treated my mom like family from day one.", city: "Killeen", state: "TX", priceRange: "$25–30/hr" },
+  { name: "Comfort First Caregivers", category: "home_care", slug: "comfort-first", rating: 4.6, reviewCount: 18, reviewSnippet: null, city: "Killeen", state: "TX", priceRange: "Contact for pricing" },
+  { name: "Hill Country Home Aides", category: "home_care", slug: "hill-country", rating: 4.5, reviewCount: 11, reviewSnippet: null, city: "Harker Heights", state: "TX", priceRange: "from $24/hr" },
+];
 
 // ── Provider fixtures (migrated verbatim from digestVariantSample) ──────────
 const SAMPLE_BASE = {
@@ -76,6 +104,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_outcome_check", audience: "family", group: "Family · Compare cascade",
     label: "R1 · Outcome check (sensor)", subject: `Did ${F.providerName} get back to you?`,
     emailType: "family_outcome_check", cron: "family-comms-coordinator",
+    who: "Inquiry sent 48–72h ago, the provider hasn't replied in-thread, and the family hasn't reported an outcome yet.",
+    why: "Ground-truth sensor — asks \"Did they get back to you?\" to catch stalled connections early and trigger the help cascade.",
     render: () => connectionOutcomeCheckEmail({
       familyName: F.familyName, providerName: F.providerName,
       yesUrl: "https://olera.care/connection-outcome?v=yes",
@@ -87,6 +117,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_provider_silent", audience: "family", group: "Family · Compare cascade",
     label: "R2 · Provider silent → compare", subject: "You're never limited to one — here are others worth comparing.",
     emailType: "family_provider_silent", cron: "family-comms-coordinator",
+    who: "Engaged family (sent ≥1 message), 96–120h in, no provider has responded anywhere, and ≥3 responsive alternatives exist nearby.",
+    why: "Compare-led hero — the provider went quiet, so show 2–3 responsive alternatives plus a benefits-quiz value-exchange. You're never limited to one.",
     render: () => providerSilentEmail({
       familyName: F.familyName, providerName: F.providerName, providerPassed: false,
       recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", benefitsQuizUrl: F.quizUrl,
@@ -96,6 +128,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_provider_declined", audience: "family", group: "Family · Compare cascade",
     label: "R2 · Provider declined (with message)", subject: "A few other providers near you, while you wait",
     emailType: "family_provider_silent", cron: "family-comms-coordinator",
+    who: "Same as R2, but the provider explicitly declined (left a message) rather than going silent.",
+    why: "Soften the decline and immediately redirect to responsive alternatives — turn a 'no' into momentum.",
     render: () => providerSilentEmail({
       familyName: F.familyName, providerName: F.providerName, providerPassed: true,
       declineMessage: "We're at capacity for new clients this month, so sorry.",
@@ -106,6 +140,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_never_engaged_compare", audience: "family", group: "Family · Compare cascade",
     label: "R3 · Never-engaged → compare", subject: "A few other providers near you worth comparing",
     emailType: "family_never_engaged", cron: "family-comms-coordinator",
+    who: "Family never sent a message on any connection, 120–144h in, no provider responded — and ≥3 nearby alternatives exist.",
+    why: "Gentle resource nudge for families who stalled before reaching out. With alternatives available, lead with compare cards.",
     render: () => familyNeverEngagedEmail({
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
       recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, benefitsQuizUrl: F.quizUrl,
@@ -115,6 +151,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_never_engaged_fallback", audience: "family", group: "Family · Compare cascade",
     label: "R3 · Never-engaged → guide fallback (<3 alts)", subject: "A quick resource while you're thinking things over",
     emailType: "family_never_engaged", cron: "family-comms-coordinator",
+    who: "Same as R3, but fewer than 3 responsive alternatives are available nearby.",
+    why: "When we can't honestly surface alternatives, fall back to a how-to-choose guide PDF rather than a thin compare list.",
     render: () => familyNeverEngagedEmail({
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
       benefitsQuizUrl: F.quizUrl,
@@ -124,6 +162,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "day_10_awaiting", audience: "family", group: "Family · Compare cascade",
     label: "R4 · Provider responded → compare + choose", subject: `How does ${F.providerName} compare? A couple of others to weigh`,
     emailType: "day_10_awaiting", cron: "family-comms-coordinator",
+    who: "A provider replied 9–11 days ago and the family hasn't replied back since that first response.",
+    why: "Warm hand-off — help the family weigh this provider against 2 others and teach how to choose, so the thread doesn't stall.",
     render: () => day10AwaitingEmail({
       familyName: F.familyName, providerName: F.providerName, inboxUrl: F.inboxUrl,
       supportUrl: "mailto:support@olera.care?subject=Help%20with%20next%20steps", alternativesUrl: F.browseUrl,
@@ -134,6 +174,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_reach_out_nudge", audience: "family", group: "Family · Compare cascade",
     label: "R5 · Pending reach-out", subject: `${F.providerName} is waiting to hear from you`,
     emailType: "family_reach_out_nudge", cron: "family-comms-coordinator",
+    who: "A provider initiated the connection (inbound), it's been pending ≥3 days, and the family hasn't replied.",
+    why: "Warm inbound lead — a provider is actively waiting; nudge the family to reply, with a preview of the provider's message.",
     render: () => familyPendingReachOutNudgeEmail({
       familyName: F.familyName, providerName: F.providerName, providerCity: "Killeen, TX",
       messagePreview: "Hi! We'd love to help with care for your mother — when's a good time to talk?",
@@ -144,10 +186,145 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "family_nudge", audience: "family", group: "Family · Compare cascade",
     label: "R6 · Stuck → completion as value-exchange", subject: "See sharper matches near you — and how to pay for care",
     emailType: "family_nudge", cron: "family-comms-coordinator",
+    who: "Inquiry ≥2 days old, profile under 60% complete, not currently in an active live thread.",
+    why: "Completion as value-exchange — the quiz sharpens matches AND captures fuel; framed as \"sharper matches,\" never a naked \"finish your profile.\"",
     render: () => familyNudgeEmail({
       unsubscribeId: "sample-id", familyName: F.familyName, providerName: F.providerName,
       missingFields: ["budget", "care timeline", "ZIP code"], completionPercent: 35, profileUrl: F.profileUrl,
       benefitsQuizUrl: F.quizUrl,
+    }),
+  },
+
+  // ─────────────── Family · Profile sequences (preserved engines) ───────────────
+  // The completion/publish day-sequences (family-nudges), the dual-sided stale
+  // nudge (conversation-stale, family side), the go-live reminder (lead-family-nudge),
+  // and the matches/review nudges. These run alongside the coordinator, gated by the
+  // 3/week family cap + the 20h coordinator standdown.
+  {
+    id: "completion_nudge_1", audience: "family", group: "Family · Profile sequences",
+    label: "Completion · day 0", subject: "A quick question about your care search",
+    emailType: "completion_nudge_1", cron: "family-nudges",
+    who: "Profile under 60% complete, first day (4h+ after signup).",
+    why: "Open the completion sequence — explain why a fuller profile means better matching.",
+    render: () => completionNudge1Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
+      missingFields: ["budget", "care timeline"], completionPercent: 30, providerCount: 24, city: "Killeen",
+    }),
+  },
+  {
+    id: "completion_nudge_2", audience: "family", group: "Family · Profile sequences",
+    label: "Completion · day 2", subject: "24 providers in Killeen are looking for families",
+    emailType: "completion_nudge_2", cron: "family-nudges",
+    who: "Profile under 60% complete, ~day 2 of the sequence.",
+    why: "Progress + provider-count social proof — show the market is active and waiting.",
+    render: () => completionNudge2Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
+      missingFields: ["budget"], completionPercent: 45, providerCount: 24, city: "Killeen", state: "TX",
+    }),
+  },
+  {
+    id: "completion_nudge_3", audience: "family", group: "Family · Profile sequences",
+    label: "Completion · day 6", subject: "Families with complete profiles hear back faster",
+    emailType: "completion_nudge_3", cron: "family-nudges",
+    who: "Profile under 60% complete, ~day 6 of the sequence.",
+    why: "Social proof + gentle urgency — completeness correlates with faster provider responses.",
+    render: () => completionNudge3Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
+      missingFields: ["budget"], completionPercent: 50, providerCount: 24, city: "Killeen", state: "TX",
+    }),
+  },
+  {
+    id: "completion_nudge_4", audience: "family", group: "Family · Profile sequences",
+    label: "Completion · day 13 (last)", subject: "Providers near you, including these top-rated",
+    emailType: "completion_nudge_4", cron: "family-nudges",
+    who: "Profile under 60% complete, ~day 13 — the final completion touch.",
+    why: "Final push with up to 3 specific provider cards near them to make it concrete.",
+    render: () => completionNudge4Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
+      missingFields: ["budget"], completionPercent: 55, providers: FAM_CARDS, providerCount: 24, city: "Killeen", state: "TX",
+    }),
+  },
+  {
+    id: "publish_nudge_1", audience: "family", group: "Family · Profile sequences",
+    label: "Publish · day 0", subject: "Let providers come to you",
+    emailType: "publish_nudge_1", cron: "family-nudges",
+    who: "Profile ≥60% complete but not yet published — same day it crossed the threshold.",
+    why: "Open the publish arc — pitch the inbound/passive flow of going live.",
+    render: () => publishNudge1Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, providerCount: 24, city: "Killeen",
+    }),
+  },
+  {
+    id: "publish_nudge_2", audience: "family", group: "Family · Profile sequences",
+    label: "Publish · day 2", subject: "These providers want to help families like yours",
+    emailType: "publish_nudge_2", cron: "family-nudges",
+    who: "Profile ≥60% complete, not published, ~day 2.",
+    why: "Show a top-rated provider list — make the inbound opportunity tangible.",
+    render: () => publishNudge2Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, providerCount: 24, providers: FAM_CARDS, city: "Killeen",
+    }),
+  },
+  {
+    id: "publish_nudge_3", audience: "family", group: "Family · Profile sequences",
+    label: "Publish · day 6", subject: "Skip the phone tag",
+    emailType: "publish_nudge_3", cron: "family-nudges",
+    who: "Profile ≥60% complete, not published, ~day 6.",
+    why: "Platform-wide social proof (families this week/month), no-pressure tone.",
+    render: () => publishNudge3Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl,
+      familiesThisWeek: 38, familiesThisMonth: 160, providerCount: 24, city: "Killeen", state: "TX",
+    }),
+  },
+  {
+    id: "publish_nudge_4", audience: "family", group: "Family · Profile sequences",
+    label: "Publish · day 13 (last)", subject: "Still thinking it over?",
+    emailType: "publish_nudge_4", cron: "family-nudges",
+    who: "Profile ≥60% complete, not published, ~day 13 — final publish touch.",
+    why: "Soft, no-pressure last word before the sequence goes quiet.",
+    render: () => publishNudge4Email({
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, city: "Killeen",
+    }),
+  },
+  {
+    id: "go_live_reminder", audience: "family", group: "Family · Profile sequences",
+    label: "Go-live reminder", subject: "Your profile is ready — let providers find you",
+    emailType: "go_live_reminder", cron: "lead-family-nudge",
+    who: "Profile complete enough to publish; reminded to flip it live.",
+    why: "Convert a complete-but-private profile into a published one so providers can reach out.",
+    render: () => goLiveReminderEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl,
+      city: "Killeen", providerCount: 24, topProviders: FAM_CARDS,
+    }),
+  },
+  {
+    id: "stale_conversation_family", audience: "family", group: "Family · Profile sequences",
+    label: "Stale conversation (family side)", subject: `Still looking? ${F.providerName} is here when you're ready`,
+    emailType: "stale_conversation", cron: "conversation-stale",
+    who: "A thread with ≥2 human messages went quiet 5+ days ago. Sent to the family (the provider gets a mirror).",
+    why: "Reactivate a stuck conversation before it dies — low-pressure re-open.",
+    render: () => staleConversationFamilyEmail({
+      familyName: F.familyName, providerName: F.providerName, daysSinceLastMessage: 6, viewUrl: F.inboxUrl,
+    }),
+  },
+  {
+    id: "matches_nudge", audience: "family", group: "Family · Profile sequences",
+    label: "Matches nudge", subject: "You have matches waiting",
+    emailType: "matches_nudge", cron: "matches-nudge",
+    who: "Family has unanswered matches they haven't reviewed yet.",
+    why: "Pull them back to act on matches already surfaced for them.",
+    render: () => matchesNudgeEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, unansweredCount: 3, matchesUrl: F.matchesUrl,
+    }),
+  },
+  {
+    id: "post_connection_followup", audience: "family", group: "Family · Profile sequences",
+    label: "Post-connection follow-up", subject: `How was your experience with ${F.providerName}?`,
+    emailType: "post_connection_followup", cron: "family-nudges",
+    who: "≥30 days after a real two-way conversation with a provider.",
+    why: "Ask for a review — builds UGC and gives us ground truth on how the connection went.",
+    render: () => postConnectionFollowupEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, providerName: F.providerName,
+      providerSlug: "evergreen-senior-care", reviewUrl: "https://olera.care/provider/evergreen-senior-care?review=1",
     }),
   },
 
@@ -230,4 +407,14 @@ export function getVariant(id: string): EmailVariant | undefined {
 /** Variants sent by a given cron/registry id (for the per-job automations preview). */
 export function variantsForCron(cronId: string): EmailVariant[] {
   return EMAIL_VARIANTS.filter((v) => v.cron === cronId);
+}
+
+/**
+ * Variants for a given email_type (one type can have several copy variants, e.g.
+ * provider-silent vs. provider-declined). Powers the Family Comms per-type drawer:
+ * it keys on email_type (what email_log records) and surfaces every matching
+ * rendered variant. Family audience only by default — the drawer is family-scoped.
+ */
+export function variantsForEmailType(emailType: string, audience?: EmailVariant["audience"]): EmailVariant[] {
+  return EMAIL_VARIANTS.filter((v) => v.emailType === emailType && (!audience || v.audience === audience));
 }

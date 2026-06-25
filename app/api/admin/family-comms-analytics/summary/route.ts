@@ -131,12 +131,19 @@ export async function GET(request: NextRequest) {
   const familyTypes = Array.from(FAMILY_NUDGE_EMAIL_TYPES);
 
   // ── email_log (one pass covers both window stats and the trend) ─────────
+  // Scope to recipient_type='family'. Some FAMILY_NUDGE_EMAIL_TYPES are also
+  // emitted to providers (dormant_reengagement is 100% provider; stale_conversation
+  // is a dual-sided nudge sent to BOTH provider and family). Filtering on type
+  // alone counted those provider sends as family email, inflating the dashboard
+  // and mislabeling provider emails as "best-performing family" copy. The family
+  // type-list still narrows the scan; recipient_type makes it honest.
   const { data: emailData, error: emailErr } = await db
     .from("email_log")
     .select(
       "email_type, created_at, status, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at",
     )
     .in("email_type", familyTypes)
+    .eq("recipient_type", "family")
     .gte("created_at", new Date(fetchStartMs).toISOString())
     .lte("created_at", toISO)
     .limit(100000);

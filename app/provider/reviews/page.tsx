@@ -520,7 +520,9 @@ function SendRequestForm({
   // Email form state
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState(DEFAULT_MESSAGE);
+  const [customMessage, setCustomMessage] = useState(DEFAULT_MESSAGE);
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Link form state
   const [linkClientName, setLinkClientName] = useState("");
@@ -577,7 +579,7 @@ function SendRequestForm({
   // Email submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit) return;
+    if (!clientName.trim() || !email.trim() || !customMessage.trim() || isSubmitting || isAtLimit) return;
 
     setIsSubmitting(true);
     setShowSuccess(false);
@@ -589,7 +591,7 @@ function SendRequestForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clients: [{ name: clientName.trim(), email: email.trim() }],
-          message: message.trim(),
+          message: customMessage.trim(),
           delivery_method: "email",
         }),
       });
@@ -616,7 +618,9 @@ function SendRequestForm({
       setShowSuccess(true);
       setClientName("");
       setEmail("");
-      setMessage(DEFAULT_MESSAGE);
+      // Keep customMessage so providers can reuse their personalized message
+      setShowPreview(false);
+      setIsEditingMessage(false);
       onSuccess?.();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
@@ -911,27 +915,97 @@ function SendRequestForm({
             </div>
           </div>
 
-          {/* Message */}
-          <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Your message
-            </label>
-            <textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={4}
-              placeholder="Write a personal message..."
-              disabled={isAtLimit}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 resize-y min-h-[120px] leading-relaxed disabled:bg-gray-50 disabled:cursor-not-allowed"
-              required
-            />
+          {/* Preview toggle */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${showPreview ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+              Preview the message
+            </button>
           </div>
+
+          {/* Email preview - matches actual email structure */}
+          {showPreview && (
+            <div className="p-4 bg-gray-50 rounded-xl text-left">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">What they&apos;ll receive</p>
+                {!isEditingMessage && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingMessage(true)}
+                    className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  >
+                    Edit message
+                  </button>
+                )}
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                {/* Greeting */}
+                <p className="text-sm text-gray-700 mb-3">
+                  Hi <span className="font-medium">{clientName.trim() || "Client"}</span>,
+                </p>
+                {/* Message - editable or static */}
+                {isEditingMessage ? (
+                  <div className="mb-4">
+                    <textarea
+                      value={customMessage}
+                      onChange={(e) => setCustomMessage(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 resize-none"
+                      placeholder="Write your personalized message..."
+                    />
+                    <div className="flex items-center justify-end gap-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomMessage(DEFAULT_MESSAGE);
+                          setIsEditingMessage(false);
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingMessage(false)}
+                        className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-l-2 border-primary-500 pl-3 py-1 mb-3">
+                    <p className="text-sm text-gray-600">{customMessage}</p>
+                  </div>
+                )}
+                {/* Additional text from email template */}
+                <p className="text-sm text-gray-500 mb-4">
+                  Sharing your experience helps other families find quality care — and only takes a couple of minutes.
+                </p>
+                {/* Button preview */}
+                <div className="inline-block px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg">
+                  Write a review
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Submit button */}
           <button
             type="submit"
-            disabled={!clientName.trim() || !email.trim() || !message.trim() || isSubmitting || isAtLimit}
+            disabled={!clientName.trim() || !email.trim() || !customMessage.trim() || isSubmitting || isAtLimit}
             className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
           >
             {isSubmitting ? (

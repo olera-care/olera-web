@@ -1090,7 +1090,10 @@ export default function ConnectionRow({
   // Trust email for claimed providers with delivery issues
   // This adds the email to email_overrides, allowing emails to be sent
   async function handleTrustEmail() {
-    if (!c.provider.slug && !c.provider.id) return;
+    if (!c.provider.slug && !c.provider.id) {
+      setTrustEmailError("Provider ID missing - cannot trust email");
+      return;
+    }
 
     setTrustingEmail(true);
     setTrustEmailError(null);

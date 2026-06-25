@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
 import Select from "@/components/ui/Select";
+import Modal from "@/components/ui/Modal";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
@@ -99,6 +100,7 @@ function CandidateBrowseInner() {
   const [geoState, setGeoState] = useState<string | null>(null);
   const [availabilityFilter, setAvailabilityFilter] = useState("");
   const [showScreener, setShowScreener] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [highlightFirst, setHighlightFirst] = useState(false);
   const firstCardRef = useRef<HTMLDivElement>(null);
   const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
@@ -329,7 +331,7 @@ function CandidateBrowseInner() {
     );
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white overflow-x-hidden">
       <RefreshAfterCheckout />
 
       {/* Hero — anonymous visitors only; signed-in providers get the welcome
@@ -438,12 +440,59 @@ function CandidateBrowseInner() {
 
         {/* ── Top candidates ── */}
         <div ref={topRef} id="candidates" className="scroll-mt-20">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          {/* Header row — responsive: stacked on mobile, side-by-side on desktop */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
               Top candidates {selectedUniversityName ? `near ${selectedUniversityName}` : "near you"}
             </h2>
-            <div className="flex shrink-0 items-center gap-3">
-              <div className="w-36 sm:w-44">
+
+            {/* Mobile: Filter button that opens bottom sheet */}
+            <div className="flex items-center gap-2 sm:hidden">
+              {/* Active filter chips */}
+              {universityId && (
+                <button
+                  onClick={() => onUniversityChange("")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700"
+                >
+                  <span className="truncate max-w-[100px]">
+                    {universities.find((u) => u.id === universityId)?.name || "University"}
+                  </span>
+                  <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              {availabilityFilter && (
+                <button
+                  onClick={() => setAvailabilityFilter("")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700"
+                >
+                  <span>{availabilityLabel}</span>
+                  <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              <div className="flex-1" />
+              <button
+                onClick={() => setShowMobileFilters(true)}
+                className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">Filters</span>
+                {(universityId || availabilityFilter) && (
+                  <span className="flex items-center justify-center w-5 h-5 bg-primary-500 text-white text-xs font-semibold rounded-full">
+                    {(universityId ? 1 : 0) + (availabilityFilter ? 1 : 0)}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Desktop: Inline dropdowns */}
+            <div className="hidden sm:flex shrink-0 items-center gap-3">
+              <div className="w-44">
                 <Select
                   options={universityOptions}
                   value={universityId}
@@ -455,7 +504,7 @@ function CandidateBrowseInner() {
                   searchPlaceholder="Search universities..."
                 />
               </div>
-              <div className="w-32 sm:w-40">
+              <div className="w-40">
                 <Select
                   options={availabilityOptions}
                   value={availabilityFilter}
@@ -622,6 +671,92 @@ function CandidateBrowseInner() {
           onScheduled={() => setScheduleTarget(null)}
         />
       )}
+
+      {/* Mobile filter bottom sheet */}
+      <Modal
+        isOpen={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+        title="Filters"
+        size="lg"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                onUniversityChange("");
+                setAvailabilityFilter("");
+              }}
+              className="flex-1 py-3.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setShowMobileFilters(false)}
+              className="flex-1 py-3.5 text-sm font-semibold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors"
+            >
+              Show candidates
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6 pt-2">
+          {/* University filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              University
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onUniversityChange("")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  !universityId
+                    ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                All universities
+              </button>
+              {universities.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => onUniversityChange(u.id)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    universityId === u.id
+                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {u.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Availability filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Availability
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {AVAILABILITY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value || "all"}
+                  type="button"
+                  onClick={() => setAvailabilityFilter(opt.value)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    availabilityFilter === opt.value
+                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </main>
   );
 }

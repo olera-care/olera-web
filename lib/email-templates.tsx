@@ -376,7 +376,7 @@ function authorBylineBlock(opts: { topBorder?: boolean; heading?: string; tail?:
   const heading = opts.heading
     ? `<p style="margin:0 0 4px;font-weight:600;color:#111827;">${opts.heading}</p>`
     : "";
-  const byline = `<p style="margin:${opts.tail ? "0 0 6px" : "0"};">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care less opaque for families and providers.</p>`;
+  const byline = `<p style="margin:${opts.tail ? "0 0 6px" : "0"};">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care easier to understand and compare.</p>`;
   const tail = opts.tail
     ? `<p style="margin:0;color:#9ca3af;">${opts.tail}</p>`
     : "";
@@ -391,6 +391,117 @@ function authorBylineBlock(opts: { topBorder?: boolean; heading?: string; tail?:
         </tr>
       </table>
     </div>`;
+}
+
+// ── Shared family-creative helpers (the R6 design-system) ─────────
+// Extracted from familyNudgeEmail so every family completion/nudge email
+// inherits the same de-boxed ask, momentum framing, and signature — and so a
+// fix to the pattern lands everywhere at once instead of email-by-email.
+
+// Internal completeness labels (lib/admin/profile-completeness.ts) are data-model
+// strings — "Payment Methods", "Real Name", "Timeline". Surfaced raw in a warm
+// family email they read like a form ("Adding your Real Name…"), and the array's
+// natural order isn't the order that helps matching. This maps the labels worth
+// asking for to warm family phrases. "Payment Methods" → "how you'd like to pay"
+// (not "budget" — families often don't know a number yet, and it reads transactional).
+const FIELD_PHRASES: Record<string, string> = {
+  Timeline: "care timeline",
+  "Payment Methods": "how you'd like to pay",
+  "Care Types": "the type of care you need",
+  "Care Needs": "your care needs",
+  Relationship: "who needs care",
+  "Situation Description": "a little about your situation",
+  Phone: "a phone number",
+  "Care Recipient Age": "their age",
+  "Schedule Preference": "your schedule",
+  Location: "your location",
+};
+// Don't ask for these in a warm matching email — name/photo are data-quality, not
+// care-fit, and "Real Name" reads almost like a fraud check.
+const FIELD_ASK_SKIP = new Set(["Name", "Real Name", "Photo", "Email", "Contact Preference"]);
+// Matching-relevance order — the details that most sharpen a match come first, so
+// a 3-field cap surfaces timeline + how they'll pay before anything peripheral.
+const FIELD_ASK_PRIORITY = [
+  "Timeline", "Payment Methods", "Care Types", "Care Needs", "Relationship",
+  "Situation Description", "Phone", "Care Recipient Age", "Schedule Preference", "Location",
+];
+
+/**
+ * Turn raw completeness labels into the warm, matching-relevant phrases worth
+ * asking for: drops the peripheral ones, orders by what sharpens a match, maps to
+ * family language, caps at `max`. Unknown labels pass through lowercased so new
+ * fields (and fixtures) still render. Shared by every family ask line.
+ */
+function humanizeFields(missingFields: string[], max = 3): string[] {
+  return missingFields
+    .filter((f) => !FIELD_ASK_SKIP.has(f))
+    .sort((a, b) => {
+      const ia = FIELD_ASK_PRIORITY.indexOf(a);
+      const ib = FIELD_ASK_PRIORITY.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    })
+    .slice(0, max)
+    .map((f) => FIELD_PHRASES[f] ?? f.toLowerCase());
+}
+
+/**
+ * De-boxed "ask" line — the missing profile fields read as ONE warm sentence
+ * with the field names emphasized inline, never a gray SaaS callout box.
+ * Humanized + matching-prioritized via humanizeFields, grammatical join, capped at
+ * the 3 most useful. `lead` opens the sentence and `tail` closes it (e.g.
+ * lead="Sharing your ", tail=" sharpens your matches.").
+ * Returns "" when there's nothing worth asking for, so callers can drop it in unguarded.
+ */
+function fieldAskLine(missingFields: string[], lead: string, tail: string): string {
+  const bold = humanizeFields(missingFields)
+    .map((f) => `<strong style="font-weight:600;color:#374151;">${escapeHtml(f)}</strong>`);
+  if (bold.length === 0) return "";
+  const phrase =
+    bold.length === 1
+      ? bold[0]
+      : bold.length === 2
+        ? `${bold[0]} and ${bold[1]}`
+        : `${bold[0]}, ${bold[1]}, and ${bold[2]}`;
+  return `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">${lead}${phrase}${tail}</p>`;
+}
+
+/**
+ * Momentum line — progress is only motivating when they're genuinely far along;
+ * below ~half it reads as work-remaining, so we only show it from 50%+ (and never
+ * at 100%, where it's noise). Returns "" otherwise.
+ */
+function completionProgressLine(percent: number): string {
+  return percent >= 50 && percent < 100
+    ? `<p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 20px;line-height:1.6;">You&rsquo;re already ${Math.round(percent)}% done.</p>`
+    : "";
+}
+
+/**
+ * Single source of truth for completion-sequence inbox subjects. Pure (no URL),
+ * so the family-nudges send path can call it for the pre-send log reservation
+ * BEFORE the magic link exists, while the templates below re-emit it in their
+ * returned `subject` — same string in the inbox, the preview drawer, and the log.
+ * This is what kills the subject-drift class of bug (the send path and the
+ * preview metadata used to define subjects independently and silently diverge).
+ */
+export function completionNudgeSubject(
+  n: number,
+  opts: { providerCount?: number; city?: string; state?: string } = {},
+): string {
+  const locationText = opts.city || opts.state || "your area";
+  switch (n) {
+    case 1:
+      return "Want a hand with your care search?";
+    case 2:
+      return opts.providerCount
+        ? `${opts.providerCount} providers near ${locationText}, ready when you are`
+        : `Providers near ${locationText}, ready when you are`;
+    case 3:
+      return "Want to hear back faster?";
+    case 4:
+    default:
+      return `A few providers near ${locationText} worth a look`;
+  }
 }
 
 function referralTeaserTrustBlock(): string {
@@ -2072,38 +2183,46 @@ export function completionNudge1Email(opts: {
   completionPercent?: number;
   providerCount?: number;
   city?: string;
-}): string {
-  const percent = opts.completionPercent ?? 0;
+}): { subject: string; html: string } {
   const locationText = opts.city || "your area";
-  const providerText = opts.providerCount
-    ? `${opts.providerCount} providers in ${escapeHtml(locationText)} are ready to help`
-    : `Providers in ${escapeHtml(locationText)} are ready to help`;
+  // R6 playbook: value-FIRST (what the family gets: fit + a way to pay), not
+  // provider-serving. The de-boxed ask names the 1-3 most useful missing details
+  // inline; momentum only shows once they're genuinely far along (≥50%).
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " helps us get those matches right.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
-  // Identify highest-value missing field for focused CTA
-  const highValueFields = ["Timeline", "Phone", "Payment Methods", "Relationship"];
-  const missing = opts.missingFields ?? [];
-  const topMissing = missing.find(f => highValueFields.includes(f)) || missing[0];
-
-  const preheader = `Help providers in ${locationText} understand how to help you`;
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A quick question about your care search</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, providers respond faster when they understand your situation. Right now, your profile is ${percent}% complete.
+  return {
+    subject: completionNudgeSubject(1, { city: opts.city, providerCount: opts.providerCount }),
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Care is hard to figure out. Cost is harder.</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search on Olera, and we can help with both: finding the right fit, and figuring out how to pay for it.
     </p>
-    ${topMissing ? `
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      <strong>The most helpful thing you can add:</strong> ${escapeHtml(topMissing.toLowerCase())}
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Whenever you&rsquo;re ready, tell us a little more and we&rsquo;ll point you to providers near ${escapeHtml(locationText)} that actually fit.
     </p>
-    ` : ""}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      ${providerText} — they just need a bit more context about your needs.
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
     </p>
-    <div>${button("Continue Your Profile", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader);
+  `,
+      // Preheader (inbox preview after the subject) — the subject is the warm
+      // opener, so this carries the substance: the cost help. Plain apostrophe on
+      // purpose: preheaderHtml escapes &, so an &rsquo; entity would render literally.
+      `Plus a look at any programs that can help with the cost.`,
+    ),
+  };
 }
 
 /** Completion Nudge #2 (Day 2): Progress encouragement, provider count */
@@ -2117,28 +2236,46 @@ export function completionNudge2Email(opts: {
   providerCount?: number;
   city?: string;
   state?: string;
-}): string {
-  const percent = opts.completionPercent ?? 0;
+}): { subject: string; html: string } {
   const locationText = opts.city || opts.state || "your area";
-  const providerText = opts.providerCount
-    ? `${opts.providerCount} providers in ${escapeHtml(locationText)} are looking for families to help`
-    : `Providers in ${escapeHtml(locationText)} are looking for families to help`;
+  // Day-2 angle: social proof — real providers near them — but framed as THEIR
+  // options, not providers "hunting families". Same shared system as nudge_1.
+  const countClause = opts.providerCount
+    ? `${opts.providerCount} providers near ${escapeHtml(locationText)}`
+    : `providers near ${escapeHtml(locationText)}`;
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " helps us point you to the right ones.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
-  const preheader = `You're ${percent}% there — just a few more details`;
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${providerText}</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you're ${percent}% of the way there.
+  return {
+    subject: completionNudgeSubject(2, { providerCount: opts.providerCount, city: opts.city, state: opts.state }),
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">There&rsquo;s more help near you than you might think</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; since you started looking, here&rsquo;s the good news: there really are ${countClause} who can help.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      When providers can see your full situation — timeline, care needs, how you'd like to pay — they can reach out with real answers instead of generic questions.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      The hard part is knowing which ones fit your situation. Tell us a little more and we&rsquo;ll narrow it down for you.
     </p>
-    <div>${button("Add a Few Details", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader);
+  `,
+      // Subject carries the count; preheader carries the next step.
+      `A couple details and we'll point you to the ones that fit.`,
+    ),
+  };
 }
 
 /** Completion Nudge #3 (Day 5): Social proof */
@@ -2152,27 +2289,39 @@ export function completionNudge3Email(opts: {
   providerCount?: number;
   city?: string;
   state?: string;
-}): string {
-  const percent = opts.completionPercent ?? 0;
+}): { subject: string; html: string } {
+  // Day-6 angle: the payoff of finishing — you hear back faster, with real answers
+  // instead of "tell me more". Friend-voice, same shared system as nudge_1/2.
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " is usually all it takes.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
-  const preheader = `Your profile is ${percent}% complete`;
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families with complete profiles hear back faster</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, here's what we've seen: families who share their full situation — who needs care, when, and how they'll pay — get responses faster.
+  return {
+    subject: completionNudgeSubject(3, { city: opts.city, state: opts.state }),
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A little more, and providers can actually help</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; here&rsquo;s something we&rsquo;ve noticed: when providers can see what you&rsquo;re looking for, they can reply faster, with real answers instead of &ldquo;can you tell me more?&rdquo;
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Providers can skip the back-and-forth and give you real information right away.
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Your profile is ${percent}% complete. A few more details and you'll be ready to connect.
-    </p>
-    <div>${button("Finish Up", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader);
+  `,
+      // Subject is the warm hook; preheader carries the mechanism.
+      `When providers can see the basics, they reply with real answers.`,
+    ),
+  };
 }
 
 /** Completion Nudge #4 (Day 7): Show specific providers */
@@ -2183,35 +2332,51 @@ export function completionNudge4Email(opts: {
   welcomeUrl: string;
   missingFields?: string[];
   completionPercent?: number;
-  providers?: EmailProviderCard[];
+  providers?: CompareCardItem[];
   providerCount?: number;
   city?: string;
   state?: string;
-}): string {
-  const percent = opts.completionPercent ?? 0;
+}): { subject: string; html: string } {
   const locationText = opts.city || opts.state || "your area";
-  const providersHtml = opts.providers?.length ? providerCardsBlock(opts.providers) : "";
+  // Photo + hairline cards (the matches-email style), not the boxed text cards.
+  const providersHtml = opts.providers?.length ? compareCardsBlock(opts.providers) : "";
   const remainingCount = (opts.providerCount ?? 0) - (opts.providers?.length ?? 0);
+  // Day-13 final touch: make it concrete — actual providers near them, as cards —
+  // and keep it warm and low-pressure. Same shared system; the cards are the hero.
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " helps us match you to the right ones.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
-  const preheader = `They're ready to help when you are`;
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Providers near you (including these top-rated ones)</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, here are a few highly-rated providers in ${escapeHtml(locationText)}:
+  return {
+    subject: completionNudgeSubject(4, { city: opts.city, state: opts.state }),
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A few providers near you who could help</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search a little while back, so here are a few highly-rated providers near ${escapeHtml(locationText)} to give you a real starting point:
     </p>
     ${providersHtml}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      ${remainingCount > 0 ? `These providers (and ${remainingCount} others) are looking for families to help. ` : ""}Once your profile is complete, they can see your situation and reach out directly.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      ${remainingCount > 0 ? `There are ${remainingCount} more near you. ` : ""}Whenever you&rsquo;re ready, tell us a little more and the ones that fit can reach out to you directly &mdash; already knowing your situation.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're ${percent}% there.
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
     </p>
-    <div>${button("Finish Your Profile", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader);
+  `,
+      // Subject lists the providers; preheader carries the low-pressure tone.
+      `Real options near you — no rush.`,
+    ),
+  };
 }
 
 // ── Profile Publish Sequence (4 active + 1 maintenance) ──────────
@@ -4503,20 +4668,13 @@ export function familyNudgeEmail(opts: {
   /** Benefits quiz deep-link — the value-exchange hero when present. */
   benefitsQuizUrl?: string | null;
 }): string {
-  // De-boxed (no gray SaaS callout): the missing fields read as one warm line
-  // with the field names emphasized inline. Grammatical join, capped at 3.
-  const boldFields = opts.missingFields
-    .slice(0, 3)
-    .map((f) => `<strong style="font-weight:600;color:#374151;">${escapeHtml(f)}</strong>`);
-  const fieldPhrase =
-    boldFields.length <= 1
-      ? boldFields[0] ?? ""
-      : boldFields.length === 2
-        ? `${boldFields[0]} and ${boldFields[1]}`
-        : `${boldFields[0]}, ${boldFields[1]}, and ${boldFields[2]}`;
-  const askLine = fieldPhrase
-    ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">Sharing your ${fieldPhrase} would sharpen these matches the most.</p>`
-    : "";
+  // De-boxed ask (shared helper): the missing fields read as one warm line with
+  // the field names emphasized inline — never a gray SaaS callout.
+  const askLine = fieldAskLine(
+    opts.missingFields,
+    "Sharing your ",
+    " would sharpen these matches the most.",
+  );
 
   // The quiz is the hero when we have it (it both sharpens matches AND surfaces
   // benefits — completion as value-exchange, never a naked profile-nag). Falls
@@ -4532,12 +4690,9 @@ export function familyNudgeEmail(opts: {
   const providerClause = opts.providerName
     ? ` and reached out to ${escapeHtml(opts.providerName)}`
     : "";
-  // Progress is only motivating when they're genuinely far along; below ~half it
-  // reads as work-remaining, so we only show it from 50%+ (and never at 100%).
-  const progressLine =
-    opts.completionPercent >= 50 && opts.completionPercent < 100
-      ? `<p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 20px;line-height:1.6;">You're already ${Math.round(opts.completionPercent)}% done.</p>`
-      : "";
+  // Momentum line (shared helper): only shown from 50%+ — below that it reads as
+  // work-remaining rather than progress.
+  const progressLine = completionProgressLine(opts.completionPercent);
 
   return layout(
     `

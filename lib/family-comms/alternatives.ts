@@ -94,7 +94,7 @@ function stockSlugForCareType(careType: string | undefined): string {
   };
   return map[norm] || "home-care";
 }
-function categoryStockImage(careType: string | undefined, index: number): string {
+export function categoryStockImage(careType: string | undefined, index: number): string {
   const slug = stockSlugForCareType(careType);
   const variant = (index % 3) + 1; // rotate 1..3 so 3 same-category cards aren't identical
   return `${STOCK_BASE}/${slug}-${variant}.jpg`;

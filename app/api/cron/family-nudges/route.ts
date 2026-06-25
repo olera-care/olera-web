@@ -10,6 +10,7 @@ import {
   completionNudge2Email,
   completionNudge3Email,
   completionNudge4Email,
+  completionNudgeSubject,
   publishNudge1Email,
   publishNudge2Email,
   publishNudge3Email,
@@ -21,6 +22,8 @@ import {
   monthlyProviderRecommendationsEmail,
   inactivityReengagementEmail,
 } from "@/lib/email-templates";
+import type { CompareCardItem } from "@/lib/email-templates";
+import { categoryStockImage } from "@/lib/family-comms/alternatives";
 import { withCronRun } from "@/lib/crons/run";
 import {
   fetchFamilyProfilesPage,
@@ -851,23 +854,14 @@ export async function GET(request: NextRequest) {
             emailType = "completion_maintenance";
             counts.maintenanceNudges++;
           } else {
-            switch (nudgeNumber) {
-              case 1:
-                subject = "Quick question about your care search";
-                break;
-              case 2:
-                subject = providerCount
-                  ? `${providerCount} providers in ${locationText} are looking for families`
-                  : `Providers in ${locationText} are looking for families`;
-                break;
-              case 3:
-                subject = "Families with complete profiles hear back faster";
-                break;
-              case 4:
-              default:
-                subject = `Providers near you (including these top-rated ones)`;
-                break;
-            }
+            // Subject is owned by the template (completionNudgeSubject) now, so the
+            // inbox subject, the preview drawer, and the email_log row all read from
+            // one source and can't silently drift.
+            subject = completionNudgeSubject(nudgeNumber, {
+              providerCount,
+              city: family.city || undefined,
+              state: family.state || undefined,
+            });
             emailType = `completion_nudge_${nudgeNumber}`;
             counts.completionNudges++;
             // Also increment legacy counter for backward compat reporting
@@ -921,7 +915,7 @@ export async function GET(request: NextRequest) {
                   completionPercent: completeness.percentage,
                   providerCount,
                   city: family.city || undefined,
-                });
+                }).html;
                 break;
               case 2:
                 html = completionNudge2Email({
@@ -933,7 +927,7 @@ export async function GET(request: NextRequest) {
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
-                });
+                }).html;
                 break;
               case 3:
                 html = completionNudge3Email({
@@ -945,22 +939,34 @@ export async function GET(request: NextRequest) {
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
-                });
+                }).html;
                 break;
               case 4:
-              default:
+              default: {
+                // Photo cards (the matches-email style). Directory providers are the
+                // reliable source; each gets a category stock image (the same email-safe
+                // fallback the coordinator uses) so cards never render blank.
+                const recCards: CompareCardItem[] = topProviders.map((p, i) => ({
+                  name: p.name,
+                  viewUrl: `${siteUrl}/provider/${p.slug}`,
+                  imageUrl: categoryStockImage(p.category, i),
+                  priceRange: p.priceRange ?? null,
+                  rating: p.rating || null,
+                  reviewCount: p.reviewCount || null,
+                }));
                 html = completionNudge4Email({
                   unsubscribeId: family.id,
                   familyName: firstName,
                   welcomeUrl,
                   missingFields: completeness.missingFields,
                   completionPercent: completeness.percentage,
-                  providers: topProviders,
+                  providers: recCards,
                   providerCount,
                   city: family.city || undefined,
                   state: family.state || undefined,
-                });
+                }).html;
                 break;
+              }
             }
           }
 

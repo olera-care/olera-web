@@ -29,6 +29,7 @@ interface EngagementCounts {
   needs_follow_up: number;
   declined: number;
   needs_email: number;
+  delivery_issues: number;
   archived: number;
 }
 
@@ -83,7 +84,7 @@ type FamilyEngagementLevel = "new" | "awaiting" | "connected" | "needs_follow_up
 type Perspective = "provider" | "family";
 
 // Engagement-based tabs
-type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "declined" | "admin_not_interested" | "archived";
+type ProviderFilterKey = "all" | EngagementLevel | "needs_email" | "delivery_issues" | "declined" | "admin_not_interested" | "archived";
 type FamilyFilterKey = "all" | FamilyEngagementLevel;
 type FilterKey = ProviderFilterKey | FamilyFilterKey;
 
@@ -105,7 +106,8 @@ const PROVIDER_TABS: TabConfig[] = [
   { key: "declined", label: "Declined", description: "Provider declined lead in portal (not a fit, not accepting clients, etc.)", emptyMessage: "No declined leads." },
   // Admin workflow
   { key: "needs_follow_up", label: "Needs Follow-up", description: "Email sequence complete, no response - requires manual intervention", emptyMessage: "No providers need follow-up." },
-  { key: "needs_email", label: "Needs Email", description: "Provider has no email, invalid email, or delivery failed", emptyMessage: "All providers have working emails." },
+  { key: "needs_email", label: "Needs Email", description: "Provider has no email on file - find and add one", emptyMessage: "All providers have an email on file." },
+  { key: "delivery_issues", label: "Delivery Issues", description: "Email bounced, failed, or invalid - try override or find new email", emptyMessage: "No delivery issues." },
   { key: "admin_not_interested", label: "Not Interested", description: "Admin confirmed provider not interested (soft rejection)", emptyMessage: "No leads marked as not interested." },
   { key: "archived", label: "Archived", description: "Admin-archived providers - no emails sent to them", emptyMessage: "No archived providers." },
   { key: "all", label: "All", description: "Everything", emptyMessage: "No connections yet." },
@@ -844,15 +846,23 @@ export default function ConnectionsTrackerPage() {
     }
 
     // Check email issue and claimed status
-    const hasEmailIssue = conn.emailIssueType !== null && conn.emailIssueType !== undefined;
+    const emailIssueType = conn.emailIssueType;
+    const hasEmailIssue = emailIssueType !== null && emailIssueType !== undefined;
     const isProviderClaimed = conn.provider?.isAccountClaimed === true;
     const engagementLevel = conn.engagementLevel;
     const hasProviderEngagement = engagementLevel === "viewed" || engagementLevel === "connected";
 
     // Claimed providers with email issues go to engagement tab (we can't fix their email)
-    // Unclaimed providers with email issues and no engagement go to Needs Email
+    // Unclaimed providers with email issues and no engagement go to email-related tabs
     if (hasEmailIssue && !isProviderClaimed && !hasProviderEngagement) {
-      return { tab: "needs_email", label: "Needs Email" };
+      // Split by issue type:
+      // - no_email → Needs Email (find and add an email)
+      // - failed/invalid → Delivery Issues (try override or find new email)
+      if (emailIssueType === "no_email") {
+        return { tab: "needs_email", label: "Needs Email" };
+      } else {
+        return { tab: "delivery_issues", label: "Delivery Issues" };
+      }
     }
 
     // Otherwise, go to engagement-based tab

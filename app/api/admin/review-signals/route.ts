@@ -112,6 +112,50 @@ export async function GET() {
   }
 }
 
+/**
+ * DELETE /api/admin/review-signals
+ *
+ * Deletes all "review_no_email_signal" events for a given provider.
+ * Body: { providerId: string }
+ */
+export async function DELETE(req: Request) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const providerId = body.providerId;
+
+    if (!providerId || typeof providerId !== "string") {
+      return NextResponse.json({ error: "providerId is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    const { error: deleteError, count } = await db
+      .from("provider_activity")
+      .delete({ count: "exact" })
+      .eq("event_type", "review_no_email_signal")
+      .eq("provider_id", providerId);
+
+    if (deleteError) {
+      console.error("Failed to delete review signals:", deleteError);
+      return NextResponse.json({ error: "Failed to delete signals" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, deleted: count ?? 0 });
+  } catch (err) {
+    console.error("Review signals delete error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 function formatSlug(slug: string): string {
   return slug
     .replace(/-/g, " ")

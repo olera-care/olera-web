@@ -919,35 +919,24 @@ export async function GET(request: NextRequest) {
       const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       const queryDateFrom = dateFrom || fallbackDate;
 
-      // Query email_log filtered by recipient emails we care about
-      // This is much more efficient than getting all 5000 recent emails
-      // Note: Supabase IN clause has a limit, so we batch if needed
-      const allEmailLogEntries: Array<{
-        metadata: unknown;
-        status: string | null;
-        bounced_at: string | null;
-        created_at: string;
-        recipient: string | null;
-      }> = [];
+      // Query email_log for provider emails, then filter in memory by lowercase recipient
+      // We don't filter by recipient in the query to avoid case-sensitivity issues
+      // (email_log stores recipients with original case, but we normalize to lowercase)
+      // Use a high limit since we filter in memory anyway
+      const { data: rawEmailLogEntries } = await db
+        .from("email_log")
+        .select("metadata, status, bounced_at, created_at, recipient")
+        .eq("recipient_type", "provider")
+        .gte("created_at", queryDateFrom)
+        .order("created_at", { ascending: false })
+        .limit(10000);
 
-      // Batch query in chunks of 200 recipients (conservative to avoid URL length issues)
-      const uniqueEmails = [...new Set(providerEmailsInView)];
-      for (let i = 0; i < uniqueEmails.length; i += 200) {
-        const batch = uniqueEmails.slice(i, i + 200);
-        const { data: batchEntries } = await db
-          .from("email_log")
-          .select("metadata, status, bounced_at, created_at, recipient")
-          .eq("recipient_type", "provider")
-          .in("recipient", batch)
-          .gte("created_at", queryDateFrom)
-          .order("created_at", { ascending: false });
-
-        if (batchEntries) {
-          allEmailLogEntries.push(...batchEntries);
-        }
-      }
-
-      const emailLogEntries = allEmailLogEntries;
+      // Filter to only emails for providers we're displaying (using lowercase comparison)
+      const providerEmailSet = new Set(providerEmailsInView); // already lowercase
+      const emailLogEntries = (rawEmailLogEntries ?? []).filter(e => {
+        const recipient = (e.recipient as string | null)?.toLowerCase().trim();
+        return recipient && providerEmailSet.has(recipient);
+      });
 
       // Track the most recent email per connection
       // Key: connection_id, Value: { isFailed: boolean, timestamp: string }

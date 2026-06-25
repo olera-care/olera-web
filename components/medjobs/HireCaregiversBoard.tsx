@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
+import Select from "@/components/ui/Select";
+import Modal from "@/components/ui/Modal";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
@@ -72,6 +74,8 @@ export default function HireCaregiversBoard() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateData | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
+  // Track which mobile filter bottom sheet is open: null, "university", or "availability"
+  const [mobileFilterOpen, setMobileFilterOpen] = useState<"university" | "availability" | null>(null);
   // null = unknown/not yet resolved; false = provider not near any partner campus
   // (→ show demos); true = in a catchment (→ show that campus's real students).
   const [inCatchment, setInCatchment] = useState<boolean | null>(null);
@@ -168,33 +172,83 @@ export default function HireCaregiversBoard() {
     .map((c) => candidateToCardFormat(c, isDemoEra ? { isDemo: true } : undefined))
     .filter((c) => c.lat != null && c.lon != null);
 
-  const selectClass = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700";
+  // Options for Select dropdowns
+  const universityOptions = [
+    { value: "", label: "All universities" },
+    ...universities.map((u) => ({ value: u.id, label: u.name })),
+  ];
+  const availabilityOptions = AVAIL_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
 
   // Provider is signed in here; scheduling opens the modal directly (the terms
   // opt-in lives inside it). Demo cards link to the demo detail page instead.
   const openSchedule = (c: CandidateData) => setScheduleTarget(c);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
       <div className="mb-5">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Hire Caregivers</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Hire Caregivers</h1>
         <p className="text-gray-500 mt-1">
           Browse student caregivers {campusName ? `near ${campusName}` : "near you"} and schedule interviews.
         </p>
       </div>
 
-      <div className="mb-5 flex items-center gap-3">
-        <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass} aria-label="Filter by university">
-          <option value="">All universities</option>
-          {universities.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
-          ))}
-        </select>
-        <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass} aria-label="Filter by availability">
-          {AVAIL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+      {/* Mobile: Two explicit filter buttons that open bottom sheets */}
+      <div className="mb-5 flex items-center gap-2 sm:hidden">
+        <button
+          onClick={() => setMobileFilterOpen("university")}
+          className={`flex-1 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
+            universityId ? "border-primary-300 text-primary-700" : "border-gray-200 text-gray-700"
+          }`}
+        >
+          <span className="truncate">
+            {universityId
+              ? universities.find((u) => u.id === universityId)?.name || "University"
+              : "All universities"}
+          </span>
+          <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={() => setMobileFilterOpen("availability")}
+          className={`flex-1 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
+            availability ? "border-primary-300 text-primary-700" : "border-gray-200 text-gray-700"
+          }`}
+        >
+          <span className="truncate">{availability ? availLabel : "All availability"}</span>
+          <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Desktop: Inline Select dropdowns */}
+      <div className="mb-5 hidden sm:flex items-center gap-3">
+        <div className="w-48">
+          <Select
+            options={universityOptions}
+            value={universityId}
+            onChange={setUniversityId}
+            placeholder="All universities"
+            ariaLabel="Filter by university"
+            size="sm"
+            searchable={universities.length > 8}
+            searchPlaceholder="Search universities..."
+          />
+        </div>
+        <div className="w-40">
+          <Select
+            options={availabilityOptions}
+            value={availability}
+            onChange={setAvailability}
+            placeholder="All availability"
+            ariaLabel="Filter by availability"
+            size="sm"
+          />
+        </div>
         {(universityId || availability) && (
           <button
             type="button"
@@ -294,6 +348,76 @@ export default function HireCaregiversBoard() {
           onScheduled={() => setScheduleTarget(null)}
         />
       )}
+
+      {/* Mobile: University filter bottom sheet */}
+      <Modal
+        isOpen={mobileFilterOpen === "university"}
+        onClose={() => setMobileFilterOpen(null)}
+        title="University"
+        size="lg"
+      >
+        <div className="flex flex-wrap gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setUniversityId("");
+              setMobileFilterOpen(null);
+            }}
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              !universityId
+                ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            All universities
+          </button>
+          {universities.map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => {
+                setUniversityId(u.id);
+                setMobileFilterOpen(null);
+              }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                universityId === u.id
+                  ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {u.name}
+            </button>
+          ))}
+        </div>
+      </Modal>
+
+      {/* Mobile: Availability filter bottom sheet */}
+      <Modal
+        isOpen={mobileFilterOpen === "availability"}
+        onClose={() => setMobileFilterOpen(null)}
+        title="Availability"
+        size="lg"
+      >
+        <div className="flex flex-wrap gap-2 pt-2">
+          {AVAIL_OPTIONS.map((opt) => (
+            <button
+              key={opt.value || "all"}
+              type="button"
+              onClick={() => {
+                setAvailability(opt.value);
+                setMobileFilterOpen(null);
+              }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                availability === opt.value
+                  ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }

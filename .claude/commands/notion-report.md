@@ -2,7 +2,7 @@
 
 Capture the current state of **this branch** and publish a resume-ready handoff page to Notion, so future-you (or a cold Claude session) can pick the work back up after compacting, context loss, or just time away.
 
-This is the **"I'm pausing this branch" report** — distinct from `/pr-merge`'s PR Merge Reports (those are post-merge records). This one is mid-project, branch-not-yet-merged, and optimized for *resuming*. Its single most important output is a copy-paste `cd` line into this worktree, plus a paste-after-compacting prompt.
+This is the **"I'm pausing this branch" report** — the *mid-project* entry in the **Branch Handoff Reports** database, branch-not-yet-merged, optimized for *resuming*. Its single most important output is a copy-paste `cd` line into this worktree, plus a paste-after-compacting prompt. `/pr-merge` and `/promote-to-main` write to the **same database** at the other end of a branch's life — they create-or-update the handoff with `Status = Merged` when the work ships. So a branch can have one continuous record: paused → resumed → merged.
 
 ## Usage
 

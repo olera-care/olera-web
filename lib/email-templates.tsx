@@ -4503,10 +4503,20 @@ export function familyNudgeEmail(opts: {
   /** Benefits quiz deep-link — the value-exchange hero when present. */
   benefitsQuizUrl?: string | null;
 }): string {
-  const missingSummary =
-    opts.missingFields.length <= 3
-      ? opts.missingFields.join(", ")
-      : `${opts.missingFields.slice(0, 3).join(", ")}, and ${opts.missingFields.length - 3} more`;
+  // De-boxed (no gray SaaS callout): the missing fields read as one warm line
+  // with the field names emphasized inline. Grammatical join, capped at 3.
+  const boldFields = opts.missingFields
+    .slice(0, 3)
+    .map((f) => `<strong style="font-weight:600;color:#374151;">${escapeHtml(f)}</strong>`);
+  const fieldPhrase =
+    boldFields.length <= 1
+      ? boldFields[0] ?? ""
+      : boldFields.length === 2
+        ? `${boldFields[0]} and ${boldFields[1]}`
+        : `${boldFields[0]}, ${boldFields[1]}, and ${boldFields[2]}`;
+  const askLine = fieldPhrase
+    ? `<p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">Sharing your ${fieldPhrase} would sharpen these matches the most.</p>`
+    : "";
 
   // The quiz is the hero when we have it (it both sharpens matches AND surfaces
   // benefits — completion as value-exchange, never a naked profile-nag). Falls
@@ -4521,11 +4531,6 @@ export function familyNudgeEmail(opts: {
   const providerClause = opts.providerName
     ? ` and reached out to ${escapeHtml(opts.providerName)}`
     : "";
-  // Count-aware so the lead-in never miscounts the fields listed below it.
-  const detailsLead =
-    opts.missingFields.length === 1
-      ? "One quick detail improves your matches:"
-      : "A few quick details improve your matches:";
   // Progress is only motivating when they're genuinely far along; below ~half it
   // reads as work-remaining, so we only show it from 50%+ (and never at 100%).
   const progressLine =
@@ -4535,7 +4540,7 @@ export function familyNudgeEmail(opts: {
 
   return layout(
     `
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Find better-fit care near you</h1>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Let&rsquo;s find care that fits</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
       Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera${providerClause}. Finding the right fit is a big decision, and it's normal to need time to compare options.
     </p>
@@ -4543,10 +4548,7 @@ export function familyNudgeEmail(opts: {
       Share a couple more details and we'll show you better-matched providers near you, plus the programs that may help cover the cost.
     </p>
     ${progressLine}
-    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
-      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">${detailsLead}</p>
-      <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
-    </div>
+    ${askLine}
     <div>${button(primaryLabel, primaryUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
       Cost is often the first question families have — this same step shows what financial help you may qualify for.
@@ -4559,7 +4561,7 @@ export function familyNudgeEmail(opts: {
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,
-    `Find better-fit care near you — and how to pay for it`
+    `Let's find care that fits — and how to pay for it`
   );
 }
 

@@ -494,8 +494,8 @@ export function completionNudgeSubject(
       return "Want a hand with your care search?";
     case 2:
       return opts.providerCount
-        ? `${opts.providerCount} providers in ${locationText} are looking for families`
-        : `Providers in ${locationText} are looking for families`;
+        ? `${opts.providerCount} providers near ${locationText}, ready when you are`
+        : `Providers near ${locationText}, ready when you are`;
     case 3:
       return "Families with complete profiles hear back faster";
     case 4:
@@ -2237,29 +2237,44 @@ export function completionNudge2Email(opts: {
   city?: string;
   state?: string;
 }): { subject: string; html: string } {
-  const percent = opts.completionPercent ?? 0;
   const locationText = opts.city || opts.state || "your area";
-  const providerText = opts.providerCount
-    ? `${opts.providerCount} providers in ${escapeHtml(locationText)} are looking for families to help`
-    : `Providers in ${escapeHtml(locationText)} are looking for families to help`;
-
-  const preheader = `You're ${percent}% there — just a few more details`;
+  // Day-2 angle: social proof — real providers near them — but framed as THEIR
+  // options, not providers "hunting families". Same shared system as nudge_1.
+  const countClause = opts.providerCount
+    ? `${opts.providerCount} providers near ${escapeHtml(locationText)}`
+    : `providers near ${escapeHtml(locationText)}`;
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " helps us point you to the right ones.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
   return {
     subject: completionNudgeSubject(2, { providerCount: opts.providerCount, city: opts.city, state: opts.state }),
-    html: layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${providerText}</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you're ${percent}% of the way there.
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">There&rsquo;s more help near you than you might think</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; since you started looking, here&rsquo;s the good news: there really are ${countClause} who can help.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      When providers can see your full situation — timeline, care needs, how you'd like to pay — they can reach out with real answers instead of generic questions.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      The hard part is knowing which ones fit your situation. Tell us a little more and we&rsquo;ll narrow it down for you.
     </p>
-    <div>${button("Add a Few Details", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader),
+  `,
+      // Subject carries the count; preheader carries the next step.
+      `A couple details and we'll point you to the ones that fit.`,
+    ),
   };
 }
 

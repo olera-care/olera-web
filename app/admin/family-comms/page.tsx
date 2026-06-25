@@ -99,6 +99,7 @@ interface VariantMeta {
   cron: string | null;
   who: string | null;
   why: string | null;
+  from: string;
 }
 
 /**
@@ -226,9 +227,14 @@ function EmailTypeDrawer({
               </div>
             )}
 
-            {active && active.subject && (
-              <div className="mb-2 rounded-md bg-gray-50 px-3 py-2 text-[12px] text-gray-600">
-                <span className="text-gray-400">Subject:</span> {active.subject}
+            {active && (
+              <div className="mb-2 space-y-1 rounded-md bg-gray-50 px-3 py-2 text-[12px] text-gray-600">
+                {active.from && (
+                  <div><span className="inline-block w-12 text-gray-400">From</span> {active.from}</div>
+                )}
+                {active.subject && (
+                  <div><span className="inline-block w-12 text-gray-400">Subject</span> {active.subject}</div>
+                )}
               </div>
             )}
 

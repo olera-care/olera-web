@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser } from "@/lib/admin";
 import { getVariant, EMAIL_VARIANTS } from "@/lib/email-samples";
+import { resolveFromAddress } from "@/lib/email";
 
 /**
  * GET /api/admin/emails/sample
@@ -28,6 +29,8 @@ export async function GET(req: Request) {
         id: v.id, audience: v.audience, group: v.group, label: v.label,
         subject: v.subject, emailType: v.emailType, cron: v.cron ?? null,
         who: v.who ?? null, why: v.why ?? null,
+        // The real From this type sends from (mirrors the live send path).
+        from: resolveFromAddress(undefined, v.emailType),
       })),
     });
   }

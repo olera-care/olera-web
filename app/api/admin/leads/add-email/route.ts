@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { verifyAndCache } from "@/lib/email-verification";
+import { markEmailTrusted } from "@/lib/email";
 
 /**
  * POST /api/admin/leads/add-email
@@ -123,6 +124,18 @@ export async function POST(request: NextRequest) {
           .update({ email: effectiveEmail })
           .eq("provider_id", profile.source_provider_id);
       }
+    }
+
+    // If the admin forced past the verification gate, this is a human-trusted
+    // address. Record it on the trust allowlist (email_overrides) so future sends
+    // AND the connections queue stop re-flagging it as invalid — otherwise the
+    // override reverts to Needs Email on the next list load. Best-effort.
+    if (force) {
+      await markEmailTrusted(effectiveEmail, {
+        reason: "admin",
+        note: `add-email override on profile ${profileId}`,
+        createdBy: `admin:${adminUser.id}`,
+      });
     }
 
     // Check if provider has opted out of lead emails

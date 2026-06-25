@@ -443,23 +443,25 @@ function CandidateBrowseInner() {
               Top candidates {selectedUniversityName ? `near ${selectedUniversityName}` : "near you"}
             </h2>
             <div className="flex shrink-0 items-center gap-3">
-              <div className="w-44">
+              <div className="w-36 sm:w-44">
                 <Select
                   options={universityOptions}
                   value={universityId}
                   onChange={onUniversityChange}
                   placeholder="All universities"
+                  ariaLabel="Filter by university"
                   size="sm"
                   searchable={universities.length > 8}
                   searchPlaceholder="Search universities..."
                 />
               </div>
-              <div className="w-40">
+              <div className="w-32 sm:w-40">
                 <Select
                   options={availabilityOptions}
                   value={availabilityFilter}
                   onChange={setAvailabilityFilter}
                   placeholder="All availability"
+                  ariaLabel="Filter by availability"
                   size="sm"
                 />
               </div>

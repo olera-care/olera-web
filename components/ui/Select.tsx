@@ -24,6 +24,8 @@ interface SelectProps {
   placeholder?: string;
   /** Optional label above the select */
   label?: string;
+  /** Accessible label for screen readers (when no visible label) */
+  ariaLabel?: string;
   /** Show required indicator */
   required?: boolean;
   /** Disabled state */
@@ -64,6 +66,7 @@ export default function Select({
   onChange,
   placeholder = "Select an option",
   label,
+  ariaLabel,
   required = false,
   disabled = false,
   error = false,
@@ -370,6 +373,7 @@ export default function Select({
         ].filter(Boolean).join(" ")}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-label={!label ? ariaLabel : undefined}
         aria-labelledby={label ? labelId : undefined}
         aria-controls={listboxId}
         aria-invalid={error}

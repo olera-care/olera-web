@@ -82,9 +82,19 @@ export default function PriceEstimate({
   const disclaimer = config?.disclaimer(copyCtx) ?? "Price is an estimate and may vary.";
   const coverageNote = config?.coverageNote ? config.coverageNote(copyCtx) : null;
 
+  // Extract the low end from range strings like "$2,255-$5,500/mo" or "$2 255 - $7 667/mo"
+  // and normalize the number to use comma separators
+  const rangeMatch = priceRange.match(/^(\$[\d,\s]+)\s*[-–]\s*\$[\d,\s]+(\/\w+.*)$/);
+  let displayPrice = priceRange;
+  if (rangeMatch) {
+    const rawNum = rangeMatch[1].replace(/[$,\s]/g, "");
+    const formatted = Number(rawNum).toLocaleString("en-US");
+    displayPrice = `From $${formatted}${rangeMatch[2]}`;
+  }
+
   return (
     <div className="relative inline-flex items-center gap-1.5" ref={ref}>
-      <p className="text-lg font-semibold text-gray-900">{priceRange}</p>
+      <p className="text-lg font-semibold text-gray-900">{displayPrice}</p>
       <span className="text-xs text-gray-400 font-normal self-center">est.</span>
 
       {/* Info button with proper 44px touch target (visually small icon) */}

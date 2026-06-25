@@ -907,20 +907,47 @@ export async function GET(request: NextRequest) {
     const recipientsWithDeliveryFailure = new Set<string>();
     const recipientsWithSuccessfulDelivery = new Set<string>();
 
-    if (connectionIdsInView.size > 0) {
+    // Collect provider emails early so we can filter the email_log query
+    const providerEmailsInView: string[] = [];
+    for (const c of searched) {
+      const email = c.provider.email?.trim().toLowerCase();
+      if (email) providerEmailsInView.push(email);
+    }
+
+    if (connectionIdsInView.size > 0 && providerEmailsInView.length > 0) {
       // Scope query to the date range we're viewing (or last 90 days if no filter)
       const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       const queryDateFrom = dateFrom || fallbackDate;
 
-      // Query email_log for ALL provider emails (not just failed) to find most recent status
-      // We need to check if the MOST RECENT email for each connection failed
-      const { data: emailLogEntries } = await db
-        .from("email_log")
-        .select("metadata, status, bounced_at, created_at, recipient")
-        .eq("recipient_type", "provider")
-        .gte("created_at", queryDateFrom)
-        .order("created_at", { ascending: false })
-        .limit(5000);
+      // Query email_log filtered by recipient emails we care about
+      // This is much more efficient than getting all 5000 recent emails
+      // Note: Supabase IN clause has a limit, so we batch if needed
+      const allEmailLogEntries: Array<{
+        metadata: unknown;
+        status: string | null;
+        bounced_at: string | null;
+        created_at: string;
+        recipient: string | null;
+      }> = [];
+
+      // Batch query in chunks of 200 recipients (conservative to avoid URL length issues)
+      const uniqueEmails = [...new Set(providerEmailsInView)];
+      for (let i = 0; i < uniqueEmails.length; i += 200) {
+        const batch = uniqueEmails.slice(i, i + 200);
+        const { data: batchEntries } = await db
+          .from("email_log")
+          .select("metadata, status, bounced_at, created_at, recipient")
+          .eq("recipient_type", "provider")
+          .in("recipient", batch)
+          .gte("created_at", queryDateFrom)
+          .order("created_at", { ascending: false });
+
+        if (batchEntries) {
+          allEmailLogEntries.push(...batchEntries);
+        }
+      }
+
+      const emailLogEntries = allEmailLogEntries;
 
       // Track the most recent email per connection
       // Key: connection_id, Value: { isFailed: boolean, timestamp: string }
@@ -991,12 +1018,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Query for invalid/undeliverable emails (verified by ZeroBounce)
-    // Collect all provider email addresses and check against email_verifications table
-    const providerEmailAddresses = new Set<string>();
-    for (const c of searched) {
-      const email = c.provider.email?.trim();
-      if (email) providerEmailAddresses.add(email);
-    }
+    // Reuse providerEmailsInView from earlier (already lowercase and trimmed)
+    const providerEmailAddresses = new Set(providerEmailsInView);
 
     const invalidEmailSet = new Set<string>();
     if (providerEmailAddresses.size > 0) {
@@ -1009,7 +1032,8 @@ export async function GET(request: NextRequest) {
           .in("email", emailArray.slice(i, i + 500))
           .eq("status", "invalid");
         for (const v of verifs ?? []) {
-          invalidEmailSet.add(v.email as string);
+          // Normalize to lowercase for case-insensitive matching
+          invalidEmailSet.add((v.email as string).toLowerCase());
         }
       }
     }
@@ -1208,10 +1232,11 @@ export async function GET(request: NextRequest) {
           if (recipientHasFailure && !recipientHasSuccess && !connectionHasSuccess) {
             // Recipient's most recent email failed, and no recent success at any level
             emailIssueType = "failed";
-          } else if (invalidEmailSet.has(providerEmail) && !connectionHasSuccess && !recipientHasSuccess) {
+          } else if (invalidEmailSet.has(recipientKey) && !connectionHasSuccess && !recipientHasSuccess) {
             // Only mark as "invalid" if ZeroBounce says invalid AND recent emails aren't working
             // If recent emails were delivered/opened/clicked, the email is clearly working
             // (ZeroBounce verification may be stale or was a false positive)
+            // NOTE: Uses recipientKey (lowercase) for case-insensitive matching
             emailIssueType = "invalid";
           }
         }
@@ -1263,16 +1288,17 @@ export async function GET(request: NextRequest) {
           engagementCounts[engResult.level]++;
         }
 
-        // Count email-related tabs if: has email issue AND NOT engaged AND NOT claimed
-        // Claimed providers manage their own email - we can't change it
+        // Count email-related tabs if: has email issue AND NOT engaged
         // Archived, declined, and admin_not_interested leads shouldn't appear in email tabs
-        if (emailIssueType && !hasProviderEngagement && !isProviderClaimed && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+        // NOTE: Claimed providers CAN appear in delivery_issues (we can override their email)
+        //       but NOT in needs_email (we can't add an email to their account)
+        if (emailIssueType && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
           // Split by issue type:
-          // - no_email → Needs Email (find and add an email)
-          // - failed/invalid → Delivery Issues (try override or find new email)
-          if (emailIssueType === "no_email") {
+          // - no_email → Needs Email (find and add an email) - excludes claimed providers
+          // - failed/invalid → Delivery Issues (try override) - includes claimed providers
+          if (emailIssueType === "no_email" && !isProviderClaimed) {
             engagementCounts.needs_email++;
-          } else {
+          } else if (emailIssueType === "failed" || emailIssueType === "invalid") {
             engagementCounts.delivery_issues++;
           }
         }
@@ -1379,7 +1405,7 @@ export async function GET(request: NextRequest) {
       // Special filter: delivery_issues (provider perspective only)
       // Providers with email that bounced, failed, or is invalid
       // Exclude if provider has ENGAGED - they go to engagement tab
-      // Exclude CLAIMED providers - we can't change their email
+      // NOTE: Includes CLAIMED providers - we can override their email via email_overrides
       else if (responseFilter === "delivery_issues" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
@@ -1387,12 +1413,10 @@ export async function GET(request: NextRequest) {
           const isAdminNotInterested = c.adminOverride?.status === "not_interested";
           const engLevel = connectionEngagementLevels.get(c.id);
           const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
-          const isProviderClaimed = c.provider.isAccountClaimed === true;
           const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
-          // failed or invalid (not no_email)
+          // failed or invalid (not no_email) - includes claimed providers
           return (emailIssue === "failed" || emailIssue === "invalid") &&
             !hasProviderEngagement &&
-            !isProviderClaimed &&
             !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }

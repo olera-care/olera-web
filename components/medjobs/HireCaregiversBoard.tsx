@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
+import Select from "@/components/ui/Select";
+import Modal from "@/components/ui/Modal";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import { SAMPLE_CANDIDATES } from "@/lib/medjobs/demo-candidate";
 import CandidateDetailPanel from "@/components/medjobs/CandidateDetailPanel";
@@ -72,6 +74,7 @@ export default function HireCaregiversBoard() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateData | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<CandidateData | null>(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   // null = unknown/not yet resolved; false = provider not near any partner campus
   // (→ show demos); true = in a catchment (→ show that campus's real students).
   const [inCatchment, setInCatchment] = useState<boolean | null>(null);
@@ -168,33 +171,97 @@ export default function HireCaregiversBoard() {
     .map((c) => candidateToCardFormat(c, isDemoEra ? { isDemo: true } : undefined))
     .filter((c) => c.lat != null && c.lon != null);
 
-  const selectClass = "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700";
+  // Options for Select dropdowns
+  const universityOptions = [
+    { value: "", label: "All universities" },
+    ...universities.map((u) => ({ value: u.id, label: u.name })),
+  ];
+  const availabilityOptions = AVAIL_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
+  const activeFilterCount = (universityId ? 1 : 0) + (availability ? 1 : 0);
 
   // Provider is signed in here; scheduling opens the modal directly (the terms
   // opt-in lives inside it). Demo cards link to the demo detail page instead.
   const openSchedule = (c: CandidateData) => setScheduleTarget(c);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
       <div className="mb-5">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Hire Caregivers</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Hire Caregivers</h1>
         <p className="text-gray-500 mt-1">
           Browse student caregivers {campusName ? `near ${campusName}` : "near you"} and schedule interviews.
         </p>
       </div>
 
-      <div className="mb-5 flex items-center gap-3">
-        <select value={universityId} onChange={(e) => setUniversityId(e.target.value)} className={selectClass} aria-label="Filter by university">
-          <option value="">All universities</option>
-          {universities.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
-          ))}
-        </select>
-        <select value={availability} onChange={(e) => setAvailability(e.target.value)} className={selectClass} aria-label="Filter by availability">
-          {AVAIL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+      {/* Mobile: Filter chips + Filters button */}
+      <div className="mb-5 flex items-center gap-2 sm:hidden">
+        {universityId && (
+          <button
+            onClick={() => setUniversityId("")}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700"
+          >
+            <span className="truncate max-w-[100px]">
+              {universities.find((u) => u.id === universityId)?.name || "University"}
+            </span>
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        {availability && (
+          <button
+            onClick={() => setAvailability("")}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-xs font-medium text-primary-700"
+          >
+            <span>{availLabel}</span>
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        <div className="flex-1" />
+        <button
+          onClick={() => setShowMobileFilters(true)}
+          className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+        >
+          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span className="text-sm font-medium text-gray-700">Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="flex items-center justify-center w-5 h-5 bg-primary-500 text-white text-xs font-semibold rounded-full">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Desktop: Inline Select dropdowns */}
+      <div className="mb-5 hidden sm:flex items-center gap-3">
+        <div className="w-48">
+          <Select
+            options={universityOptions}
+            value={universityId}
+            onChange={setUniversityId}
+            placeholder="All universities"
+            ariaLabel="Filter by university"
+            size="sm"
+            searchable={universities.length > 8}
+            searchPlaceholder="Search universities..."
+          />
+        </div>
+        <div className="w-40">
+          <Select
+            options={availabilityOptions}
+            value={availability}
+            onChange={setAvailability}
+            placeholder="All availability"
+            ariaLabel="Filter by availability"
+            size="sm"
+          />
+        </div>
         {(universityId || availability) && (
           <button
             type="button"
@@ -294,6 +361,92 @@ export default function HireCaregiversBoard() {
           onScheduled={() => setScheduleTarget(null)}
         />
       )}
+
+      {/* Mobile filter bottom sheet */}
+      <Modal
+        isOpen={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+        title="Filters"
+        size="lg"
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setUniversityId("");
+                setAvailability("");
+              }}
+              className="flex-1 py-3.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setShowMobileFilters(false)}
+              className="flex-1 py-3.5 text-sm font-semibold text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-colors"
+            >
+              Show caregivers
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6 pt-2">
+          {/* University filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              University
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setUniversityId("")}
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  !universityId
+                    ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                All universities
+              </button>
+              {universities.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => setUniversityId(u.id)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    universityId === u.id
+                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {u.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Availability filter */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Availability
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {AVAIL_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value || "all"}
+                  type="button"
+                  onClick={() => setAvailability(opt.value)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    availability === opt.value
+                      ? "bg-primary-100 text-primary-700 border-2 border-primary-400"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -50,6 +50,10 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function isValidEmail(str: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+}
+
 // Avatar gradient (deterministic by name)
 const AVATAR_GRADIENTS = [
   "from-rose-100 to-pink-50",
@@ -514,27 +518,18 @@ function SendRequestForm({
   onUpgradeRequired: () => void;
   hasGooglePlaceId: boolean;
 }) {
-  // Delivery method toggle
-  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "link">("email");
-
-  // Email form state
+  // Form state
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [customMessage, setCustomMessage] = useState(DEFAULT_MESSAGE);
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Link form state
-  const [linkClientName, setLinkClientName] = useState("");
-
-  // Shared state
+  // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successName, setSuccessName] = useState("");
-  const [successMethod, setSuccessMethod] = useState<"email" | "shared" | "copied" | "link">("email");
-  const [successLink, setSuccessLink] = useState<string | null>(null); // For fallback manual copy
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false); // Track if user copied from success screen
   const [noEmailClicked, setNoEmailClicked] = useState(false); // Track "no email" feedback
   const isAtLimit = remainingRequests <= 0;
 
@@ -613,8 +608,6 @@ function SendRequestForm({
       }
 
       setSuccessName(clientName);
-      setSuccessMethod("email");
-      setSuccessLink(null);
       setShowSuccess(true);
       setClientName("");
       setEmail("");
@@ -629,91 +622,8 @@ function SendRequestForm({
     }
   };
 
-  // Link share handler - logs request and generates link (no copy during generation)
-  const handleShareLink = async () => {
-    if (!providerSlug || isSubmitting || isAtLimit) return;
-
-    const name = linkClientName.trim() || "Client";
-    const reviewLink = `${window.location.origin}/review/${providerSlug}${linkClientName.trim() ? `?name=${encodeURIComponent(linkClientName.trim())}` : ""}`;
-
-    setIsSubmitting(true);
-    setShowSuccess(false);
-    setErrorMessage(null);
-
-    try {
-      // Log the request to count toward limit
-      const res = await fetch("/api/review-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clients: [{ name, email: null }],
-          message: null,
-          delivery_method: "link",
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        // Handle 402 - upgrade required
-        if (res.status === 402 && data.upgrade_required) {
-          onUpgradeRequired();
-          return;
-        }
-        throw new Error(data.error || "Failed to create request");
-      }
-
-      // Store link for success state - user will copy/share from success screen
-      setSuccessLink(reviewLink);
-      setSuccessName(name);
-      setSuccessMethod("link"); // New method: link ready but not yet copied
-      setShowSuccess(true);
-      setLinkClientName("");
-      onSuccess?.();
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-
   // Success celebration state
   if (showSuccess) {
-    const handleCopySuccessLink = async () => {
-      if (!successLink) return;
-
-      // Copy to clipboard first
-      try {
-        await navigator.clipboard.writeText(successLink);
-      } catch {
-        const textArea = document.createElement("textarea");
-        textArea.value = successLink;
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-      }
-
-      // Show copied feedback
-      setLinkCopied(true);
-
-      // Try native share API (will show share sheet on supported devices)
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: "Leave us a review",
-            text: "We'd love to hear about your experience!",
-            url: successLink,
-          });
-        } catch {
-          // User cancelled or share failed - that's fine, link is already copied
-        }
-      }
-    };
-
     return (
       <div className="text-center py-10 animate-fade-in">
         <div className="relative w-16 h-16 mx-auto mb-4 animate-success-bounce">
@@ -723,40 +633,10 @@ function SendRequestForm({
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full" />
           <div className="absolute -bottom-0.5 -left-1 w-2 h-2 bg-primary-400 rounded-full" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          {successMethod === "email" && "Request sent!"}
-          {(successMethod === "link" || successMethod === "shared") && "Link ready!"}
-          {successMethod === "copied" && "Link copied!"}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Request sent!</h3>
         <p className="text-sm text-gray-500 mb-5">
-          {successMethod === "email" && `${successName} will receive your review request shortly.`}
-          {(successMethod === "link" || successMethod === "shared" || successMethod === "copied") && `Share the link with ${successName} via WhatsApp, text, or in person.`}
+          {successName} will receive your review request shortly.
         </p>
-
-        {/* Show link for manual copy (for shared/copied methods) */}
-        {successMethod !== "email" && successLink && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 max-w-sm mx-auto">
-              <input
-                type="text"
-                readOnly
-                value={successLink}
-                className="flex-1 px-3 py-2 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg truncate"
-              />
-              <button
-                type="button"
-                onClick={handleCopySuccessLink}
-                className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 ${
-                  linkCopied
-                    ? "text-emerald-600 bg-emerald-50 border border-emerald-200"
-                    : "text-primary-600 bg-primary-50 border border-primary-200 hover:bg-primary-100"
-                }`}
-              >
-                {linkCopied ? "Copied ✓" : "Copy"}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Google connection prompt for providers without Google Place ID */}
         {!hasGooglePlaceId && (
@@ -778,11 +658,7 @@ function SendRequestForm({
               </p>
               <a
                 href="/account/settings"
-                onClick={() => {
-                  setShowSuccess(false);
-                  setSuccessLink(null);
-                  setLinkCopied(false);
-                }}
+                onClick={() => setShowSuccess(false)}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Connect Google Business
@@ -796,11 +672,7 @@ function SendRequestForm({
 
         <button
           type="button"
-          onClick={() => {
-            setShowSuccess(false);
-            setSuccessLink(null);
-            setLinkCopied(false);
-          }}
+          onClick={() => setShowSuccess(false)}
           className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
         >
           Send another request
@@ -811,45 +683,6 @@ function SendRequestForm({
 
   return (
     <div className="space-y-5">
-      {/* Premium Segmented Toggle */}
-      <div className="relative p-1 bg-gray-100/80 rounded-xl">
-        {/* Sliding indicator */}
-        <div
-          className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm transition-all duration-300 ease-out ${
-            deliveryMethod === "link" ? "left-[calc(50%+2px)]" : "left-1"
-          }`}
-        />
-        {/* Toggle buttons */}
-        <div className="relative flex" role="group" aria-label="Delivery method">
-          <button
-            type="button"
-            onClick={() => setDeliveryMethod("email")}
-            aria-pressed={deliveryMethod === "email"}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-colors duration-200 ${
-              deliveryMethod === "email"
-                ? "text-primary-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <MailIcon className="w-4 h-4" />
-            Request via email
-          </button>
-          <button
-            type="button"
-            onClick={() => setDeliveryMethod("link")}
-            aria-pressed={deliveryMethod === "link"}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-colors duration-200 ${
-              deliveryMethod === "link"
-                ? "text-primary-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <LinkIcon className="w-4 h-4" />
-            Request via link
-          </button>
-        </div>
-      </div>
-
       {/* Error message */}
       {errorMessage && (
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm" role="alert">
@@ -860,220 +693,156 @@ function SendRequestForm({
         </div>
       )}
 
-      {/* Email Form */}
-      {deliveryMethod === "email" && (
-        <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
-          {/* Client Name + Email */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Client name
-              </label>
-              <input
-                type="text"
-                id="clientName"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder="Jane Smith"
-                disabled={isAtLimit}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
-                required
-                autoComplete="off"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jane@example.com"
-                disabled={isAtLimit}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
-                required
-                autoComplete="off"
-              />
-              {/* No email link */}
-              <div className="mt-1.5 text-right">
-                {noEmailClicked ? (
-                  <span className="text-xs text-emerald-600 font-medium">
-                    Got it — SMS is coming soon
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleNoEmailClick}
-                    className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
-                  >
-                    I only have their phone number
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* Form */}
+      <form onSubmit={handleSubmit}>
+        {/* Input fields - side by side on desktop, stacked on mobile */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Client name"
+            disabled={isAtLimit}
+            required
+            autoComplete="off"
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+          />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            disabled={isAtLimit}
+            required
+            autoComplete="off"
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+          />
+        </div>
 
-          {/* Preview toggle */}
-          <div className="text-center">
+        {/* No email link */}
+        <div className="mt-1.5 text-right">
+          {noEmailClicked ? (
+            <span className="text-xs text-emerald-600 font-medium">
+              Got it — SMS is coming soon
+            </span>
+          ) : (
             <button
               type="button"
-              onClick={() => setShowPreview(!showPreview)}
-              className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={handleNoEmailClick}
+              className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
             >
-              <svg
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${showPreview ? "rotate-180" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-              Preview the message
+              I only have their phone number
             </button>
-          </div>
-
-          {/* Email preview - matches actual email structure */}
-          {showPreview && (
-            <div className="p-4 bg-gray-50 rounded-xl text-left">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">What they&apos;ll receive</p>
-                {!isEditingMessage && (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingMessage(true)}
-                    className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                  >
-                    Edit message
-                  </button>
-                )}
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                {/* Greeting */}
-                <p className="text-sm text-gray-700 mb-3">
-                  Hi <span className="font-medium">{clientName.trim() || "Client"}</span>,
-                </p>
-                {/* Message - editable or static */}
-                {isEditingMessage ? (
-                  <div className="mb-4">
-                    <textarea
-                      value={customMessage}
-                      onChange={(e) => setCustomMessage(e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 resize-none"
-                      placeholder="Write your personalized message..."
-                    />
-                    <div className="flex items-center justify-end gap-2 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomMessage(DEFAULT_MESSAGE);
-                          setIsEditingMessage(false);
-                        }}
-                        className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                      >
-                        Reset
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingMessage(false)}
-                        className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                      >
-                        Done
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="border-l-2 border-primary-500 pl-3 py-1 mb-3">
-                    <p className="text-sm text-gray-600">{customMessage}</p>
-                  </div>
-                )}
-                {/* Additional text from email template */}
-                <p className="text-sm text-gray-500 mb-4">
-                  Sharing your experience helps other families find quality care — and only takes a couple of minutes.
-                </p>
-                {/* Button preview */}
-                <div className="inline-block px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg">
-                  Write a review
-                </div>
-              </div>
-            </div>
           )}
+        </div>
 
-          {/* Submit button */}
-          <button
-            type="submit"
-            disabled={!clientName.trim() || !email.trim() || !customMessage.trim() || isSubmitting || isAtLimit}
-            className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
-          >
-            {isSubmitting ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Sending...
-              </span>
-            ) : (
-              <span className="inline-flex items-center justify-center gap-2">
-                <MailIcon className="w-5 h-5" />
-                Send review request
-              </span>
-            )}
-          </button>
-        </form>
-      )}
+        {/* Submit button - teal, no icon */}
+        <button
+          type="submit"
+          disabled={!clientName.trim() || !isValidEmail(email.trim()) || !customMessage.trim() || isSubmitting || isAtLimit}
+          className="w-full mt-6 px-6 py-3 rounded-xl bg-[#199087] text-white text-[15px] font-medium hover:bg-[#147a72] disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_12px_rgba(25,144,135,0.35)] disabled:shadow-none"
+        >
+          {isSubmitting ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Sending...
+            </span>
+          ) : (
+            "Send request"
+          )}
+        </button>
+      </form>
 
-      {/* Link Form */}
-      {deliveryMethod === "link" && (
-        <div className="space-y-5 animate-fade-in">
-          {/* Client Name (optional) */}
-          <div>
-            <label htmlFor="linkClientName" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Client name <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              id="linkClientName"
-              value={linkClientName}
-              onChange={(e) => setLinkClientName(e.target.value)}
-              placeholder="Jane Smith"
-              disabled={isAtLimit}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
-              autoComplete="off"
-            />
-            <p className="text-xs text-gray-400 mt-1.5">
-              Personalizes the review page with their name
-            </p>
-          </div>
-
-          {/* Share button */}
+      {/* Preview toggle - only show when valid email entered */}
+      {isValidEmail(email.trim()) && (
+        <div className="text-center">
           <button
             type="button"
-            onClick={handleShareLink}
-            disabled={isSubmitting || isAtLimit}
-            className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-[15px] font-medium hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 shadow-[0_4px_12px_rgb(0,0,0,0.15)] hover:shadow-[0_6px_16px_rgb(0,0,0,0.2)] disabled:shadow-none"
+            onClick={() => setShowPreview(!showPreview)}
+            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {isSubmitting ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Creating link...
-              </span>
-            ) : (
-              <span className="inline-flex items-center justify-center gap-2">
-                <LinkIcon className="w-5 h-5" />
-                Share link
-              </span>
-            )}
+            <svg
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${showPreview ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+            Preview the message
           </button>
-
-          {/* Helper text */}
-          <p className="text-center text-xs text-gray-400">
-            Share via WhatsApp, text message, or in person
-          </p>
         </div>
       )}
 
-      {/* Footer section - shared between both forms */}
+      {/* Email preview - matches actual email structure */}
+      {showPreview && isValidEmail(email.trim()) && (
+        <div className="p-4 bg-gray-50 rounded-xl text-left">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-gray-400 uppercase tracking-wider">What they&apos;ll receive</p>
+            {!isEditingMessage && (
+              <button
+                type="button"
+                onClick={() => setIsEditingMessage(true)}
+                className="text-xs text-[#199087] hover:text-[#147a72] font-medium transition-colors"
+              >
+                Edit message
+              </button>
+            )}
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+            {/* Greeting */}
+            <p className="text-sm text-gray-700 mb-3">
+              Hi <span className="font-medium">{clientName.trim() || "Client"}</span>,
+            </p>
+            {/* Message - editable or static */}
+            {isEditingMessage ? (
+              <div className="mb-4">
+                <textarea
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#199087]/20 focus:border-[#199087] resize-none"
+                  placeholder="Write your personalized message..."
+                />
+                <div className="flex items-center justify-end gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomMessage(DEFAULT_MESSAGE);
+                      setIsEditingMessage(false);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingMessage(false)}
+                    className="text-xs text-[#199087] hover:text-[#147a72] font-medium transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-l-2 border-[#199087] pl-3 py-1 mb-3">
+                <p className="text-sm text-gray-600">{customMessage}</p>
+              </div>
+            )}
+            {/* Additional text from email template */}
+            <p className="text-sm text-gray-500 mb-4">
+              Sharing your experience helps other families find quality care — and only takes a couple of minutes.
+            </p>
+            {/* Button preview */}
+            <div className="inline-block px-4 py-2 bg-[#199087] text-white text-sm font-medium rounded-lg">
+              Write a review
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer section */}
       <div className="space-y-3">
 
         {/* Google reassurance badge OR connect prompt with tooltip */}

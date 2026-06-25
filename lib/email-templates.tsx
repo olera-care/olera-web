@@ -497,7 +497,7 @@ export function completionNudgeSubject(
         ? `${opts.providerCount} providers near ${locationText}, ready when you are`
         : `Providers near ${locationText}, ready when you are`;
     case 3:
-      return "Families with complete profiles hear back faster";
+      return "Want to hear back faster?";
     case 4:
     default:
       return "Providers near you (including these top-rated ones)";
@@ -2290,28 +2290,37 @@ export function completionNudge3Email(opts: {
   city?: string;
   state?: string;
 }): { subject: string; html: string } {
-  const percent = opts.completionPercent ?? 0;
-
-  const preheader = `Your profile is ${percent}% complete`;
+  // Day-6 angle: the payoff of finishing — you hear back faster, with real answers
+  // instead of "tell me more". Friend-voice, same shared system as nudge_1/2.
+  const askLine = fieldAskLine(
+    opts.missingFields ?? [],
+    "Adding your ",
+    " is usually all it takes.",
+  );
+  const progressLine = completionProgressLine(opts.completionPercent ?? 0);
 
   return {
     subject: completionNudgeSubject(3, { city: opts.city, state: opts.state }),
-    html: layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families with complete profiles hear back faster</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, here's what we've seen: families who share their full situation — who needs care, when, and how they'll pay — get responses faster.
+    html: layout(
+      `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A little more, and providers can actually help</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")} &mdash; here&rsquo;s something we&rsquo;ve noticed: when providers can see what you&rsquo;re looking for, they can reply faster, with real answers instead of &ldquo;can you tell me more?&rdquo;
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Providers can skip the back-and-forth and give you real information right away.
+    ${progressLine}
+    ${askLine}
+    <div>${button("Get better matches", opts.welcomeUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Your profile is ${percent}% complete. A few more details and you'll be ready to connect.
-    </p>
-    <div>${button("Finish Up", opts.welcomeUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:24px 0 0;line-height:1.5;text-align:center;">
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
-  `, preheader),
+  `,
+      // Subject is the warm hook; preheader carries the mechanism.
+      `When providers can see the basics, they reply with real answers.`,
+    ),
   };
 }
 

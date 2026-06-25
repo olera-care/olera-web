@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Modal from "@/components/ui/Modal";
 import { EMPLOYER_AGREEMENT_URL } from "@/lib/medjobs/eligibility";
 import { CALENDLY_URL } from "@/lib/student-outreach/templates";
 
@@ -46,44 +47,13 @@ export default function TermsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Scrollable body */}
-        <div className="flex-1 space-y-4 overflow-y-auto px-6 pt-6 pb-2">
-          <h3 className="font-serif text-xl text-gray-900">Olera Student Placement — Terms</h3>
-
-          {/* TL;DR */}
-          <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">What you&apos;re agreeing to</p>
-            <ul className="mt-2 space-y-1.5 text-sm text-gray-700">
-              <li>• Free to browse, interview, and connect.</li>
-              <li>• <b>$200 one-time per student — only if you hire them.</b></li>
-              <li>• Invoiced after the hire; <b>fully refunded</b> if they work under 15 hours.</li>
-              <li>• You are the employer; Olera matches &amp; verifies hours.</li>
-            </ul>
-          </div>
-
-          <Section title="The 15-hour guarantee">
-            About 15 worked hours covers your onboarding cost plus a fair placement fee. If the
-            student works fewer, we refund the $200 in full.
-          </Section>
-          <Section title="What the student commits to">
-            Background checks and no no-call/no-shows (or they&apos;re removed from Olera). In
-            return: verified hours, credentialing support, and a recommendation letter.
-          </Section>
-          <Section title="What Olera does &amp; doesn't do">
-            We match, vet, and verify students and confirm hours. We do <b>not</b> employ or pay
-            the student, run payroll, or act as a staffing agency.
-          </Section>
-
-          {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-        </div>
-
-        {/* Pinned footer: action + escape hatch always visible */}
-        <div className="space-y-3 border-t border-gray-100 px-6 pb-5 pt-4">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Olera Student Placement — Terms"
+      size="lg"
+      footer={
+        <div className="space-y-3">
           <button
             type="button"
             disabled={saving}
@@ -104,8 +74,36 @@ export default function TermsModal({
             </a>
           </p>
         </div>
+      }
+    >
+      <div className="space-y-4 pt-2">
+        {/* TL;DR */}
+        <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">What you&apos;re agreeing to</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-gray-700">
+            <li>• Free to browse, interview, and connect.</li>
+            <li>• <b>$200 one-time per student — only if you hire them.</b></li>
+            <li>• Invoiced after the hire; <b>fully refunded</b> if they work under 15 hours.</li>
+            <li>• You are the employer; Olera matches &amp; verifies hours.</li>
+          </ul>
+        </div>
+
+        <Section title="The 15-hour guarantee">
+          About 15 worked hours covers your onboarding cost plus a fair placement fee. If the
+          student works fewer, we refund the $200 in full.
+        </Section>
+        <Section title="What the student commits to">
+          Background checks and no no-call/no-shows (or they&apos;re removed from Olera). In
+          return: verified hours, credentialing support, and a recommendation letter.
+        </Section>
+        <Section title="What Olera does &amp; doesn't do">
+          We match, vet, and verify students and confirm hours. We do <b>not</b> employ or pay
+          the student, run payroll, or act as a staffing agency.
+        </Section>
+
+        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       </div>
-    </div>
+    </Modal>
   );
 }
 

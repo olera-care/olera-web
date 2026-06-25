@@ -4514,21 +4514,37 @@ export function familyNudgeEmail(opts: {
   const primaryUrl = opts.benefitsQuizUrl || opts.profileUrl;
   const primaryLabel = opts.benefitsQuizUrl ? "See my matches & benefits" : "Add your details";
 
+  // Weave in what we already know but used to throw away: the provider they
+  // reached out to, and how far along they are. Both are guarded — a generic
+  // version reads fine when they're absent.
+  const providerClause = opts.providerName
+    ? ` and reached out to ${escapeHtml(opts.providerName)}`
+    : "";
+  const progressLine =
+    opts.completionPercent > 0 && opts.completionPercent < 100
+      ? `<p style="font-size:14px;color:#9ca3af;margin:0 0 16px;line-height:1.5;">You're already ${Math.round(opts.completionPercent)}% of the way there.</p>`
+      : "";
+
   return layout(
     `
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">See sharper matches near you</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, you recently started looking for care on Olera. Tell us a little more about what you need, and we'll show you better-matched providers nearby — and the programs that can help pay for them.
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera${providerClause} — and finding the right fit is a big decision, with a lot to weigh and no wrong pace. Share a couple more details and we'll line up better-matched providers near you, plus the programs that can help cover the cost.
     </p>
+    ${progressLine}
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:0 0 20px;">
-      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">A couple of details would sharpen your matches:</p>
+      <p style="font-size:13px;font-weight:600;color:#374151;margin:0 0 8px;">Two quick things sharpen your matches:</p>
       <p style="font-size:14px;color:#6b7280;margin:0;">${missingSummary}</p>
     </div>
     <div>${button(primaryLabel, primaryUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Cost is the first question most families have — the same step shows what financial help you may qualify for.
     </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
+    <p style="font-size:14px;color:#6b7280;margin:12px 0 0;line-height:1.6;">
+      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,

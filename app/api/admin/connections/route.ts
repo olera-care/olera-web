@@ -1269,27 +1269,32 @@ export async function GET(request: NextRequest) {
         const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
         const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-        // Count in engagement tab if: not archived/inactive AND one of:
-        // - No email issue, OR
-        // - Engaged despite email issue, OR
-        // - Provider is claimed (can't go to needs_email since we can't change their email)
-        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged || isProviderClaimed)) {
+        // Delivery Issues is a "quarantine" - ALL connections with failed/invalid emails go there
+        // regardless of engagement level or claimed status. Once fixed, they return to their journey.
+        const hasDeliveryIssue = emailIssueType === "failed" || emailIssueType === "invalid";
+
+        // Count in engagement tab if: not archived/inactive AND no delivery issue AND one of:
+        // - No email issue at all, OR
+        // - Has no_email but is claimed (can't add email, stays in engagement), OR
+        // - Has no_email but is engaged (already connected somehow)
+        const hasNoEmailIssue = emailIssueType === "no_email";
+        const noEmailButClaimed = hasNoEmailIssue && isProviderClaimed;
+        const noEmailButEngaged = hasNoEmailIssue && hasProviderEngagement;
+        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && !hasDeliveryIssue && (!emailIssueType || noEmailButClaimed || noEmailButEngaged)) {
           engagementCounts[engResult.level]++;
         }
 
-        // Count email-related tabs if: has email issue AND NOT engaged
-        // Archived, declined, and admin_not_interested leads shouldn't appear in email tabs
-        // NOTE: Claimed providers CAN appear in delivery_issues (we can override their email)
-        //       but NOT in needs_email (we can't add an email to their account)
-        if (emailIssueType && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
-          // Split by issue type:
-          // - no_email → Needs Email (find and add an email) - excludes claimed providers
-          // - failed/invalid → Delivery Issues (try override) - includes claimed providers
-          if (emailIssueType === "no_email" && !isProviderClaimed) {
-            engagementCounts.needs_email++;
-          } else if (emailIssueType === "failed" || emailIssueType === "invalid") {
-            engagementCounts.delivery_issues++;
-          }
+        // Count in Delivery Issues if: failed/invalid email (regardless of engagement or claimed)
+        // This is the single place to fix ALL email delivery problems
+        if (hasDeliveryIssue && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+          engagementCounts.delivery_issues++;
+        }
+
+        // Count in Needs Email if: no_email AND unclaimed AND not engaged
+        // (Claimed providers with no_email stay in engagement tabs since we can't add email)
+        // (Engaged providers with no_email stay in engagement tabs since they're reachable somehow)
+        if (hasNoEmailIssue && !isProviderClaimed && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+          engagementCounts.needs_email++;
         }
 
         // Count declined (provider explicitly declined with reason)
@@ -1392,20 +1397,16 @@ export async function GET(request: NextRequest) {
         });
       }
       // Special filter: delivery_issues (provider perspective only)
-      // Providers with email that bounced, failed, or is invalid
-      // Exclude if provider has ENGAGED - they go to engagement tab
-      // NOTE: Includes CLAIMED providers - we can override their email via email_overrides
+      // ALL connections with failed/invalid email go here - regardless of engagement or claimed status
+      // This is the single "quarantine" to fix email problems. Once fixed, they return to their journey.
       else if (responseFilter === "delivery_issues" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
           const isProviderDeclined = c.archived && !!c.archiveReason;
           const isAdminNotInterested = c.adminOverride?.status === "not_interested";
-          const engLevel = connectionEngagementLevels.get(c.id);
-          const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
           const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
-          // failed or invalid (not no_email) - includes claimed providers
+          // failed or invalid - includes ALL providers regardless of engagement or claimed status
           return (emailIssue === "failed" || emailIssue === "invalid") &&
-            !hasProviderEngagement &&
             !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }
@@ -1442,9 +1443,9 @@ export async function GET(request: NextRequest) {
           // All engagement-level tabs (awaiting, viewed, connected, needs_follow_up):
           // - Exclude all archived types (provider-level, connection-level admin, provider declined)
           // - Exclude admin "not interested" (they have their own tab)
+          // - Exclude failed/invalid emails → they go to Delivery Issues (quarantine)
           //
-          // ENGAGEMENT PRIORITY: If provider has engaged (viewed/connected), show in engagement tab
-          // even if they have email issues. Only exclude email issues for awaiting/needs_follow_up.
+          // Connections with no_email stay here if claimed or engaged (can't fix, but reachable)
           list = list.filter((c) => {
             const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
             const isProviderDeclined = c.archived && !!c.archiveReason;
@@ -1454,17 +1455,20 @@ export async function GET(request: NextRequest) {
             const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
             const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-            // Allow if: matches filter AND not archived/declined/inactive AND one of:
-            // - No email issue, OR
-            // - Engaged (viewed/connected), OR
-            // - Provider is claimed (can't go to needs_email since we can't change their email)
+            // Delivery issues (failed/invalid) go to Delivery Issues tab - exclude them here
+            const hasDeliveryIssue = emailIssue === "failed" || emailIssue === "invalid";
+            // no_email is okay if claimed or engaged (can't fix, but connection exists)
+            const hasNoEmailIssue = emailIssue === "no_email";
+            const noEmailButOk = hasNoEmailIssue && (isProviderClaimed || hasProviderEngagement);
+
             return engLevel === responseFilter &&
               !c.isProviderArchived &&
               !c.isProviderInactive &&
               !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
               !isAdminNotInterested &&
-              (!emailIssue || hasProviderEngagement || isProviderClaimed);
+              !hasDeliveryIssue &&
+              (!emailIssue || noEmailButOk);
           });
         } else {
           // Filter by workflow state (legacy)

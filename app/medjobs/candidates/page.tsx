@@ -9,6 +9,7 @@ import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal"
 import { createClient } from "@/lib/supabase/client";
 import BrowseCard from "@/components/browse/BrowseCard";
 import Pagination from "@/components/ui/Pagination";
+import Select from "@/components/ui/Select";
 import { candidateToCardFormat, candidateMatchLabel } from "@/lib/medjobs/candidate-card";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
@@ -294,10 +295,15 @@ function CandidateBrowseInner() {
     window.location.assign("/provider/medjobs/candidates");
   }, []);
 
-  const selectClass =
-    "appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 cursor-pointer bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat";
-  const chevronBg =
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")";
+  // Options for the polished Select dropdowns
+  const universityOptions = [
+    { value: "", label: "All universities" },
+    ...universities.map((u) => ({ value: u.id, label: u.name })),
+  ];
+  const availabilityOptions = AVAILABILITY_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
 
   const cardEl = (c: CandidateData) =>
     isDemoEra ? (
@@ -437,29 +443,26 @@ function CandidateBrowseInner() {
               Top candidates {selectedUniversityName ? `near ${selectedUniversityName}` : "near you"}
             </h2>
             <div className="flex shrink-0 items-center gap-3">
-              <select
-                value={universityId}
-                onChange={(e) => onUniversityChange(e.target.value)}
-                className={selectClass}
-                style={{ backgroundImage: chevronBg }}
-                aria-label="Filter by university"
-              >
-                <option value="">All universities</option>
-                {universities.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
-              <select
-                value={availabilityFilter}
-                onChange={(e) => setAvailabilityFilter(e.target.value)}
-                className={selectClass}
-                style={{ backgroundImage: chevronBg }}
-                aria-label="Filter by availability"
-              >
-                {AVAILABILITY_OPTIONS.map((o) => (
-                  <option key={o.label} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+              <div className="w-44">
+                <Select
+                  options={universityOptions}
+                  value={universityId}
+                  onChange={onUniversityChange}
+                  placeholder="All universities"
+                  size="sm"
+                  searchable={universities.length > 8}
+                  searchPlaceholder="Search universities..."
+                />
+              </div>
+              <div className="w-40">
+                <Select
+                  options={availabilityOptions}
+                  value={availabilityFilter}
+                  onChange={setAvailabilityFilter}
+                  placeholder="All availability"
+                  size="sm"
+                />
+              </div>
             </div>
           </div>
 

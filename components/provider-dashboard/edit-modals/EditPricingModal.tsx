@@ -257,7 +257,11 @@ export default function EditPricingModal({
           guidedStep={guidedStep}
           guidedTotal={guidedTotal}
           onGuidedBack={onGuidedBack}
-          verificationState={profile.verification_state}
+          showPendingVerificationNotice={
+            !!profile.source_provider_id &&
+            profile.verification_state !== "verified" &&
+            profile.verification_state !== "not_required"
+          }
         />
       }
     >

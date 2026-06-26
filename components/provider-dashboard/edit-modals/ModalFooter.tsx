@@ -8,8 +8,13 @@ interface ModalFooterProps {
   guidedStep?: number;
   guidedTotal?: number;
   onGuidedBack?: () => void;
-  /** Show pending verification notice for unverified providers */
-  verificationState?: "verified" | "not_required" | "unverified" | "pending" | "rejected" | null;
+  /**
+   * Show notice that edits won't be visible until verified.
+   * Only set to true for directory-claimed providers (with source_provider_id)
+   * who are unverified — their public page shows original directory data.
+   * Native profiles (no source_provider_id) always show their data, so no notice needed.
+   */
+  showPendingVerificationNotice?: boolean;
 }
 
 export default function ModalFooter({
@@ -21,12 +26,8 @@ export default function ModalFooter({
   guidedStep = 1,
   guidedTotal = 1,
   onGuidedBack,
-  verificationState,
+  showPendingVerificationNotice,
 }: ModalFooterProps) {
-  // Show notice for providers whose edits won't be public yet
-  const showPendingNotice = verificationState &&
-    verificationState !== "verified" &&
-    verificationState !== "not_required";
   const isLastStep = guidedStep >= guidedTotal;
 
   if (guidedMode) {
@@ -43,6 +44,14 @@ export default function ModalFooter({
             />
           ))}
         </div>
+        {showPendingVerificationNotice && (
+          <p className="text-xs text-amber-600 mt-3 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Changes will be visible to families once verified.
+          </p>
+        )}
         <div className="flex items-center justify-between pt-4 pb-1">
           <div className="flex items-center gap-3">
             {onGuidedBack ? (
@@ -91,7 +100,7 @@ export default function ModalFooter({
 
   return (
     <div className="mt-6 pt-5 border-t border-warm-100">
-      {showPendingNotice && (
+      {showPendingVerificationNotice && (
         <p className="text-xs text-amber-600 mb-3 flex items-center gap-1.5">
           <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -1658,7 +1658,7 @@ function ProviderOnboardingContent() {
                 {/* Subtle dispute note for claimed listings */}
                 {selectedOrg?.claimState === "claimed" && !emailValidation.error && !emailAccountError && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Not your listing?{" "}
+                    Are you the rightful owner?{" "}
                     <button
                       type="button"
                       onClick={() => {

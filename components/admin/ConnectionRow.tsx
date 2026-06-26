@@ -448,6 +448,11 @@ export default function ConnectionRow({
   // Request counter to prevent race conditions (stale responses overwriting fresh ones)
   const blurRequestIdRef = useRef(0);
 
+  // Trust email state (for claimed providers with delivery issues)
+  const [trustingEmail, setTrustingEmail] = useState(false);
+  const [trustEmailSuccess, setTrustEmailSuccess] = useState(false);
+  const [trustEmailError, setTrustEmailError] = useState<string | null>(null);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -1082,6 +1087,45 @@ export default function ConnectionRow({
     }
   }
 
+  // Trust email for claimed providers with delivery issues
+  // This adds the email to email_overrides, allowing emails to be sent
+  async function handleTrustEmail() {
+    if (!c.provider.slug && !c.provider.id) {
+      setTrustEmailError("Provider ID missing - cannot trust email");
+      return;
+    }
+
+    setTrustingEmail(true);
+    setTrustEmailError(null);
+    setTrustEmailSuccess(false);
+
+    try {
+      const res = await fetch("/api/admin/email-override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSlug: c.provider.slug || c.provider.id,
+          reason: "claimed_account",
+          note: "Trusted via Delivery Issues tab - claimed provider with failing email",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setTrustEmailSuccess(true);
+        // Notify parent to refresh list (this will move the connection out of Delivery Issues)
+        onNudgeSuccess?.();
+      } else {
+        setTrustEmailError(data.message || data.error || "Failed to trust email");
+      }
+    } catch {
+      setTrustEmailError("Network error");
+    } finally {
+      setTrustingEmail(false);
+    }
+  }
+
   async function handleFindEmail(mode: "edit" | "add" = "edit", forceRefresh = false) {
     if (!c.provider.id) return;
 
@@ -1631,9 +1675,29 @@ export default function ConnectionRow({
                             <div className="flex items-center justify-between gap-2">
                               <a href={`mailto:${detail.provider.email}`} className="block text-blue-600 hover:underline truncate flex-1">{detail.provider.email}</a>
                               {c.provider.isAccountClaimed ? (
-                                <span className="text-xs text-gray-400 shrink-0" title="Provider has claimed this account and manages their own email">
-                                  Claimed
-                                </span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-xs text-gray-400" title="Provider has claimed this account and manages their own email">
+                                    Claimed
+                                  </span>
+                                  {/* Trust button for claimed providers with delivery issues */}
+                                  {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && !c.emailTrusted && !trustEmailSuccess && (
+                                    <button
+                                      type="button"
+                                      onClick={handleTrustEmail}
+                                      disabled={trustingEmail}
+                                      className="text-xs text-teal-600 hover:text-teal-700 font-medium disabled:opacity-50"
+                                      title="Trust this email address - will bypass delivery checks"
+                                    >
+                                      {trustingEmail ? "Trusting..." : "Trust Email"}
+                                    </button>
+                                  )}
+                                  {trustEmailSuccess && (
+                                    <span className="text-xs text-emerald-600">✓ Trusted</span>
+                                  )}
+                                  {trustEmailError && (
+                                    <span className="text-xs text-red-600">{trustEmailError}</span>
+                                  )}
+                                </div>
                               ) : (
                                 <button
                                   onClick={() => {
@@ -1667,9 +1731,9 @@ export default function ConnectionRow({
                                 </button>
                               )}
                             </div>
-                            {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && (
+                            {(c.emailIssueType === "failed" || c.emailIssueType === "invalid") && !c.emailTrusted && !trustEmailSuccess && (
                               <p className="text-xs text-amber-600 mt-1">
-                                ⚠️ {c.emailIssueType === "failed" ? "Delivery failed" : "Invalid email"} — needs replacement
+                                ⚠️ {c.emailIssueType === "failed" ? "Delivery failed" : "Invalid email"} — {c.provider.isAccountClaimed ? "use Trust Email if confirmed working" : "needs replacement"}
                               </p>
                             )}
                             {c.emailTrusted && (

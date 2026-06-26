@@ -249,13 +249,10 @@ function DashboardContent({
   const editNudgeShownRef = useRef(false);
   const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
 
-  // Track which section was being edited when verification was triggered
-  const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
-
-  // Verification modal state (using the new hook)
+  // Verification modal state (for the verification feature, not edit gating)
   const {
     isOpen: isVerificationModalOpen,
-    open: openVerificationModalRaw,
+    open: openVerificationModal,
     close: closeVerificationModal,
     handleSubmit: handleVerificationSubmit,
     handleDismiss: handleVerificationDismiss,
@@ -264,29 +261,8 @@ function DashboardContent({
     onVerified: async () => {
       // Refresh profile data to get updated verification state
       await refreshAccountData();
-      // Re-open the edit modal that was pending verification
-      if (pendingEditSection) {
-        setEditingSection(pendingEditSection);
-        setPendingEditSection(null);
-      }
-    },
-    onDismissed: () => {
-      // Clear pending section if user dismisses verification
-      setPendingEditSection(null);
     },
   });
-
-  // Guard: only allow opening modal if profile is loaded
-  // Also close the edit modal first to avoid modal stacking
-  const handleOpenVerificationModal = useCallback(() => {
-    if (!profile.id) return;
-    // Store the current editing section so we can re-open it after verification
-    if (editingSection) {
-      setPendingEditSection(editingSection);
-      setEditingSection(null); // Close edit modal first
-    }
-    openVerificationModalRaw();
-  }, [profile.id, openVerificationModalRaw, editingSection, setEditingSection]);
 
   const handleEdit = useCallback(
     (sectionId: SectionId) => setEditingSection(sectionId),
@@ -336,13 +312,8 @@ function DashboardContent({
     }
   }, [editingSection, guided, setEditingSection]);
 
-  // Check verification status for edit gating
+  // Verification state for status display (VerificationStatusCard)
   const verificationState = profile.verification_state as string | null;
-  const profileMeta = profile.metadata as { badge_approved?: boolean } | null;
-  const isVerified =
-    profileMeta?.badge_approved === true ||
-    verificationState === "verified" ||
-    verificationState === "not_required";
 
   // Shared modal props
   const modalProps = {
@@ -356,9 +327,6 @@ function DashboardContent({
     onGuidedBack: editingSection && guided.getPrevSection(editingSection)
       ? handleGuidedBack
       : undefined,
-    // Verification gating for profile edits
-    isVerified,
-    onVerifyClick: handleOpenVerificationModal,
   };
 
   return (
@@ -486,7 +454,7 @@ function DashboardContent({
             const shouldShowMobileBadgeCard = !m?.badge_approved && (!hasSubmission || wasRejected);
             return shouldShowMobileBadgeCard ? (
               <div className="lg:hidden">
-                <MobileBadgeRequestCard onRequestBadge={() => handleOpenVerificationModal()} wasRejected={wasRejected} />
+                <MobileBadgeRequestCard onRequestBadge={() => openVerificationModal()} wasRejected={wasRejected} />
               </div>
             ) : null;
           })()}
@@ -512,7 +480,7 @@ function DashboardContent({
               profile={profile}
               completionPercent={sectionPercent("overview")}
               onEdit={() => handleEdit("overview")}
-              onVerifyClick={() => handleOpenVerificationModal()}
+              onVerifyClick={openVerificationModal}
               slug={profile.slug}
             />,
             <GalleryCard
@@ -599,7 +567,7 @@ function DashboardContent({
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
               verificationState={verificationState}
-              onRequestVerification={handleOpenVerificationModal}
+              onRequestVerification={openVerificationModal}
             />
 
             {/* Profile completeness - collapsible (expanded for new providers < 30%) */}

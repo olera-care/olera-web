@@ -907,20 +907,36 @@ export async function GET(request: NextRequest) {
     const recipientsWithDeliveryFailure = new Set<string>();
     const recipientsWithSuccessfulDelivery = new Set<string>();
 
-    if (connectionIdsInView.size > 0) {
+    // Collect provider emails early so we can filter the email_log query
+    const providerEmailsInView: string[] = [];
+    for (const c of searched) {
+      const email = c.provider.email?.trim().toLowerCase();
+      if (email) providerEmailsInView.push(email);
+    }
+
+    if (connectionIdsInView.size > 0 && providerEmailsInView.length > 0) {
       // Scope query to the date range we're viewing (or last 90 days if no filter)
       const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       const queryDateFrom = dateFrom || fallbackDate;
 
-      // Query email_log for ALL provider emails (not just failed) to find most recent status
-      // We need to check if the MOST RECENT email for each connection failed
-      const { data: emailLogEntries } = await db
+      // Query email_log for provider emails, then filter in memory by lowercase recipient
+      // We don't filter by recipient in the query to avoid case-sensitivity issues
+      // (email_log stores recipients with original case, but we normalize to lowercase)
+      // Use a high limit since we filter in memory anyway
+      const { data: rawEmailLogEntries } = await db
         .from("email_log")
         .select("metadata, status, bounced_at, created_at, recipient")
         .eq("recipient_type", "provider")
         .gte("created_at", queryDateFrom)
         .order("created_at", { ascending: false })
-        .limit(5000);
+        .limit(10000);
+
+      // Filter to only emails for providers we're displaying (using lowercase comparison)
+      const providerEmailSet = new Set(providerEmailsInView); // already lowercase
+      const emailLogEntries = (rawEmailLogEntries ?? []).filter(e => {
+        const recipient = (e.recipient as string | null)?.toLowerCase().trim();
+        return recipient && providerEmailSet.has(recipient);
+      });
 
       // Track the most recent email per connection
       // Key: connection_id, Value: { isFailed: boolean, timestamp: string }
@@ -991,12 +1007,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Query for invalid/undeliverable emails (verified by ZeroBounce)
-    // Collect all provider email addresses and check against email_verifications table
-    const providerEmailAddresses = new Set<string>();
-    for (const c of searched) {
-      const email = c.provider.email?.trim();
-      if (email) providerEmailAddresses.add(email);
-    }
+    // Reuse providerEmailsInView from earlier (already lowercase and trimmed)
+    const providerEmailAddresses = new Set(providerEmailsInView);
 
     const invalidEmailSet = new Set<string>();
     if (providerEmailAddresses.size > 0) {
@@ -1009,7 +1021,8 @@ export async function GET(request: NextRequest) {
           .in("email", emailArray.slice(i, i + 500))
           .eq("status", "invalid");
         for (const v of verifs ?? []) {
-          invalidEmailSet.add(v.email as string);
+          // Normalize to lowercase for case-insensitive matching
+          invalidEmailSet.add((v.email as string).toLowerCase());
         }
       }
     }
@@ -1208,10 +1221,11 @@ export async function GET(request: NextRequest) {
           if (recipientHasFailure && !recipientHasSuccess && !connectionHasSuccess) {
             // Recipient's most recent email failed, and no recent success at any level
             emailIssueType = "failed";
-          } else if (invalidEmailSet.has(providerEmail) && !connectionHasSuccess && !recipientHasSuccess) {
+          } else if (invalidEmailSet.has(recipientKey) && !connectionHasSuccess && !recipientHasSuccess) {
             // Only mark as "invalid" if ZeroBounce says invalid AND recent emails aren't working
             // If recent emails were delivered/opened/clicked, the email is clearly working
             // (ZeroBounce verification may be stale or was a false positive)
+            // NOTE: Uses recipientKey (lowercase) for case-insensitive matching
             emailIssueType = "invalid";
           }
         }
@@ -1255,26 +1269,32 @@ export async function GET(request: NextRequest) {
         const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
         const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-        // Count in engagement tab if: not archived/inactive AND one of:
-        // - No email issue, OR
-        // - Engaged despite email issue, OR
-        // - Provider is claimed (can't go to needs_email since we can't change their email)
-        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && (!emailIssueType || emailIssueButEngaged || isProviderClaimed)) {
+        // Delivery Issues is a "quarantine" - ALL connections with failed/invalid emails go there
+        // regardless of engagement level or claimed status. Once fixed, they return to their journey.
+        const hasDeliveryIssue = emailIssueType === "failed" || emailIssueType === "invalid";
+
+        // Count in engagement tab if: not archived/inactive AND no delivery issue AND one of:
+        // - No email issue at all, OR
+        // - Has no_email but is claimed (can't add email, stays in engagement), OR
+        // - Has no_email but is engaged (already connected somehow)
+        const hasNoEmailIssue = emailIssueType === "no_email";
+        const noEmailButClaimed = hasNoEmailIssue && isProviderClaimed;
+        const noEmailButEngaged = hasNoEmailIssue && hasProviderEngagement;
+        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && !hasDeliveryIssue && (!emailIssueType || noEmailButClaimed || noEmailButEngaged)) {
           engagementCounts[engResult.level]++;
         }
 
-        // Count email-related tabs if: has email issue AND NOT engaged AND NOT claimed
-        // Claimed providers manage their own email - we can't change it
-        // Archived, declined, and admin_not_interested leads shouldn't appear in email tabs
-        if (emailIssueType && !hasProviderEngagement && !isProviderClaimed && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
-          // Split by issue type:
-          // - no_email → Needs Email (find and add an email)
-          // - failed/invalid → Delivery Issues (try override or find new email)
-          if (emailIssueType === "no_email") {
-            engagementCounts.needs_email++;
-          } else {
-            engagementCounts.delivery_issues++;
-          }
+        // Count in Delivery Issues if: failed/invalid email (regardless of engagement or claimed)
+        // This is the single place to fix ALL email delivery problems
+        if (hasDeliveryIssue && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+          engagementCounts.delivery_issues++;
+        }
+
+        // Count in Needs Email if: no_email AND unclaimed AND not engaged
+        // (Claimed providers with no_email stay in engagement tabs since we can't add email)
+        // (Engaged providers with no_email stay in engagement tabs since they're reachable somehow)
+        if (hasNoEmailIssue && !isProviderClaimed && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+          engagementCounts.needs_email++;
         }
 
         // Count declined (provider explicitly declined with reason)
@@ -1377,22 +1397,16 @@ export async function GET(request: NextRequest) {
         });
       }
       // Special filter: delivery_issues (provider perspective only)
-      // Providers with email that bounced, failed, or is invalid
-      // Exclude if provider has ENGAGED - they go to engagement tab
-      // Exclude CLAIMED providers - we can't change their email
+      // ALL connections with failed/invalid email go here - regardless of engagement or claimed status
+      // This is the single "quarantine" to fix email problems. Once fixed, they return to their journey.
       else if (responseFilter === "delivery_issues" && perspective === "provider") {
         list = list.filter((c) => {
           const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
           const isProviderDeclined = c.archived && !!c.archiveReason;
           const isAdminNotInterested = c.adminOverride?.status === "not_interested";
-          const engLevel = connectionEngagementLevels.get(c.id);
-          const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
-          const isProviderClaimed = c.provider.isAccountClaimed === true;
           const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
-          // failed or invalid (not no_email)
+          // failed or invalid - includes ALL providers regardless of engagement or claimed status
           return (emailIssue === "failed" || emailIssue === "invalid") &&
-            !hasProviderEngagement &&
-            !isProviderClaimed &&
             !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
         });
       }
@@ -1429,9 +1443,9 @@ export async function GET(request: NextRequest) {
           // All engagement-level tabs (awaiting, viewed, connected, needs_follow_up):
           // - Exclude all archived types (provider-level, connection-level admin, provider declined)
           // - Exclude admin "not interested" (they have their own tab)
+          // - Exclude failed/invalid emails → they go to Delivery Issues (quarantine)
           //
-          // ENGAGEMENT PRIORITY: If provider has engaged (viewed/connected), show in engagement tab
-          // even if they have email issues. Only exclude email issues for awaiting/needs_follow_up.
+          // Connections with no_email stay here if claimed or engaged (can't fix, but reachable)
           list = list.filter((c) => {
             const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
             const isProviderDeclined = c.archived && !!c.archiveReason;
@@ -1441,17 +1455,20 @@ export async function GET(request: NextRequest) {
             const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
             const isProviderClaimed = c.provider.isAccountClaimed === true;
 
-            // Allow if: matches filter AND not archived/declined/inactive AND one of:
-            // - No email issue, OR
-            // - Engaged (viewed/connected), OR
-            // - Provider is claimed (can't go to needs_email since we can't change their email)
+            // Delivery issues (failed/invalid) go to Delivery Issues tab - exclude them here
+            const hasDeliveryIssue = emailIssue === "failed" || emailIssue === "invalid";
+            // no_email is okay if claimed or engaged (can't fix, but connection exists)
+            const hasNoEmailIssue = emailIssue === "no_email";
+            const noEmailButOk = hasNoEmailIssue && (isProviderClaimed || hasProviderEngagement);
+
             return engLevel === responseFilter &&
               !c.isProviderArchived &&
               !c.isProviderInactive &&
               !isConnectionArchivedByAdmin &&
               !isProviderDeclined &&
               !isAdminNotInterested &&
-              (!emailIssue || hasProviderEngagement || isProviderClaimed);
+              !hasDeliveryIssue &&
+              (!emailIssue || noEmailButOk);
           });
         } else {
           // Filter by workflow state (legacy)

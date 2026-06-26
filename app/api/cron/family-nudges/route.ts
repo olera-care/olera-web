@@ -15,6 +15,7 @@ import {
   publishNudge2Email,
   publishNudge3Email,
   publishNudge4Email,
+  publishNudgeSubject,
   completionMaintenanceEmail,
   publishMaintenanceEmail,
   // Milestone emails
@@ -1050,21 +1051,7 @@ export async function GET(request: NextRequest) {
             emailType = "publish_maintenance";
             counts.maintenanceNudges++;
           } else {
-            switch (nudgeNumber) {
-              case 1:
-                subject = "Let providers come to you";
-                break;
-              case 2:
-                subject = "These providers want to help families like yours";
-                break;
-              case 3:
-                subject = "Skip the phone tag";
-                break;
-              case 4:
-              default:
-                subject = "Still thinking it over?";
-                break;
-            }
+            subject = publishNudgeSubject(nudgeNumber);
             emailType = `publish_nudge_${nudgeNumber}`;
             counts.publishNudges++;
             // Also increment legacy counter for backward compat reporting
@@ -1117,16 +1104,28 @@ export async function GET(request: NextRequest) {
                   city: family.city || undefined,
                 });
                 break;
-              case 2:
+              case 2: {
+                // Photo + hairline cards (completion_nudge_4 / R3 style), not the
+                // boxed text cards. Each directory provider gets a category stock
+                // image so cards never render blank.
+                const pubCards: CompareCardItem[] = topProviders.map((p, i) => ({
+                  name: p.name,
+                  viewUrl: `${siteUrl}/provider/${p.slug}`,
+                  imageUrl: categoryStockImage(p.category, i),
+                  priceRange: p.priceRange ?? null,
+                  rating: p.rating || null,
+                  reviewCount: p.reviewCount || null,
+                }));
                 html = publishNudge2Email({
                   unsubscribeId: family.id,
                   familyName: firstName,
                   matchesUrl,
                   providerCount,
-                  providers: topProviders,
+                  providers: pubCards,
                   city: family.city || undefined,
                 });
                 break;
+              }
               case 3:
                 html = publishNudge3Email({
                   unsubscribeId: family.id,

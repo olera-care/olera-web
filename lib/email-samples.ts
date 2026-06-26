@@ -16,6 +16,7 @@ import {
   connectionOutcomeCheckEmail,
   providerSilentEmail,
   familyNeverEngagedEmail,
+  familyNeverEngagedSubject,
   day10AwaitingEmail,
   familyPendingReachOutNudgeEmail,
   familyNudgeEmail,
@@ -30,6 +31,7 @@ import {
   publishNudge2Email,
   publishNudge3Email,
   publishNudge4Email,
+  publishNudgeSubject,
   goLiveReminderEmail,
   matchesNudgeEmail,
   staleConversationFamilyEmail,
@@ -139,7 +141,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "family_never_engaged_compare", audience: "family", group: "Family · Compare cascade",
-    label: "R3 · Never-engaged → compare", subject: "A few other providers near you worth comparing",
+    label: "R3 · Never-engaged → compare", subject: familyNeverEngagedSubject(true),
     emailType: "family_never_engaged", cron: "family-comms-coordinator",
     who: "Family never sent a message on any connection, 120–144h in, no provider responded — and ≥3 nearby alternatives exist.",
     why: "Gentle resource nudge for families who stalled before reaching out. With alternatives available, lead with compare cards.",
@@ -150,7 +152,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "family_never_engaged_fallback", audience: "family", group: "Family · Compare cascade",
-    label: "R3 · Never-engaged → guide fallback (<3 alts)", subject: "A quick resource while you're thinking things over",
+    label: "R3 · Never-engaged → guide fallback (<3 alts)", subject: familyNeverEngagedSubject(false),
     emailType: "family_never_engaged", cron: "family-comms-coordinator",
     who: "Same as R3, but fewer than 3 responsive alternatives are available nearby.",
     why: "When we can't honestly surface alternatives, fall back to a how-to-choose guide PDF rather than a thin compare list.",
@@ -247,7 +249,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "publish_nudge_1", audience: "family", group: "Family · Profile sequences",
-    label: "Publish · day 0", subject: "Let providers come to you",
+    label: "Publish · day 0", subject: publishNudgeSubject(1),
     emailType: "publish_nudge_1", cron: "family-nudges",
     who: "Profile ≥60% complete but not yet published — same day it crossed the threshold.",
     why: "Open the publish arc — pitch the inbound/passive flow of going live.",
@@ -257,17 +259,17 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "publish_nudge_2", audience: "family", group: "Family · Profile sequences",
-    label: "Publish · day 2", subject: "These providers want to help families like yours",
+    label: "Publish · day 2", subject: publishNudgeSubject(2),
     emailType: "publish_nudge_2", cron: "family-nudges",
     who: "Profile ≥60% complete, not published, ~day 2.",
     why: "Show a top-rated provider list — make the inbound opportunity tangible.",
     render: () => publishNudge2Email({
-      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, providerCount: 24, providers: FAM_CARDS, city: "Killeen",
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, providerCount: 24, providers: FAM_RECS, city: "Killeen",
     }),
   },
   {
     id: "publish_nudge_3", audience: "family", group: "Family · Profile sequences",
-    label: "Publish · day 6", subject: "Skip the phone tag",
+    label: "Publish · day 6", subject: publishNudgeSubject(3),
     emailType: "publish_nudge_3", cron: "family-nudges",
     who: "Profile ≥60% complete, not published, ~day 6.",
     why: "Platform-wide social proof (families this week/month), no-pressure tone.",
@@ -278,7 +280,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "publish_nudge_4", audience: "family", group: "Family · Profile sequences",
-    label: "Publish · day 13 (last)", subject: "Still thinking it over?",
+    label: "Publish · day 13 (last)", subject: publishNudgeSubject(4),
     emailType: "publish_nudge_4", cron: "family-nudges",
     who: "Profile ≥60% complete, not published, ~day 13 — final publish touch.",
     why: "Soft, no-pressure last word before the sequence goes quiet.",

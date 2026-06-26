@@ -1064,15 +1064,25 @@ export default async function ProviderPage({
               />
               </div>
 
-              {/* Managed by — show for verified providers (with fallback to facility name), hidden on mobile */}
-              {(hasStaff || displayClaimState === "verified") && (
+              {/* Claim status section — matches mobile layout, hidden on mobile */}
+              {(displayClaimState === "verified" || displayClaimState === "claimed") && (
                 <div className="hidden md:flex items-center gap-2.5 mt-4">
                   <div className="relative flex-shrink-0">
-                    {staff?.image ? (
-                      <Image src={staff.image} alt={staff.name || profile.display_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                    {displayClaimState === "verified" ? (
+                      // Verified: show staff image or initials
+                      staff?.image ? (
+                        <Image src={staff.image} alt={staff.name || profile.display_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff?.name || profile.display_name)}</span>
+                        </div>
+                      )
                     ) : (
+                      // Claimed: show person icon (matches mobile)
                       <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff?.name || profile.display_name)}</span>
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
                       </div>
                     )}
                     {displayClaimState === "verified" && (
@@ -1082,9 +1092,15 @@ export default async function ProviderPage({
                       </svg>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Managed by: <span className="font-medium text-gray-700">{staff?.name || profile.display_name}</span>
-                  </p>
+                  {displayClaimState === "verified" ? (
+                    <p className="text-sm text-gray-500">
+                      Managed by: <span className="font-medium text-gray-700">{staff?.name || profile.display_name}</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Pending verification
+                    </p>
+                  )}
                 </div>
               )}
             </div>

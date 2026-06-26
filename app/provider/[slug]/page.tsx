@@ -14,6 +14,7 @@ import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
+import ShareButton from "@/components/providers/ShareButton";
 import CareServicesList from "@/components/providers/CareServicesList";
 import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
@@ -58,6 +59,9 @@ import { normalizeQuestion } from "@/lib/qa-utils";
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
+import { resolveProviderCategoryTags, type ResolvedProviderTags, type CategoryTag } from "@/lib/provider-category-tags";
+import { groupPhotos, pickHeroImages, type GroupedPhoto } from "@/lib/photo-categories";
+import PhotoTourWrapper from "@/components/providers/PhotoTourWrapper";
 import { getServiceClient } from "@/lib/admin";
 import { ViewTracker } from "@/components/analytics/ViewTracker";
 
@@ -541,7 +545,7 @@ export default async function ProviderPage({
   }
 
   // Build highlights: data-driven waterfall (trust signals → social proof → CMS → screening → capability)
-  const highlights: HighlightItem[] = buildHighlights({
+  const genericHighlights: HighlightItem[] = buildHighlights({
     trustSignals: aiTrustSignals,
     googleReviews: googleReviewsData,
     cmsData,
@@ -549,6 +553,22 @@ export default async function ProviderPage({
     careTypes: profile.care_types,
     category: profile.category,
   });
+
+  // Category-specific tags — replaces generic highlights when available.
+  // Tags are a controlled vocabulary per category (not free text) so they
+  // double as search filters and SEO facets.
+  const categoryTags: ResolvedProviderTags | null = resolveProviderCategoryTags(
+    profile.category ?? "",
+    null,  // tagIds — will come from DB; null = all tags apply
+    null,  // featuredIds — will come from DB; null = use category defaults
+  );
+
+  // Use category tags for hero chips when available; fall back to generic highlights.
+  // Category tags exclude redundant chips like "Memory Care" and "Highly Rated"
+  // since the category and Google rating are already shown elsewhere in the header.
+  const highlights: HighlightItem[] = categoryTags
+    ? categoryTags.featured.map((t) => ({ label: t.label, icon: t.icon }))
+    : genericHighlights;
 
   // Prepare benefits data for this provider's state (server-side, keeps client bundle small)
   const benefitsData = profile.state ? getTopProgramsForState(profile.state, 3) : null;
@@ -592,47 +612,71 @@ export default async function ProviderPage({
         { name: "CVS Pharmacy", distance: "1.8 mi", lat: 32.8170, lng: -97.4030 },
         { name: "Walgreens", distance: "2.3 mi", lat: 32.8090, lng: -97.3980 },
       ]},
-      { label: "Grocery", icon: "grocery", places: [
-        { name: "Kroger", distance: "2.5 mi", lat: 32.8100, lng: -97.3950 },
-        { name: "Walmart Supercenter", distance: "3.1 mi", lat: 32.8250, lng: -97.3850 },
-      ]},
-      { label: "Dining", icon: "dining", places: [
-        { name: "Ol' South Pancake House", distance: "3.8 mi", lat: 32.7970, lng: -97.3810 },
-        { name: "Cracker Barrel", distance: "4.2 mi", lat: 32.8350, lng: -97.3750 },
-      ]},
-      { label: "Parks", icon: "parks", places: [
-        { name: "Eagle Mountain Park", distance: "2.1 mi", lat: 32.8450, lng: -97.4350 },
-        { name: "Lake Worth Trail", distance: "1.4 mi", lat: 32.8180, lng: -97.4250 },
-      ]},
-      { label: "Place of Worship", icon: "worship", places: [
-        { name: "Boat Club Road Church of Christ", distance: "0.5 mi", lat: 32.8240, lng: -97.4180 },
-        { name: "Eagle Mountain Baptist Church", distance: "1.2 mi", lat: 32.8350, lng: -97.4300 },
+      { label: "Doctor's Office", icon: "hospital", places: [
+        { name: "Baylor Scott & White Clinic", distance: "3.4 mi", lat: 32.8100, lng: -97.3950 },
+        { name: "Texas Health Family Care", distance: "4.1 mi", lat: 32.8250, lng: -97.3850 },
       ]},
     ],
   };
   const nearbyPlaces: NearbyCategory[] = nearbyPlacesMap[profile.slug] ?? [];
 
+  // Grouped photo tour — per-provider photo data mapped to category slots.
+  // Will come from DB eventually; hardcoded for launch providers.
+  const groupedPhotos: GroupedPhoto[] = isAvalonFortWorth
+    ? [
+        // Accommodation
+        { src: "/providers/avalon-fort-worth/accommodation/bedroom.webp", categoryId: "accommodation" },
+        { src: "/providers/avalon-fort-worth/accommodation/bathroom.png", categoryId: "accommodation" },
+        { src: "/providers/avalon-fort-worth/accommodation/floor-plan-1.jpg", categoryId: "accommodation" },
+        { src: "/providers/avalon-fort-worth/accommodation/floor-plan-2.jpg", categoryId: "accommodation" },
+        // Lifestyle
+        { src: "/providers/avalon-fort-worth/lifestyle/dining.webp", categoryId: "lifestyle" },
+        { src: "/providers/avalon-fort-worth/lifestyle/music.webp", categoryId: "lifestyle" },
+        { src: "/providers/avalon-fort-worth/lifestyle/porch.webp", categoryId: "lifestyle" },
+        { src: "/providers/avalon-fort-worth/lifestyle/celebration.png", categoryId: "lifestyle" },
+        { src: "/providers/avalon-fort-worth/lifestyle/residents.png", categoryId: "lifestyle" },
+        // Community
+        { src: "/providers/avalon-fort-worth/exterior/building.jpg", categoryId: "community" },
+        { src: "/providers/avalon-fort-worth/exterior/residents-outside.webp", categoryId: "community" },
+        { src: "/providers/avalon-fort-worth/exterior/outside.png", categoryId: "community" },
+        { src: "/providers/avalon-fort-worth/lifestyle/staff.png", categoryId: "community" },
+      ]
+    : [];
+
+  const photoGroups = groupedPhotos.length > 0
+    ? groupPhotos(profile.category ?? "", groupedPhotos)
+    : [];
+
   // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
-  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
-  sectionItems.push({ id: "services", label: "Services" });
-  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
-  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
-  sectionItems.push({ id: "about", label: "About" });
+
   if (isAvalonFortWorth) {
-    sectionItems.push({ id: "care-approach", label: "Care Approach" });
-    sectionItems.push({ id: "amenities", label: "Amenities" });
-    sectionItems.push({ id: "neighborhood", label: "Neighborhood" });
+    // Memory care category nav
+    sectionItems.push({ id: "reviews", label: "Reviews" });
+    sectionItems.push({ id: "qa", label: "FAQs" });
+    sectionItems.push({ id: "about", label: "About" });
+    sectionItems.push({ id: "care-approach", label: "Care" });
+    sectionItems.push({ id: "care-team", label: "Staff" });
+    sectionItems.push({ id: "safety", label: "Safety" });
+    sectionItems.push({ id: "life-enrichment", label: "Life Enrichment" });
+    sectionItems.push({ id: "pricing", label: "Payment" });
+  } else {
+    // Default nav for other categories
+    sectionItems.push({ id: "highlights", label: "Highlights" });
+    if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+    sectionItems.push({ id: "qa", label: "Q&A" });
+    if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
+    sectionItems.push({ id: "services", label: "Services" });
+    if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+    if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
+    if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
+    sectionItems.push({ id: "about", label: "About" });
+    if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
+    if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
   }
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
-  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
 
   // ============================================================
   // Render
@@ -751,6 +795,13 @@ export default async function ProviderPage({
         `https://www.google.com/maps/place/?q=place_id:${providerPlaceId}`,
       ],
     }),
+    // Category-specific tags as schema keywords for SEO faceting.
+    // Each tag's seoFacet + location produces a rankable search phrase.
+    ...(categoryTags && categoryTags.all.length > 0 && {
+      keywords: categoryTags.all.map((t) =>
+        [t.seoFacet, profile.city, profile.state].filter(Boolean).join(" in "),
+      ).join(", "),
+    }),
   };
 
   // FAQPage schema — only emitted when real answered Q&A pairs exist
@@ -787,9 +838,6 @@ export default async function ProviderPage({
         />
       )}
 
-      {/* Section Navigation (appears on scroll) - desktop only */}
-      <SectionNav sections={sectionItems} />
-
       {/* Mobile Provider Top Nav - always sticky on mobile */}
       <MobileProviderTopNav />
 
@@ -822,6 +870,13 @@ export default async function ProviderPage({
                 category={profile.category}
                 fallbackImage={heroFallbackImage}
               />
+              {photoGroups.length > 0 && (
+                <PhotoTourWrapper
+                  groups={photoGroups}
+                  providerName={profile.display_name}
+                  totalCount={groupedPhotos.length}
+                />
+              )}
               <MobileGalleryActionBar
                 provider={{
                   providerId: profile.slug,
@@ -857,7 +912,7 @@ export default async function ProviderPage({
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
                   {profile.display_name}
                 </h1>
-                <div className="hidden md:block">
+                <div className="hidden md:flex items-center gap-2">
                   <SaveButton
                     provider={{
                       providerId: profile.slug,
@@ -870,6 +925,7 @@ export default async function ProviderPage({
                     }}
                     variant="pill"
                   />
+                  <ShareButton name={profile.display_name} />
                 </div>
               </div>
 
@@ -1031,6 +1087,12 @@ export default async function ProviderPage({
                       <span>on Google</span>
                     </span>
                   )}
+                  {isAvalonFortWorth && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span className="text-xs text-teal-700 bg-teal-50 rounded-full px-2.5 py-1 font-medium">Updated June 2026</span>
+                    </>
+                  )}
                 </div>
 
                 {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
@@ -1063,10 +1125,15 @@ export default async function ProviderPage({
               {/* Hidden on mobile for cleaner hero, shown on desktop */}
               {highlights.length > 0 && (
                 <div id="highlights" className="scroll-mt-20 hidden md:block">
-                  {/* Desktop: flex-wrap chips */}
-                  <div className="flex flex-wrap gap-2 mt-4">
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                    {isAvalonFortWorth && (
+                      <div className="bg-green-50 border border-green-200 rounded-full py-1.5 px-3 flex items-center gap-1.5">
+                        <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
+                        <span className="text-sm text-green-700 font-medium">Accepting residents</span>
+                      </div>
+                    )}
                     {highlights.map((h) => (
-                      <div key={h.label} className="bg-white border border-gray-200 rounded-lg py-2.5 px-3 flex items-center gap-2">
+                      <div key={h.label} className="bg-white border border-gray-200 rounded-full py-1.5 px-3 flex items-center gap-2">
                         <HighlightIcon icon={h.icon} className="w-4 h-4 text-primary-500 flex-shrink-0" />
                         <span className="text-sm text-gray-600">{h.label}</span>
                       </div>
@@ -1128,6 +1195,13 @@ export default async function ProviderPage({
 
           {/* ========== Left Column ========== */}
           <div className="lg:col-span-2">
+
+            {/* Section Navigation — inline bar, desktop only */}
+            {sectionItems.length > 0 && (
+              <div className="mb-6">
+                <SectionNav sections={sectionItems} />
+              </div>
+            )}
 
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
@@ -1284,91 +1358,6 @@ export default async function ProviderPage({
               </div>
               )}
 
-              {/* ── Benefits Discovery ── */}
-              {/* Wrapped in BenefitsArmGate so the section disappears for the
-                  40% of visitors in the outreach or multi_provider arms of the
-                  5-way intake A/B. The 60% in the 3 benefits arms see the existing
-                  module unchanged (with its internal mod-3 copy A/B). */}
-              {!isStudentContext && hasBenefitsData && benefitsData && (
-                <BenefitsArmGate>
-                  <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
-                    <BenefitsDiscoveryModule
-                      providerState={profile.state!}
-                      stateId={benefitsData.stateId}
-                      stateName={benefitsData.stateName}
-                      providerName={profile.display_name}
-                      providerSlug={profile.slug}
-                      providerCareTypes={profile.care_types}
-                      providerCategory={profile.category}
-                      topPrograms={benefitsData.programs.map((p) => ({
-                        id: p.id,
-                        name: p.name,
-                        shortName: p.shortName,
-                        tagline: p.tagline,
-                        savingsRange: p.savingsRange,
-                      }))}
-                      allPrograms={benefitsAllPrograms}
-                      entrySource={`/provider/${profile.slug}`}
-                    />
-                  </div>
-                </BenefitsArmGate>
-              )}
-
-              {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
-                <CareServicesList services={careServices} initialCount={6} />
-              </div>
-
-              {/* ── Staff Screening — hidden when no real data ── */}
-              {hasStaffScreening && (
-                <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {[
-                      { label: "Background Checked", verified: staffScreening!.background_checked },
-                      { label: "Licensed", verified: staffScreening!.licensed },
-                      { label: "Insured", verified: staffScreening!.insured },
-                    ].filter(item => item.verified).map((item) => (
-                      <div key={item.label} className="flex items-center gap-2.5">
-                        <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                        <span className="text-base text-gray-700">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── What families are saying (below Q&A when no reviews — empty state;
-                    hidden in student context, the "be first to review" prompt is family-facing) ── */}
-              {!isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
-                <div id="reviews" className="scroll-mt-20">
-                  <ReviewsSection
-                    providerId={profile.slug}
-                    providerSlug={profile.slug}
-                    providerName={profile.display_name}
-                    mockReviews={reviewsToShow}
-                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-                    googleReviewsData={googleReviewsData}
-                    placeId={providerPlaceId}
-                  />
-                </div>
-              )}
-
-              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
-              {cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
-                <div className="py-8 border-t border-gray-200">
-                  <CMSQualitySection cmsData={cmsData} />
-                </div>
-              )}
-
-              {/* ── AI Verified Credentials ── */}
-              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
-                <div className="py-8 border-t border-gray-200">
-                  <AiTrustSignalsSection signals={aiTrustSignals} />
-                </div>
-              )}
-
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <div className="flex items-center gap-3 mb-3">
@@ -1386,13 +1375,13 @@ export default async function ProviderPage({
                   maxLength={isAvalonFortWorth ? 400 : 300}
                 />
 
-                {/* Badges — Avalon Fort Worth */}
+                {/* Awards & Badges — Avalon Fort Worth */}
                 {isAvalonFortWorth && (
                   <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
                     <div className="flex flex-wrap gap-x-10 gap-y-4">
                       {[
-                        { title: "STATE LICENSED", subtitle: "Alzheimer's & Dementia Certified", badgeColor: "#4A6FA5" },
-                        { title: "FAMILY OWNED", subtitle: "Since 1995 — 30+ Locations", badgeColor: "#C5A44E" },
+                        { title: "NATIONAL AWARD WINNER", subtitle: "IBM National Award", badgeColor: "#C5A44E" },
+                        { title: "BEST OF SENIOR LIVING", subtitle: "A Place for Mom, 2024", badgeColor: "#3B8EA5" },
                       ].map((badge) => (
                         <div key={badge.title} className="flex items-center gap-3">
                           <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
@@ -1420,7 +1409,7 @@ export default async function ProviderPage({
                     </div>
                     <ul className="space-y-2">
                       {[
-                        "Boutique-style, ranch-level homes with secured patios and backyards — not an institutional facility",
+                        "Boutique-style, ranch-level homes with secured patios and backyards, not an institutional facility",
                         "Specialized exclusively in memory care since 1995, with a focus on reducing medications and preserving dignity",
                         "Intentionally small communities that foster a family atmosphere and reduce feelings of loneliness",
                       ].map((point) => (
@@ -1434,53 +1423,171 @@ export default async function ProviderPage({
                 )}
               </div>
 
-              {/* ── Care Approach (Memory Care specific) ── */}
+              {/* ── Benefits Discovery ── */}
+              {/* Wrapped in BenefitsArmGate so the section disappears for the
+                  40% of visitors in the outreach or multi_provider arms of the
+                  5-way intake A/B. The 60% in the 3 benefits arms see the existing
+                  module unchanged (with its internal mod-3 copy A/B). */}
+              {!isAvalonFortWorth && !isStudentContext && hasBenefitsData && benefitsData && (
+                <BenefitsArmGate>
+                  <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
+                    <BenefitsDiscoveryModule
+                      providerState={profile.state!}
+                      stateId={benefitsData.stateId}
+                      stateName={benefitsData.stateName}
+                      providerName={profile.display_name}
+                      providerSlug={profile.slug}
+                      providerCareTypes={profile.care_types}
+                      providerCategory={profile.category}
+                      topPrograms={benefitsData.programs.map((p) => ({
+                        id: p.id,
+                        name: p.name,
+                        shortName: p.shortName,
+                        tagline: p.tagline,
+                        savingsRange: p.savingsRange,
+                      }))}
+                      allPrograms={benefitsAllPrograms}
+                      entrySource={`/provider/${profile.slug}`}
+                    />
+                  </div>
+                </BenefitsArmGate>
+              )}
+
+              {/* ── Care Services (hidden for Avalon — replaced by custom sections) ── */}
+              {!isAvalonFortWorth && (
+              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
+                <CareServicesList services={careServices} initialCount={6} />
+              </div>
+              )}
+
+              {/* ── Staff Screening — hidden when no real data, hidden for Avalon ── */}
+              {!isAvalonFortWorth && hasStaffScreening && (
+                <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
+                  <div className="flex flex-wrap gap-x-8 gap-y-3">
+                    {[
+                      { label: "Background Checked", verified: staffScreening!.background_checked },
+                      { label: "Licensed", verified: staffScreening!.licensed },
+                      { label: "Insured", verified: staffScreening!.insured },
+                    ].filter(item => item.verified).map((item) => (
+                      <div key={item.label} className="flex items-center gap-2.5">
+                        <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                        <span className="text-base text-gray-700">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── What families are saying (below Q&A when no reviews — empty state;
+                    hidden in student context and Avalon, the "be first to review" prompt is family-facing) ── */}
+              {!isAvalonFortWorth && !isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                  />
+                </div>
+              )}
+
+              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
+              {!isAvalonFortWorth && cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
+                <div className="py-8 border-t border-gray-200">
+                  <CMSQualitySection cmsData={cmsData} />
+                </div>
+              )}
+
+              {/* ── AI Verified Credentials (non-Avalon — shown inline here) ── */}
+              {!isAvalonFortWorth && aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
+                </div>
+              )}
+
+              {/* ── Condition-Specific Care (Memory Care) ── */}
+              {isAvalonFortWorth && (() => {
+                // Provider-supplied specialty (editable in portal)
+                const specialtyHeading = "Specialized in Alzheimer's and dementia care";
+                const specialtyDescription = "Avalon provides holistic, individualized care in a secure, family-style home setting with a focus on preserving dignity, autonomy, and quality of life at every stage.";
+
+                // Conditions this provider confirms (each is a searchable term)
+                const supportedConditions = [
+                  "Alzheimer's disease",
+                  "Vascular dementia",
+                  "Lewy body dementia",
+                  "Frontotemporal dementia",
+                  "Parkinson's dementia",
+                  "Stroke-related cognitive decline",
+                  "Comorbidities & complex cases",
+                  "Behavioral & mental health needs",
+                  "Mobility assistance",
+                  "Daily living support (ADLs)",
+                  "Visual impairment",
+                  "Hearing impairment",
+                  "Post-surgery recovery",
+                  "Respite / short-term stays",
+                ];
+
+                return (
+                  <div id="care-approach" className="py-8 scroll-mt-20 border-t border-gray-200">
+                    {/* Part 1: Primary specialty */}
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                      <h2 className="text-2xl font-bold text-gray-900 font-display">{specialtyHeading}</h2>
+                    </div>
+                    <p className="text-base text-gray-600 leading-relaxed mb-5">{specialtyDescription}</p>
+
+                    {/* Specialized conditions — collapses if empty */}
+                    {supportedConditions.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase mb-3">Specialized in conditions</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {supportedConditions.map((condition) => (
+                            <span key={condition} className="bg-teal-50 text-sm text-teal-800 rounded-lg px-3 py-1.5">{condition}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* ── Care Team & Staffing (Memory Care) ── */}
               {isAvalonFortWorth && (
-              <div id="care-approach" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Care Approach</h2>
-                <p className="text-base text-gray-600 mb-5">Avalon&apos;s care model is built around preserving each resident&apos;s dignity, routines, and quality of life in a secure, home-like setting with 24/7 specialized support.</p>
+              <div id="care-team" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Care Team & Staffing</h2>
+                <p className="text-base text-gray-600 mb-5">Avalon keeps homes intentionally small, roughly 20 residents each, with a 1-to-5 staff-to-resident ratio compared to the 1-to-15 common at larger facilities. Low staff turnover means residents are cared for by experienced caregivers who know them personally.</p>
+
+                {/* Key stats callout */}
+                <div className="grid grid-cols-3 gap-3 mb-5">
+                  <div className="bg-teal-50 rounded-xl px-4 py-3 text-center">
+                    <p className="text-xl font-bold text-teal-800">1:5</p>
+                    <p className="text-xs text-teal-700 font-medium">Staff-to-resident ratio</p>
+                  </div>
+                  <div className="bg-teal-50 rounded-xl px-4 py-3 text-center">
+                    <p className="text-xl font-bold text-teal-800">~20</p>
+                    <p className="text-xs text-teal-700 font-medium">Residents per home</p>
+                  </div>
+                  <div className="bg-teal-50 rounded-xl px-4 py-3 text-center">
+                    <p className="text-xl font-bold text-teal-800">24/7</p>
+                    <p className="text-xs text-teal-700 font-medium">On-site staffing</p>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Pillar 1: Personalized Care */}
-                  <div className="rounded-xl border border-gray-200 px-5 py-4">
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Personalized Care</h3>
-                    </div>
-                    <ul className="space-y-3">
-                      {["Individualized care plans", "Physical, emotional & spiritual support", "Focus on reducing unnecessary medications", "Preserving daily routines & autonomy"].map((item) => (
-                        <li key={item} className="flex items-center gap-2.5">
-                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                          <span className="text-sm font-medium text-gray-900">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Pillar 2: Secure Environment */}
-                  <div className="rounded-xl border border-gray-200 px-5 py-4">
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
-                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Secure Environment</h3>
-                    </div>
-                    <ul className="space-y-3">
-                      {["Magnetic door locks & 24/7 security", "Secured patios & landscaped backyards", "Ranch-style, one-level homes", "Private rooms with personalized décor"].map((item) => (
-                        <li key={item} className="flex items-center gap-2.5">
-                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                          <span className="text-sm font-medium text-gray-900">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Pillar 3: Daily Life & Activities */}
                   <div className="rounded-xl border border-gray-200 px-5 py-4">
                     <div className="flex items-center gap-2.5 mb-3">
                       <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
-                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Daily Life & Activities</h3>
+                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">On-Site Team</h3>
                     </div>
                     <ul className="space-y-3">
-                      {["Baking & cooking activities", "Exercise & movement programs", "Musical performances & entertainment", "Customized activity schedules"].map((item) => (
+                      {["RN staff on-site at each home", "Dementia-trained caregivers (not agency temps)", "Low turnover, experienced staff who stay", "Trained to handle behavioral changes & disease progression"].map((item) => (
                         <li key={item} className="flex items-center gap-2.5">
                           <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                           <span className="text-sm font-medium text-gray-900">{item}</span>
@@ -1489,14 +1596,13 @@ export default async function ProviderPage({
                     </ul>
                   </div>
 
-                  {/* Pillar 4: Dining */}
                   <div className="rounded-xl border border-gray-200 px-5 py-4">
                     <div className="flex items-center gap-2.5 mb-3">
-                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 3.75V16.5" /></svg>
-                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Home-Cooked Dining</h3>
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Care Partnerships</h3>
                     </div>
                     <ul className="space-y-3">
-                      {["Three daily home-cooked meals", "Special dietary accommodations", "Focus on essential food groups", "Family-style dining atmosphere"].map((item) => (
+                      {["Hospice & house call physician partnerships", "Medication management with minimal-use philosophy", "Individualized care plan reviews with families", "Regular family communication & progress updates"].map((item) => (
                         <li key={item} className="flex items-center gap-2.5">
                           <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                           <span className="text-sm font-medium text-gray-900">{item}</span>
@@ -1508,58 +1614,143 @@ export default async function ProviderPage({
               </div>
               )}
 
-              {/* ── Amenities (Memory Care) ── */}
+              {/* ── Safety & Accommodations (Memory Care) ── */}
               {isAvalonFortWorth && (
-              <AmenitiesSection
-                categories={[
-                  {
-                    heading: "Safety & Security",
-                    icon: "safety",
-                    items: [
-                      "24/7 Security Monitoring",
-                      "Magnetic Door Locks",
-                      "Emergency Alert Systems",
-                      "Secured Patio & Backyard Access",
-                    ],
-                  },
-                  {
-                    heading: "Living Spaces",
-                    icon: "independent",
-                    items: [
-                      "Private Rooms",
-                      "Personalized Décor Welcome",
-                      "Comfortable Furnishings",
-                      "Home-Like Ranch-Style Setting",
-                    ],
-                  },
-                  {
-                    heading: "Care & Wellness",
-                    icon: "fitness",
-                    items: [
-                      "Individualized Care Plans",
-                      "Medication Management",
-                      "RN Staff On-Site",
-                      "Hospice & House Call Partnerships",
-                    ],
-                  },
-                  {
-                    heading: "Daily Services",
-                    icon: "housekeeping",
-                    items: [
-                      "Daily Maintenance",
-                      "Laundry Services",
-                      "Housekeeping",
-                      "Transportation Coordination",
-                    ],
-                  },
-                ]}
-              />
+              <div id="safety" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Safety & Accommodations</h2>
+                <p className="text-base text-gray-600 mb-5">Purpose-built, ranch-level homes designed for secure, comfortable living, not an institutional facility.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="rounded-xl border border-gray-200 px-5 py-4">
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Security</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {["Magnetic door locks & 24/7 monitoring", "Emergency alert systems", "Secured patios & landscaped backyards", "Wandering prevention technology"].map((item) => (
+                        <li key={item} className="flex items-center gap-2.5">
+                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                          <span className="text-sm font-medium text-gray-900">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 px-5 py-4">
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5M6.75 7.364V3h-3v18m3-13.636l10.5-3.819" /></svg>
+                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Accommodations</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {["Private rooms with personalized décor", "Ranch-style, one-level homes", "Comfortable furnishings", "Housekeeping & laundry included"].map((item) => (
+                        <li key={item} className="flex items-center gap-2.5">
+                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                          <span className="text-sm font-medium text-gray-900">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
               )}
 
-              {/* ── Neighborhood ── */}
-              {isAvalonFortWorth && nearbyPlaces.length > 0 && (
-              <div id="neighborhood" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-1">What&apos;s nearby</h2>
+              {/* ── Life Enrichment (Memory Care) ── */}
+              {isAvalonFortWorth && (
+              <div id="life-enrichment" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Life Enrichment</h2>
+                <p className="text-base text-gray-600 mb-5">Avalon&apos;s life enrichment programming is designed to preserve abilities, spark joy, and foster connection with activities tailored to each resident&apos;s interests and cognitive level.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="rounded-xl border border-gray-200 px-5 py-4">
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" /></svg>
+                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Creative & Social</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {["Musical performances & sing-alongs", "Baking & cooking activities", "Arts & crafts projects", "Group social gatherings"].map((item) => (
+                        <li key={item} className="flex items-center gap-2.5">
+                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                          <span className="text-sm font-medium text-gray-900">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 px-5 py-4">
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 3.75V16.5" /></svg>
+                      <h3 className="text-sm font-bold text-teal-700 tracking-wide uppercase">Dining & Wellness</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {["Three daily home-cooked meals", "Special dietary accommodations", "Gentle exercise & movement programs", "Outdoor walks in secured courtyard"].map((item) => (
+                        <li key={item} className="flex items-center gap-2.5">
+                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                          <span className="text-sm font-medium text-gray-900">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {/* ── Cost of Care (Memory Care) ── */}
+              {isAvalonFortWorth && (
+                <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Payment and Finances</h2>
+                  <p className="text-base text-gray-600 mb-5">Monthly rates are based on each resident&apos;s assessed care level. The standard rate is all-inclusive (room, meals, activities, and 24/7 care) with add-ons available for private rooms and specialized care needs.</p>
+
+                  {/* Base rate + what's included */}
+                  <div className="bg-gray-50 rounded-xl px-5 py-4 mb-4">
+                    <p className="text-lg font-semibold text-gray-900 mb-1">
+                      {hasPriceRange ? priceRange : "Contact for pricing"}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">Area estimate. Actual rate determined by care assessment.</p>
+
+                    <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase mb-3">What&apos;s included in the standard rate</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                      {["Private or shared room", "Three daily home-cooked meals", "24/7 care & security", "All life enrichment activities", "Housekeeping & laundry", "Medication management"].map((item) => (
+                        <div key={item} className="flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Add-ons */}
+                  <div className="rounded-xl border border-gray-200 px-5 py-4 mb-4">
+                    <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase mb-3">Available add-ons</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                      {["Private room upgrade", "Specialized care for higher acuity", "Respite / short-term stays", "Hospice coordination"].map((item) => (
+                        <div key={item} className="flex items-center gap-2.5">
+                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Payment & financial support */}
+                  <div className="rounded-xl border border-gray-200 px-5 py-4">
+                    <h3 className="text-sm font-bold text-gray-700 tracking-wide uppercase mb-3">Payment & financial support</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {["Private Pay", "Long-Term Care Insurance", "Veterans Benefits (Aid & Attendance)", "Payment plans available", "Financial planning support"].map((type) => (
+                        <span key={type} className="bg-gray-100 text-sm text-gray-700 rounded-lg px-3 py-1.5">{type}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-5 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Get a custom quote
+                  </ScrollToConnectionCard>
+                </div>
+              )}
+
+              {/* ── Neighborhood Map (Memory Care) ── */}
+              {isAvalonFortWorth && (
+              <div className="py-8 border-t border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 font-display mb-1">What&apos;s nearby</h3>
                 {profile.address ? (
                   <p className="text-sm text-gray-500 mb-1">{profile.address}{profile.city ? `, ${profile.city}` : ""}{profile.state ? `, ${profile.state}` : ""}</p>
                 ) : profile.city && profile.state ? (
@@ -1573,6 +1764,13 @@ export default async function ProviderPage({
                   categories={nearbyPlaces}
                 />
               </div>
+              )}
+
+              {/* ── Verified Credentials (Avalon — at the very bottom) ── */}
+              {isAvalonFortWorth && aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
+                </div>
               )}
 
               {/* ── Detailed Pricing ── */}

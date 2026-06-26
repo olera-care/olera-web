@@ -7,14 +7,12 @@ interface ClaimBadgeProps {
   displayState: "unclaimed" | "verified" | "claimed";
   providerName: string;
   claimUrl: string;
-  disputeUrl?: string;
 }
 
 export default function ClaimBadge({
   displayState,
   providerName,
   claimUrl,
-  disputeUrl,
 }: ClaimBadgeProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHoveringBadge, setIsHoveringBadge] = useState(false);
@@ -157,32 +155,9 @@ export default function ClaimBadge({
                 is kept up to date.
               </p>
             ) : displayState === "claimed" ? (
-              <>
-                <p className="mb-2">
-                  This listing is claimed but not yet verified.
-                </p>
-                {disputeUrl && (
-                  <Link
-                    href={disputeUrl}
-                    className="inline-flex items-center gap-1 text-primary-300 hover:text-primary-200 font-medium transition-colors"
-                  >
-                    Believe this is incorrect? Dispute
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
-                )}
-              </>
+              <p>
+                This listing is claimed but not yet verified.
+              </p>
             ) : (
               <>
                 <p className="mb-2">

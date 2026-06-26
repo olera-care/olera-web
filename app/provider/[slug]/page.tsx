@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -799,7 +798,6 @@ export default async function ProviderPage({
                     displayState={displayClaimState}
                     providerName={profile.display_name}
                     claimUrl={`/provider/onboarding?org=${profile.slug}`}
-                    disputeUrl={`/provider/onboarding?org=${profile.slug}&dispute=true`}
                   />
                 </div>
               )}
@@ -955,16 +953,10 @@ export default async function ProviderPage({
                         <>
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-bold text-gray-400 tracking-wide">CLAIMED</span>
-                            <MobileClaimTooltip content="This listing is claimed but not yet verified. If you believe this is incorrect, you can dispute." />
+                            <MobileClaimTooltip content="This listing is claimed but not yet verified." />
                           </div>
                           <p className="text-sm text-gray-500 mt-0.5">
-                            Pending verification ·{" "}
-                            <Link
-                              href={`/provider/onboarding?org=${profile.slug}&dispute=true`}
-                              className="font-semibold text-primary-600 hover:text-primary-700"
-                            >
-                              Dispute
-                            </Link>
+                            Pending verification
                           </p>
                         </>
                       ) : (

@@ -1117,13 +1117,13 @@ export function connectionOutcomeCheckEmail(opts: {
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       A couple of days ago you reached out to <strong>${provider}</strong> through Olera.
-      Quick check-in — <strong>did they get back to you?</strong>
+      Quick check-in: <strong>did they get back to you?</strong>
     </p>
     <div style="margin:0 0 12px;">${primaryBtn("Yes, we connected", opts.yesUrl)}</div>
     <div style="margin:0 0 12px;">${neutralBtn("Not yet", opts.notYetUrl)}</div>
     <div style="margin:0 0 24px;">${neutralBtn("No, I haven't heard back", opts.noUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">
-      One tap is all it takes — it helps us make sure you actually get the care you're looking for.
+      One tap is all it takes. It helps us make sure you actually get the care you're looking for.
       If a provider's gone quiet, we'll show you others nearby who are ready to help.
     </p>
     ${footer}
@@ -1228,22 +1228,22 @@ export function providerSilentEmail(opts: {
     if (hasDeclineMessage) {
       openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now and left you a message:`;
     } else if (hasRecommendedProviders) {
-      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got other strong options nearby worth comparing:`;
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now, but you've got other strong options nearby worth comparing:`;
     } else {
-      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area worth a look.`;
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now, but there are other providers in your area worth a look.`;
     }
   } else {
-    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you worth comparing:" : ""}`;
+    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet, and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you worth comparing:" : ""}`;
   }
 
   // Adjust closing line based on whether we showed recommendations
   const closingLine = opts.providerPassed
     ? (hasRecommendedProviders
-        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
-        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls. It's your call.`)
+        ? `You can reach out to any of them the same way, directly in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
+        : `You can browse providers and reach out the same way, directly in your inbox, with no forms and no flood of calls. It's your call.`)
     : (hasRecommendedProviders
-        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
-        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
+        ? `You can reach out to any of them the same way, directly in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
+        : `You can browse providers and reach out the same way, directly in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
 
   // Show provider's decline message if present (similar to message preview style)
   // Only say "plenty of other options" if we actually have recommendations
@@ -1269,11 +1269,7 @@ export function providerSilentEmail(opts: {
       ${openingLine}
     </p>
     ${declineMessageSection}
-    ${hasRecommendedProviders ? `
-    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
-      ${providersSection}
-    </div>
-    ` : ""}
+    ${hasRecommendedProviders ? `<div style="margin:0 0 24px;">${providersSection}</div>` : ""}
     <div style="margin:0 0 24px;">${button("Compare more providers near you", opts.browseUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
@@ -1281,7 +1277,7 @@ export function providerSilentEmail(opts: {
     </p>
     ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
       Warmly,
@@ -1290,7 +1286,7 @@ export function providerSilentEmail(opts: {
       The Olera team
     </p>
     ${authorBylineBlock({ topBorder: true })}
-  `, `You're never limited to one — here are others worth comparing.`);
+  `, `You're never limited to one. Here are others worth comparing.`);
 }
 
 /** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
@@ -1874,7 +1870,7 @@ export function matchesNudgeEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back?</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating — but there's a better way.
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating, but there's a better way.
     </p>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Instead of chasing providers one by one, let them come to you. Share your care needs once, and qualified providers will reach out directly.
@@ -2128,7 +2124,7 @@ export function goLiveReminderEmail(opts: {
   const cityText = opts.city || "your area";
   const countText = opts.providerCount ? `${opts.providerCount} care` : "Care";
   const providersHtml = opts.topProviders?.length ? providerCardsBlock(opts.topProviders) : "";
-  const preheader = `${countText} providers in ${cityText} are ready to help — let them reach out to you`;
+  const preheader = `${countText} providers in ${cityText} are ready to help. Let them reach out to you.`;
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${countText} providers in ${escapeHtml(cityText)} are looking for families like yours</h1>
@@ -2137,11 +2133,11 @@ export function goLiveReminderEmail(opts: {
     </p>
     ${providersHtml}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're always in control — you decide which providers to respond to.
+      You're always in control. You decide which providers to respond to.
     </p>
     <div>${button("Let Providers Reach Out", opts.matchesUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Have questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us anytime</a>, we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
@@ -2158,18 +2154,18 @@ export function postConnectionFollowupEmail(opts: {
   providerSlug: string;
   reviewUrl: string;
 }): string {
-  const preheader = `Your feedback helps other families find great care — tell us about ${opts.providerName}`;
+  const preheader = `Your feedback helps other families find great care. Tell us about ${opts.providerName}`;
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">How was your experience with ${escapeHtml(opts.providerName)}?</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Hi ${firstName(opts.familyName, "there")}, you connected with ${escapeHtml(opts.providerName)} on Olera about a month ago. We'd love to hear how it went.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Your feedback helps other families make informed decisions — and helps great providers get the recognition they deserve.
+      Your feedback helps other families make informed decisions, and helps great providers get the recognition they deserve.
     </p>
     <div>${button("Share your experience", opts.reviewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Have questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us anytime</a>, we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
       <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from follow-up emails</a>
@@ -2207,7 +2203,7 @@ export function completionNudge1Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Care is hard to figure out. Cost is harder.</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search on Olera, and we can help with both: finding the right fit, and figuring out how to pay for it.
+      Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera, and we can help with both: finding the right fit, and figuring out how to pay for it.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
       Whenever you&rsquo;re ready, tell us a little more and we&rsquo;ll point you to providers near ${escapeHtml(locationText)} that actually fit.
@@ -2216,7 +2212,7 @@ export function completionNudge1Email(opts: {
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
@@ -2262,7 +2258,7 @@ export function completionNudge2Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">There&rsquo;s more help near you than you might think</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; since you started looking, here&rsquo;s the good news: there really are ${countClause} who can help.
+      Hi ${firstName(opts.familyName, "there")}, since you started looking, here&rsquo;s the good news: there really are ${countClause} who can help.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
       The hard part is knowing which ones fit your situation. Tell us a little more and we&rsquo;ll narrow it down for you.
@@ -2271,7 +2267,7 @@ export function completionNudge2Email(opts: {
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
@@ -2311,13 +2307,13 @@ export function completionNudge3Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A little more, and providers can actually help</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; here&rsquo;s something we&rsquo;ve noticed: when providers can see what you&rsquo;re looking for, they can reply faster, with real answers instead of &ldquo;can you tell me more?&rdquo;
+      Hi ${firstName(opts.familyName, "there")}, here&rsquo;s something we&rsquo;ve noticed: when providers can see what you&rsquo;re looking for, they can reply faster, with real answers instead of &ldquo;can you tell me more?&rdquo;
     </p>
     ${progressLine}
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
@@ -2362,17 +2358,17 @@ export function completionNudge4Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A few providers near you who could help</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search a little while back, so here are a few highly-rated providers near ${escapeHtml(locationText)} to give you a real starting point:
+      Hi ${firstName(opts.familyName, "there")}, you started a care search a little while back, so here are a few highly-rated providers near ${escapeHtml(locationText)} to give you a real starting point:
     </p>
     ${providersHtml}
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      ${remainingCount > 0 ? `There are ${remainingCount} more near you. ` : ""}Whenever you&rsquo;re ready, tell us a little more and the ones that fit can reach out to you directly &mdash; already knowing your situation.
+      ${remainingCount > 0 ? `There are ${remainingCount} more near you. ` : ""}Whenever you&rsquo;re ready, tell us a little more and the ones that fit can reach out to you directly, already knowing your situation.
     </p>
     ${progressLine}
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
@@ -2380,7 +2376,7 @@ export function completionNudge4Email(opts: {
     </p>
   `,
       // Subject lists the providers; preheader carries the low-pressure tone.
-      `Real options near you — no rush.`,
+      `Real options near you. No rush.`,
     ),
   };
 }
@@ -4735,10 +4731,10 @@ export function familyNudgeEmail(opts: {
     ${askLine}
     <div>${button(primaryLabel, primaryUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Cost is often the first question families have — this same step shows what financial help you may qualify for.
+      Cost is often the first question families have, and this same step shows what financial help you may qualify for.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:12px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
@@ -5138,7 +5134,7 @@ export function familyPendingReachOutNudgeEmail(opts: {
     </p>
     ${messageBlock}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      They took the time to reach out — a quick response helps them know if you're still looking for care. Even a "not interested" is helpful so they can assist other families.
+      They took the time to reach out, and a quick response helps them know if you're still looking for care. Even a "not interested" is helpful so they can assist other families.
     </p>
     <div style="margin:0 0 24px;">${button("View and Respond", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
@@ -5173,7 +5169,7 @@ export function staleConversationProviderEmail(opts: {
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `, `Your conversation with ${safeFamilyName} went quiet — send a follow-up`);
+  `, `Your conversation with ${safeFamilyName} went quiet. Send a follow-up`);
 }
 
 /**
@@ -5201,7 +5197,7 @@ export function staleConversationFamilyEmail(opts: {
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `, `${opts.providerName} is still here to help — continue the conversation`);
+  `, `${opts.providerName} is still here to help. Continue the conversation`);
 }
 
 /**
@@ -5231,21 +5227,19 @@ export function day10AwaitingEmail(opts: {
       Hi ${escapeHtml(familyFirstName)},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      You heard back from <strong>${safeProviderName}</strong> — that's a good place to be. If you've been meaning to reply but haven't found the moment, that's completely normal; there's a lot to weigh, and there's no wrong pace.
+      You heard back from <strong>${safeProviderName}</strong>, and that's a good place to be. If you've been meaning to reply but haven't found the moment, that's completely normal; there's a lot to weigh, and there's no wrong pace.
     </p>
     ${hasRecs ? `
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       One thing that helps before you decide: seeing how they stack up against a couple of others nearby.
     </p>
-    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 20px;">
-      ${providersSection}
-    </div>
+    <div style="margin:0 0 24px;">${providersSection}</div>
     <div style="margin:0 0 24px;">${button("Compare your options", opts.alternativesUrl)}</div>
     ` : ""}
     ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through — <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">just reach out</a>.
+      Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through. <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Just reach out</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       We're not going anywhere.
@@ -5257,5 +5251,5 @@ export function day10AwaitingEmail(opts: {
       The Olera team
     </p>
     ${authorBylineBlock({ topBorder: true })}
-  `, `You heard back from ${opts.providerName} — here's how to weigh your options.`);
+  `, `You heard back from ${opts.providerName}. Here's how to weigh your options.`);
 }

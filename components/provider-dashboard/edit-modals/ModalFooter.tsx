@@ -8,10 +8,8 @@ interface ModalFooterProps {
   guidedStep?: number;
   guidedTotal?: number;
   onGuidedBack?: () => void;
-  /** @deprecated Verification no longer gates profile editing */
-  isVerified?: boolean;
-  /** @deprecated Verification no longer gates profile editing */
-  onVerifyClick?: () => void;
+  /** Show pending verification notice for unverified providers */
+  verificationState?: "verified" | "not_required" | "unverified" | "pending" | "rejected" | null;
 }
 
 export default function ModalFooter({
@@ -23,7 +21,12 @@ export default function ModalFooter({
   guidedStep = 1,
   guidedTotal = 1,
   onGuidedBack,
+  verificationState,
 }: ModalFooterProps) {
+  // Show notice for providers whose edits won't be public yet
+  const showPendingNotice = verificationState &&
+    verificationState !== "verified" &&
+    verificationState !== "not_required";
   const isLastStep = guidedStep >= guidedTotal;
 
   if (guidedMode) {
@@ -87,23 +90,33 @@ export default function ModalFooter({
   }
 
   return (
-    <div className="mt-6 pt-5 border-t border-warm-100 flex justify-end gap-3">
-      <button
-        type="button"
-        onClick={onClose}
-        disabled={saving}
-        className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-      >
-        Cancel
-      </button>
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={saving || !hasChanges}
-        className="px-5 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
-      >
-        {saving ? "Saving..." : "Save Changes"}
-      </button>
+    <div className="mt-6 pt-5 border-t border-warm-100">
+      {showPendingNotice && (
+        <p className="text-xs text-amber-600 mb-3 flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Changes will be visible to families once verified.
+        </p>
+      )}
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={saving}
+          className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving || !hasChanges}
+          className="px-5 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
+        >
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
     </div>
   );
 }

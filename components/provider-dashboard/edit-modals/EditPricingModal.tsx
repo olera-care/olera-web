@@ -257,8 +257,7 @@ export default function EditPricingModal({
           guidedStep={guidedStep}
           guidedTotal={guidedTotal}
           onGuidedBack={onGuidedBack}
-          isVerified={isVerified}
-          onVerifyClick={onVerifyClick}
+          verificationState={profile.verification_state}
         />
       }
     >

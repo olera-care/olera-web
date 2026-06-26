@@ -46,11 +46,13 @@ export async function resolveProvider(
       // Return claimed profile if:
       // 1. It exists
       // 2. claim_state is "claimed" (not unclaimed, pending, rejected, archived)
-      // 3. verification_state is not "rejected" (revoked providers revert to directory data)
-      const isActiveClaim = claimedProfile &&
+      // 3. verification_state is "verified" or "not_required"
+      // Unverified/pending/rejected providers' edits don't show — use directory data
+      const isVerifiedClaim = claimedProfile &&
         claimedProfile.claim_state === "claimed" &&
-        claimedProfile.verification_state !== "rejected";
-      if (isActiveClaim) {
+        (claimedProfile.verification_state === "verified" ||
+         claimedProfile.verification_state === "not_required");
+      if (isVerifiedClaim) {
         return { kind: "active", provider: accountRowToProvider(claimedProfile) };
       }
       return { kind: "active", provider: directoryRowToProvider(bySlug) };
@@ -73,11 +75,13 @@ export async function resolveProvider(
       // Return claimed profile if:
       // 1. It exists
       // 2. claim_state is "claimed" (not unclaimed, pending, rejected, archived)
-      // 3. verification_state is not "rejected" (revoked providers revert to directory data)
-      const isActiveClaim = claimedProfile &&
+      // 3. verification_state is "verified" or "not_required"
+      // Unverified/pending/rejected providers' edits don't show — use directory data
+      const isVerifiedClaim = claimedProfile &&
         claimedProfile.claim_state === "claimed" &&
-        claimedProfile.verification_state !== "rejected";
-      if (isActiveClaim) {
+        (claimedProfile.verification_state === "verified" ||
+         claimedProfile.verification_state === "not_required");
+      if (isVerifiedClaim) {
         return { kind: "active", provider: accountRowToProvider(claimedProfile) };
       }
       return { kind: "active", provider: directoryRowToProvider(byId) };
@@ -351,10 +355,10 @@ export async function resolveProviderForMeta(
         .eq("is_active", true)
         .maybeSingle();
       const cp = claimedProfile as { claim_state: string; verification_state: string } | null;
-      const isActiveClaim = cp &&
+      const isVerifiedClaim = cp &&
         cp.claim_state === "claimed" &&
-        cp.verification_state !== "rejected";
-      if (isActiveClaim) {
+        (cp.verification_state === "verified" || cp.verification_state === "not_required");
+      if (isVerifiedClaim) {
         return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
       }
       return bySlug as unknown as ProviderMeta;
@@ -367,7 +371,7 @@ export async function resolveProviderForMeta(
       .not("deleted", "is", true)
       .single();
     if (byId) {
-      // Check if actively claimed (claim_state = "claimed" and not rejected)
+      // Check if verified claim (claim_state = "claimed" and verified/not_required)
       const { data: claimedProfile } = await db
         .from("business_profiles")
         .select(PROFILE_COLS)
@@ -375,10 +379,10 @@ export async function resolveProviderForMeta(
         .eq("is_active", true)
         .maybeSingle();
       const cp = claimedProfile as { claim_state: string; verification_state: string } | null;
-      const isActiveClaim = cp &&
+      const isVerifiedClaim = cp &&
         cp.claim_state === "claimed" &&
-        cp.verification_state !== "rejected";
-      if (isActiveClaim) {
+        (cp.verification_state === "verified" || cp.verification_state === "not_required");
+      if (isVerifiedClaim) {
         return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
       }
       return byId as unknown as ProviderMeta;

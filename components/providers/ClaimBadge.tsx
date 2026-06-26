@@ -17,13 +17,15 @@ export default function ClaimBadge({
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHoveringBadge, setIsHoveringBadge] = useState(false);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
+  const [isTapped, setIsTapped] = useState(false); // Track if opened via tap
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLButtonElement>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
 
-  // Show tooltip when hovering badge or tooltip
+  // Show tooltip when hovering badge or tooltip, OR when tapped
   useEffect(() => {
-    if (isHoveringBadge || isHoveringTooltip) {
+    if (isHoveringBadge || isHoveringTooltip || isTapped) {
       // Clear any pending hide timeout
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current);
@@ -42,7 +44,28 @@ export default function ClaimBadge({
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, [isHoveringBadge, isHoveringTooltip]);
+  }, [isHoveringBadge, isHoveringTooltip, isTapped]);
+
+  // Close tooltip on outside tap/click (for mobile)
+  useEffect(() => {
+    if (!isTapped) return;
+    const handleOutsideClick = (e: TouchEvent | MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setIsTapped(false);
+      }
+    };
+    document.addEventListener("touchstart", handleOutsideClick);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("touchstart", handleOutsideClick);
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isTapped]);
+
+  // Handle tap/click on badge
+  const handleBadgeClick = useCallback(() => {
+    setIsTapped((prev) => !prev);
+  }, []);
 
   // Calculate fixed position for tooltip so it escapes overflow-hidden
   useEffect(() => {
@@ -123,6 +146,7 @@ export default function ClaimBadge({
 
   return (
     <div
+      ref={wrapperRef}
       onMouseEnter={handleBadgeEnter}
       onMouseLeave={handleBadgeLeave}
     >
@@ -130,6 +154,7 @@ export default function ClaimBadge({
       <button
         ref={badgeRef}
         type="button"
+        onClick={handleBadgeClick}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm transition-colors ${config.bgClass}`}
       >
         {config.icon}

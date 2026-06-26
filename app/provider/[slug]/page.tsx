@@ -792,15 +792,14 @@ export default async function ProviderPage({
                   rating: rating || undefined,
                 }}
               />
-              {images.length > 0 && (
-                <div className="absolute top-4 left-4 z-20 hidden md:block">
-                  <ClaimBadge
-                    displayState={displayClaimState}
-                    providerName={profile.display_name}
-                    claimUrl={`/provider/onboarding?org=${profile.slug}`}
-                  />
-                </div>
-              )}
+              {/* Badge always shows regardless of images - positioned over gallery/fallback */}
+              <div className="absolute top-4 left-4 z-20">
+                <ClaimBadge
+                  displayState={displayClaimState}
+                  providerName={profile.display_name}
+                  claimUrl={`/provider/onboarding?org=${profile.slug}`}
+                />
+              </div>
             </div>
 
             {/* Identity */}

@@ -17,20 +17,9 @@ export default function SectionNav({
   sections,
   offset = 120,
 }: SectionNavProps) {
-  const [visible, setVisible] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // Show the section nav after the user scrolls past the identity / image area
-  // We use 400px as threshold — roughly past the breadcrumbs + name + image
-  const SCROLL_THRESHOLD = 400;
-
   const handleScroll = useCallback(() => {
-    const scrollY = window.scrollY;
-
-    // Visibility
-    setVisible(scrollY > SCROLL_THRESHOLD);
-
-    // Active section detection — find the last section whose top is above the offset line
     let current: string | null = null;
     for (const section of sections) {
       const el = document.getElementById(section.id);
@@ -46,7 +35,7 @@ export default function SectionNav({
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // initial check
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
@@ -59,42 +48,25 @@ export default function SectionNav({
   };
 
   return (
-    <div
-      className={`fixed top-0 left-0 right-0 z-[51] transition-all duration-300 hidden md:block ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "-translate-y-full opacity-0 pointer-events-none"
-      }`}
-    >
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            {/* Section tabs */}
-            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide -mb-px h-full">
-              {sections.map((section) => {
-                const isSectionActive = activeId === section.id;
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => scrollTo(section.id)}
-                    className={`relative whitespace-nowrap px-3 py-2 text-[14px] font-medium transition-colors h-full flex items-center ${
-                      isSectionActive
-                        ? "text-gray-900"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    {section.label}
-                    {/* Active underline */}
-                    {isSectionActive && (
-                      <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-gray-900 rounded-full" />
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      </div>
+    <div className="hidden md:block bg-blue-50/60 border border-blue-100 rounded-xl -mx-1">
+      <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-3 px-4">
+        {sections.map((section) => {
+          const isActive = activeId === section.id;
+          return (
+            <button
+              key={section.id}
+              onClick={() => scrollTo(section.id)}
+              className={`whitespace-nowrap text-[15px] rounded-lg px-3 py-1.5 transition-all cursor-pointer border ${
+                isActive
+                  ? "text-gray-900 font-semibold bg-white shadow-sm border-gray-200"
+                  : "text-gray-500 border-transparent hover:text-gray-900 hover:bg-white/80 hover:border-gray-200 hover:shadow-sm"
+              }`}
+            >
+              {section.label}
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

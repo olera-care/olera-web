@@ -1064,15 +1064,15 @@ export default async function ProviderPage({
               />
               </div>
 
-              {/* Managed by — only show when staff data exists, hidden on mobile */}
-              {hasStaff && (
+              {/* Managed by — show for verified providers (with fallback to facility name), hidden on mobile */}
+              {(hasStaff || displayClaimState === "verified") && (
                 <div className="hidden md:flex items-center gap-2.5 mt-4">
                   <div className="relative flex-shrink-0">
-                    {staff!.image ? (
-                      <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                    {staff?.image ? (
+                      <Image src={staff.image} alt={staff.name || profile.display_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
+                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff?.name || profile.display_name)}</span>
                       </div>
                     )}
                     {displayClaimState === "verified" && (
@@ -1083,7 +1083,7 @@ export default async function ProviderPage({
                     )}
                   </div>
                   <p className="text-sm text-gray-500">
-                    Managed by: <span className="font-medium text-gray-700">{staff!.name}</span>
+                    Managed by: <span className="font-medium text-gray-700">{staff?.name || profile.display_name}</span>
                   </p>
                 </div>
               )}

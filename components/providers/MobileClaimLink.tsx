@@ -88,7 +88,18 @@ export default function MobileClaimLink({
                 <span className="font-medium">{providerName}</span>. Information is kept up to date.
               </p>
             ) : displayState === "claimed" ? (
-              <p>This listing is claimed but not yet verified.</p>
+              <>
+                <p>This listing is claimed but not yet verified.</p>
+                <Link
+                  href={claimUrl}
+                  className="inline-flex items-center gap-1 text-primary-300 hover:text-primary-200 font-medium mt-1.5 transition-colors"
+                >
+                  Are you the owner? Manage this page
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </>
             ) : (
               <>
                 <p>This listing hasn&apos;t been claimed yet. Information may be outdated.</p>

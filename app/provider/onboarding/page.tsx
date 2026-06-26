@@ -858,6 +858,55 @@ function ProviderOnboardingContent() {
     fetchProvider();
   }, [searchParams, selectedOrg, isPrefilledFromUrl]);
 
+  // Handle ?dispute=true param - auto-show dispute form for claimed providers
+  useEffect(() => {
+    const shouldDispute = searchParams.get("dispute") === "true";
+    if (!shouldDispute || !selectedOrg || !isPrefilledFromUrl) return;
+    if (selectedOrg.claimState !== "claimed") return;
+    // Already in dispute screen
+    if (screen === "dispute") return;
+
+    // Convert selectedOrg to SearchResult format for dispute form
+    const disputeResult: SearchResult = selectedOrg.source === "olera-providers"
+      ? {
+          provider_id: selectedOrg.providerId || "",
+          provider_name: selectedOrg.name,
+          slug: selectedOrg.slug,
+          city: selectedOrg.city,
+          state: selectedOrg.state,
+          email: selectedOrg.email,
+          provider_images: selectedOrg.imageUrl || null,
+          _source: "olera-providers",
+          _claimed: true,
+          _emailMatch: false,
+        }
+      : {
+          id: selectedOrg.providerId || "",
+          display_name: selectedOrg.name,
+          slug: selectedOrg.slug,
+          city: selectedOrg.city,
+          state: selectedOrg.state,
+          email: selectedOrg.email,
+          image_url: selectedOrg.imageUrl || null,
+          account_id: null,
+          source_provider_id: null,
+          claim_state: "claimed",
+          _source: "business_profiles",
+          _claimed: true,
+          _emailMatch: false,
+        };
+
+    setDisputingResult(disputeResult);
+    setDisputeName("");
+    setDisputeEmail("");
+    setDisputePhone("");
+    setDisputeRole("");
+    setDisputeReason("");
+    setDisputeError("");
+    setDisputeSubmitted(false);
+    setScreen("dispute");
+  }, [searchParams, selectedOrg, isPrefilledFromUrl, screen]);
+
   // ──────────────────────────────────────────────────────────
   // Form Handlers
   // ──────────────────────────────────────────────────────────

@@ -129,8 +129,8 @@ export default function RemovalRequestPage() {
   // ── Form screen ──
   return (
     <div className="min-h-[100dvh] bg-white">
-      {/* Minimal top nav */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
+      {/* Back link */}
+      <div className="border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center">
           <Link
             href={`/provider/${slug}`}

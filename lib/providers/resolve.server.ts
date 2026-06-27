@@ -99,11 +99,37 @@ export async function resolveProvider(
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single<Profile>();
-    // The business_profile is the canonical, hydrated provider record (the
-    // directory row is copied in at claim time), so render it directly — this is
-    // what surfaces the provider's edits. (No directory read-through: that was a
-    // band-aid for the old thin-profile model.)
-    if (data) return { kind: "active", provider: accountRowToProvider(data) };
+
+    if (data) {
+      // If this is a directory-claimed profile, enforce verification gate.
+      // Unverified providers' edits should not be publicly visible — fall back
+      // to the original directory data until they complete verification.
+      // Matches the gate logic in step 1 (claim_state + verification_state).
+      if (data.source_provider_id) {
+        const isVerifiedClaim =
+          data.claim_state === "claimed" &&
+          (data.verification_state === "verified" ||
+           data.verification_state === "not_required");
+
+        if (!isVerifiedClaim) {
+          // Fetch original directory data
+          const { data: dirRow } = await db
+            .from("olera-providers")
+            .select("*")
+            .eq("provider_id", data.source_provider_id)
+            .not("deleted", "is", true)
+            .single<IOSProvider>();
+
+          if (dirRow) {
+            return { kind: "active", provider: directoryRowToProvider(dirRow) };
+          }
+          // If directory row is deleted/missing, fall through to show profile
+          // (edge case: provider claimed then directory was purged)
+        }
+      }
+      // Native profiles (no source_provider_id) or verified claims: show as-is
+      return { kind: "active", provider: accountRowToProvider(data) };
+    }
   } catch {
     // fall through
   }
@@ -394,13 +420,48 @@ export async function resolveProviderForMeta(
   try {
     const { data } = await db
       .from("business_profiles")
-      .select("display_name, category, city, state, description, image_url")
+      .select("display_name, category, city, state, description, image_url, source_provider_id, claim_state, verification_state")
       .eq("slug", slugOrId)
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single();
+
     if (data) {
-      return profileToMeta(data as Parameters<typeof profileToMeta>[0]);
+      const profile = data as {
+        display_name: string | null;
+        category: string | null;
+        city: string | null;
+        state: string | null;
+        description: string | null;
+        image_url: string | null;
+        source_provider_id: string | null;
+        claim_state: string | null;
+        verification_state: string | null;
+      };
+
+      // If this is a directory-claimed profile, enforce verification gate.
+      // Matches the gate logic in step 1 (claim_state + verification_state).
+      if (profile.source_provider_id) {
+        const isVerifiedClaim =
+          profile.claim_state === "claimed" &&
+          (profile.verification_state === "verified" ||
+           profile.verification_state === "not_required");
+
+        if (!isVerifiedClaim) {
+          // Fetch original directory data for meta
+          const { data: dirRow } = await db
+            .from("olera-providers")
+            .select(COLS)
+            .eq("provider_id", profile.source_provider_id)
+            .not("deleted", "is", true)
+            .single();
+
+          if (dirRow) {
+            return dirRow as unknown as ProviderMeta;
+          }
+        }
+      }
+      return profileToMeta(profile);
     }
   } catch {
     // fall through

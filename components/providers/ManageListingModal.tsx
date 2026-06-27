@@ -439,49 +439,8 @@ export default function ManageListingModal({
             </div>
           )}
 
-          {/* CASE 2: Claimed + NOT Owner → Dispute (primary) + Sign in (secondary teal link) */}
-          {isClaimed && !isOwner && (
-            <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-5">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-gray-900 mb-0.5">
-                    This listing is claimed
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    Someone has already verified ownership of <strong>{providerName}</strong>. If you believe this is incorrect, you can dispute the claim.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleDisputeClick}
-                className="w-full py-3 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
-              >
-                Dispute this claim
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <p className="mt-3 text-sm text-gray-500 text-center">
-                This is yours?{" "}
-                <button
-                  type="button"
-                  onClick={handleClaimClick}
-                  className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Sign in
-                </button>
-              </p>
-            </div>
-          )}
-
-          {/* CASE 3: Unclaimed → Claim card (centered design matching ActionCard) */}
-          {!isClaimed && (
+          {/* CASE 2: Unclaimed OR Claimed (not owner) → Claim card (routes to onboarding) */}
+          {!isOwner && (
             <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-6">
               {/* Centered header */}
               <div className="text-center mb-5">

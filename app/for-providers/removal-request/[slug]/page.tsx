@@ -244,10 +244,10 @@ export default function RemovalRequestPage() {
 
       {/* Sticky footer with submit button */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-100 bg-white px-4 pt-4"
+        className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-100 bg-white"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 16px)" }}
       >
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-4">
           <Button
             fullWidth
             size="lg"

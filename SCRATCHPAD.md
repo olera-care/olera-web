@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-06-25 (PM) — Abode Home Care managed-ads outreach sent (no code)
+
+Helped TJ adapt the earlier Franchil managed-ads concierge email for **Abode Home Care** (`kolacooper@abodehomecare.org`). Confirmed the live admin queue showed Abode as the only real new provider among two test providers, with setup week **June 29, 2026** and Google+Meta requested. Final copy kept the same structure as Franchil, addressed Kola, linked `https://olera.care/managed-ads-terms`, and added the concrete setup-week line: "Your setup week starts June 29, so once you confirm you're ready to move forward, we can get the campaign live that week." TJ sent the email. No repo/product changes.
+
 ### 2026-06-25 (PM) — Family-comms email CREATIVE redesign: full completion sequence + shared design-system, PROMOTED to prod (branch `mighty-carson`, PRs #1213-1216 → staging, #1217 → main)
 
 Phase 3 (redesign the legacy email creative the coordinator/engine renders) continued from R6 `family_nudge`. Redesigned the **whole `completion_nudge_1-4` sequence** (the OLD `family-nudges` engine, day 0/2/6/13) and stood up a **shared email design-system**, then **promoted everything to production** ahead of the next cron sends. SCRATCHPAD logged separately per [[feedback_scratchpad_out_of_code_prs]].

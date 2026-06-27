@@ -46,14 +46,18 @@ export async function resolveProvider(
       // Return claimed profile if:
       // 1. It exists
       // 2. claim_state is "claimed" (not unclaimed, pending, rejected, archived)
-      // 3. verification_state is "verified" or "not_required"
+      // 3. verification_state is "verified" or "not_required" OR badge_approved
       // Unverified/pending/rejected providers' edits don't show — use directory data
-      const isVerifiedClaim = claimedProfile &&
-        claimedProfile.claim_state === "claimed" &&
-        (claimedProfile.verification_state === "verified" ||
-         claimedProfile.verification_state === "not_required");
-      if (isVerifiedClaim) {
-        return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+      if (claimedProfile && claimedProfile.claim_state === "claimed") {
+        const metadata = claimedProfile.metadata as Record<string, unknown> | null;
+        const badgeApproved = metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          claimedProfile.verification_state === "verified" ||
+          claimedProfile.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+        }
       }
       return { kind: "active", provider: directoryRowToProvider(bySlug) };
     }
@@ -75,14 +79,18 @@ export async function resolveProvider(
       // Return claimed profile if:
       // 1. It exists
       // 2. claim_state is "claimed" (not unclaimed, pending, rejected, archived)
-      // 3. verification_state is "verified" or "not_required"
+      // 3. verification_state is "verified" or "not_required" OR badge_approved
       // Unverified/pending/rejected providers' edits don't show — use directory data
-      const isVerifiedClaim = claimedProfile &&
-        claimedProfile.claim_state === "claimed" &&
-        (claimedProfile.verification_state === "verified" ||
-         claimedProfile.verification_state === "not_required");
-      if (isVerifiedClaim) {
-        return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+      if (claimedProfile && claimedProfile.claim_state === "claimed") {
+        const metadata = claimedProfile.metadata as Record<string, unknown> | null;
+        const badgeApproved = metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          claimedProfile.verification_state === "verified" ||
+          claimedProfile.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+        }
       }
       return { kind: "active", provider: directoryRowToProvider(byId) };
     }
@@ -104,12 +112,15 @@ export async function resolveProvider(
       // If this is a directory-claimed profile, enforce verification gate.
       // Unverified providers' edits should not be publicly visible — fall back
       // to the original directory data until they complete verification.
-      // Matches the gate logic in step 1 (claim_state + verification_state).
+      // badge_approved is an admin override that grants verified status.
       if (data.source_provider_id) {
+        const metadata = data.metadata as Record<string, unknown> | null;
+        const badgeApproved = metadata?.badge_approved === true;
         const isVerifiedClaim =
           data.claim_state === "claimed" &&
           (data.verification_state === "verified" ||
-           data.verification_state === "not_required");
+           data.verification_state === "not_required" ||
+           badgeApproved);
 
         if (!isVerifiedClaim) {
           // Fetch original directory data
@@ -345,7 +356,7 @@ export async function resolveProviderForMeta(
   db: SupabaseClient,
 ): Promise<ProviderMeta | null> {
   const COLS = "provider_name, provider_category, city, state, provider_description, provider_images, provider_logo";
-  const PROFILE_COLS = "display_name, category, city, state, description, image_url, claim_state, verification_state";
+  const PROFILE_COLS = "display_name, category, city, state, description, image_url, claim_state, verification_state, metadata";
 
   // Helper to convert business_profiles row to ProviderMeta
   const profileToMeta = (d: {
@@ -380,12 +391,16 @@ export async function resolveProviderForMeta(
         .eq("source_provider_id", (bySlug as { provider_id: string }).provider_id)
         .eq("is_active", true)
         .maybeSingle();
-      const cp = claimedProfile as { claim_state: string; verification_state: string } | null;
-      const isVerifiedClaim = cp &&
-        cp.claim_state === "claimed" &&
-        (cp.verification_state === "verified" || cp.verification_state === "not_required");
-      if (isVerifiedClaim) {
-        return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
+      const cp = claimedProfile as { claim_state: string; verification_state: string; metadata: Record<string, unknown> | null } | null;
+      if (cp && cp.claim_state === "claimed") {
+        const badgeApproved = cp.metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          cp.verification_state === "verified" ||
+          cp.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
+        }
       }
       return bySlug as unknown as ProviderMeta;
     }
@@ -404,12 +419,16 @@ export async function resolveProviderForMeta(
         .eq("source_provider_id", (byId as { provider_id: string }).provider_id)
         .eq("is_active", true)
         .maybeSingle();
-      const cp = claimedProfile as { claim_state: string; verification_state: string } | null;
-      const isVerifiedClaim = cp &&
-        cp.claim_state === "claimed" &&
-        (cp.verification_state === "verified" || cp.verification_state === "not_required");
-      if (isVerifiedClaim) {
-        return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
+      const cp = claimedProfile as { claim_state: string; verification_state: string; metadata: Record<string, unknown> | null } | null;
+      if (cp && cp.claim_state === "claimed") {
+        const badgeApproved = cp.metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          cp.verification_state === "verified" ||
+          cp.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
+        }
       }
       return byId as unknown as ProviderMeta;
     }
@@ -420,7 +439,7 @@ export async function resolveProviderForMeta(
   try {
     const { data } = await db
       .from("business_profiles")
-      .select("display_name, category, city, state, description, image_url, source_provider_id, claim_state, verification_state")
+      .select("display_name, category, city, state, description, image_url, source_provider_id, claim_state, verification_state, metadata")
       .eq("slug", slugOrId)
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
@@ -437,15 +456,18 @@ export async function resolveProviderForMeta(
         source_provider_id: string | null;
         claim_state: string | null;
         verification_state: string | null;
+        metadata: Record<string, unknown> | null;
       };
 
       // If this is a directory-claimed profile, enforce verification gate.
-      // Matches the gate logic in step 1 (claim_state + verification_state).
+      // Matches the gate logic in step 1 (claim_state + verification_state + badge_approved).
       if (profile.source_provider_id) {
+        const badgeApproved = profile.metadata?.badge_approved === true;
         const isVerifiedClaim =
           profile.claim_state === "claimed" &&
           (profile.verification_state === "verified" ||
-           profile.verification_state === "not_required");
+           profile.verification_state === "not_required" ||
+           badgeApproved);
 
         if (!isVerifiedClaim) {
           // Fetch original directory data for meta

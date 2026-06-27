@@ -199,7 +199,7 @@ export default function HireCaregiversBoard() {
       <div className="mb-5 flex items-center gap-2 sm:hidden">
         <button
           onClick={() => setMobileFilterOpen("university")}
-          className={`flex-1 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
+          className={`flex-1 min-w-0 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
             universityId ? "border-primary-300 text-primary-700" : "border-gray-200 text-gray-700"
           }`}
         >
@@ -214,7 +214,7 @@ export default function HireCaregiversBoard() {
         </button>
         <button
           onClick={() => setMobileFilterOpen("availability")}
-          className={`flex-1 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
+          className={`flex-1 min-w-0 flex items-center justify-between px-3 py-2.5 bg-white border rounded-xl text-sm transition-colors ${
             availability ? "border-primary-300 text-primary-700" : "border-gray-200 text-gray-700"
           }`}
         >

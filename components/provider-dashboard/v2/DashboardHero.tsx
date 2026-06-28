@@ -683,7 +683,7 @@ function reviewsHook(): Hook {
     subline:
       "Reviews build trust with new families. Send a quick invite to past clients and let their words do the selling.",
     cta: { label: "Get more reviews", href: "/provider/reviews" },
-    imageUrl: TIER_FALLBACK_IMAGE,
+    imageUrl: TIER_SPIKE_IMAGE,
   };
 }
 

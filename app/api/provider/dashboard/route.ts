@@ -283,6 +283,21 @@ export async function GET(request: NextRequest) {
       windowDays: 90,
     };
 
+    // ── Questions summary (all-time) ──
+    // Lifetime received/answered counts for the dashboard's persistent Questions
+    // card. All-time (not windowed) because provider volume is low — an honest
+    // lifetime "1 question" beats a windowed "0". Computed from the already-
+    // fetched `questions` array (capped at the last 500), so no extra query.
+    // `unanswered` reuses the same exclusion as the hero banner (not
+    // archived/rejected) so the card's action number matches what the hero and
+    // /provider/qna show.
+    const answeredAllTime = questions.filter((q) => !!q.answer?.trim()).length;
+    const questionsSummary = {
+      received: questions.length,
+      answered: answeredAllTime,
+      unanswered: unansweredAll.length,
+    };
+
     // ── Recent activity feed (discrete, action-bearing events only) ──
     // Questions, leads, reviews — each a distinct thing the provider might want
     // to respond to. Anonymous page_views are intentionally NOT emitted here;
@@ -448,6 +463,7 @@ export async function GET(request: NextRequest) {
       greeting: greetingSignals,
       reviews: reviewsSummary,
       responseRate: responseRateSummary,
+      questions: questionsSummary,
       recentActivity,
       views: {
         thisPeriod: viewsThisPeriod,

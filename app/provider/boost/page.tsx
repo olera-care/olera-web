@@ -701,37 +701,14 @@ function ApplyExperience({
           </button>
         )}
 
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
           Managed Ads
         </p>
-
-        {/* Breadcrumb — text, not a stepper widget. Past steps are tappable. */}
-        <nav className="mt-3 flex items-center gap-2 text-sm" aria-label="Progress">
-          {STEP_LABELS.map((label, i) => (
-            <span key={label} className="flex items-center gap-2">
-              {i > 0 && <span className="text-gray-300">·</span>}
-              <button
-                type="button"
-                disabled={i >= step}
-                onClick={() => i < step && setStep(i)}
-                className={`${
-                  i === step
-                    ? "font-semibold text-gray-900"
-                    : i < step
-                      ? "text-gray-400 hover:text-gray-600"
-                      : "text-gray-300 cursor-default"
-                } transition-colors`}
-              >
-                {label}
-              </button>
-            </span>
-          ))}
-        </nav>
 
         {/* ── Step 0: Timing & channel ── */}
         {step === 0 && (
           <div>
-            <h1 className="mt-5 font-display font-bold text-[clamp(1.75rem,4vw,2.5rem)] text-gray-900 leading-[1.1] tracking-tight">
+            <h1 className="font-display font-bold text-[clamp(1.75rem,4vw,2.5rem)] text-gray-900 leading-[1.1] tracking-tight">
               When should we start?
             </h1>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
@@ -824,7 +801,7 @@ function ApplyExperience({
         {/* ── Step 1: Budget ── */}
         {step === 1 && (
           <div>
-            <h2 className="mt-5 text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
+            <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
               Choose your monthly budget
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
@@ -924,7 +901,7 @@ function ApplyExperience({
         {/* ── Step 2: Review & confirm ── */}
         {step === 2 && (
           <div>
-            <h2 className="mt-5 text-2xl font-display font-semibold text-gray-900">
+            <h2 className="text-2xl font-display font-semibold text-gray-900">
               Get your launch plan
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
@@ -967,11 +944,8 @@ function ApplyExperience({
         )}
 
         {/* Mobile reassurance text - matches sidebar */}
-        <p className="mt-8 sm:hidden flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
-          <span className="text-primary-600">✦</span>
-          <span>
-            No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
-          </span>
+        <p className="mt-8 sm:hidden text-xs text-gray-400 leading-relaxed">
+          No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
         </p>
 
         {/* Spacer for mobile sticky CTA */}
@@ -996,12 +970,10 @@ function ApplyExperience({
 
       {/* Mobile sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white border-t border-gray-200 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        {step === 0 && (
-          <p className="text-sm text-gray-500 mb-3">
-            Next: choose your budget
-          </p>
+        {step === 2 && submitError && (
+          <p className="text-sm text-red-600 mb-3">{submitError}</p>
         )}
-        {step === 1 && (
+        {step === 1 ? (
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Monthly budget</p>
@@ -1019,18 +991,7 @@ function ApplyExperience({
               </svg>
             </button>
           </div>
-        )}
-        {step === 2 && submitError && (
-          <p className="text-sm text-red-600 mb-3">{submitError}</p>
-        )}
-        {step === 2 && !submitError && (
-          <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-            {eligible
-              ? "No charge yet. We confirm the budget with you before launch."
-              : "No charge to queue, and none until we confirm."}
-          </p>
-        )}
-        {step !== 1 && (
+        ) : (
           <>
             {step < 2 ? (
               <button
@@ -1058,6 +1019,11 @@ function ApplyExperience({
                   </svg>
                 )}
               </button>
+            )}
+            {step === 0 && (
+              <p className="text-sm text-gray-400 text-center mt-3">
+                Next: choose your budget
+              </p>
             )}
           </>
         )}
@@ -1126,12 +1092,9 @@ function CampaignSummary({
         </div>
       </dl>
 
-      {/* Reassurance text with star icon */}
-      <p className="mt-4 flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
-        <span className="text-primary-600">✦</span>
-        <span>
-          No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
-        </span>
+      {/* Reassurance text */}
+      <p className="mt-4 text-xs text-gray-400 leading-relaxed">
+        No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
       </p>
 
       {/* Continue button - inside the card on desktop */}

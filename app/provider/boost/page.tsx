@@ -920,11 +920,11 @@ function ApplyExperience({
           </div>
         )}
 
-        {/* ── Footer nav — shared across steps ── */}
+        {/* ── Footer nav — desktop only ── */}
         {step === 2 && submitError && (
           <p className="mt-6 text-sm text-red-600">{submitError}</p>
         )}
-        <div className="mt-9 flex items-center gap-5">
+        <div className="mt-9 hidden sm:flex items-center gap-5">
           {step > 0 && (
             <button
               type="button"
@@ -935,12 +935,12 @@ function ApplyExperience({
             </button>
           )}
           {step < 2 ? (
-            <div className="flex-1 sm:flex-initial">
+            <div>
               <button
                 type="button"
                 disabled={!canAdvance}
                 onClick={() => setStep(step + 1)}
-                className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+                className="inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
               >
                 Continue
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -948,7 +948,7 @@ function ApplyExperience({
                 </svg>
               </button>
               {step === 0 && (
-                <p className="mt-3 text-sm text-gray-400 text-center sm:text-left">
+                <p className="mt-3 text-sm text-gray-400">
                   Next: choose your budget
                 </p>
               )}
@@ -958,7 +958,7 @@ function ApplyExperience({
               type="button"
               disabled={submitting}
               onClick={onSubmit}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+              className="inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
             >
               {submitting ? "Sending…" : eligible ? "Get my launch plan" : "Queue my launch plan"}
               {!submitting && (
@@ -970,23 +970,82 @@ function ApplyExperience({
           )}
         </div>
         {step === 2 && (
-          <p className="text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
+          <p className="hidden sm:block text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
             {eligible
               ? "No charge yet. We confirm the budget with you before launch. Your first $50 is on us."
               : "No charge to queue, and none until we confirm the budget with you before launch. Your first $50 is on us."}
           </p>
         )}
+
+        {/* Spacer for mobile sticky CTA */}
+        <div className="h-36 sm:hidden" />
       </div>
 
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
-      <aside className="lg:sticky lg:top-12 space-y-6">
+      <aside className="lg:sticky lg:top-12 space-y-6 hidden sm:block">
         <CampaignSummary
           weekLabel={weekLabel}
           channelLabel={channelLabel}
           stop={stop}
         />
-
       </aside>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white border-t border-gray-200 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        {step === 0 && (
+          <p className="text-sm text-gray-500 mb-3">
+            Next: choose your budget
+          </p>
+        )}
+        {step === 2 && submitError && (
+          <p className="text-sm text-red-600 mb-3">{submitError}</p>
+        )}
+        {step === 2 && !submitError && (
+          <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+            {eligible
+              ? "No charge yet. We confirm the budget with you before launch."
+              : "No charge to queue, and none until we confirm."}
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={() => setStep(step - 1)}
+              className="px-4 py-3.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Back
+            </button>
+          )}
+          {step < 2 ? (
+            <button
+              type="button"
+              disabled={!canAdvance}
+              onClick={() => setStep(step + 1)}
+              className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+            >
+              Continue
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={onSubmit}
+              className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+            >
+              {submitting ? "Sending…" : eligible ? "Get my launch plan" : "Queue my launch plan"}
+              {!submitting && (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

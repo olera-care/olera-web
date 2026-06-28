@@ -122,7 +122,7 @@ export default function ManagedAdsPitch({
       {/* Mobile sticky CTA - fixed at bottom of viewport */}
       {ctaHref && (
         <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white border-t border-gray-200 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <p className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-3">
+          <p className="flex items-center gap-2 text-sm text-gray-600 mb-3">
             <span className="text-primary-600">✦</span>
             <span>
               First campaign on us — <span className="text-primary-600 font-medium">$50, free</span>

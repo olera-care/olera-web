@@ -7,7 +7,6 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProfileSectionEditor } from "@/hooks/useProfileSectionEditor";
 import type { SectionId } from "@/components/provider-dashboard/edit-modals/types";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
-import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
 import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 import type {
   AdBoostEligibility,
@@ -624,15 +623,6 @@ function ProgressRing({ percent }: { percent: number }) {
   );
 }
 
-/** The three reasons managed ads beat any DIY/agency alternative — compressed
- *  to label-scale (icon + 2–3 words + a short tail), a scannable proof list, NOT
- *  the old competing 3-column paragraph grid. Lives in the support column. */
-const VALUE_PROPS = [
-  { title: "Market read first", tail: "We start with where families are already looking." },
-  { title: "Plan before launch", tail: "Timing, channel, and budget get confirmed with you." },
-  { title: "No ad chores", tail: "No ad account, no keywords, no agency handoff." },
-];
-
 const STEP_LABELS = ["Timing", "Budget", "Confirm"] as const;
 
 /**
@@ -666,7 +656,7 @@ function ApplyExperience({
   submitError,
   provider,
   demand,
-  managedAdsVariant,
+  managedAdsVariant: _managedAdsVariant,
   onSubmit,
 }: {
   /** True when the provider already clears the 70% gate. False → the submit
@@ -690,7 +680,6 @@ function ApplyExperience({
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
   const stop = budgetStop(selectedBudget);
-  const copy = managedAdsPitchCopy(managedAdsVariant);
 
   const canAdvance = step === 0 ? !!selectedWeek : step === 1 ? !!stop : true;
 
@@ -699,7 +688,7 @@ function ApplyExperience({
       {/* ─────────── LEFT: action spine ─────────── */}
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-          Managed Ads Launch Plan
+          Managed Ads
         </p>
 
         {/* Breadcrumb — text, not a stepper widget. Past steps are tappable. */}
@@ -719,7 +708,7 @@ function ApplyExperience({
                       : "text-gray-300 cursor-default"
                 } transition-colors`}
               >
-                <span className="tabular-nums">{i + 1}</span> {label}
+                {label}
               </button>
             </span>
           ))}
@@ -728,58 +717,94 @@ function ApplyExperience({
         {/* ── Step 0: Timing & channel ── */}
         {step === 0 && (
           <div>
-            <h1 className="mt-5 font-display font-bold text-[clamp(2rem,5vw,2.9rem)] text-gray-900 leading-[1.06] tracking-tight">
-              {copy.headline}<br />
-              <span className="text-primary-600 italic">{copy.accent}</span>.
+            <h1 className="mt-5 font-display font-bold text-[clamp(1.75rem,4vw,2.5rem)] text-gray-900 leading-[1.1] tracking-tight">
+              When should we start?
             </h1>
-            <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
-              {copy.body}
+            <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
+              {(() => {
+                const category = humanCategoryLabel(provider.category);
+                const place =
+                  demand.scope === "city" && provider.city
+                    ? provider.city
+                    : provider.state
+                      ? provider.state
+                      : "your area";
+                const timeframe = demand.windowDays === 7 ? "this week" : `in the last ${demand.windowDays} days`;
+
+                return demand.count >= 5 ? (
+                  <>
+                    <span className="font-semibold text-gray-900">{demand.count} families in {place}</span>{" "}
+                    searched for {category} {timeframe}. Pick a week and we'll start putting your page in front of them.
+                  </>
+                ) : (
+                  <>
+                    Families in {place} are searching for {category}. Pick a week and we'll start putting your page in front of them.
+                  </>
+                );
+              })()}
             </p>
 
-            <DemandDiagnosis provider={provider} demand={demand} />
-
-            <fieldset className="mt-9">
-              <legend className="text-sm font-medium text-gray-900 mb-3">Pick your week</legend>
+            <fieldset className="mt-8">
+              <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Start week</legend>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {weekOptions.map((w) => {
+                {weekOptions.map((w, i) => {
                   const active = selectedWeek === w.value;
+                  const isSoonest = i === 0;
                   return (
                     <button
                       key={w.value}
                       type="button"
                       aria-pressed={active}
                       onClick={() => setSelectedWeek(w.value)}
-                      className={`rounded-2xl border px-3 py-4 text-center text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                      className={`relative rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
-                          ? "border-primary-500 bg-primary-50/70 text-primary-700"
-                          : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
+                          ? "border-primary-500 bg-primary-50/70"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
-                      {w.label}
+                      {isSoonest && (
+                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gray-900 px-2.5 py-0.5 text-[10px] font-semibold text-white">
+                          Soonest
+                        </span>
+                      )}
+                      <span className={`block text-xs uppercase tracking-wide ${active ? "text-primary-600" : "text-gray-400"}`}>
+                        Week of
+                      </span>
+                      <span className={`block text-base font-semibold mt-0.5 ${active ? "text-primary-700" : "text-gray-900"}`}>
+                        {w.label.replace("Week of ", "")}
+                      </span>
                     </button>
                   );
                 })}
               </div>
             </fieldset>
 
-            <fieldset className="mt-7">
-              <legend className="text-sm font-medium text-gray-900 mb-3">Where we advertise</legend>
+            <fieldset className="mt-8">
+              <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Where we'll advertise</legend>
               <div className="flex flex-wrap gap-2.5">
                 {CHANNELS.map((c) => {
                   const active = channel === c.value;
+                  const isRecommended = c.value === "both";
                   return (
                     <button
                       key={c.value}
                       type="button"
                       aria-pressed={active}
                       onClick={() => setChannel(c.value)}
-                      className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                      className={`relative rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
                           ? "border-primary-500 bg-primary-50/70 text-primary-700"
                           : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
                       {c.label}
+                      {isRecommended && (
+                        <span className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          active ? "bg-primary-600 text-white" : "bg-primary-100 text-primary-700"
+                        }`}>
+                          Recommended
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -910,17 +935,24 @@ function ApplyExperience({
             </button>
           )}
           {step < 2 ? (
-            <button
-              type="button"
-              disabled={!canAdvance}
-              onClick={() => setStep(step + 1)}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
-            >
-              Continue
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </button>
+            <div className="flex-1 sm:flex-initial">
+              <button
+                type="button"
+                disabled={!canAdvance}
+                onClick={() => setStep(step + 1)}
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+              >
+                Continue
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+              {step === 0 && (
+                <p className="mt-3 text-sm text-gray-400 text-center sm:text-left">
+                  Next: choose your budget
+                </p>
+              )}
+            </div>
           ) : (
             <button
               type="button"
@@ -949,28 +981,11 @@ function ApplyExperience({
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
       <aside className="lg:sticky lg:top-12 space-y-6">
         <CampaignSummary
-          eligible={eligible}
           weekLabel={weekLabel}
           channelLabel={channelLabel}
           stop={stop}
         />
 
-        {/* Value props — quiet, scannable proof, only on the entry step. On the
-            budget step the estimate hero is the focus; on confirm the review is
-            self-contained — repeating the props there is dead column. */}
-        {step === 0 && (
-          <ul className="space-y-3.5 px-1">
-            {VALUE_PROPS.map((p) => (
-              <li key={p.title} className="flex gap-2.5">
-                <CheckIcon className="mt-0.5 w-4 h-4 shrink-0 text-primary-500" />
-                <span className="text-sm leading-snug">
-                  <span className="font-medium text-gray-900">{p.title}</span>
-                  <span className="text-gray-500"> — {p.tail}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
       </aside>
     </div>
   );
@@ -985,73 +1000,28 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DemandDiagnosis({
-  provider,
-  demand,
-}: {
-  provider: BoostStateResponse["provider"];
-  demand: BoostStateResponse["demand"];
-}) {
-  const category = humanCategoryLabel(provider.category);
-  const place =
-    demand.scope === "city" && provider.city
-      ? provider.city
-      : provider.state
-        ? provider.state
-        : "your area";
-  const count = demand.count >= 5 ? demand.count : null;
-
-  return (
-    <div className="mt-8 rounded-2xl border border-primary-100/70 bg-primary-50/40 px-5 py-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-        Local diagnosis
-      </p>
-      <p className="mt-2 text-[17px] font-semibold leading-snug text-gray-900">
-        {count
-          ? `${count.toLocaleString()} families looked at ${category} options in ${place} in the last ${demand.windowDays} days.`
-          : `Families in ${place} are searching for ${category} before they ever reach your page.`}
-      </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <PlanPoint title="Where they look" body="Google, Meta, and local feeds." />
-        <PlanPoint title="Where they land" body="Your Olera page, not a broker form." />
-        <PlanPoint title="What you get" body="A clear read on spend, clicks, and families delivered." />
-      </div>
-    </div>
-  );
-}
-
-function PlanPoint({ title, body }: { title: string; body: string }) {
-  return (
-    <div>
-      <p className="text-sm font-semibold text-gray-900">{title}</p>
-      <p className="mt-1 text-sm leading-snug text-gray-500">{body}</p>
-    </div>
-  );
-}
 
 /** The live "Your campaign" card — accumulates as the provider picks (week →
  *  channel → budget + estimate). The single resting point of the flow; the
  *  estimate's reach→lead shift carries the honesty, capped by one caveat. */
 function CampaignSummary({
-  eligible,
   weekLabel,
   channelLabel,
   stop,
 }: {
-  eligible: boolean;
   weekLabel: string | null;
   channelLabel: string;
   stop: BudgetStop | null;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
+    <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
-        Your launch plan
+        Your plan so far
       </p>
 
-      <dl className="mt-4 space-y-3.5">
+      <dl className="mt-4 space-y-3">
         <div className="flex items-baseline justify-between gap-4">
-          <dt className="text-sm text-gray-500">Launch</dt>
+          <dt className="text-sm text-gray-500">Start week</dt>
           <dd className={`text-sm font-medium text-right ${weekLabel ? "text-gray-900" : "text-gray-300"}`}>
             {weekLabel ?? "Pick a week"}
           </dd>
@@ -1061,43 +1031,36 @@ function CampaignSummary({
           <dd className="text-sm font-medium text-gray-900 text-right">{channelLabel}</dd>
         </div>
         <div className="flex items-baseline justify-between gap-4">
-          <dt className="text-sm text-gray-500">Starting budget</dt>
+          <dt className="text-sm text-gray-500">Budget</dt>
           <dd className={`text-sm font-medium text-right ${stop ? "text-gray-900" : "text-gray-300"}`}>
-            {stop?.label ?? "Pick a budget"}
+            {stop?.label ?? "Next step"}
           </dd>
         </div>
       </dl>
 
-      <div className="mt-5 pt-5 border-t border-gray-100">
-        {stop ? (
-          <>
-            {/* Compact estimate (the big version lives in the left hero on the
-                budget step). Cross-fades on selection (keyed) — calm, no jump. */}
-            <p key={stop.value} className="text-sm font-medium text-gray-900 animate-[fadeIn_150ms_ease-out]">
-              {estimateSummary(stop)}
-            </p>
-            <p className="mt-2 text-xs text-gray-400 leading-relaxed">{BUDGET_ESTIMATE_CAVEAT}</p>
-            {!eligible && (
-              <p className="mt-3 text-xs text-gray-400 leading-relaxed">
-                Queued now — plan first, launch once your profile&apos;s ready for the families we send.
-              </p>
-            )}
-          </>
-        ) : eligible ? (
-          <p className="flex items-center gap-2 text-sm text-primary-700">
-            <CheckIcon className="w-4 h-4 shrink-0" />
-            Ready to launch when you confirm.
+      {/* Estimate section - only show when budget is selected */}
+      {stop && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <p key={stop.value} className="text-sm font-medium text-gray-900 animate-[fadeIn_150ms_ease-out]">
+            {estimateSummary(stop)}
           </p>
-        ) : (
-          <p className="text-sm text-gray-500 leading-relaxed">
-            We&apos;ll <span className="font-medium text-gray-900">queue the plan now</span> and launch
-            only after your profile&apos;s ready for the families we send.
-          </p>
-        )}
+          <p className="mt-2 text-xs text-gray-400 leading-relaxed">{BUDGET_ESTIMATE_CAVEAT}</p>
+        </div>
+      )}
+
+      {/* $50 free callout */}
+      <div className="mt-4 rounded-xl bg-primary-50/70 border border-primary-100 px-4 py-3">
+        <p className="flex items-start gap-2 text-sm text-primary-800">
+          <span className="text-primary-600 mt-0.5">✦</span>
+          <span>
+            Your first <span className="font-semibold">$50</span> in ad spend is on us.
+          </span>
+        </p>
       </div>
     </div>
   );
 }
+
 
 function humanCategoryLabel(category: string | null): string {
   const labels: Record<string, string> = {
@@ -1115,8 +1078,8 @@ function humanCategoryLabel(category: string | null): string {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 lg:pt-16 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-14 pb-24">
         {children}
       </div>
     </div>

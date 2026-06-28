@@ -45,7 +45,7 @@ function ValuePillars() {
 
 export default function ManagedAdsPitch({
   ctaHref,
-  ctaLabel = "Get my launch plan",
+  ctaLabel = "Start my free campaign",
   providerSlug,
   providerName,
 }: {
@@ -98,16 +98,24 @@ export default function ManagedAdsPitch({
       <ValuePillars />
 
       {ctaHref && (
-        <Link
-          href={ctaHref}
-          onClick={trackCta}
-          className="inline-flex items-center gap-2.5 mt-10 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
-        >
-          {ctaLabel}
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
+        <div className="mt-10">
+          <p className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+            <span className="text-primary-600">✦</span>
+            <span>
+              Your first campaign is on us — <span className="text-primary-600 font-medium">$50 in ads, free</span>. No card, no commitment.
+            </span>
+          </p>
+          <Link
+            href={ctaHref}
+            onClick={trackCta}
+            className="inline-flex items-center gap-2.5 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
+          >
+            {ctaLabel}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
       )}
     </div>
   );

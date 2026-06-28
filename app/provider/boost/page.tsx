@@ -623,8 +623,6 @@ function ProgressRing({ percent }: { percent: number }) {
   );
 }
 
-const STEP_LABELS = ["Timing", "Budget", "Confirm"] as const;
-
 /**
  * The apply experience — a light three-beat flow (Airbnb-leaning), one decision
  * per screen, on a two-column transactional split:

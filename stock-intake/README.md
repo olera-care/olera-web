@@ -8,6 +8,9 @@ manifest (`public/images/fallback/CREDITS.json`).
 This folder is a **staging area only** — originals are processed and then
 removed before the work merges to `staging`. Nothing here is served to users.
 
+> Full process (optimize → classify → place → record license → wire):
+> see [`docs/stock-image-pipeline.md`](../docs/stock-image-pipeline.md).
+
 ## How to add images
 
 1. Drop every photo into this one folder. No sorting needed — categories are

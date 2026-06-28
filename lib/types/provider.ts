@@ -196,63 +196,91 @@ function isLikelyLogo(url: string, provider: Provider): boolean {
 }
 
 /**
- * Category → pool of curated fallback photos (3 per category).
- * Matches the iOS app's fallback image set. Using multiple images per
- * category avoids the "all identical cards" look on browse pages.
+ * Category → pool of curated fallback photos.
+ *
+ * All images are provably-licensed (Pexels) senior-care photos. Every file
+ * referenced here MUST have a matching entry in
+ * `public/images/fallback/CREDITS.json` (enforced by
+ * `scripts/check-fallback-licenses.js`). Do not add a path here without
+ * recording its license in that manifest first.
+ *
+ * Multiple images per category avoids the "all identical cards" look on
+ * browse pages; the per-provider pick is deterministic (see hashString).
+ * Memory Care and Independent Living have one category-specific photo each,
+ * backfilled with warm "general" senior-care scenes for variety.
  */
+const HOME_CARE_POOL = [
+  "/images/fallback/home-care-01.jpg",
+  "/images/fallback/home-care-02.jpg",
+  "/images/fallback/home-care-03.jpg",
+  "/images/fallback/home-care-04.jpg",
+  "/images/fallback/home-care-05.jpg",
+  "/images/fallback/home-care-06.jpg",
+  "/images/fallback/home-care-07.jpg",
+  "/images/fallback/home-care-08.jpg",
+  "/images/fallback/home-care-09.jpg",
+  "/images/fallback/home-care-10.jpg",
+  "/images/fallback/home-care-11.jpg",
+  "/images/fallback/home-care-12.jpg",
+  "/images/fallback/home-care-13.jpg",
+  "/images/fallback/home-care-14.jpg",
+];
+
+const ASSISTED_LIVING_POOL = [
+  "/images/fallback/assisted-living-01.jpg",
+  "/images/fallback/assisted-living-02.jpg",
+  "/images/fallback/assisted-living-03.jpg",
+  "/images/fallback/assisted-living-04.jpg",
+  "/images/fallback/assisted-living-05.jpg",
+  "/images/fallback/assisted-living-06.jpg",
+];
+
+const NURSING_HOME_POOL = [
+  "/images/fallback/nursing-home-01.jpg",
+  "/images/fallback/nursing-home-02.jpg",
+  "/images/fallback/nursing-home-03.jpg",
+  "/images/fallback/nursing-home-04.jpg",
+  "/images/fallback/nursing-home-05.jpg",
+];
+
+const GENERAL_POOL = [
+  "/images/fallback/general-01.jpg",
+  "/images/fallback/general-02.jpg",
+  "/images/fallback/general-03.jpg",
+  "/images/fallback/general-04.jpg",
+  "/images/fallback/general-05.jpg",
+  "/images/fallback/general-06.jpg",
+  "/images/fallback/general-07.jpg",
+];
+
+// Thin specific categories: 1 on-type photo each + general backfill for variety.
+const MEMORY_CARE_POOL = [
+  "/images/fallback/memory-care-01.jpg",
+  "/images/fallback/general-01.jpg",
+  "/images/fallback/general-02.jpg",
+  "/images/fallback/general-03.jpg",
+];
+
+const INDEPENDENT_LIVING_POOL = [
+  "/images/fallback/independent-living-01.jpg",
+  "/images/fallback/general-04.jpg",
+  "/images/fallback/general-05.jpg",
+  "/images/fallback/general-06.jpg",
+];
+
 const CATEGORY_FALLBACK_POOLS: Record<string, string[]> = {
-  "Home Care (Non-medical)": [
-    "/images/fallback/home-care-1.jpg",
-    "/images/fallback/home-care-2.jpg",
-    "/images/fallback/home-care-3.jpg",
-  ],
-  "Home Health Care": [
-    "/images/fallback/home-care-1.jpg",
-    "/images/fallback/home-care-2.jpg",
-    "/images/fallback/home-care-3.jpg",
-  ],
-  "Assisted Living": [
-    "/images/fallback/assisted-living-1.jpg",
-    "/images/fallback/assisted-living-2.jpg",
-    "/images/fallback/assisted-living-3.jpg",
-  ],
-  "Memory Care": [
-    "/images/fallback/memory-care-1.jpg",
-    "/images/fallback/memory-care-2.jpg",
-    "/images/fallback/memory-care-3.jpg",
-  ],
-  "Independent Living": [
-    "/images/fallback/independent-living-1.jpg",
-    "/images/fallback/independent-living-2.jpg",
-    "/images/fallback/independent-living-3.jpg",
-  ],
-  "Nursing Home": [
-    "/images/fallback/nursing-home-1.jpg",
-    "/images/fallback/nursing-home-2.jpg",
-    "/images/fallback/nursing-home-3.jpg",
-  ],
-  "Hospice": [
-    "/images/fallback/home-care-1.jpg",
-    "/images/fallback/home-care-2.jpg",
-    "/images/fallback/home-care-3.jpg",
-  ],
-  "Assisted Living | Independent Living": [
-    "/images/fallback/assisted-living-1.jpg",
-    "/images/fallback/assisted-living-2.jpg",
-    "/images/fallback/assisted-living-3.jpg",
-  ],
-  "Memory Care | Assisted Living": [
-    "/images/fallback/memory-care-1.jpg",
-    "/images/fallback/memory-care-2.jpg",
-    "/images/fallback/memory-care-3.jpg",
-  ],
+  "Home Care (Non-medical)": HOME_CARE_POOL,
+  "Home Health Care": HOME_CARE_POOL,
+  "Assisted Living": ASSISTED_LIVING_POOL,
+  "Memory Care": MEMORY_CARE_POOL,
+  "Independent Living": INDEPENDENT_LIVING_POOL,
+  "Nursing Home": NURSING_HOME_POOL,
+  "Hospice": HOME_CARE_POOL,
+  "Assisted Living | Independent Living": ASSISTED_LIVING_POOL,
+  "Memory Care | Assisted Living": MEMORY_CARE_POOL,
 };
 
-const DEFAULT_FALLBACK_POOL = [
-  "/images/fallback/home-care-1.jpg",
-  "/images/fallback/home-care-2.jpg",
-  "/images/fallback/home-care-3.jpg",
-];
+const DEFAULT_FALLBACK_POOL = GENERAL_POOL;
 
 /**
  * Simple deterministic hash of a string → number.

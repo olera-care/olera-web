@@ -744,8 +744,11 @@ function resolveHook(
   //
   // Every ROTATE_EVERY-th visit we rotate to a secondary so neither the
   // activation nudge nor the market insight is lost — alternating completion
-  // (when there's a gap) and the market read across rotations.
+  // (when there's a gap) and the market read across rotations. Providers with
+  // active ads see the reviews banner on rotation visits too — keeps the
+  // reviews nudge visible more often to drive review collection.
   if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
+    if (hasActiveBoostRequest) return reviewsHook();
     const altCompletion = Math.floor(rotationCount / ROTATE_EVERY) % 2 === 0;
     if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();

@@ -213,7 +213,7 @@ export default function AdsTab(_props: AdsTabProps) {
       <p className="flex items-center justify-center gap-2 text-sm text-stone-500 mt-4">
         <span className="text-[#199087]">✦</span>
         <span>
-          Your first campaign is on us — <span className="text-[#199087] font-medium">$50 in ads, free</span>. No card, no commitment.
+          First campaign on us — <span className="text-[#199087] font-medium">$50, free</span>
         </span>
       </p>
     </div>

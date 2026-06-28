@@ -1,5 +1,5 @@
 {
-  "_comment": "License manifest for served fallback stock images. Every file in this directory MUST have an entry here. Pexels License = free for commercial use, modification allowed, no attribution required. See https://www.pexels.com/license/ . Do not add stock without a recorded source URL + license.",
+  "_comment": "License manifest for served fallback stock images. Every file in this directory MUST have an entry here. Sources: Pexels and Unsplash licenses (both free for commercial use, modification allowed, no attribution required) — see the per-source URLs in \"sources\" below. Do not add stock without a recorded source URL + license.",
   "images": [
     {
       "file": "home-care-01.jpg",

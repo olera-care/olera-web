@@ -198,7 +198,7 @@ function isLikelyLogo(url: string, provider: Provider): boolean {
 /**
  * Category → pool of curated fallback photos.
  *
- * All images are provably-licensed (Pexels) senior-care photos. Every file
+ * All images are provably-licensed (Pexels + Unsplash) senior-care photos. Every file
  * referenced here MUST have a matching entry in
  * `public/images/fallback/CREDITS.json` (enforced by
  * `scripts/check-fallback-licenses.js`). Do not add a path here without

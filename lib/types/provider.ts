@@ -224,6 +224,12 @@ const HOME_CARE_POOL = [
   "/images/fallback/home-care-12.jpg",
   "/images/fallback/home-care-13.jpg",
   "/images/fallback/home-care-14.jpg",
+  // Caregivers in scrubs (Unsplash) — professional-care signal, blended with
+  // the domestic shots above; domestic-only ones to be diluted out over time.
+  "/images/fallback/home-care-15.jpg",
+  "/images/fallback/home-care-16.jpg",
+  "/images/fallback/home-care-17.jpg",
+  "/images/fallback/home-care-18.jpg",
 ];
 
 const ASSISTED_LIVING_POOL = [
@@ -244,6 +250,8 @@ const NURSING_HOME_POOL = [
   "/images/fallback/nursing-home-06.jpg",
   "/images/fallback/nursing-home-07.jpg",
   "/images/fallback/nursing-home-08.jpg",
+  "/images/fallback/nursing-home-09.jpg", // navy-scrubs bedside care (Unsplash)
+  "/images/fallback/nursing-home-10.jpg", // clinical scrubs team (Unsplash)
 ];
 
 const GENERAL_POOL = [

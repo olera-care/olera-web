@@ -1,14 +1,5 @@
 {
   "_comment": "License manifest for served fallback stock images. Every file in this directory MUST have an entry here. Pexels License = free for commercial use, modification allowed, no attribution required. See https://www.pexels.com/license/ . Do not add stock without a recorded source URL + license.",
-  "license_summary": {
-    "source": "Pexels",
-    "url": "https://www.pexels.com/license/",
-    "commercial_use": true,
-    "modification_allowed": true,
-    "attribution_required": false,
-    "verified_on": "2026-06-27",
-    "restrictions": "No standalone resale (prints/merch); no implying depicted people endorse Olera; no compiling to build a competing stock service."
-  },
   "images": [
     {
       "file": "home-care-01.jpg",
@@ -460,6 +451,82 @@
       "photographer_url": "https://www.pexels.com/@jsme-mila-523821574/",
       "license": "Pexels License",
       "added": "2026-06-27"
+    },
+    {
+      "file": "home-care-15.jpg",
+      "category": "home-care",
+      "source": "Unsplash",
+      "photographer": "Age Cymru",
+      "photo_id": "GPrh_GLiWCI",
+      "source_url": "https://unsplash.com/photos/GPrh_GLiWCI",
+      "license": "Unsplash License",
+      "added": "2026-06-28"
+    },
+    {
+      "file": "home-care-16.jpg",
+      "category": "home-care",
+      "source": "Unsplash",
+      "photographer": "Age Cymru",
+      "photo_id": "dMhB7w99ju8",
+      "source_url": "https://unsplash.com/photos/dMhB7w99ju8",
+      "license": "Unsplash License",
+      "added": "2026-06-28"
+    },
+    {
+      "file": "home-care-17.jpg",
+      "category": "home-care",
+      "source": "Unsplash",
+      "photographer": "Age Cymru",
+      "photo_id": "qW3DLnehg9w",
+      "source_url": "https://unsplash.com/photos/qW3DLnehg9w",
+      "license": "Unsplash License",
+      "added": "2026-06-28"
+    },
+    {
+      "file": "home-care-18.jpg",
+      "category": "home-care",
+      "source": "Unsplash",
+      "photographer": "Topsphere Media",
+      "photo_id": "WxRd7byFxs4",
+      "source_url": "https://unsplash.com/photos/WxRd7byFxs4",
+      "license": "Unsplash License",
+      "added": "2026-06-28"
+    },
+    {
+      "file": "nursing-home-09.jpg",
+      "category": "nursing-home",
+      "source": "Unsplash",
+      "photographer": "Maria Luisa Queiroz",
+      "photo_id": "KlBltbAwxWk",
+      "source_url": "https://unsplash.com/photos/KlBltbAwxWk",
+      "license": "Unsplash License",
+      "added": "2026-06-28"
+    },
+    {
+      "file": "nursing-home-10.jpg",
+      "category": "nursing-home",
+      "source": "Unsplash",
+      "photographer": "CDC",
+      "photo_id": "Jusy7vxGPLM",
+      "source_url": "https://unsplash.com/photos/Jusy7vxGPLM",
+      "license": "Unsplash License",
+      "added": "2026-06-28"
     }
-  ]
+  ],
+  "sources": {
+    "Pexels": {
+      "url": "https://www.pexels.com/license/",
+      "commercial_use": true,
+      "modification_allowed": true,
+      "attribution_required": false
+    },
+    "Unsplash": {
+      "url": "https://unsplash.com/license",
+      "commercial_use": true,
+      "modification_allowed": true,
+      "attribution_required": false
+    }
+  },
+  "verified_on": "2026-06-28",
+  "restrictions": "No standalone resale (prints/merch); no implying depicted people endorse Olera; no compiling to build a competing stock service."
 }

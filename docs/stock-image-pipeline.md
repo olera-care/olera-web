@@ -77,6 +77,8 @@ When the PR merges to `staging`, **squash** so the raw originals never enter
 `getCategoryFallbackImage(category, providerId)` picks one image from the
 category's pool using a deterministic hash of `providerId` — the same provider
 always gets the same photo (no flicker / hydration mismatch), but different
-providers spread across the pool. Bigger pools = more visual variety.
-Memory Care and Independent Living currently have one category-specific photo
-each, backfilled from the `general` pool.
+providers spread across the pool. Bigger pools = more visual variety, so
+pools hold distinct scenes (near-identical photographer series are deduped to
+one). Independent Living is the thinnest category (the current library skews
+care-heavy) and leans on social assisted-living backfill — a candidate for
+targeted re-sourcing if we want active-lifestyle imagery.

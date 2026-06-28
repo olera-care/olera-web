@@ -204,10 +204,10 @@ function isLikelyLogo(url: string, provider: Provider): boolean {
  * `scripts/check-fallback-licenses.js`). Do not add a path here without
  * recording its license in that manifest first.
  *
- * Multiple images per category avoids the "all identical cards" look on
- * browse pages; the per-provider pick is deterministic (see hashString).
- * Memory Care and Independent Living have one category-specific photo each,
- * backfilled with warm "general" senior-care scenes for variety.
+ * Pools hold distinct scenes (near-identical series are deduped) so the
+ * per-provider pick — deterministic via hashString — spreads providers across
+ * varied imagery instead of repeating. Independent Living is the thinnest
+ * category and leans on social assisted-living backfill (see its pool).
  */
 const HOME_CARE_POOL = [
   "/images/fallback/home-care-01.jpg",
@@ -241,6 +241,9 @@ const NURSING_HOME_POOL = [
   "/images/fallback/nursing-home-03.jpg",
   "/images/fallback/nursing-home-04.jpg",
   "/images/fallback/nursing-home-05.jpg",
+  "/images/fallback/nursing-home-06.jpg",
+  "/images/fallback/nursing-home-07.jpg",
+  "/images/fallback/nursing-home-08.jpg",
 ];
 
 const GENERAL_POOL = [
@@ -250,22 +253,26 @@ const GENERAL_POOL = [
   "/images/fallback/general-04.jpg",
   "/images/fallback/general-05.jpg",
   "/images/fallback/general-06.jpg",
-  "/images/fallback/general-07.jpg",
 ];
 
-// Thin specific categories: 1 on-type photo each + general backfill for variety.
+// Memory care: 5 tender / gentle-touch / comfort scenes that read as
+// compassionate dementia care.
 const MEMORY_CARE_POOL = [
   "/images/fallback/memory-care-01.jpg",
-  "/images/fallback/general-01.jpg",
-  "/images/fallback/general-02.jpg",
-  "/images/fallback/general-03.jpg",
+  "/images/fallback/memory-care-02.jpg",
+  "/images/fallback/memory-care-03.jpg",
+  "/images/fallback/memory-care-04.jpg",
+  "/images/fallback/memory-care-05.jpg",
 ];
 
+// Independent living is the thinnest category in our current library (the set
+// skews care-heavy). Two lifestyle photos + two social assisted-living scenes
+// as the closest-fitting backfill. Candidate for targeted re-sourcing.
 const INDEPENDENT_LIVING_POOL = [
   "/images/fallback/independent-living-01.jpg",
-  "/images/fallback/general-04.jpg",
-  "/images/fallback/general-05.jpg",
-  "/images/fallback/general-06.jpg",
+  "/images/fallback/independent-living-02.jpg",
+  "/images/fallback/assisted-living-04.jpg",
+  "/images/fallback/assisted-living-05.jpg",
 ];
 
 const CATEGORY_FALLBACK_POOLS: Record<string, string[]> = {

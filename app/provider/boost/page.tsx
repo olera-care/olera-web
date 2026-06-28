@@ -981,7 +981,7 @@ function ApplyExperience({
               type="button"
               disabled={!canAdvance}
               onClick={() => setStep(step + 1)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[15px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[15px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
             >
               Continue
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

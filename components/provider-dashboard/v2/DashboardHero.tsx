@@ -76,7 +76,7 @@ const SECTION_IMAGES: Record<NudgeSectionId, string> = {
   about: "/images/for-providers/dashboard-hero-about.jpg",
   pricing: "/images/for-providers/dashboard-hero-pricing.jpg",
   services: "/images/for-providers/dashboard-hero-services.jpg",
-  screening: "/images/for-providers/dashboard-hero-screening.jpg",
+  screening: "/images/for-providers/dashboard-hero-overview.jpg", // reuses overview (original had white strip)
   payment: "/images/for-providers/dashboard-hero-payment.jpg",
   overview: "/images/for-providers/dashboard-hero-overview.jpg",
 };

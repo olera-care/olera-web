@@ -687,6 +687,20 @@ function ApplyExperience({
     <div className="grid lg:grid-cols-[1fr_360px] gap-10 lg:gap-16 items-start">
       {/* ─────────── LEFT: action spine ─────────── */}
       <div className="min-w-0">
+        {/* Mobile back link - above the banner for steps > 0 */}
+        {step > 0 && (
+          <button
+            type="button"
+            onClick={() => setStep(step - 1)}
+            className="sm:hidden inline-flex items-center gap-1.5 mb-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            Back
+          </button>
+        )}
+
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
           Managed Ads
         </p>
@@ -747,26 +761,20 @@ function ApplyExperience({
             <fieldset className="mt-8">
               <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Start week</legend>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {weekOptions.map((w, i) => {
+                {weekOptions.map((w) => {
                   const active = selectedWeek === w.value;
-                  const isSoonest = i === 0;
                   return (
                     <button
                       key={w.value}
                       type="button"
                       aria-pressed={active}
                       onClick={() => setSelectedWeek(w.value)}
-                      className={`relative rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                      className={`rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
                           ? "border-primary-500 bg-primary-50/70"
                           : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
-                      {isSoonest && (
-                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gray-900 px-2.5 py-0.5 text-[10px] font-semibold text-white">
-                          Soonest
-                        </span>
-                      )}
                       <span className={`block text-xs uppercase tracking-wide ${active ? "text-primary-600" : "text-gray-400"}`}>
                         Week of
                       </span>
@@ -958,8 +966,16 @@ function ApplyExperience({
           </div>
         )}
 
+        {/* Mobile reassurance text - matches sidebar */}
+        <p className="mt-8 sm:hidden flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
+          <span className="text-primary-600">✦</span>
+          <span>
+            No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
+          </span>
+        </p>
+
         {/* Spacer for mobile sticky CTA */}
-        <div className="h-36 sm:hidden" />
+        <div className="h-32 sm:hidden" />
       </div>
 
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
@@ -987,18 +1003,9 @@ function ApplyExperience({
         )}
         {step === 1 && (
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setStep(step - 1)}
-                className="text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Back
-              </button>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Monthly budget</p>
-                <p className="text-xl font-bold text-gray-900">{stop?.amount ?? "—"}</p>
-              </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Monthly budget</p>
+              <p className="text-xl font-bold text-gray-900">{stop?.amount ?? "—"}</p>
             </div>
             <button
               type="button"
@@ -1024,22 +1031,13 @@ function ApplyExperience({
           </p>
         )}
         {step !== 1 && (
-          <div className="flex items-center gap-3">
-            {step > 0 && (
-              <button
-                type="button"
-                onClick={() => setStep(step - 1)}
-                className="px-4 py-3.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Back
-              </button>
-            )}
+          <>
             {step < 2 ? (
               <button
                 type="button"
                 disabled={!canAdvance}
                 onClick={() => setStep(step + 1)}
-                className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+                className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
               >
                 Continue
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -1051,7 +1049,7 @@ function ApplyExperience({
                 type="button"
                 disabled={submitting}
                 onClick={onSubmit}
-                className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+                className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
               >
                 {submitting ? "Sending…" : eligible ? "Get my launch plan" : "Queue my launch plan"}
                 {!submitting && (
@@ -1061,7 +1059,7 @@ function ApplyExperience({
                 )}
               </button>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -1128,9 +1126,12 @@ function CampaignSummary({
         </div>
       </dl>
 
-      {/* Helper text - shown on all steps */}
-      <p className="mt-4 text-xs text-gray-400 leading-relaxed">
-        No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
+      {/* Reassurance text with star icon */}
+      <p className="mt-4 flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
+        <span className="text-primary-600">✦</span>
+        <span>
+          No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
+        </span>
       </p>
 
       {/* Continue button - inside the card on desktop */}

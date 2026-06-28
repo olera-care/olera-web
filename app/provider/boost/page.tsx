@@ -943,9 +943,20 @@ function ApplyExperience({
               </Link>
               .
             </p>
+
+            {/* Back link - desktop only */}
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="hidden sm:inline-flex items-center gap-1.5 mt-8 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+              </svg>
+              Back
+            </button>
           </div>
         )}
-
 
         {/* Spacer for mobile sticky CTA */}
         <div className="h-36 sm:hidden" />

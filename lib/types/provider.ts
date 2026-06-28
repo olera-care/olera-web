@@ -214,14 +214,12 @@ const HOME_CARE_POOL = [
   "/images/fallback/home-care-02.jpg",
   "/images/fallback/home-care-03.jpg",
   "/images/fallback/home-care-04.jpg",
-  "/images/fallback/home-care-05.jpg",
   "/images/fallback/home-care-06.jpg",
   "/images/fallback/home-care-07.jpg",
   "/images/fallback/home-care-08.jpg",
   "/images/fallback/home-care-09.jpg",
   "/images/fallback/home-care-10.jpg",
   "/images/fallback/home-care-11.jpg",
-  "/images/fallback/home-care-12.jpg",
   "/images/fallback/home-care-13.jpg",
   "/images/fallback/home-care-14.jpg",
   // Caregivers in scrubs (Unsplash) — professional-care signal, blended with
@@ -247,20 +245,14 @@ const NURSING_HOME_POOL = [
   "/images/fallback/nursing-home-03.jpg",
   "/images/fallback/nursing-home-04.jpg",
   "/images/fallback/nursing-home-05.jpg",
-  "/images/fallback/nursing-home-06.jpg",
-  "/images/fallback/nursing-home-07.jpg",
-  "/images/fallback/nursing-home-08.jpg",
   "/images/fallback/nursing-home-09.jpg", // navy-scrubs bedside care (Unsplash)
   "/images/fallback/nursing-home-10.jpg", // clinical scrubs team (Unsplash)
 ];
 
 const GENERAL_POOL = [
-  "/images/fallback/general-01.jpg",
   "/images/fallback/general-02.jpg",
   "/images/fallback/general-03.jpg",
   "/images/fallback/general-04.jpg",
-  "/images/fallback/general-05.jpg",
-  "/images/fallback/general-06.jpg",
 ];
 
 // Memory care: 5 tender / gentle-touch / comfort scenes that read as

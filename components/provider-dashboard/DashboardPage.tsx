@@ -581,7 +581,7 @@ function DashboardContent({
             {/* Questions engagement — persistent count + click-through to the
                 answer flow. Only when they've ever received one (no empty card).
                 Hairline separates it from the bare stats block above. */}
-            {v2Data && v2Data.questions.received > 0 && (
+            {v2Data && (v2Data.questions?.received ?? 0) > 0 && (
               <QuestionsCard
                 questions={v2Data.questions}
                 className="border-t border-gray-100 pt-4"

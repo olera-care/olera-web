@@ -920,62 +920,6 @@ function ApplyExperience({
           </div>
         )}
 
-        {/* ── Footer nav — desktop only ── */}
-        {step === 2 && submitError && (
-          <p className="mt-6 text-sm text-red-600">{submitError}</p>
-        )}
-        <div className="mt-9 hidden sm:flex items-center gap-5">
-          {step > 0 && (
-            <button
-              type="button"
-              onClick={() => setStep(step - 1)}
-              className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
-            >
-              Back
-            </button>
-          )}
-          {step < 2 ? (
-            <div>
-              <button
-                type="button"
-                disabled={!canAdvance}
-                onClick={() => setStep(step + 1)}
-                className="inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
-              >
-                Continue
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                </svg>
-              </button>
-              {step === 0 && (
-                <p className="mt-3 text-sm text-gray-400">
-                  Next: choose your budget
-                </p>
-              )}
-            </div>
-          ) : (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={onSubmit}
-              className="inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
-            >
-              {submitting ? "Sending…" : eligible ? "Get my launch plan" : "Queue my launch plan"}
-              {!submitting && (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                </svg>
-              )}
-            </button>
-          )}
-        </div>
-        {step === 2 && (
-          <p className="hidden sm:block text-xs text-gray-400 mt-4 leading-relaxed max-w-md">
-            {eligible
-              ? "No charge yet. We confirm the budget with you before launch. Your first $50 is on us."
-              : "No charge to queue, and none until we confirm the budget with you before launch. Your first $50 is on us."}
-          </p>
-        )}
 
         {/* Spacer for mobile sticky CTA */}
         <div className="h-36 sm:hidden" />
@@ -984,9 +928,16 @@ function ApplyExperience({
       {/* ─────────── RIGHT: live summary + proof (sticky) ─────────── */}
       <aside className="lg:sticky lg:top-12 space-y-6 hidden sm:block">
         <CampaignSummary
+          step={step}
           weekLabel={weekLabel}
           channelLabel={channelLabel}
           stop={stop}
+          canAdvance={canAdvance}
+          onContinue={() => setStep(step + 1)}
+          onSubmit={onSubmit}
+          submitting={submitting}
+          submitError={submitError}
+          eligible={eligible}
         />
       </aside>
 
@@ -1061,16 +1012,29 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
 
 
 /** The live "Your campaign" card — accumulates as the provider picks (week →
- *  channel → budget + estimate). The single resting point of the flow; the
- *  estimate's reach→lead shift carries the honesty, capped by one caveat. */
+ *  channel → budget + estimate). Contains the Continue button on desktop. */
 function CampaignSummary({
+  step,
   weekLabel,
   channelLabel,
   stop,
+  canAdvance,
+  onContinue,
+  onSubmit,
+  submitting,
+  submitError,
+  eligible,
 }: {
+  step: number;
   weekLabel: string | null;
   channelLabel: string;
   stop: BudgetStop | null;
+  canAdvance: boolean;
+  onContinue: () => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  submitError: string | null;
+  eligible: boolean;
 }) {
   return (
     <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_12px_32px_-16px_rgba(42,24,16,0.12)]">
@@ -1091,14 +1055,14 @@ function CampaignSummary({
         </div>
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-sm text-gray-500">Budget</dt>
-          <dd className={`text-sm font-medium text-right ${stop ? "text-gray-900" : "text-gray-300"}`}>
-            {stop?.label ?? "Next step"}
+          <dd className={`text-sm font-medium text-right ${step >= 1 && stop ? "text-gray-900" : "text-gray-300"}`}>
+            {step >= 1 && stop ? stop.label : "Next step"}
           </dd>
         </div>
       </dl>
 
-      {/* Estimate section - only show when budget is selected */}
-      {stop && (
+      {/* Estimate section - only show on step 1+ when budget is selected */}
+      {step >= 1 && stop && (
         <div className="mt-4 pt-4 border-t border-gray-100">
           <p key={stop.value} className="text-sm font-medium text-gray-900 animate-[fadeIn_150ms_ease-out]">
             {estimateSummary(stop)}
@@ -1115,6 +1079,45 @@ function CampaignSummary({
             Your first <span className="font-semibold">$50</span> in ad spend is on us.
           </span>
         </p>
+      </div>
+
+      {/* Continue button - inside the card on desktop */}
+      <div className="mt-5">
+        {step === 2 && submitError && (
+          <p className="text-sm text-red-600 mb-3">{submitError}</p>
+        )}
+        {step < 2 ? (
+          <button
+            type="button"
+            disabled={!canAdvance}
+            onClick={onContinue}
+            className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+          >
+            Continue
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={submitting}
+            onClick={onSubmit}
+            className="w-full inline-flex items-center justify-center gap-2.5 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.99] transition-all duration-200"
+          >
+            {submitting ? "Sending…" : eligible ? "Get my launch plan" : "Queue my launch plan"}
+            {!submitting && (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            )}
+          </button>
+        )}
+        {step === 0 && (
+          <p className="mt-3 text-sm text-gray-400 text-center">
+            Next: choose your budget
+          </p>
+        )}
       </div>
     </div>
   );
@@ -1138,7 +1141,7 @@ function humanCategoryLabel(category: string | null): string {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-14 pb-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-14 pb-24">
         {children}
       </div>
     </div>

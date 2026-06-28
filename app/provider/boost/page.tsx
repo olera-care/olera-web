@@ -1123,31 +1123,15 @@ function CampaignSummary({
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-sm text-gray-500">{step >= 1 ? "Monthly budget" : "Budget"}</dt>
           <dd className={`text-sm font-medium text-right ${step >= 1 && stop ? "text-gray-900" : "text-gray-300"}`}>
-            {step >= 1 && stop
-              ? (stop.value === 50 ? `${stop.label} (on us)` : stop.label)
-              : "Next step"}
+            {step >= 1 && stop ? stop.label : "Next step"}
           </dd>
         </div>
       </dl>
 
-      {/* Helper text for step 1+ */}
-      {step >= 1 && (
-        <p className="mt-4 text-xs text-gray-400 leading-relaxed">
-          No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
-        </p>
-      )}
-
-      {/* $50 free callout - only on step 0 */}
-      {step === 0 && (
-        <div className="mt-4 rounded-xl bg-primary-50/70 border border-primary-100 px-4 py-3">
-          <p className="flex items-start gap-2 text-sm text-primary-800">
-            <span className="text-primary-600 mt-0.5">✦</span>
-            <span>
-              Your first <span className="font-semibold">$50</span> in ad spend is on us.
-            </span>
-          </p>
-        </div>
-      )}
+      {/* Helper text - shown on all steps */}
+      <p className="mt-4 text-xs text-gray-400 leading-relaxed">
+        No card today. We confirm everything with you before your campaign goes live, and you can cancel anytime.
+      </p>
 
       {/* Continue button - inside the card on desktop */}
       <div className="mt-5">

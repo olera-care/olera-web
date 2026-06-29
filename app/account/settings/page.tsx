@@ -732,30 +732,8 @@ export default function AccountSettingsPage() {
                   </div>
                 )}
 
-                {/* ── Delete Account ── */}
-                <div className="px-4 py-5 lg:p-6 border-b border-gray-100">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">
-                        Delete account
-                      </p>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        Permanently delete your account, all profiles, and all connection
-                        history.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowDeleteModal(true)}
-                      className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-
                 {/* ── Sign Out ── */}
-                <div className="px-4 py-5 lg:p-6">
+                <div className="px-4 py-5 lg:p-6 border-b border-gray-100">
                   {/* Mobile: full-width button */}
                   <div className="lg:hidden">
                     <button
@@ -790,6 +768,28 @@ export default function AccountSettingsPage() {
                       className="text-[14px] font-medium text-gray-700 hover:text-gray-900 transition-colors shrink-0 ml-4"
                     >
                       Sign out
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── Delete Account ── */}
+                <div className="px-4 py-5 lg:p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        Delete account
+                      </p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Permanently delete your account, all profiles, and all connection
+                        history.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>

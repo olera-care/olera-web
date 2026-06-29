@@ -748,6 +748,7 @@ function ApplyExperience({
   onSubmit: () => void;
 }) {
   const [step, setStep] = useState(0); // 0 Timing · 1 Budget · 2 Confirm
+  const mobileNavVariant = useMobileNavVariant();
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
   const stop = budgetStop(selectedBudget);

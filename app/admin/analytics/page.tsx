@@ -470,7 +470,7 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Mobile Nav Variants"
+        title="Provider Hub Mobile Nav"
         storageKey="mobileNavVariants"
         defaultCollapsed={true}
         loading={loading && !!summary}
@@ -3709,14 +3709,14 @@ function FootNote({ summary }: { summary: SummaryResponse | null }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mobile Nav Variants — A/B test infrastructure for provider mobile navigation
+// Provider Hub Mobile Nav — A/B test for provider dashboard mobile navigation
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MobileNavVariantsCard() {
   return (
     <>
       <p className="text-xs text-gray-500 mb-5">
-        Mobile navigation A/B test for provider dashboard. Test different mobile nav layouts (hamburger vs bottom tabs) to optimize provider engagement on mobile devices.
+        A/B test for Provider Hub mobile navigation. Tests different layouts (hamburger menu vs bottom tab bar) for logged-in providers on mobile devices.
       </p>
       <MobileNavTrafficAllocationControl />
       <div className="mt-8 pt-6 border-t border-gray-100">

@@ -3718,6 +3718,9 @@ function MobileNavVariantsCard() {
         Mobile navigation A/B test for provider dashboard. Test different mobile nav layouts (hamburger vs bottom tabs) to optimize provider engagement on mobile devices.
       </p>
       <MobileNavTrafficAllocationControl />
+      <div className="mt-8 pt-6 border-t border-gray-100">
+        <MobileNavAnalytics />
+      </div>
     </>
   );
 }
@@ -3919,6 +3922,177 @@ function MobileNavTrafficAllocationControl() {
             {feedback.msg}
           </span>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile Nav Analytics — Device breakdown and variant funnel metrics
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface DeviceBreakdown {
+  ua_class: string;
+  visit_count: number;
+  unique_providers: number;
+}
+
+interface VariantFunnelRow {
+  variant: string;
+  impressions: number;
+  questions_answered: number;
+  leads_connected: number;
+  reviews_shared: number;
+  boost_requested: number;
+}
+
+interface MobileNavStatsResponse {
+  range: { from: string; to: string };
+  deviceBreakdown: DeviceBreakdown[];
+  variantFunnel: VariantFunnelRow[];
+}
+
+function MobileNavAnalytics() {
+  const [data, setData] = useState<MobileNavStatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/analytics/mobile-nav-stats", { cache: "no-store" })
+      .then(async (r) => {
+        if (cancelled) return;
+        if (!r.ok) {
+          setError(`Failed to load stats (${r.status})`);
+          setLoading(false);
+          return;
+        }
+        const json = await r.json().catch(() => null);
+        if (!json) {
+          setError("Failed to parse response");
+          setLoading(false);
+          return;
+        }
+        setData(json);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError("Network error loading stats");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-4 text-center text-sm text-rose-600">{error}</div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="space-y-6">
+      {/* Device Breakdown */}
+      <div>
+        <h4 className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+          Device Breakdown (Last 30 Days)
+        </h4>
+        {data.deviceBreakdown.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">No data yet</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {data.deviceBreakdown.map((row) => (
+              <div
+                key={row.ua_class}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-3"
+              >
+                <div className="text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">
+                  {row.ua_class === "mobile" ? "Mobile" : row.ua_class === "desktop" ? "Desktop" : row.ua_class === "tablet" ? "Tablet" : row.ua_class}
+                </div>
+                <div className="text-2xl font-semibold text-gray-900 tabular-nums">
+                  {row.unique_providers.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-gray-400">
+                  unique providers ({row.visit_count.toLocaleString()} visits)
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Variant Funnel */}
+      <div>
+        <h4 className="text-[11px] font-medium uppercase tracking-wider text-gray-400 mb-3">
+          Variant Conversion Funnel (Last 30 Days)
+        </h4>
+        {data.variantFunnel.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">No variant impressions yet. Set bottom_tabs to &gt;0% to start collecting data.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 pr-4 text-[11px] font-medium text-gray-500">Variant</th>
+                  <th className="text-right py-2 px-3 text-[11px] font-medium text-gray-500">Impressions</th>
+                  <th className="text-right py-2 px-3 text-[11px] font-medium text-gray-500">Questions</th>
+                  <th className="text-right py-2 px-3 text-[11px] font-medium text-gray-500">Leads</th>
+                  <th className="text-right py-2 px-3 text-[11px] font-medium text-gray-500">Reviews</th>
+                  <th className="text-right py-2 px-3 text-[11px] font-medium text-gray-500">Boost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.variantFunnel.map((row) => {
+                  const qRate = row.impressions > 0 ? ((row.questions_answered / row.impressions) * 100).toFixed(1) : "—";
+                  const lRate = row.impressions > 0 ? ((row.leads_connected / row.impressions) * 100).toFixed(1) : "—";
+                  const rRate = row.impressions > 0 ? ((row.reviews_shared / row.impressions) * 100).toFixed(1) : "—";
+                  const bRate = row.impressions > 0 ? ((row.boost_requested / row.impressions) * 100).toFixed(1) : "—";
+                  return (
+                    <tr key={row.variant} className="border-b border-gray-100">
+                      <td className="py-2 pr-4">
+                        <span className="font-medium text-gray-900">{mobileNavVariantLabel(row.variant as MobileNavVariant)}</span>
+                      </td>
+                      <td className="text-right py-2 px-3 tabular-nums text-gray-700">
+                        {row.impressions.toLocaleString()}
+                      </td>
+                      <td className="text-right py-2 px-3 tabular-nums">
+                        <span className="text-gray-900">{row.questions_answered}</span>
+                        <span className="text-gray-400 text-[10px] ml-1">({qRate}%)</span>
+                      </td>
+                      <td className="text-right py-2 px-3 tabular-nums">
+                        <span className="text-gray-900">{row.leads_connected}</span>
+                        <span className="text-gray-400 text-[10px] ml-1">({lRate}%)</span>
+                      </td>
+                      <td className="text-right py-2 px-3 tabular-nums">
+                        <span className="text-gray-900">{row.reviews_shared}</span>
+                        <span className="text-gray-400 text-[10px] ml-1">({rRate}%)</span>
+                      </td>
+                      <td className="text-right py-2 px-3 tabular-nums">
+                        <span className="text-gray-900">{row.boost_requested}</span>
+                        <span className="text-gray-400 text-[10px] ml-1">({bRate}%)</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="text-[10px] text-gray-400 mt-2">
+          Questions = answered, Leads = contacted (inbox/phone/email), Reviews = CTA clicked, Boost = ads requested
+        </p>
       </div>
     </div>
   );

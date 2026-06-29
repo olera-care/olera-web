@@ -284,7 +284,7 @@ export default function ProviderBoostPage() {
           <PendingProfile
             request={pendingRequest}
             eligibility={state.eligibility}
-            isVerified={state.isVerified}
+            isVerified={state.isVerified ?? false}
             onEditSection={openEditor}
             onVerify={openVerificationModal}
           />

@@ -10,11 +10,31 @@ import {
   fmtTimestamp,
 } from "@/components/admin/AdBoostShared";
 
+interface TouchpointData {
+  touchpoint: string;
+  label: string;
+  viewed: number;
+  clicked: number;
+  dismissed: number;
+  ctr: number;
+}
+
+interface TouchpointsResponse {
+  range: { from: string; to: string };
+  touchpoints: TouchpointData[];
+  totals: { viewed: number; clicked: number; dismissed: number };
+}
+
 export default function AdminAdBoostPage() {
   const [requests, setRequests] = useState<CampaignRequest[] | null>(null);
   const [counts, setCounts] = useState({ active: 0, archived: 0 });
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"active" | "archived">("active");
+
+  // Touchpoints analytics
+  const [touchpointsExpanded, setTouchpointsExpanded] = useState(false);
+  const [touchpointsData, setTouchpointsData] = useState<TouchpointsResponse | null>(null);
+  const [touchpointsLoading, setTouchpointsLoading] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -39,6 +59,22 @@ export default function AdminAdBoostPage() {
     load();
   }, [load]);
 
+  // Load touchpoints when expanded
+  useEffect(() => {
+    if (!touchpointsExpanded || touchpointsData) return;
+    setTouchpointsLoading(true);
+    fetch("/api/admin/ad-boost/touchpoints")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load");
+        return res.json();
+      })
+      .then((data) => {
+        setTouchpointsData(data);
+        setTouchpointsLoading(false);
+      })
+      .catch(() => setTouchpointsLoading(false));
+  }, [touchpointsExpanded, touchpointsData]);
+
   const tabs = [
     { value: "active" as const, label: "Active", count: counts.active },
     { value: "archived" as const, label: "Archived", count: counts.archived },
@@ -53,6 +89,115 @@ export default function AdminAdBoostPage() {
           its status, and copy the UTM landing URL into the ad platform.
         </p>
       </header>
+
+      {/* Pitch Touchpoints — collapsible analytics section */}
+      <div className="mb-6 rounded-xl border border-gray-200 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setTouchpointsExpanded(!touchpointsExpanded)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        >
+          <div>
+            <span className="font-medium text-gray-900">Pitch Touchpoints</span>
+            <span className="ml-2 text-sm text-gray-500">
+              Which surfaces drive providers to Ad Boost
+            </span>
+          </div>
+          <svg
+            className={`w-5 h-5 text-gray-400 transition-transform ${touchpointsExpanded ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+
+        {touchpointsExpanded && (
+          <div className="px-4 py-4 border-t border-gray-200">
+            {touchpointsLoading ? (
+              <div className="h-24 flex items-center justify-center text-gray-400 text-sm">
+                Loading touchpoint data…
+              </div>
+            ) : touchpointsData ? (
+              <>
+                <p className="text-xs text-gray-500 mb-3">
+                  Last 30 days · Distinct providers per touchpoint
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left py-2 pr-4 text-xs font-medium uppercase tracking-wide text-gray-400">
+                          Touchpoint
+                        </th>
+                        <th className="text-right py-2 px-3 text-xs font-medium uppercase tracking-wide text-gray-400">
+                          Viewed
+                        </th>
+                        <th className="text-right py-2 px-3 text-xs font-medium uppercase tracking-wide text-gray-400">
+                          Clicked
+                        </th>
+                        <th className="text-right py-2 px-3 text-xs font-medium uppercase tracking-wide text-gray-400">
+                          CTR
+                        </th>
+                        <th className="text-right py-2 pl-3 text-xs font-medium uppercase tracking-wide text-gray-400">
+                          Dismissed
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {touchpointsData.touchpoints.map((t) => (
+                        <tr key={t.touchpoint} className="border-b border-gray-50 last:border-0">
+                          <td className="py-2.5 pr-4 text-gray-900">{t.label}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-gray-700">
+                            {t.viewed}
+                          </td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-gray-700">
+                            {t.clicked}
+                          </td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-medium text-gray-900">
+                            {t.viewed > 0 ? `${t.ctr}%` : "—"}
+                          </td>
+                          <td className="py-2.5 pl-3 text-right tabular-nums text-gray-500">
+                            {t.dismissed}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-gray-200">
+                        <td className="py-2.5 pr-4 font-medium text-gray-900">Total</td>
+                        <td className="py-2.5 px-3 text-right tabular-nums font-medium text-gray-900">
+                          {touchpointsData.totals.viewed}
+                        </td>
+                        <td className="py-2.5 px-3 text-right tabular-nums font-medium text-gray-900">
+                          {touchpointsData.totals.clicked}
+                        </td>
+                        <td className="py-2.5 px-3 text-right tabular-nums font-medium text-gray-900">
+                          {touchpointsData.totals.viewed > 0
+                            ? `${Math.round((touchpointsData.totals.clicked / touchpointsData.totals.viewed) * 100)}%`
+                            : "—"}
+                        </td>
+                        <td className="py-2.5 pl-3 text-right tabular-nums font-medium text-gray-500">
+                          {touchpointsData.totals.dismissed}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                {touchpointsData.touchpoints.length === 0 && (
+                  <p className="text-gray-400 text-sm py-4 text-center">
+                    No touchpoint data yet. Events will appear once providers see the pitch surfaces.
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-400 text-sm">Failed to load touchpoint data.</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">

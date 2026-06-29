@@ -111,6 +111,8 @@ export default function Navbar() {
     (pathname.startsWith("/medjobs/candidates") && activeProfile?.type === "organization") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) ||
+    // Account settings page when user is a provider - show provider nav
+    (pathname.startsWith("/account") && activeProfile?.type === "organization") ||
     // Unified inbox when active profile is a provider
     isInboxProviderMode;
   const isMinimalNav = pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");

@@ -16,6 +16,10 @@ import { useUnreadQnACount } from "@/hooks/useUnreadQnACount";
 import { useUnreadReviewsCount } from "@/hooks/useUnreadReviewsCount";
 import { useUnreadLeadsCount } from "@/hooks/useUnreadLeadsCount";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
+import MobileBottomTabs from "@/components/shared/MobileBottomTabs";
+import MoreBottomSheet from "@/components/shared/MoreBottomSheet";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 export default function Navbar() {
   const router = useRouter();
@@ -32,6 +36,8 @@ export default function Navbar() {
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const mobileUserMenuRef = useRef<HTMLDivElement>(null);
+  const mobileNavImpressionFired = useRef(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
@@ -61,6 +67,10 @@ export default function Navbar() {
   const reviewsCount = useUnreadReviewsCount(activeProviderId);
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
+
+  // Mobile nav variant for A/B testing bottom tabs vs hamburger
+  const mobileNavVariant = useMobileNavVariant();
 
   // Track client-side mount for createPortal (SSR-safe)
   useEffect(() => {
@@ -118,6 +128,21 @@ export default function Navbar() {
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/medjobs");
   const isProviderWelcome = pathname.startsWith("/provider/welcome");
+
+  // Track mobile nav variant impression — fires once per page load on mobile provider portal
+  useEffect(() => {
+    // Skip if already fired, not mounted, not provider portal, or no variant assigned yet
+    if (mobileNavImpressionFired.current || !mounted || !isProviderPortal || !mobileNavVariant) return;
+    // Skip if not on mobile viewport (lg breakpoint = 1024px)
+    if (typeof window === "undefined" || window.innerWidth >= 1024) return;
+    // Skip if no provider to attribute the event to
+    if (!activeProviderId) return;
+
+    mobileNavImpressionFired.current = true;
+    trackProviderEvent(activeProviderId, "mobile_nav_variant_impression", {
+      variant: mobileNavVariant,
+    });
+  }, [mounted, isProviderPortal, mobileNavVariant, activeProviderId]);
 
   // Provider detail page detection — has its own mobile nav (MobileProviderTopNav)
   // Pattern: /provider/[slug] where slug is not a known portal route
@@ -211,6 +236,8 @@ export default function Navbar() {
 
   // Close user/account menu on outside click (blur-before-close prevents scroll-to-footer)
   useClickOutside(userMenuRef, () => setIsUserMenuOpen(false), isUserMenuOpen);
+  // Separate click-outside handler for mobile avatar dropdown (uses different ref)
+  useClickOutside(mobileUserMenuRef, () => setIsUserMenuOpen(false), isUserMenuOpen);
 
   // Close user menu on Escape
   useEffect(() => {
@@ -952,22 +979,51 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Mobile Menu Button — always on right */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                )}
-              </button>
+              {/* Mobile Menu Button — avatar dropdown for bottom_tabs variant, hamburger otherwise */}
+              {isProviderPortal && mobileNavVariant === "bottom_tabs" ? (
+                /* Avatar dropdown for bottom_tabs variant */
+                <div className="lg:hidden relative" ref={mobileUserMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="relative flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                    aria-label="User menu"
+                    aria-expanded={isUserMenuOpen}
+                  >
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    {activeProfile?.image_url ? (
+                      <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 rounded-full object-cover aspect-square shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                        {initials || "?"}
+                      </div>
+                    )}
+                    {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0 || reviewsCount > 0) && (
+                      <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                    )}
+                  </button>
+                  {isUserMenuOpen && signedInDropdown}
+                </div>
+              ) : (
+                /* Hamburger button for default variant */
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                  aria-label="Toggle menu"
+                >
+                  {isMobileMenuOpen ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  )}
+                </button>
+              )}
             </div>
           </div>
 
@@ -1503,6 +1559,23 @@ export default function Navbar() {
           megaMenuCloseTimer.current = setTimeout(() => setIsFindCareOpen(false), 200);
         }}
       />
+
+      {/* Mobile Bottom Tabs — only shown for provider portal when variant is bottom_tabs */}
+      {isProviderPortal && mobileNavVariant === "bottom_tabs" && (
+        <div className="lg:hidden">
+          <MobileBottomTabs
+            hasNotifications={providerInboxCount > 0 || qnaCount > 0 || newLeadsCount > 0}
+            onMorePress={() => setIsMoreSheetOpen(true)}
+          />
+          <MoreBottomSheet
+            isOpen={isMoreSheetOpen}
+            onClose={() => setIsMoreSheetOpen(false)}
+            inboxCount={providerInboxCount}
+            qnaCount={qnaCount}
+            leadsCount={newLeadsCount}
+          />
+        </div>
+      )}
     </>
   );
 }

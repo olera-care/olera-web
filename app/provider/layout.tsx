@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
@@ -14,6 +15,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
   const { user, account, isLoading, fetchError, refreshAccountData, openAuth } =
     useAuth();
   const providerProfile = useProviderProfile();
+  const mobileNavVariant = useMobileNavVariant();
   const retriedRef = useRef(false);
   const [retryDone, setRetryDone] = useState(false);
   // A just-claimed provider's new profile can lag the auth context by a beat
@@ -156,5 +158,17 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {/* Spacer for bottom tabs on mobile when variant is bottom_tabs */}
+      {mobileNavVariant === "bottom_tabs" && (
+        <div
+          className="lg:hidden h-16"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          aria-hidden="true"
+        />
+      )}
+    </>
+  );
 }

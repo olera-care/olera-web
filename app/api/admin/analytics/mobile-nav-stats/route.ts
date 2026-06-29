@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser } from "@/lib/admin";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
  * GET /api/admin/analytics/mobile-nav-stats
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
   const from = searchParams.get("from") || defaultFrom.toISOString();
   const to = searchParams.get("to") || now.toISOString();
 
-  const db = createAdminClient();
+  const db = getServiceClient();
 
   // 1. Device breakdown - count dashboard visits by ua_class
   const { data: deviceData, error: deviceError } = await db.rpc("get_provider_device_breakdown", {

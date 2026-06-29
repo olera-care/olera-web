@@ -39,7 +39,12 @@ export default function ConditionalFooter() {
 
   // Provider pages with bottom_tabs variant on mobile — hide footer entirely
   // (bottom tabs provide navigation, footer is redundant)
-  const isProviderPage = pathname.startsWith("/provider") || (pathname.startsWith("/account") && isProvider);
+  // Must match isProviderPortal in Navbar.tsx for consistency
+  const isProviderPage =
+    pathname.startsWith("/provider") ||
+    (pathname.startsWith("/account") && isProvider) ||
+    (pathname.startsWith("/medjobs/candidates") && isProvider);
+
   if (isProviderPage && mobileNavVariant === "bottom_tabs") {
     // Hide footer on mobile, show SimpleFooter on desktop
     return (
@@ -53,7 +58,8 @@ export default function ConditionalFooter() {
   if (
     pathname.startsWith("/portal") ||
     pathname.startsWith("/provider") ||
-    pathname.startsWith("/account")
+    pathname.startsWith("/account") ||
+    (pathname.startsWith("/medjobs/candidates") && isProvider)
   ) {
     return <SimpleFooter />;
   }

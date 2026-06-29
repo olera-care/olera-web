@@ -424,8 +424,9 @@ export default function AccountSettingsPage() {
     return "Family";
   };
 
-  // Show bottom tabs for providers with bottom_tabs variant
-  const showBottomTabs = isProvider && mobileNavVariant === "bottom_tabs";
+  // Show bottom tabs for organization providers with bottom_tabs variant
+  // (caregivers have different nav - the mobile nav variant is for org providers only)
+  const showBottomTabs = isOrganization && mobileNavVariant === "bottom_tabs";
 
   return (
     <div className="min-h-screen bg-gray-50/50">

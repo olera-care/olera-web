@@ -856,7 +856,7 @@ function CampaignTrackerCard({
   const hasUnanswered = questions.unanswered > 0;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-vanilla-100 bg-gradient-to-b from-vanilla-50 to-white px-6 py-7 md:px-9 md:py-9">
+    <div className="relative overflow-hidden rounded-3xl border border-vanilla-200 bg-gradient-to-br from-vanilla-100 to-white px-6 py-7 shadow-[0_2px_20px_-6px_rgba(42,24,16,0.10)] md:px-9 md:py-9">
       {/* Eyebrow — live pulse + day count, so the zeros below read as "early". */}
       <div className="mb-3 flex items-center gap-2">
         <span className="relative flex h-2 w-2" aria-hidden>
@@ -910,7 +910,7 @@ function CampaignTrackerCard({
       <div className="mt-6">
         <Link
           href="/provider/boost"
-          className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600"
+          className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
         >
           View campaign details →
         </Link>

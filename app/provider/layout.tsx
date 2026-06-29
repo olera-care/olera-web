@@ -164,8 +164,8 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
       {/* Spacer for bottom tabs on mobile when variant is bottom_tabs */}
       {mobileNavVariant === "bottom_tabs" && (
         <div
-          className="lg:hidden h-14"
-          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          className="lg:hidden"
+          style={{ height: "calc(72px + env(safe-area-inset-bottom, 0px))" }}
           aria-hidden="true"
         />
       )}

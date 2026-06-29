@@ -95,7 +95,7 @@ export default function MobileBottomTabs({
       className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      <div className="flex items-center justify-around h-14">
+      <div className="flex items-center justify-around h-[72px]">
         {TABS.map((tab) => {
           const active = isActive(tab);
           return (
@@ -133,7 +133,7 @@ export default function MobileBottomTabs({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
               />
             </svg>
             {/* Red notification dot */}

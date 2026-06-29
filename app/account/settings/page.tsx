@@ -11,11 +11,6 @@ import VerificationMethodModal from "@/components/provider/VerificationMethodMod
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import PasskeysSection from "@/components/account/PasskeysSection";
 import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
-import MobileBottomTabs from "@/components/shared/MobileBottomTabs";
-import MoreBottomSheet from "@/components/shared/MoreBottomSheet";
-import { useUnreadInboxCount } from "@/hooks/useUnreadInboxCount";
-import { useUnreadQnACount } from "@/hooks/useUnreadQnACount";
-import { useUnreadLeadsCount } from "@/hooks/useUnreadLeadsCount";
 
 type SettingsTab = "account" | "notifications";
 
@@ -97,15 +92,6 @@ export default function AccountSettingsPage() {
 
   // Mobile nav variant for providers
   const mobileNavVariant = useMobileNavVariant();
-  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
-
-  // Provider profile for notification badges
-  const activeProviderId = activeProfile?.type === "organization" ? activeProfile.id : null;
-  const activeProviderSlug = activeProfile?.type === "organization" ? activeProfile.slug : null;
-  const providerInboxCount = useUnreadInboxCount(activeProviderId ? [activeProviderId] : []);
-  const qnaCount = useUnreadQnACount(activeProviderSlug, activeProviderId);
-  const newLeadsCount = useUnreadLeadsCount(activeProviderId);
-
   // Verification state (for providers only)
   const verificationState = activeProfile?.verification_state as string | null;
   const isVerified =
@@ -966,22 +952,8 @@ export default function AccountSettingsPage() {
         </div>
       </div>
 
-      {/* Bottom tabs for providers with bottom_tabs variant */}
-      {showBottomTabs && (
-        <div className="lg:hidden">
-          <MobileBottomTabs
-            hasNotifications={providerInboxCount > 0 || qnaCount > 0 || newLeadsCount > 0}
-            onMorePress={() => setIsMoreSheetOpen(true)}
-          />
-          <MoreBottomSheet
-            isOpen={isMoreSheetOpen}
-            onClose={() => setIsMoreSheetOpen(false)}
-            inboxCount={providerInboxCount}
-            qnaCount={qnaCount}
-            leadsCount={newLeadsCount}
-          />
-        </div>
-      )}
+      {/* Bottom tabs are rendered by the Navbar for /account when user is organization */}
+      {/* MoreBottomSheet is also handled by Navbar, no need to duplicate here */}
     </div>
   );
 }

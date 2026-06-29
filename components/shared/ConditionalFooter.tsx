@@ -37,29 +37,25 @@ export default function ConditionalFooter() {
     return null;
   }
 
-  // Provider pages with bottom_tabs variant on mobile — hide footer entirely
-  // (bottom tabs provide navigation, footer is redundant)
-  // Must match isProviderPortal in Navbar.tsx for consistency
-  const isProviderPage =
-    pathname.startsWith("/provider") ||
-    (pathname.startsWith("/account") && isProvider) ||
-    (pathname.startsWith("/medjobs/candidates") && isProvider);
-
-  if (isProviderPage && mobileNavVariant === "bottom_tabs") {
-    // Hide footer on mobile, show SimpleFooter on desktop
-    return (
-      <div className="hidden lg:block">
-        <SimpleFooter />
-      </div>
-    );
+  // Logged-in providers get SimpleFooter on ALL pages (not just hub)
+  // For bottom_tabs variant: hide on mobile, show on desktop
+  // For current variant: show SimpleFooter everywhere
+  if (isProvider) {
+    if (mobileNavVariant === "bottom_tabs") {
+      return (
+        <div className="hidden lg:block">
+          <SimpleFooter />
+        </div>
+      );
+    }
+    return <SimpleFooter />;
   }
 
-  // Hub / account pages — simple footer (legal bar only)
+  // Hub / account pages for non-providers — simple footer (legal bar only)
   if (
     pathname.startsWith("/portal") ||
     pathname.startsWith("/provider") ||
-    pathname.startsWith("/account") ||
-    (pathname.startsWith("/medjobs/candidates") && isProvider)
+    pathname.startsWith("/account")
   ) {
     return <SimpleFooter />;
   }

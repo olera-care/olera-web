@@ -435,10 +435,7 @@ export default function AccountSettingsPage() {
         </div>
       )}
 
-      <div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ${showBottomTabs ? "lg:pb-6" : ""}`}
-        style={showBottomTabs ? { paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px) + 2rem)" } : undefined}
-      >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Desktop header (or mobile without bottom_tabs) */}
         <div className={`mb-5 ${showBottomTabs ? "hidden lg:block" : ""}`}>
           <h2 className="text-2xl font-display font-bold text-gray-900">

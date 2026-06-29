@@ -110,6 +110,7 @@ export async function GET(request: NextRequest) {
       leadsRes,
       oleraGeoRes,
       publishedFamiliesRes,
+      adBoostRequestRes,
     ] = await Promise.all([
       // All provider_activity events in the prior+current window for delta
       // + activity feed. 20k limit should be ample for a single provider.
@@ -182,6 +183,16 @@ export async function GET(request: NextRequest) {
         .not("lat", "is", null)
         .not("lng", "is", null)
         .limit(5000),
+
+      // Active ad boost request — drives banner prioritization (show reviews
+      // banner instead of managed_ads when provider already has a launch plan).
+      db
+        .from("ad_campaign_requests")
+        .select("id, status")
+        .eq("provider_id", profile.id)
+        .in("status", ["pending_profile", "requested", "scheduled", "live"])
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     if (eventsRes.error) {
@@ -281,6 +292,28 @@ export async function GET(request: NextRequest) {
       totalQuestions: questionsInNinety.length,
       answeredCount: answeredInNinety,
       windowDays: 90,
+    };
+
+    // ── Questions summary (all-time) ──
+    // Lifetime counts for the dashboard's persistent Questions card. All-time
+    // (not windowed) because provider volume is low — an honest lifetime "1"
+    // beats a windowed "0". Computed from the already-fetched `questions` array
+    // (capped at the last 500), so no extra query.
+    //
+    // `received`/`answered` count only MANAGEABLE questions — everything except
+    // admin-removed (rejected) and dismissed (archived) — the same exclusion the
+    // hero's `unansweredAll` uses. Two reasons: (1) so a rejected spam question
+    // can't inflate "N asked" above what the provider can actually act on, and
+    // (2) so the card stays internally consistent (received = answered +
+    // unanswered, since the manageable set partitions exactly on answer text).
+    const manageableQuestions = questions.filter(
+      (q) => q.status !== "archived" && q.status !== "rejected",
+    );
+    const answeredManageable = manageableQuestions.filter((q) => !!q.answer?.trim()).length;
+    const questionsSummary = {
+      received: manageableQuestions.length,
+      answered: answeredManageable,
+      unanswered: unansweredAll.length,
     };
 
     // ── Recent activity feed (discrete, action-bearing events only) ──
@@ -448,6 +481,7 @@ export async function GET(request: NextRequest) {
       greeting: greetingSignals,
       reviews: reviewsSummary,
       responseRate: responseRateSummary,
+      questions: questionsSummary,
       recentActivity,
       views: {
         thisPeriod: viewsThisPeriod,
@@ -457,6 +491,10 @@ export async function GET(request: NextRequest) {
       },
       cohort: cohortDemand,
       nearbyFamilies: { count: nearbyFamiliesCount },
+      // True if the provider has an active ad boost request (pending_profile,
+      // requested, scheduled, or live). Used to show reviews banner instead of
+      // managed_ads banner on the dashboard.
+      hasActiveBoostRequest: !!adBoostRequestRes.data,
     });
   } catch (err) {
     console.error("[provider/dashboard] fatal:", err);

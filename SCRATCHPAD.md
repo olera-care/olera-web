@@ -7,6 +7,41 @@
 
 ## Current Focus
 
+### 2026-06-29 — Second managed-ads provider live: Abode Home Care (concierge ad setup, no repo code)
+
+Set up our **2nd Ad Boost campaign** end to end (Franchil was #1). All ops / external systems, no repo code changed.
+
+**Provider:** Abode Home Care, Merrillville IN (`home_care_agency`), slug `abode-home-care-merrillville-in-y3em`, verified + claimed, 96% complete, $50 intended, requested "both" channels. Contact `kolacooper@abodehomecare.org` (email_validity `unverified`; null `lat/lng`).
+
+**Ops done:**
+- `ad_campaign_requests` row (`0dae57f7…`): `channel=google`, `campaign_tag=abode-merrillville-jun26`, `status` scheduled → **live**, admin_note set. **Google-only at $50** (skip Meta even though "both" requested — splitting $50 buys neither; same call as Franchil).
+- Built + published the **Google Search campaign** (TJ click-by-click): Search-only (Display + Search Partners OFF), **Maximize clicks $2.50 cap**, Merrillville **20mi Presence-only**, **EN+ES**, **AI Max OFF** (protects the URL tag), **$50 campaign-total** budget, flight **Jun 29 → Jul 27**. 12 phrase-match keywords + 11 negatives. Tagged Final URL `…/provider/abode-home-care-merrillville-in-y3em?utm_source=olera_managed&utm_campaign=abode-merrillville-jun26`. In Google policy review (Pending).
+- **Blocker hit + fixed:** phone number in a description = policy block, shows as a generic "Fix your ad" with **no highlighted asset** (confusing). Removed → published clean. AI Max briefly read "on" in Review but confirmed **OFF** in Campaign settings post-publish.
+- Provider email: Gmail draft + Notion copy-paste page ("Email to Kola — Abode Home Care campaign live"). Team update posted to **#ai-product-development**.
+
+**Reusable artifact (the real durable output):** created Notion **"SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup (any provider)"** under Product Development — full generalized click-by-click + keyword/ad/email templates + troubleshooting table + Abode worked example. Append each future provider as a worked example. Memory: `project_managed_ads_setup_sop`.
+
+**Next up:** (1) Confirm "Kola" is her first name → send the Gmail draft. (2) Watch Google flip Pending → Eligible (hours). (3) Optional data hygiene: geocode Abode's null `lat/lng` (breaks organic Find Families matching), ZeroBounce her email before the first lead. (4) Keep the funnel moving — goal is a **new provider signing up every week**.
+
+### 2026-06-28 — Ad Boost (managed ads) attribution fix: count + tag inquiries (PR #1239 → staging, MERGED `d7f55c3d`)
+
+Franchil's first managed-ads lead exposed an attribution bug. Admin "Families delivered" counted only `benefits_completed` (a side quiz the provider page barely surfaces), so a real inquiry read as **0 delivered** while the provider's own `/provider/boost` showed **1 lead** from the same campaign.
+
+**Diagnosis:** a managed ad points at a provider page whose natural conversion is the inquiry CTA (`lead_received`), but that was never UTM-tagged. Only the benefits quiz carried `utm_campaign` (an instrumentation accident, not a product decision). So the ROI counter measured the wrong funnel. Confirmed John Turman's lead fired untagged; no UTM anywhere in his session.
+
+**Shipped (all in #1239):**
+- **Count redefinition** (`lib/ad-boost/delivered.server.ts`): delivered family = campaign-tagged `lead_received` (PRIMARY) OR `benefits_completed` (secondary), deduped within funnel. `listLeadsByCampaign` merges inquiries (care need + state from the connection record, **no PHI**) with benefits. `getCampaignStats` (provider-facing visitors/leads) left untouched, so no provider number moves.
+- **Forward instrumentation** (`lib/ad-boost/managed-utm.ts` + `components/providers/ManagedUtmCapture.tsx` + 5 routes): capture managed UTM once at provider-page load into a first-touch cookie (`olera_mutm`, 6h TTL, `olera_managed` only), read server-side in all 6 `lead_received` emit sites (`connections/request` guest+auth, `compare-save`, `guide-save`, `inline-answer/capture-email`, `create-inquiry`). Cookie rides the same-origin fetches the CTAs already make → covers ~10 callers with **zero client-body edits**.
+- **Backfill (prod, applied separately):** stamped John's existing `lead_received` + connection with `utm_campaign=franchil-killeen-jun26` (+ `attribution_backfill` audit marker) so the redefined count includes the pre-instrumentation lead. Admin now reads **1**, matching the provider view (verified in Vercel preview).
+
+**Pre-test + merge:** count/list verified against live prod data (=1), cookie round-trip unit-tested, all lead fetches confirmed to send the cookie (default credentials), `tsc` 0, content-regression check clean (`[slug]/page.tsx` additive only). Squash-merged.
+
+**Decisions:** delivered = tagged inquiry NOT benefits quiz; cookie over per-caller threading (10+ callers); first-touch + 6h TTL bounds cross-provider bleed (documented limitation, immaterial at pilot).
+
+**Next up:** (1) **prove forward auto-tagging live** (managed UTM link → multi-step inquiry → new `lead_received` carries tag — the deployed "1" is still the backfilled lead); (2) promote staging → main; (3) enter Franchil spend/clicks ($11.40 / 5) so cost-per-family computes (~$11.40); (4) **family-side safety net** — does the [[project_family_help_cascade]] fire for ad-driven leads if the provider ghosts? John is waiting on Hilda; (5) PRs #1224/#1226 touch `[slug]/page.tsx`, need trivial rebase vs the 2-line `ManagedUtmCapture` add. Memory: [[project_ad_boost_attribution]]. Notion: handoff (Branch Handoff Reports, Status=Merged) + "Email to Hilda — first lead" draft.
+
+**Provider comms:** Franchil's first lead (John, home care, Killeen, "as soon as possible") sat **unopened by Hilda 14h+**. TJ sent email + text 2026-06-28, calling within 24h. Open thread = whether she actions it. Hilda: hilda@franchilcare.com / (254) 322-9251.
+
 ### 2026-06-28 — Provider Image Strategy #2: licensed stock/fallback library rebuild (branch `claude/stock-image-section-ef6lqj`, NOT yet merged)
 
 Executed the "own our stock & fallback licenses" arm of the Provider Image Strategy (Notion `3845903a…`). The 15 old category-fallback images (`public/images/fallback/`) were inherited from the iOS app with **no documented license** (provenance unknown; SCRATCHPAD even noted a Shutterstock OG image) — exactly the actively-monitored risk the doc flags. Replaced the whole set with a **provably-licensed library + a documented license record + a validation guard.**

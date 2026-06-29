@@ -891,18 +891,17 @@ function CampaignTrackerCard({
           >
             {questions.received.toLocaleString()}
           </p>
-          {hasUnanswered ? (
+          <p className="mt-1.5 text-sm text-gray-500">
+            {questions.received === 1 ? "Question" : "Questions"}
+          </p>
+          {hasUnanswered && (
             <Link
               href="/provider/qna"
-              className="group mt-1.5 inline-flex items-center text-sm font-semibold text-primary-600 transition-colors hover:text-primary-700"
+              className="group mt-1 inline-flex items-center text-sm font-semibold text-primary-600 transition-colors hover:text-primary-700"
             >
-              {questions.unanswered} waiting
+              Answer now
               <span className="ml-1 transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
-          ) : (
-            <p className="mt-1.5 text-sm text-gray-500">
-              {questions.received === 1 ? "Question" : "Questions"}
-            </p>
           )}
         </div>
       </div>

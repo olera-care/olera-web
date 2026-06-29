@@ -410,9 +410,10 @@ export default function AccountSettingsPage() {
     return "Family";
   };
 
-  // Show bottom tabs for organization providers with bottom_tabs variant
+  // Show bottom tabs UI for organization providers with bottom_tabs variant
   // (caregivers have different nav - the mobile nav variant is for org providers only)
-  const showBottomTabs = isOrganization && mobileNavVariant === "bottom_tabs";
+  // Default to true when variant is null (brief moment during load) to prevent flash
+  const showBottomTabs = isOrganization && mobileNavVariant !== "current";
 
   return (
     <div className="min-h-screen bg-gray-50/50">

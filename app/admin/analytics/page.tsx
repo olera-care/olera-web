@@ -470,7 +470,7 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Pitch Touchpoints"
+        title="Ads Pitch Touchpoints"
         storageKey="pitchTouchpoints"
         defaultCollapsed={true}
       >

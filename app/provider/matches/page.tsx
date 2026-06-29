@@ -889,6 +889,43 @@ function CampaignTrackerCard({
 }
 
 // ---------------------------------------------------------------------------
+// Module-level matches snapshot — survives client-side navigation within the
+// SPA session (e.g. Find Families → "Answer questions" → /provider/qna → back).
+// Lets a back-navigation repaint the last leads INSTANTLY from memory while a
+// silent background refresh reconciles, instead of a cold MatchesSkeleton + a
+// full re-fetch every time. Same pattern as the boost-state cache. A hard
+// reload clears it (cold → skeleton, fine). TTL guards acting on stale data.
+// ---------------------------------------------------------------------------
+type ConnDatum = {
+  id: string;
+  message: string | null;
+  created_at: string;
+  status: "pending" | "accepted" | "declined" | "expired";
+  reply_message?: string | null;
+  replied_at?: string | null;
+};
+interface MatchesSnapshot {
+  profileId: string;
+  families: Profile[];
+  contactedIds: Set<string>;
+  respondedIds: Set<string>;
+  connectionData: Map<string, ConnDatum>;
+  totalCount: number;
+  at: number;
+}
+let matchesSnapshot: MatchesSnapshot | null = null;
+const MATCHES_SNAPSHOT_TTL_MS = 5 * 60_000;
+
+/** The snapshot to seed initial state from — only when it belongs to this
+ *  provider and is still fresh. null → cold load (skeleton + fetch). */
+function readMatchesSnapshot(profileId: string | undefined): MatchesSnapshot | null {
+  if (!profileId || !matchesSnapshot) return null;
+  if (matchesSnapshot.profileId !== profileId) return null;
+  if (Date.now() - matchesSnapshot.at > MATCHES_SNAPSHOT_TTL_MS) return null;
+  return matchesSnapshot;
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -898,21 +935,24 @@ export default function ProviderMatchesPage() {
   const { metadata: dashboardMetadata } = useProviderDashboardData(providerProfile);
   // Fetch v2 data (reviews, response rate) for accurate profile completeness
   const v2 = useProviderDashboardV2Data("30d", true, user?.id);
-  const [families, setFamilies] = useState<Profile[]>([]);
-  const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
-  const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
+  // Seed from the module snapshot when we already have fresh leads for this
+  // provider (a within-session back-navigation), so the page paints instantly
+  // instead of flashing the skeleton. Computed once; only the lazy useState
+  // initializers below read it.
+  const initialSnapshot = readMatchesSnapshot(providerProfile?.id);
+
+  const [families, setFamilies] = useState<Profile[]>(() => initialSnapshot?.families ?? []);
+  const [contactedIds, setContactedIds] = useState<Set<string>>(() => initialSnapshot?.contactedIds ?? new Set());
+  const [respondedIds, setRespondedIds] = useState<Set<string>>(() => initialSnapshot?.respondedIds ?? new Set());
   const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
   // Full connection data for Reached Out tab cards
-  const [connectionData, setConnectionData] = useState<Map<string, {
-    id: string;
-    message: string | null;
-    created_at: string;
-    status: "pending" | "accepted" | "declined" | "expired";
-    reply_message?: string | null;
-    replied_at?: string | null;
-  }>>(new Map());
+  const [connectionData, setConnectionData] = useState<Map<string, ConnDatum>>(
+    () => initialSnapshot?.connectionData ?? new Map(),
+  );
   const [archivedConnectionIds, setArchivedConnectionIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  // No skeleton when we seeded fresh leads from the snapshot — paint them now,
+  // refresh silently in the background.
+  const [loading, setLoading] = useState(() => !initialSnapshot);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
   const [modalFilters, setModalFilters] = useState<FiltersState>(() => {
@@ -980,9 +1020,11 @@ export default function ProviderMatchesPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Track if initial fetch has completed (ref to avoid re-renders)
-  const hasFetchedOnceRef = useRef(false);
-  const [totalCount, setTotalCount] = useState(0);
+  // Track if initial fetch has completed (ref to avoid re-renders). Seeded true
+  // when we hydrated from the snapshot, so the mount fetch runs as a silent
+  // background refresh (no skeleton) rather than a foreground load.
+  const hasFetchedOnceRef = useRef(!!initialSnapshot);
+  const [totalCount, setTotalCount] = useState(() => initialSnapshot?.totalCount ?? 0);
 
   // Track which family's drawer should reopen after verification
   const [pendingDrawerFamily, setPendingDrawerFamily] = useState<Profile | null>(null);
@@ -1303,22 +1345,17 @@ export default function ProviderMatchesPage() {
 
         // Derive contactedIds and respondedIds from fullConnectionsRes (eliminates 2 redundant queries)
         const connections = fullConnectionsRes.data || [];
-        setContactedIds(
-          new Set(connections.map((c: { to_profile_id: string }) => c.to_profile_id))
+        const contacted = new Set<string>(
+          connections.map((c: { to_profile_id: string }) => c.to_profile_id),
         );
-        setRespondedIds(
-          new Set(connections.filter((c: { status: string }) => c.status === "accepted").map((c: { to_profile_id: string }) => c.to_profile_id))
+        const responded = new Set<string>(
+          connections.filter((c: { status: string }) => c.status === "accepted").map((c: { to_profile_id: string }) => c.to_profile_id),
         );
+        setContactedIds(contacted);
+        setRespondedIds(responded);
 
         // Process full connection data for Reached Out tab
-        const connDataMap = new Map<string, {
-          id: string;
-          message: string | null;
-          created_at: string;
-          status: "pending" | "accepted" | "declined" | "expired";
-          reply_message?: string | null;
-          replied_at?: string | null;
-        }>();
+        const connDataMap = new Map<string, ConnDatum>();
 
         (fullConnectionsRes.data || []).forEach((conn: {
           id: string;
@@ -1354,6 +1391,20 @@ export default function ProviderMatchesPage() {
         setTotalCount(familiesRes.count || fetchedFamilies.length);
         setLoading(false);
         hasFetchedOnceRef.current = true;
+
+        // Cache this paint so a within-session back-navigation rehydrates
+        // instantly (see readMatchesSnapshot). Stores the critical-path leads +
+        // connections only; the secondary background fills (inactive families,
+        // reach-out counts) re-derive on the next refresh.
+        matchesSnapshot = {
+          profileId,
+          families: fetchedFamilies,
+          contactedIds: contacted,
+          respondedIds: responded,
+          connectionData: connDataMap,
+          totalCount: familiesRes.count || fetchedFamilies.length,
+          at: Date.now(),
+        };
 
         // Background: inactive families the provider previously contacted
         // (paused/deleted profiles — server API bypasses RLS). Append on arrival.

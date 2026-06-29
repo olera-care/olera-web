@@ -704,6 +704,31 @@ export default function AccountSettingsPage() {
                   </div>
                 )}
 
+                {/* ── Sign Out ── */}
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        Sign out
+                      </p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Sign out of your account on this device.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const supabase = createClient();
+                        await supabase.auth.signOut();
+                        router.push("/");
+                      }}
+                      className="text-[14px] font-medium text-gray-700 hover:text-gray-900 transition-colors shrink-0 ml-4"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+
                 {/* ── Delete Account ── */}
                 <div className="p-6">
                   <div className="flex items-start justify-between">

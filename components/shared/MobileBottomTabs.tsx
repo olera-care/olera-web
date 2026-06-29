@@ -103,13 +103,13 @@ export default function MobileBottomTabs({
               key={tab.key}
               href={tab.href}
               className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors ${
-                active ? "text-primary-700" : "text-gray-500"
+                active ? "text-primary-600" : "text-gray-500"
               }`}
             >
-              <span className={active ? "text-primary-700" : "text-gray-400"}>
+              <span className={active ? "text-primary-500" : "text-gray-400"}>
                 {tab.icon}
               </span>
-              <span className="text-[10px] font-medium">{tab.label}</span>
+              <span className="text-xs font-medium">{tab.label}</span>
             </Link>
           );
         })}
@@ -119,12 +119,12 @@ export default function MobileBottomTabs({
           type="button"
           onClick={onMorePress}
           className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors ${
-            isMoreActive ? "text-primary-700" : "text-gray-500"
+            isMoreActive ? "text-primary-600" : "text-gray-500"
           }`}
         >
           <span className="relative">
             <svg
-              className={`w-6 h-6 ${isMoreActive ? "text-primary-700" : "text-gray-400"}`}
+              className={`w-6 h-6 ${isMoreActive ? "text-primary-500" : "text-gray-400"}`}
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
@@ -141,7 +141,7 @@ export default function MobileBottomTabs({
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full" />
             )}
           </span>
-          <span className="text-[10px] font-medium">More</span>
+          <span className="text-xs font-medium">More</span>
         </button>
       </div>
     </nav>

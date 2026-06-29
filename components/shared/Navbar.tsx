@@ -36,7 +36,6 @@ export default function Navbar() {
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const mobileUserMenuRef = useRef<HTMLDivElement>(null);
   const mobileNavImpressionFired = useRef(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
@@ -236,8 +235,6 @@ export default function Navbar() {
 
   // Close user/account menu on outside click (blur-before-close prevents scroll-to-footer)
   useClickOutside(userMenuRef, () => setIsUserMenuOpen(false), isUserMenuOpen);
-  // Separate click-outside handler for mobile avatar dropdown (uses different ref)
-  useClickOutside(mobileUserMenuRef, () => setIsUserMenuOpen(false), isUserMenuOpen);
 
   // Close user menu on Escape
   useEffect(() => {
@@ -662,7 +659,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isInboxPage && mobileNavVariant === "bottom_tabs" ? "hidden lg:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
@@ -979,33 +976,22 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Mobile Menu Button — avatar dropdown for bottom_tabs variant, hamburger otherwise */}
+              {/* Mobile Menu Button — direct link to settings for bottom_tabs variant, hamburger otherwise */}
               {isProviderPortal && mobileNavVariant === "bottom_tabs" ? (
-                /* Avatar dropdown for bottom_tabs variant */
-                <div className="lg:hidden relative" ref={mobileUserMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="relative flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
-                    aria-label="User menu"
-                    aria-expanded={isUserMenuOpen}
-                  >
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    {activeProfile?.image_url ? (
-                      <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 rounded-full object-cover aspect-square shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                        {initials || "?"}
-                      </div>
-                    )}
-                    {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0 || reviewsCount > 0) && (
-                      <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
-                    )}
-                  </button>
-                  {isUserMenuOpen && signedInDropdown}
-                </div>
+                /* Direct link to account settings for bottom_tabs variant — just avatar, no menu icon */
+                <Link
+                  href="/account/settings"
+                  className="lg:hidden flex items-center justify-center w-11 h-11 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Account settings"
+                >
+                  {activeProfile?.image_url ? (
+                    <Image src={activeProfile.image_url} alt={displayName} width={36} height={36} className="w-9 h-9 rounded-full object-cover aspect-square" />
+                  ) : (
+                    <div className="w-9 h-9 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                      {initials || "?"}
+                    </div>
+                  )}
+                </Link>
               ) : (
                 /* Hamburger button for default variant */
                 <button

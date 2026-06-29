@@ -9,6 +9,8 @@ import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import Pagination from "@/components/ui/Pagination";
+import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
+import { useHasActiveBoostRequest } from "@/hooks/useHasActiveBoostRequest";
 
 // ── Types ──
 
@@ -689,6 +691,11 @@ export default function ProviderQnAPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"reply" | "edit">("reply");
 
+  // Ads nudge state — shown once per session after answering a question
+  const [showAdsNudge, setShowAdsNudge] = useState(false);
+  const adsNudgeDismissedRef = useRef(false);
+  const hasActiveBoostRequest = useHasActiveBoostRequest();
+
   // Verification state
   const { isVerified } = useProviderVerification();
   const {
@@ -870,6 +877,12 @@ export default function ProviderQnAPage() {
 
         // Auto-switch to Published tab after successful answer
         setActiveFilter("published");
+
+        // Show ads nudge once per session after answering
+        if (!adsNudgeDismissedRef.current) {
+          setShowAdsNudge(true);
+        }
+
         return true;
       } catch (err) {
         console.error("Failed to publish answer:", err);
@@ -913,6 +926,11 @@ export default function ProviderQnAPage() {
 
       // Auto-switch to Published tab after successful answer
       setActiveFilter("published");
+
+      // Show ads nudge once per session after answering
+      if (!adsNudgeDismissedRef.current) {
+        setShowAdsNudge(true);
+      }
     } catch (err) {
       console.error("Failed to publish answer:", err);
       alert("Failed to publish answer. Please try again.");
@@ -991,6 +1009,20 @@ export default function ProviderQnAPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Ads nudge — shown once per session after answering a question */}
+        {showAdsNudge && providerProfile?.slug && (
+          <ContextualAdsNudge
+            context="question"
+            providerSlug={providerProfile.slug}
+            providerName={providerProfile.display_name}
+            hasActiveBoostRequest={hasActiveBoostRequest === true}
+            onDismiss={() => {
+              setShowAdsNudge(false);
+              adsNudgeDismissedRef.current = true;
+            }}
+          />
+        )}
+
         {error ? (
           <div className="text-center py-16">
             <p className="text-[15px] text-red-600">{error}</p>

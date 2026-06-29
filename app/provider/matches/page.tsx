@@ -27,7 +27,7 @@ type MatchesTab = "best_matches" | "near_you";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
-import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
+import { getCachedBoostState, cacheBoostState, type BoostStateResponse } from "@/lib/ad-boost/boost-state";
 import { Star, Briefcase, LinkSimple, Check } from "@phosphor-icons/react";
 
 
@@ -806,6 +806,89 @@ function ActivitySummary({
 }
 
 // ---------------------------------------------------------------------------
+// Campaign tracker — shown at the top of Find Families for a provider running a
+// live managed-ads campaign. Surfaces the same since-launch performance the
+// Boost page tracks (visitors + families delivered) PLUS questions, which are
+// campaign engagement too. The questions cell carries the action (unanswered +
+// "Answer questions") since that's the thing the provider can act on right now.
+// ---------------------------------------------------------------------------
+
+function CampaignTrackerCard({
+  stats,
+}: {
+  stats: NonNullable<BoostStateResponse["campaignStats"]>;
+}) {
+  const sinceLabel = new Date(stats.since).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  const { questions } = stats;
+
+  return (
+    <div className="rounded-2xl border border-gray-200/80 bg-white p-5 lg:p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="relative flex h-2 w-2" aria-hidden>
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
+        </span>
+        <p className="text-[13px] font-medium text-gray-500">
+          Campaign live · since {sinceLabel}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-0.5">
+          <p className="font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-gray-900">
+            {stats.visitors.toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">
+            {stats.visitors === 1 ? "Visitor" : "Visitors"}
+          </p>
+        </div>
+        <div className="space-y-0.5">
+          <p className="font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-gray-900">
+            {stats.leads.toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">
+            {stats.leads === 1 ? "Family delivered" : "Families delivered"}
+          </p>
+        </div>
+        <div className="space-y-0.5">
+          <p className="font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-gray-900">
+            {questions.received.toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">
+            {questions.received === 1 ? "Question" : "Questions"}
+          </p>
+          {questions.unanswered > 0 && (
+            <p className="text-xs font-medium text-primary-600">
+              {questions.unanswered} unanswered
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center gap-4">
+        {questions.unanswered > 0 && (
+          <Link
+            href="/provider/qna"
+            className="text-sm font-medium text-primary-600 transition-colors hover:text-primary-700"
+          >
+            Answer questions →
+          </Link>
+        )}
+        <Link
+          href="/provider/boost"
+          className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+        >
+          View campaign →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -1368,11 +1451,41 @@ export default function ProviderMatchesPage() {
         city: providerProfile.city,
         state: providerProfile.state,
       });
-      // Warm the boost-state cache so "Get Started" → /provider/boost paints the
-      // correct page on the first frame (no loader, no wrong-page snap).
-      prefetchBoostState();
     }
   }, [providerProfile?.slug, activeTab]);
+
+  // Boost / campaign state — drives the live-campaign tracker shown at the top
+  // of Find Families (and also warms the shared cache so "Get Started" →
+  // /provider/boost paints the correct page on the first frame). Init from the
+  // cache for an instant first paint, then refetch to reconcile.
+  const [boostState, setBoostState] = useState<BoostStateResponse | null>(
+    () => getCachedBoostState(),
+  );
+  useEffect(() => {
+    if (!providerProfile?.slug) return;
+    let cancelled = false;
+    const cached = getCachedBoostState();
+    if (cached) setBoostState(cached);
+    fetch("/api/provider/ad-boost/request", { credentials: "include" })
+      .then((r) => (r.ok ? (r.json() as Promise<BoostStateResponse>) : null))
+      .then((d) => {
+        if (cancelled || !d) return;
+        setBoostState(d);
+        cacheBoostState(d);
+      })
+      .catch(() => {
+        /* best-effort; tracker just won't show */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [providerProfile?.slug]);
+
+  // The live campaign tracker payload (or null when there's no live campaign).
+  const liveCampaign =
+    boostState?.request?.status === "live" && boostState.campaignStats
+      ? boostState.campaignStats
+      : null;
 
   // Published care-seekers within ~50 mi of the provider (the catchment) — the rare
   // "concrete leads." These pin above the market diagnostic when they exist. Reuses the
@@ -1856,11 +1969,24 @@ export default function ProviderMatchesPage() {
     return (
       <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <ManagedAdsPitch
-            ctaHref="/provider/boost"
-            providerSlug={providerProfile.slug}
-            providerName={providerProfile.display_name}
-          />
+          {liveCampaign ? (
+            // Already running a campaign → show the tracker, not the "get a
+            // campaign" pitch. No family has landed nearby yet, but the campaign
+            // is out there working, so frame the wait honestly.
+            <div className="space-y-5">
+              <CampaignTrackerCard stats={liveCampaign} />
+              <p className="text-center text-sm text-gray-500">
+                No families have landed in your area just yet — your campaign is out
+                there bringing them in. New inquiries and questions show up here.
+              </p>
+            </div>
+          ) : (
+            <ManagedAdsPitch
+              ctaHref="/provider/boost"
+              providerSlug={providerProfile.slug}
+              providerName={providerProfile.display_name}
+            />
+          )}
         </div>
       </div>
     );
@@ -1885,6 +2011,15 @@ export default function ProviderMatchesPage() {
           </p>
         </div>
       </div>
+
+      {/* Campaign tracker — full-width above the grid for a provider running a
+          live campaign. Their questions + delivered families live here, where
+          they came looking for campaign results. */}
+      {liveCampaign && (
+        <div className="mb-6">
+          <CampaignTrackerCard stats={liveCampaign} />
+        </div>
+      )}
 
       {/* ── Main layout (matches Profile page grid) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">

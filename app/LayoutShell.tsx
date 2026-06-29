@@ -14,12 +14,23 @@ import { useAuth } from "@/components/auth/AuthProvider";
  */
 const STANDALONE_ROUTES: string[] = ["/review", "/caregiver/apply"];
 
-// Routes where providers see the bottom tabs (must match Navbar's isProviderPortal logic)
-const PROVIDER_PORTAL_PREFIXES = [
-  "/provider",
-  "/account",
-  "/portal/inbox",
-  "/medjobs/candidates",
+// Provider portal routes where bottom tabs appear (must match Navbar's isProviderPortal logic EXACTLY)
+// Note: /provider/[slug] detail pages are NOT included - they don't show bottom tabs
+const PROVIDER_PORTAL_ROUTES = [
+  "/provider/connections",
+  "/provider/inbox",
+  "/provider/onboarding",
+  "/provider/profile",
+  "/provider/reviews",
+  "/provider/matches",
+  "/provider/growth",
+  "/provider/boost",
+  "/provider/pro",
+  "/provider/qna",
+  "/provider/account",
+  "/provider/medjobs",
+  "/provider/caregivers",
+  "/provider/welcome",
 ];
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -29,9 +40,15 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isStandalone = STANDALONE_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
 
   // Check if bottom tabs are visible (provider portal with bottom_tabs variant)
-  const isProviderPortal = PROVIDER_PORTAL_PREFIXES.some(prefix =>
-    prefix === "/provider" ? pathname === "/provider" || pathname.startsWith("/provider/") : pathname.startsWith(prefix)
-  ) && activeProfile?.type === "organization";
+  // Must match Navbar's isProviderPortal logic exactly to avoid spacer without tabs
+  const isOrg = activeProfile?.type === "organization";
+  const isProviderPortal =
+    pathname === "/provider" ||
+    PROVIDER_PORTAL_ROUTES.some(route => pathname.startsWith(route)) ||
+    (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) ||
+    (pathname.startsWith("/medjobs/candidates") && isOrg) ||
+    (pathname.startsWith("/account") && isOrg) ||
+    (pathname.startsWith("/portal/inbox") && isOrg);
   const showBottomTabsSpacer = isProviderPortal && mobileNavVariant === "bottom_tabs";
 
   if (isStandalone) {

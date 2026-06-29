@@ -33,6 +33,7 @@ import {
   mobileNavVariantSubLabel,
 } from "@/lib/analytics/mobile-nav-variant-copy";
 import CTAVariantSessionsList from "@/components/admin/CTAVariantSessionsList";
+import MobileNavVariantSessionsList from "@/components/admin/MobileNavVariantSessionsList";
 import {
   PROVIDER_EMAIL_FUNNEL_LABELS,
   PROVIDER_EMAIL_FUNNEL_ORDER,
@@ -3953,9 +3954,30 @@ interface MobileNavStatsResponse {
 }
 
 function MobileNavAnalytics() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<MobileNavStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Expanded variant for drill-in
+  const expandedRaw = searchParams.get("mobile_nav_variant");
+  const validKeys = new Set<string>(MOBILE_NAV_VARIANTS);
+  const expandedVariant = expandedRaw && validKeys.has(expandedRaw) ? expandedRaw : null;
+
+  const toggleVariant = useCallback(
+    (key: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (expandedVariant === key) {
+        params.delete("mobile_nav_variant");
+      } else {
+        params.set("mobile_nav_variant", key);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/admin/analytics?${qs}` : "/admin/analytics", { scroll: false });
+    },
+    [searchParams, expandedVariant, router],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -3985,6 +4007,11 @@ function MobileNavAnalytics() {
       cancelled = true;
     };
   }, []);
+
+  // Date range for sessions list (last 30 days)
+  const now = new Date();
+  const dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const dateTo = now.toISOString();
 
   if (loading) {
     return (
@@ -4059,31 +4086,55 @@ function MobileNavAnalytics() {
                   const lRate = row.impressions > 0 ? ((row.leads_connected / row.impressions) * 100).toFixed(1) : "—";
                   const rRate = row.impressions > 0 ? ((row.reviews_shared / row.impressions) * 100).toFixed(1) : "—";
                   const bRate = row.impressions > 0 ? ((row.boost_requested / row.impressions) * 100).toFixed(1) : "—";
+                  const isExpanded = expandedVariant === row.variant;
                   return (
-                    <tr key={row.variant} className="border-b border-gray-100">
-                      <td className="py-2 pr-4">
-                        <span className="font-medium text-gray-900">{mobileNavVariantLabel(row.variant as MobileNavVariant)}</span>
-                      </td>
-                      <td className="text-right py-2 px-3 tabular-nums text-gray-700">
-                        {row.impressions.toLocaleString()}
-                      </td>
-                      <td className="text-right py-2 px-3 tabular-nums">
-                        <span className="text-gray-900">{row.questions_answered}</span>
-                        <span className="text-gray-400 text-[10px] ml-1">({qRate}%)</span>
-                      </td>
-                      <td className="text-right py-2 px-3 tabular-nums">
-                        <span className="text-gray-900">{row.leads_connected}</span>
-                        <span className="text-gray-400 text-[10px] ml-1">({lRate}%)</span>
-                      </td>
-                      <td className="text-right py-2 px-3 tabular-nums">
-                        <span className="text-gray-900">{row.reviews_shared}</span>
-                        <span className="text-gray-400 text-[10px] ml-1">({rRate}%)</span>
-                      </td>
-                      <td className="text-right py-2 px-3 tabular-nums">
-                        <span className="text-gray-900">{row.boost_requested}</span>
-                        <span className="text-gray-400 text-[10px] ml-1">({bRate}%)</span>
-                      </td>
-                    </tr>
+                    <Fragment key={row.variant}>
+                      <tr
+                        className="border-b border-gray-100 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                        onClick={() => toggleVariant(row.variant)}
+                      >
+                        <td className="py-2 pr-4">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className={`w-3 h-3 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span className="font-medium text-gray-900">{mobileNavVariantLabel(row.variant as MobileNavVariant)}</span>
+                          </div>
+                        </td>
+                        <td className="text-right py-2 px-3 tabular-nums text-gray-700">
+                          {row.impressions.toLocaleString()}
+                        </td>
+                        <td className="text-right py-2 px-3 tabular-nums">
+                          <span className="text-gray-900">{row.questions_answered}</span>
+                          <span className="text-gray-400 text-[10px] ml-1">({qRate}%)</span>
+                        </td>
+                        <td className="text-right py-2 px-3 tabular-nums">
+                          <span className="text-gray-900">{row.leads_connected}</span>
+                          <span className="text-gray-400 text-[10px] ml-1">({lRate}%)</span>
+                        </td>
+                        <td className="text-right py-2 px-3 tabular-nums">
+                          <span className="text-gray-900">{row.reviews_shared}</span>
+                          <span className="text-gray-400 text-[10px] ml-1">({rRate}%)</span>
+                        </td>
+                        <td className="text-right py-2 px-3 tabular-nums">
+                          <span className="text-gray-900">{row.boost_requested}</span>
+                          <span className="text-gray-400 text-[10px] ml-1">({bRate}%)</span>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={6} className="p-4 bg-gray-50/40">
+                            <MobileNavVariantSessionsList variant={row.variant} dateFrom={dateFrom} dateTo={dateTo} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>

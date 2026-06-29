@@ -435,7 +435,10 @@ export default function AccountSettingsPage() {
         </div>
       )}
 
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ${showBottomTabs ? "pb-32" : ""}`}>
+      <div
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ${showBottomTabs ? "lg:pb-6" : ""}`}
+        style={showBottomTabs ? { paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px) + 2rem)" } : undefined}
+      >
         {/* Desktop header (or mobile without bottom_tabs) */}
         <div className={`mb-5 ${showBottomTabs ? "hidden lg:block" : ""}`}>
           <h2 className="text-2xl font-display font-bold text-gray-900">
@@ -732,8 +735,30 @@ export default function AccountSettingsPage() {
                   </div>
                 )}
 
-                {/* ── Sign Out ── */}
+                {/* ── Delete Account ── */}
                 <div className="px-4 py-5 lg:p-6 border-b border-gray-100">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        Delete account
+                      </p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Permanently delete your account, all profiles, and all connection
+                        history.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── Sign Out ── */}
+                <div className="px-4 py-5 lg:p-6">
                   {/* Mobile: full-width button */}
                   <div className="lg:hidden">
                     <button
@@ -768,28 +793,6 @@ export default function AccountSettingsPage() {
                       className="text-[14px] font-medium text-gray-700 hover:text-gray-900 transition-colors shrink-0 ml-4"
                     >
                       Sign out
-                    </button>
-                  </div>
-                </div>
-
-                {/* ── Delete Account ── */}
-                <div className="px-4 py-5 lg:p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">
-                        Delete account
-                      </p>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        Permanently delete your account, all profiles, and all connection
-                        history.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowDeleteModal(true)}
-                      className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
-                    >
-                      Delete
                     </button>
                   </div>
                 </div>

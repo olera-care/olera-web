@@ -580,7 +580,7 @@ function BottomSheet({
 
 // ── Empty States ──
 
-function EmptyState({ filter, hasAnyPublished }: { filter: TabFilter; hasAnyPublished: boolean }) {
+function EmptyState({ filter, hasAnyPublished, hasActiveBoostRequest }: { filter: TabFilter; hasAnyPublished: boolean; hasActiveBoostRequest?: boolean }) {
   // For pending tab: distinguish between "no questions at all" vs "all caught up"
   if (filter === "pending") {
     if (hasAnyPublished) {
@@ -613,14 +613,18 @@ function EmptyState({ filter, hasAnyPublished }: { filter: TabFilter; hasAnyPubl
         />
         <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">No questions yet</h3>
         <p className="text-[15px] text-gray-500 max-w-sm leading-relaxed">
-          Get more families to your page and the questions will follow.
+          {hasActiveBoostRequest
+            ? "When families ask questions about your services, they'll appear here."
+            : "Get more families to your page and the questions will follow."}
         </p>
-        <Link
-          href="/provider/boost"
-          className="mt-6 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-        >
-          See how
-        </Link>
+        {!hasActiveBoostRequest && (
+          <Link
+            href="/provider/boost"
+            className="mt-6 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            See how
+          </Link>
+        )}
       </div>
     );
   }
@@ -1077,7 +1081,7 @@ export default function ProviderQnAPage() {
             )}
           </>
         ) : (
-          <EmptyState filter={activeFilter} hasAnyPublished={counts.published > 0} />
+          <EmptyState filter={activeFilter} hasAnyPublished={counts.published > 0} hasActiveBoostRequest={hasActiveBoostRequest === true} />
         )}
       </div>
 

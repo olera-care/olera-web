@@ -49,7 +49,6 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     (pathname.startsWith("/medjobs/candidates") && isOrg) ||
     (pathname.startsWith("/account") && isOrg) ||
     (pathname.startsWith("/portal/inbox") && isOrg);
-  const showBottomTabsSpacer = isProviderPortal && mobileNavVariant === "bottom_tabs";
 
   if (isStandalone) {
     return (
@@ -64,11 +63,18 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     <NavbarProvider>
       <Navbar />
       <main className="flex-grow">{children}</main>
-      {/* Spacer for bottom tabs - ensures content isn't hidden behind fixed nav */}
-      {showBottomTabsSpacer && (
+      {/* Spacer for bottom tabs - ensures content isn't hidden behind fixed nav.
+          Always render on provider portal routes to prevent layout shift during navigation.
+          Height transitions smoothly if variant changes. */}
+      {isProviderPortal && (
         <div
           className="lg:hidden"
-          style={{ height: "calc(72px + env(safe-area-inset-bottom, 0px))" }}
+          style={{
+            height: mobileNavVariant === "bottom_tabs"
+              ? "calc(72px + env(safe-area-inset-bottom, 0px))"
+              : "0px",
+            transition: "height 0.15s ease-out",
+          }}
           aria-hidden="true"
         />
       )}

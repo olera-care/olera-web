@@ -40,15 +40,15 @@ export default function ConditionalFooter() {
   // Logged-in providers get SimpleFooter on ALL pages (not just hub)
   // For bottom_tabs variant: hide on mobile, show on desktop
   // For current variant: show SimpleFooter everywhere
+  // When variant is null (brief moment during navigation), default to hidden on mobile
+  // to prevent layout shift - better to briefly hide than briefly show
   if (isProvider) {
-    if (mobileNavVariant === "bottom_tabs") {
-      return (
-        <div className="hidden lg:block">
-          <SimpleFooter />
-        </div>
-      );
-    }
-    return <SimpleFooter />;
+    const hideOnMobile = mobileNavVariant !== "current";
+    return (
+      <div className={hideOnMobile ? "hidden lg:block" : undefined}>
+        <SimpleFooter />
+      </div>
+    );
   }
 
   // Hub / account pages for non-providers — simple footer (legal bar only)

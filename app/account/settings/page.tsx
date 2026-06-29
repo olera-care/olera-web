@@ -449,7 +449,7 @@ export default function AccountSettingsPage() {
         </div>
       )}
 
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ${showBottomTabs ? "pb-24" : ""}`}>
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ${showBottomTabs ? "pb-32" : ""}`}>
         {/* Desktop header (or mobile without bottom_tabs) */}
         <div className={`mb-5 ${showBottomTabs ? "hidden lg:block" : ""}`}>
           <h2 className="text-2xl font-display font-bold text-gray-900">
@@ -770,7 +770,22 @@ export default function AccountSettingsPage() {
 
                 {/* ── Sign Out ── */}
                 <div className="px-4 py-5 lg:p-6">
-                  <div className="flex items-start justify-between">
+                  {/* Mobile: full-width button */}
+                  <div className="lg:hidden">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const supabase = createClient();
+                        await supabase.auth.signOut();
+                        router.push("/");
+                      }}
+                      className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl text-[15px] font-medium text-gray-700 transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                  {/* Desktop: inline layout */}
+                  <div className="hidden lg:flex items-start justify-between">
                     <div>
                       <p className="text-[15px] font-semibold text-gray-900">
                         Sign out

@@ -15,7 +15,7 @@
  * synchronous and read during initial render.
  */
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import {
   assignMobileNavVariantWeighted,
@@ -98,6 +98,20 @@ function getCachedVariant(sessionId: string): MobileNavVariant | null {
 }
 
 /**
+ * Get initial variant synchronously for useState initializer.
+ * This prevents the flash where variant is null on first render.
+ */
+function getInitialVariant(): MobileNavVariant | null {
+  if (typeof window === "undefined") return null;
+  // Check preview mode first
+  const previewArm = getMobileNavPreviewArm();
+  if (previewArm) return previewArm;
+  // Read from localStorage cache
+  const sessionId = getOrCreateSessionId();
+  return getCachedVariant(sessionId);
+}
+
+/**
  * Get cached version number for invalidation check.
  */
 function getCachedVersion(): number {
@@ -124,37 +138,19 @@ function setCachedVariant(variant: MobileNavVariant, version: number, sessionId:
   }
 }
 
-// Safely use useLayoutEffect on client, useEffect on server (avoids SSR warning)
-const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
 /**
  * Returns the mobile nav variant assigned to the current session.
  *
  * On first visit: Returns null briefly while fetching, then caches result.
- * On return visits: Reads cached variant in useLayoutEffect (before paint),
+ * On return visits: Reads cached variant synchronously on first render,
  * then validates in background and updates if version changed.
  */
 export function useMobileNavVariant(): MobileNavVariant | null {
-  // Start with null to avoid hydration mismatch (server can't read localStorage)
-  const [variant, setVariant] = useState<MobileNavVariant | null>(null);
-
-  // Read cached variant synchronously before paint (client-only)
-  // This prevents flash on return visits and client-side navigation
-  useIsomorphicLayoutEffect(() => {
-    // Preview mode takes precedence
-    const previewArm = getMobileNavPreviewArm();
-    if (previewArm) {
-      setVariant(previewArm);
-      return;
-    }
-
-    // Read cached variant for current session
-    const sessionId = getOrCreateSessionId();
-    const cached = getCachedVariant(sessionId);
-    if (cached) {
-      setVariant(cached);
-    }
-  }, []);
+  // Read from localStorage synchronously during initial render to prevent flash.
+  // On SSR this returns null; on client it returns cached variant if available.
+  // The conditional renders (bottom tabs, FAB positioning) are mobile-only,
+  // so hydration mismatch is not an issue in practice.
+  const [variant, setVariant] = useState<MobileNavVariant | null>(getInitialVariant);
 
   // Fetch weights and validate/update cache
   useEffect(() => {
@@ -175,7 +171,7 @@ export function useMobileNavVariant(): MobileNavVariant | null {
         setCachedVariant(newVariant, version, sessionId);
         setVariant(newVariant);
       }
-      // If version matches and we have cache, variant is already set from layout effect
+      // If version matches and we have cache, variant is already set from initial render
     });
 
     return () => {

@@ -1512,20 +1512,35 @@ export default function ProviderMatchesPage() {
   const [boostState, setBoostState] = useState<BoostStateResponse | null>(
     () => getCachedBoostState(),
   );
+  // Whether we yet KNOW the campaign status. Seeded true from a warm cache so
+  // back-navigation never holds. Set true once the fetch settles (success OR
+  // failure) so the pitch branch can't deadlock waiting on it. Gates the pitch
+  // vs. tracker decision so a live-campaign provider never flashes the "get a
+  // campaign" pitch before the tracker resolves.
+  const [boostStateLoaded, setBoostStateLoaded] = useState(
+    () => getCachedBoostState() != null,
+  );
   useEffect(() => {
     if (!providerProfile?.slug) return;
     let cancelled = false;
     const cached = getCachedBoostState();
-    if (cached) setBoostState(cached);
+    if (cached) {
+      setBoostState(cached);
+      setBoostStateLoaded(true);
+    }
     fetch("/api/provider/ad-boost/request", { credentials: "include" })
       .then((r) => (r.ok ? (r.json() as Promise<BoostStateResponse>) : null))
       .then((d) => {
-        if (cancelled || !d) return;
-        setBoostState(d);
-        cacheBoostState(d);
+        if (cancelled) return;
+        if (d) {
+          setBoostState(d);
+          cacheBoostState(d);
+        }
+        setBoostStateLoaded(true);
       })
       .catch(() => {
-        /* best-effort; tracker just won't show */
+        // best-effort; tracker just won't show — but unblock the pitch branch.
+        if (!cancelled) setBoostStateLoaded(true);
       });
     return () => {
       cancelled = true;
@@ -2017,6 +2032,12 @@ export default function ProviderMatchesPage() {
   // links to /provider/boost for the actual eligibility gate + setup. Market
   // intelligence now lives on its own tab (/provider/growth), not here.
   if (nearbySeekers.length === 0) {
+    // Hold the skeleton until campaign status is known, so a live-campaign
+    // provider never flashes the "get a campaign" pitch before the tracker
+    // resolves. Warm cache makes this instant; only a cold load waits (briefly).
+    if (!boostStateLoaded) {
+      return <MatchesSkeleton />;
+    }
     return (
       <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">

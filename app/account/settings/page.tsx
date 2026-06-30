@@ -503,11 +503,8 @@ export default function AccountSettingsPage() {
 
       {/* Content */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="divide-y divide-gray-100">
-            {activeTab === "account" ? (
-              <>
-                {/* ── Account Info ── */}
-                <div className="divide-y divide-gray-100">
+        {activeTab === "account" ? (
+          <div className="divide-y divide-gray-200">
                   <AccountRow
                       label="Email"
                       value={user?.email || "Not set"}
@@ -555,9 +552,8 @@ export default function AccountSettingsPage() {
                       success={editingField === "password" ? fieldSuccess : ""}
                       isPassword
                     />
-                  </div>
 
-                {/* ── Passkeys ── */}
+            {/* ── Passkeys ── */}
                 <PasskeysSection />
 
                 {/* ── Subscription (Providers only) ── */}
@@ -797,8 +793,8 @@ export default function AccountSettingsPage() {
                     </button>
                   </div>
                 )}
-              </>
-            ) : activeTab === "notifications" ? (
+          </div>
+        ) : activeTab === "notifications" ? (
               /* ── Notifications Tab ── */
               <div>
                 {notifError && (
@@ -884,7 +880,6 @@ export default function AccountSettingsPage() {
                 </div>
               </div>
             ) : null}
-          </div>
 
           {/* Verification Modal (for providers) */}
           {isProvider && (

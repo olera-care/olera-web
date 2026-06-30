@@ -1,4 +1,4 @@
--- 119_email_log_channel.sql
+-- 121_email_log_channel.sql
 --
 -- Add a `channel` column to email_log so it can hold SMS (and later WhatsApp)
 -- sends, not just email. This is the foundation for care-seeker SMS:

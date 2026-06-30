@@ -30,7 +30,7 @@ interface SendSMSOptions {
   /**
    * Logging fields. When provided, the send is recorded in email_log with
    * channel='sms' so it shows on /admin/family-comms and counts toward the
-   * cross-channel frequency cap (see migration 119). Omit for fire-and-forget
+   * cross-channel frequency cap (see migration 121). Omit for fire-and-forget
    * sends that should stay off the comms ledger.
    */
   emailType?: string;

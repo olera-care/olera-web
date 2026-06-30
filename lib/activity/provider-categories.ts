@@ -90,7 +90,7 @@ export const PROVIDER_CATEGORIES: ProviderCategoryMeta[] = [
     label: "Reviews",
     emoji: "⭐",
     blurb: "Viewed or acted on their reviews",
-    eventTypes: ["review_viewed", "reviews_cta_clicked"],
+    eventTypes: ["review_viewed", "reviews_cta_clicked", "review_no_email_signal"],
     tileActive: "border-violet-300 bg-violet-50",
     badge: "bg-violet-50 text-violet-700",
     dot: "bg-violet-400",
@@ -105,6 +105,7 @@ export const PROVIDER_CATEGORIES: ProviderCategoryMeta[] = [
       "matches_card_clicked",
       "matches_message_generated",
       "matches_outreach_sent",
+      "nav_families_clicked",
     ],
     tileActive: "border-indigo-300 bg-indigo-50",
     badge: "bg-indigo-50 text-indigo-700",
@@ -124,6 +125,10 @@ export const PROVIDER_CATEGORIES: ProviderCategoryMeta[] = [
       "managed_ads_requested",
       "your_market_viewed",
       "your_market_playbook_clicked",
+      "ads_touchpoint_viewed",
+      "ads_touchpoint_clicked",
+      "ads_touchpoint_dismissed",
+      "nav_hire_clicked",
     ],
     tileActive: "border-fuchsia-300 bg-fuchsia-50",
     badge: "bg-fuchsia-50 text-fuchsia-700",
@@ -205,11 +210,13 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   // Reviews
   review_viewed: "Viewed a review",
   reviews_cta_clicked: "Tapped the reviews prompt",
+  review_no_email_signal: "Needs phone for review request",
   // Finding families
   matches_page_viewed: "Opened Find Families",
   matches_card_clicked: "Viewed a family match",
   matches_message_generated: "Generated an outreach message",
   matches_outreach_sent: "Sent outreach to a family",
+  nav_families_clicked: "Clicked Find Families nav",
   // Growing their business
   market_diagnostic_viewed_no_leads: "Saw the managed-ads pitch",
   market_outreach_status_updated: "Updated a market referral",
@@ -219,6 +226,10 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   managed_ads_requested: "Requested a managed-ads campaign",
   your_market_viewed: "Viewed Growth",
   your_market_playbook_clicked: "Tapped a Growth playbook step",
+  ads_touchpoint_viewed: "Saw an ads prompt",
+  ads_touchpoint_clicked: "Tapped an ads prompt",
+  ads_touchpoint_dismissed: "Dismissed an ads prompt",
+  nav_hire_clicked: "Clicked Hire Caregivers",
   // Trust flags
   suspicious_claim: "Flagged claim attempt",
 };

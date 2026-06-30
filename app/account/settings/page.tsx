@@ -782,7 +782,7 @@ export default function AccountSettingsPage() {
                   </div>
                 )}
               </>
-            ) : (
+            ) : activeTab === "notifications" ? (
               /* ── Notifications Tab ── */
               <div className="px-4 py-5 lg:p-6">
                 {notifError && (

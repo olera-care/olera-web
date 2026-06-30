@@ -37,6 +37,7 @@ import {
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
 import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
+import { CLOSED_STATUSES } from "@/lib/student-outreach/types";
 import { getProviderOwnership } from "@/lib/providers/ownership.server";
 import {
   deriveRepliesState,
@@ -196,6 +197,12 @@ export async function POST(
         break;
       case "reopen":
         await handleReopen(db, row, user.id);
+        break;
+      // Whole-prospect Archive — halts the running cadence and parks the row
+      // under the "Archived" status (separate from Stop outreach). Available
+      // from any card/drawer overflow in any In-Basket tab; reopen revives it.
+      case "archive":
+        await handleArchive(db, row, user.id);
         break;
 
       // ── Channel logs ────────────────────────────────────────────────
@@ -699,43 +706,14 @@ async function loadDrawerContext(outreachId: string): Promise<DrawerContext | nu
   // Stakeholder rows: no general-contact concept; the Decision Maker slot
   // (or legacy student_outreach_contacts data, if no Decision Maker is set
   // yet) carries the named recipients.
-  const previewDm = row.research_data?.decision_maker;
-  const previewContacts: NamedContact[] = [];
-  if (
-    previewDm &&
-    !previewDm.unavailable &&
-    previewDm.email &&
-    previewDm.email.trim()
-  ) {
-    const [first, ...rest] = (previewDm.name ?? "").trim().split(/\s+/);
-    previewContacts.push({
-      contact_id: `dm:${row.id}`,
-      email: previewDm.email.trim(),
-      first_name: first || null,
-      last_name: rest.length > 0 ? rest.join(" ") : null,
-      title: null,
-      role: previewDm.role ?? null,
-    });
-  } else if (!previewDm) {
-    // Backward-compat for rows enrolled BEFORE the Decision Maker
-    // migration — surface existing student_outreach_contacts entries
-    // (active, email present, not General Office/Inbox) as preview
-    // recipients so the modal doesn't suddenly hide leads the cron is
-    // still managing.
-    for (const c of (contacts ?? []) as Contact[]) {
-      if (c.status !== "active") continue;
-      if (!c.email || !c.email.trim()) continue;
-      if (c.role === "General Office" || c.role === "General Inbox") continue;
-      previewContacts.push({
-        contact_id: c.id,
-        email: c.email,
-        first_name: c.first_name,
-        last_name: c.last_name,
-        title: c.title,
-        role: c.role,
-      });
-    }
-  }
+  // Preview the DEFAULT fan-out (what enrolls if the admin doesn't uncheck
+  // anyone): providers → General Contact + Decision Maker; offices/orgs →
+  // General Contact + every emailable individual; departments → General Contact
+  // + chair. Mirrors enrollRowIntoSmartlead's no-selection path.
+  const previewContacts: NamedContact[] = defaultFanOutContacts(
+    row,
+    (contacts ?? []) as Contact[],
+  );
   const gc = row.research_data?.general_contact;
   const previewRow: BridgeRow = {
     outreach_id: row.id,
@@ -917,6 +895,15 @@ async function transitionStage(
     payload: { from: row.status, to },
   });
 
+  // Entering a closed status (Stop outreach → Not interested / No response /
+  // Wrong contact / DNC / Redirected) must also halt the Smartlead email drip
+  // for every enrolled recipient — cancelTasksByType above only clears CRM
+  // call tasks; the cold/activation emails live in Smartlead. Best-effort,
+  // inert for rows that were never enrolled.
+  if (CLOSED_STATUSES.includes(to)) {
+    await stopRowSmartleadDrips(db, row, userId);
+  }
+
   if (effects.taskToQueue) {
     await queueTask(db, row.id, effects.taskToQueue, userId);
   }
@@ -936,15 +923,39 @@ async function transitionStage(
 async function stopRowSmartleadDrips(db: DB, row: OutreachRow, userId: string) {
   const cold = row.research_data?.smartlead;
   const activation = row.research_data?.smartlead_activation;
-  const targets: Array<{ campaignId: number; email: string }> = [];
-  const add = (cid: number | undefined, email: string | null | undefined) => {
-    if (typeof cid === "number" && email) targets.push({ campaignId: cid, email });
+  const coldCid = cold?.campaign_id;
+  const actCid = activation?.campaign_id;
+  if (typeof coldCid !== "number" && typeof actCid !== "number") return;
+
+  // Gather EVERY email enrolled under this row, not just the stored general
+  // lead_email. With the sub-prospect fan-out (offices/orgs enroll the General
+  // Contact + every emailable individual), pausing only lead_email would leave
+  // each member's cold drip running after archive/conversion. Collect the
+  // General Contact, the Decision Maker, and every active named contact, then
+  // pause each in both the cold and activation campaigns (pauseLeadDrips dedups
+  // and silently skips emails that aren't actually leads).
+  const emails = new Set<string>();
+  const addEmail = (e: string | null | undefined) => {
+    const v = e?.trim().toLowerCase();
+    if (v) emails.add(v);
   };
-  add(cold?.campaign_id, cold?.lead_email);
-  add(activation?.campaign_id, activation?.lead_email);
-  // The engaged contact (activation lead) may also still sit in the cold
-  // campaign — pause them there too (pauseLeadDrips dedups + skips misses).
-  add(cold?.campaign_id, activation?.lead_email);
+  addEmail(cold?.lead_email);
+  addEmail(activation?.lead_email);
+  addEmail(row.research_data?.general_contact?.email);
+  addEmail(row.research_data?.decision_maker?.email);
+  const { data: contactRows } = await db
+    .from("student_outreach_contacts")
+    .select("email")
+    .eq("outreach_id", row.id);
+  for (const c of (contactRows ?? []) as Array<{ email: string | null }>) {
+    addEmail(c.email);
+  }
+
+  const targets: Array<{ campaignId: number; email: string }> = [];
+  for (const email of emails) {
+    if (typeof coldCid === "number") targets.push({ campaignId: coldCid, email });
+    if (typeof actCid === "number") targets.push({ campaignId: actCid, email });
+  }
   if (targets.length === 0) return;
 
   try {
@@ -1546,8 +1557,49 @@ async function handleMarkPartner(
   await stopRowSmartleadDrips(db, row, userId);
 }
 
+/**
+ * Whole-prospect Archive. Halts the running cadence (cancels every pending
+ * cold + activation task and pauses the Smartlead email drips), then parks the
+ * row under the "archived" status. Distinct from Stop outreach — archived rows
+ * are explicitly meant to be reopened (handleReopen), and they surface on the
+ * campus page as an "Archived" tag. Allowed from any non-archived status so the
+ * action works from every In-Basket tab.
+ */
+async function handleArchive(db: DB, row: OutreachRow, userId: string) {
+  if (row.status === "archived") return;
+
+  // Halt the cadence: cancel all pending tasks (same hard stop as Stop
+  // outreach), then pause the Smartlead cold + activation drips so no further
+  // emails fire after archiving.
+  await db
+    .from("student_outreach_tasks")
+    .update({
+      status: "cancelled",
+      completed_at: new Date().toISOString(),
+      completed_by: userId,
+    })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending");
+  await stopRowSmartleadDrips(db, row, userId);
+
+  // Park the whole prospect. reopen_at / snoozed_until are cleared so a cron
+  // sweep never auto-revives an archived row — reopen is an explicit action.
+  await touchOutreach(db, row.id, userId, {
+    status: "archived",
+    reopen_at: null,
+    snoozed_until: null,
+  });
+  await insertTouchpoint(db, row.id, "stage_change", userId, {
+    payload: { from: row.status, to: "archived", archived: true },
+  });
+}
+
 async function handleReopen(db: DB, row: OutreachRow, userId: string) {
-  if (row.status !== "no_response_closed" && row.status !== "wrong_contact") {
+  // Reopen any closed/archived row (not_interested, do_not_contact,
+  // no_response_closed, wrong_contact, redirected, archived). Previously this
+  // only allowed no_response_closed + wrong_contact, which is why archived /
+  // not-interested rows ("unable to reopen") were stuck.
+  if (!CLOSED_STATUSES.includes(row.status)) {
     throw new Error(`Cannot reopen from status "${row.status}"`);
   }
   // Reset cadence and go back to researched (admin already did the research before closing).
@@ -2116,8 +2168,11 @@ async function handleScheduleSequence(
   // the lead into its campus campaign FIRST so any skip (no email / already
   // enrolled) or API failure aborts BEFORE any CRM mutation — no orphaned
   // tasks, no half-transitioned row. enrollRowIntoSmartlead throws on skip
-  // or failure and writes the linkage + touchpoint on success.
-  await enrollRowIntoSmartlead(db, row, userId);
+  // or failure and writes the linkage + touchpoint on success. Pass the
+  // launch-modal recipient selection so Smartlead fans out to exactly the
+  // individuals the admin kept checked (general + each sub-prospect), matching
+  // the per-recipient call tasks.
+  await enrollRowIntoSmartlead(db, row, userId, body.recipients);
 
   // Smartlead owns the email drip — we only queue CRM-side call tasks.
   const tasksToInsert = plan.filter((p) => p.task_type === "outreach_followup_call");
@@ -2569,8 +2624,9 @@ async function enrollRowIntoWelcomeCampaign(
  * Day 0, and activation tasks alike — and record the stop so the drawer no
  * longer reads as an active cadence. Status is left unchanged (this halts
  * automated sends without closing the row, so the admin can still book a
- * meeting or make a partner manually). Smartlead's email drip auto-pauses on
- * reply; per-lead Smartlead pause is not part of this MVP off-switch.
+ * meeting or make a partner manually). The Smartlead email drip is paused for
+ * every enrolled recipient too (best-effort) — otherwise the hard stop would
+ * cancel CRM call tasks while cold emails kept sending from Smartlead.
  */
 async function handleStopAllOutreach(db: DB, row: OutreachRow, userId: string) {
   await db
@@ -2582,6 +2638,10 @@ async function handleStopAllOutreach(db: DB, row: OutreachRow, userId: string) {
     })
     .eq("outreach_id", row.id)
     .eq("status", "pending");
+  // Halt the Smartlead email drip for every fanned-out recipient (the CRM
+  // task cancel above only stops call tasks; cold/activation emails live in
+  // Smartlead). Best-effort, inert without SMARTLEAD_API_KEY.
+  await stopRowSmartleadDrips(db, row, userId);
   await insertTouchpoint(db, row.id, "note_added", userId, {
     channel: "system",
     payload: { reason: "outreach_stopped" },
@@ -2624,7 +2684,89 @@ function requireProgramPdf(
  * Throws on skip (no email / already enrolled) or API failure so the action
  * surfaces the reason to the admin and aborts before queueing call tasks.
  */
-async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) {
+/**
+ * Fan a row's named Specific Contacts out into Smartlead leads. Every active
+ * contact with a usable email becomes its own lead alongside the General
+ * Contact, EXCEPT the org-level General Office/Inbox roles (those ARE the
+ * General Contact). Optionally restricted to `selectedIds` — the contacts the
+ * admin left checked in the launch modal.
+ *
+ * NOTE: contacts are intentionally NOT deduped against the General Contact
+ * email. Department rows store the chair's email == general_contact.email, and
+ * the dept_head launch modal renders no separate general row, so dropping the
+ * chair here would hide it from the launch preview. Any genuine same-email
+ * duplication is collapsed by Smartlead's per-campaign email dedupe at send.
+ */
+function fanOutFromContacts(
+  row: { research_data: ResearchData | null },
+  contacts: Contact[],
+  selectedIds?: Set<string>,
+): NamedContact[] {
+  const out: NamedContact[] = [];
+  const seen = new Set<string>();
+  for (const c of contacts) {
+    if (c.status !== "active") continue;
+    const email = c.email?.trim();
+    if (!email) continue;
+    if (c.role === "General Office" || c.role === "General Inbox") continue;
+    const lc = email.toLowerCase();
+    if (selectedIds && !selectedIds.has(c.id)) continue;
+    if (seen.has(lc)) continue;
+    seen.add(lc);
+    out.push({
+      contact_id: c.id,
+      email,
+      first_name: c.first_name,
+      last_name: c.last_name,
+      title: c.title,
+      role: c.role,
+    });
+  }
+  return out;
+}
+
+/**
+ * Default (un-filtered) Smartlead fan-out for a row — what enrolls if the admin
+ * doesn't uncheck anyone in the launch modal. Drives both the GET drawer
+ * preview and the POST enrollment fallback.
+ *
+ *   providers              → General Contact + ONE Decision Maker (MVP cap;
+ *                            the research_data.decision_maker slot)
+ *   offices / orgs         → General Contact + EVERY emailable individual
+ *   departments            → General Contact + the chair (the one contact)
+ *
+ * Legacy provider rows with no Decision Maker slot fall through to the
+ * contacts-table fan-out so previously-enrolled leads still surface.
+ */
+function defaultFanOutContacts(
+  row: { id: string; kind: string | null; research_data: ResearchData | null },
+  contacts: Contact[],
+): NamedContact[] {
+  if (row.kind === "provider") {
+    const dm = row.research_data?.decision_maker;
+    if (dm && !dm.unavailable && dm.email && dm.email.trim()) {
+      const [first, ...rest] = (dm.name ?? "").trim().split(/\s+/);
+      return [
+        {
+          contact_id: `dm:${row.id}`,
+          email: dm.email.trim(),
+          first_name: first || null,
+          last_name: rest.length > 0 ? rest.join(" ") : null,
+          title: null,
+          role: dm.role ?? null,
+        },
+      ];
+    }
+  }
+  return fanOutFromContacts(row, contacts);
+}
+
+async function enrollRowIntoSmartlead(
+  db: DB,
+  row: OutreachRow,
+  userId: string,
+  recipients?: RecipientPlan[],
+) {
   // Stabilization guard: without the magic-link secret, rowToLeads silently
   // bakes the PROGRAM_URL marketing page (/medjobs/providers) into each lead's
   // welcome_url — which is exactly the "magic link drops me on the general
@@ -2688,26 +2830,55 @@ async function enrollRowIntoSmartlead(db: DB, row: OutreachRow, userId: string) 
     }
   }
 
-  // v9.x Decision Maker fan-out: General Contact + ONE Decision Maker (max
-  // 2 leads per row). Replaces the prior multi-contact fan-out — admins
-  // identify a single decision maker during pre-flight and store them in
-  // `research_data.decision_maker`. When absent or marked unavailable, the
-  // row enrolls with the General Contact lead only.
-  const dm = row.research_data?.decision_maker;
-  const namedContacts: NamedContact[] = [];
-  if (dm && !dm.unavailable && dm.email && dm.email.trim()) {
-    const [first, ...rest] = (dm.name ?? "").trim().split(/\s+/);
-    const lastName = rest.length > 0 ? rest.join(" ") : null;
-    namedContacts.push({
-      // Synthetic contact_id so the D2 webhook can attribute back to the
-      // Decision Maker slot without a contacts-table row.
-      contact_id: `dm:${row.id}`,
-      email: dm.email.trim(),
-      first_name: first || null,
-      last_name: lastName,
-      title: null,
-      role: dm.role ?? null,
-    });
+  // Sub-prospect fan-out: every emailable individual on the row becomes its
+  // own Smartlead lead alongside the General Contact (offices/orgs → ALL
+  // individuals; departments → the chair; providers → the Decision Maker).
+  // When the launch modal passes a recipient selection, enroll exactly the
+  // individuals the admin left checked; otherwise fall back to the default
+  // per-type fan-out. Contacts are loaded from the table so each lead keeps
+  // its title (drives the formal "Dear Dr. <Last>," salutation).
+  const { data: contactRows } = await db
+    .from("student_outreach_contacts")
+    .select("id, first_name, last_name, name, title, role, email, status")
+    .eq("outreach_id", row.id);
+  const activeContacts = (contactRows ?? []) as Contact[];
+
+  let namedContacts: NamedContact[];
+  if (recipients && recipients.length > 0) {
+    const selectedIds = new Set(
+      recipients
+        .filter(
+          (r) =>
+            r.recipient_kind === "specific" &&
+            r.channels?.email &&
+            r.contact_id,
+        )
+        .map((r) => r.contact_id as string),
+    );
+    namedContacts = fanOutFromContacts(row, activeContacts, selectedIds);
+    // Provider Decision Maker stored only in research_data (no contacts-table
+    // row) and selected via its synthetic dm: id — include it too.
+    const dm = row.research_data?.decision_maker;
+    if (
+      dm &&
+      !dm.unavailable &&
+      dm.email &&
+      dm.email.trim() &&
+      recipients.some((r) => r.contact_id === `dm:${row.id}` && r.channels?.email) &&
+      !namedContacts.some((c) => c.email.toLowerCase() === dm.email!.trim().toLowerCase())
+    ) {
+      const [first, ...rest] = (dm.name ?? "").trim().split(/\s+/);
+      namedContacts.push({
+        contact_id: `dm:${row.id}`,
+        email: dm.email.trim(),
+        first_name: first || null,
+        last_name: rest.length > 0 ? rest.join(" ") : null,
+        title: null,
+        role: dm.role ?? null,
+      });
+    }
+  } else {
+    namedContacts = defaultFanOutContacts(row, activeContacts);
   }
 
   const gc = row.research_data?.general_contact;

@@ -417,75 +417,93 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Mobile header with back button (provider with bottom_tabs variant) */}
-      {showBottomTabs && (
-        <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200">
-          <div className="flex items-center gap-3 px-4 py-3">
-            <Link
-              href="/provider"
-              className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6 sm:py-8">
+            {/* Back button */}
+            {showBottomTabs ? (
+              <Link
+                href="/provider"
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+                Back
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+                Back
+              </button>
+            )}
+
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+              Account Settings
+            </h1>
+            <p className="text-[15px] text-gray-500 mt-1">
+              Manage your {getAccountTypeLabel().toLowerCase()} account, login, and notification preferences.
+            </p>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-6 -mb-px">
+            <button
+              type="button"
+              onClick={() => setActiveTab("account")}
+              className={`relative pb-3 text-[15px] font-medium transition-colors ${
+                activeTab === "account"
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">Account Settings</h1>
-            </div>
+              Account
+              {activeTab === "account" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("notifications")}
+              className={`relative pb-3 text-[15px] font-medium transition-colors ${
+                activeTab === "notifications"
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Notifications
+              {activeTab === "notifications" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("help")}
+              className={`relative pb-3 text-[15px] font-medium transition-colors ${
+                activeTab === "help"
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Get Help
+              {activeTab === "help" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Desktop header (or mobile without bottom_tabs) */}
-        <div className={`mb-5 ${showBottomTabs ? "hidden lg:block" : ""}`}>
-          <h2 className="text-2xl font-display font-bold text-gray-900">
-            Account Settings
-          </h2>
-          <p className="text-[15px] text-gray-500 mt-1">
-            Manage your {getAccountTypeLabel().toLowerCase()} account, login, and notification preferences.
-          </p>
-        </div>
-
-        <div className="max-w-2xl">
-          {/* Tabs - segmented control style */}
-          <div className="mb-6">
-            <div className="inline-flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-              <button
-                onClick={() => setActiveTab("account")}
-                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
-                  activeTab === "account"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Account
-              </button>
-              <button
-                onClick={() => setActiveTab("notifications")}
-                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
-                  activeTab === "notifications"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Notifications
-              </button>
-              <button
-                onClick={() => setActiveTab("help")}
-                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
-                  activeTab === "help"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Get Help
-              </button>
-            </div>
-          </div>
-
-          {/* Tab Content - flat sections on mobile, card container on desktop */}
-          <div className="divide-y divide-gray-100 bg-white lg:rounded-2xl lg:border lg:border-gray-200/80">
+      {/* Content */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="divide-y divide-gray-100">
             {activeTab === "account" ? (
               <>
                 {/* ── Account Info ── */}
@@ -842,71 +860,29 @@ export default function AccountSettingsPage() {
               </div>
             ) : activeTab === "help" ? (
               /* ── Get Help Tab ── */
-              <div className="px-4 py-5 lg:p-6">
-                <div className="space-y-4">
-                  {/* Phone */}
+              <div className="divide-y divide-gray-100">
+                {/* Phone */}
+                <div className="py-4 first:pt-0">
+                  <p className="text-[13px] font-medium text-gray-500">Phone</p>
                   <a
                     href="tel:+19792439801"
-                    className="group flex items-start gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm transition-all"
+                    className="text-[15px] text-primary-600 hover:text-primary-700 font-medium mt-1 inline-block transition-colors"
                   >
-                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
-                      <svg
-                        className="w-5 h-5 text-primary-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                        Phone
-                      </p>
-                      <p className="mt-0.5 text-primary-600 font-medium">
-                        +1 (979) 243-9801
-                      </p>
-                      <p className="mt-0.5 text-sm text-gray-500">United States</p>
-                    </div>
+                    +1 (979) 243-9801
                   </a>
+                  <p className="text-sm text-gray-500 mt-0.5">United States</p>
+                </div>
 
-                  {/* Email */}
+                {/* Email */}
+                <div className="py-4">
+                  <p className="text-[13px] font-medium text-gray-500">Email</p>
                   <a
                     href="mailto:support@olera.care"
-                    className="group flex items-start gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm transition-all"
+                    className="text-[15px] text-primary-600 hover:text-primary-700 font-medium mt-1 inline-block transition-colors"
                   >
-                    <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
-                      <svg
-                        className="w-5 h-5 text-primary-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                        Email
-                      </p>
-                      <p className="mt-0.5 text-primary-600 font-medium">
-                        support@olera.care
-                      </p>
-                      <p className="mt-0.5 text-sm text-gray-500">
-                        We typically respond within 1 business day
-                      </p>
-                    </div>
+                    support@olera.care
                   </a>
+                  <p className="text-sm text-gray-500 mt-0.5">We typically respond within 1 business day</p>
                 </div>
               </div>
             ) : null}
@@ -1005,9 +981,7 @@ export default function AccountSettingsPage() {
               </div>
             </div>
           </Modal>
-
         </div>
-      </div>
 
       {/* Bottom tabs are rendered by the Navbar for /account when user is organization */}
       {/* MoreBottomSheet is also handled by Navbar, no need to duplicate here */}

@@ -507,9 +507,8 @@ export default function AccountSettingsPage() {
             {activeTab === "account" ? (
               <>
                 {/* ── Account Info ── */}
-                <div className="px-4 py-5 lg:p-6">
-                  <div className="divide-y divide-gray-100">
-                    <AccountRow
+                <div className="divide-y divide-gray-100">
+                  <AccountRow
                       label="Email"
                       value={user?.email || "Not set"}
                       verified={!!user?.email_confirmed_at}
@@ -557,14 +556,13 @@ export default function AccountSettingsPage() {
                       isPassword
                     />
                   </div>
-                </div>
 
                 {/* ── Passkeys ── */}
                 <PasskeysSection />
 
                 {/* ── Subscription (Providers only) ── */}
                 {isProvider && (
-                  <div className="px-4 py-5 lg:p-6">
+                  <div className="py-4">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[15px] font-semibold text-gray-900">
                         Olera Pro
@@ -652,7 +650,7 @@ export default function AccountSettingsPage() {
 
                 {/* ── Google Business Profile (Providers only, when not connected) ── */}
                 {isProvider && (
-                  <div className="px-4 py-5 lg:p-6">
+                  <div className="py-4">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[15px] font-semibold text-gray-900">
                         Google Business Profile
@@ -762,7 +760,7 @@ export default function AccountSettingsPage() {
                 )}
 
                 {/* ── Delete Account ── */}
-                <div className="px-4 py-5 lg:p-6 border-b border-gray-100">
+                <div className="py-4">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-[15px] font-semibold text-gray-900">
@@ -785,7 +783,7 @@ export default function AccountSettingsPage() {
 
                 {/* ── Sign Out (bottom_tabs variant only - current variant has it in hamburger menu) ── */}
                 {showBottomTabs && (
-                  <div className="px-4 py-5 lg:p-6">
+                  <div className="py-4">
                     <button
                       type="button"
                       onClick={async () => {
@@ -802,7 +800,7 @@ export default function AccountSettingsPage() {
               </>
             ) : activeTab === "notifications" ? (
               /* ── Notifications Tab ── */
-              <div className="px-4 py-5 lg:p-6">
+              <div>
                 {notifError && (
                   <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
                     <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>

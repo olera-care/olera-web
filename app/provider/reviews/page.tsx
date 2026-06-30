@@ -1404,8 +1404,8 @@ export default function ProviderReviewsPage() {
 
           {/* Content grid */}
           <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-stretch">
-            {/* Main content card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 p-5 lg:p-6 mb-6 lg:mb-0">
+            {/* Main content - no card on mobile, card on desktop */}
+            <div className="lg:bg-white lg:rounded-2xl lg:border lg:border-gray-200/80 lg:p-6 mb-6 lg:mb-0">
               {view === "landing" ? (
                 <LandingView
                   city={providerCity}

@@ -71,11 +71,6 @@ const PROVIDER_ACTION_EVENT_TYPES = [
   "ads_touchpoint_viewed",
   "ads_touchpoint_clicked",
   "ads_touchpoint_dismissed",
-  // Reviews SMS demand signal
-  "review_no_email_signal",
-  // Mobile nav clicks (impressions excluded - they're passive A/B test events, not actions)
-  "nav_families_clicked",
-  "nav_hire_clicked",
 ];
 
 /**

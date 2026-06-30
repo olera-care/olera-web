@@ -1409,7 +1409,23 @@ export default function ProviderReviewsPage() {
               {view === "landing" ? (
                 <LandingView
                   city={providerCity}
-                  onRequestReview={() => setView("form")}
+                  onRequestReview={() => {
+                    // Track CTA click for funnel analytics
+                    if (providerSlug) {
+                      fetch("/api/activity/track", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          actor_type: "provider",
+                          provider_id: providerSlug,
+                          event_type: "reviews_cta_clicked",
+                          metadata: { source: "reviews_landing" },
+                        }),
+                        keepalive: true,
+                      }).catch(() => {});
+                    }
+                    setView("form");
+                  }}
                 />
               ) : (
                 <div className="animate-fade-in">

@@ -549,6 +549,9 @@ export async function GET(request: NextRequest) {
       // Extract admin override (manually marked status)
       const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
 
+      // Family self-reported that provider got back to them (ground-truth connection signal)
+      const familyConfirmed = meta.family_confirmed === true;
+
       // Check if family has replied AFTER provider's response
       // This determines if we need to nudge the family
       // Only counts REAL replies (non-auto, non-system, with actual text)
@@ -739,6 +742,8 @@ export async function GET(request: NextRequest) {
         archivedAt,
         // Admin override for manual status marking
         adminOverride,
+        // Family self-reported provider got back to them
+        familyConfirmed,
         // For engagement-based "Needs Call" tab
         needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
         // When Day 0 email was sent (for staleness calculation)
@@ -1142,6 +1147,7 @@ export async function GET(request: NextRequest) {
         emailLinkClicked: eng?.email_link_clicked ?? false,
         continueInInbox: eng?.continue_in_inbox ?? false,
         providerMessaged: c.responded,
+        familyConfirmed: c.familyConfirmed,
         adminMarkedViewed,
         adminMarkedConnected,
         lastActivityAt: combinedLastActivity,
@@ -1168,6 +1174,7 @@ export async function GET(request: NextRequest) {
         phone_clicked: eng?.phone_clicked ?? false,
         email_link_clicked: eng?.email_link_clicked ?? false,
         continue_in_inbox: eng?.continue_in_inbox ?? false,
+        family_confirmed: c.familyConfirmed,
       });
 
       // Calculate family engagement level for this connection

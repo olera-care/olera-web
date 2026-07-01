@@ -156,7 +156,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       provider?.id,
       providerProfileId,
     ].filter(Boolean) as string[];
-    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_copied: false, email_copied: false, phone_clicked: false, email_link_clicked: false, messaged: false };
+    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_copied: false, email_copied: false, phone_clicked: false, email_link_clicked: false, messaged: false, family_confirmed: false };
     if (engagementKeys.length > 0) {
       const { data: events } = await db
         .from("provider_activity")
@@ -198,6 +198,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       (m) => m.from_profile_id === providerProfileId && m.is_auto_reply !== true && !!m.text?.trim()
     );
     engagement.messaged = providerMessaged;
+
+    // Family self-reported that provider got back to them (ground-truth connection signal)
+    engagement.family_confirmed = meta.family_confirmed === true;
 
     // Email trail — every notification sent to this provider since the lead
     // arrived (provider_id keys both manual nudges and the consolidated cron

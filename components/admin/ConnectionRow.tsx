@@ -329,6 +329,7 @@ function EngagementBadges({
     { icon: "📧", label: "Emailed", active: engagement?.email_link_clicked ?? false },
     { icon: "📨", label: "Continued in Inbox", active: engagement?.continue_in_inbox ?? false },
     { icon: "💬", label: "Messaged", active: isMessaged ?? false },
+    { icon: "✓", label: "Family confirmed", active: engagement?.family_confirmed ?? false },
     { icon: "✓", label: "Marked Replied", active: markedReplied },
     { icon: "🤝", label: "Already Connected", active: alreadyConnected },
     { icon: "✓", label: adminVerifiedLabel, active: !!adminOverride, highlight: true },

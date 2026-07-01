@@ -94,6 +94,8 @@ export interface EngagementData {
   continueInInbox: boolean;
   /** Provider sent a message through the inbox */
   providerMessaged: boolean;
+  /** Family self-reported that the provider got back to them */
+  familyConfirmed: boolean;
   /** Admin manually marked this connection as "viewed" (verified off-platform activity) */
   adminMarkedViewed: boolean;
   /** Admin manually marked this connection as "connected" (verified off-platform activity) */
@@ -320,9 +322,10 @@ export function getEngagementLevel(
   } else if (
     engagement.providerMessaged ||
     engagement.phoneClicked ||
-    engagement.emailLinkClicked
+    engagement.emailLinkClicked ||
+    engagement.familyConfirmed
   ) {
-    // Provider reached out - this is success
+    // Provider reached out (or family confirmed they did) - this is success
     level = "connected";
   } else if (engagement.leadOpened) {
     // Provider opened the lead drawer
@@ -356,7 +359,8 @@ export function isConnected(engagement: EngagementData): boolean {
     engagement.adminMarkedConnected ||
     engagement.providerMessaged ||
     engagement.phoneClicked ||
-    engagement.emailLinkClicked
+    engagement.emailLinkClicked ||
+    engagement.familyConfirmed
   );
 }
 

@@ -66,12 +66,24 @@ export async function POST(request: NextRequest) {
     // Record the outcome in connection metadata (last-write-wins so a family can
     // change their mind). Never touch status.
     const meta = (conn.metadata as Record<string, unknown>) || {};
+    const now = new Date().toISOString();
     meta.outcome = {
       self_reported: true,
       value,
-      at: new Date().toISOString(),
+      at: now,
       source: "email_link",
     };
+
+    // If family confirms connection ("yes"), mark it as connected and stop the sequence.
+    // This is ground-truth: the family says the provider got back to them.
+    if (value === "yes") {
+      meta.family_confirmed = true;
+      meta.family_confirmed_at = now;
+      // Stop the follow-up sequence — provider has connected (per family)
+      meta.followup_stopped_at = now;
+      meta.followup_stopped_reason = "family_confirmed";
+    }
+
     const { error: updErr } = await db
       .from("connections")
       .update({ metadata: meta })

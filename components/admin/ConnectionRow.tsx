@@ -463,6 +463,11 @@ export default function ConnectionRow({
   const [noContactTagged, setNoContactTagged] = useState(c.noContactFound ?? false);
   const [togglingNoContactTag, setTogglingNoContactTag] = useState(false);
 
+  // Sync noContactTagged with prop when it changes (e.g., parent refresh, other admin action)
+  useEffect(() => {
+    setNoContactTagged(c.noContactFound ?? false);
+  }, [c.noContactFound]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -990,8 +995,8 @@ export default function ConnectionRow({
         // Clear "no contact found" tag if it was set (email is now found)
         if (noContactTagged) {
           setNoContactTagged(false);
-          // Also clear on server side
-          fetch(`/api/admin/connections/${c.id}`, {
+          // Clear on server side before refresh to avoid race condition
+          await fetch(`/api/admin/connections/${c.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ noContactFound: false }),
@@ -1084,7 +1089,8 @@ export default function ConnectionRow({
         // Clear "no contact found" tag if it was set (email is now found/fixed)
         if (noContactTagged) {
           setNoContactTagged(false);
-          fetch(`/api/admin/connections/${c.id}`, {
+          // Clear on server side before refresh to avoid race condition
+          await fetch(`/api/admin/connections/${c.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ noContactFound: false }),

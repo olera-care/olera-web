@@ -215,6 +215,98 @@ export function providerManagedAdsEmail(opts: {
   );
 }
 
+export function adBoostQueuedEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  completeness: number;
+  threshold: number;
+  missingSectionLabel?: string | null;
+  needsVerification?: boolean;
+}): string {
+  const nextStep = opts.needsVerification
+    ? "finish verification"
+    : opts.missingSectionLabel
+      ? `finish ${escapeHtml(opts.missingSectionLabel.toLowerCase())}`
+      : "finish your profile";
+  const launchWeek = formatEmailDate(opts.setupWeek);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost request received</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">We saved your Ad Boost launch plan</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Thanks for requesting managed ads. Your preferred setup week is <strong>${launchWeek}</strong>, and your campaign is queued while your Olera page gets ready for paid traffic.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;"><strong>Current readiness:</strong> ${opts.completeness}% complete</p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Launch threshold:</strong> ${opts.threshold}% complete and verified</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">The next best step is to ${nextStep}. Once your page clears the launch threshold, we&rsquo;ll move the request into setup and email you before the campaign goes live.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We will not send paid traffic to a thin page. That protects your first $50 promotional test and gives families a better reason to contact you.</p>
+    <div>${button("Finish launch setup", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is queued while your page gets ready.",
+  );
+}
+
+export function adBoostRequestedEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  channel?: string | null;
+}): string {
+  const launchWeek = formatEmailDate(opts.setupWeek);
+  const channel = formatAdBoostChannel(opts.channel);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost setup</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is ready for setup</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your managed-ads request came through, and your Olera page has enough detail for us to start setting up the campaign.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s how it works: we run a local ${channel} campaign for families searching for care, send them straight to your Olera page, and any who reach out land directly in your dashboard.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you choose the monthly budget and we run the campaign.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
+    </div>
+    <div>${button("View Ad Boost", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is ready for setup.",
+  );
+}
+
+export function adBoostReadyEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  channel?: string | null;
+}): string {
+  const launchWeek = formatEmailDate(opts.setupWeek);
+  const channel = formatAdBoostChannel(opts.channel);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost now launch-ready</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is now launch-ready</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Good news: your Olera page now has enough detail for us to start setting up the campaign, so your queued Ad Boost request has moved into the setup queue.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;ll use your Olera page as the landing page for the ${channel} campaign, with families who reach out appearing in your dashboard.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. Once it is complete, we can review the results together and talk through the right monthly budget.</p>
+    <div>${button("View Ad Boost", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is now ready for setup.",
+  );
+}
+
 /**
  * Find Families digest variant — a provider with a real published care-seeker
  * within ~50mi (the scarce, high-intent signal). Distinct from the managed-ads
@@ -400,6 +492,28 @@ function authorBylineBlock(opts: { topBorder?: boolean; heading?: string; tail?:
             <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
           </td>
           <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">${heading}${byline}${tail}</td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+function adBoostAuthorBylineBlock(opts: { topBorder?: boolean } = {}): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/tj.jpg";
+  const wrapStyle = opts.topBorder
+    ? "margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"
+    : "margin:24px 0 0;";
+
+  return `
+    <div style="${wrapStyle}">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="TJ Falohun" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
+            <p style="margin:0;">Olera is built by <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering, and <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, co-founder and physician-researcher funded by NIH SBIR. We&rsquo;re working to make senior care easier to understand and compare.</p>
+          </td>
         </tr>
       </table>
     </div>`;
@@ -1172,6 +1286,10 @@ export interface CompareCardItem {
   rating?: number | null;
   reviewCount?: number | null;
   distanceMi?: number | null;
+  /** Short honest "why we picked this" line (e.g. "Highly Rated · State Licensed").
+   *  Built from verified signals upstream; omitted when there's nothing to stand
+   *  behind. Never a response-time claim. */
+  reason?: string | null;
   /** Tolerated (some callers build cards with a slug); not rendered. */
   slug?: string;
 }
@@ -1190,9 +1308,15 @@ function compareCardRow(p: CompareCardItem): string {
   const price = p.priceRange
     ? `<p style="font-size:13px;color:#6b7280;margin:0;line-height:1.4;">${escapeHtml(p.priceRange)}</p>`
     : "";
+  // The "why we picked this" line — the curated-shortlist differentiator. Sits
+  // right under the name in a confident green, above the raw rating/distance meta.
+  const reason = p.reason
+    ? `<p style="font-size:13px;color:#047857;font-weight:500;margin:0 0 3px;line-height:1.4;">${escapeHtml(p.reason)}</p>`
+    : "";
   const textCol = `
         <td style="vertical-align:top;">
           <p style="font-size:16px;color:${BRAND_COLOR};font-weight:600;margin:0 0 3px;line-height:1.3;">${escapeHtml(p.name)}</p>
+          ${reason}
           ${meta}
           ${price}
         </td>`;
@@ -1226,12 +1350,27 @@ export function providerSilentEmail(opts: {
   recommendedProviders: CompareCardItem[];
   browseUrl: string;
   city: string | null;
+  /** Care type the family inquired about (friendly label, e.g. "memory care"),
+   *  used for the entry-bridge opening sentence. Optional — degrades cleanly. */
+  careType?: string | null;
   /** Benefits quiz deep-link (the closer). Omitted by transactional callers. */
   benefitsQuizUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
+  // Entry-bridge sentence: name their actual situation (care type + city) so the
+  // email reads as "Olera is helping me with THIS", not a generic blast. Only
+  // when we have the context; degrades to nothing otherwise.
+  const bridgeContext = [
+    opts.careType ? `about ${escapeHtml(opts.careType.toLowerCase())}` : "",
+    opts.city ? `in ${escapeHtml(opts.city)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const bridge = bridgeContext
+    ? `You reached out to <strong>${escapeHtml(opts.providerName)}</strong> ${bridgeContext}. `
+    : "";
   const hasDeclineMessage = opts.providerPassed && opts.declineMessage?.trim();
   const hasRecommendedProviders = opts.recommendedProviders.length > 0;
 
@@ -1246,6 +1385,8 @@ export function providerSilentEmail(opts: {
     } else {
       openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now, but there are other providers in your area worth a look.`;
     }
+  } else if (bridge) {
+    openingLine = `${bridge}They haven't gotten back to you yet, and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few others worth comparing:" : ""}`;
   } else {
     openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet, and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you worth comparing:" : ""}`;
   }
@@ -3314,6 +3455,28 @@ function humanCategoryLabel(category: string | null): string {
     independent_living: "independent living",
   };
   return map[category] ?? category.replace(/_/g, " ");
+}
+
+function formatAdBoostChannel(channel: string | null | undefined): string {
+  if (channel === "google") return "Google";
+  if (channel === "meta") return "Meta";
+  if (channel === "both") return "Google and Meta";
+  return "Google";
+}
+
+function formatEmailDate(value: string): string {
+  const [year, month, day] = value.split("-").map((part) => Number.parseInt(part, 10));
+  const date =
+    year && month && day
+      ? new Date(Date.UTC(year, month - 1, day))
+      : new Date(value);
+  if (Number.isNaN(date.getTime())) return escapeHtml(value);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function digestHeadline(opts: DigestOpts): string {

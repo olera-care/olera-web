@@ -38,6 +38,7 @@ import {
 } from "@/lib/medjobs/smartlead-bridge";
 import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
 import { CLOSED_STATUSES } from "@/lib/student-outreach/types";
+import { decisionMakerEmailRecipients } from "@/lib/student-outreach/decision-makers";
 import { getProviderOwnership } from "@/lib/providers/ownership.server";
 import {
   deriveRepliesState,
@@ -1099,9 +1100,9 @@ async function handleUpdateGeneralContact(
       nextGc[flag] = body[flag];
     }
   }
-  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
-    throw new Error("Invalid email");
-  }
+  // Email format is intentionally NOT validated in the medjobs flow — the
+  // admin confirms addresses via pre-flight research + call. (Malformed
+  // addresses are handled downstream by Smartlead/Resend, not blocked here.)
   if (body.zip && !/^\d{5}(?:-\d{4})?$/.test(body.zip.trim())) {
     throw new Error("ZIP must be 5 digits (or 5+4)");
   }
@@ -1226,9 +1227,8 @@ async function handleUpdateDecisionMaker(
   if (typeof body.unavailable === "boolean") {
     nextDm.unavailable = body.unavailable;
   }
-  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
-    throw new Error("Invalid Decision Maker email");
-  }
+  // Email format not validated in the medjobs flow (admin confirms by
+  // research + call; downstream services handle malformed addresses).
   const nextResearch: ResearchData = { ...current, decision_maker: nextDm };
   await touchOutreach(db, row.id, userId, { research_data: nextResearch });
 }
@@ -2164,15 +2164,22 @@ async function handleScheduleSequence(
     user_id: userId,
     has_phone: hasPhone,
   });
-  // Smartlead is the delivery engine for all MedJobs cold outreach. Enroll
-  // the lead into its campus campaign FIRST so any skip (no email / already
-  // enrolled) or API failure aborts BEFORE any CRM mutation — no orphaned
-  // tasks, no half-transitioned row. enrollRowIntoSmartlead throws on skip
-  // or failure and writes the linkage + touchpoint on success. Pass the
-  // launch-modal recipient selection so Smartlead fans out to exactly the
-  // individuals the admin kept checked (general + each sub-prospect), matching
-  // the per-recipient call tasks.
-  await enrollRowIntoSmartlead(db, row, userId, body.recipients);
+  // Smartlead is the delivery engine for all MedJobs cold EMAIL outreach.
+  // Enroll FIRST so any skip / API failure aborts BEFORE any CRM mutation.
+  // Pass the launch-modal recipient selection so Smartlead fans out to exactly
+  // the individuals the admin kept checked, matching the per-recipient calls.
+  //
+  // Phone-only (calls-only) launch: when there is NO email recipient at all
+  // (no general email AND no email-bearing recipient) — e.g. a provider with a
+  // phone but only a decision maker who has no email, launched via Override —
+  // there's nothing for Smartlead to send, so we skip enrollment entirely
+  // instead of throwing `no_email`. The row still queues its call tasks below.
+  const gcEmail = (row.research_data?.general_contact?.email ?? "").trim();
+  const hasEmailRecipient =
+    Boolean(gcEmail) || (body.recipients ?? []).some((r) => r.channels?.email === true);
+  if (hasEmailRecipient) {
+    await enrollRowIntoSmartlead(db, row, userId, body.recipients);
+  }
 
   // Smartlead owns the email drip — we only queue CRM-side call tasks.
   const tasksToInsert = plan.filter((p) => p.task_type === "outreach_followup_call");
@@ -2730,33 +2737,39 @@ function fanOutFromContacts(
  * doesn't uncheck anyone in the launch modal. Drives both the GET drawer
  * preview and the POST enrollment fallback.
  *
- *   providers              → General Contact + ONE Decision Maker (MVP cap;
- *                            the research_data.decision_maker slot)
+ *   providers              → General Contact + EVERY emailable Decision Maker
+ *                            (research_data.decision_makers plural + legacy
+ *                            singular slot + any materialized contacts)
  *   offices / orgs         → General Contact + EVERY emailable individual
  *   departments            → General Contact + the chair (the one contact)
- *
- * Legacy provider rows with no Decision Maker slot fall through to the
- * contacts-table fan-out so previously-enrolled leads still surface.
  */
 function defaultFanOutContacts(
   row: { id: string; kind: string | null; research_data: ResearchData | null },
   contacts: Contact[],
 ): NamedContact[] {
   if (row.kind === "provider") {
-    const dm = row.research_data?.decision_maker;
-    if (dm && !dm.unavailable && dm.email && dm.email.trim()) {
-      const [first, ...rest] = (dm.name ?? "").trim().split(/\s+/);
-      return [
-        {
-          contact_id: `dm:${row.id}`,
-          email: dm.email.trim(),
-          first_name: first || null,
-          last_name: rest.length > 0 ? rest.join(" ") : null,
+    // Decision makers live in research_data (plural decision_makers + legacy
+    // singular) pre-launch, and as materialized contacts post-launch. Merge
+    // both, deduped by email — contacts first so a materialized DM's real
+    // contact_id wins the modal preview match.
+    const fromContacts = fanOutFromContacts(row, contacts);
+    const seen = new Set(fromContacts.map((c) => c.email.toLowerCase()));
+    const dmRecipients: NamedContact[] = decisionMakerEmailRecipients(
+      row.research_data as Record<string, unknown> | null,
+    )
+      .filter((d) => !seen.has(d.email.toLowerCase()))
+      .map((d, i) => {
+        const [first, ...rest] = (d.name ?? "").trim().split(/\s+/);
+        return {
+          contact_id: `dm:${row.id}:${i}`,
+          email: d.email,
+          first_name: d.first_name ?? (first || null),
+          last_name: d.last_name ?? (rest.length > 0 ? rest.join(" ") : null),
           title: null,
-          role: dm.role ?? null,
-        },
-      ];
-    }
+          role: d.role,
+        };
+      });
+    return [...fromContacts, ...dmRecipients];
   }
   return fanOutFromContacts(row, contacts);
 }
@@ -3136,9 +3149,8 @@ async function handleAddContact(
     if (body.email?.trim()) fullName = body.email.trim();
     else throw new Error("Contact needs a name or an email");
   }
-  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
-    throw new Error("Invalid email");
-  }
+  // No email-format validation in the medjobs flow (admin confirms by
+  // research + call; downstream services handle malformed addresses).
 
   // If marking primary, demote existing primaries.
   if (body.is_primary) {
@@ -3224,9 +3236,8 @@ async function handleUpdateContact(
   userId: string,
 ) {
   if (!body.contact_id) throw new Error("contact_id required");
-  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
-    throw new Error("Invalid email");
-  }
+  // No email-format validation in the medjobs flow (admin confirms by
+  // research + call; downstream services handle malformed addresses).
   if (body.is_primary) {
     await db
       .from("student_outreach_contacts")

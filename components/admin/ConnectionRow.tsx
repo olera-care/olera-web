@@ -1854,7 +1854,7 @@ export default function ConnectionRow({
                             </div>
                             {/* Verification and trust score badges */}
                             <div className="flex items-center gap-3">
-                              <EmailVerificationBadge status={verificationStatus} />
+                              <EmailVerificationBadge status={verificationStatus} showHelperText />
                               <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
                             </div>
                             {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}
@@ -2013,7 +2013,7 @@ export default function ConnectionRow({
                         </div>
                         {/* Verification and trust score badges */}
                         <div className="flex items-center gap-3">
-                          <EmailVerificationBadge status={verificationStatus} />
+                          <EmailVerificationBadge status={verificationStatus} showHelperText />
                           <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
                         </div>
                         {findEmailError && <p className="text-xs text-amber-600">{findEmailError}</p>}

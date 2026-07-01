@@ -1110,6 +1110,7 @@ export async function GET(request: NextRequest) {
       phone_clicked: boolean;
       email_link_clicked: boolean;
       continue_in_inbox: boolean;
+      family_confirmed: boolean;
     }>();
 
     for (const c of searched) {
@@ -1530,7 +1531,7 @@ export async function GET(request: NextRequest) {
     // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
     // Use pre-computed values from connectionBadgeData (computed during engagement level calculation)
     // This ensures badge data matches tab placement - both use the same computed values
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean; family_confirmed: boolean }> = {};
     for (const c of pageRaw) {
       const badge = connectionBadgeData.get(c.id);
       if (badge) {

@@ -120,6 +120,7 @@ interface Engagement {
   phone_clicked: boolean;
   email_link_clicked: boolean;
   continue_in_inbox?: boolean;
+  family_confirmed?: boolean;
   // Note: "messaged" is passed separately since it's per-connection, not per-provider
 }
 
@@ -1816,7 +1817,7 @@ export default function ConnectionRow({
                               >
                                 {editingEmailLoading
                                   ? "Saving..."
-                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null || c.emailIssueType === "failed" || c.emailIssueType === "invalid"
+                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null
                                     ? "Save anyway"
                                     : "Save"}
                               </button>

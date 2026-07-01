@@ -1031,8 +1031,9 @@ export default function ConnectionRow({
         body: JSON.stringify({
           newEmail: pendingEmailEdit.newEmail,
           // Force when the operator is overriding a failed auto-check — either from
-          // a prior 422 (forceKind) or because the inline verdict is invalid/risky.
-          force: forceKind !== null || verificationStatus === "invalid" || verificationStatus === "risky",
+          // a prior 422 (forceKind), the inline verdict is invalid/risky, or the
+          // provider is in Delivery Issues (already known to have email issues).
+          force: forceKind !== null || verificationStatus === "invalid" || verificationStatus === "risky" || c.emailIssueType === "failed" || c.emailIssueType === "invalid",
         }),
       });
 
@@ -1708,7 +1709,8 @@ export default function ConnectionRow({
                                       editEmailTimeoutRef.current = null;
                                     }
                                     setEditingEmail(true);
-                                    setEditEmailInput(detail.provider.email || "");
+                                    const existingEmail = detail.provider.email || "";
+                                    setEditEmailInput(existingEmail);
                                     setEditEmailError(null);
                                     setEditEmailSuccess(false);
                                     // Clear previous find email state
@@ -1726,6 +1728,12 @@ export default function ConnectionRow({
                                     setTrustScoreStatus("idle");
                                     setTrustScoreReason("");
                                     setCandidateTrustScores(new Map());
+
+                                    // Auto-verify for providers with email issues (Delivery Issues tab)
+                                    // This shows the verification status immediately without requiring blur
+                                    if ((c.emailIssueType === "failed" || c.emailIssueType === "invalid") && existingEmail) {
+                                      handleEmailBlur(existingEmail, "edit");
+                                    }
                                   }}
                                   className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
                                 >
@@ -1817,7 +1825,7 @@ export default function ConnectionRow({
                               >
                                 {editingEmailLoading
                                   ? "Saving..."
-                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null
+                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null || c.emailIssueType === "failed" || c.emailIssueType === "invalid"
                                     ? "Save anyway"
                                     : "Save"}
                               </button>

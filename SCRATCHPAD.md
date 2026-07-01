@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-07-01 — MedJobs digest was blasting ALL providers, not clients — paused + gated (PR #1278, branch `fix/medjobs-digest-client-filter`)
+
+TJ flagged a "New Candidates This Week — Olera MedJobs" email (student caregivers pushed to a care provider) as possibly unintended. Audited the email/cron system. **Root cause:** `/api/cron/medjobs-digest` (Mondays 13:00 UTC) had a placeholder recipient query — `// For now, send to all claimed providers` — so it emailed **every claimed active provider (~529)**, not MedJobs clients.
+
+**Blast radius (verified against prod `email_log`):** the **2026-06-29 run sent 439 emails to 434 real senior-care businesses** (Right at Home, ComForCare, Christian Health NJ, Saint Simeons, …). **All 439 were non-clients** — there are currently **0** MedJobs clients in the whole provider base (nobody has `medjobs_subscription_active` or `interview_terms_accepted_at` within 90d). The candidates were Logan's **staging** seed students (`Logan+stg …`), visible in prod because staging+prod share one Supabase instance.
+
+**Clean parse (NOT erroneous):** `medjobs-nudge` → students only; `student-outreach-send` → campus stakeholders; `staffing-send-email2`/`staffing-sequence-check` → provider-facing but admin-list-driven (`/admin/staffing-outreach`). `medjobs-digest` was the sole runaway.
+
+**Actions taken:**
+1. **Paused the cron now** — wrote `cron_config` row `medjobs-digest` `enabled=false` (same mechanism as the paused family crons; `withCronRun` short-circuits to `skipped_paused`). Next Monday (7/6) won't fire.
+2. **Code fix (PR #1278 → staging, OPEN):** filter recipients to `getClientStatus(p.metadata).isClient` (the exact 90-day-pilot/active-sub definition `/admin/medjobs/clients` uses); skip the send if 0 clients. One file: `app/api/cron/medjobs-digest/route.ts`. `tsc` clean (only 5 pre-existing unrelated missing-module errors). `/pre-test` passed — no bugs (verified export parity, throw-safety on malformed metadata, admin cohort match).
+
+**Decisions:** gate on the canonical `isClient` (matches registry's documented "MedJobs provider clients" cohort) rather than invent a new flag; skip-not-blast on empty; pause immediately vs wait for merge.
+
+**Next up:** (1) **TJ decision** — with the filter + 0 current clients, the digest sends to 0 until a provider enters the pilot or subscribes. If Logan's targeted providers are tracked by a *different* signal (manual allowlist, staffing list), repoint the filter there. (2) Merge #1278 → staging → prod, then decide whether to un-pause. (3) Optional defense-in-depth: exclude `+stg` staging seed students from the candidate query (shared-instance leak). Memory candidate: shared-Supabase staging-seed leak into prod crons + "0 MedJobs clients currently."
+
 ### 2026-07-01 — Ad Boost request email automation (branch `codex/adboost-request-emails`)
 
 Built provider-facing email automation for Ad Boost requests, replacing the manual Franchil-style first-touch with status-aware sends. New migration `125_ad_boost_request_email_markers.sql` adds queued/requested/promotion sent markers; `lib/ad-boost/notifications.server.ts` reserves the marker before send and clears it if Resend fails/skips; `/api/provider/ad-boost/request` now sends queued vs requested emails on submission and a promotion email when a queued request becomes ready.

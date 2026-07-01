@@ -1414,8 +1414,8 @@ export default function ConnectionRow({
             {noContactTagged && !emailSuccess && (
               <>
                 <span className="text-gray-300">|</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-50 text-purple-600" title={c.noContactFoundAt ? `Tagged ${daysAgo(c.noContactFoundAt)}` : "Searched, no contact found"}>
-                  🔍 Searched
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-50 text-purple-600" title={c.noContactFoundAt ? `Tagged ${daysAgo(c.noContactFoundAt)}` : "No contact found"}>
+                  No contact
                 </span>
               </>
             )}
@@ -2197,8 +2197,8 @@ export default function ConnectionRow({
                               {togglingNoContactTag
                                 ? "Updating..."
                                 : noContactTagged
-                                  ? "✓ Marked as searched"
-                                  : "🔍 Mark no contact found"}
+                                  ? "Tagged"
+                                  : "Tag as no contact"}
                             </button>
                             {noContactTagged && (
                               <span className="text-xs text-gray-400">

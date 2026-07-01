@@ -28,7 +28,6 @@ import {
 } from "@/lib/student-outreach/types";
 import {
   cleanOrgName,
-  formatDueDate,
   formatLongDate,
   formatRelative,
   formatShortRelative,
@@ -613,11 +612,21 @@ export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): R
   // v9 final: pill removed from row cards. The pill restated entity-
   // type / tab default (every Prospects row showed "Prospect", every
   // Replies row showed "In Outreach") without telling the admin what
-  // to do next. The footnote already carries action-oriented copy
-  // ("Ready to launch outreach", "Reply 2d ago", "Call due Tue 3pm")
-  // which is the better operational signal. StagePill export stays
-  // for use inside the drawer's NextStepCard / status headers, but
-  // row cards run without it.
+  // to do next. StagePill export stays for use inside the drawer's
+  // NextStepCard / status headers, but row cards run without it.
+  //
+  // v11: the third line is standardized to a single "Last activity" stamp
+  // across EVERY tab — one consistent line, one consistent card height. The
+  // per-tab footnote each slot builder computes above is intentionally
+  // overridden here; the richer status detail (next step, reply state,
+  // meeting time, closed reason) still lives in the drawer.
+  slots.footnote = (
+    <p className="mt-0.5 text-[11px] text-gray-400">
+      {row.last_activity_at
+        ? `Last activity ${formatRelative(row.last_activity_at)}`
+        : "No activity yet"}
+    </p>
+  );
   return slots;
 }
 
@@ -647,34 +656,13 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // The Calls tab emits one TabRow per pending call task. Footnote primes the
-  // admin on the call's intent; the phone link dials; clicking the card opens
-  // the drawer (script + Interested / Not interested / Couldn't reach).
-  const cadenceDay = row.due_call_task?.cadence_day ?? null;
-  const purposeHint = purposeHintForCadenceDay(cadenceDay);
-  const footnoteLines: ReactNode[] = [];
-  if (purposeHint) {
-    // Prefix the day (Day 3 / Day 5 / Day 7) so a recipient's successive calls
-    // read as distinct cadence steps, never as duplicates — even on the rare
-    // occasion two land close together.
-    footnoteLines.push(
-      <p key="purpose" className="mt-0.5 text-[11px] text-gray-500">
-        {cadenceDay != null && (
-          <span className="font-medium text-gray-600">Day {cadenceDay} · </span>
-        )}
-        <span className="italic">{purposeHint}</span>
-      </p>,
-    );
-  }
-  if (row.due_call_task) {
-    footnoteLines.push(
-      <p key="due" className="text-[11px] text-gray-400">
-        {formatDueDate(row.due_call_task.due_at)}
-      </p>,
-    );
-  }
+  // The Calls tab emits one TabRow per pending call task. The card is kept
+  // deliberately minimal — org name, contact/site line, and the phone link.
+  // The due date lives in the section header (one section per calendar date),
+  // so no per-card cadence-day label or "in Nd" countdown is needed. The call
+  // script + Interested / Not interested / Couldn't reach live in the drawer.
   return {
-    footnote: footnoteLines.length > 0 ? <>{footnoteLines}</> : null,
+    footnote: null,
     headlineAccessory: row.primary_contact_phone ? (
       <a
         href={`tel:${row.primary_contact_phone}`}
@@ -687,22 +675,6 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : undefined,
     overflowMenu: buildUniversalOverflow(cb),
   };
-}
-
-/** v10 Bullet 7: purpose hint by cadence day. The hint primes the admin
- *  on the call's intent without opening the drawer. Locked in the Pass A
- *  strategy depth output. */
-function purposeHintForCadenceDay(day: number | null): string | null {
-  switch (day) {
-    case 3:
-      return "\"Did you get our email Monday?\"";
-    case 5:
-      return "\"Anything I can help with? Want me to set up a quick call with Dr. DuBose?\"";
-    case 7:
-      return "\"Last touch — better person at your org to reach about caregiver hiring?\"";
-    default:
-      return null;
-  }
 }
 
 function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {

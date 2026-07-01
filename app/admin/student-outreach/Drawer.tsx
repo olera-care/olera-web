@@ -38,7 +38,11 @@ import {
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import type { TabKey } from "@/lib/student-outreach/tab-config";
-import { cleanOrgName } from "@/lib/student-outreach/formatters";
+import {
+  cleanOrgName,
+  displayContactName,
+  displayContactRole,
+} from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
   OTHER,
@@ -73,6 +77,13 @@ interface DrawerProps {
   /** Which In Basket tab the drawer was opened from — threaded to NextStepCard
    *  so the awaiting-reply call affordance adapts (Emails → link, else button). */
   activeTab?: TabKey;
+  /** Per-recipient focus (Model 2): when the drawer is opened from a fanned-out
+   *  card, this mirrors that card's subject so the header reads the right name —
+   *  a General Contact card → the org/provider name; a Specific/Decision-Maker
+   *  card → that person's name. Null/absent for org-level (non-fan-out) cards. */
+  focusRecipientKind?: "general" | "specific" | null;
+  focusRecipientName?: string | null;
+  focusRecipientRole?: string | null;
 }
 
 type ActionFn = (
@@ -139,6 +150,9 @@ export function Drawer(props: DrawerProps) {
       onClose={props.onClose}
       onAction={props.onAction ?? (() => {})}
       activeTab={props.activeTab}
+      focusRecipientKind={props.focusRecipientKind ?? null}
+      focusRecipientName={props.focusRecipientName ?? null}
+      focusRecipientRole={props.focusRecipientRole ?? null}
     />
   );
 }
@@ -258,12 +272,18 @@ function StakeholderDrawer({
   onAction,
   seedName,
   activeTab,
+  focusRecipientKind = null,
+  focusRecipientName = null,
+  focusRecipientRole = null,
 }: {
   outreachId: string;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
   seedName?: string;
   activeTab?: TabKey;
+  focusRecipientKind?: "general" | "specific" | null;
+  focusRecipientName?: string | null;
+  focusRecipientRole?: string | null;
 }) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -345,16 +365,35 @@ function StakeholderDrawer({
           // subline; if no contact exists yet, the org name takes the
           // headline so the card isn't blank.
           const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-          const contactDisplay = primary
-            ? [primary.title, primary.first_name, primary.last_name]
-                .filter(Boolean)
-                .join(" ")
-                .trim() || primary.name || null
-            : null;
+          // Shared name/role display (formatters.displayContactName): the
+          // person's name leads; a non-honorific `title` (the add-contact UI
+          // stores the role there) never stands in as the name and instead
+          // becomes the subline role. Same helper the In-Basket cards use.
+          const contactDisplay = primary ? displayContactName(primary) : null;
+          const primaryRole = primary ? displayContactRole(primary) : null;
           const orgDisplay = cleanOrgName(ctx.outreach.organization_name);
-          const headline = contactDisplay || orgDisplay;
-          const showOrgInSubline =
-            !!contactDisplay && contactDisplay !== orgDisplay;
+          const isProvider = ctx.outreach.kind === "provider";
+
+          // Resolve the drawer subject.
+          //   Part B — opened from a fanned-out card: mirror that card's
+          //     subject. General Contact card → the org/provider name; a
+          //     Specific/Decision-Maker card → that person's name.
+          //   Part A — org-level (non-fan-out) card: providers lead with the
+          //     org (the general contact IS the business); stakeholders lead
+          //     with the individual contact's name.
+          let headline: string;
+          let contactRole: string | null;
+          if (focusRecipientKind === "specific" && focusRecipientName) {
+            headline = focusRecipientName;
+            contactRole = focusRecipientRole ?? primaryRole;
+          } else if (focusRecipientKind === "general") {
+            headline = orgDisplay;
+            contactRole = null; // the org is the subject — no person role
+          } else {
+            headline = isProvider ? orgDisplay : contactDisplay || orgDisplay;
+            contactRole = primaryRole;
+          }
+          const showOrgInSubline = headline !== orgDisplay;
           // v8.10.37: surface a small "★ Partner since {date}" indicator
           // for active partners. NextStepPanel is suppressed for partners,
           // so without this header cue the drawer wouldn't show their
@@ -392,7 +431,7 @@ function StakeholderDrawer({
                   </>
                 )}
                 {ctx.campus.name} · {KIND_LABELS[ctx.outreach.kind ?? ctx.outreach.stakeholder_type]}
-                {primary?.role && ` · ${primary.role}`}
+                {contactRole && ` · ${contactRole}`}
               </p>
               {isPartner && (
                 <p className="mt-1 text-xs font-medium text-emerald-700">

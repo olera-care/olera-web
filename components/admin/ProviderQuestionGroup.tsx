@@ -224,7 +224,7 @@ export default function ProviderQuestionGroup({
   onRestoreQuestion,
   actionLoading,
 }: ProviderQuestionGroupProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [findingEmail, setFindingEmail] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [emailCandidates, setEmailCandidates] = useState<Array<{

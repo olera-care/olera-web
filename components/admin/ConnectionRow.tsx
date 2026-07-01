@@ -1031,7 +1031,11 @@ export default function ConnectionRow({
     const oldEmail = detail?.provider.email || "(none)";
     const newEmail = editEmailInput.trim();
 
-    if (oldEmail === newEmail) {
+    // Block "same email" UNLESS we're overriding a delivery issue or verification failure.
+    // For Delivery Issues: admin confirmed the email works (called provider), wants to trust it.
+    const isOverridingIssue = c.emailIssueType === "failed" || c.emailIssueType === "invalid" ||
+                               verificationStatus === "invalid" || verificationStatus === "risky";
+    if (oldEmail === newEmail && !isOverridingIssue) {
       setEditEmailError("New email is the same as current email");
       return;
     }

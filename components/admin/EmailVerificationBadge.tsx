@@ -90,19 +90,27 @@ export default function EmailVerificationBadge({
 
   if (status === "invalid" || status === "risky") {
     const g = guidance[status]!;
-    return (
-      <span className={`inline-flex flex-col gap-0.5 ${className}`}>
-        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 w-fit">
-          <span aria-hidden>⚠</span>
-          {g.label}
-        </span>
-        {showHelperText && (
+    const badge = (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 w-fit">
+        <span aria-hidden>⚠</span>
+        {g.label}
+      </span>
+    );
+
+    // When showing helper text, wrap badge + text in a column layout
+    if (showHelperText) {
+      return (
+        <span className={`inline-flex flex-col gap-0.5 ${className}`}>
+          {badge}
           <span className="text-[11px] text-amber-600 leading-tight">
             {g.helperText}
           </span>
-        )}
-      </span>
-    );
+        </span>
+      );
+    }
+
+    // No helper text - just return the badge with className
+    return <span className={className}>{badge}</span>;
   }
 
   const { icon, text, classes } = config[status];

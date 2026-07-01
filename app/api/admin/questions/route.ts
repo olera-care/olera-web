@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const providerId = searchParams.get("provider_id");
-    const needsEmail = searchParams.get("needs_email") === "true";
+    const needsEmail = searchParams.get("needs_email") === "true"; // No email on file
+    const deliveryIssues = searchParams.get("delivery_issues") === "true"; // Has email but bounced
     const countOnly = searchParams.get("count_only") === "true";
     const grouped = searchParams.get("grouped") === "true"; // Group questions by provider
     const limit = parseInt(searchParams.get("limit") || "50", 10);
@@ -129,9 +130,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ count: count ?? 0 });
     }
 
-    // For needs_email, we need to verify provider status before pagination
+    // For needs_email or delivery_issues, we need to verify provider status before pagination
     // to ensure count and results match
-    if (needsEmail) {
+    if (needsEmail || deliveryIssues) {
       let needsEmailQuery = db
         .from("provider_questions")
         .select("*")
@@ -186,13 +187,21 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Filter to valid questions only: provider exists, not archived, and has
-      // no USABLE email — either none on file, or one verified undeliverable
-      // (email_dead, set when the send path suppressed it).
+      // Filter based on tab:
+      // - needs_email: provider has NO email on file
+      // - delivery_issues: provider HAS email but it bounced (email_dead)
       const validQuestions = (allNeedsEmailQuestions ?? []).filter((q) => {
         const pStatus = providerStatusMap.get(q.provider_id);
         const emailDead = (q.metadata as Record<string, unknown> | null)?.email_dead === true;
-        return pStatus?.exists && !pStatus.isArchived && (!pStatus.hasEmail || emailDead);
+        if (!pStatus?.exists || pStatus.isArchived) return false;
+
+        if (deliveryIssues) {
+          // Delivery Issues tab: provider has email but it bounced
+          return pStatus.hasEmail && emailDead;
+        } else {
+          // No Email tab: provider has no email
+          return !pStatus.hasEmail;
+        }
       });
 
       // Apply pagination manually
@@ -244,16 +253,34 @@ export async function GET(request: NextRequest) {
         provider_email: providerEmails[q.provider_id] || null,
       }));
 
-      // Fetch tab counts for needs_email path too
-      const [pendingCountNE, needsEmailCountNE, archivedCountNE] = await Promise.all([
+      // Calculate accurate tab counts by checking provider email status
+      // We need to count no_email vs delivery_issues separately
+      const allQuestionsForCounts = (allNeedsEmailQuestions ?? []);
+      let noEmailCount = 0;
+      let deliveryIssuesCount = 0;
+
+      for (const q of allQuestionsForCounts) {
+        const pStatus = providerStatusMap.get(q.provider_id);
+        const emailDead = (q.metadata as Record<string, unknown> | null)?.email_dead === true;
+        if (!pStatus?.exists || pStatus.isArchived) continue;
+
+        if (pStatus.hasEmail && emailDead) {
+          deliveryIssuesCount++;
+        } else if (!pStatus.hasEmail) {
+          noEmailCount++;
+        }
+      }
+
+      // Fetch other tab counts
+      const [pendingCountNE, archivedCountNE] = await Promise.all([
         db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived").neq("status", "rejected"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
       ]);
 
       const tabCountsNE = {
         pending: pendingCountNE.count ?? 0,
-        needs_email: needsEmailCountNE.count ?? 0,
+        no_email: noEmailCount,
+        delivery_issues: deliveryIssuesCount,
         archived: archivedCountNE.count ?? 0,
       };
 
@@ -471,16 +498,20 @@ export async function GET(request: NextRequest) {
       provider_email: providerEmails[q.provider_id] || null,
     }));
 
-    // Fetch tab counts for pending, needs_email, and archived
-    const [pendingCount, needsEmailCount, archivedCount] = await Promise.all([
+    // Fetch tab counts for pending and archived
+    // For no_email/delivery_issues, we use the raw needs_provider_email count as approximation
+    // (accurate counts require checking provider email status which is expensive)
+    const [pendingCount, needsEmailRawCount, archivedCount] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
       db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived").neq("status", "rejected"),
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 
+    // Note: no_email and delivery_issues are approximations here; accurate counts shown when in those tabs
     const tabCounts = {
       pending: pendingCount.count ?? 0,
-      needs_email: needsEmailCount.count ?? 0,
+      no_email: needsEmailRawCount.count ?? 0, // Approximation - includes both no_email and delivery_issues
+      delivery_issues: 0, // Accurate count shown when viewing delivery_issues tab
       archived: archivedCount.count ?? 0,
     };
 

@@ -48,10 +48,11 @@ interface ProviderGroup {
   questions: Question[];
 }
 
-type TabValue = "unanswered" | "needs_email" | "answered" | "removed" | "archived" | "";
+type TabValue = "unanswered" | "no_email" | "delivery_issues" | "answered" | "removed" | "archived" | "";
 
 const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
-  { label: "Needs Email", value: "needs_email", showCount: true },
+  { label: "No Email", value: "no_email", showCount: true },
+  { label: "Delivery Issues", value: "delivery_issues", showCount: true },
   { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Answered", value: "answered" },
   { label: "Removed", value: "removed" },
@@ -62,11 +63,11 @@ const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
 export default function AdminQuestionsPage() {
   const [providerGroups, setProviderGroups] = useState<ProviderGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
+  const [activeTab, setActiveTab] = useState<TabValue>("no_email");
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [totalProviders, setTotalProviders] = useState(0);
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
-  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
+  const [tabCounts, setTabCounts] = useState<{ pending: number; no_email: number; delivery_issues: number; archived: number }>({ pending: 0, no_email: 0, delivery_issues: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
@@ -90,7 +91,8 @@ export default function AdminQuestionsPage() {
     setExporting(true);
     try {
       const params = new URLSearchParams();
-      if (activeTab === "needs_email") params.set("tab", "needs_email");
+      if (activeTab === "no_email") params.set("tab", "no_email");
+      else if (activeTab === "delivery_issues") params.set("tab", "delivery_issues");
       else if (activeTab === "unanswered") params.set("tab", "unanswered");
       else if (activeTab === "answered") params.set("tab", "answered");
       else if (activeTab === "removed") params.set("tab", "removed");
@@ -139,8 +141,10 @@ export default function AdminQuestionsPage() {
         offset: "0",
         grouped: "true",
       });
-      if (activeTab === "needs_email") {
+      if (activeTab === "no_email") {
         params.set("needs_email", "true");
+      } else if (activeTab === "delivery_issues") {
+        params.set("delivery_issues", "true");
       } else if (activeTab === "unanswered") {
         params.set("status", "pending");
       } else if (activeTab === "removed") {
@@ -326,7 +330,8 @@ export default function AdminQuestionsPage() {
       <div className="flex gap-1 mb-8 border-b border-gray-100">
         {TABS.map((tab) => {
           const tabCount = tab.value === "unanswered" ? tabCounts.pending
-            : tab.value === "needs_email" ? tabCounts.needs_email
+            : tab.value === "no_email" ? tabCounts.no_email
+            : tab.value === "delivery_issues" ? tabCounts.delivery_issues
             : tab.value === "archived" ? tabCounts.archived
             : null;
 
@@ -358,14 +363,23 @@ export default function AdminQuestionsPage() {
         </div>
       ) : providerGroups.length === 0 ? (
         <div className="text-center py-24">
-          {activeTab === "needs_email" ? (
+          {activeTab === "no_email" ? (
             <div className="space-y-3">
               <div className="w-10 h-10 mx-auto rounded-full bg-gray-50 flex items-center justify-center">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-sm text-gray-400">All questions have provider emails</p>
+              <p className="text-sm text-gray-400">All providers have emails on file</p>
+            </div>
+          ) : activeTab === "delivery_issues" ? (
+            <div className="space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-full bg-gray-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-400">No delivery issues</p>
             </div>
           ) : (
             <p className="text-sm text-gray-400">
@@ -375,26 +389,33 @@ export default function AdminQuestionsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {providerGroups.map((group) => (
-            <ProviderQuestionGroup
-              key={group.provider.id}
-              provider={group.provider}
-              stats={group.stats}
-              questions={group.questions}
-              onEmailAdded={fetchQuestions}
-              onArchiveProvider={(providerId, providerName) => {
-                setArchiveProviderTarget({ providerId, providerName });
-                setArchiveProviderReason("");
-              }}
-              onArchiveQuestion={(questionId) => {
-                setArchiveQuestionTarget(questionId);
-                setArchiveQuestionReason("");
-              }}
-              onRemoveQuestion={handleRemoveQuestion}
-              onRestoreQuestion={handleRestoreQuestion}
-              actionLoading={actionLoading}
-            />
-          ))}
+          {providerGroups.map((group) => {
+            // Check if any question has email_dead (delivery issue)
+            const hasDeliveryIssue = group.questions.some(
+              (q) => q.metadata?.email_dead === true
+            );
+            return (
+              <ProviderQuestionGroup
+                key={group.provider.id}
+                provider={group.provider}
+                stats={group.stats}
+                questions={group.questions}
+                hasDeliveryIssue={hasDeliveryIssue}
+                onEmailAdded={fetchQuestions}
+                onArchiveProvider={(providerId, providerName) => {
+                  setArchiveProviderTarget({ providerId, providerName });
+                  setArchiveProviderReason("");
+                }}
+                onArchiveQuestion={(questionId) => {
+                  setArchiveQuestionTarget(questionId);
+                  setArchiveQuestionReason("");
+                }}
+                onRemoveQuestion={handleRemoveQuestion}
+                onRestoreQuestion={handleRestoreQuestion}
+                actionLoading={actionLoading}
+              />
+            );
+          })}
         </div>
       )}
 

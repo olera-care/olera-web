@@ -44,6 +44,8 @@ interface ProviderQuestionGroupProps {
   provider: ProviderData;
   stats: ProviderStats;
   questions: Question[];
+  /** Whether any question has email_dead (bounced) */
+  hasDeliveryIssue?: boolean;
   onEmailAdded: () => void;
   onArchiveProvider: (providerId: string, providerName: string) => void;
   onArchiveQuestion: (questionId: string) => void;
@@ -57,7 +59,46 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function EmailStatusBadge({ provider }: { provider: ProviderData }) {
+function ProviderStatusBadge({ provider }: { provider: ProviderData }) {
+  // Claimed + Verified
+  if (provider.isAccountClaimed && (provider.verificationState === "verified" || provider.verificationState === "not_required" || !provider.verificationState)) {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+        Verified
+      </span>
+    );
+  }
+
+  // Claimed but pending verification
+  if (provider.isAccountClaimed && provider.verificationState === "pending") {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
+        Pending
+      </span>
+    );
+  }
+
+  // Claimed but unverified/rejected
+  if (provider.isAccountClaimed) {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded">
+        Unverified
+      </span>
+    );
+  }
+
+  // Unclaimed
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 bg-gray-50 rounded">
+      Unclaimed
+    </span>
+  );
+}
+
+function EmailStatusBadge({ provider, hasDeliveryIssue }: { provider: ProviderData; hasDeliveryIssue?: boolean }) {
   if (provider.isAccountClaimed) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
@@ -67,6 +108,17 @@ function EmailStatusBadge({ provider }: { provider: ProviderData }) {
     );
   }
 
+  // Email exists but bounced/failed
+  if (provider.email && hasDeliveryIssue) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-red-600 font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+        Email bounced
+      </span>
+    );
+  }
+
+  // Email exists and working
   if (provider.email) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600">
@@ -76,6 +128,7 @@ function EmailStatusBadge({ provider }: { provider: ProviderData }) {
     );
   }
 
+  // No email
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 font-medium">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
@@ -217,6 +270,7 @@ export default function ProviderQuestionGroup({
   provider,
   stats,
   questions,
+  hasDeliveryIssue,
   onEmailAdded,
   onArchiveProvider,
   onArchiveQuestion,
@@ -309,7 +363,8 @@ export default function ProviderQuestionGroup({
                   {providerLabel}
                 </a>
               )}
-              <EmailStatusBadge provider={provider} />
+              <ProviderStatusBadge provider={provider} />
+              <EmailStatusBadge provider={provider} hasDeliveryIssue={hasDeliveryIssue} />
             </div>
             <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
               <span>{stats.total} question{stats.total !== 1 ? "s" : ""}</span>

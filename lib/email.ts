@@ -183,6 +183,36 @@ export {
  * Fails OPEN: any error returns false (send proceeds), so a transient DB
  * issue can never silently block email.
  */
+/**
+ * Returns true if an address is on the global do-not-contact list
+ * (do_not_contact, migration 126). Unlike isSuppressedRecipient (reactive
+ * bounce/complaint), this is an explicit, human-entered "stop contacting this
+ * address" request. It's the highest-priority send-path gate and — unlike the
+ * bounce/verification signals — is NOT bypassed by the email_overrides trust
+ * allowlist: an explicit opt-out (consent) beats a deliverability-confidence
+ * override. Account-critical auth mail (SUPPRESSION_EXEMPT_TYPES) still sends,
+ * because those flows are user-initiated.
+ *
+ * Fails OPEN: any error returns false (send proceeds), so a transient DB issue
+ * can never silently freeze the entire email program.
+ */
+export async function isDoNotContact(email: string): Promise<boolean> {
+  try {
+    const db = getServiceDb();
+    if (!db) return false;
+    const { data } = await db
+      .from("do_not_contact")
+      .select("email")
+      .eq("email", email.trim().toLowerCase())
+      .limit(1)
+      .maybeSingle();
+    return !!data;
+  } catch (err) {
+    console.error("[email] Do-not-contact check failed (sending anyway):", err);
+    return false;
+  }
+}
+
 export async function isSuppressedRecipient(email: string): Promise<boolean> {
   try {
     const db = getServiceDb();
@@ -432,6 +462,22 @@ export async function sendEmail(
       : null
     : to;
   if (soleRecipient && emailType && !SUPPRESSION_EXEMPT_TYPES.has(emailType)) {
+    // Global do-not-contact: an explicit human "stop contacting this address"
+    // request (do_not_contact table, migration 126). Highest-priority gate —
+    // checked before the reactive bounce/complaint + verification signals, and
+    // it returns immediately so it is NOT overridable by the email_overrides
+    // trust allowlist below (consent beats deliverability confidence). Fails
+    // open inside isDoNotContact, so a DB blip can't freeze the whole program.
+    if (await isDoNotContact(soleRecipient)) {
+      console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — on do-not-contact list`);
+      if (existingLogId) {
+        updateEmailLog(existingLogId, {
+          status: "failed",
+          errorMessage: "Suppressed: do-not-contact",
+        });
+      }
+      return { success: true, skipped: true, skipReason: "do_not_contact", emailLogId: existingLogId ?? undefined };
+    }
     // Cold lane = mail to scraped / unclaimed directory addresses (the high-bounce
     // pool). Two signals: a cold provider-notification type, OR a send whose From
     // resolved to the isolated PROVIDER_NOTIFY_FROM domain — the weekly digest's

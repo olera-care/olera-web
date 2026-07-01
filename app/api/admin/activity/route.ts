@@ -556,29 +556,33 @@ async function handleProvidersView(db: any, opts: {
     //   1. claim_state = 'claimed' (formal claim completed), OR
     //   2. account_id IS NOT NULL (user is linked, even if claim process incomplete)
     // This ensures active providers (signing in, opening leads) show as claimed.
-    const [{ data: claimedBySourceId }, { data: claimedBySlug }] = await Promise.all([
+    const [{ data: profilesBySourceId }, { data: profilesBySlug }] = await Promise.all([
       db
         .from("business_profiles")
-        .select("source_provider_id, slug")
-        .in("source_provider_id", providerIds)
-        .or("claim_state.eq.claimed,account_id.not.is.null"),
+        .select("source_provider_id, slug, claim_state, account_id")
+        .in("source_provider_id", providerIds),
       db
         .from("business_profiles")
-        .select("source_provider_id, slug")
-        .in("slug", providerIds)
-        .or("claim_state.eq.claimed,account_id.not.is.null"),
+        .select("source_provider_id, slug, claim_state, account_id")
+        .in("slug", providerIds),
     ]);
 
     // Build a set containing all identifiers (both source_provider_id and slug)
     // that belong to claimed profiles, so lookups work regardless of ID format
     const claimedSet = new Set<string>();
-    for (const bp of claimedBySourceId || []) {
-      if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
-      if (bp.slug) claimedSet.add(bp.slug);
+    for (const bp of profilesBySourceId || []) {
+      const isClaimed = bp.claim_state === "claimed" || bp.account_id != null;
+      if (isClaimed) {
+        if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
+        if (bp.slug) claimedSet.add(bp.slug);
+      }
     }
-    for (const bp of claimedBySlug || []) {
-      if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
-      if (bp.slug) claimedSet.add(bp.slug);
+    for (const bp of profilesBySlug || []) {
+      const isClaimed = bp.claim_state === "claimed" || bp.account_id != null;
+      if (isClaimed) {
+        if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
+        if (bp.slug) claimedSet.add(bp.slug);
+      }
     }
 
     if (providers) {

@@ -1073,9 +1073,13 @@ export default function ConnectionRow({
         setEditEmailSuccess(true);
         // Show appropriate success message based on operation type
         setEditEmailSuccessMsg(
-          data.trusted
-            ? "Email trusted! This provider will continue receiving emails."
-            : "Email updated! Day 0 notification sent. Sequence restarted."
+          data.trusted && data.resent
+            ? "Email trusted! Day 0 resent. Sequence restarted."
+            : data.trusted && data.resendFailed
+              ? "Email trusted but resend failed. Check email logs."
+              : data.trusted
+                ? "Email trusted!"
+                : "Email updated! Day 0 notification sent. Sequence restarted."
         );
         setEditEmailInput("");
         setForceKind(null);

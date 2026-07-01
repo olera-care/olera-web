@@ -60,8 +60,8 @@ function formatDate(dateStr: string): string {
 }
 
 function ProviderStatusBadge({ provider }: { provider: ProviderData }) {
-  // Claimed + Verified
-  if (provider.isAccountClaimed && (provider.verificationState === "verified" || provider.verificationState === "not_required" || !provider.verificationState)) {
+  // Claimed + Verified (explicitly verified or not_required)
+  if (provider.isAccountClaimed && (provider.verificationState === "verified" || provider.verificationState === "not_required")) {
     return (
       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded">
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,8 +81,17 @@ function ProviderStatusBadge({ provider }: { provider: ProviderData }) {
     );
   }
 
-  // Claimed but unverified/rejected
+  // Claimed but no verification state (legacy) or explicitly unverified/rejected
   if (provider.isAccountClaimed) {
+    // Legacy accounts with no verification state - show as "Claimed" (neutral)
+    if (!provider.verificationState) {
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 bg-blue-50 rounded">
+          Claimed
+        </span>
+      );
+    }
+    // Explicitly unverified or rejected
     return (
       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded">
         Unverified

@@ -498,20 +498,62 @@ export async function GET(request: NextRequest) {
       provider_email: providerEmails[q.provider_id] || null,
     }));
 
-    // Fetch tab counts for pending and archived
-    // For no_email/delivery_issues, we use the raw needs_provider_email count as approximation
-    // (accurate counts require checking provider email status which is expensive)
-    const [pendingCount, needsEmailRawCount, archivedCount] = await Promise.all([
+    // Fetch tab counts - need accurate no_email vs delivery_issues split
+    const [pendingCount, archivedCount, needsEmailQuestions] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived").neq("status", "rejected"),
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
+      db.from("provider_questions")
+        .select("provider_id, metadata")
+        .contains("metadata", { needs_provider_email: true })
+        .neq("status", "archived")
+        .neq("status", "rejected")
+        .limit(10000),
     ]);
 
-    // Note: no_email and delivery_issues are approximations here; accurate counts shown when in those tabs
+    // Calculate accurate no_email vs delivery_issues counts
+    let noEmailCount = 0;
+    let deliveryIssuesCount = 0;
+
+    if (needsEmailQuestions.data && needsEmailQuestions.data.length > 0) {
+      const providerIdsForCount = [...new Set(needsEmailQuestions.data.map((q) => q.provider_id).filter(Boolean))];
+
+      // Look up provider email status
+      const [{ data: bpForCount }, { data: oleraForCount }] = await Promise.all([
+        db.from("business_profiles").select("slug, email, is_active").in("slug", providerIdsForCount),
+        db.from("olera-providers").select("slug, email").in("slug", providerIdsForCount).not("deleted", "is", true),
+      ]);
+
+      const providerEmailStatus = new Map<string, { hasEmail: boolean; isArchived: boolean }>();
+      for (const id of providerIdsForCount) {
+        providerEmailStatus.set(id, { hasEmail: false, isArchived: false });
+      }
+      for (const p of bpForCount ?? []) {
+        if (p.slug) providerEmailStatus.set(p.slug, { hasEmail: !!p.email, isArchived: p.is_active === false });
+      }
+      for (const p of oleraForCount ?? []) {
+        if (p.slug && !providerEmailStatus.get(p.slug)?.hasEmail) {
+          const existing = providerEmailStatus.get(p.slug);
+          providerEmailStatus.set(p.slug, { hasEmail: !!p.email, isArchived: existing?.isArchived ?? false });
+        }
+      }
+
+      for (const q of needsEmailQuestions.data) {
+        const status = providerEmailStatus.get(q.provider_id);
+        if (!status || status.isArchived) continue;
+        const emailDead = (q.metadata as Record<string, unknown> | null)?.email_dead === true;
+
+        if (status.hasEmail && emailDead) {
+          deliveryIssuesCount++;
+        } else if (!status.hasEmail) {
+          noEmailCount++;
+        }
+      }
+    }
+
     const tabCounts = {
       pending: pendingCount.count ?? 0,
-      no_email: needsEmailRawCount.count ?? 0, // Approximation - includes both no_email and delivery_issues
-      delivery_issues: 0, // Accurate count shown when viewing delivery_issues tab
+      no_email: noEmailCount,
+      delivery_issues: deliveryIssuesCount,
       archived: archivedCount.count ?? 0,
     };
 

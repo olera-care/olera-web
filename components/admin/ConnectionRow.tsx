@@ -423,6 +423,7 @@ export default function ConnectionRow({
   const [editEmailInput, setEditEmailInput] = useState("");
   const [editEmailError, setEditEmailError] = useState<string | null>(null);
   const [editEmailSuccess, setEditEmailSuccess] = useState(false);
+  const [editEmailSuccessMsg, setEditEmailSuccessMsg] = useState<string | null>(null);
   const [editingEmailLoading, setEditingEmailLoading] = useState(false);
   const [pendingEmailEdit, setPendingEmailEdit] = useState<{ oldEmail: string; newEmail: string } | null>(null);
   const editEmailTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1070,6 +1071,12 @@ export default function ConnectionRow({
 
       if (res.ok && data.success) {
         setEditEmailSuccess(true);
+        // Show appropriate success message based on operation type
+        setEditEmailSuccessMsg(
+          data.trusted
+            ? "Email trusted! This provider will continue receiving emails."
+            : "Email updated! Day 0 notification sent. Sequence restarted."
+        );
         setEditEmailInput("");
         setForceKind(null);
 
@@ -1108,6 +1115,7 @@ export default function ConnectionRow({
         editEmailTimeoutRef.current = setTimeout(() => {
           setEditingEmail(false);
           setEditEmailSuccess(false);
+          setEditEmailSuccessMsg(null);
           setEditEmailError(null);
           editEmailTimeoutRef.current = null;
         }, warning ? 5000 : 3000);
@@ -2027,9 +2035,9 @@ export default function ConnectionRow({
                               </div>
                             )}
                             {editEmailError && <p className="text-xs text-red-600">{editEmailError}</p>}
-                            {editEmailSuccess && (
+                            {editEmailSuccess && editEmailSuccessMsg && (
                               <p className="text-xs text-emerald-600">
-                                Email updated! Day 0 notification sent. Sequence restarted.
+                                {editEmailSuccessMsg}
                               </p>
                             )}
                           </form>

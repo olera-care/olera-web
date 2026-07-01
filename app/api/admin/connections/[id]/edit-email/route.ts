@@ -105,7 +105,30 @@ export async function POST(
 
     const oldEmail = toProfile.email?.trim() || null;
 
+    // Special case: "trusting" the same email (force + same email)
+    // This happens when admin confirms a failed/invalid email actually works.
+    // We don't change the email, just add it to email_overrides.
     if (oldEmail === newEmail) {
+      if (force) {
+        // Trust the existing email without resending/resetting anything
+        await markEmailTrusted(newEmail, {
+          reason: "admin",
+          note: `trust-existing-email on connection ${connectionId}`,
+          createdBy: `admin:${admin.id}`,
+        });
+
+        console.log(
+          `[edit-email] Trusted existing email for connection ${connectionId}: ${newEmail} (no change)`
+        );
+
+        return NextResponse.json({
+          success: true,
+          trusted: true,
+          newEmail,
+          message: "Email trusted. No changes made to sequence.",
+        });
+      }
+
       return NextResponse.json({ error: "New email is the same as current email" }, { status: 400 });
     }
 

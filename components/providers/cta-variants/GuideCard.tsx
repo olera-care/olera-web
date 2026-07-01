@@ -674,7 +674,18 @@ export default function GuideCard({
   // RENDER: Success State
   // ─────────────────────────────────────────────────────────────────────────────
   const inboxHref = connectionId ? `/portal/inbox?id=${connectionId}` : "/portal/inbox";
-  const careLabel = careTypes.length > 0 ? careTypes[0] : providerCategory;
+  const categoryMap: Record<string, string> = {
+    independent_living: "Independent Living",
+    assisted_living: "Assisted Living",
+    memory_care: "Memory Care",
+    home_care_agency: "Home Care",
+    home_health_agency: "Home Health",
+    hospice_agency: "Hospice",
+    nursing_home: "Nursing Home",
+  };
+  const careLabel = providerCategory
+    ? (categoryMap[providerCategory] ?? providerCategory)
+    : (careTypes.length > 0 ? careTypes[0] : null);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden">

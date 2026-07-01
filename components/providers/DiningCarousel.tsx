@@ -74,7 +74,7 @@ export default function DiningCarousel({ images }: { images: DiningImage[] }) {
             <button
               key={img.src}
               onClick={() => setLightboxIndex(idx)}
-              className="flex-shrink-0 w-[calc(33.333%-8px)] min-w-[200px] aspect-[4/3] relative rounded-lg overflow-hidden cursor-zoom-in"
+              className="flex-shrink-0 w-[calc(33.333%-8px)] min-w-[160px] aspect-[3/2] relative rounded-lg overflow-hidden cursor-zoom-in"
             >
               <Image
                 src={img.src}

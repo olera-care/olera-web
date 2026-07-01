@@ -460,7 +460,7 @@ export function getRegionalEstimate(
         low,
         high,
         unit: "month",
-        formatted: `$${low.toLocaleString()}–$${high.toLocaleString()}/mo`,
+        formatted: `$${low.toLocaleString("en-US")}–$${high.toLocaleString("en-US")}/mo`,
         isMetroAdjusted,
       };
     }
@@ -474,7 +474,7 @@ export function getRegionalEstimate(
         low,
         high,
         unit: "month",
-        formatted: `$${low.toLocaleString()}–$${high.toLocaleString()}/mo`,
+        formatted: `$${low.toLocaleString("en-US")}–$${high.toLocaleString("en-US")}/mo`,
         isMetroAdjusted,
       };
     }
@@ -488,7 +488,7 @@ export function getRegionalEstimate(
         low,
         high,
         unit: "month",
-        formatted: `$${low.toLocaleString()}–$${high.toLocaleString()}/mo`,
+        formatted: `$${low.toLocaleString("en-US")}–$${high.toLocaleString("en-US")}/mo`,
         isMetroAdjusted,
       };
     }
@@ -517,18 +517,18 @@ export function getStateMedian(
     case "Home Health Care":
       return { value: costs.homeHealthHourly, unit: "hour", formatted: `$${costs.homeHealthHourly}/hr` };
     case "Assisted Living":
-      return { value: costs.assistedLivingMonthly, unit: "month", formatted: `$${costs.assistedLivingMonthly.toLocaleString()}/mo` };
+      return { value: costs.assistedLivingMonthly, unit: "month", formatted: `$${costs.assistedLivingMonthly.toLocaleString("en-US")}/mo` };
     case "Memory Care": {
       const val = roundToHundred(costs.assistedLivingMonthly * MEMORY_CARE_PREMIUM);
-      return { value: val, unit: "month", formatted: `$${val.toLocaleString()}/mo` };
+      return { value: val, unit: "month", formatted: `$${val.toLocaleString("en-US")}/mo` };
     }
     case "Independent Living": {
       const val = roundToHundred(costs.assistedLivingMonthly * INDEPENDENT_LIVING_RATIO);
-      return { value: val, unit: "month", formatted: `$${val.toLocaleString()}/mo` };
+      return { value: val, unit: "month", formatted: `$${val.toLocaleString("en-US")}/mo` };
     }
     case "Nursing Home": {
       // Show semi-private as the reference point (more common)
-      return { value: costs.nursingHomeSemiPrivateMonthly, unit: "month", formatted: `$${costs.nursingHomeSemiPrivateMonthly.toLocaleString()}/mo` };
+      return { value: costs.nursingHomeSemiPrivateMonthly, unit: "month", formatted: `$${costs.nursingHomeSemiPrivateMonthly.toLocaleString("en-US")}/mo` };
     }
     // Hospice: no pricing to show
     default:

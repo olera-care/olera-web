@@ -22,6 +22,7 @@ import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
 import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
+import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import MobilePricingTooltip from "@/components/providers/MobilePricingTooltip";
 import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
 import { MobileManageLink } from "@/components/providers/MobileManageLink";
@@ -35,7 +36,6 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
-import ManagedUtmCapture from "@/components/providers/ManagedUtmCapture";
 import FloorPlanCarousel from "@/components/providers/FloorPlanCarousel";
 import AccommodationsSection from "@/components/providers/AccommodationsSection";
 import AmenitiesSection from "@/components/providers/AmenitiesSection";
@@ -65,7 +65,7 @@ export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
 import { resolveProviderTags } from "@/lib/provider-tags";
 import { groupPhotos, pickHeroImages, type GroupedPhoto } from "@/lib/photo-categories";
-import PhotoTourWrapper from "@/components/providers/PhotoTourWrapper";
+import PhotoTourWrapper, { ViewPhotosButton } from "@/components/providers/PhotoTourWrapper";
 import { getServiceClient } from "@/lib/admin";
 import { ViewTracker } from "@/components/analytics/ViewTracker";
 
@@ -312,20 +312,20 @@ export default async function ProviderPage({
     // Direct price_min/max fallback
     if (meta?.price_min != null && meta?.price_max != null) {
       if (meta.price_max > meta.price_min) {
-        return `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+        return `$${meta.price_min.toLocaleString("en-US")}-${meta.price_max.toLocaleString("en-US")}${priceUnitSuffix}`;
       }
       if (meta.price_max === meta.price_min) {
-        return `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+        return `$${meta.price_min.toLocaleString("en-US")}${priceUnitSuffix}`;
       }
       // Invalid: max < min, fall through
     }
 
     // Single price fallbacks
     if (meta?.price_min != null) {
-      return `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+      return `From $${meta.price_min.toLocaleString("en-US")}${priceUnitSuffix}`;
     }
     if (meta?.price_max != null) {
-      return `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+      return `Up to $${meta.price_max.toLocaleString("en-US")}${priceUnitSuffix}`;
     }
 
     // Regional estimate fallback (match card behavior)
@@ -355,6 +355,10 @@ export default async function ProviderPage({
   // Category override — must happen before categoryLabel is computed
   if (profile.slug === "emerald-oaks") {
     profile.category = "independent_living";
+    profile.care_types = ["Independent Living"];
+    profile.display_name = "Emerald Oaks Retirement Resort";
+    profile.description = "Emerald Oaks is an independent living community in Yuba City, CA offering studio, one-bedroom, and two-bedroom floor plans. Residents enjoy chef-prepared meals, a heated pool, fitness center, full-size movie theater, and on-site salon. The community is pet-friendly and provides scheduled transportation.";
+    (profile.metadata as Record<string, unknown>).accepting_residents = true;
   }
 
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
@@ -470,43 +474,21 @@ export default async function ProviderPage({
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
     actualVerificationState = claimResult.verification_state ?? actualVerificationState;
-
-    // Only overlay editorial metadata if the claim is verified.
-    // Unverified providers' edits should not appear on the public page.
-    // badge_approved is an admin override that grants verified status.
-    const claimMetadataRaw = claimResult.metadata as Record<string, unknown> | null;
-    const badgeApprovedOverride = claimMetadataRaw?.badge_approved === true;
-    const isVerifiedClaim =
-      claimResult.claim_state === "claimed" &&
-      (claimResult.verification_state === "verified" ||
-       claimResult.verification_state === "not_required" ||
-       badgeApprovedOverride);
-
-    if (isVerifiedClaim) {
-      // Overlay the editorial fields the provider edits in their dashboard but
-      // that don't exist on the directory row — owner story, payment types,
-      // staff screening, itemized pricing. This makes a directory-linked CLAIMED
-      // provider's public page show the same editorial data as an account-first
-      // provider (Chunk 4 Step 2). iOS/directory metadata has none of these.
-      claimMeta = claimResult.metadata as ExtendedMetadata | null;
-      if (claimMeta?.staff) staff = claimMeta.staff;
-      if (claimMeta?.accepted_payments) acceptedPayments = claimMeta.accepted_payments;
-    }
+    // Overlay the editorial fields the provider edits in their dashboard but
+    // that don't exist on the directory row — owner story, payment types,
+    // staff screening, itemized pricing. This makes a directory-linked CLAIMED
+    // provider's public page show the same editorial data as an account-first
+    // provider (Chunk 4 Step 2). iOS/directory metadata has none of these.
+    claimMeta = claimResult.metadata as ExtendedMetadata | null;
+    if (claimMeta?.staff) staff = claimMeta.staff;
+    if (claimMeta?.accepted_payments) acceptedPayments = claimMeta.accepted_payments;
   }
 
-  // Compute tri-state badge display: "unclaimed" | "verified" | "claimed"
-  // - "verified": provider is claimed AND verified (admin-approved, self-verified, or high-trust auto-verified)
-  // - "claimed": provider is claimed but NOT yet verified (pending verification, unverified, or rejected)
-  // - "unclaimed": provider is not claimed (unclaimed, pending claim, rejected claim, or archived)
-  const badgeApproved = (claimMeta as Record<string, unknown> | null)?.badge_approved === true;
-  const computeBadgeDisplayState = (): "unclaimed" | "verified" | "claimed" => {
-    if (actualClaimState !== "claimed") return "unclaimed";
-    if (actualVerificationState === "verified" ||
-        actualVerificationState === "not_required" ||
-        badgeApproved) return "verified";
-    return "claimed"; // claimed but not verified
-  };
-  const displayClaimState = computeBadgeDisplayState();
+  // Only show "Claimed" badge when provider is BOTH claimed AND verified
+  // This prevents the trust signal from appearing before verification is complete
+  const displayClaimState = (actualClaimState === "claimed" && actualVerificationState === "verified")
+    ? "claimed"
+    : "unclaimed";
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
   const realReviewCount = qaResult.reviewCount;
@@ -638,12 +620,13 @@ export default async function ProviderPage({
         { title: "HIGH PERFORMING", subtitle: "in 3 Service Areas", badgeColor: "#4A6FA5" },
       ]
     : [];
-  const providerStandout: { heading: string; points: string[] } | null = isEmeraldOaks
+  const providerStandout: { heading: string; points: { text: string; icon: string }[] } | null = isEmeraldOaks
     ? {
         heading: "What makes this place special",
         points: [
-          "Signature Freedom Dining program with a chef-led kitchen, restaurant-style meals, and an all-day bistro",
-          "Full-size movie theater, fitness center, heated pool, and on-site salon and spa",
+          { text: "Signature Freedom Dining program with a chef-led kitchen, restaurant-style meals, and an all-day bistro", icon: "dining" },
+          { text: "Full-size movie theater, fitness center, heated pool, and on-site salon and spa", icon: "amenities" },
+          { text: "Pet-friendly community welcoming your furry companions", icon: "pet" },
         ],
       }
     : null;
@@ -653,25 +636,28 @@ export default async function ProviderPage({
   const nearbyPlacesMap: Record<string, NearbyCategory[]> = {
     "emerald-oaks": [
       { label: "Hospital", icon: "hospital", places: [
-        { name: "Methodist Stone Oak Hospital", distance: "3.4 mi", lat: 29.6127, lng: -98.4572 },
-        { name: "Laurel Ridge Treatment Center", distance: "2.4 mi", lat: 29.6050, lng: -98.5100 },
+        { name: "Rideout Regional Medical Center", distance: "3.2 mi", lat: 39.1404, lng: -121.5915 },
+        { name: "Fremont Medical Center", distance: "4.1 mi", lat: 39.1560, lng: -121.5830 },
       ]},
       { label: "Pharmacy", icon: "pharmacy", places: [
-        { name: "CVS Pharmacy", distance: "2.1 mi", lat: 29.6250, lng: -98.4700 },
-        { name: "H-E-B Pharmacy", distance: "3.2 mi", lat: 29.6100, lng: -98.4500 },
+        { name: "CVS Pharmacy", distance: "1.4 mi", lat: 39.1340, lng: -121.6070 },
+        { name: "Rite Aid", distance: "1.8 mi", lat: 39.1370, lng: -121.6010 },
       ]},
       { label: "Grocery", icon: "grocery", places: [
-        { name: "H-E-B", distance: "3.2 mi", lat: 29.6100, lng: -98.4500 },
-        { name: "Trader Joe's", distance: "5.1 mi", lat: 29.5850, lng: -98.4950 },
+        { name: "Raley's", distance: "1.6 mi", lat: 39.1350, lng: -121.6050 },
+        { name: "Walmart Supercenter", distance: "2.4 mi", lat: 39.1310, lng: -121.5970 },
       ]},
       { label: "Dining", icon: "dining", places: [
-        { name: "The Village at Stone Oak", distance: "2.8 mi", lat: 29.6220, lng: -98.4850 },
+        { name: "Casa Lupe", distance: "1.1 mi", lat: 39.1285, lng: -121.6150 },
+        { name: "Sutter Buttes Brewing", distance: "3.5 mi", lat: 39.1405, lng: -121.5900 },
       ]},
       { label: "Parks", icon: "parks", places: [
-        { name: "Hardberger Park", distance: "10 mi", lat: 29.5230, lng: -98.5320 },
+        { name: "Regency Park", distance: "0.6 mi", lat: 39.1210, lng: -121.6280 },
+        { name: "Sam Brannan Park", distance: "1.9 mi", lat: 39.1320, lng: -121.6100 },
       ]},
       { label: "Place of Worship", icon: "worship", places: [
-        { name: "Oak Hills Church", distance: "4.2 mi", lat: 29.5550, lng: -98.5550 },
+        { name: "Hillcrest Baptist Church", distance: "0.5 mi", lat: 39.1270, lng: -121.6210 },
+        { name: "St. Isidore Catholic Church", distance: "1.7 mi", lat: 39.1360, lng: -121.6040 },
       ]},
     ],
     "tradition-senior-living-lp": [
@@ -770,7 +756,6 @@ export default async function ProviderPage({
     : [
         { id: "reviews", label: "Reviews" },
         { id: "faq", label: "FAQs" },
-        { id: "about", label: "About" },
         ...(isEmeraldOaks ? [
           { id: "accommodations", label: "Accommodations" },
           { id: "dining", label: "Dining" },
@@ -915,7 +900,6 @@ export default async function ProviderPage({
   return (
     <div className="min-h-screen pb-20 md:pb-0">
       <ViewTracker providerId={slug} />
-      <ManagedUtmCapture />
 
       {/* Structured data */}
       <script
@@ -947,32 +931,63 @@ export default async function ProviderPage({
       <div className="bg-white md:bg-vanilla-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-4 md:pb-8">
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs
-            category={profile.category}
-            city={profile.city}
-            state={profile.state}
-            providerName={profile.display_name}
-          />
+          {/* Breadcrumbs + Save/Share bar */}
+          <div className="flex items-center justify-between">
+            <Breadcrumbs
+              category={profile.category}
+              city={profile.city}
+              state={profile.state}
+              providerName={profile.display_name}
+            />
+          </div>
 
-          {/* ── Hero (full width, above the grid) ── */}
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Gallery */}
-            <div className="flex-shrink-0 relative w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] md:w-[448px] -mx-4 sm:-mx-6 md:mx-0">
-              <ProviderHeroGallery
-                images={images}
+          {/* ── Photo Grid ── */}
+          {/* Mobile: swipeable carousel */}
+          <div className="md:hidden relative w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] -mx-4 sm:-mx-6">
+            <ProviderHeroGallery
+              images={images}
+              providerName={profile.display_name}
+              category={profile.category}
+              fallbackImage={heroFallbackImage}
+            />
+            {photoGroups.length > 0 && (
+              <PhotoTourWrapper
+                groups={photoGroups}
                 providerName={profile.display_name}
-                category={profile.category}
-                fallbackImage={heroFallbackImage}
+                totalCount={groupedPhotos.length}
               />
-              {photoGroups.length > 0 && (
-                <PhotoTourWrapper
-                  groups={photoGroups}
-                  providerName={profile.display_name}
-                  totalCount={groupedPhotos.length}
-                />
-              )}
-              <MobileGalleryActionBar
+            )}
+            <MobileGalleryActionBar
+              provider={{
+                providerId: profile.slug,
+                slug: profile.slug,
+                name: profile.display_name,
+                location: locationStr,
+                careTypes: profile.care_types || [],
+                image: images[0] || null,
+                rating: rating || undefined,
+              }}
+            />
+          </div>
+
+          {/* Desktop: Provider name + manage CTA + Save/Share above photos */}
+          <div className="hidden md:flex md:items-center md:gap-4 mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
+              {profile.display_name}
+            </h1>
+            <ManagePageCTA
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              providerId={profile.id}
+              sourceProviderId={profile.source_provider_id}
+              providerEmail={profile.email}
+              providerCity={profile.city}
+              providerState={profile.state}
+              isClaimed={actualClaimState === "claimed"}
+              claimAccountId={claimAccountId}
+            />
+            <div className="ml-auto flex items-center gap-4">
+              <SaveButton
                 provider={{
                   providerId: profile.slug,
                   slug: profile.slug,
@@ -982,55 +997,203 @@ export default async function ProviderPage({
                   image: images[0] || null,
                   rating: rating || undefined,
                 }}
+                variant="pill-quiet"
               />
-              {/* Badge always shows regardless of images - positioned over gallery/fallback */}
+              <ShareButton name={profile.display_name} variant="text" />
+            </div>
+          </div>
+
+          {/* Desktop: Zillow-style 1 large + 4 small grid */}
+          <div className="hidden md:grid md:grid-cols-4 md:grid-rows-2 gap-1 rounded-xl overflow-hidden aspect-[2.5/1] relative">
+            {/* Claim badge overlay */}
+            {images.length > 0 && (
               <div className="absolute top-4 left-4 z-20">
                 <ClaimBadge
-                  displayState={displayClaimState}
+                  claimState={displayClaimState}
                   providerName={profile.display_name}
                   claimUrl={`/provider/onboarding?org=${profile.slug}`}
                 />
               </div>
+            )}
+            {/* Large hero photo */}
+            <div className="col-span-2 row-span-2 relative bg-gray-100">
+              {images[0] ? (
+                <Image
+                  src={images[0]}
+                  alt={`${profile.display_name} — main photo`}
+                  fill
+                  sizes="50vw"
+                  priority
+                  className="object-cover"
+                />
+              ) : heroFallbackImage ? (
+                <Image
+                  src={heroFallbackImage}
+                  alt={profile.display_name}
+                  fill
+                  sizes="50vw"
+                  priority
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary-100 via-primary-50 to-warm-50 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-primary-400">{profile.display_name.slice(0, 2).toUpperCase()}</span>
+                </div>
+              )}
             </div>
+            {/* 4 smaller photos */}
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="relative bg-gray-100">
+                {images[i] ? (
+                  <Image
+                    src={images[i]}
+                    alt={`${profile.display_name} — photo ${i + 1}`}
+                    fill
+                    sizes="25vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-50" />
+                )}
+                {/* "See all photos" on the last cell */}
+                {i === 4 && photoGroups.length > 0 && (
+                  <div className="absolute inset-0 flex items-end justify-end p-3">
+                    <PhotoTourWrapper
+                      groups={photoGroups}
+                      providerName={profile.display_name}
+                      totalCount={groupedPhotos.length}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
-            {/* Identity */}
-            <div className="flex-1 min-w-0 flex flex-col">
-              {/* Mobile eyebrow - category above name */}
-              {categoryLabel && (
-                <p className="md:hidden text-xs font-semibold tracking-wide uppercase text-gray-500 mb-1">
-                  {categoryLabel}
+          {/* ── Details below photos ── */}
+          <div className="flex flex-col md:mt-3">
+            {/* ── Desktop: Info strip ── */}
+            <div className="hidden md:block mt-1">
+              {/* Location */}
+              <p className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                {[locationStr, profile.address].filter(Boolean).join(" · ")}
+              </p>
+
+              {/* Price */}
+              {priceRange && (
+                <p className="text-xl font-bold text-gray-900 mt-3">
+                  Est. {priceRange}
                 </p>
               )}
-              {/* Name + Save */}
-              <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
-                  {profile.display_name}
-                </h1>
-                <div className="hidden md:flex items-center gap-2">
-                  <SaveButton
-                    provider={{
-                      providerId: profile.slug,
-                      slug: profile.slug,
-                      name: profile.display_name,
-                      location: locationStr,
-                      careTypes: profile.care_types || [],
-                      image: images[0] || null,
-                      rating: rating || undefined,
-                    }}
-                    variant="pill"
-                  />
-                  <ShareButton name={profile.display_name} />
-                </div>
+
+              {/* Facts line */}
+              <div className="flex items-center gap-6 mt-2">
+                {categoryLabel && (
+                  <span className="flex items-center gap-2 text-base text-gray-700 font-medium">
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                    </svg>
+                    {categoryLabel}
+                  </span>
+                )}
+                {hasRating && rating != null && (
+                  <span className="flex items-center gap-2 text-base text-gray-700 font-medium">
+                    <StarIcon className="w-5 h-5 text-amber-400" />
+                    {rating.toFixed(1)} on Google
+                  </span>
+                )}
+                {(() => {
+                  const m = meta as Record<string, unknown>;
+                  const status = m?.availability_status as string | undefined;
+                  const spots = m?.available_spots as number | undefined;
+
+                  // Provider set a specific number of spots
+                  if (spots && spots > 0) return (
+                    <span className="flex items-center gap-2 text-base text-green-700 font-semibold bg-green-50 rounded-full px-3 py-1">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {spots} {spots === 1 ? "spot" : "spots"} available
+                    </span>
+                  );
+
+                  // Explicitly accepting
+                  if (status === "accepting" || m?.accepting_residents === true) return (
+                    <span className="flex items-center gap-2 text-base text-green-700 font-semibold bg-green-50 rounded-full px-3 py-1">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Accepting residents
+                    </span>
+                  );
+
+                  // Explicitly not accepting
+                  if (status === "not_accepting") return (
+                    <span className="flex items-center gap-2 text-base text-red-700 font-semibold bg-red-50 rounded-full px-3 py-1">
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                      Not accepting residents
+                    </span>
+                  );
+
+                  // Default: unknown
+                  return (
+                    <span className="flex items-center gap-2 text-base text-gray-600 font-semibold bg-gray-100 rounded-full px-3 py-1">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Inquire about availability
+                    </span>
+                  );
+                })()}
               </div>
 
-              {/* ── Mobile identity layout ── */}
-              <div className="md:hidden">
-                {/* Row 1: Location (City, State) */}
-                {locationStr && (
-                  <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
-                )}
+              {/* Last updated */}
+              <p className="text-xs text-gray-400 mt-3">
+                Last updated {new Date(profile.updated_at || profile.created_at || Date.now()).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              </p>
 
-                {/* Row 2: Highlights only (category is now eyebrow above name) */}
+              {/* Managed by */}
+              {hasStaff && (
+                <div className="flex items-center gap-2.5 mt-4">
+                  <div className="relative flex-shrink-0">
+                    {staff!.image ? (
+                      <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
+                      </div>
+                    )}
+                    {displayClaimState === "claimed" && (
+                      <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="10" r="10" fill="white" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Managed by: <span className="font-medium text-gray-700">{staff!.name}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+            {/* Mobile eyebrow - category above name */}
+            {categoryLabel && (
+              <p className="md:hidden text-xs font-semibold tracking-wide uppercase text-gray-500 mb-1 mt-3">
+                {categoryLabel}
+              </p>
+            )}
+            {/* Name (mobile only — desktop name is above photos) */}
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left md:hidden">
+              {profile.display_name}
+            </h1>
+
+            {/* ── Mobile identity layout ── */}
+            <div className="md:hidden">
+              {/* Row 1: Location (City, State) */}
+              {locationStr && (
+                <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
+              )}
+
+              {/* Row 2: Highlights only (category is now eyebrow above name) */}
                 {(() => {
                   const categoryLower = categoryLabel?.toLowerCase() || "";
                   const filteredHighlights = highlights
@@ -1091,7 +1254,7 @@ export default async function ProviderPage({
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
-                      {displayClaimState === "verified" && staff?.image ? (
+                      {displayClaimState === "claimed" && staff?.image ? (
                         <Image
                           src={staff.image}
                           alt={staff.name || "Manager"}
@@ -1099,27 +1262,21 @@ export default async function ProviderPage({
                           height={48}
                           className="w-12 h-12 rounded-full object-cover"
                         />
-                      ) : displayClaimState === "verified" && staff?.name ? (
+                      ) : displayClaimState === "claimed" && staff?.name ? (
                         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                           <span className="text-sm font-semibold text-gray-500">
                             {getInitials(staff.name)}
                           </span>
                         </div>
-                      ) : displayClaimState === "claimed" ? (
-                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                          </svg>
-                        </div>
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                           <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
                       )}
-                      {/* Verification badge - only show for verified state */}
-                      {displayClaimState === "verified" && (
+                      {/* Verification badge */}
+                      {displayClaimState === "claimed" && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center">
                           <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
@@ -1130,35 +1287,14 @@ export default async function ProviderPage({
 
                     {/* Text content */}
                     <div className="flex-1 min-w-0">
-                      {displayClaimState === "verified" ? (
+                      {displayClaimState === "claimed" ? (
                         <>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-primary-600 tracking-wide">VERIFIED</span>
-                            <MobileClaimTooltip content="This listing has been verified and is managed by the owner. Information is kept up to date." />
+                            <span className="text-xs font-bold text-primary-600 tracking-wide">CLAIMED</span>
+                            <MobileClaimTooltip content="This business has been verified and is actively managed by its owner on Olera." />
                           </div>
                           <p className="text-sm text-gray-600 mt-0.5">
                             Managed by <span className="font-semibold text-gray-900">{staff?.name || profile.display_name}</span>
-                          </p>
-                        </>
-                      ) : displayClaimState === "claimed" ? (
-                        <>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-gray-400 tracking-wide">CLAIMED</span>
-                            <MobileClaimTooltip content="This listing has been claimed. If you're the owner, you can manage this page." />
-                          </div>
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            Are you the owner?{" "}
-                            <MobileManageLink
-                              providerName={profile.display_name}
-                              providerSlug={profile.slug}
-                              providerId={profile.id}
-                              sourceProviderId={profile.source_provider_id}
-                              providerEmail={profile.email}
-                              providerCity={profile.city}
-                              providerState={profile.state}
-                              claimState={actualClaimState}
-                              claimAccountId={claimAccountId}
-                            />
                           </p>
                         </>
                       ) : (
@@ -1177,8 +1313,6 @@ export default async function ProviderPage({
                               providerEmail={profile.email}
                               providerCity={profile.city}
                               providerState={profile.state}
-                              claimState={actualClaimState}
-                              claimAccountId={claimAccountId}
                             />
                           </p>
                         </>
@@ -1188,118 +1322,9 @@ export default async function ProviderPage({
                 </div>
               </div>
 
-              {/* ── Desktop identity layout (unchanged) ── */}
-              <div className="hidden md:block">
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
-                  {categoryLabel && (
-                    <>
-                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                      {(locationStr || hasRating) && <span className="text-gray-300">·</span>}
-                    </>
-                  )}
-                  {locationStr && (
-                    <>
-                      <span>{locationStr}</span>
-                      {hasRating && <span className="text-gray-300">·</span>}
-                    </>
-                  )}
-                  {hasRating && rating != null && (
-                    <span className="flex items-center gap-1">
-                      <StarIcon className="w-4 h-4 text-amber-400" />
-                      <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
-                      <span>on Google</span>
-                    </span>
-                  )}
-                  <span className="text-gray-300">·</span>
-                  <span className="text-xs text-teal-700 bg-teal-50 rounded-full px-2.5 py-1 font-medium">Updated May 2026</span>
-                </div>
 
-                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
-                  <div className="mt-1">
-                    <PricingEducationBadge
-                      category={profile.category!}
-                      providerName={profile.display_name}
-                      city={profile.city ?? undefined}
-                      state={profile.state ?? undefined}
-                    />
-                  </div>
-                ) : hasPriceRange ? (
-                  <PriceEstimate
-                    priceRange={priceRange!}
-                    category={profile.category ?? undefined}
-                    providerName={profile.display_name}
-                    city={profile.city ?? undefined}
-                    state={profile.state ?? undefined}
-                  />
-                ) : (
-                  <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                ))}
-
-                {profile.address && (
-                  <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
-                )}
-              </div>
-
-              {/* Highlight badges + social proof stats */}
-              {/* Hidden on mobile for cleaner hero, shown on desktop */}
-              {(highlights.length > 0 || providerTags.featured.length > 0) && (
-                <div id="highlights" className="scroll-mt-20 hidden md:block">
-                  <div className="flex flex-wrap items-center gap-2 mt-4">
-                    <div className="bg-green-50 border border-green-200 rounded-full py-1.5 px-3 flex items-center gap-1.5">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
-                      <span className="text-sm text-green-700 font-medium">Accepting residents</span>
-                    </div>
-                    {providerTags.featured.map((tag) => (
-                      <div key={tag.id} className="bg-white border border-gray-200 rounded-full py-1.5 px-3">
-                        <span className="text-sm text-gray-600">{tag.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── "Manage this page" CTA — only for unclaimed/claimed, not verified ── */}
-              {displayClaimState !== "verified" && (
-                <div className="hidden md:block">
-                <ManagePageCTA
-                  providerSlug={profile.slug}
-                  providerName={profile.display_name}
-                  providerId={profile.id}
-                  sourceProviderId={profile.source_provider_id}
-                  providerEmail={profile.email}
-                  providerCity={profile.city}
-                  providerState={profile.state}
-                  isClaimed={actualClaimState === "claimed"}
-                  claimAccountId={claimAccountId}
-                />
-                </div>
-              )}
-
-              {/* About moved to content zone, before Reviews */}
-
-              {/* Managed by — only show when staff data exists, hidden on mobile */}
-              {hasStaff && (
-                <div className="hidden md:flex items-center gap-2.5 mt-4">
-                  <div className="relative flex-shrink-0">
-                    {staff?.image ? (
-                      <Image src={staff.image} alt={staff.name || profile.display_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff?.name || profile.display_name)}</span>
-                      </div>
-                    )}
-                    <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
-                      <circle cx="10" cy="10" r="10" fill="white" />
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Managed by: <span className="font-medium text-gray-700">{staff?.name || profile.display_name}</span>
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+            </div>{/* end details column */}
+          </div>{/* end stacked wrapper */}
 
         </div>
       </div>
@@ -1308,14 +1333,142 @@ export default async function ProviderPage({
       <div className="bg-white" data-spotlight-zone>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
 
-        {/* -- Two-Column Grid (content + sticky sidebar) -- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* ── About + CTA side-by-side (desktop only) ── */}
+        <div className="hidden md:flex md:gap-10 md:items-start mb-10">
+          {/* Left: About + badges + standout */}
+          <div className="flex-1 min-w-0">
+          <div id="about" className="scroll-mt-20">
+            <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {profile.display_name}</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              {profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
+            </p>
 
-          {/* ========== Left Column ========== */}
-          <div className="lg:col-span-2">
+            {/* Badges */}
+            {providerBadges.length > 0 && (
+              <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
+                <div className="flex flex-wrap gap-x-10 gap-y-4">
+                  {providerBadges.map((badge) => (
+                    <div key={badge.title} className="flex items-center gap-3">
+                      {badge.imageSrc ? (
+                        <Image
+                          src={badge.imageSrc}
+                          alt={badge.title}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 object-contain shrink-0"
+                        />
+                      ) : (
+                        <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
+                          <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill={badge.badgeColor ?? "#C5A44E"} />
+                          <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
+                          <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
+                          <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill={badge.badgeColor ?? "#C5A44E"} fontFamily="system-ui">AWARD</text>
+                        </svg>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">{badge.title}</span>
+                        <span className="text-sm text-gray-500">{badge.subtitle}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* Section Navigation — inline nav with bottom border */}
-            <SectionNav sections={sectionItems} />
+            {/* What makes this place special */}
+            {providerStandout && (
+              <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                  <h3 className="text-xl font-bold text-gray-900">{providerStandout.heading}</h3>
+                </div>
+                <ul className="space-y-2">
+                  {providerStandout.points.map((point) => {
+                    const iconMap: Record<string, React.ReactNode> = {
+                      dining: (
+                        <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 8.25V6.75a3 3 0 10-6 0v1.5" /></svg>
+                      ),
+                      pet: (
+                        <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.35 3c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74S6.8 5.7 6.8 4.74C6.8 3.78 7.49 3 8.35 3zm7.3 0c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74s-1.55-.78-1.55-1.74c0-.96.69-1.74 1.55-1.74zm-10.6 4c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74S3.5 9.7 3.5 8.74C3.5 7.78 4.19 7 5.05 7zm13.9 0c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74s-1.55-.78-1.55-1.74c0-.96.69-1.74 1.55-1.74zM12 10c2.21 0 4 1.79 4 4 0 1.5-.83 2.8-2.05 3.47-.58.32-1.24.53-1.95.53s-1.37-.21-1.95-.53A3.997 3.997 0 018 14c0-2.21 1.79-4 4-4z" /></svg>
+                      ),
+                      amenities: (
+                        <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
+                      ),
+                    };
+                    return (
+                      <li key={point.text} className="flex items-start gap-2.5">
+                        {iconMap[point.icon] || <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" /></svg>}
+                        <span className="text-sm text-gray-900 leading-relaxed">{point.text}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
+          </div>
+
+          {/* Right: CTA card */}
+          <div className="w-[380px] flex-shrink-0">
+            <div id="connection-card-hero">
+              {isStudentContext ? (
+                <StudentProviderCTA
+                  surface="sidebar"
+                  providerId={profile.id}
+                  providerName={profile.display_name}
+                  providerSlug={profile.slug}
+                  providerSource={providerSource}
+                  city={profile.city}
+                  state={profile.state}
+                  campus={studentCampus}
+                />
+              ) : (
+                <DesktopCTAVariantRouter
+                  providerId={profile.id}
+                  providerName={profile.display_name}
+                  providerSlug={profile.slug}
+                  priceRange={priceRange}
+                  reviewCount={googleReviewsData?.review_count ?? reviewCount}
+                  phone={profile.phone}
+                  acceptedPayments={acceptedPayments}
+                  careTypes={profile.care_types ?? []}
+                  city={profile.city}
+                  state={profile.state}
+                  responseTime={null}
+                  providerCategory={profile.category}
+                  providerCity={profile.city}
+                  providerState={profile.state}
+                  providerImage={images[0] || null}
+                  rating={googleReviewsData?.rating ?? rating}
+                  highlights={highlights.map((h) => h.label)}
+                  similarProviders={similarProviders.providers.slice(0, 2).map((p) => ({
+                    id: p.id,
+                    slug: p.slug,
+                    name: p.name,
+                    image: p.image || null,
+                    category: profile.category,
+                    city: p.address?.split(", ")[0] || null,
+                    state: p.address?.split(", ")[1] || null,
+                    rating: p.rating || null,
+                    reviewCount: p.reviewCount || null,
+                    priceRange: p.priceRange || null,
+                    services: p.careTypes || [],
+                    highlights: p.highlights || [],
+                  }))}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Section Navigation — sticky divider between intro and detail sections */}
+        <SectionNav sections={sectionItems} />
+
+        {/* -- Content Column -- */}
+        <div className="grid grid-cols-1 gap-8 items-start">
+
+          {/* ========== Main Content ========== */}
+          <div>
 
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
@@ -1532,29 +1685,13 @@ export default async function ProviderPage({
               </div>
               )}
 
-              {/* ── About (description + badges + standout) ── */}
-              <div id="about" className="py-8 border-t border-gray-200 scroll-mt-20">
+              {/* ── About (description + badges + standout) — hidden on desktop (shown in hero) ── */}
+              <div id="about-mobile" className="py-8 border-t border-gray-200 scroll-mt-20 md:hidden">
                 {/* Part 1: Description */}
-                <div className="flex items-center gap-3 mb-3">
-                  <h2 className="text-2xl font-bold text-gray-900 font-display">About {profile.display_name}</h2>
-                  {isEmeraldOaks && (
-                    <div className="flex items-center gap-2">
-                      <a href="https://www.facebook.com/EmeraldOaksRetirement" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Facebook">
-                        <svg className="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-                      </a>
-                      <a href="https://www.instagram.com/emeraldoaksretirement" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Instagram">
-                        <svg className="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
-                      </a>
-                      <a href="https://rlcommunities.com/communities/texas/emerald-oaks-retirement/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Website">
-                        <svg className="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9 9 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <ExpandableText
-                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
-                  maxLength={400}
-                />
+                <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {profile.display_name}</h2>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
+                </p>
 
                 {/* Part 2: Awards and accolades — collapses when empty */}
                 {providerBadges.length > 0 && (
@@ -1593,15 +1730,28 @@ export default async function ProviderPage({
                   <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
                     <div className="flex items-center gap-2 mb-3">
                       <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
-                      <h3 className="text-base font-semibold text-teal-900">{providerStandout.heading}</h3>
+                      <h3 className="text-xl font-bold text-gray-900">{providerStandout.heading}</h3>
                     </div>
                     <ul className="space-y-2">
-                      {providerStandout.points.map((point) => (
-                        <li key={point} className="flex items-start gap-2.5">
-                          <svg className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" /></svg>
-                          <span className="text-sm text-teal-800 leading-relaxed">{point}</span>
-                        </li>
-                      ))}
+                      {providerStandout.points.map((point) => {
+                        const mIconMap: Record<string, React.ReactNode> = {
+                          dining: (
+                            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 8.25V6.75a3 3 0 10-6 0v1.5" /></svg>
+                          ),
+                          pet: (
+                            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.35 3c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74S6.8 5.7 6.8 4.74C6.8 3.78 7.49 3 8.35 3zm7.3 0c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74s-1.55-.78-1.55-1.74c0-.96.69-1.74 1.55-1.74zm-10.6 4c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74S3.5 9.7 3.5 8.74C3.5 7.78 4.19 7 5.05 7zm13.9 0c.86 0 1.55.78 1.55 1.74 0 .96-.69 1.74-1.55 1.74s-1.55-.78-1.55-1.74c0-.96.69-1.74 1.55-1.74zM12 10c2.21 0 4 1.79 4 4 0 1.5-.83 2.8-2.05 3.47-.58.32-1.24.53-1.95.53s-1.37-.21-1.95-.53A3.997 3.997 0 018 14c0-2.21 1.79-4 4-4z" /></svg>
+                          ),
+                          amenities: (
+                            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
+                          ),
+                        };
+                        return (
+                          <li key={point.text} className="flex items-start gap-2.5">
+                            {mIconMap[point.icon] || <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" /></svg>}
+                            <span className="text-sm text-gray-900 leading-relaxed">{point.text}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
@@ -1611,15 +1761,19 @@ export default async function ProviderPage({
               {isEmeraldOaks && (
               <div id="accommodations" className="scroll-mt-20 py-8 border-t border-gray-200">
                 <AccommodationsSection
+                  description="Our thoughtfully designed floor plans offer the perfect blend of comfort, style, and functionality, from cozy studios to spacious three-bedrooms. Each home is designed to fit your lifestyle, with the freedom to personalize and make the space your own."
                   sharedFeatures={[
                     "Full Kitchen",
-                    "Wheelchair Accessible Showers",
-                    "Air Conditioned",
-                    "Wi-Fi/High-Speed Internet",
-                    "Cable or Satellite TV",
-                    "Handicap Accessible",
-                    "Ground Floor Units",
-                    "Garden View",
+                    "In-Unit Washer and Dryer",
+                    "Individual Climate Control",
+                    "Private Patio or Balcony",
+                    "Spacious Closets",
+                    "Custom Cabinetry",
+                    "Carpet and Window Treatments",
+                    "Wheelchair Accessible Units",
+                    "Paid Utilities",
+                    "Cable TV and Wi-Fi",
+                    "Choice of Floor Plan",
                     "Respite or Short Term Stays Offered",
                   ]}
                   units={[
@@ -1670,19 +1824,15 @@ export default async function ProviderPage({
               {/* ── Dining ── */}
               {isEmeraldOaks && (
               <div id="dining" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Dining</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-3xl font-bold text-gray-900 font-display flex items-center gap-2.5">
+                    <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 8.25V6.75a3 3 0 10-6 0v1.5" /></svg>
+                    Dining
+                  </h2>
+                  <ViewPhotosButton categoryId="dining" />
+                </div>
                 <p className="text-base text-gray-600 mb-5">Signature Freedom Dining offers chef-prepared meals served resort-style throughout the day, with flexible hours and multiple dining settings, all included in monthly rent.</p>
-                <DiningCarousel images={[
-                  { src: "/providers/emerald-oaks/dining/steak.webp", alt: "Chef-prepared steak" },
-                  { src: "/providers/emerald-oaks/dining/chef.webp", alt: "Chef-prepared meals" },
-                  { src: "/providers/emerald-oaks/dining/salad.webp", alt: "Fresh chicken berry salad" },
-                  { src: "/providers/emerald-oaks/dining/steak-shrimp.webp", alt: "Steak and shrimp" },
-                  { src: "/providers/emerald-oaks/dining/salmon.webp", alt: "Salmon entrée" },
-                  { src: "/providers/emerald-oaks/dining/salad-bar.webp", alt: "Salad bar" },
-                  { src: "/providers/emerald-oaks/dining/creme-brulee.webp", alt: "Crème brûlée" },
-                  { src: "/providers/emerald-oaks/dining/shortcake.webp", alt: "Strawberry shortcake" },
-                ]} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-2 mt-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2.5">
                   {[
                     "Flexible Dining Hours",
                     "Sunday Brunch",
@@ -1696,7 +1846,7 @@ export default async function ProviderPage({
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-2.5">
                       <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0"><svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
-                      <span className="text-sm text-gray-700">{item}</span>
+                      <span className="text-[15px] text-gray-800">{item}</span>
                     </div>
                   ))}
                 </div>
@@ -1704,12 +1854,9 @@ export default async function ProviderPage({
               )}
 
               {/* ── Amenities ── */}
-              {isEmeraldOaks ? (
+              {isEmeraldOaks ? (<>
               <AmenitiesSection
-                highlightPhoto={{
-                  src: "/providers/emerald-oaks/photos/amenities-highlight.png",
-                  alt: "Residents enjoying the fitness center at Emerald Oaks",
-                }}
+                headerAction={<ViewPhotosButton categoryId="amenities" />}
                 categories={[
                 {
                   heading: "Fitness & Wellness",
@@ -1723,16 +1870,11 @@ export default async function ProviderPage({
                   ],
                 },
                 {
-                  heading: "Social & Recreation",
-                  icon: "social",
+                  heading: "Pet Friendly",
+                  icon: "pet",
                   items: [
-                    "Arts & Crafts Room",
-                    "Billiards & Game Room",
-                    "Library",
-                    "Computer Center",
-                    "Daily Social Activities",
-                    "Main Street Shops & Gathering Spaces",
-                    "Full-Size Movie Theater",
+                    "Dogs & Cats Welcome",
+                    "Landscaped Dog-Walking Grounds",
                   ],
                 },
                 {
@@ -1762,15 +1904,29 @@ export default async function ProviderPage({
                   ],
                 },
                 {
-                  heading: "Pet Friendly",
-                  icon: "pet",
+                  heading: "Social & Recreation",
+                  icon: "social",
                   items: [
-                    "Dogs & Cats Welcome",
-                    "Landscaped Dog-Walking Grounds",
+                    "Arts & Crafts Room",
+                    "Billiards & Game Room",
+                    "Library",
+                    "Computer Center",
+                    "Daily Social Activities",
+                    "Main Street Shops & Gathering Spaces",
+                    "Full-Size Movie Theater",
+                  ],
+                },
+                {
+                  heading: "Languages Spoken",
+                  icon: "languages",
+                  items: [
+                    "English",
+                    "Spanish",
+                    "German",
                   ],
                 },
               ]} />
-              ) : careServices.length > 0 && (
+              </>) : careServices.length > 0 && (
               <AmenitiesSection categories={careServices.map((s) => {
                 // Map care service labels to amenity icons
                 const lower = s.toLowerCase();
@@ -1791,9 +1947,33 @@ export default async function ProviderPage({
 
               {/* ── Neighborhood ── */}
               <div id="neighborhood" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-1">What&apos;s nearby</h2>
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-3xl font-bold text-gray-900 font-display flex items-center gap-2.5">
+                    <svg className="w-7 h-7 text-gray-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                    What&apos;s nearby
+                  </h2>
+                  {(() => {
+                    const hasCloseMedical = nearbyPlaces.find((c) => c.label === "Hospital")?.places.some((p) => parseFloat(p.distance) <= 5);
+                    const hasCloseShopping = nearbyPlaces.find((c) => c.label === "Grocery")?.places.some((p) => parseFloat(p.distance) <= 5);
+                    const parts: string[] = [];
+                    if (hasCloseMedical) parts.push("medical care");
+                    if (hasCloseShopping) parts.push("shopping");
+                    if (parts.length === 0) return null;
+                    return (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-medium">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Close to {parts.join(" and ")}
+                      </span>
+                    );
+                  })()}
+                </div>
                 {profile.address ? (
-                  <p className="text-sm text-gray-500 mb-1">{profile.address}{profile.city ? `, ${profile.city}` : ""}{profile.state ? `, ${profile.state}` : ""}</p>
+                  <p className="text-sm text-gray-900 mb-1">{profile.address}{profile.city ? `, ${profile.city}` : ""}{profile.state ? `, ${profile.state}` : ""}</p>
                 ) : profile.city && profile.state ? (
                   <p className="text-sm text-gray-500 mb-1">{profile.city}, {profile.state}</p>
                 ) : null}
@@ -1927,7 +2107,7 @@ export default async function ProviderPage({
                             <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
                           </div>
                         )}
-                        {displayClaimState === "verified" && (
+                        {displayClaimState === "claimed" && (
                           <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
                             <circle cx="10" cy="10" r="10" fill="white" />
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
@@ -1982,8 +2162,8 @@ export default async function ProviderPage({
             </div>
           </div>
 
-          {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
-          <div className="hidden md:block lg:col-span-1 self-stretch">
+          {/* ========== Right Column — Sticky Sidebar (hidden — CTA is now in hero zone) ========== */}
+          <div className="hidden lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
               {isStudentContext ? (
                 <StudentProviderCTA

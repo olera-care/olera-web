@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import Image from "next/image";
 import type { PhotoGroup } from "@/lib/photo-categories";
 
@@ -18,12 +18,9 @@ export function PhotoTourButton({ totalCount, onClick }: PhotoTourButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm text-gray-900 text-sm font-medium px-3 py-1.5 rounded-lg shadow-sm hover:bg-white transition-colors flex items-center gap-1.5"
+      className="absolute bottom-3 left-3 z-10 bg-white hover:bg-gray-50 text-gray-800 text-sm font-medium px-5 py-2.5 rounded-full border border-gray-200 shadow-sm hover:shadow transition-all"
     >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-      </svg>
-      See all {totalCount} photos
+      Photo Tour ({totalCount})
     </button>
   );
 }
@@ -36,13 +33,49 @@ interface PhotoTourModalProps {
   groups: PhotoGroup[];
   providerName: string;
   onClose: () => void;
+  /** If set, scroll to this group on open */
+  initialGroupId?: string;
 }
 
-export default function PhotoTourModal({ groups, providerName, onClose }: PhotoTourModalProps) {
-  const [activeGroupId, setActiveGroupId] = useState(groups[0]?.category.id ?? "");
+export default function PhotoTourModal({ groups, providerName, onClose, initialGroupId }: PhotoTourModalProps) {
+  const [activeGroupId, setActiveGroupId] = useState(initialGroupId ?? groups[0]?.category.id ?? "");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // Flatten all photos into a single ordered array for slideshow
+  const allPhotos = useMemo(() => {
+    const flat: { src: string; alt: string }[] = [];
+    for (const group of groups) {
+      for (let i = 0; i < group.photos.length; i++) {
+        flat.push({
+          src: group.photos[i].src,
+          alt: group.photos[i].alt ?? `${providerName} ${group.category.label} ${i + 1}`,
+        });
+      }
+    }
+    return flat;
+  }, [groups, providerName]);
+
+  // Build a lookup from photo src to flat index for opening lightbox from grid
+  const photoIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    allPhotos.forEach((p, i) => map.set(p.src, i));
+    return map;
+  }, [allPhotos]);
+
+  // Map each flat index to its category label for the lightbox
+  const photoCategoryMap = useMemo(() => {
+    const map = new Map<number, string>();
+    let idx = 0;
+    for (const group of groups) {
+      for (let i = 0; i < group.photos.length; i++) {
+        map.set(idx, group.category.label);
+        idx++;
+      }
+    }
+    return map;
+  }, [groups]);
 
   const scrollToSection = useCallback((id: string) => {
     setActiveGroupId(id);
@@ -53,6 +86,16 @@ export default function PhotoTourModal({ groups, providerName, onClose }: PhotoT
       container.scrollTo({ top: offsetTop, behavior: "smooth" });
     }
   }, []);
+
+  // Scroll to initial group on mount
+  const initialScrollDone = useRef(false);
+  useEffect(() => {
+    if (initialGroupId && !initialScrollDone.current) {
+      initialScrollDone.current = true;
+      // Delay to allow refs to populate
+      setTimeout(() => scrollToSection(initialGroupId), 100);
+    }
+  }, [initialGroupId, scrollToSection]);
 
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -88,7 +131,7 @@ export default function PhotoTourModal({ groups, providerName, onClose }: PhotoT
               Back to listing
             </button>
             <span className="text-gray-300">|</span>
-            <h2 className="text-lg font-semibold text-gray-900 truncate">{providerName} — Photo Tour</h2>
+            <h2 className="text-xl font-semibold text-gray-900 truncate">{providerName} Photo Tour</h2>
           </div>
           <button
             type="button"
@@ -115,14 +158,14 @@ export default function PhotoTourModal({ groups, providerName, onClose }: PhotoT
                   isActive ? "" : "opacity-60 hover:opacity-90"
                 }`}
               >
-                <div className={`w-28 h-20 sm:w-36 sm:h-24 rounded-xl overflow-hidden border-2 transition-colors ${
+                <div className={`w-40 h-28 sm:w-48 sm:h-32 rounded-xl overflow-hidden border-2 transition-colors ${
                   isActive ? "border-teal-600" : "border-transparent"
                 }`}>
                   <Image
                     src={group.photos[0].src}
                     alt={group.category.label}
-                    width={144}
-                    height={96}
+                    width={192}
+                    height={128}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -153,56 +196,98 @@ export default function PhotoTourModal({ groups, providerName, onClose }: PhotoT
                 {group.category.label}
                 <span className="text-base font-normal text-gray-400 ml-2">{group.photos.length}</span>
               </h3>
-              <div className="max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {group.photos.map((photo, i) => (
-                  <button
-                    key={photo.src}
-                    type="button"
-                    onClick={() => setLightbox({
-                      src: photo.src,
-                      alt: photo.alt ?? `${providerName} — ${group.category.label} ${i + 1}`,
-                    })}
-                    className="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity cursor-pointer"
-                  >
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt ?? `${providerName} — ${group.category.label} ${i + 1}`}
-                      width={400}
-                      height={300}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+              <div className="max-w-6xl grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {group.photos.map((photo, i) => {
+                  const flatIdx = photoIndexMap.get(photo.src) ?? 0;
+                  return (
+                    <button
+                      key={photo.src}
+                      type="button"
+                      onClick={() => setLightboxIndex(flatIdx)}
+                      className="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity cursor-pointer"
+                    >
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt ?? `${providerName} ${group.category.label} ${i + 1}`}
+                        width={400}
+                        height={300}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Lightbox overlay */}
-      {lightbox && (
+      {/* Lightbox slideshow */}
+      {lightboxIndex !== null && allPhotos[lightboxIndex] && (
         <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center"
-          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center"
+          onClick={() => setLightboxIndex(null)}
         >
+          {/* Close button */}
           <button
             type="button"
-            onClick={() => setLightbox(null)}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             aria-label="Close"
           >
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+
+          {/* Category label + counter */}
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium">
+            {photoCategoryMap.get(lightboxIndex)} &middot; {lightboxIndex + 1} / {allPhotos.length}
+          </div>
+
+          {/* Previous button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxIndex(lightboxIndex > 0 ? lightboxIndex - 1 : allPhotos.length - 1);
+            }}
+            className="absolute left-3 sm:left-6 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 transition-colors"
+            aria-label="Previous photo"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Image */}
           <Image
-            src={lightbox.src}
-            alt={lightbox.alt}
-            width={1200}
-            height={800}
-            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
+            key={allPhotos[lightboxIndex].src}
+            src={allPhotos[lightboxIndex].src}
+            alt={allPhotos[lightboxIndex].alt}
+            width={1400}
+            height={900}
+            className="max-w-[85vw] max-h-[85vh] object-contain rounded-lg select-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxIndex(lightboxIndex < allPhotos.length - 1 ? lightboxIndex + 1 : 0);
+            }}
           />
+
+          {/* Next button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxIndex(lightboxIndex < allPhotos.length - 1 ? lightboxIndex + 1 : 0);
+            }}
+            className="absolute right-3 sm:right-6 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 transition-colors"
+            aria-label="Next photo"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       )}
     </>

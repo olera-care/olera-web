@@ -37,11 +37,11 @@ interface NeighborhoodMapProps {
 
 const CATEGORY_COLORS: Record<string, string> = {
   hospital: "#dc2626",
-  pharmacy: "#7c3aed",
-  grocery: "#2563eb",
-  dining: "#ea580c",
-  parks: "#16a34a",
-  worship: "#ca8a04",
+  pharmacy: "#dc2626",
+  grocery: "#dc2626",
+  dining: "#dc2626",
+  parks: "#dc2626",
+  worship: "#dc2626",
 };
 
 // ============================================================
@@ -141,7 +141,7 @@ export default function NeighborhoodMap({
         attributionControl: true,
         zoomControl: false,
         center: [center.lat, center.lng],
-        zoom: 13,
+        zoom: 15,
       });
 
       Lf.control.zoom({ position: "topright" }).addTo(map);
@@ -204,7 +204,7 @@ export default function NeighborhoodMap({
 
     if (!activeCategory) {
       // Reset view to center
-      map.setView([center.lat, center.lng], 13, { animate: true });
+      map.setView([center.lat, center.lng], 15, { animate: true });
       return;
     }
 
@@ -312,46 +312,52 @@ export default function NeighborhoodMap({
         }
       `}</style>
 
-      {/* Map */}
-      <div className="mt-4 mb-5 rounded-xl overflow-hidden border border-gray-200">
-        <div ref={mapRef} style={{ height: 280, width: "100%" }} />
-      </div>
+      <div className="mt-3" />
 
-      {/* Summary */}
-      {summary && <p className="text-sm text-teal-700 font-medium mb-5">{summary}</p>}
-      {!summary && visible.length > 0 && <div className="mb-5" />}
-
-      {/* Category grid — clickable */}
-      {visible.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-5">
-          {visible.map((cat) => {
-            const isActive = activeCategory === cat.label;
-            return (
-              <button
-                key={cat.label}
-                type="button"
-                onClick={() => handleCategoryClick(cat.label)}
-                className={`text-left rounded-lg transition-colors p-2 -m-2 ${
-                  isActive ? "bg-teal-50 ring-1 ring-teal-200" : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <CategoryIcon icon={cat.icon} className={`w-5 h-5 shrink-0 ${isActive ? "text-teal-700" : "text-teal-600"}`} />
-                  <h3 className={`text-sm font-semibold ${isActive ? "text-teal-800" : "text-gray-900"}`}>{cat.label}</h3>
-                </div>
-                <div className="space-y-1.5">
-                  {cat.places.map((place) => (
-                    <div key={place.name} className="flex items-baseline justify-between gap-2">
-                      <span className="text-sm text-gray-700 truncate">{place.name}</span>
-                      <span className="text-xs text-gray-400 whitespace-nowrap">{place.distance}</span>
-                    </div>
-                  ))}
-                </div>
-              </button>
-            );
-          })}
+      {/* Two-column layout: map left, categories right */}
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Left — Map */}
+        <div className="md:w-1/2 rounded-xl overflow-hidden border border-gray-200 shrink-0">
+          <div ref={mapRef} style={{ height: 360, width: "100%" }} />
         </div>
-      )}
+
+        {/* Right — Category grid */}
+        {visible.length > 0 && (
+          <div className="md:w-1/2 grid grid-cols-2 gap-x-6 gap-y-4 content-start">
+            {visible.map((cat) => {
+              const isActive = activeCategory === cat.label;
+              return (
+                <button
+                  key={cat.label}
+                  type="button"
+                  onClick={() => handleCategoryClick(cat.label)}
+                  className={`text-left rounded-lg transition-colors p-2 -m-2 ${
+                    isActive ? "bg-teal-50 ring-1 ring-teal-200" : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <CategoryIcon icon={cat.icon} className={`w-5 h-5 shrink-0 ${isActive ? "text-teal-700" : "text-teal-600"}`} />
+                      <h3 className={`text-sm font-semibold ${isActive ? "text-teal-800" : "text-gray-900"}`}>{cat.label}</h3>
+                    </div>
+                    <span className={`text-xs ${isActive ? "text-teal-600" : "text-gray-400"}`}>
+                      {isActive ? "Viewing" : "View on map"}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {cat.places.map((place) => (
+                      <div key={place.name} className="flex items-baseline justify-between gap-2">
+                        <span className="text-sm text-gray-700 truncate">{place.name}</span>
+                        <span className="text-xs text-gray-400 whitespace-nowrap">{place.distance}</span>
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </>
   );
 }

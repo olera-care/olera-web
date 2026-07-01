@@ -232,10 +232,22 @@ export async function POST(
         nudged_at: null,
       };
 
-      await db
+      const { error: metaError } = await db
         .from("connections")
         .update({ metadata: updatedMeta })
         .eq("id", connectionId);
+
+      if (metaError) {
+        console.error("[edit-email] Trust resend metadata update failed:", metaError);
+        // Email was sent but metadata not updated - warn admin
+        return NextResponse.json({
+          success: true,
+          trusted: true,
+          resent: true,
+          warning: "Email trusted and resent, but sequence state may be inconsistent.",
+          newEmail,
+        });
+      }
 
       console.log(
         `[edit-email] Trusted and resent Day 0 for connection ${connectionId}: ${newEmail}`

@@ -1798,12 +1798,24 @@ export default function ConnectionRow({
                                   buried link. The confirm modal is the safety net. */}
                               <button
                                 type="submit"
-                                disabled={editingEmailLoading || findingEmail || !editEmailInput.trim() || editEmailInput === detail.provider.email}
+                                disabled={
+                                  editingEmailLoading ||
+                                  findingEmail ||
+                                  !editEmailInput.trim() ||
+                                  // Allow override of existing email when it's known to have issues
+                                  // (either from fresh verification or from existing emailIssueType)
+                                  (editEmailInput === detail.provider.email &&
+                                    verificationStatus !== "invalid" &&
+                                    verificationStatus !== "risky" &&
+                                    forceKind === null &&
+                                    c.emailIssueType !== "failed" &&
+                                    c.emailIssueType !== "invalid")
+                                }
                                 className="px-3 py-1 text-sm font-medium text-white bg-teal-600 rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {editingEmailLoading
                                   ? "Saving..."
-                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null
+                                  : verificationStatus === "invalid" || verificationStatus === "risky" || forceKind !== null || c.emailIssueType === "failed" || c.emailIssueType === "invalid"
                                     ? "Save anyway"
                                     : "Save"}
                               </button>

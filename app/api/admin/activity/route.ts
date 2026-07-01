@@ -550,18 +550,32 @@ async function handleProvidersView(db: any, opts: {
       .select("provider_id, provider_name, provider_category, city, state, slug")
       .in("provider_id", providerIds);
 
-    // Check which ones are claimed
-    const { data: claimedProfiles } = await db
-      .from("business_profiles")
-      .select("source_provider_id, slug, display_name, category, city, state, claim_state")
-      .in("source_provider_id", providerIds)
-      .eq("claim_state", "claimed");
+    // Check which ones are claimed — query by both source_provider_id AND slug
+    // since activity provider_id can be either format (after the slug backfill)
+    const [{ data: claimedBySourceId }, { data: claimedBySlug }] = await Promise.all([
+      db
+        .from("business_profiles")
+        .select("source_provider_id, slug")
+        .in("source_provider_id", providerIds)
+        .eq("claim_state", "claimed"),
+      db
+        .from("business_profiles")
+        .select("source_provider_id, slug")
+        .in("slug", providerIds)
+        .eq("claim_state", "claimed"),
+    ]);
 
-    const claimedSet = new Set(
-      (claimedProfiles || []).map(
-        (bp: { source_provider_id: string }) => bp.source_provider_id
-      )
-    );
+    // Build a set containing all identifiers (both source_provider_id and slug)
+    // that belong to claimed profiles, so lookups work regardless of ID format
+    const claimedSet = new Set<string>();
+    for (const bp of claimedBySourceId || []) {
+      if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
+      if (bp.slug) claimedSet.add(bp.slug);
+    }
+    for (const bp of claimedBySlug || []) {
+      if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
+      if (bp.slug) claimedSet.add(bp.slug);
+    }
 
     if (providers) {
       for (const p of providers) {
@@ -571,7 +585,7 @@ async function handleProvidersView(db: any, opts: {
           city: p.city,
           state: p.state,
           slug: p.slug,
-          claimed: claimedSet.has(p.provider_id),
+          claimed: claimedSet.has(p.provider_id) || claimedSet.has(p.slug),
         };
       }
     }
@@ -592,7 +606,7 @@ async function handleProvidersView(db: any, opts: {
             city: p.city,
             state: p.state,
             slug: p.slug,
-            claimed: claimedSet.has(p.provider_id),
+            claimed: claimedSet.has(p.provider_id) || claimedSet.has(p.slug),
           };
         }
       }

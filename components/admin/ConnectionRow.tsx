@@ -108,6 +108,10 @@ export interface ConnectionRowData {
   followupStage?: number | null;
   /** Why the sequence stopped */
   followupStoppedReason?: string | null;
+  /** Tagged as "no contact found" in Needs Email tab - sinks to bottom of list */
+  noContactFound?: boolean;
+  /** When the "no contact found" tag was added */
+  noContactFoundAt?: string | null;
 }
 
 // Per-provider engagement data from list API (does NOT include "messaged")
@@ -454,6 +458,10 @@ export default function ConnectionRow({
   const [trustingEmail, setTrustingEmail] = useState(false);
   const [trustEmailSuccess, setTrustEmailSuccess] = useState(false);
   const [trustEmailError, setTrustEmailError] = useState<string | null>(null);
+
+  // "No contact found" tag state (for Needs Email tab)
+  const [noContactTagged, setNoContactTagged] = useState(c.noContactFound ?? false);
+  const [togglingNoContactTag, setTogglingNoContactTag] = useState(false);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -978,6 +986,18 @@ export default function ConnectionRow({
             },
           });
         }
+
+        // Clear "no contact found" tag if it was set (email is now found)
+        if (noContactTagged) {
+          setNoContactTagged(false);
+          // Also clear on server side
+          fetch(`/api/admin/connections/${c.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ noContactFound: false }),
+          }).catch(() => {/* silent fail */});
+        }
+
         // Notify parent to refresh list
         onNudgeSuccess?.();
       } else {
@@ -1061,6 +1081,16 @@ export default function ConnectionRow({
           });
         }
 
+        // Clear "no contact found" tag if it was set (email is now found/fixed)
+        if (noContactTagged) {
+          setNoContactTagged(false);
+          fetch(`/api/admin/connections/${c.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ noContactFound: false }),
+          }).catch(() => {/* silent fail */});
+        }
+
         // Notify parent to refresh list
         onNudgeSuccess?.();
 
@@ -1126,6 +1156,33 @@ export default function ConnectionRow({
       setTrustEmailError("Network error");
     } finally {
       setTrustingEmail(false);
+    }
+  }
+
+  // Toggle "no contact found" tag for Needs Email tab
+  async function handleToggleNoContactTag() {
+    setTogglingNoContactTag(true);
+
+    try {
+      const res = await fetch(`/api/admin/connections/${c.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          noContactFound: !noContactTagged,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setNoContactTagged(data.noContactFound);
+        // Notify parent to refresh list (this will reorder the connection)
+        onNudgeSuccess?.();
+      }
+    } catch {
+      // Silent fail - button state will remain as is
+    } finally {
+      setTogglingNoContactTag(false);
     }
   }
 
@@ -1350,6 +1407,15 @@ export default function ConnectionRow({
                    c.emailIssueType === "no_email" ? "No email" :
                    c.emailIssueType === "failed" ? "Failed" :
                    "Invalid"}
+                </span>
+              </>
+            )}
+            {/* "No contact found" tag indicator - shown in Needs Email tab */}
+            {noContactTagged && !emailSuccess && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-50 text-purple-600" title={c.noContactFoundAt ? `Tagged ${daysAgo(c.noContactFoundAt)}` : "Searched, no contact found"}>
+                  🔍 Searched
                 </span>
               </>
             )}
@@ -2114,6 +2180,32 @@ export default function ConnectionRow({
                         )}
                         {emailSuccess && (
                           <p className="text-xs text-emerald-600">Email added! First notification sent to provider.</p>
+                        )}
+                        {/* "No contact found" tag button - for Needs Email tab */}
+                        {c.emailIssueType === "no_email" && !emailSuccess && (
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                            <button
+                              type="button"
+                              onClick={handleToggleNoContactTag}
+                              disabled={togglingNoContactTag}
+                              className={`px-2 py-1 text-xs font-medium rounded transition-colors disabled:opacity-50 ${
+                                noContactTagged
+                                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                            >
+                              {togglingNoContactTag
+                                ? "Updating..."
+                                : noContactTagged
+                                  ? "✓ Marked as searched"
+                                  : "🔍 Mark no contact found"}
+                            </button>
+                            {noContactTagged && (
+                              <span className="text-xs text-gray-400">
+                                (will sink to bottom of list)
+                              </span>
+                            )}
+                          </div>
                         )}
                       </form>
                     ) : (

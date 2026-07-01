@@ -798,6 +798,10 @@ export async function GET(request: NextRequest) {
         } : null,
         // Admin hidden flag - hides from admin UI without affecting anything else
         adminHidden: meta.admin_hidden === true,
+        // "No contact found" tag - team searched but couldn't find contact info
+        // Tagged connections sink to bottom of Needs Email tab
+        noContactFound: meta.no_contact_found === true,
+        noContactFoundAt: (meta.no_contact_found_at as string) || null,
       };
     });
 
@@ -1499,6 +1503,7 @@ export async function GET(request: NextRequest) {
 
     // Sort by most recent first
     // For "declined" tab: sort by archive date (most recently declined first)
+    // For "needs_email" tab: untagged first, then tagged (both groups sorted by date)
     // For other tabs: sort by creation date (most recent inquiry first)
     list.sort((a, b) => {
       if (responseFilter === "declined") {
@@ -1508,6 +1513,16 @@ export async function GET(request: NextRequest) {
         const aTime = aDate && !isNaN(aDate.getTime()) ? aDate.getTime() : 0;
         const bTime = bDate && !isNaN(bDate.getTime()) ? bDate.getTime() : 0;
         return bTime - aTime; // Most recently archived first
+      } else if (responseFilter === "needs_email") {
+        // For Needs Email: untagged connections first, tagged sink to bottom
+        // Within each group, sort by date (most recent first)
+        const aTagged = a.noContactFound ? 1 : 0;
+        const bTagged = b.noContactFound ? 1 : 0;
+        if (aTagged !== bTagged) return aTagged - bTagged; // Untagged (0) before tagged (1)
+        // Same tag status: sort by date
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime; // Most recent first
       } else {
         const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
         const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;

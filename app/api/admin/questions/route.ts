@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const providerId = searchParams.get("provider_id");
     const needsEmail = searchParams.get("needs_email") === "true";
     const countOnly = searchParams.get("count_only") === "true";
+    const grouped = searchParams.get("grouped") === "true"; // Group questions by provider
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const dateFrom = searchParams.get("date_from"); // ISO date string (inclusive)
@@ -243,7 +244,124 @@ export async function GET(request: NextRequest) {
         provider_email: providerEmails[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count });
+      // Fetch tab counts for needs_email path too
+      const [pendingCountNE, needsEmailCountNE, archivedCountNE] = await Promise.all([
+        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived").neq("status", "rejected"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
+      ]);
+
+      const tabCountsNE = {
+        pending: pendingCountNE.count ?? 0,
+        needs_email: needsEmailCountNE.count ?? 0,
+        archived: archivedCountNE.count ?? 0,
+      };
+
+      // If grouped mode, transform flat list into provider-grouped structure
+      if (grouped) {
+        // Fetch additional provider metadata for grouping
+        const providerSlugsForMeta = [...new Set(enriched.map((q) => q.provider_id).filter(Boolean))];
+        const providerMetadata: Record<string, {
+          phone: string | null;
+          isAccountClaimed: boolean;
+          verificationState: string | null;
+          isArchived: boolean;
+        }> = {};
+
+        if (providerSlugsForMeta.length > 0) {
+          const { data: bpMeta } = await db
+            .from("business_profiles")
+            .select("slug, phone, account_id, is_active, metadata")
+            .in("slug", providerSlugsForMeta);
+
+          for (const p of bpMeta ?? []) {
+            if (p.slug) {
+              const meta = (p.metadata as Record<string, unknown>) || {};
+              providerMetadata[p.slug] = {
+                phone: p.phone || null,
+                isAccountClaimed: !!p.account_id,
+                verificationState: (meta.verification_state as string) || null,
+                isArchived: p.is_active === false || meta.admin_archived === true,
+              };
+            }
+          }
+        }
+
+        // Group questions by provider
+        const providerGroups: Record<string, {
+          provider: {
+            id: string;
+            name: string | null;
+            slug: string;
+            email: string | null;
+            phone: string | null;
+            editorId: string | null;
+            isAccountClaimed: boolean;
+            verificationState: string | null;
+            isArchived: boolean;
+          };
+          stats: {
+            total: number;
+            needsEmail: number;
+            pending: number;
+            answered: number;
+            archived: number;
+          };
+          questions: typeof enriched;
+        }> = {};
+
+        for (const q of enriched) {
+          const pid = q.provider_id;
+          if (!pid) continue;
+
+          if (!providerGroups[pid]) {
+            const meta = providerMetadata[pid] || {
+              phone: null,
+              isAccountClaimed: false,
+              verificationState: null,
+              isArchived: false,
+            };
+            providerGroups[pid] = {
+              provider: {
+                id: pid,
+                name: q.provider_name || null,
+                slug: pid,
+                email: q.provider_email || null,
+                phone: meta.phone,
+                editorId: q.provider_editor_id || null,
+                isAccountClaimed: meta.isAccountClaimed,
+                verificationState: meta.verificationState,
+                isArchived: meta.isArchived,
+              },
+              stats: { total: 0, needsEmail: 0, pending: 0, answered: 0, archived: 0 },
+              questions: [],
+            };
+          }
+
+          providerGroups[pid].questions.push(q);
+          providerGroups[pid].stats.total++;
+
+          // Update stats based on question properties
+          const qMeta = (q.metadata as Record<string, unknown>) || {};
+          // Count questions needing email attention (no email OR dead/bounced email)
+          if (qMeta.needs_provider_email || qMeta.email_dead) providerGroups[pid].stats.needsEmail++;
+          if (q.status === "pending" || q.status === "approved") providerGroups[pid].stats.pending++;
+          if (q.status === "answered") providerGroups[pid].stats.answered++;
+          if (q.status === "archived") providerGroups[pid].stats.archived++;
+        }
+
+        // Convert to array and sort by total questions descending
+        const providers = Object.values(providerGroups).sort((a, b) => b.stats.total - a.stats.total);
+
+        return NextResponse.json({
+          providers,
+          totalProviders: providers.length,
+          totalQuestions: count,
+          tabCounts: tabCountsNE,
+        });
+      }
+
+      return NextResponse.json({ questions: enriched, count, tabCounts: tabCountsNE });
     }
 
     // Standard query path (non-needs_email)
@@ -360,14 +478,121 @@ export async function GET(request: NextRequest) {
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 
+    const tabCounts = {
+      pending: pendingCount.count ?? 0,
+      needs_email: needsEmailCount.count ?? 0,
+      archived: archivedCount.count ?? 0,
+    };
+
+    // If grouped mode, transform flat list into provider-grouped structure
+    if (grouped) {
+      // Fetch additional provider metadata for grouping
+      const providerSlugsForMeta = [...new Set(enriched.map((q) => q.provider_id).filter(Boolean))];
+      const providerMetadata: Record<string, {
+        phone: string | null;
+        isAccountClaimed: boolean;
+        verificationState: string | null;
+        isArchived: boolean;
+      }> = {};
+
+      if (providerSlugsForMeta.length > 0) {
+        const { data: bpMeta } = await db
+          .from("business_profiles")
+          .select("slug, phone, account_id, is_active, metadata")
+          .in("slug", providerSlugsForMeta);
+
+        for (const p of bpMeta ?? []) {
+          if (p.slug) {
+            const meta = (p.metadata as Record<string, unknown>) || {};
+            providerMetadata[p.slug] = {
+              phone: p.phone || null,
+              isAccountClaimed: !!p.account_id,
+              verificationState: (meta.verification_state as string) || null,
+              isArchived: p.is_active === false || meta.admin_archived === true,
+            };
+          }
+        }
+      }
+
+      // Group questions by provider
+      const providerGroups: Record<string, {
+        provider: {
+          id: string;
+          name: string | null;
+          slug: string;
+          email: string | null;
+          phone: string | null;
+          editorId: string | null;
+          isAccountClaimed: boolean;
+          verificationState: string | null;
+          isArchived: boolean;
+        };
+        stats: {
+          total: number;
+          needsEmail: number;
+          pending: number;
+          answered: number;
+          archived: number;
+        };
+        questions: typeof enriched;
+      }> = {};
+
+      for (const q of enriched) {
+        const pid = q.provider_id;
+        if (!pid) continue;
+
+        if (!providerGroups[pid]) {
+          const meta = providerMetadata[pid] || {
+            phone: null,
+            isAccountClaimed: false,
+            verificationState: null,
+            isArchived: false,
+          };
+          providerGroups[pid] = {
+            provider: {
+              id: pid,
+              name: q.provider_name || null,
+              slug: pid,
+              email: q.provider_email || null,
+              phone: meta.phone,
+              editorId: q.provider_editor_id || null,
+              isAccountClaimed: meta.isAccountClaimed,
+              verificationState: meta.verificationState,
+              isArchived: meta.isArchived,
+            },
+            stats: { total: 0, needsEmail: 0, pending: 0, answered: 0, archived: 0 },
+            questions: [],
+          };
+        }
+
+        providerGroups[pid].questions.push(q);
+        providerGroups[pid].stats.total++;
+
+        // Update stats based on question properties
+        const qMeta = (q.metadata as Record<string, unknown>) || {};
+        // Count questions needing email attention (no email OR dead/bounced email)
+        if (qMeta.needs_provider_email || qMeta.email_dead) providerGroups[pid].stats.needsEmail++;
+        if (q.status === "pending" || q.status === "approved") providerGroups[pid].stats.pending++;
+        if (q.status === "answered") providerGroups[pid].stats.answered++;
+        if (q.status === "archived") providerGroups[pid].stats.archived++;
+      }
+
+      // Convert to array and sort by total questions descending
+      const providers = Object.values(providerGroups).sort((a, b) => b.stats.total - a.stats.total);
+
+      return NextResponse.json({
+        providers,
+        totalProviders: providers.length,
+        totalQuestions: count ?? 0,
+        tabCounts,
+      });
+    }
+
+    // Standard flat response
     return NextResponse.json({
       questions: enriched,
       count: count ?? 0,
-      tabCounts: {
-        pending: pendingCount.count ?? 0,
-        needs_email: needsEmailCount.count ?? 0,
-        archived: archivedCount.count ?? 0,
-      },
+      tabCounts,
     });
   } catch (err) {
     console.error("Admin questions error:", err);

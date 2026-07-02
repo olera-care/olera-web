@@ -48,18 +48,18 @@ export default function SectionNav({
   };
 
   return (
-    <div className="hidden md:block bg-blue-50/60 border border-blue-100 rounded-xl -mx-1">
-      <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-3 px-4">
+    <div className="hidden md:block bg-gray-50/80 border border-gray-200 rounded-xl">
+      <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2.5 px-4">
         {sections.map((section) => {
           const isActive = activeId === section.id;
           return (
             <button
               key={section.id}
               onClick={() => scrollTo(section.id)}
-              className={`whitespace-nowrap text-[15px] rounded-lg px-3 py-1.5 transition-all cursor-pointer border ${
+              className={`whitespace-nowrap text-sm px-4 py-1.5 rounded-lg transition-all cursor-pointer ${
                 isActive
-                  ? "text-gray-900 font-semibold bg-white shadow-sm border-gray-200"
-                  : "text-gray-500 border-transparent hover:text-gray-900 hover:bg-white/80 hover:border-gray-200 hover:shadow-sm"
+                  ? "text-gray-900 font-semibold bg-white shadow-sm"
+                  : "text-gray-500 font-medium hover:text-gray-900"
               }`}
             >
               {section.label}

@@ -62,11 +62,12 @@ const PHOTO_CATEGORY_REGISTRY: Partial<Record<ProfileCategory, PhotoCategoryConf
     ],
   },
   memory_care: {
-    heroPriority: ["community", "accommodation", "lifestyle"],
+    heroPriority: ["facility", "staff", "accommodation", "activities"],
     categories: [
-      { id: "community",      label: "Residence",               shortLabel: "Residence" },
-      { id: "accommodation",  label: "Accommodation",           shortLabel: "Accommodation" },
-      { id: "lifestyle",      label: "Lifestyle",               shortLabel: "Lifestyle" },
+      { id: "facility",        label: "Facility",                shortLabel: "Facility" },
+      { id: "staff",           label: "Staff",                   shortLabel: "Staff" },
+      { id: "accommodation",   label: "Accommodation",           shortLabel: "Accommodation" },
+      { id: "activities",      label: "Activities",              shortLabel: "Activities" },
     ],
   },
 };

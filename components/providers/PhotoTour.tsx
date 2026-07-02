@@ -36,10 +36,11 @@ interface PhotoTourModalProps {
   groups: PhotoGroup[];
   providerName: string;
   onClose: () => void;
+  initialCategoryId?: string;
 }
 
-export default function PhotoTourModal({ groups, providerName, onClose }: PhotoTourModalProps) {
-  const [activeGroupId, setActiveGroupId] = useState(groups[0]?.category.id ?? "");
+export default function PhotoTourModal({ groups, providerName, onClose, initialCategoryId }: PhotoTourModalProps) {
+  const [activeGroupId, setActiveGroupId] = useState(initialCategoryId ?? groups[0]?.category.id ?? "");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);

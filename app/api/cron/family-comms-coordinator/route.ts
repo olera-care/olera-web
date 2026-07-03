@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateFamilyInboxUrl, generateIntroUrl } from "@/lib/claim-tokens";
@@ -206,7 +207,7 @@ export async function GET(request: NextRequest) {
       skipped: 0,
       dry_run: dryRun,
       byRung: {} as Record<string, number>,
-      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, completion_ghost: 0 },
+      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, send_skipped: 0, send_suppressed: 0, completion_ghost: 0 },
     };
     const bump = (rung: string) => {
       counts.byRung[rung] = (counts.byRung[rung] || 0) + 1;
@@ -945,7 +946,7 @@ export async function GET(request: NextRequest) {
         metadata: { ...plan.metadata, coordinator_rung: plan.rung },
       });
       const html = await plan.buildHtml(emailLogId, authEmailFinal);
-      const { success } = await sendEmail({
+      const { success, skipped, skipReason } = await sendEmail({
         to: recipient,
         subject: plan.subject,
         html,
@@ -958,6 +959,29 @@ export async function GET(request: NextRequest) {
       if (!success) {
         counts.skipped++;
         counts.stops.send_failed++;
+        continue;
+      }
+      // sendEmail's skips return success:true + skipped:true — nothing went out.
+      // Transient skips (frequency caps) must NOT burn the one-shot rung stamp or the
+      // coordinator stamp: the rung may retry tomorrow if the family is still in its band.
+      // Terminal skips (do-not-contact / bounce suppression / prefs) will NEVER send for
+      // this recipient, so advance the stamps as if handled — the completion ghost gate
+      // counts only status='sent' rows, so without this the rung retries daily forever,
+      // writing one failed email_log row per suppressed family per day.
+      if (skipped && isTransientSkip(skipReason)) {
+        counts.skipped++;
+        counts.stops.send_skipped++;
+        continue;
+      }
+      if (skipped) {
+        counts.skipped++;
+        counts.stops.send_suppressed++;
+        const skippedAt = new Date().toISOString();
+        await plan.stamp(skippedAt);
+        await db
+          .from("business_profiles")
+          .update({ metadata: { ...familyMeta, last_coordinator_email_at: skippedAt, last_coordinator_rung: plan.rung } })
+          .eq("id", fam.familyId);
         continue;
       }
 

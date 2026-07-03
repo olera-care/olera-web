@@ -297,7 +297,10 @@ export async function GET(request: NextRequest) {
       clickRate: rate(p.clicked, p.opened || p.sent),
       bounceRate: rate(p.bounced, p.sent),
     }))
-    .filter((p) => p.sent > 0 || p.weeklySends.some((n) => n > 0))
+    // Governed types always render (a rung that hasn't fired yet — e.g. a
+    // freshly deployed one — must be visible at 0, not hidden). Pseudo-rows
+    // like the rung-split guidance row only render once they have data.
+    .filter((p) => FAMILY_NUDGE_EMAIL_TYPES.has(p.type) || p.sent > 0 || p.weeklySends.some((n) => n > 0))
     .sort((a, b) => b.sent - a.sent);
 
   // ── Conversions (window) from seeker_activity ───────────────────────────
